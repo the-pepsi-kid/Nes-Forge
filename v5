@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<title>NES Tile Studio — Pepsi Alley</title>
+<style>
+:root{--bg:#0c0c10;--bg2:#101018;--bg3:#16161e;--bdr:#252530;--bdr2:#3a3a4a;--txt:#b8b8c8;--dim:#667;--acc:#5ad4ff;--acc2:#3a9abf;--grn:#8df57a;--red:#f57a7a;--ylw:#f5d07a;--orn:#f5a07a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Courier New',monospace;font-size:11px;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+.top{padding:6px 12px;background:var(--bg2);border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
+.top h1{font-size:12px;color:var(--acc);letter-spacing:1px;white-space:nowrap}
+.tabs{display:flex;gap:1px}
+.tab{padding:4px 10px;background:var(--bg3);color:var(--dim);border:1px solid var(--bdr);cursor:pointer;font:10px/1 inherit;transition:.12s}
+.tab:hover{color:var(--txt)} .tab.on{background:#1a2a4a;color:var(--acc);border-color:var(--acc2)}
+.ctl{display:flex;gap:6px;align-items:center;margin-left:auto;font-size:9px;color:var(--dim)}
+.ctl label{cursor:pointer;display:flex;align-items:center;gap:2px} .ctl input[type=checkbox]{accent-color:var(--acc2)}
+.ctl select,.ctl button{background:var(--bg3);color:var(--txt);border:1px solid var(--bdr);font:9px/1 inherit;padding:2px 6px;cursor:pointer}
+.ctl button:hover{background:var(--bdr);color:#fff}
+.ctl .upload-btn{background:#1a3a2a;border-color:#2a6a4a;color:var(--grn)}
+.ctl .upload-btn:hover{background:#2a5a3a}
+.ctl .export-btn{background:#1a2a3a;border-color:#2a4a6a;color:var(--acc)}
+.main{flex:1;display:flex;overflow:hidden}
+.panel{overflow:auto;padding:10px}
+.left-panel{flex:1;display:flex;justify-content:center;align-items:flex-start;overflow:auto}
+.right-panel{width:320px;background:var(--bg2);border-left:1px solid var(--bdr);overflow-y:auto;flex-shrink:0}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;cursor:crosshair}
+.right-panel h2{font-size:10px;color:var(--acc);margin:8px 0 4px;padding-bottom:2px;border-bottom:1px solid #1a2a4a}
+.right-panel h3{font-size:9px;color:#6a8;margin:6px 0 2px}
+.st{display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid #14141a;font-size:9px}
+.st .v{color:var(--grn);font-weight:bold} .st .w{color:var(--orn);font-weight:bold}
+.pr{display:flex;gap:2px;margin:2px 0;align-items:center}
+.ps{width:16px;height:16px;border:1px solid #444;cursor:pointer;transition:.1s}
+.ps:hover{transform:scale(1.3)} .ps.sel{outline:2px solid #fff;outline-offset:1px}
+.pl{font-size:8px;color:var(--dim);width:36px}
+.badge{display:inline-block;padding:0 4px;border-radius:2px;font-size:8px}
+.b-r{background:#3a1515;color:#f88} .b-g{background:#153a15;color:#8f8} .b-y{background:#3a3a15;color:#ff8}
+.bar{flex-shrink:0;background:var(--bg2);border-top:1px solid var(--bdr);padding:2px 12px;font-size:9px;color:var(--dim);display:flex;gap:14px}
+.bar span{color:var(--acc)}
+#tileEditor{position:absolute;background:var(--bg2);border:2px solid var(--acc2);padding:8px;display:none;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+#tileEditor h3{font-size:10px;color:var(--acc);margin-bottom:4px}
+#tileEditor .te-close{position:absolute;top:2px;right:6px;cursor:pointer;color:var(--red);font-size:14px}
+.doc{padding:12px;max-width:860px;margin:0 auto;overflow-y:auto;max-height:100%}
+.doc h2{color:var(--acc);font-size:12px;margin:12px 0 4px;border-bottom:1px solid #1a2a4a;padding-bottom:2px}
+.doc h3{color:#6a8;font-size:10px;margin:8px 0 3px}
+.doc p{font-size:9px;line-height:1.6;color:#99a;margin:3px 0}
+.doc pre{background:#08080c;border:1px solid #1a1a2a;padding:6px;font-size:8px;color:var(--grn);overflow-x:auto;margin:4px 0;line-height:1.4;white-space:pre-wrap}
+.doc table{border-collapse:collapse;width:100%;margin:4px 0;font-size:9px}
+.doc th{background:#12121a;color:var(--acc);padding:2px 5px;text-align:left;border:1px solid var(--bdr)}
+.doc td{padding:2px 5px;border:1px solid #1a1a2a;color:#99a}
+.attr-editor{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;margin:4px 0}
+.attr-cell{width:100%;aspect-ratio:1;border:1px solid #333;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;transition:.1s}
+.attr-cell:hover{opacity:.8;outline:1px solid #fff}
+.drop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;z-index:200;justify-content:center;align-items:center;font-size:18px;color:var(--acc);border:3px dashed var(--acc2)}
+.drop-overlay.show{display:flex}
+input[type=file]{display:none}
+.tab{position:relative}
+.tab::after{content:'';position:absolute;bottom:-1px;left:50%;width:0;height:2px;background:var(--acc);transition:.2s;transform:translateX(-50%)}
+.tab:hover::after{width:80%}
+.tab[title]:hover{z-index:1}
+.sync-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-left:6px;vertical-align:middle;animation:pulse 2s infinite}
+.sync-dot.live{background:var(--grn)}
+.sync-dot.solo{background:var(--dim)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.tab-ctx{position:fixed;background:var(--bg2);border:1px solid var(--bdr2);padding:4px 0;z-index:300;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.6);display:none}
+.tab-ctx.show{display:block}
+.tab-ctx div{padding:5px 14px;font-size:10px;cursor:pointer;color:var(--txt);display:flex;align-items:center;gap:8px}
+.tab-ctx div:hover{background:var(--bg3);color:#fff}
+.tab-ctx div .k{margin-left:auto;color:var(--dim);font-size:8px}
+.tab-ctx hr{border:none;border-top:1px solid var(--bdr);margin:3px 0}
+.ctl .undo-btn{background:#2a1a3a;border-color:#5a3a7a;color:#c8a0f0}
+.ctl .copy-btn{background:#1a2a2a;border-color:#2a5a5a;color:#7ad4d4}
+.ctl .paste-btn{background:#2a2a1a;border-color:#5a5a2a;color:#d4d47a}
+.ctl button:disabled{opacity:.35;cursor:default}
+.ctl .sep{width:1px;height:14px;background:var(--bdr);margin:0 2px}
+.toast{position:fixed;top:50px;left:50%;transform:translateX(-50%);background:#1a2a4a;color:var(--acc);padding:4px 14px;border:1px solid var(--acc2);font:10px/1.4 'Courier New',monospace;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.nes-picker{position:fixed;background:var(--bg2);border:2px solid var(--acc2);padding:10px;z-index:400;box-shadow:0 12px 40px rgba(0,0,0,.7);display:none}
+.nes-picker.show{display:block}
+.nes-picker h3{font-size:10px;color:var(--acc);margin:0 0 6px}
+.nes-picker .np-info{font-size:8px;color:var(--dim);margin-bottom:6px}
+.nes-picker .np-grid{display:grid;grid-template-columns:repeat(16,18px);gap:1px}
+.nes-picker .np-cell{width:18px;height:18px;border:1px solid #333;cursor:pointer;transition:.08s;position:relative}
+.nes-picker .np-cell:hover{transform:scale(1.4);z-index:2;border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,.3)}
+.nes-picker .np-cell.cur{outline:2px solid var(--acc);outline-offset:1px}
+.nes-picker .np-cell .np-hex{position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);font-size:6px;color:var(--dim);white-space:nowrap;pointer-events:none;display:none}
+.nes-picker .np-cell:hover .np-hex{display:block}
+.nes-picker .np-close{position:absolute;top:4px;right:8px;cursor:pointer;color:var(--red);font-size:14px;line-height:1}
+.nes-picker .np-cur{margin-top:8px;font-size:9px;color:var(--dim)}
+.nes-picker .np-cur span{color:var(--acc)}
+.ps.editable{cursor:pointer;position:relative}
+.pal-edit{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:var(--bg3);border:1px solid var(--bdr);color:var(--acc);font-size:10px;cursor:pointer;margin-left:4px;border-radius:2px;transition:.1s;flex-shrink:0}
+.pal-edit:hover{background:#1a2a4a;border-color:var(--acc2);color:#fff}
+#findMiniScene{background:#000}
+</style>
+</head><body>
+<div class="top">
+<h1>NES TILE STUDIO</h1>
+<div class="tabs" id="tabBar">
+<button class="tab on" data-view="scene" onclick="switchTab('scene')" oncontextmenu="tabCtx(event,'scene')">SCENE</button>
+<button class="tab" data-view="chr" onclick="switchTab('chr')" oncontextmenu="tabCtx(event,'chr')">CHR SHEET</button>
+<button class="tab" data-view="meta" onclick="switchTab('meta')" oncontextmenu="tabCtx(event,'meta')">METATILES</button>
+<button class="tab" data-view="attr" onclick="switchTab('attr')" oncontextmenu="tabCtx(event,'attr')">ATTR MAP</button>
+<button class="tab" data-view="docs" onclick="switchTab('docs')" oncontextmenu="tabCtx(event,'docs')">TECH DOCS</button>
+<span class="sync-dot solo" id="syncDot" title="No linked tabs"></span>
+</div>
+<div class="ctl">
+<label><input type="checkbox" id="oGrid" onchange="render()"> Grid</label>
+<label><input type="checkbox" id="oAttr" onchange="render()"> Attr</label>
+<label><input type="checkbox" id="oMeta" onchange="render()"> Meta</label>
+<label>Zoom:<select id="oZoom" onchange="render()"><option value="2">2x</option><option value="3" selected>3x</option><option value="4">4x</option></select></label>
+<button class="upload-btn" onclick="document.getElementById('fileIn').click()">&#x1F4C2; Upload Image</button>
+<button class="upload-btn" onclick="document.getElementById('zipIn').click()" style="background:#1a2a3a;border-color:#2a5a7a;color:#7abdf5">&#x1F4E6; Load .zip Pack</button>
+<button class="export-btn" onclick="exportAll()">&#x1F4BE; Export</button>
+<button class="export-btn" onclick="buildNesRom()" style="background:#2a1a1a;border-color:#6a3a3a;color:#f5a07a">&#x1F3AE; Build .NES ROM</button>
+<div class="sep"></div>
+<button class="undo-btn" id="undoBtn" onclick="undo()" disabled title="Ctrl+Z">&#x21A9; Undo</button>
+<button class="copy-btn" id="copyBtn" onclick="copyTile()" title="Ctrl+C">&#x2398; Copy</button>
+<button class="paste-btn" id="pasteBtn" onclick="pasteTile()" disabled title="Ctrl+V">&#x2399; Paste</button>
+<input type="file" id="fileIn" accept="image/*" onchange="handleUpload(event)">
+<input type="file" id="zipIn" accept=".zip" onchange="handleZipUpload(event)">
+</div>
+</div>
+
+<div class="main">
+<div class="left-panel panel" id="leftP">
+<canvas id="cv"></canvas>
+</div>
+<div class="right-panel panel" id="rightP">
+<div id="sideScene">
+<h2>SCENE EDITOR</h2>
+<p style="color:var(--dim)">Click to paint. Right-click to eyedrop.</p>
+<p style="color:var(--dim);font-size:8px"><b>Ctrl+Z</b> undo &nbsp; <b>Ctrl+C</b> copy tile &nbsp; <b>Ctrl+V</b> paste tile</p>
+<h3>Selected Tile</h3>
+<div style="display:flex;gap:8px;align-items:center;margin:4px 0">
+<canvas id="selTilePreview" width="48" height="48" style="border:1px solid var(--bdr);image-rendering:pixelated"></canvas>
+<div><div id="selTileId" style="color:var(--acc)">$00</div><div id="selTileUsage" style="color:var(--dim)">—</div></div>
+</div>
+<h3>Palette Selector</h3>
+<p style="font-size:7px;color:var(--dim);margin-bottom:2px">Click swatch to select · Click ✎ to edit NES color</p>
+<div id="palEditor"></div>
+<div id="palHexReadout" style="font-size:7px;color:var(--dim);margin-top:2px;font-family:monospace"></div>
+<h2>LIVE STATS</h2>
+<div id="liveStats"></div>
+<h2>ATTR EDITOR</h2>
+<p style="color:var(--dim);font-size:8px">Click to cycle palette (0→1→2→3→0)</p>
+<div class="attr-editor" id="attrGrid"></div>
+</div>
+<div id="sideChr" style="display:none">
+<h2>CHR TILE EDITOR</h2>
+<p style="color:var(--dim)">Click tile in sheet to select. Paint pixels below.</p>
+<p style="color:var(--dim);font-size:8px">Keys: <b>1-4</b> pixel color &nbsp; <b>Ctrl+C</b> copy &nbsp; <b>Ctrl+V</b> paste &nbsp; <b>Ctrl+Z</b> undo</p>
+<h3>Editing Tile</h3>
+<div style="display:flex;gap:8px;align-items:flex-start;margin:4px 0">
+<canvas id="chrEditCanvas" width="128" height="128" style="border:1px solid var(--bdr);image-rendering:pixelated;cursor:crosshair"></canvas>
+<div>
+<div id="chrEditId" style="color:var(--acc);font-size:12px;font-weight:bold">$00</div>
+<h3>Pixel Color (1-4)</h3>
+<div id="pixColorSel" style="display:flex;gap:4px;margin:4px 0"></div>
+<button style="margin-top:6px" onclick="clearSelectedTile()">Clear Tile</button>
+<button style="margin-top:4px" onclick="copyTile()">Copy Tile</button>
+<button style="margin-top:4px" onclick="pasteTile()">Paste Tile</button>
+</div>
+</div>
+<h3>Preview Palette</h3>
+<p style="font-size:7px;color:var(--dim);margin-bottom:2px">Click row=switch · Click ✎ to edit NES color</p>
+<div id="chrPalEditor"></div>
+<h2>TILE USAGE MAP</h2>
+<div id="chrUsageStats"></div>
+<h2>FIND IN SCENE</h2>
+<p style="font-size:7px;color:var(--dim);margin-bottom:4px">Shows where tile $<span id="findTileHex">00</span> appears in the nametable</p>
+<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+<button onclick="findTileInScene()" style="font-size:9px">Highlight in Scene</button>
+<label style="font-size:8px;color:var(--dim)"><input type="checkbox" id="findAutoTrack" checked> Auto-track</label>
+</div>
+<canvas id="findMiniScene" width="256" height="240" style="border:1px solid var(--bdr);image-rendering:pixelated;width:100%;cursor:pointer"></canvas>
+<div id="findResults" style="font-size:8px;color:var(--dim);margin-top:3px"></div>
+</div>
+<div id="sideMeta" style="display:none">
+<h2>METATILE ANALYSIS</h2>
+<div id="metaStats"></div>
+</div>
+<div id="sideAttr" style="display:none">
+<h2>ATTRIBUTE MAP</h2>
+<div id="attrStats"></div>
+</div>
+<div id="sideDocs" style="display:none"></div>
+</div>
+</div>
+
+<div class="bar">
+<div>Tile: <span id="bTile">—</span></div>
+<div>Used: <span id="bUsed">—</span></div>
+<div>Pal: <span id="bPal">—</span></div>
+<div>Pos: <span id="bPos">—</span></div>
+<div>Zone: <span id="bZone">—</span></div>
+<div style="margin-left:auto">Undo: <span id="bUndo">0</span> | Clip: <span id="bClip">—</span> | Unique: <span id="bUniq">—</span> | Free: <span id="bFree">—</span> | Meta: <span id="bMeta">—</span></div>
+</div>
+
+<div class="tab-ctx" id="tabCtxMenu">
+<div onclick="tabCtxOpen()">&#x1F5D7; Open in new tab<span class="k">Middle-click</span></div>
+<div onclick="tabCtxOpenAll()">&#x1F4CB; Open all views in tabs</div>
+<hr>
+<div onclick="tabCtxDetach()">&#x1F5D6; Detach as popup window</div>
+</div>
+
+<div class="drop-overlay" id="dropZone">Drop image or .zip tile pack to load</div>
+<div class="toast" id="toast"></div>
+
+<script>
+
+const _CHR=[255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,0,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,0,0,255,255,0,0,0,0,255,255,255,255,255,255,255,255,0,0,0,0,120,12,224,128,12,128,44,100,135,131,31,127,243,127,147,147,255,255,255,255,255,255,60,60,0,0,0,0,0,0,195,195,0,245,255,199,0,255,0,255,255,8,0,56,0,0,255,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,204,204,204,204,204,204,204,204,252,252,252,252,252,252,252,252,0,0,255,255,0,0,33,255,0,255,255,255,253,163,227,0,0,199,6,0,128,0,0,0,255,255,255,255,255,255,255,255,0,0,0,252,0,95,243,0,255,255,255,255,0,160,0,0,16,16,16,16,16,16,16,16,32,32,32,32,32,32,32,32,245,247,251,64,64,0,7,252,8,8,4,0,0,255,248,0,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,203,235,255,223,255,255,255,0,255,255,255,255,120,120,12,255,255,255,255,255,135,135,131,255,255,255,255,255,2,2,92,28,255,0,0,69,0,0,0,33,0,255,59,0,0,0,0,0,0,0,0,0,251,251,0,255,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,0,252,0,255,187,255,255,255,255,255,0,255,255,0,255,255,255,0,0,0,4,255,0,0,0,0,0,255,251,0,248,127,128,255,0,255,255,255,0,128,0,0,255,0,0,0,0,0,0,0,255,0,0,255,255,255,255,187,0,255,255,0,0,0,0,0,0,252,0,255,255,255,255,255,255,255,0,248,127,128,255,0,255,255,0,0,128,0,0,255,0,0,255,248,127,128,255,0,255,255,0,255,255,128,255,255,255,255,255,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,0,255,255,255,255,0,0,2,0,0,0,0,0,255,255,1,1,0,224,128,12,128,44,100,120,255,31,127,243,127,147,147,135,255,0,224,128,12,128,44,100,0,255,31,127,243,127,147,147,255,255,224,128,12,128,44,100,0,0,31,127,243,127,147,147,255,4,245,247,251,64,0,7,255,251,8,8,4,0,255,248,252,0,0,0,255,255,255,255,0,255,0,0,0,0,0,0,255,239,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,3,0,6,0,0,0,0,0,0,7,0,0,60,0,0,255,255,255,255,255,0,0,0,0,0,0,0,0,222,222,218,221,255,255,255,255,33,33,33,34,0,0,0,0,15,0,57,56,28,0,0,0,240,255,192,192,224,0,0,0,96,96,96,96,96,126,0,0,159,159,159,159,159,129,255,255,96,96,124,96,96,126,0,0,159,159,131,159,159,129,255,255,0,255,0,0,0,0,0,0,255,255,255,255,255,255,0,0,0,0,0,0,52,20,0,32,255,255,255,0,255,255,255,255,62,62,71,255,255,255,255,255,255,255,255,255,255,255,255,255,193,193,184,0,0,0,0,0,255,255,255,255,255,255,255,255,32,32,160,192,0,224,32,32,225,225,225,241,1,225,225,225,0,0,0,0,255,255,255,63,255,255,255,255,0,0,0,0,0,255,0,0,0,0,0,0,0,0,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255,255,255,255,95,243,0,0,0,0,0,0,160,0,0,0,255,239,7,3,64,64,72,0,0,0,0,16,0,0,0,88,240,240,255,0,0,0,0,0,0,0,0,255,0,255,255,255,255,255,0,0,0,7,7,0,0,0,0,0,255,255,255,7,8,0,0,16,96,255,187,255,63,0,255,255,255,255,255,0,255,255,255,0,0,0,255,255,0,0,0,0,0,255,0,6,38,48,0,0,64,63,63,207,239,255,255,255,192,255,255,255,255,63,0,0,255,0,0,0,0,0,0,0,0,255,255,220,188,188,64,224,4,60,188,35,3,3,191,7,3,3,3,227,0,0,0,0,120,64,65,239,255,255,128,128,254,255,255,0,192,120,124,124,0,1,1,255,63,7,3,3,2,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,97,0,0,0,199,227,243,227,255,255,255,28,207,239,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,127,255,0,0,0,0,0,15,0,0,255,255,251,255,0,255,255,0,255,255,255,255,255,255,255,127,0,0,0,0,0,0,0,0,0,0,52,20,20,0,32,255,255,0,255,255,255,255,255,255,255,255,255,0,0,252,16,255,255,255,255,255,255,255,16,255,255,255,255,0,0,0,0,255,255,255,255,255,255,19,0,255,239,231,239,0,0,35,251,0,0,0,0,255,255,220,4,128,254,0,0,128,128,251,224,128,255,255,255,191,191,255,255,228,227,0,0,0,0,0,0,0,4,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,0,0,0,0,0,0,0,31,64,128,0,0,0,0,0,224,0,0,0,0,0,0,0,255,255,255,255,0,0,64,64,0,0,0,0,255,255,128,128,40,235,239,235,255,255,255,255,199,4,0,4,0,0,0,0,0,0,0,0,31,31,31,31,255,255,255,255,224,224,224,224,255,255,255,255,255,255,126,126,0,0,0,0,0,0,129,129,255,255,255,255,255,255,120,120,0,0,0,0,0,0,135,135,102,96,96,96,102,60,0,0,153,159,159,159,153,195,255,255,24,24,0,24,24,0,0,0,231,231,255,231,231,255,255,255,102,96,60,6,102,60,0,126,153,159,195,249,153,195,255,129,0,0,0,0,0,0,0,102,255,255,255,255,255,255,255,153,118,126,126,110,102,102,0,0,137,129,129,145,153,153,255,255,0,126,0,126,0,0,0,0,255,129,255,129,255,255,255,255,102,96,60,6,102,60,0,0,153,159,195,249,153,195,255,255,0,164,240,244,100,36,0,0,255,191,255,255,255,255,255,255,0,192,199,128,197,129,128,4,255,63,56,127,56,120,120,248,0,103,102,102,102,102,32,0,255,255,255,255,255,255,255,255,0,57,25,25,225,1,1,0,255,255,255,255,255,255,255,255,0,39,36,56,56,0,0,0,255,255,255,255,255,255,255,255,0,226,162,250,250,48,0,0,255,231,231,255,255,255,255,255,0,64,0,0,2,2,0,0,255,255,255,255,255,255,255,255,0,1,1,1,1,1,0,0,255,255,255,255,255,255,255,255,0,0,64,64,66,194,226,106,255,179,179,179,177,49,17,145,0,135,183,180,224,131,51,163,255,72,8,11,31,124,204,92,0,1,1,129,129,1,1,17,255,254,254,126,126,254,254,38,0,127,111,231,219,0,31,64,255,128,128,0,0,255,224,0,0,56,249,255,95,199,135,0,255,0,0,0,32,56,120,255,0,255,64,0,126,124,124,116,255,255,192,128,254,252,252,252,0,34,0,98,124,124,124,124,255,227,195,227,255,255,255,255,4,132,68,196,132,133,196,196,248,120,56,56,120,120,56,56,0,28,64,0,126,124,124,116,255,253,192,128,254,252,252,252,0,0,24,159,31,159,159,156,255,240,248,255,255,255,255,255,0,255,0,143,143,255,207,207,255,255,48,48,48,0,48,48,0,8,255,255,255,255,255,255,255,56,0,0,0,0,0,0,0,255,112,128,0,0,0,12,255,255,127,255,255,255,252,252,0,128,0,0,0,0,0,0,255,131,255,255,255,255,0,0,0,103,0,0,0,0,0,0,255,231,255,255,255,255,0,0,0,0,0,0,0,0,0,0,255,192,255,255,255,255,0,0,0,3,0,0,255,0,0,0,255,31,255,255,255,255,255,0,0,255,0,0,255,0,0,0,255,255,255,255,255,255,255,0,120,12,0,0,255,0,0,0,135,131,255,255,255,255,255,0,106,0,0,0,238,2,2,0,145,255,255,255,255,255,63,3,255,255,32,34,38,63,62,63,0,0,192,192,192,192,192,192,163,51,155,26,10,106,10,10,92,12,4,4,132,4,4,4,17,0,1,1,129,129,1,1,38,255,254,254,126,126,254,254,120,12,0,0,0,0,0,0,135,131,255,255,255,255,255,255,255,0,1,1,129,129,1,1,0,255,255,255,255,255,255,255,64,128,224,128,12,128,44,100,0,0,31,127,243,127,147,147,0,0,224,128,12,128,44,100,255,0,31,127,243,127,147,147,3,0,19,1,235,235,235,234,255,255,31,13,239,239,239,239,0,0,8,12,254,254,254,158,255,255,15,15,255,255,255,255,132,4,68,196,132,133,196,196,120,248,56,56,120,120,56,56,3,0,23,23,119,119,53,52,255,255,159,159,255,255,255,255,0,0,9,5,253,253,253,13,255,255,15,7,255,255,255,255,202,0,255,255,255,255,255,255,53,255,0,0,0,0,0,0,12,140,204,204,204,204,204,204,252,188,252,252,252,252,252,252,0,0,0,0,3,129,0,0,255,255,255,0,7,131,193,225,8,8,192,0,224,32,32,32,249,249,241,1,225,225,225,225,31,63,58,63,63,3,48,48,224,192,193,192,192,252,192,192,26,2,155,26,10,106,10,10,4,252,4,4,132,4,4,4,17,0,192,199,128,197,129,128,38,255,63,56,127,56,120,120,17,0,1,1,129,129,1,1,55,255,255,255,255,255,255,255,120,12,1,1,129,1,0,9,135,131,254,254,126,254,255,6,162,162,0,64,0,126,124,124,255,255,255,192,128,254,252,252,44,44,0,0,98,124,124,124,255,255,255,195,227,255,255,255,132,132,4,68,196,132,133,196,120,120,248,56,56,120,120,56,182,182,128,64,0,126,124,124,255,255,255,192,128,254,252,252,56,56,0,24,159,31,159,159,255,255,255,248,255,255,255,255,62,62,71,248,240,240,224,224,255,255,255,248,240,240,227,226,62,62,71,252,0,0,199,108,255,255,255,0,0,0,0,0,62,62,71,0,0,0,190,35,255,255,255,0,0,0,0,16,0,0,4,4,0,0,57,97,240,240,252,4,0,25,59,97,57,57,57,62,48,6,0,62,192,192,192,192,192,249,255,192,26,26,2,26,27,193,0,34,4,4,252,4,4,62,255,1,4,4,132,192,199,128,197,129,248,248,120,63,56,127,56,120,120,120,12,224,128,12,128,44,135,135,131,31,127,243,127,147,17,17,0,68,196,132,133,196,55,55,255,255,255,255,255,255,113,113,1,127,111,231,219,0,14,14,254,255,255,255,255,255,120,120,12,0,0,2,0,222,135,135,131,255,255,255,3,255,120,120,12,127,111,231,219,0,135,135,131,255,255,255,255,255,116,3,0,19,1,235,235,235,252,255,255,31,13,239,239,239,124,0,0,8,12,254,254,254,255,255,255,15,15,255,255,255,196,132,4,36,36,196,196,196,56,120,248,24,24,56,56,56,116,3,0,23,23,119,119,53,252,255,255,159,159,255,255,255,156,0,0,9,5,253,253,253,255,255,255,15,7,255,255,255,253,253,252,253,253,255,255,255,226,227,227,226,226,240,240,240,108,239,132,4,0,0,0,0,0,0,8,8,15,0,0,0,32,158,46,32,32,0,0,1,17,1,16,16,144,0,0,0,97,49,9,9,112,0,0,252,225,57,29,29,120,0,0,252,57,29,56,62,48,6,0,62,192,224,192,192,192,249,255,192,163,194,2,34,2,221,0,26,0,41,33,1,33,34,254,4,128,4,132,192,199,128,197,129,120,248,120,63,56,127,56,120,100,120,12,28,0,56,68,36,147,135,131,227,255,199,131,195,196,132,4,31,31,31,15,0,255,255,255,255,255,255,255,255,255,255,255,238,42,0,0,127,255,255,255,255,255,0,255,255,31,64,128,238,42,0,0,127,255,255,255,255,255,0,255,255,0,0,0,0,0,255,0,0,255,251,255,255,187,0,255,255,0,0,0,0,0,255,0,0,255,64,128,255,187,0,255,255,234,234,162,0,0,46,127,127,239,239,255,255,137,175,255,255,158,158,44,0,0,98,124,124,255,255,255,255,195,227,255,255,255,255,255,255,134,100,244,88,0,0,0,0,1,147,3,167,130,130,127,0,255,255,0,0,125,125,128,128,0,0,255,255,52,52,182,128,16,208,95,7,255,255,255,255,48,240,255,255,13,13,56,0,24,159,31,159,255,255,255,255,248,255,255,255,255,255,255,255,255,255,255,255,240,240,248,248,255,255,255,255,224,224,127,63,31,15,15,3,0,0,0,0,0,0,0,0,63,63,255,255,255,255,255,63,0,0,0,0,0,0,0,0,240,240,240,240,224,193,129,2,252,252,248,240,0,0,0,0,32,32,32,160,32,160,160,160,225,225,225,225,1,1,1,1,57,57,29,56,58,63,63,3,192,192,224,192,193,192,192,252,27,27,122,122,250,122,114,50,4,4,4,4,4,132,140,204,128,128,4,132,68,196,132,133,120,120,248,120,56,56,120,120,108,108,60,60,220,188,188,64,131,131,131,131,35,3,3,191,57,57,56,28,0,0,135,140,255,255,255,255,240,255,255,255,7,7,100,127,192,32,63,183,255,255,255,255,0,223,192,64,7,7,100,127,0,230,240,208,255,255,255,255,0,25,15,15,2,2,92,28,63,0,0,0,0,0,0,33,192,255,255,247,67,67,0,0,0,225,227,35,255,255,255,255,12,237,239,239,124,124,0,0,12,252,252,252,255,255,255,255,15,255,255,255,24,57,224,224,134,100,244,88,231,198,7,7,1,147,3,167,0,0,128,254,0,0,0,0,0,0,0,1,0,0,0,0,3,3,32,0,130,128,0,34,15,15,47,15,143,143,15,47,159,156,0,0,12,252,252,252,255,255,255,255,15,255,255,255,128,255,128,128,32,48,144,144,128,255,255,255,224,255,223,223,128,255,128,128,0,0,0,0,128,255,255,255,0,254,254,254,128,255,128,128,0,15,15,15,128,255,255,255,224,239,239,239,0,255,0,0,36,197,192,192,0,0,255,255,24,26,27,27,0,255,0,0,255,255,255,255,0,0,255,255,0,0,0,0,0,255,0,0,64,7,7,5,0,0,255,255,48,48,48,48,32,32,32,32,32,160,160,160,129,129,129,129,1,1,1,1,48,48,57,57,31,31,31,15,192,192,192,192,224,224,224,240,2,11,8,10,255,255,255,255,12,4,4,4,0,0,0,0,196,196,132,4,16,20,143,15,56,56,120,248,96,96,112,112,224,4,60,188,220,188,188,64,7,3,3,3,35,3,3,191,147,159,156,128,255,255,255,255,255,255,255,255,255,255,255,255,115,255,192,0,255,255,255,255,128,0,0,255,0,0,0,0,250,248,0,0,255,255,255,255,5,7,0,255,0,0,0,0,115,255,192,0,0,0,0,0,255,255,192,255,255,255,255,255,163,19,19,0,0,1,126,126,239,255,255,255,255,129,255,255,252,252,252,0,12,34,124,126,255,255,255,255,255,227,255,255,24,57,57,224,224,134,100,244,231,198,198,7,7,1,147,3,0,0,0,0,0,28,54,50,0,0,0,0,0,0,0,0,195,227,227,224,193,0,3,163,207,239,239,239,239,172,175,239,252,252,252,0,12,183,167,183,255,255,255,255,255,247,231,255,255,255,255,255,255,97,9,9,0,0,0,0,0,103,255,255,255,255,255,255,255,255,255,255,0,0,0,0,0,255,255,255,144,16,16,148,144,128,128,128,223,223,223,223,223,192,255,255,0,0,0,0,0,0,0,0,254,254,254,254,254,0,255,255,15,15,15,15,15,0,0,135,239,239,239,239,239,224,255,120,193,193,193,193,195,0,0,0,26,26,26,26,24,24,255,255,255,255,255,255,255,0,0,0,0,0,0,0,0,0,255,255,7,135,135,132,6,0,0,0,48,48,48,48,48,48,255,255,32,32,32,32,32,32,160,160,129,129,129,129,129,1,1,1,0,57,57,56,28,31,31,31,255,192,192,192,224,224,224,224,255,255,255,255,255,187,58,122,0,0,0,0,0,4,4,4,0,2,2,4,4,68,196,132,127,125,125,120,120,56,56,120,224,4,4,60,188,220,188,188,7,3,3,3,3,35,3,3,0,0,0,0,0,3,19,15,255,255,255,255,255,224,32,48,255,255,255,255,255,31,31,31,255,255,255,255,255,224,224,224,126,30,14,0,0,226,162,250,255,255,255,255,12,231,231,255,126,126,56,0,16,164,240,244,255,255,255,255,31,191,255,255,88,24,57,224,224,134,100,244,167,231,198,7,7,1,147,3,50,53,1,0,0,0,47,32,0,8,0,0,255,255,192,192,163,99,97,32,0,3,195,7,175,111,111,47,254,255,255,63,165,15,0,0,0,242,248,252,253,255,255,255,0,243,251,255,0,129,1,1,1,17,1,1,255,247,255,255,7,31,255,255,0,0,8,12,24,9,130,130,192,192,206,204,216,207,194,194,0,0,8,248,4,0,0,4,0,0,96,0,146,148,148,146,140,147,159,156,128,167,167,166,112,108,96,96,127,72,72,72,32,35,160,168,96,99,99,67,0,4,4,4,7,4,4,36,31,184,187,184,56,56,249,255,0,0,0,2,3,0,0,0,255,3,192,130,0,192,192,0,0,0,3,64,192,1,0,192,160,32,32,32,32,32,160,160,1,129,129,129,129,1,1,1,15,0,57,56,28,32,34,38,240,255,192,192,224,192,192,192,58,2,98,10,82,146,90,122,4,252,156,4,12,12,4,4,133,196,196,132,4,7,148,0,120,56,56,120,248,88,75,255,64,224,4,60,188,220,188,188,191,7,3,3,3,35,3,3,65,1,33,1,7,0,0,0,62,62,30,30,8,0,0,0];
+const _NT=[16,92,20,93,94,95,16,1,16,96,97,16,16,98,99,16,35,100,20,101,102,35,35,28,28,20,20,20,28,103,104,28,105,106,0,107,108,109,110,111,112,113,114,47,47,115,116,117,118,119,120,121,122,10,123,124,36,37,37,37,36,125,126,36,127,128,0,129,130,131,132,0,133,21,21,21,21,21,134,48,48,135,136,137,138,10,1,139,10,140,10,10,10,10,10,10,141,142,0,143,144,145,0,0,14,49,49,146,147,148,149,50,50,51,150,151,152,153,1,154,22,155,22,156,22,157,22,22,158,159,0,160,161,162,0,0,14,6,6,163,164,165,166,1,1,51,167,168,169,170,1,171,172,173,29,174,29,175,29,29,176,177,178,179,180,181,0,0,14,6,6,182,183,184,185,52,52,186,187,188,189,190,1,191,192,193,194,23,23,23,23,23,195,196,197,198,199,200,0,0,14,201,202,203,53,204,205,206,53,207,208,209,210,211,1,212,213,214,215,24,24,24,24,24,216,217,218,219,220,221,222,223,14,224,225,226,54,227,228,229,54,230,231,232,233,234,235,236,55,55,17,17,17,17,17,17,237,238,239,240,241,242,243,6,14,244,245,246,56,247,56,248,249,250,251,252,253,254,255,251,12,12,12,12,12,12,12,12,217,217,239,136,216,217,99,6,14,208,57,228,57,228,57,3,79,250,136,188,233,254,7,246,25,25,25,25,25,58,25,58,172,217,0,189,172,216,99,6,18,0,1,1,1,1,1,49,0,250,120,188,233,254,7,213,59,26,26,26,26,59,26,59,216,217,132,107,61,217,99,6,18,0,1,1,1,1,1,6,8,250,0,188,39,197,7,82,15,15,15,15,15,15,15,15,195,196,27,107,195,196,243,6,18,0,1,1,1,1,1,96,1,51,208,188,82,63,7,8,228,27,27,27,60,27,27,60,61,1,42,107,61,26,99,6,18,0,1,30,30,30,30,1,1,51,231,121,136,63,7,233,19,19,19,19,62,19,19,62,238,1,54,143,238,200,99,6,18,0,0,63,1,1,98,1,1,51,136,40,136,63,77,0,31,31,32,32,32,32,31,31,64,142,86,0,64,64,99,6,18,0,0,81,65,65,134,1,29,51,136,252,169,80,66,246,66,0,33,33,33,33,66,66,67,159,86,124,67,159,99,6,14,25,223,1,68,68,68,21,21,51,208,137,152,232,1,171,132,0,38,38,38,27,69,69,22,96,243,22,109,109,99,6,14,1,6,6,70,70,6,6,6,186,120,121,93,0,1,48,39,39,39,39,39,39,71,71,111,254,111,111,20,132,123,132,18,138,72,73,73,72,73,72,47,186,136,40,138,74,132,47,34,74,40,40,74,40,132,132,13,76,3,13,13,13,78,37,210,125,212,75,75,139,75,75,2,0,152,0,52,7,76,7,13,183,13,13,79,13,13,76,7,7,7,7,7,7,41,77,13,13,148,255,78,255,78,78,79,79,41,7,77,41,7,41,7,7,7,7,7,7,7,7,5,5,5,0,20,5,42,5,5,5,5,5,5,5,42,5,5,5,42,5,5,5,5,42,5,5,5,5,5,5,5,42,4,4,4,34,80,4,4,4,34,80,4,4,4,4,4,4,4,4,4,34,4,4,4,4,4,4,4,4,80,34,34,80,36,1,0,0,0,9,9,9,43,81,9,9,82,9,102,36,82,1,82,43,43,9,9,9,9,9,9,9,74,43,43,81,255,3,3,3,3,3,3,3,3,3,3,3,44,3,3,65,44,3,44,13,3,3,3,3,255,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,11,11,83,84,11,83,11,8,8,11,8,8,8,11,8,83,11,8,11,11,8,84,8,8,11,8,8,8,8,8,8,1,85,89,46,45,86,86,87,86,1,91,1,88,1,85,89,89,87,1,87,85,45,45,86,88,87,88,1,1,1,1,1,1,1,45,48,85,224,92,89,1,1,45,1,89,90,91,46,45,46,85,86,1,1,91,90,85,46,89,45,1,1,1,1];
+const _ATTR=[0,0,0,0,0,0,0,0,0,0,8,0,0,0,8,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+
+// ═══════════════════════════════════════════════
+// NES PALETTE
+// ═══════════════════════════════════════════════
+const NP=[[84,84,84],[0,30,116],[8,16,144],[48,0,136],[68,0,100],[92,0,48],[84,4,0],[60,24,0],[32,42,0],[8,58,0],[0,64,0],[0,60,0],[0,50,60],[0,0,0],[0,0,0],[0,0,0],[152,150,152],[8,76,196],[48,50,236],[92,30,228],[136,20,176],[160,20,100],[152,34,32],[120,60,0],[84,90,0],[40,114,0],[8,124,0],[0,118,40],[0,102,120],[0,0,0],[0,0,0],[0,0,0],[236,238,236],[76,154,236],[120,124,236],[176,98,236],[228,84,236],[236,88,180],[236,106,100],[212,136,32],[160,170,0],[116,196,0],[76,208,32],[56,204,108],[56,180,204],[60,60,60],[0,0,0],[0,0,0],[236,238,236],[168,204,236],[188,188,236],[212,178,236],[236,174,236],[236,174,212],[236,180,176],[228,196,144],[204,210,120],[180,222,120],[168,226,144],[152,226,180],[160,214,228],[160,162,160],[0,0,0],[0,0,0]];
+
+// ═══════════════════════════════════════════════
+// MUTABLE STATE
+// ═══════════════════════════════════════════════
+const S={
+  chr:[], // 256 tiles, each [8][8] of 0-3
+  nt:[..._NT], // 960 nametable entries
+  attr:[..._ATTR], // 64 attribute bytes
+  pal:[[15,0,16,48],[15,6,39,48],[15,1,33,48],[15,4,36,48]],
+  selTile:0,
+  selPixColor:1,
+  selPal:0,
+  editTile:0,
+  tab:'scene'
+};
+
+// ═══════════════════════════════════════════════
+// UNDO / COPY / PASTE SYSTEM
+// ═══════════════════════════════════════════════
+const undoStack=[];
+const MAX_UNDO=80;
+let clipboard=null; // {tile: [8][8]} or null
+let undoPaused=false;
+
+function snapshot(){
+  if(undoPaused)return;
+  // Deep-copy mutable state
+  undoStack.push({
+    chr:S.chr.map(t=>t.map(r=>[...r])),
+    nt:[...S.nt],
+    attr:[...S.attr],
+    pal:S.pal.map(p=>[...p])
+  });
+  if(undoStack.length>MAX_UNDO) undoStack.shift();
+  document.getElementById('undoBtn').disabled=false;
+}
+
+function undo(){
+  if(!undoStack.length)return;
+  const snap=undoStack.pop();
+  S.chr=snap.chr;
+  S.nt=snap.nt;
+  S.attr=snap.attr;
+  S.pal=snap.pal;
+  document.getElementById('undoBtn').disabled=!undoStack.length;
+  buildPalEditor();buildAttrGrid();notify('undo');
+  showToast('Undo ('+undoStack.length+' left)');
+}
+
+function copyTile(){
+  const idx=(S.tab==='chr')?S.editTile:S.selTile;
+  clipboard=S.chr[idx].map(r=>[...r]);
+  document.getElementById('pasteBtn').disabled=false;
+  showToast('Copied tile $'+idx.toString(16).toUpperCase().padStart(2,'0'));
+}
+
+function pasteTile(){
+  if(!clipboard)return;
+  snapshot();
+  const idx=(S.tab==='chr')?S.editTile:S.selTile;
+  S.chr[idx]=clipboard.map(r=>[...r]);
+  notify('paste');
+  showToast('Pasted into tile $'+idx.toString(16).toUpperCase().padStart(2,'0'));
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._tm);
+  t._tm=setTimeout(()=>t.classList.remove('show'),1400);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey||e.metaKey){
+    if(e.key==='z'){e.preventDefault();undo()}
+    else if(e.key==='c'){e.preventDefault();copyTile()}
+    else if(e.key==='v'){e.preventDefault();pasteTile()}
+  }
+  // Number keys 1-4 select pixel color in CHR editor
+  if(S.tab==='chr'&&!e.ctrlKey&&!e.metaKey){
+    const n=parseInt(e.key);
+    if(n>=1&&n<=4){S.selPixColor=n-1;updateCHREditor()}
+  }
+  // Escape closes picker
+  if(e.key==='Escape') closePicker();
+  // Arrow keys navigate tiles in CHR tab
+  if(S.tab==='chr'&&!e.ctrlKey&&!e.metaKey&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+    e.preventDefault();
+    let t=S.editTile;
+    if(e.key==='ArrowRight')t=Math.min(255,t+1);
+    else if(e.key==='ArrowLeft')t=Math.max(0,t-1);
+    else if(e.key==='ArrowDown')t=Math.min(255,t+16);
+    else if(e.key==='ArrowUp')t=Math.max(0,t-16);
+    S.editTile=t;S.selTile=t;render();
+  }
+});
+
+// ═══════════════════════════════════════════════
+// NES COLOR PICKER
+// ═══════════════════════════════════════════════
+let pickerTarget=null; // {pal:int, idx:int} - which palette slot we're editing
+
+function openPicker(palIdx, colorIdx, anchorEl){
+  pickerTarget={pal:palIdx, idx:colorIdx};
+  const picker=document.getElementById('nesPicker');
+  const grid=document.getElementById('npGrid');
+  const curNes=S.pal[palIdx][colorIdx];
+
+  document.getElementById('npTarget').textContent='Pal '+palIdx+', Color '+colorIdx;
+  document.getElementById('npCurHex').textContent='$'+curNes.toString(16).toUpperCase().padStart(2,'0');
+  document.getElementById('npHoverHex').textContent='—';
+
+  grid.innerHTML='';
+  // NES 2C02 has 4 rows x 16 columns = 64 entries
+  for(let i=0;i<64;i++){
+    const cell=document.createElement('div');
+    cell.className='np-cell'+(i===curNes?' cur':'');
+    const rgb=NP[i]||[0,0,0];
+    cell.style.background='rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+    // Dim the known-bad entries
+    if(i===0x0D||i>=0x0E&&i<=0x0F||i>=0x1E&&i<=0x1F||i>=0x2E&&i<=0x2F||i>=0x3E&&i<=0x3F){
+      cell.style.opacity='0.3';
+    }
+    const hex='$'+i.toString(16).toUpperCase().padStart(2,'0');
+    cell.title=hex;
+    const hexLabel=document.createElement('span');
+    hexLabel.className='np-hex';hexLabel.textContent=hex;
+    cell.appendChild(hexLabel);
+    cell.onmouseenter=()=>{document.getElementById('npHoverHex').textContent=hex};
+    cell.onclick=()=>{pickColor(i)};
+    grid.appendChild(cell);
+  }
+
+  // Position near the anchor element
+  const rect=anchorEl.getBoundingClientRect();
+  picker.style.left=Math.min(rect.left, window.innerWidth-340)+'px';
+  picker.style.top=Math.min(rect.bottom+4, window.innerHeight-260)+'px';
+  picker.classList.add('show');
+}
+
+function closePicker(){
+  document.getElementById('nesPicker').classList.remove('show');
+  pickerTarget=null;
+}
+
+function pickColor(nesIdx){
+  if(!pickerTarget)return;
+  snapshot();
+  S.pal[pickerTarget.pal][pickerTarget.idx]=nesIdx;
+  closePicker();
+  buildPalEditor();
+  render();
+  showToast('Pal '+pickerTarget.pal+'['+pickerTarget.idx+'] = $'+nesIdx.toString(16).toUpperCase().padStart(2,'0'));
+}
+
+// Close picker on outside click
+document.addEventListener('mousedown',function(e){
+  const picker=document.getElementById('nesPicker');
+  if(picker.classList.contains('show')&&!picker.contains(e.target)){
+    if(!e.target.classList.contains('pal-edit')) closePicker();
+  }
+});
+
+// Decode CHR binary into tile arrays
+function initCHR(){
+  S.chr=[];
+  for(let i=0;i<256;i++){
+    const t=[];const b=i*16;
+    for(let y=0;y<8;y++){
+      const p0=_CHR[b+y],p1=_CHR[b+y+8],r=[];
+      for(let x=0;x<8;x++) r.push(((p0>>(7-x))&1)|(((p1>>(7-x))&1)<<1));
+      t.push(r);
+    }
+    S.chr.push(t);
+  }
+}
+initCHR();
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function getPal(c,r){
+  const ai=Math.floor(r/4)*8+Math.floor(c/4);
+  if(ai>=S.attr.length)return 0;
+  const ab=S.attr[ai],sc=Math.floor(c/2)%2,sr=Math.floor(r/2)%2;
+  return(ab>>((sr*2+sc)*2))&3;
+}
+function setPalQuad(attrIdx,quad,palVal){
+  const shift=quad*2;
+  S.attr[attrIdx]=(S.attr[attrIdx]&~(3<<shift))|((palVal&3)<<shift);
+}
+function getZone(r){return r<4?'Sky':r<8?'Wall':r<18?'Machine':r<25?'Walk':r<27?'Gnd':'HUD'}
+function tileUsage(){const u={};S.nt.forEach(t=>{u[t]=(u[t]||0)+1});return u}
+function uniqueTiles(){return new Set(S.nt).size}
+function metaCount(){
+  const m=new Set();
+  for(let mr=0;mr<15;mr++)for(let mc=0;mc<16;mc++){
+    const r=mr*2,c=mc*2;
+    m.add(S.nt[r*32+c]+','+S.nt[r*32+c+1]+','+S.nt[(r+1)*32+c]+','+S.nt[(r+1)*32+c+1]);
+  }
+  return m.size;
+}
+
+// ═══════════════════════════════════════════════
+// CANVAS + RENDERING
+// ═══════════════════════════════════════════════
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+
+function drawTileAt(bx,sx,sy,ti,pi,z){
+  const pl=S.pal[pi],tile=S.chr[ti];
+  for(let py=0;py<8;py++)for(let px=0;px<8;px++){
+    const nc=pl[tile[py][px]],rgb=NP[nc]||[0,0,0];
+    bx.fillStyle='rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+    bx.fillRect((sx+px)*z,(sy+py)*z,z,z);
+  }
+}
+
+function renderScene(){
+  const z=+document.getElementById('oZoom').value;
+  cv.width=256*z;cv.height=240*z;cx.imageSmoothingEnabled=false;
+  for(let tr=0;tr<30;tr++)for(let tc=0;tc<32;tc++){
+    drawTileAt(cx,tc*8,tr*8,S.nt[tr*32+tc],getPal(tc,tr),z);
+  }
+  const sg=document.getElementById('oGrid').checked,sa=document.getElementById('oAttr').checked,sm=document.getElementById('oMeta').checked;
+  if(sg){cx.strokeStyle='rgba(255,255,255,0.08)';cx.lineWidth=1;
+    for(let x=0;x<=256;x+=8){cx.beginPath();cx.moveTo(x*z,0);cx.lineTo(x*z,240*z);cx.stroke()}
+    for(let y=0;y<=240;y+=8){cx.beginPath();cx.moveTo(0,y*z);cx.lineTo(256*z,y*z);cx.stroke()}}
+  if(sa){const ac=['rgba(40,120,255,0.18)','rgba(255,60,60,0.18)','rgba(100,255,100,0.18)','rgba(255,200,40,0.18)'];
+    for(let tr=0;tr<30;tr++)for(let tc=0;tc<32;tc++){cx.fillStyle=ac[getPal(tc,tr)];cx.fillRect(tc*8*z,tr*8*z,8*z,8*z)}
+    cx.strokeStyle='rgba(255,255,0,0.35)';cx.lineWidth=2;
+    for(let x=0;x<=256;x+=32){cx.beginPath();cx.moveTo(x*z,0);cx.lineTo(x*z,240*z);cx.stroke()}
+    for(let y=0;y<=240;y+=32){cx.beginPath();cx.moveTo(0,y*z);cx.lineTo(256*z,y*z);cx.stroke()}}
+  if(sm){cx.strokeStyle='rgba(0,255,200,0.25)';cx.lineWidth=1;
+    for(let x=0;x<=256;x+=16){cx.beginPath();cx.moveTo(x*z,0);cx.lineTo(x*z,240*z);cx.stroke()}
+    for(let y=0;y<=240;y+=16){cx.beginPath();cx.moveTo(0,y*z);cx.lineTo(256*z,y*z);cx.stroke()}}
+}
+
+function renderCHR(){
+  const z=3;cv.width=128*z;cv.height=128*z;cx.imageSmoothingEnabled=false;
+  cx.fillStyle='#000';cx.fillRect(0,0,cv.width,cv.height);
+  const u=tileUsage();
+  for(let i=0;i<256;i++){
+    const tx=(i%16)*8,ty=Math.floor(i/16)*8;
+    const usage=u[i]||0;
+    // Tint by usage
+    for(let py=0;py<8;py++)for(let px=0;px<8;px++){
+      const ci=S.chr[i][py][px];
+      let r=ci*85,g=ci*85,b=ci*85;
+      if(usage<=1){r=Math.min(255,r+35)} else if(usage<=2){r=Math.min(255,r+20);g=Math.min(255,g+20)} else {g=Math.min(255,g+25)}
+      cx.fillStyle='rgb('+r+','+g+','+b+')';
+      cx.fillRect((tx+px)*z,(ty+py)*z,z,z);
+    }
+    if(i===S.editTile){cx.strokeStyle='var(--acc)';cx.lineWidth=2;cx.strokeRect(tx*z,ty*z,8*z,8*z)}
+  }
+  cx.strokeStyle='rgba(80,200,255,0.12)';cx.lineWidth=1;
+  for(let x=0;x<=128;x+=8){cx.beginPath();cx.moveTo(x*z,0);cx.lineTo(x*z,128*z);cx.stroke()}
+  for(let y=0;y<=128;y+=8){cx.beginPath();cx.moveTo(0,y*z);cx.lineTo(128*z,y*z);cx.stroke()}
+}
+
+function renderMeta(){
+  const z=+document.getElementById('oZoom').value;cv.width=256*z;cv.height=240*z;cx.imageSmoothingEnabled=false;
+  for(let tr=0;tr<30;tr++)for(let tc=0;tc<32;tc++) drawTileAt(cx,tc*8,tr*8,S.nt[tr*32+tc],getPal(tc,tr),z);
+  cx.fillStyle='rgba(0,0,0,0.35)';cx.fillRect(0,0,cv.width,cv.height);
+  const mm={};let mi=0;const hues=[];for(let i=0;i<240;i++)hues.push((i*41)%360);
+  for(let mr=0;mr<15;mr++)for(let mc=0;mc<16;mc++){
+    const r=mr*2,c=mc*2,k=S.nt[r*32+c]+','+S.nt[r*32+c+1]+','+S.nt[(r+1)*32+c]+','+S.nt[(r+1)*32+c+1];
+    if(!(k in mm))mm[k]=mi++;
+    cx.fillStyle='hsla('+hues[mm[k]%hues.length]+',60%,45%,0.35)';
+    cx.fillRect(mc*16*z,mr*16*z,16*z,16*z);
+    cx.strokeStyle='rgba(0,255,200,0.35)';cx.lineWidth=1;cx.strokeRect(mc*16*z,mr*16*z,16*z,16*z);
+  }
+}
+
+function renderAttr(){
+  const z=+document.getElementById('oZoom').value;cv.width=256*z;cv.height=240*z;cx.imageSmoothingEnabled=false;
+  const ac=[[40,120,255],[255,60,60],[100,255,100],[255,200,40]];
+  for(let tr=0;tr<30;tr++)for(let tc=0;tc<32;tc++){
+    const pi=getPal(tc,tr),c=ac[pi];
+    cx.fillStyle='rgb('+c[0]+','+c[1]+','+c[2]+')';
+    cx.fillRect(tc*8*z,tr*8*z,8*z,8*z);
+  }
+  cx.strokeStyle='#fff';cx.lineWidth=2;
+  for(let x=0;x<=256;x+=32){cx.beginPath();cx.moveTo(x*z,0);cx.lineTo(x*z,240*z);cx.stroke()}
+  for(let y=0;y<=240;y+=32){cx.beginPath();cx.moveTo(0,y*z);cx.lineTo(256*z,y*z);cx.stroke()}
+}
+
+function render(){
+  if(S.tab==='scene')renderScene();
+  else if(S.tab==='chr')renderCHR();
+  else if(S.tab==='meta')renderMeta();
+  else if(S.tab==='attr')renderAttr();
+  else if(S.tab==='docs')renderDocs();
+  updateStats();
+}
+
+// ═══════════════════════════════════════════════
+// SIDEBAR UPDATES
+// ═══════════════════════════════════════════════
+function updateStats(){
+  const u=tileUsage(),ut=uniqueTiles(),mc=metaCount();
+  const s1=Object.values(u).filter(v=>v===1).length;
+  const s2=Object.values(u).filter(v=>v===2).length;
+  document.getElementById('bUniq').textContent=ut;
+  document.getElementById('bFree').textContent=256-ut;
+  document.getElementById('bMeta').textContent=mc;
+  document.getElementById('bUndo').textContent=undoStack.length;
+  document.getElementById('bClip').textContent=clipboard?'$'+S.editTile.toString(16).toUpperCase().padStart(2,'0'):'—';
+
+  // Live stats panel
+  const ls=document.getElementById('liveStats');
+  if(ls) ls.innerHTML=
+    '<div class="st"><span>Unique Tiles</span><span class="'+(ut>200?'w':'v')+'">'+ut+' / 256</span></div>'+
+    '<div class="st"><span>Free Slots</span><span class="'+(256-ut<30?'w':'v')+'">'+(256-ut)+'</span></div>'+
+    '<div class="st"><span>Metatiles</span><span class="'+(mc>100?'w':'v')+'">'+mc+'</span></div>'+
+    '<div class="st"><span>1x Tiles</span><span class="'+(s1>50?'w':'v')+'">'+s1+'</span></div>'+
+    '<div class="st"><span>2x Tiles</span><span>'+s2+'</span></div>'+
+    '<div class="st"><span>Reuse Ratio</span><span class="'+(960/ut<5?'w':'v')+'">'+(960/ut).toFixed(1)+'x</span></div>';
+
+  // Update selected tile preview
+  const stc=document.getElementById('selTilePreview').getContext('2d');
+  stc.imageSmoothingEnabled=false;stc.clearRect(0,0,48,48);
+  drawTileAt(stc,0,0,S.selTile,S.selPal,6);
+  document.getElementById('selTileId').textContent='$'+S.selTile.toString(16).toUpperCase().padStart(2,'0');
+  document.getElementById('selTileUsage').textContent='Used '+(u[S.selTile]||0)+'x';
+
+  // Palette hex readout
+  const phr=document.getElementById('palHexReadout');
+  if(phr){
+    phr.innerHTML=S.pal.map((p,i)=>'<div style="'+(i===S.selPal?'color:var(--acc)':'')+
+      '">P'+i+': '+p.map(c=>'$'+c.toString(16).toUpperCase().padStart(2,'0')).join(' ')+'</div>').join('');
+  }
+
+  // CHR editor stats
+  if(S.tab==='chr'){
+    const cs=document.getElementById('chrUsageStats');
+    if(cs){
+      let h='';
+      const top=Object.entries(u).sort((a,b)=>b[1]-a[1]).slice(0,10);
+      top.forEach(([t,c])=>{h+='<div class="st"><span>$'+Number(t).toString(16).toUpperCase().padStart(2,'0')+'</span><span class="v">'+c+'x</span></div>'});
+      cs.innerHTML='<h3>Top 10 Used Tiles</h3>'+h;
+    }
+    updateCHREditor();
+    // Auto-track: update find-in-scene when selected tile changes
+    const autoEl=document.getElementById('findAutoTrack');
+    if(autoEl&&autoEl.checked&&S.editTile!==findLastTile) findTileInScene();
+  }
+
+  // Meta stats
+  if(S.tab==='meta'){
+    document.getElementById('metaStats').innerHTML=
+      '<div class="st"><span>Unique Metatiles</span><span class="'+(mc>100?'w':'v')+'">'+mc+' / 240</span></div>'+
+      '<div class="st"><span>NG Target</span><span class="v">45-60</span></div>'+
+      '<p style="margin-top:6px;color:var(--dim)">Each colored block = one unique 16x16 metatile. Same color = same 4-tile combination reused.</p>';
+  }
+
+  // Attr stats
+  if(S.tab==='attr'){
+    const pc=[0,0,0,0];
+    for(let r=0;r<30;r++)for(let c=0;c<32;c++) pc[getPal(c,r)]++;
+    document.getElementById('attrStats').innerHTML=
+      '<div class="st"><span>Pal 0 zones</span><span>'+pc[0]+' / 960</span></div>'+
+      '<div class="st"><span>Pal 1 zones</span><span>'+pc[1]+' / 960</span></div>'+
+      '<div class="st"><span>Pal 2 zones</span><span>'+pc[2]+' / 960</span></div>'+
+      '<div class="st"><span>Pal 3 zones</span><span>'+pc[3]+' / 960</span></div>';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// PALETTE EDITOR
+// ═══════════════════════════════════════════════
+function buildPalEditor(){
+  const pe=document.getElementById('palEditor');pe.innerHTML='';
+  S.pal.forEach((pl,pi)=>{
+    const row=document.createElement('div');row.className='pr';
+    const lb=document.createElement('span');lb.className='pl';lb.textContent='P'+pi;
+    lb.style.cursor='pointer';
+    lb.onclick=()=>{S.selPal=pi;buildPalEditor();render()};
+    if(pi===S.selPal)lb.style.color='var(--acc)';
+    row.appendChild(lb);
+    pl.forEach((ci,idx)=>{
+      const s=document.createElement('div');s.className='ps'+(pi===S.selPal&&idx===S.selPixColor?' sel':'');
+      const c=NP[ci]||[0,0,0];s.style.background='rgb('+c[0]+','+c[1]+','+c[2]+')';
+      s.title='$'+ci.toString(16).toUpperCase().padStart(2,'0');
+      s.onclick=()=>{S.selPal=pi;S.selPixColor=idx;buildPalEditor()};
+      row.appendChild(s);
+    });
+    // Edit button per row — opens picker for currently selected color in this palette
+    const eb=document.createElement('span');eb.className='pal-edit';eb.textContent='\u270E';
+    eb.title='Edit selected color in P'+pi;
+    (function(p){eb.onclick=()=>{S.selPal=p;openPicker(p,S.selPixColor,eb)}})(pi);
+    row.appendChild(eb);
+    pe.appendChild(row);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// ATTRIBUTE GRID EDITOR
+// ═══════════════════════════════════════════════
+function buildAttrGrid(){
+  const g=document.getElementById('attrGrid');g.innerHTML='';
+  const ac=['rgba(40,120,255,0.7)','rgba(255,60,60,0.7)','rgba(100,255,100,0.7)','rgba(255,200,40,0.7)'];
+  for(let ar=0;ar<8;ar++)for(let ac2=0;ac2<8;ac2++){
+    const ai=ar*8+ac2,ab=S.attr[ai];
+    // Show dominant palette for this byte
+    const pals=[ab&3,(ab>>2)&3,(ab>>4)&3,(ab>>6)&3];
+    const cell=document.createElement('div');cell.className='attr-cell';
+    // Show as 2x2 mini grid
+    cell.style.display='grid';cell.style.gridTemplateColumns='1fr 1fr';cell.style.padding='0';
+    for(let q=0;q<4;q++){
+      const qd=document.createElement('div');
+      qd.style.background=ac[pals[q]];qd.style.width='100%';qd.style.height='100%';
+      qd.title='Attr['+ai+'] Q'+q+' = Pal '+pals[q];
+      qd.style.cursor='pointer';
+      qd.onclick=()=>{snapshot();setPalQuad(ai,q,(pals[q]+1)%4);buildAttrGrid();notify('attr')};
+      cell.appendChild(qd);
+    }
+    g.appendChild(cell);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// CHR TILE PIXEL EDITOR
+// ═══════════════════════════════════════════════
+function updateCHREditor(){
+  const ec=document.getElementById('chrEditCanvas'),ex=ec.getContext('2d');
+  ex.imageSmoothingEnabled=false;ex.clearRect(0,0,128,128);
+  const tile=S.chr[S.editTile],pl=S.pal[S.selPal];
+  const sz=16;
+  for(let y=0;y<8;y++)for(let x=0;x<8;x++){
+    const ci=tile[y][x],nc=pl[ci],rgb=NP[nc]||[0,0,0];
+    ex.fillStyle='rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+    ex.fillRect(x*sz,y*sz,sz,sz);
+    ex.strokeStyle='rgba(255,255,255,0.1)';ex.strokeRect(x*sz,y*sz,sz,sz);
+  }
+  document.getElementById('chrEditId').textContent='Tile $'+S.editTile.toString(16).toUpperCase().padStart(2,'0');
+  // Pixel color selector - click=select, edit button=pick NES color
+  const pcs=document.getElementById('pixColorSel');pcs.innerHTML='';
+  for(let i=0;i<4;i++){
+    const s=document.createElement('div');s.className='ps'+(i===S.selPixColor?' sel':'');
+    const nc=S.pal[S.selPal][i],rgb=NP[nc]||[0,0,0];
+    s.style.background='rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+    s.title='Color '+i+' = $'+nc.toString(16).toUpperCase().padStart(2,'0');
+    (function(ci){s.onclick=()=>{S.selPixColor=ci;updateCHREditor()}})(i);
+    pcs.appendChild(s);
+  }
+  // Edit button for pixel colors
+  const peb=document.createElement('span');peb.className='pal-edit';peb.textContent='\u270E';
+  peb.title='Edit selected pixel color';
+  peb.onclick=()=>{openPicker(S.selPal,S.selPixColor,peb)};
+  pcs.appendChild(peb);
+  // Show hex label under swatches
+  let hexRow=document.getElementById('pixHexRow');
+  if(!hexRow){hexRow=document.createElement('div');hexRow.id='pixHexRow';hexRow.style.cssText='font-size:7px;color:var(--dim);margin-top:2px';pcs.parentNode.insertBefore(hexRow,pcs.nextSibling)}
+  hexRow.textContent=S.pal[S.selPal].map(c=>'$'+c.toString(16).toUpperCase().padStart(2,'0')).join(' ');
+
+  // CHR sidebar palette selector - click=select, edit button=pick
+  const cpe=document.getElementById('chrPalEditor');
+  if(cpe){
+    cpe.innerHTML='';
+    S.pal.forEach((pl,pi)=>{
+      const row=document.createElement('div');row.className='pr';
+      const lb=document.createElement('span');lb.className='pl';lb.textContent='P'+pi;
+      lb.style.cursor='pointer';
+      lb.onclick=()=>{S.selPal=pi;buildPalEditor();updateCHREditor();render()};
+      if(pi===S.selPal)lb.style.color='var(--acc)';
+      row.appendChild(lb);
+      pl.forEach((ci,idx)=>{
+        const s=document.createElement('div');s.className='ps'+(pi===S.selPal&&idx===S.selPixColor?' sel':'');
+        const c=NP[ci]||[0,0,0];s.style.background='rgb('+c[0]+','+c[1]+','+c[2]+')';
+        s.title='$'+ci.toString(16).toUpperCase().padStart(2,'0');
+        (function(myPi,myIdx){
+          s.onclick=()=>{S.selPal=myPi;S.selPixColor=myIdx;buildPalEditor();updateCHREditor()};
+        })(pi,idx);
+        row.appendChild(s);
+      });
+      const eb=document.createElement('span');eb.className='pal-edit';eb.textContent='\u270E';
+      eb.title='Edit selected color in P'+pi;
+      (function(p){eb.onclick=()=>{S.selPal=p;openPicker(p,S.selPixColor,eb)}})(pi);
+      row.appendChild(eb);
+      cpe.appendChild(row);
+    });
+  }
+}
+
+let chrPainting=false;
+document.getElementById('chrEditCanvas').addEventListener('mousedown',function(e){
+  const rect=this.getBoundingClientRect();
+  const px=Math.floor((e.clientX-rect.left)/16),py=Math.floor((e.clientY-rect.top)/16);
+  if(px>=0&&px<8&&py>=0&&py<8){
+    snapshot();
+    chrPainting=true;
+    S.chr[S.editTile][py][px]=S.selPixColor;
+    updateCHREditor();notify('chrEdit');
+  }
+});
+document.getElementById('chrEditCanvas').addEventListener('mousemove',function(e){
+  if(!chrPainting||e.buttons!==1)return;
+  const rect=this.getBoundingClientRect();
+  const px=Math.floor((e.clientX-rect.left)/16),py=Math.floor((e.clientY-rect.top)/16);
+  if(px>=0&&px<8&&py>=0&&py<8){
+    S.chr[S.editTile][py][px]=S.selPixColor;
+    updateCHREditor();notify('chrEdit');
+  }
+});
+document.addEventListener('mouseup',function(){
+  if(chrPainting){chrPainting=false;broadcastState('chrEditDone')}
+});
+
+function clearSelectedTile(){
+  snapshot();
+  for(let y=0;y<8;y++)for(let x=0;x<8;x++) S.chr[S.editTile][y][x]=0;
+  updateCHREditor();notify('clearTile');
+}
+
+// ═══════════════════════════════════════════════
+// TILE SEARCH / FIND IN SCENE
+// ═══════════════════════════════════════════════
+let findLastTile=-1;
+
+function findTileInScene(){
+  const ti=S.editTile;
+  findLastTile=ti;
+  const mc=document.getElementById('findMiniScene');
+  const mx=mc.getContext('2d');
+  mx.imageSmoothingEnabled=false;
+
+  // Render full scene at 1x
+  for(let tr=0;tr<30;tr++)for(let tc=0;tc<32;tc++){
+    drawTileAt(mx,tc*8,tr*8,S.nt[tr*32+tc],getPal(tc,tr),1);
+  }
+
+  // Dim the whole thing
+  mx.fillStyle='rgba(0,0,0,0.65)';
+  mx.fillRect(0,0,256,240);
+
+  // Find all positions and highlight them
+  const positions=[];
+  for(let tr=0;tr<30;tr++)for(let tc=0;tc<32;tc++){
+    if(S.nt[tr*32+tc]===ti) positions.push([tc,tr]);
+  }
+
+  // Redraw matched tiles bright + colored border
+  positions.forEach(([tc,tr])=>{
+    drawTileAt(mx,tc*8,tr*8,ti,getPal(tc,tr),1);
+    mx.strokeStyle='#ff3';mx.lineWidth=1;
+    mx.strokeRect(tc*8+0.5,tr*8+0.5,7,7);
+  });
+
+  // Update results text
+  const hex='$'+ti.toString(16).toUpperCase().padStart(2,'0');
+  document.getElementById('findTileHex').textContent=hex.slice(1);
+  const rd=document.getElementById('findResults');
+  if(positions.length===0){
+    rd.innerHTML='<span style="color:var(--red)">Tile '+hex+' not used in scene</span>';
+  } else {
+    const zoneCount={};
+    positions.forEach(([tc,tr])=>{
+      const z=getZone(tr);
+      zoneCount[z]=(zoneCount[z]||0)+1;
+    });
+    const zoneTxt=Object.entries(zoneCount).map(([z,c])=>z+':'+c).join(' · ');
+    rd.innerHTML='<span style="color:var(--grn)">'+positions.length+' placement'+(positions.length>1?'s':'')+'</span> — '+zoneTxt;
+    // List first few coordinates
+    if(positions.length<=12){
+      rd.innerHTML+='<br>'+positions.map(([c,r])=>'('+c+','+r+')').join(' ');
+    }
+  }
+}
+
+// Click mini scene to jump to that tile in scene view
+document.getElementById('findMiniScene').addEventListener('click',function(e){
+  const rect=this.getBoundingClientRect();
+  const scaleX=256/rect.width, scaleY=240/rect.height;
+  const px=Math.floor((e.clientX-rect.left)*scaleX);
+  const py=Math.floor((e.clientY-rect.top)*scaleY);
+  const tc=Math.floor(px/8),tr=Math.floor(py/8);
+  if(tc>=0&&tc<32&&tr>=0&&tr<30){
+    // Select the clicked tile index and switch to scene view
+    const clickedTile=S.nt[tr*32+tc];
+    S.selTile=clickedTile;
+    switchTab('scene');
+    showToast('Jumped to ('+tc+','+tr+') — tile $'+clickedTile.toString(16).toUpperCase().padStart(2,'0'));
+  }
+});
+
+// ═══════════════════════════════════════════════
+// CANVAS CLICK HANDLERS
+// ═══════════════════════════════════════════════
+cv.addEventListener('mousedown',function(e){
+  const z=+document.getElementById('oZoom').value;
+  const rect=this.getBoundingClientRect();
+  const px=Math.floor((e.clientX-rect.left)/z),py=Math.floor((e.clientY-rect.top)/z);
+
+  if(S.tab==='scene'){
+    const tc=Math.floor(px/8),tr=Math.floor(py/8);
+    if(tc>=0&&tc<32&&tr>=0&&tr<30){
+      if(e.button===2){// Right-click = eyedrop
+        S.selTile=S.nt[tr*32+tc];
+        buildPalEditor();notify('eyedrop');
+      } else {// Left-click = paint
+        snapshot();
+        S.nt[tr*32+tc]=S.selTile;
+        notify('paint');
+      }
+    }
+  } else if(S.tab==='chr'){
+    const chrZ=3; // CHR sheet always renders at 3x
+    const cpx=Math.floor((e.clientX-rect.left)/chrZ),cpy=Math.floor((e.clientY-rect.top)/chrZ);
+    const ti=Math.floor(cpx/8)+Math.floor(cpy/8)*16;
+    if(ti>=0&&ti<256){S.editTile=ti;S.selTile=ti;notify('selectTile')}
+  } else if(S.tab==='attr'){
+    const tc=Math.floor(px/8),tr=Math.floor(py/8);
+    if(tc>=0&&tc<32&&tr>=0&&tr<30){
+      // Cycle the palette for this 16x16 quadrant
+      const ac=Math.floor(tc/4),ar=Math.floor(tr/4);
+      const ai=ar*8+ac;
+      const sc=Math.floor(tc/2)%2,sr=Math.floor(tr/2)%2;
+      const q=sr*2+sc;
+      const cur=(S.attr[ai]>>(q*2))&3;
+      snapshot();
+      setPalQuad(ai,q,(cur+1)%4);
+      buildAttrGrid();notify('attr');
+    }
+  }
+});
+cv.addEventListener('mousemove',function(e){
+  if(S.tab==='scene'&&e.buttons===1){
+    const z=+document.getElementById('oZoom').value,rect=this.getBoundingClientRect();
+    const px=Math.floor((e.clientX-rect.left)/z),py=Math.floor((e.clientY-rect.top)/z);
+    const tc=Math.floor(px/8),tr=Math.floor(py/8);
+    if(tc>=0&&tc<32&&tr>=0&&tr<30&&S.nt[tr*32+tc]!==S.selTile){S.nt[tr*32+tc]=S.selTile;notify('paint')}
+  }
+  // Update info bar
+  const z=+document.getElementById('oZoom').value,rect=cv.getBoundingClientRect();
+  const px=Math.floor((e.clientX-rect.left)/z),py=Math.floor((e.clientY-rect.top)/z);
+  const tc=Math.floor(px/8),tr=Math.floor(py/8);
+  if(tc>=0&&tc<32&&tr>=0&&tr<30){
+    const ti=S.nt[tr*32+tc],u=tileUsage();
+    document.getElementById('bTile').textContent='$'+ti.toString(16).toUpperCase().padStart(2,'0');
+    document.getElementById('bUsed').textContent=(u[ti]||0)+'x';
+    document.getElementById('bPal').textContent=getPal(tc,tr);
+    document.getElementById('bPos').textContent='('+tc+','+tr+')';
+    document.getElementById('bZone').textContent=getZone(tr);
+  }
+});
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+
+// ═══════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════
+function switchTab(t){
+  S.tab=t;
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('on',['scene','chr','meta','attr','docs'][i]===t));
+  ['sideScene','sideChr','sideMeta','sideAttr','sideDocs'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el)el.style.display=['scene','chr','meta','attr','docs'][i]===t?'block':'none';
+  });
+  document.getElementById('leftP').style.display=t==='docs'?'none':'flex';
+  document.getElementById('rightP').style.display='block';
+  render();
+}
+
+// ═══════════════════════════════════════════════
+// IMAGE UPLOAD + NES CONVERSION
+// ═══════════════════════════════════════════════
+function handleUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){convertImage(ev.target.result)};
+  reader.readAsDataURL(file);
+}
+
+// Drag and drop
+document.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('dropZone').classList.add('show')});
+document.addEventListener('dragleave',e=>{if(e.target===document.getElementById('dropZone'))document.getElementById('dropZone').classList.remove('show')});
+document.addEventListener('drop',e=>{
+  e.preventDefault();document.getElementById('dropZone').classList.remove('show');
+  const file=e.dataTransfer.files[0];if(!file||!file.type.startsWith('image/'))return;
+  const reader=new FileReader();
+  reader.onload=ev=>convertImage(ev.target.result);
+  reader.readAsDataURL(file);
+});
+
+function convertImage(dataUrl){
+  const img=new Image();
+  img.onload=function(){
+    // Resize to 256x240
+    const tc=document.createElement('canvas');tc.width=256;tc.height=240;
+    const tx=tc.getContext('2d');tx.imageSmoothingEnabled=false;
+    tx.drawImage(img,0,0,256,240);
+    const id=tx.getImageData(0,0,256,240);
+
+    // Build flat palette from current S.pal (4 pals x 4 colors = up to 13 unique + shared BG)
+    const flatColors=[];const colorToIdx={};
+    S.pal.forEach((pl,pi)=>{
+      pl.forEach((nc,ci)=>{
+        const rgb=NP[nc]||[0,0,0];
+        const key=rgb[0]+','+rgb[1]+','+rgb[2];
+        if(!(key in colorToIdx)){colorToIdx[key]={pal:pi,ci:ci};flatColors.push({r:rgb[0],g:rgb[1],b:rgb[2],pal:pi,ci:ci})}
+      });
+    });
+
+    // For each pixel, find nearest palette color
+    const pixMap=new Uint8Array(256*240*2); // [palIdx, colorIdx] per pixel
+    for(let y=0;y<240;y++)for(let x=0;x<256;x++){
+      const o=(y*256+x)*4;
+      const pr=id.data[o],pg=id.data[o+1],pb=id.data[o+2];
+      let bestD=Infinity,bestPal=0,bestCi=0;
+      flatColors.forEach(fc=>{
+        const d=(pr-fc.r)**2+(pg-fc.g)**2+(pb-fc.b)**2;
+        if(d<bestD){bestD=d;bestPal=fc.pal;bestCi=fc.ci}
+      });
+      pixMap[(y*256+x)*2]=bestPal;
+      pixMap[(y*256+x)*2+1]=bestCi;
+    }
+
+    // Extract 8x8 tiles and build nametable
+    // For each tile position, determine dominant palette from attribute constraints
+    const newChr=[];const newNt=[];const tileMap={};let tileCount=0;
+    const newAttr=new Array(64).fill(0);
+
+    // First pass: determine palette per 16x16 attribute zone
+    for(let ar=0;ar<8;ar++)for(let ac=0;ac<8;ac++){
+      const palVotes=[0,0,0,0];
+      for(let py=ar*32;py<Math.min((ar+1)*32,240);py++){
+        for(let px=ac*32;px<(ac+1)*32;px++){
+          if(py<240)palVotes[pixMap[(py*256+px)*2]]++;
+        }
+      }
+      // Each quadrant of the attr byte
+      for(let sq=0;sq<4;sq++){
+        const qr=ar*4+(sq>=2?2:0),qc=ac*4+(sq%2?2:0);
+        const qVotes=[0,0,0,0];
+        for(let py=qr*8;py<Math.min((qr+2)*8,240);py++){
+          for(let px=qc*8;px<(qc+2)*8;px++){
+            if(py<240&&px<256) qVotes[pixMap[(py*256+px)*2]]++;
+          }
+        }
+        const bestPal=qVotes.indexOf(Math.max(...qVotes));
+        const ai=ar*8+ac;
+        newAttr[ai]=(newAttr[ai]&~(3<<(sq*2)))|((bestPal&3)<<(sq*2));
+      }
+    }
+
+    // Second pass: extract tiles using the assigned palette per position
+    for(let tr=0;tr<30;tr++)for(let tc=0;tc<32;tc++){
+      // Get palette for this tile from newAttr
+      const ac=Math.floor(tc/4),ar=Math.floor(tr/4),ai=ar*8+ac;
+      const ab=newAttr[ai],sc=Math.floor(tc/2)%2,sr=Math.floor(tr/2)%2;
+      const palIdx=(ab>>((sr*2+sc)*2))&3;
+      const pl=S.pal[palIdx];
+
+      // Extract 8x8 tile pixels as color indices within this palette
+      const tile=[];
+      for(let py=0;py<8;py++){
+        const row=[];
+        for(let px=0;px<8;px++){
+          const sx=tc*8+px,sy=tr*8+py;
+          const o=(sy*256+sx)*4;
+          const pr=id.data[o],pg=id.data[o+1],pb=id.data[o+2];
+          // Find nearest color in THIS palette
+          let bestD=Infinity,bestCi=0;
+          pl.forEach((nc,ci)=>{
+            const rgb=NP[nc]||[0,0,0];
+            const d=(pr-rgb[0])**2+(pg-rgb[1])**2+(pb-rgb[2])**2;
+            if(d<bestD){bestD=d;bestCi=ci}
+          });
+          row.push(bestCi);
+        }
+        tile.push(row);
+      }
+
+      // Hash tile for dedup
+      const key=tile.map(r=>r.join('')).join('');
+      if(key in tileMap){
+        newNt.push(tileMap[key]);
+      } else if(tileCount<256){
+        tileMap[key]=tileCount;
+        newChr.push(tile);
+        newNt.push(tileCount);
+        tileCount++;
+      } else {
+        // Over 256 tiles - find closest existing
+        let bestIdx=0,bestDiff=Infinity;
+        newChr.forEach((ct,idx)=>{
+          let diff=0;
+          for(let y=0;y<8;y++)for(let x=0;x<8;x++) diff+=Math.abs(ct[y][x]-tile[y][x]);
+          if(diff<bestDiff){bestDiff=diff;bestIdx=idx}
+        });
+        newNt.push(bestIdx);
+      }
+    }
+
+    // Pad to 256 tiles
+    while(newChr.length<256) newChr.push(Array.from({length:8},()=>Array(8).fill(0)));
+
+    // Apply to state
+    snapshot();
+    S.chr=newChr;
+    S.nt=newNt;
+    S.attr=[...newAttr];
+    buildPalEditor();buildAttrGrid();notify('imageUpload');
+    alert('Converted: '+tileCount+' unique tiles extracted (max 256)');
+  };
+  img.src=dataUrl;
+}
+
+// ═══════════════════════════════════════════════
+// ZIP PACK LOADER
+// ═══════════════════════════════════════════════
+function handleZipUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  e.target.value=''; // reset so same file can be re-selected
+  file.arrayBuffer().then(buf=>loadZipPack(new Uint8Array(buf)));
+}
+
+// Also support .zip in drag-and-drop
+const _origDrop=document.ondrop;
+document.addEventListener('drop',function(e2){
+  const f=e2.dataTransfer&&e2.dataTransfer.files[0];
+  if(f&&f.name.endsWith('.zip')){
+    e2.preventDefault();
+    document.getElementById('dropZone').classList.remove('show');
+    f.arrayBuffer().then(buf=>loadZipPack(new Uint8Array(buf)));
+  }
+},true);
+
+// Minimal ZIP reader — handles STORED and DEFLATE entries
+function parseZip(data){
+  const files={};
+  const view=new DataView(data.buffer,data.byteOffset,data.byteLength);
+  let off=0;
+  while(off<data.length-4){
+    const sig=view.getUint32(off,true);
+    if(sig!==0x04034b50) break; // not a local file header
+    const method=view.getUint16(off+8,true);
+    const compSize=view.getUint32(off+18,true);
+    const uncompSize=view.getUint32(off+22,true);
+    const nameLen=view.getUint16(off+26,true);
+    const extraLen=view.getUint16(off+28,true);
+    const nameBytes=data.slice(off+30,off+30+nameLen);
+    const name=new TextDecoder().decode(nameBytes);
+    const dataStart=off+30+nameLen+extraLen;
+    const rawData=data.slice(dataStart,dataStart+compSize);
+    if(method===0){
+      // Stored
+      files[name]=rawData;
+    } else if(method===8){
+      // Deflate — mark for async decompression
+      files[name]={deflated:rawData,size:uncompSize};
+    }
+    off=dataStart+compSize;
+  }
+  return files;
+}
+
+async function inflateData(compressed,expectedSize){
+  // Use browser DecompressionStream for deflate-raw
+  if(typeof DecompressionStream!=='undefined'){
+    const ds=new DecompressionStream('deflate-raw');
+    const writer=ds.writable.getWriter();
+    const reader=ds.readable.getReader();
+    writer.write(compressed);writer.close();
+    const chunks=[];let total=0;
+    while(true){
+      const{done,value}=await reader.read();
+      if(done)break;
+      chunks.push(value);total+=value.length;
+    }
+    const result=new Uint8Array(total);
+    let pos=0;chunks.forEach(c=>{result.set(c,pos);pos+=c.length});
+    return result;
+  }
+  // Fallback: try raw bytes (some zips use store-level deflate)
+  showToast('DecompressionStream not available — try a modern browser');
+  return compressed;
+}
+
+async function loadZipPack(zipData){
+  const raw=parseZip(zipData);
+
+  // Resolve deflated entries
+  const files={};
+  for(const[name,val] of Object.entries(raw)){
+    if(val&&val.deflated){
+      files[name]=await inflateData(val.deflated,val.size);
+    } else {
+      files[name]=val;
+    }
+  }
+
+  // Find files by suffix (handles nested paths like folder/tiles.chr)
+  function findFile(suffix){
+    const key=Object.keys(files).find(k=>k.toLowerCase().endsWith(suffix.toLowerCase()));
+    return key?files[key]:null;
+  }
+  // Match exact filename (ignoring path prefix) to avoid false positives
+  function findExact(name){
+    const key=Object.keys(files).find(k=>{
+      const base=k.split('/').pop().toLowerCase();
+      return base===name.toLowerCase();
+    });
+    return key?files[key]:null;
+  }
+
+  const chrFile=findFile('tiles.chr')||findFile('.chr');
+  const ntFile=findFile('nametable.bin')||findFile('_nametable.bin');
+  const attrFile=findFile('attribute_table.bin')||findFile('_attribute_table.bin')||findExact('attributes.bin');
+  const palFile=findFile('palettes.pal')||findFile('_palettes.pal')||findFile('.pal');
+
+  // Also try the combined nametable+attributes file
+  const ntFile2=ntFile||findFile('nametable_with_attributes.bin');
+
+  // Validate we have at minimum CHR
+  if(!chrFile){
+    const found=Object.keys(files).join(', ');
+    alert('No .chr tile file found in zip.\nFiles found: '+found);
+    return;
+  }
+
+  snapshot(); // save undo point before replacing everything
+
+  // Load CHR tiles
+  if(chrFile.length>=4096){
+    const newChr=[];
+    for(let i=0;i<256;i++){
+      const t=[];const b=i*16;
+      for(let y=0;y<8;y++){
+        const p0=chrFile[b+y],p1=chrFile[b+y+8],r=[];
+        for(let x=0;x<8;x++) r.push(((p0>>(7-x))&1)|(((p1>>(7-x))&1)<<1));
+        t.push(r);
+      }
+      newChr.push(t);
+    }
+    S.chr=newChr;
+  }
+
+  // Load nametable
+  const ntSrc=ntFile2||ntFile;
+  if(ntSrc&&ntSrc.length>=960){
+    S.nt=Array.from(ntSrc.slice(0,960));
+    // If it's the combined nametable+attributes (1024 bytes), pull attributes too
+    if(ntSrc.length>=1024&&!attrFile){
+      S.attr=Array.from(ntSrc.slice(960,1024));
+    }
+  }
+
+  // Load attribute table
+  if(attrFile&&attrFile.length>=64){
+    S.attr=Array.from(attrFile.slice(0,64));
+  }
+
+  // Load palettes
+  if(palFile&&palFile.length>=16){
+    for(let p=0;p<4;p++){
+      S.pal[p]=[palFile[p*4],palFile[p*4+1],palFile[p*4+2],palFile[p*4+3]];
+    }
+  }
+
+  buildPalEditor();buildAttrGrid();notify('zipLoad');
+
+  // Report what was loaded
+  const loaded=[];
+  if(chrFile) loaded.push('CHR ('+chrFile.length+'b)');
+  if(ntSrc) loaded.push('Nametable ('+ntSrc.length+'b)');
+  if(attrFile) loaded.push('Attributes ('+attrFile.length+'b)');
+  else if(ntSrc&&ntSrc.length>=1024) loaded.push('Attributes (from combined NT)');
+  if(palFile) loaded.push('Palettes ('+palFile.length+'b)');
+  showToast('Loaded: '+loaded.join(', '));
+}
+
+// ═══════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════
+function exportAll(){
+  // Build binary data
+  const chrBytes=new Uint8Array(4096);
+  for(let i=0;i<256;i++){
+    const b=i*16;
+    for(let y=0;y<8;y++){
+      let p0=0,p1=0;
+      for(let x=0;x<8;x++){
+        const ci=S.chr[i][y][x];
+        if(ci&1) p0|=(1<<(7-x));
+        if(ci&2) p1|=(1<<(7-x));
+      }
+      chrBytes[b+y]=p0;chrBytes[b+y+8]=p1;
+    }
+  }
+  const ntBytes=new Uint8Array(S.nt);
+  const attrBytes=new Uint8Array(S.attr);
+  const palBytes=new Uint8Array(16);
+  S.pal.forEach((p,i)=>p.forEach((c,j)=>palBytes[i*4+j]=c));
+
+  // Build ZIP (STORED, no compression — trivial builder)
+  const zipFiles=[
+    {name:'tiles.chr',data:chrBytes},
+    {name:'nametable.bin',data:ntBytes},
+    {name:'attributes.bin',data:attrBytes},
+    {name:'palettes.pal',data:palBytes}
+  ];
+  const zipBlob=buildZip(zipFiles);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(zipBlob);
+  a.download='nes_tile_pack.zip';a.click();
+  showToast('Exported nes_tile_pack.zip');
+}
+
+function buildZip(files){
+  // Minimal ZIP builder using STORED method (method=0, no compression)
+  // CRC-32 table
+  const crcTab=new Uint32Array(256);
+  for(let i=0;i<256;i++){let c=i;for(let j=0;j<8;j++)c=c&1?0xEDB88320^(c>>>1):c>>>1;crcTab[i]=c}
+  function crc32(data){let c=0xFFFFFFFF;for(let i=0;i<data.length;i++)c=crcTab[(c^data[i])&0xFF]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+
+  const localHeaders=[];const centralHeaders=[];let offset=0;
+  const enc=new TextEncoder();
+
+  files.forEach(f=>{
+    const nameBytes=enc.encode(f.name);
+    const crc=crc32(f.data);
+    const sz=f.data.length;
+
+    // Local file header (30 + nameLen + data)
+    const lh=new Uint8Array(30+nameBytes.length);
+    const lv=new DataView(lh.buffer);
+    lv.setUint32(0,0x04034b50,true); // signature
+    lv.setUint16(4,20,true);         // version needed
+    lv.setUint16(6,0,true);          // flags
+    lv.setUint16(8,0,true);          // method = STORED
+    lv.setUint16(10,0,true);         // mod time
+    lv.setUint16(12,0,true);         // mod date
+    lv.setUint32(14,crc,true);       // crc32
+    lv.setUint32(18,sz,true);        // compressed size
+    lv.setUint32(22,sz,true);        // uncompressed size
+    lv.setUint16(26,nameBytes.length,true);
+    lv.setUint16(28,0,true);         // extra length
+    lh.set(nameBytes,30);
+
+    // Central directory header (46 + nameLen)
+    const ch=new Uint8Array(46+nameBytes.length);
+    const cv2=new DataView(ch.buffer);
+    cv2.setUint32(0,0x02014b50,true); // signature
+    cv2.setUint16(4,20,true);         // version made by
+    cv2.setUint16(6,20,true);         // version needed
+    cv2.setUint16(8,0,true);          // flags
+    cv2.setUint16(10,0,true);         // method
+    cv2.setUint16(12,0,true);         // mod time
+    cv2.setUint16(14,0,true);         // mod date
+    cv2.setUint32(16,crc,true);
+    cv2.setUint32(20,sz,true);
+    cv2.setUint32(24,sz,true);
+    cv2.setUint16(28,nameBytes.length,true);
+    cv2.setUint16(30,0,true);         // extra length
+    cv2.setUint16(32,0,true);         // comment length
+    cv2.setUint16(34,0,true);         // disk number
+    cv2.setUint16(36,0,true);         // internal attrs
+    cv2.setUint32(38,0,true);         // external attrs
+    cv2.setUint32(42,offset,true);    // local header offset
+    ch.set(nameBytes,46);
+
+    localHeaders.push({header:lh,data:f.data});
+    centralHeaders.push(ch);
+    offset+=lh.length+f.data.length;
+  });
+
+  // End of central directory
+  const cdOffset=offset;
+  let cdSize=0;centralHeaders.forEach(c=>cdSize+=c.length);
+  const eocd=new Uint8Array(22);
+  const ev=new DataView(eocd.buffer);
+  ev.setUint32(0,0x06054b50,true);
+  ev.setUint16(4,0,true);ev.setUint16(6,0,true);
+  ev.setUint16(8,files.length,true);
+  ev.setUint16(10,files.length,true);
+  ev.setUint32(12,cdSize,true);
+  ev.setUint32(16,cdOffset,true);
+  ev.setUint16(20,0,true);
+
+  // Concatenate all parts
+  const parts=[];
+  localHeaders.forEach(lh=>{parts.push(lh.header);parts.push(lh.data)});
+  centralHeaders.forEach(ch=>parts.push(ch));
+  parts.push(eocd);
+
+  return new Blob(parts,{type:'application/zip'});
+}
+function download(data,name,type){
+  const blob=new Blob([data],{type});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();
+}
+
+// ═══════════════════════════════════════════════
+// TECH DOCS (live)
+// ═══════════════════════════════════════════════
+function renderDocs(){
+  const u=tileUsage(),ut=uniqueTiles(),mc=metaCount();
+  const s1=Object.values(u).filter(v=>v===1).length;
+  const s2=Object.values(u).filter(v=>v===2).length;
+  const s3=Object.values(u).filter(v=>v>=3).length;
+  const pc=[0,0,0,0];for(let r=0;r<30;r++)for(let c=0;c<32;c++)pc[getPal(c,r)]++;
+  const d=document.getElementById('sideDocs');
+  d.innerHTML='<div class="doc">'+
+    '<h2>LIVE TECHNICAL ANALYSIS</h2>'+
+    '<p>All metrics update in real-time as you edit the scene, tiles, or attribute table.</p>'+
+    '<h3>CHR Budget</h3>'+
+    '<table><tr><th>Metric</th><th>Value</th><th>NG Target</th></tr>'+
+    '<tr><td>Unique BG tiles</td><td>'+ut+' / 256</td><td>90-110</td></tr>'+
+    '<tr><td>Free tile slots</td><td>'+(256-ut)+'</td><td>146-166</td></tr>'+
+    '<tr><td>1x tiles</td><td>'+s1+' ('+Math.round(s1/ut*100)+'%)</td><td>&lt;15</td></tr>'+
+    '<tr><td>2x tiles</td><td>'+s2+'</td><td>—</td></tr>'+
+    '<tr><td>3x+ tiles</td><td>'+s3+'</td><td>majority</td></tr>'+
+    '<tr><td>Reuse ratio</td><td>'+(960/ut).toFixed(1)+'x</td><td>8-12x</td></tr></table>'+
+    '<h3>Metatiles (16x16)</h3>'+
+    '<table><tr><th>Metric</th><th>Value</th><th>NG Target</th></tr>'+
+    '<tr><td>Unique metatiles</td><td>'+mc+' / 240</td><td>45-60</td></tr>'+
+    '<tr><td>Metatile reuse</td><td>'+(240/mc).toFixed(2)+'x</td><td>4-5x</td></tr></table>'+
+    '<h3>Palette / Attribute Usage</h3>'+
+    '<table><tr><th>Palette</th><th>Colors</th><th>Tile Coverage</th></tr>'+
+    '<tr><td>Pal 0</td><td>$'+S.pal[0].map(v=>v.toString(16).toUpperCase().padStart(2,'0')).join('/$')+'</td><td>'+pc[0]+' tiles ('+Math.round(pc[0]/960*100)+'%)</td></tr>'+
+    '<tr><td>Pal 1</td><td>$'+S.pal[1].map(v=>v.toString(16).toUpperCase().padStart(2,'0')).join('/$')+'</td><td>'+pc[1]+' tiles ('+Math.round(pc[1]/960*100)+'%)</td></tr>'+
+    '<tr><td>Pal 2</td><td>$'+S.pal[2].map(v=>v.toString(16).toUpperCase().padStart(2,'0')).join('/$')+'</td><td>'+pc[2]+' tiles ('+Math.round(pc[2]/960*100)+'%)</td></tr>'+
+    '<tr><td>Pal 3</td><td>$'+S.pal[3].map(v=>v.toString(16).toUpperCase().padStart(2,'0')).join('/$')+'</td><td>'+pc[3]+' tiles ('+Math.round(pc[3]/960*100)+'%)</td></tr></table>'+
+    '<h3>Attribute Table Hex</h3>'+
+    '<pre>'+Array.from({length:8},(_, r)=>'Row '+r+': '+Array.from({length:8},(_,c)=>S.attr[r*8+c].toString(16).toUpperCase().padStart(2,'0')).join(' ')).join('\\n')+'</pre>'+
+    '<h3>Zone Tile Breakdown</h3>'+
+    '<table><tr><th>Zone</th><th>Rows</th><th>Unique Tiles</th></tr>';
+  const zones=[['Sky',0,4],['Wall',4,8],['Machine',8,18],['Sidewalk',18,25],['Ground',25,27],['HUD',27,30]];
+  zones.forEach(([n,r1,r2])=>{
+    const zt=new Set();for(let r=r1;r<r2;r++)for(let c=0;c<32;c++)zt.add(S.nt[r*32+c]);
+    d.innerHTML+='<tr><td>'+n+'</td><td>'+r1+'-'+r2+'</td><td>'+zt.size+'</td></tr>';
+  });
+  d.innerHTML+='</table></div>';
+}
+
+// ═══════════════════════════════════════════════
+// NES ROM BUILDER — 6502 ASSEMBLER (in-browser)
+// ═══════════════════════════════════════════════
+
+function buildNesRom(){
+  // Build binary tileset data from current state
+  const chrBytes=new Uint8Array(4096);
+  for(let i=0;i<256;i++){
+    const b=i*16;
+    for(let y=0;y<8;y++){
+      let p0=0,p1=0;
+      for(let x=0;x<8;x++){
+        const ci=S.chr[i][y][x];
+        if(ci&1) p0|=(1<<(7-x));
+        if(ci&2) p1|=(1<<(7-x));
+      }
+      chrBytes[b+y]=p0;chrBytes[b+y+8]=p1;
+    }
+  }
+  const nametable=new Uint8Array(S.nt);
+  const attributes=new Uint8Array(S.attr);
+
+  // BG palettes from state
+  const bgPal=S.pal.map(p=>[...p]);
+  // Default sprite palettes
+  const sprPal=[[0x0F,0x20,0x30,0x20],[0x0F,0x07,0x17,0x20],[0x0F,0x01,0x11,0x20],[0x0F,0x04,0x14,0x24]];
+
+  // All 32 palette bytes (4 BG + 4 sprite)
+  const allPal=[];
+  bgPal.forEach(p=>p.forEach(c=>allPal.push(c)));
+  sprPal.forEach(p=>p.forEach(c=>allPal.push(c)));
+
+  // ── Assemble 16KB PRG-ROM with hand-assembled 6502 ──
+  const PRG=new Uint8Array(16384);
+  let p=0;
+
+  function emit(...bs){for(const b of bs){PRG[p]=b&0xFF;p++}}
+  function emit16(v){emit(v&0xFF,(v>>8)&0xFF)}
+  function addr(){return 0xC000+p}
+  // Signed relative offset for branches
+  function rel(target){return((target-(addr()+1))&0xFF)}
+
+  // ════ RESET HANDLER ════
+  const RESET=addr();
+
+  emit(0x78);        // SEI
+  emit(0xD8);        // CLD
+
+  // Disable PPU
+  emit(0xA9,0x00);   // LDA #$00
+  emit(0x8D);emit16(0x2000);  // STA PPUCTRL
+  emit(0x8D);emit16(0x2001);  // STA PPUMASK
+
+  // Wait first vblank
+  const vb1=addr();
+  emit(0xAD);emit16(0x2002);  // LDA PPUSTATUS
+  emit(0x10);emit(rel(vb1));  // BPL vb1
+
+  // Clear RAM $0000-$07FF (skip $0200 OAM shadow)
+  emit(0xA2,0x00);   // LDX #$00
+  const clearLoop=addr();
+  emit(0xA9,0x00);             // LDA #$00
+  emit(0x9D);emit16(0x0000);  // STA $0000,X
+  emit(0x9D);emit16(0x0100);  // STA $0100,X
+  emit(0x9D);emit16(0x0300);  // STA $0300,X
+  emit(0x9D);emit16(0x0400);  // STA $0400,X
+  emit(0x9D);emit16(0x0500);  // STA $0500,X
+  emit(0x9D);emit16(0x0600);  // STA $0600,X
+  emit(0x9D);emit16(0x0700);  // STA $0700,X
+  emit(0xE8);                  // INX
+  emit(0xD0);emit(rel(clearLoop)); // BNE clearLoop
+
+  // Hide all sprites (Y=$FF)
+  emit(0xA9,0xFF);   // LDA #$FF
+  emit(0xA2,0x00);   // LDX #$00
+  const sprHide=addr();
+  emit(0x9D);emit16(0x0200);  // STA $0200,X
+  emit(0xE8);                  // INX
+  emit(0xD0);emit(rel(sprHide)); // BNE sprHide
+
+  // Wait second vblank
+  const vb2=addr();
+  emit(0xAD);emit16(0x2002);
+  emit(0x10);emit(rel(vb2));
+
+  // ════ LOAD PALETTES → PPU $3F00 ════
+  emit(0xAD);emit16(0x2002);  // LDA PPUSTATUS (reset latch)
+  emit(0xA9,0x3F);             // LDA #$3F
+  emit(0x8D);emit16(0x2006);  // STA PPUADDR
+  emit(0xA9,0x00);
+  emit(0x8D);emit16(0x2006);  // STA PPUADDR → $3F00
+
+  // Write all 32 palette bytes inline
+  for(let i=0;i<32;i++){
+    emit(0xA9,allPal[i]);      // LDA #imm
+    emit(0x8D);emit16(0x2007); // STA PPUDATA
+  }
+
+  // ════ LOAD NAMETABLE → PPU $2000 ════
+  emit(0xAD);emit16(0x2002);
+  emit(0xA9,0x20);
+  emit(0x8D);emit16(0x2006);
+  emit(0xA9,0x00);
+  emit(0x8D);emit16(0x2006);
+
+  const NT_DATA=0xD000; // Where nametable data lives in PRG
+
+  // Write 960 bytes from data table using 4×256-byte loops
+  for(let chunk=0;chunk<4;chunk++){
+    const start=chunk*256;
+    const count=Math.min(256,960-start);
+    if(count<=0) break;
+
+    emit(0xA2,0x00);   // LDX #$00
+    const loop=addr();
+    emit(0xBD);emit16(NT_DATA+start); // LDA abs,X
+    emit(0x8D);emit16(0x2007);        // STA PPUDATA
+    emit(0xE8);                        // INX
+    if(count===256){
+      emit(0xD0);emit(rel(loop));      // BNE loop (256 iterations)
+    } else {
+      emit(0xE0,count);               // CPX #count
+      emit(0xD0);emit(rel(loop));      // BNE loop
+    }
+  }
+
+  // ════ LOAD ATTRIBUTES → PPU $23C0 ════
+  emit(0xAD);emit16(0x2002);
+  emit(0xA9,0x23);
+  emit(0x8D);emit16(0x2006);
+  emit(0xA9,0xC0);
+  emit(0x8D);emit16(0x2006);
+
+  const ATTR_DATA=NT_DATA+960;
+  emit(0xA2,0x00);   // LDX #$00
+  const attrLoop=addr();
+  emit(0xBD);emit16(ATTR_DATA);
+  emit(0x8D);emit16(0x2007);
+  emit(0xE8);
+  emit(0xE0,64);     // CPX #64
+  emit(0xD0);emit(rel(attrLoop));
+
+  // ════ SET SCROLL ════
+  emit(0xAD);emit16(0x2002);
+  emit(0xA9,0x00);
+  emit(0x8D);emit16(0x2005);  // Scroll X=0
+  emit(0xA9,0x00);
+  emit(0x8D);emit16(0x2005);  // Scroll Y=0
+
+  // ════ ENABLE RENDERING ════
+  emit(0xA9,0x88);             // PPUCTRL: NMI on, BG pattern $0000
+  emit(0x8D);emit16(0x2000);
+  emit(0xA9,0x1E);             // PPUMASK: show BG + sprites
+  emit(0x8D);emit16(0x2001);
+
+  // ════ MAIN LOOP ════
+  const mainLoop=addr();
+  emit(0x4C);emit16(mainLoop); // JMP forever
+
+  // ════ NMI HANDLER ════
+  const NMI=addr();
+  emit(0x48);                  // PHA
+  emit(0xA9,0x02);
+  emit(0x8D);emit16(0x4014);  // OAM DMA from $0200
+  emit(0xAD);emit16(0x2002);
+  emit(0xA9,0x00);
+  emit(0x8D);emit16(0x2005);  // Scroll X
+  emit(0xA9,0x00);
+  emit(0x8D);emit16(0x2005);  // Scroll Y
+  emit(0x68);                  // PLA
+  emit(0x40);                  // RTI
+
+  // ════ IRQ HANDLER ════
+  const IRQ=addr();
+  emit(0x40);                  // RTI
+
+  // ════ DATA TABLES ════
+  const ntOffset=NT_DATA-0xC000;
+  PRG.set(nametable,ntOffset);
+  PRG.set(attributes,ntOffset+960);
+
+  // ════ VECTORS at $FFFA ════
+  const vec=0xFFFA-0xC000;
+  PRG[vec+0]=NMI&0xFF;    PRG[vec+1]=(NMI>>8)&0xFF;
+  PRG[vec+2]=RESET&0xFF;  PRG[vec+3]=(RESET>>8)&0xFF;
+  PRG[vec+4]=IRQ&0xFF;    PRG[vec+5]=(IRQ>>8)&0xFF;
+
+  // ── Build CHR-ROM (8KB: BG tiles + empty sprite bank) ──
+  const CHR=new Uint8Array(8192);
+  CHR.set(chrBytes,0);
+
+  // ── iNES Header ──
+  const HEADER=new Uint8Array(16);
+  HEADER[0]=0x4E;HEADER[1]=0x45;HEADER[2]=0x53;HEADER[3]=0x1A; // "NES\x1a"
+  HEADER[4]=1;   // 1×16KB PRG
+  HEADER[5]=1;   // 1×8KB CHR
+  HEADER[6]=0x01; // Mapper 0, vertical mirroring
+  HEADER[7]=0x00;
+
+  // ── Assemble final ROM ──
+  const rom=new Uint8Array(16+16384+8192);
+  rom.set(HEADER,0);
+  rom.set(PRG,16);
+  rom.set(CHR,16+16384);
+
+  // ── Download ──
+  const blob=new Blob([rom],{type:'application/octet-stream'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='pepsi_nes.nes';
+  a.click();
+
+  // Stats
+  const emptyTiles=[...chrBytes].reduce((n,_,i)=>{
+    if(i%16!==0)return n;
+    let empty=true;for(let j=0;j<16;j++)if(chrBytes[i+j]!==0){empty=false;break}
+    return n+(empty?1:0);
+  },0);
+  const uniqueIds=new Set(S.nt).size;
+
+  showToast('ROM built: '+rom.length+' bytes · '+(256-emptyTiles)+' tiles · '+uniqueIds+' unique IDs');
+}
+
+// ═══════════════════════════════════════════════
+// BROADCAST CHANNEL — CROSS-TAB STATE SYNC
+// ═══════════════════════════════════════════════
+const BC=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('nes-tile-studio'):null;
+let peerCount=0;
+let bcThrottle=0;
+
+function broadcastState(reason){
+  if(!BC)return;
+  const now=Date.now();if(now-bcThrottle<50)return;bcThrottle=now;
+  BC.postMessage({type:'state',chr:S.chr,nt:S.nt,attr:[...S.attr],pal:S.pal,selTile:S.selTile,editTile:S.editTile,reason:reason||'edit'});
+}
+function broadcastPing(){if(BC)BC.postMessage({type:'ping',tab:S.tab})}
+
+// notify() = state changed by user action → render + broadcast
+function notify(reason){render();broadcastState(reason||'edit')}
+
+if(BC){
+  BC.onmessage=function(e){
+    const d=e.data;
+    if(d.type==='state'){
+      S.chr=d.chr;S.nt=[...d.nt];S.attr=[...d.attr];S.pal=d.pal;
+      S.selTile=d.selTile;S.editTile=d.editTile;
+      buildPalEditor();buildAttrGrid();render();
+    } else if(d.type==='ping'){
+      peerCount++;updateSyncDot();
+      BC.postMessage({type:'pong',tab:S.tab});
+      // Send current state to newly opened tab
+      broadcastState('welcome');
+    } else if(d.type==='pong'){
+      peerCount++;updateSyncDot();
+    } else if(d.type==='requestState'){
+      broadcastState('fullSync');
+    }
+  };
+  setTimeout(()=>{peerCount=0;broadcastPing()},250);
+}
+
+function updateSyncDot(){
+  const dot=document.getElementById('syncDot');
+  if(peerCount>0){dot.className='sync-dot live';dot.title=peerCount+' linked tab(s) \u2014 edits sync live'}
+  else{dot.className='sync-dot solo';dot.title='No linked tabs \u2014 right-click a tab to open'}
+}
+
+// ═══════════════════════════════════════════════
+// TAB CONTEXT MENU
+// ═══════════════════════════════════════════════
+let ctxTarget='scene';
+function tabCtx(e,view){
+  e.preventDefault();e.stopPropagation();
+  ctxTarget=view;
+  const menu=document.getElementById('tabCtxMenu');
+  menu.style.left=e.clientX+'px';menu.style.top=e.clientY+'px';
+  menu.classList.add('show');
+}
+document.addEventListener('click',()=>document.getElementById('tabCtxMenu').classList.remove('show'));
+document.addEventListener('contextmenu',e=>{
+  if(!e.target.classList.contains('tab'))document.getElementById('tabCtxMenu').classList.remove('show');
+});
+
+function tabCtxOpen(){
+  const url=location.href.split('#')[0]+'#'+ctxTarget;
+  window.open(url,'_blank');
+  document.getElementById('tabCtxMenu').classList.remove('show');
+}
+function tabCtxOpenAll(){
+  ['scene','chr','meta','attr','docs'].forEach(v=>{
+    window.open(location.href.split('#')[0]+'#'+v,'_blank');
+  });
+  document.getElementById('tabCtxMenu').classList.remove('show');
+}
+function tabCtxDetach(){
+  const url=location.href.split('#')[0]+'#'+ctxTarget;
+  const w=ctxTarget==='docs'?700:900;
+  window.open(url,'nes_'+ctxTarget,'width='+w+',height=760,menubar=no,toolbar=no');
+  document.getElementById('tabCtxMenu').classList.remove('show');
+}
+
+// Middle-click on tabs opens in new tab
+document.getElementById('tabBar').addEventListener('mousedown',function(e){
+  if(e.button===1){// Middle click
+    const btn=e.target.closest('.tab');
+    if(btn){
+      e.preventDefault();
+      const view=btn.getAttribute('data-view');
+      window.open(location.href.split('#')[0]+'#'+view,'_blank');
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════
+// HASH-BASED INITIAL VIEW
+// ═══════════════════════════════════════════════
+function getHashView(){
+  const h=location.hash.replace('#','');
+  if(['scene','chr','meta','attr','docs'].includes(h))return h;
+  return 'scene';
+}
+
+// Listen for hash changes (e.g. user edits URL)
+window.addEventListener('hashchange',()=>{
+  switchTab(getHashView());
+});
+
+// Update hash when switching tabs locally
+const _origSwitchTab=switchTab;
+switchTab=function(t){
+  _origSwitchTab(t);
+  history.replaceState(null,'',location.href.split('#')[0]+'#'+t);
+};
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+buildPalEditor();
+buildAttrGrid();
+switchTab(getHashView());
+
+// Request state from any existing tabs (so new tabs get current data)
+if(BC) setTimeout(()=>BC.postMessage({type:'requestState'}),300);
+</script>
+</body></html>
