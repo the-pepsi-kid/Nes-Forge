@@ -50,6 +50,8 @@ Create a new branch from `main` for the next authorized work. Make intentional a
 
 ## Later: private GitHub remote
 
+Cloning a Git bundle creates a local `origin` pointing at the bundle file. Remove that local reference with `git remote remove origin` after cloning, as shown in the handoff, before adding a GitHub remote. The preparation repository itself has no remote.
+
 No account or repository owner was selected, and no credentials or authentication state were inspected. After the owner chooses an account and repository name, create an **empty private** repository in GitHub (do not initialize a second README or license). In this local clone, review the intended payload and then run:
 
 ```sh

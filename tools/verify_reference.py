@@ -39,6 +39,8 @@ def verify(root):
 
 
 def gate(app, destination):
+    if destination.resolve().is_relative_to(app.resolve()):
+        raise RuntimeError("The full-gate copy must be outside the frozen app/ directory")
     if shutil.which("node") is None:
         raise RuntimeError("Node.js 20 or later is required for --full-gate")
     shutil.copytree(app, destination)
