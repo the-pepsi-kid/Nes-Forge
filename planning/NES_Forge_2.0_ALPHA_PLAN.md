@@ -1,6 +1,6 @@
 # NES Forge — 2.0 Alpha Development Plan
 
-Revision: October 2, 2026 (America/Denver). Direction adopted following the owner's “Ok, proceed.” This is the bounded working plan for upcoming RE development; no 2.0 executable or release promotion is claimed.
+Revision: October 2, 2026 (America/Denver). Direction adopted following the owner's “Ok, proceed.” Updated the same day following the owner's clarification that RE must serve ROMs across engines, with Pepsi as a test input only. This is the bounded working plan for upcoming RE development; no 2.0 executable or release promotion is claimed.
 
 ## Starting reference
 
@@ -15,6 +15,17 @@ Revision: October 2, 2026 (America/Denver). Direction adopted following the owne
 
 The application remains one standalone NES Forge environment. General static inspection can handle supported raw 6502 inputs independently of NES emulation. Runtime investigation depends on the existing NES emulator's execution support. Editable recovery requires a verified resource/engine contract.
 
+## Cross-ROM architecture requirement
+
+Forge's RE tools must be designed for arbitrary user-supplied NES ROMs and supported raw 6502 inputs, regardless of engine. Pepsi is one regression case; its layout, filenames, hash and game behavior must not define the shared recovery pipeline.
+
+- **Shared core:** reusable discovery, source mapping, evidence/uncertainty records, resource descriptions, preview, validation and explicit canonical-project import. Unknown engines retain inspection and annotation; absence of a decoder must not prevent opening an input for analysis.
+- **Reusable decoders:** implement documented resource formats, construction patterns and audio drivers through adapters with explicit inputs, validated structure and declared limits. Engine-specific knowledge belongs in adapters, not hidden game checks in the core. File identity supports provenance and regression tests; a filename or whole-ROM hash is never sufficient recognition of a supported format.
+- **Breadth from the first slice:** select unrelated ROMs before implementing recovery. Accept the new graphics pipeline only after the same shared path works on at least two independently authored ROMs from unrelated engines, excluding Forge-generated and Bridge Room controls. Pepsi may be one input. Other native resource types require their own supported-format evidence.
+- **Honest fallback:** arbitrary data can remain inspectable without being automatically understood. A finite set of decoders does not promise correct scenes, collisions, gameplay or music recovery from every ROM. Unsupported execution or ambiguous decoding must have explicit reasons and must preserve the input and active project.
+
+This is an architectural and acceptance requirement for upcoming work, not a claim that current editable recovery is general. The delivered Native Room v1 / Bridge Room decoder remains a limited profile.
+
 ## Numbering and scope
 
 Subsequent RE candidates belong to **2.0 Alpha — RE development and required foundations**. The proposed next executable label is `2.0.0-alpha.1`; assign it when an implemented slice is ready for packaging. Preserve old candidate names, tags, source, hashes and test records. Version numbering does not itself require a schema bump.
@@ -27,24 +38,25 @@ Gameplay Expansion (1.9.1) and Behavior UX (1.9.2) remain deferred. Audio workfl
 
 1. Complete the re-runtime-1 R1–R6 walkthrough and record the exact application, browser/device, ROM and observed results. Address reproduced defects on an isolated working branch. Preserve prior evidence against its original bytes.
 2. Establish local Git history from the delivered package, with a reference tag that does not imply acceptance. Keep current planning outside the frozen `app/` snapshot. Select the private remote owner and destination before publishing to GitHub.
-3. Inventory the supplied ROM corpus and define the next decoder's native layout and supported behavior. Use actual bytes, instruction origins and runtime experiments. Mark a proposed interpretation as inferred until independently checked.
-4. Implement and review one end-to-end resource-recovery slice, then expand to a different engine. Additional debugger features should answer a concrete investigation need.
+3. Inventory and select a cross-engine ROM corpus before implementing the first recovery slice. Define shared recovery interfaces and each example's native layout and supported behavior using actual bytes, instruction origins and runtime experiments. Mark a proposed interpretation as inferred until independently checked.
+4. Implement the reusable pipeline and review its first end-to-end resource slice across unrelated engines. An individual ROM can be a development checkpoint, but it cannot establish acceptance of the shared pipeline. Additional debugger features should answer a concrete investigation need.
 
 Current candidate review, corpus analysis, documentation and source-control preparation can overlap. An unavailable physical controller does not block independent read-only analysis. It remains an explicit device-evidence gap.
 
 ## 2.0-A — Native resource recovery into editable Forge content
 
-**Outcome:** inspect a declared ROM, decode native resources with provenance, preview and explicitly import them into canonical Forge content, make a useful edit, save/reopen, rebuild and verify the relevant behavior.
+**Outcome:** use one shared recovery workflow across unrelated ROMs: discover and decode supported native resources with provenance, preview and explicitly import them into canonical Forge content, make useful edits, save/reopen, rebuild and verify the relevant behavior. Format-specific adapters extend that workflow without replacing its core with game-specific paths.
 
 | Slice | Concrete deliverable | Evidence required |
 | --- | --- | --- |
-| A1 — Additional graphics recovery | Recover the supplied Pepsi program's declared native background/palette/CHR representation through an in-app adapter, with a preview and explicit project import. | Source offsets and decoder steps explain the native construction. A Forge edit survives save/reopen and changes the rebuilt output. Runtime adaptations are declared. |
-| A2 — Map/collision recovery on a different engine | Select an additional permitted ROM with actual map/collision records; decode a bounded room/map and its collision meaning. | Original behavior and decoded records agree. Editing a wall or traversable area changes the expected behavior in the rebuilt ROM. |
-| A3 — Native audio recovery | Decode a declared music/SFX driver example into canonical Forge Audio, covering only its verified subset. | Decoded notes/events/instruments are justified; an audio edit changes the generated ROM, with listening results and APU evidence. Unrepresentable effects remain explicit. |
+| A0 — Shared recovery contracts | Define discovery results, physical source provenance, format validation, decoded resources, uncertainty, adaptation notes and validated preview/import interfaces independent of any game. | Different format adapters feed the same workflow. Unknown engines still open for inspection; unsupported or failed recovery leaves the active project intact. |
+| A1 — Cross-engine graphics recovery | Recover supported CHR, palettes and native background representations through that shared workflow, using reusable format/construction adapters where needed. Pepsi is one possible test input. | At least two independently authored, unrelated engines beyond the controls pass native-source explanation, preview/import, useful edit, save/reopen and rebuilt-output checks. Source offsets and decoder steps explain construction; runtime adaptations are declared. |
+| A2 — Map/collision recovery | Extend the shared resource contracts with reusable map/collision adapters for declared formats found in the selected corpus. | Actual native records and original behavior agree. Editing a wall or traversable area changes expected rebuilt behavior. Report the tested formats; graphics acceptance does not establish collision support. |
+| A3 — Native audio recovery | Extend the shared workflow with a declared music/SFX driver adapter into canonical Forge Audio, covering only its verified subset. | Decoded notes/events/instruments are justified; an audio edit changes the generated ROM, with listening results and APU evidence. Unrepresentable effects remain explicit. |
 
-These are incremental candidates, not a promise that every slice fits in the first build. A1 alone cannot close the complete supported-RE readiness gate. A2 and A3 may use one additional ROM if its engine supplies both systems and each is independently verified.
+These are incremental candidates, not a promise that every slice fits in the first build. A0 and A1 are designed together; acceptance of A1 requires cross-engine evidence. A1 alone cannot close the complete supported-RE readiness gate. A2 and A3 may use inputs already selected for A1 if their engines supply the relevant systems and each resource contract is independently verified. Broad support grows through reusable decoders and discovery tools, not a game-name allowlist.
 
-The Pepsi investigation found a title/selection/vending/sold-out state model and credit changes. Do not invent health, enemies, levels, a collision engine or music for that file. A1 may adapt recovered graphics into a Forge runtime; it must not claim that this recreates the original vending-game logic.
+The Pepsi investigation found a title/selection/vending/sold-out state model and credit changes. Do not invent health, enemies, levels, a collision engine or music for that file. Recovered graphics may be adapted into a Forge runtime; this must not be presented as recreation of the original vending-game logic. These observations constrain this test case only, not the features or architecture offered to other ROMs.
 
 ## Corpus and independent checks
 
@@ -52,9 +64,9 @@ The Pepsi investigation found a title/selection/vending/sold-out state model and
 | --- | --- | --- |
 | `examples/RE_Bridge_Room/Bridge_Room.nes` | Retained positive control for the existing Native Room v1 decoder, collision and Pulse 1 activity. | A purpose-built fixture does not establish unfamiliar-engine recovery. |
 | `tests/fixtures/re-runtime/pepsi_vending_v9e.nes` | Owner-supplied, different engine; native graphics construction and runtime state/credit evidence. SHA-256 `8fb961353e9f626bcc62b85896550ec0108addff1fb82eaf7df7aafbf9b6462a`. | No music/collision recovery claim follows from this input. |
-| Additional independent ROM — to select | A distinct engine with actual native map/collision and/or audio data, unrelated to the existing Forge-generated or Bridge Room fixture formats. | Record exact hash, permission/source, mapper, scope, engine contract and expected behavior before accepting its adapter. |
+| Additional independent ROM(s) — select before A1 implementation | At least one independently authored engine unrelated to Pepsi and the Forge/Bridge Room controls, to test the same graphics workflow with a different native representation. Include actual native map/collision and audio data in the corpus for later slices. | Record exact hash, permission/source, mapper, supported formats and expected behavior. Add more inputs if the graphics pair does not supply map/collision or audio examples. |
 
-Keep raw inspection open for unknown engines. Profile recognition may enable a decoder, but a whole-ROM hash match must not substitute for format validation. Test valid data edits within the declared format, malformed/truncated records, unsupported values and near-matching engines. User-supplied ROMs may be analyzed privately; permission to analyze is separate from permission to publish them as repository fixtures. Do not add unlicensed commercial ROM downloads.
+Keep raw inspection open for unknown engines. Profile recognition may enable a decoder, but a whole-ROM hash match must not substitute for format validation. Test valid data edits within the declared format, renamed inputs, malformed/truncated records, unsupported values and near-matching engines. A changed fixture hash must not block structurally valid data. Check an unknown-engine input reaches inspection without invented resource claims. User-supplied ROMs may be analyzed privately; permission to analyze is separate from permission to publish them as repository fixtures. Do not add unlicensed commercial ROM downloads.
 
 Expected values must come from independently checked native records or original runtime behavior, not only from the decoder's own output. Distinguish original source, generated assembly, disassembly, native decoding and conversion to a different runtime.
 
@@ -65,7 +77,7 @@ Expected values must come from independently checked native records or original 
 3. **Preview/import:** review supported assets and adaptation notes before an explicit validated, undoable import. Failure leaves the active project intact. Evidence JSON and editable project JSON remain distinct.
 4. **Useful edit:** edit a meaningful graphic, collision property or musical event in Forge and verify the intended change. Preserve canonical IDs/references through native project save/reopen.
 5. **Output:** build a ROM using the declared supported runtime. Verify the relevant original and rebuilt behavior; record differences caused by conversion. Bit-identical reconstruction and behavioral equivalence are separate claims.
-6. **Preservation:** retain the existing regression suite and add independent checks for the new contract. Run the full gate on one cleanly extracted unchanged candidate; package source, exact hashes, commands and measured reports.
+6. **Breadth and preservation:** retain the existing regression suite and add independent checks for the new contract, including structurally valid data changes, false-positive recognition and unknown-engine fallback. For A1, require the cross-engine corpus above and verify both adapters use the shared recovery/import path. Run the full gate on one cleanly extracted unchanged candidate; package source, exact hashes, commands and measured reports.
 7. **Review evidence:** record actual browser interaction, listening and independent-emulator results where applicable. Keep absent hardware or device evidence explicitly unverified. Obtain owner acceptance of the supported slice before calling it accepted.
 
 A successful finite corpus establishes its declared supported scope. It does not establish universal scene, collision, gameplay or music recovery from arbitrary ROMs.
