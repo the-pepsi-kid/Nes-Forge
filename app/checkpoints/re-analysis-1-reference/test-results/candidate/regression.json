@@ -1,0 +1,270 @@
+{
+  "html": "NES_Forge_1.9.0_Gameplay_Core.html",
+  "sha256": "a4f0e445e132a02e042ac7b19a5fbe243eed537e83f7053bfb8c35dd60e4ceef",
+  "scope": "Reconstructed regression suite; not a reproduction of the historical 344-check report. Full inline script executed in Node VM with lightweight DOM/canvas/timer mocks.",
+  "passed": 52,
+  "failed": 0,
+  "total": 52,
+  "results": [
+    {
+      "name": "Emulator, provenance capture, and Save As/CHR source blocks match supplied 1.6.2 baseline exactly",
+      "passed": true,
+      "milliseconds": 7
+    },
+    {
+      "name": "Complete application script initializes without an application error",
+      "passed": true,
+      "milliseconds": 407
+    },
+    {
+      "name": "CHR bitplanes roundtrip every pixel value and preserve bank offsets",
+      "passed": true,
+      "milliseconds": 452
+    },
+    {
+      "name": "Palette normalization shares universal background and clamps NES colors",
+      "passed": true,
+      "milliseconds": 460
+    },
+    {
+      "name": "Portable project roundtrip retains worlds, definitions, links, CHR, and animation",
+      "passed": true,
+      "milliseconds": 604
+    },
+    {
+      "name": "Legacy schema unversioned loads with absent worlds and valid empty metatile defaults",
+      "passed": true,
+      "milliseconds": 491
+    },
+    {
+      "name": "Legacy schema 2 loads with absent worlds and valid empty metatile defaults",
+      "passed": true,
+      "milliseconds": 451
+    },
+    {
+      "name": "Legacy schema 3 loads with absent worlds and valid empty metatile defaults",
+      "passed": true,
+      "milliseconds": 454
+    },
+    {
+      "name": "Legacy schema 4 loads with absent worlds and valid empty metatile defaults",
+      "passed": true,
+      "milliseconds": 462
+    },
+    {
+      "name": "Future schemas and malformed collections fail before replacing current project",
+      "passed": true,
+      "milliseconds": 449
+    },
+    {
+      "name": "Malformed map dimensions and unknown metatile references are rejected",
+      "passed": true,
+      "milliseconds": 480
+    },
+    {
+      "name": "Undo and redo restore project data including world destinations",
+      "passed": true,
+      "milliseconds": 652
+    },
+    {
+      "name": "New edits clear redo while history stays isolated from new project load",
+      "passed": true,
+      "milliseconds": 681
+    },
+    {
+      "name": "Metatile brush writes four nametable quadrants and survives serialization",
+      "passed": true,
+      "milliseconds": 605
+    },
+    {
+      "name": "Raw tile changes detach a mismatching metatile without changing its definition",
+      "passed": true,
+      "milliseconds": 433
+    },
+    {
+      "name": "World resize preserves coordinate positions and fills new area with empty cells",
+      "passed": true,
+      "milliseconds": 437
+    },
+    {
+      "name": "World creation selects an existing metatile scene when the active scene has no library",
+      "passed": true,
+      "milliseconds": 532
+    },
+    {
+      "name": "Assembler emits known 6502 bytes, labels, branches, strings, and vectors",
+      "passed": true,
+      "milliseconds": 421
+    },
+    {
+      "name": "Assembler reports out-of-range branches and undefined symbols",
+      "passed": true,
+      "milliseconds": 420
+    },
+    {
+      "name": "Default generated ROM has a valid NROM header, vectors, and Forge marker",
+      "passed": true,
+      "milliseconds": 478
+    },
+    {
+      "name": "Custom ASM occupying $C200 advances metadata placement and preserves code",
+      "passed": true,
+      "milliseconds": 490
+    },
+    {
+      "name": "Exhausted metadata space fails promptly with a capacity message",
+      "passed": true,
+      "milliseconds": 501
+    },
+    {
+      "name": "Missing interrupt vectors fail custom ROM generation",
+      "passed": true,
+      "milliseconds": 468
+    },
+    {
+      "name": "Build excludes unselected scenes and rejects a world using an excluded tileset",
+      "passed": true,
+      "milliseconds": 558
+    },
+    {
+      "name": "World-only metatiles fail preflight when their definition cannot be included in MT16",
+      "passed": true,
+      "milliseconds": 490
+    },
+    {
+      "name": "ROM re-import restores world coordinates, rooms, camera modes, and valid tileset references",
+      "passed": true,
+      "milliseconds": 2471
+    },
+    {
+      "name": "ROM re-import keeps cross-world and same-world marker destinations resolvable",
+      "passed": true,
+      "milliseconds": 2533
+    },
+    {
+      "name": "Generated scene viewer boots and produces nonempty framebuffer through actual emulator",
+      "passed": true,
+      "milliseconds": 642
+    },
+    {
+      "name": "iNES parser rejects bad signature, unsupported NES 2.0, and truncated image",
+      "passed": true,
+      "milliseconds": 489
+    },
+    {
+      "name": "Save As request and explicit cancellation produce no download",
+      "passed": true,
+      "milliseconds": 443
+    },
+    {
+      "name": "Native picker cancellation never triggers fallback browser download",
+      "passed": true,
+      "milliseconds": 428
+    },
+    {
+      "name": "Native save resolves successfully only after writable stream close completes",
+      "passed": true,
+      "milliseconds": 443
+    },
+    {
+      "name": "Writable close failure aborts stream, leaves Save As retryable, and never downloads",
+      "passed": true,
+      "milliseconds": 435
+    },
+    {
+      "name": "Explicit browser download is reported as requested, with sanitized filename",
+      "passed": true,
+      "milliseconds": 436
+    },
+    {
+      "name": "A concurrent Save As request cannot replace the pending export",
+      "passed": true,
+      "milliseconds": 422
+    },
+    {
+      "name": "Composer APIs and schema v6 initialize in the complete release",
+      "passed": true,
+      "milliseconds": 425
+    },
+    {
+      "name": "Composed project JSON preserves frame identities, pieces, origins, and animation bindings",
+      "passed": true,
+      "milliseconds": 520
+    },
+    {
+      "name": "Composed OAM conversion uses origin, palette, both flips, priority, and explicit lower tile",
+      "passed": true,
+      "milliseconds": 425
+    },
+    {
+      "name": "Metasprite pixels continue using their source scene after active scene changes",
+      "passed": true,
+      "milliseconds": 473
+    },
+    {
+      "name": "8x16 vertical flip swaps source tiles and reverses pixels around the authored anchor",
+      "passed": true,
+      "milliseconds": 439
+    },
+    {
+      "name": "OAM order wins opaque overlaps and transparent pixels leave later sprites visible",
+      "passed": true,
+      "milliseconds": 419
+    },
+    {
+      "name": "Hardware preview counts transparent OAM pieces toward eight sprites per scanline",
+      "passed": true,
+      "milliseconds": 474
+    },
+    {
+      "name": "Metasprite duplication and mirroring create new identities and reflect around the origin",
+      "passed": true,
+      "milliseconds": 718
+    },
+    {
+      "name": "Mixed-size scene OAM capture expands 8x16 pairs without losing their vertical flip",
+      "passed": true,
+      "milliseconds": 485
+    },
+    {
+      "name": "Animation sources switch through the actual commands and preserve legacy tile/duration",
+      "passed": true,
+      "milliseconds": 629
+    },
+    {
+      "name": "Animation frame bounds use the explicit origin and fixed union across composed and tile frames",
+      "passed": true,
+      "milliseconds": 430
+    },
+    {
+      "name": "Missing animation references survive editing with a visible missing-source result and block build",
+      "passed": true,
+      "milliseconds": 621
+    },
+    {
+      "name": "MS16 checksum and declared payload length reject corrupted bytes",
+      "passed": true,
+      "milliseconds": 476
+    },
+    {
+      "name": "MS16 links source tiles without mutating authoring IDs or unrelated sprite CHR",
+      "passed": true,
+      "milliseconds": 484
+    },
+    {
+      "name": "ROM import restores composed frames with new unique IDs and remapped animation references",
+      "passed": true,
+      "milliseconds": 2421
+    },
+    {
+      "name": "Portable asset export contains complete frames and their sprite sources",
+      "passed": true,
+      "milliseconds": 433
+    },
+    {
+      "name": "Out-of-range authored coordinates and duplicate frame identities reject schema v6 load",
+      "passed": true,
+      "milliseconds": 441
+    }
+  ]
+}

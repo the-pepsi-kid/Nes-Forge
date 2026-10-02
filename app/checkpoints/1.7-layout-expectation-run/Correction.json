@@ -1,0 +1,7 @@
+{
+  "status": "failed-test-expectation",
+  "htmlSha256": "abcf22812bf027001d8a25ac6f64295755d4f1a2ddf281ac3ce0760a3039ed3f",
+  "reason": "Two rom-compat167 cases still treated layout 4 as unsupported, although 1.7 supports layout 4. Malformed fixtures were rejected with the new World ROM structural diagnostic, causing the old error-text assertion to fail.",
+  "correction": "Unknown-layout rejection uses 0, 5 and 255. Both old layout-4-mutated fixtures also remain tested for World ROM structural rejection, atomic state and zero retained-decoder calls. The suite retains all eight cases; no production code changed.",
+  "releaseEvidence": "This failed attempt is historical evidence only. A new complete required run from fresh staging owns the final release result."
+}

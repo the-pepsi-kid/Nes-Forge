@@ -1,0 +1,110 @@
+NES FORGE — OWNER CHECKLIST
+Candidate: 1.9.0 Alpha / re-analysis-1a / schema 12
+
+Purpose: check the actions this candidate actually provides and report where
+what you see differs. This is not a claim that comprehensive RE is finished.
+
+BEFORE STARTING
+Save your current work with Save Project As. Extract this candidate ZIP into
+a fresh folder. Open mainline/NES_Forge_1.9.0_Gameplay_Core.html from that
+folder; close older Forge copies to avoid testing the wrong one. Keep the
+examples folder available. Use a desktop keyboard for T4/T5 if possible;
+record mobile observations separately. Ordinary use needs no Playwright.
+
+Use these result labels:
+PASS — every listed expected result was observed.
+FAIL — an available action produced a different result.
+BLOCKED — something prevented the test from running; say what.
+NOT IMPLEMENTED — the feature is absent by design in this candidate.
+
+If a required control is missing, stop that test, take a screenshot including
+the tab/sidebar, and report it. Do not keep retrying or assume user error.
+Other independent tests can still be reported separately.
+
+T1 — CAN YOU CHOOSE A FILE FOR GENERAL ANALYSIS?
+1. Select RE / DISASM. Find GENERAL ROM ANALYSIS above the recovery section.
+2. Find Choose ROM or binary. Its file-input control must be visible.
+3. Click/tap that control once. Cancel the operating-system file chooser.
+Expected: the chooser opens, cancellation leaves Forge usable, and your
+project remains open. Open for analysis is a separate action. The browser
+may name its native button Choose File or Browse.
+A visible recovery picker alone does not pass this test. Report the app
+filename and screen width/device if the general picker is missing.
+
+T2 — DOES A KNOWN RAW BINARY PRODUCE THE EXPECTED EVIDENCE?
+1. In that general picker, choose examples/RE_Analysis/raw_counter.bin.
+   Press Open for analysis. Do not load this diagnostic in EMULATOR.
+2. Set File offset to 0, Range bytes to 14, CPU origin to $4000, and CPU
+   variant to 6502 (NMOS). Press View range.
+3. Expect 14 bytes and candidate instructions beginning LDA #$03, STA $10,
+   DEC $10, BNE $4004. Byte $02 at file offset 11 remains .byte.
+4. Under Find bytes, enter C6 10 D0 FC in Hex bytes. Set Search from file
+   offset to 0 and press Search. Expect one result at File $000004.
+5. Open Labels and comments · user evidence. Set File offset to 4, Length
+   in bytes to 4, Label to Counter test, and Comment to Observed bytes only.
+   Press Save annotation, then Download inspection + notes.
+Expected: the note appears and the downloaded JSON contains this identity
+and annotation. It is an inspection report, not a Forge project.
+
+T3 — DOES YOUR OWN ROM OPEN WITHOUT AN ENGINE ALLOWLIST?
+1. Use GENERAL ROM ANALYSIS to choose the ROM you were trying, then Open
+   for analysis. The supported input limit is 64 MiB.
+2. Record the filename, byte count, SHA-256 and displayed container status.
+3. Expect original bytes and candidate disassembly to appear. For a valid
+   recognized NES container, expand Raw CHR patterns · grayscale if CHR ROM
+   exists. CHR-RAM or raw-file inputs may correctly show no stored tiles.
+Expected: unknown engine or unsupported emulator mapper does not reject
+static inspection. Malformed/unknown containers retain raw bytes with a
+warning. Record any error verbatim. Loading only in EMULATOR does not start
+this analysis. No automatic scenes, collision or songs are expected here.
+
+T4 — CAN THE ONE SUPPORTED RECOVERY EXAMPLE BECOME EDITABLE?
+1. Save your project again before import. In RECOVER EDITABLE PROJECT,
+   Choose ROM: examples/RE_Bridge_Room/Bridge_Room.nes.
+2. Press Preview editable recovery. Expect a room preview, pink solid-cell
+   overlay and counts for one scene, collision cells and pulse music.
+3. Press Import as new project. This intentionally replaces the workspace
+   in an undoable step. Inspect the room in SCENE, properties in COLLISION,
+   and recovered Pulse 1 rows in AUDIO.
+4. Use Build & Run. In EMULATOR, enable Sound on if currently off, and Run
+   if paused. Expect the rebuilt room and a melody through your speakers.
+Record audible results separately from visible audio rows. Silence during
+Run with Sound on is a possible playback defect: report it. Missing editable
+AUDIO patterns after general analysis is instead absent recovery. Tracker
+preview alone does not pass built-ROM playback. Other ROMs being rejected by this
+Bridge Room-only recovery is a known capability limit, not generic RE.
+
+T5 — DOES HISTORY RESTORE FRAMES, WITHOUT SELECTING STAGES?
+1. In EMULATOR, Load ROM: Bridge_Room.nes. Open Playback tools and press
+   Record history: off so it reads Record history: on.
+2. Press Run. Move right briefly using the normal controls, then Pause.
+   Note the frame number and player position; keep this short so movement
+   remains within the retained history window.
+3. Press Back 1 several times, then Forward 1 the same number of times.
+Expected: frame/readout and picture return to recorded states; movement is
+visible across enough frames. Forward returns to the paused endpoint.
+Navigation stays paused and muted. At the newest state, further Forward 1
+runs neutral frames. There is no stage-select/advance-stage action.
+
+T6 — DOES GENERAL ANALYSIS PRESERVE AN UNRELATED PROJECT? (OPTIONAL)
+Reopen your saved authoring project. Note its name, scenes, a distinctive
+tile and unsaved edit if desired. Perform T2 or T3 general inspection only,
+then return to SCENE. Expect those authoring details unchanged. Do not use
+Import as new project during this test: T4 intentionally replaces the
+workspace. Save the project under a new filename if you want a comparison.
+
+NOT IMPLEMENTED — DO NOT MARK AS USER ERROR OR WORKING RE
+Force next stage; reduce health; defeat an enemy; general native audio,
+map/scene or collision recovery; automatic analysis on emulator load.
+Visual frame/scene captures are not recovery of those native structures.
+
+RESULT TO SEND BACK
+App filename/candidate:
+Device, OS/version, browser/version:
+Test ID and result (PASS / FAIL / BLOCKED / NOT IMPLEMENTED):
+ROM filename; bytes and SHA-256 if displayed:
+Exact step/action:
+Expected:
+Observed; exact error text:
+Screenshot (include controls/status):
+For the next actual-ROM investigation: desired stage/damage/enemy scenario:

@@ -1,0 +1,640 @@
+{
+  "release": "1.6.7",
+  "status": "passed",
+  "html": "mainline/NES_Forge_1.6.7_Architecture_Convergence.html",
+  "sha256": "4fbe63a0676b903850e72004dba2ea66ae18df7f45bb366ca2688b63a8346b07",
+  "unchangedCandidate": true,
+  "startedAt": "2026-09-14T02:27:43.507Z",
+  "finishedAt": "2026-09-14T02:33:45.390Z",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "passed": 559,
+  "failed": 0,
+  "total": 559,
+  "suiteCount": 23,
+  "suites": [
+    {
+      "name": "world-codec",
+      "script": "stabilization/tests/world_codec.test.cjs",
+      "passed": 55,
+      "total": 55,
+      "failed": 0,
+      "milliseconds": 183,
+      "scriptSha256": "a18b18ea8dc799fcbc1bfc1963becfbdfdf661e77506ae8a10aa5648418a27d6",
+      "report": "test-results/candidate/world-codec.json",
+      "reportSha256": "a34496447dc00d6b671860cdb2968b15864017106f33539394e97aafcd51efc8",
+      "log": "test-results/candidate/world-codec.log"
+    },
+    {
+      "name": "regression",
+      "script": "tests/regression.cjs",
+      "passed": 52,
+      "total": 52,
+      "failed": 0,
+      "milliseconds": 30509,
+      "scriptSha256": "aba7af16a62bcb3011551159470b4ffcd393824ad38f415debe06c4921b35b1f",
+      "report": "test-results/candidate/regression.json",
+      "reportSha256": "55baa8f60070fdafd7cf2ab0f7d75693e372219a4327a4b55efd02c2433f8f21",
+      "log": "test-results/candidate/regression.log"
+    },
+    {
+      "name": "metasprites",
+      "script": "tests/metasprites.cjs",
+      "passed": 27,
+      "total": 27,
+      "failed": 0,
+      "milliseconds": 19775,
+      "scriptSha256": "bd51bc1911f67a84116c85aa912d682931112f92d2d95fd891d149e861ce2c14",
+      "report": "test-results/candidate/metasprites.json",
+      "reportSha256": "70bb1ae20d654bacb1959e75d9a3905b50571707f758b000306a921d00991e34",
+      "log": "test-results/candidate/metasprites.log"
+    },
+    {
+      "name": "composer-interactions",
+      "script": "tests/composer-interactions.cjs",
+      "passed": 10,
+      "total": 10,
+      "failed": 0,
+      "milliseconds": 750,
+      "scriptSha256": "6733b5dfdd61cd050556e90be1c9585fc95dc203c4d12e6914dc3b0b661f8241",
+      "report": "test-results/candidate/composer-interactions.json",
+      "reportSha256": "ebcd0370ac1383457d560be64ca58f5827ac03f40612f325ec8168869461126d",
+      "log": "test-results/candidate/composer-interactions.log"
+    },
+    {
+      "name": "model164",
+      "script": "tests/model164.cjs",
+      "passed": 71,
+      "total": 71,
+      "failed": 0,
+      "milliseconds": 36429,
+      "scriptSha256": "7cd578519afb09dfdb539e4dc525e95d6b4e3e9cdc28beb77b3dacd2e713a5c3",
+      "report": "test-results/candidate/model164.json",
+      "reportSha256": "2000729ca4f0c94dbdf3ee88edfa1d7bfc08378fce32a49b4fe667c5967d0eac",
+      "log": "test-results/candidate/model164.log"
+    },
+    {
+      "name": "frame-editor164",
+      "script": "tests/frame-editor164.cjs",
+      "passed": 27,
+      "total": 27,
+      "failed": 0,
+      "milliseconds": 590,
+      "scriptSha256": "faf3a4237e970e6dfaa0bb5e8d2bb433f929b8470d9c3587837fce3f50fabfdf",
+      "report": "test-results/candidate/frame-editor164.json",
+      "reportSha256": "3bd37e823aa31f040f8d91bd6df660485ddc63b37426bb74eb3d5549365970ba",
+      "log": "test-results/candidate/frame-editor164.log"
+    },
+    {
+      "name": "entity-studio164",
+      "script": "tests/entity-studio164.cjs",
+      "passed": 23,
+      "total": 23,
+      "failed": 0,
+      "milliseconds": 2459,
+      "scriptSha256": "27e3819889dc763a0db2740003e256d131cf49b51287ca5918913cba64f2ec25",
+      "report": "test-results/candidate/entity-studio164.json",
+      "reportSha256": "52e4738fb8f886949e7711656458bd29b0f053712031c51a8c64dbbd66c81354",
+      "log": "test-results/candidate/entity-studio164.log"
+    },
+    {
+      "name": "persistence164",
+      "script": "tests/persistence164.cjs",
+      "passed": 38,
+      "total": 38,
+      "failed": 0,
+      "milliseconds": 25884,
+      "scriptSha256": "4f44263e1b090f189f4651396cf84376b2c911035de88ae1c878349ab51dd0fe",
+      "report": "test-results/candidate/persistence164.json",
+      "reportSha256": "eb5bb8bc525491feb00988cedc03f84c07c5a5959ce8ef6df31a1e75fab2091c",
+      "log": "test-results/candidate/persistence164.log"
+    },
+    {
+      "name": "compiler165",
+      "script": "tests/compiler165.cjs",
+      "passed": 29,
+      "total": 29,
+      "failed": 0,
+      "milliseconds": 14654,
+      "scriptSha256": "92dffd3b15e81a1fe7d1edf426d5d16aa658481bbeae343b7918cfe4315e38a3",
+      "report": "test-results/candidate/compiler165.json",
+      "reportSha256": "f156f8228adf0ac1a61f4e0de53285d625c413aa7c70fbf5f7c2bc9aaf492955",
+      "log": "test-results/candidate/compiler165.log"
+    },
+    {
+      "name": "ui165",
+      "script": "tests/ui165.cjs",
+      "passed": 21,
+      "total": 21,
+      "failed": 0,
+      "milliseconds": 1734,
+      "scriptSha256": "8127e833faff6309465d5f3125be1feb66236f7721e50865f6199d30b58b1209",
+      "report": "test-results/candidate/ui165.json",
+      "reportSha256": "3b6f596c45b62037622dc6e76154b2886fbac7318786017a87a4270b5d3dee51",
+      "log": "test-results/candidate/ui165.log"
+    },
+    {
+      "name": "persistence165",
+      "script": "tests/persistence165.cjs",
+      "passed": 18,
+      "total": 18,
+      "failed": 0,
+      "milliseconds": 16491,
+      "scriptSha256": "50717b0b368a9c8372bc64c122c5e0f5cc66e4082a9d43fcb35b50b83e028167",
+      "report": "test-results/candidate/persistence165.json",
+      "reportSha256": "a86f46d9f7e575893b253fb28537dcac7eb825df3d7a0952e9af1ae0fbd87ae7",
+      "log": "test-results/candidate/persistence165.log"
+    },
+    {
+      "name": "gameplay165",
+      "script": "tests/gameplay165.cjs",
+      "passed": 39,
+      "total": 39,
+      "failed": 0,
+      "milliseconds": 74220,
+      "scriptSha256": "f2680333a9fbee69992bd4c774c61b21916094ddc97e4ac4d33661fa956c85f2",
+      "report": "test-results/candidate/gameplay165.json",
+      "reportSha256": "c9980e03801c905b5aee1cd505af242f917e201da96621e320a2c3cdcc6f5c60",
+      "log": "test-results/candidate/gameplay165.log"
+    },
+    {
+      "name": "engine165",
+      "script": "tests/engine165.cjs",
+      "passed": 5,
+      "total": 5,
+      "failed": 0,
+      "milliseconds": 5421,
+      "scriptSha256": "babae2fe512a16fef4999c5dcc2d514b07cb5cc5569d615b217f5dbbf19b00d2",
+      "report": "test-results/candidate/engine165.json",
+      "reportSha256": "d639ff1f3c4af8aea46fe595be2ac8228f946155c022b5129f7018fd8b4445a9",
+      "log": "test-results/candidate/engine165.log"
+    },
+    {
+      "name": "project166",
+      "script": "tests/project166.cjs",
+      "passed": 17,
+      "total": 17,
+      "failed": 0,
+      "milliseconds": 13492,
+      "scriptSha256": "08aeab3953fbbb967cde48528cb28a34b7cb82bbedd73da17b26a8a1516dbbf6",
+      "report": "test-results/candidate/project166.json",
+      "reportSha256": "6b7efd9fe2482e94d94ed6f4f14ec8413e012565c584369c4370b2491be01bea",
+      "log": "test-results/candidate/project166.log"
+    },
+    {
+      "name": "placement166",
+      "script": "tests/placement166.cjs",
+      "passed": 28,
+      "total": 28,
+      "failed": 0,
+      "milliseconds": 1092,
+      "scriptSha256": "cced64b64187fd931a2859c2edaaf11441fc79ad6ddb570fa6664bc9c1faf250",
+      "report": "test-results/candidate/placement166.json",
+      "reportSha256": "38eac424766078c56ad557cf1c2712888ef1bee1f078ee0bbd6e2d915854b944",
+      "log": "test-results/candidate/placement166.log"
+    },
+    {
+      "name": "native-ui166",
+      "script": "tests/native-ui166.cjs",
+      "passed": 12,
+      "total": 12,
+      "failed": 0,
+      "milliseconds": 5864,
+      "scriptSha256": "5a0dfbec2853478630e056a05e67f7dd49f8064bd9ed79fb7a9cb7545102f747",
+      "report": "test-results/candidate/native-ui166.json",
+      "reportSha256": "7ffb5e1394ed13b1a93d6b507f57dcfb3ac7dc0c8703466524a8b591af136c6c",
+      "log": "test-results/candidate/native-ui166.log"
+    },
+    {
+      "name": "native-authoring166",
+      "script": "tests/native-authoring166.cjs",
+      "passed": 7,
+      "total": 7,
+      "failed": 0,
+      "milliseconds": 62927,
+      "scriptSha256": "fee1f9db4acb76c7894e1ceccaadc4dd40d84a852f0b188255e3ca7ab685b0dc",
+      "report": "test-results/candidate/native-authoring166.json",
+      "reportSha256": "81dd135957f8f9394a264a68d5d010f45bc1492bf113b0c57ba71ed991cd736d",
+      "log": "test-results/candidate/native-authoring166.log"
+    },
+    {
+      "name": "project-store167",
+      "script": "tests/project-store167.cjs",
+      "passed": 21,
+      "total": 21,
+      "failed": 0,
+      "milliseconds": 12342,
+      "scriptSha256": "f3fa7e7e2feda9eed3ff6aab0f220e2dd64d3c146d768bfb79c19dda1c24919c",
+      "report": "test-results/candidate/project-store167.json",
+      "reportSha256": "bf6f6e493bd9f4ad2e07f49e48c1708c1b48cf3427f8286011022061ea3ab201",
+      "log": "test-results/candidate/project-store167.log"
+    },
+    {
+      "name": "lifecycle167",
+      "script": "tests/lifecycle167.cjs",
+      "passed": 26,
+      "total": 26,
+      "failed": 0,
+      "milliseconds": 12719,
+      "scriptSha256": "8f9847226f553a290dd9822156c0ffab5c32559a7b626e98cad21e6b1aa900e6",
+      "report": "test-results/candidate/lifecycle167.json",
+      "reportSha256": "248962f55e83922d79cadf47a9fabdaa65c40060d343aa3aae92250b61568a0b",
+      "log": "test-results/candidate/lifecycle167.log"
+    },
+    {
+      "name": "golden-parity167",
+      "script": "tests/golden-parity167.cjs",
+      "passed": 7,
+      "total": 7,
+      "failed": 0,
+      "milliseconds": 3064,
+      "scriptSha256": "26bd65585dbf4fc5e196501fc9e26b85e205fd8c609be1c99bda804ef54a93e0",
+      "report": "test-results/candidate/golden-parity167.json",
+      "reportSha256": "1d4f58088b0be9e67e23513d89dc1dc14cb4a529c980daf53dc26516036e6671",
+      "log": "test-results/candidate/golden-parity167.log"
+    },
+    {
+      "name": "services167",
+      "script": "tests/services167.cjs",
+      "passed": 14,
+      "total": 14,
+      "failed": 0,
+      "milliseconds": 10487,
+      "scriptSha256": "55436011b1a4d81884a66d1291359bbfcedca5f14ebea87d7afc774c685ad2f7",
+      "report": "test-results/candidate/services167.json",
+      "reportSha256": "bd8f7d22ccbaf88c8ed9d7231c3810b4566892f3459c8aa525f7a9569372a9a5",
+      "log": "test-results/candidate/services167.log"
+    },
+    {
+      "name": "rom-compat167",
+      "script": "tests/rom-compat167.cjs",
+      "passed": 8,
+      "total": 8,
+      "failed": 0,
+      "milliseconds": 10258,
+      "scriptSha256": "a3ef0b259a0f1a8c15af70c2fa8ff55f5797f1a30b5bf7a1234147bb42569df8",
+      "report": "test-results/candidate/rom-compat167.json",
+      "reportSha256": "bf2647f353add30778673590f25a2d8d8f94a2cd249a7b0d2aef97ffe2c8b70a",
+      "log": "test-results/candidate/rom-compat167.log"
+    },
+    {
+      "name": "convergence-source167",
+      "script": "tests/convergence-source167.cjs",
+      "passed": 4,
+      "total": 4,
+      "failed": 0,
+      "milliseconds": 184,
+      "scriptSha256": "3f6288f6c5c3bad8d04492aaf77d2dff8b13f3b25c4e1f3f9099b81cf332a6c2",
+      "report": "test-results/candidate/convergence-source167.json",
+      "reportSha256": "cfee480ef7371129101dbc66ae6cc1b978297a5e8e097a77011425293f830c94",
+      "log": "test-results/candidate/convergence-source167.log"
+    }
+  ],
+  "policy": "All 17 retained baseline suites plus 6 architecture suites, no filters or skipped cases; totals measured from fresh explicit case records.",
+  "provenance": [
+    {
+      "path": "baseline/NES_Forge_1.6.3_Metasprite_Composer.html",
+      "bytes": 645030,
+      "sha256": "54d462caa253828a9d4da8242cb68324bdef10c11e563d66b3b0b705c67cfb53"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.4_Animation_Entity_Binding.html",
+      "bytes": 728823,
+      "sha256": "43564ce820d6db4b50d54d895ecfecd60fdc28a1dce76422f1bca2fdcddd2f7c"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.5_First_Playable_Room.html",
+      "bytes": 783291,
+      "sha256": "aae0002a5b991d21260612177619ca696d4baef8ca00e08affc25cd193618bb8"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.6_Frozen_Release.zip",
+      "bytes": 1759574,
+      "sha256": "b03f16c3c94b7a41a0030fe5a9cb0a213e40bc0f6a3fbf1c1b7f22376b6e742a"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.6_Original_Workflow.html",
+      "bytes": 929217,
+      "sha256": "b02e9b6f54d495e7dd0de3ecc858911e5d5bdeb62eb97b875f3c4805c95eb15d"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.6_Visual_Workspace.html",
+      "bytes": 909180,
+      "sha256": "d9e3c44d0349e50cca1be800a630486bba1ad9584623c99a81f84bf058df33cb"
+    },
+    {
+      "path": "examples/Forge_Scout_Demo_1.6.4.nesforge.json",
+      "bytes": 177671,
+      "sha256": "100854365e0fb56dcc5be08d9764baee08bad7ed1b2baf52c9a4096672dc3a8b"
+    },
+    {
+      "path": "examples/Forge_Scout_Demo_1.6.5.nes",
+      "bytes": 40976,
+      "sha256": "223a9934ae463ac2a0626b959b73feec0bf3e4e4c7f99b020c98103b97bdcf67"
+    },
+    {
+      "path": "examples/Forge_Scout_Demo_1.6.5.nesforge.json",
+      "bytes": 178187,
+      "sha256": "c24490b8ab72913faae308f5ad48f8860a352605e0191cb0c79d777a98aaf3a1"
+    },
+    {
+      "path": "examples/Gameplay_Symbols.json",
+      "bytes": 6050,
+      "sha256": "afa98368dfadbb5f3e4e8a07bac75842302767b86b0908ab8a5c7aaa6dec8133"
+    },
+    {
+      "path": "examples/Native_Authoring_Evidence.json",
+      "bytes": 3990,
+      "sha256": "e5523f6125eb6ce8c2e661d99707c37687ae5000b7e2a7ffaeb4ea0e048406b3"
+    },
+    {
+      "path": "examples/Scout_Authored_in_Editor_1.6.6.nes",
+      "bytes": 40976,
+      "sha256": "c4931acd68384f5d6c3c85648202854c766217d93afc26862a536c0f57923ded"
+    },
+    {
+      "path": "examples/Scout_Authored_in_Editor_1.6.6.nesforge.json",
+      "bytes": 1122035,
+      "sha256": "675c4a9df46c817616c7ee1e0e72b1cb65c842d223703f03b8b1a33f9146b41a"
+    },
+    {
+      "path": "examples/Scout_Gameplay_Preview.png",
+      "bytes": 4046,
+      "sha256": "c1f42ce5b63d1f86960e5bb204831faa72e6f80e0cfb07aadf2169af31787297"
+    },
+    {
+      "path": "examples/Scout_Gameplay_Replay.gif",
+      "bytes": 163124,
+      "sha256": "226b29d72f0e07a125c38561679c97509341008d58aabadd44e7fdd1b24575e7"
+    },
+    {
+      "path": "examples/Scout_Reopened_Edited_1.6.6.nes",
+      "bytes": 40976,
+      "sha256": "324adfebb6e8d1030a30063f7a4649a78cdb84e2ee5cd2b9a703c6336f96d1c3"
+    },
+    {
+      "path": "examples/Scout_Reopened_Edited_1.6.6.nesforge.json",
+      "bytes": 1176769,
+      "sha256": "9ffe5563d63ce7d9053a84a57cbac3c2077b6a6a481f8f579ec4a4ef3300e69e"
+    },
+    {
+      "path": "stabilization/tests/world_codec.test.cjs",
+      "bytes": 11370,
+      "sha256": "a18b18ea8dc799fcbc1bfc1963becfbdfdf661e77506ae8a10aa5648418a27d6"
+    },
+    {
+      "path": "tests/compiler165.cjs",
+      "bytes": 11037,
+      "sha256": "92dffd3b15e81a1fe7d1edf426d5d16aa658481bbeae343b7918cfe4315e38a3"
+    },
+    {
+      "path": "tests/composer-cases.cjs",
+      "bytes": 8870,
+      "sha256": "8fca98c90e504725ccbb44dd46b62ccd4bcbc350476296f15cf6cd3fa083f62f"
+    },
+    {
+      "path": "tests/composer-interactions.cjs",
+      "bytes": 4642,
+      "sha256": "6733b5dfdd61cd050556e90be1c9585fc95dc203c4d12e6914dc3b0b661f8241"
+    },
+    {
+      "path": "tests/convergence-source167.cjs",
+      "bytes": 3847,
+      "sha256": "3f6288f6c5c3bad8d04492aaf77d2dff8b13f3b25c4e1f3f9099b81cf332a6c2"
+    },
+    {
+      "path": "tests/engine165.cjs",
+      "bytes": 6939,
+      "sha256": "babae2fe512a16fef4999c5dcc2d514b07cb5cc5569d615b217f5dbbf19b00d2"
+    },
+    {
+      "path": "tests/entity-studio164.cjs",
+      "bytes": 12376,
+      "sha256": "27e3819889dc763a0db2740003e256d131cf49b51287ca5918913cba64f2ec25"
+    },
+    {
+      "path": "tests/fixtures.cjs",
+      "bytes": 3057,
+      "sha256": "c200b72c52d81bd76bee051173d2c7e4e7ce7de2956a453d25602a0bbdbda986"
+    },
+    {
+      "path": "tests/fixtures/golden167/manifest.json",
+      "bytes": 3426,
+      "sha256": "0f95fbe1839ae25aeac3ac342e3288eda9ee5c8dd99819cc93870adebe1b98e8"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-custom-asm.metadata.json",
+      "bytes": 6010,
+      "sha256": "4938f0247e57c06e48d3df04683aac66b0f2f197e52d1be349dc0b409b75c932"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-custom-asm.nes",
+      "bytes": 24592,
+      "sha256": "3a75b9031674e9e3c5b66af6a8c23783c830044680d045b9d91c1189c8ee34ca"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-custom-asm.project.json",
+      "bytes": 618922,
+      "sha256": "9689475f2b0acb3cdab4e9f7300712e775ac1b2c95e1f575a355fb73aeefd916"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-viewer.metadata.json",
+      "bytes": 6010,
+      "sha256": "5347c94dda1997beadd420218fecdccc6c7647d7c352d2a674413fd6b78e4694"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-viewer.nes",
+      "bytes": 24592,
+      "sha256": "ebc946452a74ebed9d1eb796d78ae7349d1b3d4014a00bd6aacb9c53a4f6abc9"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-viewer.project.json",
+      "bytes": 618799,
+      "sha256": "d46fb91ea5a931c4b4e794d427c66b98b24f5467ca968f19a960b5db1f33d0f1"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-world-assets-reordered.metadata.json",
+      "bytes": 41540,
+      "sha256": "60da25f30600a3e70fc338ecc1e2fe626f6f9a2154bd7633e2805884d4db885b"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-world-assets-reordered.nes",
+      "bytes": 24592,
+      "sha256": "1b3e4cfcd9aad31a63dde23f056774941ad643a2fa993b699389ca607cc0b68d"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-world-assets-reordered.project.json",
+      "bytes": 1247163,
+      "sha256": "78ef61820f2bfc230af3d5c0b3dd65afbcdd095ffac4e4737df0f0be9022fa77"
+    },
+    {
+      "path": "tests/fixtures/golden167/single-room-poc.metadata.json",
+      "bytes": 61761,
+      "sha256": "17d9e13eb45064ddef1e0491d5491ba77a97ba18c4c1b0aeb14c4427d54a49a4"
+    },
+    {
+      "path": "tests/fixtures/golden167/single-room-poc.nes",
+      "bytes": 40976,
+      "sha256": "c4931acd68384f5d6c3c85648202854c766217d93afc26862a536c0f57923ded"
+    },
+    {
+      "path": "tests/fixtures/golden167/single-room-poc.project.json",
+      "bytes": 1122035,
+      "sha256": "675c4a9df46c817616c7ee1e0e72b1cb65c842d223703f03b8b1a33f9146b41a"
+    },
+    {
+      "path": "tests/fixtures/golden167/unpacked-custom-asm.metadata.json",
+      "bytes": 482,
+      "sha256": "b25f6b1b8fbe6169ecd44945b27aedc34e96c02dd6c0075540e362f5889c41b0"
+    },
+    {
+      "path": "tests/fixtures/golden167/unpacked-custom-asm.nes",
+      "bytes": 24592,
+      "sha256": "8989fdf01b6758974cab030dbf50795969de1949f15ec25b9689d1a406463c9a"
+    },
+    {
+      "path": "tests/fixtures/golden167/unpacked-custom-asm.project.json",
+      "bytes": 618900,
+      "sha256": "acb24133590c5dc42eb6450f2259c6f8b1af6b853c5df698187d21747d36f098"
+    },
+    {
+      "path": "tests/fixtures/legacy-startup-art.json",
+      "bytes": 16069,
+      "sha256": "476801670395d431d880e3f7956c9377049f23cdd7b6140dbb2f888ca0c59b85"
+    },
+    {
+      "path": "tests/fixtures/scout166.json",
+      "bytes": 679398,
+      "sha256": "1004c0afa7876e9e3bbb4e2dcdcc5a1223f97d1e42efff36e936f40aabd8fb3c"
+    },
+    {
+      "path": "tests/frame-editor164.cjs",
+      "bytes": 8873,
+      "sha256": "faf3a4237e970e6dfaa0bb5e8d2bb433f929b8470d9c3587837fce3f50fabfdf"
+    },
+    {
+      "path": "tests/gameplay165.cjs",
+      "bytes": 22332,
+      "sha256": "f2680333a9fbee69992bd4c774c61b21916094ddc97e4ac4d33661fa956c85f2"
+    },
+    {
+      "path": "tests/golden-parity167.cjs",
+      "bytes": 3840,
+      "sha256": "26bd65585dbf4fc5e196501fc9e26b85e205fd8c609be1c99bda804ef54a93e0"
+    },
+    {
+      "path": "tests/harness.cjs",
+      "bytes": 8111,
+      "sha256": "a2fc0675ae81d7ecd589952f75d9677849cd803b3960d0fd9241d977b619d672"
+    },
+    {
+      "path": "tests/lifecycle167.cjs",
+      "bytes": 20726,
+      "sha256": "8f9847226f553a290dd9822156c0ffab5c32559a7b626e98cad21e6b1aa900e6"
+    },
+    {
+      "path": "tests/metasprites.cjs",
+      "bytes": 14753,
+      "sha256": "bd51bc1911f67a84116c85aa912d682931112f92d2d95fd891d149e861ce2c14"
+    },
+    {
+      "path": "tests/model164.cjs",
+      "bytes": 24723,
+      "sha256": "7cd578519afb09dfdb539e4dc525e95d6b4e3e9cdc28beb77b3dacd2e713a5c3"
+    },
+    {
+      "path": "tests/native-authoring166.cjs",
+      "bytes": 17294,
+      "sha256": "fee1f9db4acb76c7894e1ceccaadc4dd40d84a852f0b188255e3ca7ab685b0dc"
+    },
+    {
+      "path": "tests/native-ui166.cjs",
+      "bytes": 13565,
+      "sha256": "5a0dfbec2853478630e056a05e67f7dd49f8064bd9ed79fb7a9cb7545102f747"
+    },
+    {
+      "path": "tests/persistence164.cjs",
+      "bytes": 16570,
+      "sha256": "4f44263e1b090f189f4651396cf84376b2c911035de88ae1c878349ab51dd0fe"
+    },
+    {
+      "path": "tests/persistence165.cjs",
+      "bytes": 7297,
+      "sha256": "50717b0b368a9c8372bc64c122c5e0f5cc66e4082a9d43fcb35b50b83e028167"
+    },
+    {
+      "path": "tests/placement166.cjs",
+      "bytes": 12762,
+      "sha256": "cced64b64187fd931a2859c2edaaf11441fc79ad6ddb570fa6664bc9c1faf250"
+    },
+    {
+      "path": "tests/preserved-source.json",
+      "bytes": 990,
+      "sha256": "df8515c6c9e149c7c93eb224b21be4e9d72692ede54fed198f1bc6e8e11d3722"
+    },
+    {
+      "path": "tests/project-store167.cjs",
+      "bytes": 11040,
+      "sha256": "f3fa7e7e2feda9eed3ff6aab0f220e2dd64d3c146d768bfb79c19dda1c24919c"
+    },
+    {
+      "path": "tests/project166.cjs",
+      "bytes": 12802,
+      "sha256": "08aeab3953fbbb967cde48528cb28a34b7cb82bbedd73da17b26a8a1516dbbf6"
+    },
+    {
+      "path": "tests/regression.cjs",
+      "bytes": 16332,
+      "sha256": "aba7af16a62bcb3011551159470b4ffcd393824ad38f415debe06c4921b35b1f"
+    },
+    {
+      "path": "tests/rom-compat167.cjs",
+      "bytes": 6881,
+      "sha256": "a3ef0b259a0f1a8c15af70c2fa8ff55f5797f1a30b5bf7a1234147bb42569df8"
+    },
+    {
+      "path": "tests/run_all.cjs",
+      "bytes": 419,
+      "sha256": "391e6e98051ac56bc07464a02bd32e31ef504d3bced7678d58aff6f16e3923f9"
+    },
+    {
+      "path": "tests/run_candidate.cjs",
+      "bytes": 10289,
+      "sha256": "73ae92f2482b47e0f90f17486b48ecefd11028942e7c10f9f83e62e403aa511f"
+    },
+    {
+      "path": "tests/run_frozen.cjs",
+      "bytes": 2889,
+      "sha256": "279960dda1e62ce05620225ff4dab96be31bd0272f0eacabfa6a7a2d3a63e657"
+    },
+    {
+      "path": "tests/services167.cjs",
+      "bytes": 13403,
+      "sha256": "55436011b1a4d81884a66d1291359bbfcedca5f14ebea87d7afc774c685ad2f7"
+    },
+    {
+      "path": "tests/storage-harness167.cjs",
+      "bytes": 3564,
+      "sha256": "0140cf0d37f4f5d2b4af1110da62b970704f4d9fddf44fe23ff6b8db2025d2b6"
+    },
+    {
+      "path": "tests/ui165.cjs",
+      "bytes": 10413,
+      "sha256": "8127e833faff6309465d5f3125be1feb66236f7721e50865f6199d30b58b1209"
+    },
+    {
+      "path": "tests/version-expectations.cjs",
+      "bytes": 765,
+      "sha256": "5321fff0df5f8cdcbd6339954e016d8c40e66d0604c8dd5acddb3b0d138ca20c"
+    },
+    {
+      "path": "tools/capture_goldens.cjs",
+      "bytes": 6142,
+      "sha256": "1edfba2283128b328a51a58a2204e7dc63f701f7c49344e57f67a39db4bfb03d"
+    }
+  ],
+  "browserAcceptance": "Separate evidence is required. This automated VM runner makes no real-browser, native picker, or browser rendering claim."
+}

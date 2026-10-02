@@ -1,0 +1,39 @@
+{
+  "candidate": "re-analysis-1",
+  "status": "passed",
+  "htmlSha256": "a4f0e445e132a02e042ac7b19a5fbe243eed537e83f7053bfb8c35dd60e4ceef",
+  "summarySha256": "081b7b80b66126859cf3a07ae113dde01c69f5f7321e00f962cd743455bcbb09",
+  "stagingArchiveSha256": "4f8d58c6c39b776ca472939d189cd58154d1c1836683e6a0c1b1648e15702fd2",
+  "stagingVerifiedPayloads": 732,
+  "passed": 845,
+  "total": 845,
+  "suiteCount": 38,
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "startedAt": "2026-10-01T05:46:33.457Z",
+  "finishedAt": "2026-10-01T05:58:38.714Z",
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "node tests/run_candidate.cjs",
+    "node tests/browser-mobile-play.cjs",
+    "node tests/browser-re-analysis.cjs"
+  ],
+  "browserResults": {
+    "browser-mobile": {
+      "status": "blocked",
+      "passed": 0,
+      "failed": 0,
+      "blockedReason": "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Looks like Playwright was just installed or updated.       \u2551\n\u2551 Please run the following command to download new browsers: \u2551\n\u2551                                                            \u2551\n\u2551     npx playwright install                                 \u2551\n\u2551                                                            \u2551\n\u2551 <3 Playwright Team                                         \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d"
+    },
+    "browser-re-analysis": {
+      "status": "blocked",
+      "passed": 0,
+      "failed": 0,
+      "blockedReason": "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Looks like Playwright was just installed or updated.       \u2551\n\u2551 Please run the following command to download new browsers: \u2551\n\u2551                                                            \u2551\n\u2551     npx playwright install                                 \u2551\n\u2551                                                            \u2551\n\u2551 <3 Playwright Team                                         \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d"
+    }
+  },
+  "acceptanceBoundary": "Automated VM/model/runtime evidence is distinct from browser/device/hardware acceptance. Engine-independent bytes and offline disassembly do not implement general asset recovery, non-NES emulation or gameplay-state debugging. Candidate is not promoted."
+}

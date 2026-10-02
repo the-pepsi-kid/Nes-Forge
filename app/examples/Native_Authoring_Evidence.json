@@ -1,0 +1,147 @@
+{
+  "htmlSha256": "d9e3c44d0349e50cca1be800a630486bba1ad9584623c99a81f84bf058df33cb",
+  "referenceFile": "Forge_Scout_Demo_1.6.5.nesforge.json",
+  "referenceSha256": "c24490b8ab72913faae308f5ad48f8860a352605e0191cb0c79d777a98aaf3a1",
+  "templateLoaded": false,
+  "projectFixtureInjected": false,
+  "manualBrowserQA": false,
+  "scope": "Empty project followed by existing native editor controls and actual mouse handlers; generated 6502 ROM executed in the bundled emulator.",
+  "limitations": "Automated full-application VM with a mock DOM: browser layout, physical pointer/keyboard input, native file pickers and Save As dialogs are not verified. Stable IDs and nonruntime entity metadata may differ from the historical demo.",
+  "trace": [
+    {
+      "action": "New Project → confirm empty project",
+      "blankAssets": true,
+      "templateLoaded": false
+    },
+    {
+      "action": "CHR SHEET: draw background and Scout pixels; edit NES palette colors",
+      "backgroundTiles": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "spriteTiles": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        32,
+        33
+      ],
+      "pixelEvents": 1010,
+      "paletteEdits": 32
+    },
+    {
+      "action": "SCENE / COLLISION: paint room, floor and platforms; mark solid tiles",
+      "tilePaints": 960,
+      "solidTiles": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "action": "METATILES: create a reusable solid block from its painted room cell"
+    },
+    {
+      "action": "METASPRITES: assemble idle, step A, step B and attack poses",
+      "frames": 4,
+      "pieces": 26,
+      "origin": {
+        "x": 8,
+        "y": 24
+      }
+    },
+    {
+      "action": "ANIM: build idle / walk / attack / hurt timing, contact areas and entry events",
+      "animations": 4,
+      "timelineFrames": 10
+    },
+    {
+      "action": "ENTITY STUDIO / SCENE Gameplay: place Scout and target, bind states, choose runtime actors and physics",
+      "counts": {
+        "scenes": 1,
+        "metasprites": 4,
+        "animations": 4,
+        "entities": 2
+      },
+      "customAssembly": false
+    },
+    {
+      "action": "Build & Play: run, jump onto platform, approach target and land an attack",
+      "boot": {
+        "ready": 1,
+        "playerX": 48,
+        "playerY": 208,
+        "velocityY": 0,
+        "grounded": 1,
+        "playerState": 0,
+        "playerFrame": 0,
+        "playerFacing": 0,
+        "targetHits": 0,
+        "targetHurtTimer": 0,
+        "targetFrame": 0,
+        "eventMask": 0,
+        "eventCount": 0
+      },
+      "onPlatform": {
+        "ready": 1,
+        "playerX": 96,
+        "playerY": 176,
+        "velocityY": 0,
+        "grounded": 1,
+        "playerState": 1,
+        "playerFrame": 0,
+        "playerFacing": 0,
+        "targetHits": 0,
+        "targetHurtTimer": 0,
+        "targetFrame": 0,
+        "eventMask": 0,
+        "eventCount": 2
+      },
+      "afterAttack": {
+        "ready": 1,
+        "playerX": 186,
+        "playerY": 208,
+        "velocityY": 0,
+        "grounded": 1,
+        "playerState": 0,
+        "playerFrame": 0,
+        "playerFacing": 0,
+        "targetHits": 1,
+        "targetHurtTimer": 3,
+        "targetFrame": 1,
+        "eventMask": 0,
+        "eventCount": 10
+      },
+      "romSha256": "c4931acd68384f5d6c3c85648202854c766217d93afc26862a536c0f57923ded"
+    },
+    {
+      "action": "Open ROM as Project: edit room tile, CHR pixel and speed; rebuild; reopen edited ROM again",
+      "counts": {
+        "scenes": 1,
+        "metasprites": 4,
+        "animations": 4,
+        "entities": 2
+      },
+      "editedRomSha256": "324adfebb6e8d1030a30063f7a4649a78cdb84e2ee5cd2b9a703c6336f96d1c3",
+      "reopenedRomSha256": "324adfebb6e8d1030a30063f7a4649a78cdb84e2ee5cd2b9a703c6336f96d1c3"
+    }
+  ]
+}

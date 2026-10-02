@@ -1,0 +1,34 @@
+FAIL Only the two approved mobile modules and release/documentation text extend the corrected baseline sources
+  src/shell-prefix.html
++ actual - expected
+
++ '22301e9866e628f60d767459bc1bf69148999517b74fa1a8f824d2d3d460c9a1'
+- '3c1e57694555364c79ca1008232832c275d5abeea52a2f993461fab5586aec7d'
+
+PASS Keyboard aliases and intentional paused keyboard frame stepping remain functional
+PASS The actual Frame command preserves held keyboard keys while ordinary Pause releases them
+PASS Multitouch combines independent pointers and preserves another finger on release or slide
+PASS Opposite directions cancel after keyboard, touch and gamepad are merged
+PASS Standard gamepad buttons and left stick feed NES port one after initial neutral sample
+PASS Initially held controller cannot take over until all mapped inputs are neutral
+PASS Button and axis remapping covers all eight actions; unknown pads are never guessed
+PASS Remapping a standard direction removes only that direction’s default axis supplement
+PASS Only the selected pad drives port one; deselection and session profiles are explicit
+PASS Disconnect drops only gamepad input and does not silently select another held pad
+PASS Reusing a gamepad index for another device cannot inherit the prior input or assignment
+PASS Disconnect event catches same-model same-index reconnection and requires selection plus neutral
+PASS Unavailable or policy-denied Gamepad API leaves keyboard and touch usable
+PASS Pause clears every source and paused discovery cannot pre-arm held controller input
+PASS Focus loss suppresses all inputs until focus returns and controller is neutral
+PASS Hidden documents cannot receive gamepad or touch; returning requires neutral
+PASS Nested settings and focus blockers do not reactivate input until every blocker closes
+PASS Save, project and palette dialogs suspend inputs for their entire lifetime
+PASS Editable focus clears source state and only rearms after field exit plus controller neutral
+PASS Tab exit clears touch and keyboard and forces controller neutral on return
+PASS Actual reset and ROM replacement clear controls and keep emulator paused
+PASS Existing frame loop performs one gamepad sample per frame and never changes port two
+PASS NES strobe and serial latch retain captured bits while live input changes
+PASS Lifecycle releases expose a generation so held browser pointers cannot resurrect input
+PASS Status snapshots cannot mutate adapter state and subscriptions can unsubscribe
+
+25/26 passed

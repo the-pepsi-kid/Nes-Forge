@@ -1,0 +1,91 @@
+{
+  "suite": "re-bridge-model",
+  "html": "NES_Forge_1.9.0_Gameplay_Core.html",
+  "htmlSha256": "e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d",
+  "scope": "Actual bundled decoder, ProjectStore and compiler model in inherited mock DOM. Real browser/device acceptance is separate.",
+  "passed": 16,
+  "total": 16,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Recognized native ROM produces immutable evidence without touching active project, playback or history",
+      "passed": true,
+      "milliseconds": 480
+    },
+    {
+      "name": "ROM snapshot is copied before async hashing and exported projects are isolated",
+      "passed": true,
+      "milliseconds": 405
+    },
+    {
+      "name": "Recovery reads all native nametable, attributes, palettes and planar CHR bytes exactly",
+      "passed": true,
+      "milliseconds": 428
+    },
+    {
+      "name": "Native cell collision is exact and uniform tiles remain editable through ordinary tile properties",
+      "passed": true,
+      "milliseconds": 394
+    },
+    {
+      "name": "Identical tile art with different native collision gets exact cell overrides without invented global meaning",
+      "passed": true,
+      "milliseconds": 488
+    },
+    {
+      "name": "Pulse timers map exactly to canonical notes, constant instrument and frame duration without invented SFX",
+      "passed": true,
+      "milliseconds": 412
+    },
+    {
+      "name": "Unsupported cartridge headers, sizes and extensions reject atomically",
+      "passed": true,
+      "milliseconds": 410
+    },
+    {
+      "name": "Unknown code fingerprint and changed interrupt vectors never create a recovery project",
+      "passed": true,
+      "milliseconds": 327
+    },
+    {
+      "name": "Malformed collision and lossy palette values reject rather than normalize into plausible data",
+      "passed": true,
+      "milliseconds": 366
+    },
+    {
+      "name": "Unsupported body geometry and solid spawn fail before mutation",
+      "passed": true,
+      "milliseconds": 397
+    },
+    {
+      "name": "Unsupported and ambiguous pulse timers reject instead of guessing a pitch",
+      "passed": true,
+      "milliseconds": 383
+    },
+    {
+      "name": "Unsupported audio count, duration, envelope and sweep reject atomically",
+      "passed": true,
+      "milliseconds": 379
+    },
+    {
+      "name": "Successful import is an undoable replacement with byte-identical original and validated native project",
+      "passed": true,
+      "milliseconds": 855
+    },
+    {
+      "name": "Ordinary JSON save/reload preserves native assets, exact collision, music and original ROM",
+      "passed": true,
+      "milliseconds": 746
+    },
+    {
+      "name": "Forged stages and unavailable hashing reject with active state intact",
+      "passed": true,
+      "milliseconds": 742
+    },
+    {
+      "name": "Shared-memory inputs reject before hashing instead of claiming a coherent immutable snapshot",
+      "passed": true,
+      "milliseconds": 360
+    }
+  ]
+}

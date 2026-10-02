@@ -1,0 +1,53 @@
+{
+  "format": "CourtyardNativeVerification",
+  "version": 1,
+  "romSha256": "03e4038e323931b5028298682e0ec0c464101ebf542175e25351a4c02eb334e6",
+  "emulatorHtmlSha256": "4fc607a6cbdbdfed027db10df138c64f8bfe5fa95fc7a46063041313cb63ad62",
+  "checks": [
+    {
+      "name": "Original authored ROM boots with native CPU and zero missed opcodes",
+      "passed": true
+    },
+    {
+      "name": "Room and palette bytes are actually uploaded by original CPU code",
+      "passed": true
+    },
+    {
+      "name": "Right input stops native player at center x188 against the real solid table",
+      "passed": true
+    },
+    {
+      "name": "Left input moves away from the wall at two pixels per frame",
+      "passed": true
+    },
+    {
+      "name": "Clearing collision bytes alone allows original player through unchanged wall graphics",
+      "passed": true
+    },
+    {
+      "name": "Native 16-step driver writes expected pulse periods and constant duty/volume",
+      "passed": true
+    }
+  ],
+  "passed": 6,
+  "total": 6,
+  "observedPulseTimers": [
+    284,
+    253,
+    338,
+    380,
+    427,
+    213,
+    225
+  ],
+  "frameExport": {
+    "file": "original-frame.rgba",
+    "width": 256,
+    "height": 240,
+    "encoding": "RGBA8888"
+  },
+  "limits": [
+    "Bundled emulator command harness; not a real-browser, audible-output or physical-console test.",
+    "Original engine is horizontal only; rebuild deliberately uses Forge sideview behavior."
+  ]
+}

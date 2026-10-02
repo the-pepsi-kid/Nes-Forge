@@ -1,0 +1,77 @@
+{
+  "release": "1.9.0",
+  "candidate": "re-navigation-1",
+  "maturity": "alpha",
+  "status": "passed",
+  "authority": "D049",
+  "referenceHtmlSha256": "7e7c0e53509d31cee4a17bca8f4a8c051fa41e074a5865e46160dd3ceba1106c",
+  "htmlSha256": "e4ac5e66dcd49aa965dab7c1c678399b47ef31ff579aa6c5d83a859855af3e16",
+  "htmlBytes": 1161181,
+  "summary": "test-results/candidate/Summary.json",
+  "summarySha256": "d83ad28c653768b441e2784575937304b575e3dc92cb98534dd2a1447d1d11f8",
+  "suiteCount": 35,
+  "passed": 788,
+  "total": 788,
+  "failed": 0,
+  "recordedAt": "2026-10-01T05:04:37.882751+00:00",
+  "cleanExtraction": {
+    "status": "passed",
+    "stagingArchive": "re-navigation-1-staging.zip",
+    "stagingSha256": "5a878c551dd61ef472658eda8e9b70d1debaa48ec5c7ffb302968a23484d6a1f",
+    "verifiedPayloadChecksums": 536
+  },
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "FORGE_RE_EVIDENCE_DIR=<review-evidence> node tests/run_all.cjs",
+    "node tests/browser-mobile-play.cjs"
+  ],
+  "sourcePreservation": {
+    "reference": "re-bridge-1",
+    "unchangedSourceFiles": 55,
+    "changedSourceFiles": [
+      "src/services/emulator-play-ui.js",
+      "src/services/release-info.js"
+    ],
+    "addedSourceFiles": [
+      "src/services/emulator-timeline.js"
+    ],
+    "removedSourceFiles": []
+  },
+  "sourcePreservationSha256": "3734565748cf7a65cb14774614e9e05b94f05c2282b6edb333ee0a47d923e6cc",
+  "browserAutomation": {
+    "status": "blocked",
+    "passed": 0,
+    "failed": 0,
+    "report": "test-results/browser-mobile/Report.json",
+    "reportSha256": "d2cacfe11eb83f39620f63caed9ec2e21df16ad37b27260e6982ab77d40db4fc"
+  },
+  "runtimeEvidence": "checkpoints/re-navigation-1-clean-extraction/runtime-evidence/",
+  "runtimeReports": {
+    "re-bridge-runtime": "d89246bcf7090a849a9c8351af1c95e2b984e4cd71d3d1b92f4f6017c20480e7",
+    "emulator-timeline-runtime": "642b6f013d994f9847a059102f90d3cb73aed5bdd06cc0eabaf9490bb2199bcc"
+  },
+  "reviewExports": {
+    "Bridge_Room_Recovered.nesforge.json": "7bfb6b0b16c2d3129ac814e11a3665da72c656e79d6e0edcff6cde534916a9da",
+    "Bridge_Room_Rebuilt.nes": "93de7e1b2c605dd042e462cbf4c1afe16a4ef994cf2ad90ec81ff6e872a0f1e3",
+    "RE_Bridge_Runtime_Comparison.png": "e300a5bce3d6dad35430a54188fd3383e046f84615396e5f075a5732663f5c5b",
+    "render_comparison.py": "b4234e6379ed1731fb3343422b38041fd9ec69e008f71476ecd12ef0d63b91be"
+  },
+  "recoveryProfile": "Native Room v1 only; independent original engine and binary tables, no embedded Forge project.",
+  "historyBoundary": {
+    "optIn": true,
+    "defaultEnabled": false,
+    "maxStates": 300,
+    "maxStoredBytes": 33554432,
+    "fixedDurationPromised": false,
+    "durableExport": false
+  },
+  "historicalEvidence": "checkpoints/re-bridge-1-clean-extraction/; baseline/NES_Forge_1.9.0_RE_Bridge_1_Reference.html",
+  "acceptanceBoundary": "Automated model, mock-DOM and bundled CPU/PPU/APU evidence only. Native-room recovery adapts the horizontal-only original to Forge sideview behavior. History navigation is bounded transient state, not full RE or a timing-accuracy upgrade. No universal ROM/NESmaker/ASM/Lua compatibility, general SFX recovery, speaker, mobile-performance, controller or physical-hardware approval is implied. Complete browser walkthrough and owner acceptance/promotion remain pending.",
+  "startedAt": "2026-10-01T04:51:54.526Z",
+  "finishedAt": "2026-10-01T05:03:48.042Z",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  }
+}

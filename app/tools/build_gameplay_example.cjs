@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const {loadForge}=require('../tests/harness.cjs'),{worldProject}=require('../tests/world-fixtures170.cjs');
+const root=path.resolve(__dirname,'..'),manifest=JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))),html=path.join(root,manifest.output),h=loadForge(html),project=worldProject();
+project.version=12;project.foundation='1.9.0';h.context.example190=project;h.run('db_deserializeState(example190);S.gameplayCore.enabled=true');
+const recipes=[['Sideview Player','example-player',56,200],['Ground Patrol Enemy','example-patrol',112,200],['Stationary Contact Hazard','example-hazard',168,200],['Collectible Pickup','example-pickup',72,200],['Switch + Door','example-switch-door',216,200]];
+for(const [name,idPrefix,x,y]of recipes){h.context.recipe190={name,idPrefix,x,y};h.run(`(()=>{const r=recipe190,q=Forge.services.GameplayModel.template(r.name,{idPrefix:r.idPrefix,placement:{kind:'world',worldId:S.worlds[0].id},x:r.x,y:r.y});S.gameplayCore.actorDefinitions.push(...q.actorDefinitions);S.gameplayCore.behaviors.push(...q.behaviors);S.gameplayCore.actorInstances.push(...q.actorInstances);S.gameplayCore.persistentVariables.push(...q.persistentVariables);})()`);}
+const saved=h.json('Forge.services.ProjectStore.capture()');saved.projectName='Scout — Gameplay Core 1.9.0';h.context.saved190=saved;h.run('db_deserializeState(saved190)');const artifact=h.run('Forge.services.RuntimeCompiler.compile()',30000),base=path.join(root,'examples/Scout_Gameplay_Core_1.9.0');
+fs.writeFileSync(base+'.nesforge.json',JSON.stringify(saved,null,2)+'\n');fs.writeFileSync(base+'.nes',Buffer.from(artifact.rom));
+const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex'),report={release:'1.9.0',htmlSha256:hash(fs.readFileSync(html)),project:path.relative(root,base+'.nesforge.json'),projectSha256:hash(fs.readFileSync(base+'.nesforge.json')),rom:path.relative(root,base+'.nes'),romSha256:hash(artifact.rom),romBytes:artifact.rom.length,backend:artifact.backend,actorDefinitions:saved.gameplayCore.actorDefinitions.length,actorInstances:saved.gameplayCore.actorInstances.length,behaviors:saved.gameplayCore.behaviors.length,persistentVariables:saved.gameplayCore.persistentVariables.length,templates:recipes.map(item=>item[0]),codeEnd:artifact.world.codeEnd,dataEnd:artifact.world.dataEnd};
+fs.writeFileSync(base+'.build.json',JSON.stringify(report,null,2)+'\n');process.stdout.write(JSON.stringify(report,null,2)+'\n');

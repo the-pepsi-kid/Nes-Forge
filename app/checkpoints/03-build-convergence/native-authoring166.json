@@ -1,0 +1,40 @@
+{
+  "suite": "native-authoring166",
+  "source": "NES_Forge_1.6.7_Architecture_Convergence.html",
+  "sha256": "41babd1f2e317cf21c0777884175a31e175e78fd61c10621c4e9edbf7d09a6d5",
+  "environment": "Full app VM with actual control handlers and bundled 6502 emulator",
+  "limitations": "Not manual browser input/layout verification.",
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "results": [
+    {
+      "name": "reference pixels and palettes painted with registered controls",
+      "passed": true
+    },
+    {
+      "name": "room and collision match the reference",
+      "passed": true
+    },
+    {
+      "name": "four poses composed from the painted tiles",
+      "passed": true
+    },
+    {
+      "name": "animation timing, contacts and events match the reference",
+      "passed": true
+    },
+    {
+      "name": "entities bound and gameplay configured through controls",
+      "passed": true
+    },
+    {
+      "name": "actual generated 6502 moves, jumps, collides and hits",
+      "passed": true
+    },
+    {
+      "name": "clean ROM reopening retains visual edits and rebuilt runtime",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "suite": "native-authoring166",
+  "source": "NES_Forge_1.9.0_Gameplay_Core.html",
+  "sha256": "7e7c0e53509d31cee4a17bca8f4a8c051fa41e074a5865e46160dd3ceba1106c",
+  "environment": "Full app VM with actual control handlers and bundled 6502 emulator",
+  "limitations": "Not manual browser input/layout verification.",
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "results": [
+    {
+      "name": "reference pixels and palettes painted with registered controls",
+      "passed": true
+    },
+    {
+      "name": "room and collision match the reference",
+      "passed": true
+    },
+    {
+      "name": "four poses composed from the painted tiles",
+      "passed": true
+    },
+    {
+      "name": "animation timing, contacts and events match the reference",
+      "passed": true
+    },
+    {
+      "name": "entities bound and gameplay configured through controls",
+      "passed": true
+    },
+    {
+      "name": "actual generated 6502 moves, jumps, collides and hits",
+      "passed": true
+    },
+    {
+      "name": "clean ROM reopening retains visual edits and rebuilt runtime",
+      "passed": true
+    }
+  ]
+}

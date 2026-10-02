@@ -1,0 +1,65 @@
+{
+  "release": "1.9.0",
+  "candidate": "re-bridge-1",
+  "maturity": "alpha",
+  "status": "passed",
+  "authority": "D048",
+  "referenceHtmlSha256": "4fc607a6cbdbdfed027db10df138c64f8bfe5fa95fc7a46063041313cb63ad62",
+  "htmlSha256": "7e7c0e53509d31cee4a17bca8f4a8c051fa41e074a5865e46160dd3ceba1106c",
+  "htmlBytes": 1138841,
+  "summary": "test-results/candidate/Summary.json",
+  "summarySha256": "165daf5783df67c3e9675e3d39a267de743ce6d19052bf436811964f2256eacc",
+  "suiteCount": 32,
+  "passed": 750,
+  "total": 750,
+  "failed": 0,
+  "recordedAt": "2026-10-01T04:53:10.569496+00:00",
+  "cleanExtraction": {
+    "status": "passed",
+    "stagingArchive": "re-bridge-1-staging.zip",
+    "stagingSha256": "30a3caaf4f058148c031546fa1a538ed9779de3d33994458c75f936473244248",
+    "verifiedPayloadChecksums": 520
+  },
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "node tests/run_all.cjs",
+    "node tests/browser-mobile-play.cjs"
+  ],
+  "sourcePreservation": {
+    "reference": "mobile-play-2",
+    "unchangedSourceFiles": 52,
+    "changedSourceFiles": [
+      "src/services/project-store.js",
+      "src/services/release-info.js",
+      "src/shell-prefix.html"
+    ],
+    "addedSourceFiles": [
+      "src/re/re-bridge.js",
+      "src/re/re-ui.js"
+    ],
+    "removedSourceFiles": []
+  },
+  "browserAutomation": {
+    "status": "blocked",
+    "passed": 0,
+    "failed": 0,
+    "report": "test-results/browser-mobile/Report.json"
+  },
+  "recoveryProfile": "Native Room v1 only; independent 6502 fixture, no embedded Forge project.",
+  "runtimeEvidence": "checkpoints/re-bridge-1-clean-extraction/runtime-evidence/",
+  "priorAttempt": {
+    "status": "failed",
+    "suite": "emulator-input-mobile",
+    "cause": "The source-preservation assertion still allowed only the prior mobile extension.",
+    "resolution": "Recognize exactly the RE tab-label replacement and the added report-format diagnostic before comparing original protected hashes; enumerate the two new RE modules. No runtime input assertion or protected baseline hash changed. Corrected tutorial Run instruction before fresh staging and complete rerun.",
+    "evidence": "checkpoints/re-bridge-1-clean-extraction/attempt-1/"
+  },
+  "acceptanceBoundary": "Automated model, mock-DOM and bundled CPU/PPU/APU evidence only. Original left/right engine is adapted to Forge sideview controls with added jump/attack. No whole-engine equivalence, general ROM/NESmaker support, SFX recovery, audible-output, real-browser, controller, mobile-performance or physical-console approval. Owner acceptance/promotion remain pending.",
+  "startedAt": "2026-10-01T04:41:24.293Z",
+  "finishedAt": "2026-10-01T04:52:14.735Z",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  }
+}

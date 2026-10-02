@@ -1,0 +1,40 @@
+{
+  "release": "1.9.0",
+  "candidate": "corrected-after-bounded-independent-audit",
+  "governanceRevision": "2026-09-15-hosted-worlds-and-hard-nes-boundary",
+  "correctionAuthority": {
+    "decision": "D045",
+    "approvedInputHtmlSha256": "4d4da4547c641d71e685cd688ea421158460605f9ec3b0f201c4eba56227f6a1",
+    "milestone": "1.9.0-only"
+  },
+  "status": "passed",
+  "stagingArchive": "NES_Forge_1.9.0_Corrected_Staging.zip",
+  "stagingSha256": "da18d595577b2b367bb91d5c7dfacf24f7185ce27275ec29f2beeb284dabcce1",
+  "extractedChecksumEntries": 440,
+  "extractedChecksumsPassed": true,
+  "bundleCheck": "passed",
+  "html": "mainline/NES_Forge_1.9.0_Gameplay_Core.html",
+  "htmlSha256": "472c4eaa427c466e204a07f0c0c30d3ecfc24c318b5ee1566dddaa2bb4903e08",
+  "htmlBytes": 1074708,
+  "summary": "test-results/candidate/Summary.json",
+  "summarySha256": "2e907f4e031d2d488e874fb01e232f6bb449994d7977d6cae651e1620df716a7",
+  "startedAt": "2026-09-17T00:03:31.636Z",
+  "finishedAt": "2026-09-17T00:12:30.030Z",
+  "node": "v24.19.0",
+  "python": "3.12.14",
+  "platform": "linux x64",
+  "provenanceInputs": 143,
+  "suiteCount": 26,
+  "passed": 658,
+  "failed": 0,
+  "total": 658,
+  "skipped": 0,
+  "gameplayCoreCases": 35,
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "sha256sum -c SHA256SUMS.txt",
+    "node tests/run_all.cjs"
+  ],
+  "preservedOracles": "All five legacy whole-ROM comparisons passed byte-for-byte.",
+  "acceptanceBoundary": "Manual real-browser layout, native-picker and Save As acceptance, audible speaker output and independent NES hardware timing remain unverified. The candidate is not automatically promoted."
+}

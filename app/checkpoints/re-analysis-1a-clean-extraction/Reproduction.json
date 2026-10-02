@@ -1,0 +1,39 @@
+{
+  "candidate": "re-analysis-1a",
+  "status": "passed",
+  "htmlSha256": "e3dc4b0911e491d36b0cab4e18708510614d2d306a39092c506f807452375f96",
+  "summarySha256": "a97452dbb161f03ced93e3a7fafe84875d11bc2632d1a86976879f63f12873a7",
+  "stagingArchiveSha256": "fc7f59f713a5b43a227c7825ddbbc5fe3917f0578c3ff3c56217b35a4e05b5f0",
+  "stagingVerifiedPayloads": 817,
+  "passed": 846,
+  "total": 846,
+  "suiteCount": 38,
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "startedAt": "2026-10-01T06:24:35.533Z",
+  "finishedAt": "2026-10-01T06:36:54.746Z",
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "node tests/run_candidate.cjs",
+    "node tests/browser-mobile-play.cjs",
+    "node tests/browser-re-analysis.cjs"
+  ],
+  "browserResults": {
+    "browser-mobile": {
+      "status": "blocked",
+      "passed": 0,
+      "failed": 0,
+      "blockedReason": "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Looks like Playwright was just installed or updated.       \u2551\n\u2551 Please run the following command to download new browsers: \u2551\n\u2551                                                            \u2551\n\u2551     npx playwright install                                 \u2551\n\u2551                                                            \u2551\n\u2551 <3 Playwright Team                                         \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d"
+    },
+    "browser-re-analysis": {
+      "status": "blocked",
+      "passed": 0,
+      "failed": 0,
+      "blockedReason": "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Looks like Playwright was just installed or updated.       \u2551\n\u2551 Please run the following command to download new browsers: \u2551\n\u2551                                                            \u2551\n\u2551     npx playwright install                                 \u2551\n\u2551                                                            \u2551\n\u2551 <3 Playwright Team                                         \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d"
+    }
+  },
+  "acceptanceBoundary": "Automated VM/model/runtime evidence is distinct from browser/device/hardware acceptance. This local file-picker repair does not complete the requested RE workflow. Engine-independent bytes and offline disassembly do not implement general asset recovery, non-NES emulation or gameplay-state debugging. Next end-to-end acceptance must use the owner's exact ROM and a specified gameplay scenario. Candidate is not promoted."
+}

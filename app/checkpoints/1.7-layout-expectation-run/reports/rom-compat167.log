@@ -1,0 +1,17 @@
+PASS Native blank factory submits schema 10 and current foundation before project normalization
+PASS Current layout 3 16 KB viewer remains recognizable and appendable
+PASS Current layout 3 32 KB playable slice remains recognizable and appendable
+FAIL Unknown outer layouts in 16 KB viewer reject classify/open/import before decoding or live mutation
+The input did not match the regular expression /Unsupported Forge ROM layout/. Input:
+
+'Error: World ROM: expected exactly 32 KB PRG and 8 KB CHR without trainer or trailing bytes'
+
+FAIL Unknown outer layouts in 32 KB playable slice reject classify/open/import before decoding or live mutation
+The input did not match the regular expression /Unsupported Forge ROM layout/. Input:
+
+'Error: World ROM: unsupported world source format or nonzero reserved marker byte'
+
+PASS Unknown NFEX version in 16 KB viewer retains existing atomic decoder rejection
+PASS Unknown NFEX version in 32 KB playable slice retains existing atomic decoder rejection
+PASS A foreign ROM without the Forge marker retains foreign classification
+6/8 passed

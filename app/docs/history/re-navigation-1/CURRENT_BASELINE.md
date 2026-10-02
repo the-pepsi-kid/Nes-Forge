@@ -1,0 +1,64 @@
+# Current baseline and candidate evidence
+
+## Active candidate
+
+| Item | Status |
+| --- | --- |
+| Release | NES Forge 1.9.0 — Gameplay Core |
+| Maturity / candidate | Alpha / `re-navigation-1` |
+| Application | `mainline/NES_Forge_1.9.0_Gameplay_Core.html` |
+| Source | Ordered `source-manifest.json`; build with `python3 tools/bundle.py` |
+| Authority | September 30, 2026 owner request to skip forward/backward in loaded ROMs for RE analysis; D049 retains D046–D048 |
+| Scope | Bounded emulator frame-history navigation for playtesting/RE, retaining the supported native-ROM recovery and existing authoring/mobile contracts |
+| Current HTML identity | Read the exact delivered hash in `build-inputs.json`; verify it against the application and current reports |
+| Automated suite evidence | `test-results/candidate/Summary.json` for this candidate's actual hash, totals, failures/skips and environment |
+| Browser automation evidence | `test-results/browser-mobile/Report.json`; walkthrough remains pending, Chromium unavailable; scope and simulated inputs must be stated explicitly |
+| Clean-extraction reproduction | `checkpoints/re-navigation-1-clean-extraction/Reproduction.json` |
+| Physical mobile/controller acceptance | Pending for this exact candidate; prior owner touch success and audio/video lag remain reported observations, not a completed device matrix |
+| Owner acceptance / promotion | Pending; implementation authorization is not acceptance |
+
+Evidence files certify this candidate only if their HTML hash matches the supplied application. Missing, stale, incomplete or failed reports do not establish a pass. Browser automation is separate from physical iPhone/Android, wired/Bluetooth, native picker, speaker-output and independent NES hardware observations.
+
+## Preserved product contract
+
+NES / 8-bit / 6502-class remains the target. Project schema remains 12 with actual frozen-1.8 atomic rejection. Exactly five recipes remain: Sideview Player, Ground Patrol Enemy, Stationary Contact Hazard, Collectible Pickup and Switch + Door. The executable mapper-0 plan permits 12 actors including the compatibility Player and 64 one-byte explicit Room/World persistent values. The RE adapter produces ordinary schema-12 records; no new authoring schema, gameplay template or compiler capability is introduced.
+
+The canonical gameplay model, deterministic behavior tables, typed validation, reachable-World planning, disabled-Behavior inertness and unsigned overlap corrections remain. Generated single-room and World behavior and five legacy whole-ROM oracles remain release gates. The retained RE follow-up adds a native-format decoder and explicit project-transfer UI; ProjectStore only adds a format-specific report rejection. This navigation follow-up adds isolated timeline/presentation services and guarded wrappers around existing emulator lifecycle entry points. CPU/PPU/APU algorithms, renderer, capture implementation, Save As, CHR and generated-ROM systems are not rewritten.
+
+Single-room layout-3/GP16 reopening remains partial and excludes Gameplay Core source; native JSON/ZIP is the complete authoring backup. WG17 recovery retains its checked embedded source, excluding a prior imported-ROM backup. `syncActiveFromPersistent` remains one-way until reconstruction. Door physical blocking remains deferred under Option B. Reset/power-cycle returns persistent variables to authored defaults; no cross-session save backend exists.
+
+## Frozen and historical references
+
+| Release / artifact | Measured historical evidence | Role |
+| --- | --- | --- |
+| 1.6.6 Visual Workspace | 479/479 across 17 suites | Frozen historical baseline |
+| 1.6.7 Architecture Convergence | 559/559 across 23 suites | Frozen historical baseline |
+| 1.7 World Runtime | 606/606 across 24 suites | Completed runtime reference |
+| 1.8 Audio Runtime | 623/623 across 25 suites; HTML SHA-256 `a4aa41d622d9379feac9580d3c6e612e5dbd198801717309ba630ed3bcc93875` | Frozen pre-1.9 reference |
+| Corrected 1.9.0 candidate | 658/658 across 26 suites; HTML SHA-256 `472c4eaa427c466e204a07f0c0c30d3ecfc24c318b5ee1566dddaa2bb4903e08`; 1,074,708 bytes | Reference input for Mobile Play, not evidence for changed bytes |
+| 1.9.0 Alpha `mobile-play-1` | 702/702 across 28 suites; HTML SHA-256 `e7c75ccd43007c46b5e0336105f6551f4b6183cc39730802cd1fba226eb7fe12` | Prior Mobile Play candidate; not a pass for changed bytes |
+| 1.9.0 Alpha `mobile-play-2` | 708/708 across 28 suites; HTML SHA-256 `4fc607a6cbdbdfed027db10df138c64f8bfe5fa95fc7a46063041313cb63ad62` | Input reference for integrated RE; not a pass for changed bytes |
+
+The exact corrected HTML is retained at `baseline/NES_Forge_1.9.0_Corrected_Reference.html`. Previous checkpoints and decisions describe their own artifacts. Historical totals are not added to or inherited by `re-navigation-1`. The preceding bridge documents are archived under `docs/history/re-bridge-1/`; D046–D048 remain unchanged historical evidence, and D049 governs the navigation follow-up. The re-bridge-1 input is identified by its own source/reports; its gate is not inherited by changed navigation bytes.
+
+## Emulator navigation scope
+
+History is opt-in and starts off. The timeline stores complete machine/APU, capture-trace and completed-frame state for the active loaded ROM, including the data needed for resumed execution and corresponding capture/readouts. Back/Forward navigate one frame; batch actions navigate up to 60. Recorded future is restored without executing the CPU. At the live edge, forward executes real muted frames with neutral input and leaves playback paused; it also works with recording off.
+
+The buffer retains at most 300 states and at most 32 MiB of serialized stored data, evicting older states as necessary. Actual duration is displayed and varies with state size. Run or ordinary frame execution after restoring the past creates a new branch and discards the old future. New load, reset, CPU Trace and unload invalidate/reseed history. Batch work yields for cancellation. This is frame-level emulator-state navigation, not a reverse 6502 instruction engine or continuous 2× playback. It adds no persistent gameplay save scope or project schema.
+
+## Integrated RE scope
+
+The current decoder recognizes the independently authored Native Room v1 engine used by `examples/RE_Bridge_Room/Bridge_Room.nes`: standard iNES mapper 0, 32 KiB PRG, 8 KiB CHR, horizontal mirroring, checked engine fingerprint and vectors. It reads native CHR, nametable/attributes, palettes, per-cell collision, spawn and constant Pulse 1 timer records. The input has no Forge project JSON. The result is one editable native project plus a separate evidence report. Unsupported headers, engines, collision values or audio semantics reject before import.
+
+Collision preserves 960 decoded Empty/Solid cells through tile properties where consistent and linked metatile quadrant overrides where needed. The 16-row song uses 12 frames per row in the supplied example; no SFX is recovered. The original engine moves left/right only. Rebuilds use the existing Forge sideview player and add default jump/attack animation states, with no damage hitboxes; no original-gameplay or byte-identical reconstruction claim is made. Original ROM bytes remain available unchanged. The RE / DISASM workflow and tutorial are in `docs/RE_BRIDGE.md`.
+
+## Governance and remaining work
+
+Deliver and review this bounded alpha candidate before owner acceptance. Retain all 32 prior suites and add `emulator-timeline`, `emulator-timeline-ui` and `emulator-timeline-runtime`; 35 suites are required, and actual measured case outcomes belong in the candidate report. Browser walkthrough remains pending because Chromium is missing. Phone A/V lag remains unmeasured, and controller/browser/hardware acceptance is separate.
+
+D049 brings bounded loaded-ROM navigation forward for playtesting and RE. Comprehensive RE remains the long-term goal: broader disassembly/trace tools, supported engine/audio decoders, source migration and controlled edit/build workflows still require implementation. This slice does not authorize a wholesale old-branch merge, ASM/Lua adapters, Method Registry, mapper/raster/linker work, LiveLink, gameplay expansion or hosted/wallet/hardware implementation. Existing artifacts remain frozen; no current pass or acceptance is inferred from them.
+
+The workshop remains documentation followed inside the existing environment. The expanded manual PDFs and revised Alpha Review Kit were completed September 30 as separate documentation deliverables. The owner reports completing tutorial steps 1–9 with guidance and running its ROM in another emulator; emulator identity/version, ROM hash and device details were not recorded. This supports the prior tutorial workflow but does not certify this changed application. Mobile touch works by owner report; mobile audio/video lag remains open and unmeasured, and physical controllers remain untested.
+
+The roadmap places 1.9.3 Audio completion and a finite 2.x RE acceptance gate before hosted worlds/wallet items, with a 4.x tech deck track. Preserve community accessibility and the standalone workflow. A private GitHub repository is recommended after stabilization and before substantive RE development; the authorized integrated example need not wait and no repository has been created.

@@ -1,0 +1,131 @@
+{
+  "suite": "emulator-play-ui-mobile",
+  "html": "NES_Forge_1.9.0_Gameplay_Core.html",
+  "htmlSha256": "e3dc4b0911e491d36b0cab4e18708510614d2d306a39092c506f807452375f96",
+  "scope": "Complete standalone candidate with inherited mock DOM; real ROM/frame lifecycle, pointer controls and controller settings, fullscreen success/denial/races. No real layout, native user activation, physical controller, audio or browser/device acceptance.",
+  "passed": 24,
+  "total": 24,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Play UI startup preserves intrinsic canvas size and accurately labels default touch visibility",
+      "passed": true,
+      "milliseconds": 791
+    },
+    {
+      "name": "Enter and exit retain the same canvas, ROM, framebuffer, running state and editor project",
+      "passed": true,
+      "milliseconds": 404
+    },
+    {
+      "name": "Expanded view hides editor siblings from focus/assistive access and restores their prior values",
+      "passed": true,
+      "milliseconds": 360
+    },
+    {
+      "name": "Protected Save As exits expanded view, restores dialog access and preserves its focused field",
+      "passed": true,
+      "milliseconds": 379
+    },
+    {
+      "name": "Ctrl and Command Save reach the actual protected export handler from focused player controls",
+      "passed": true,
+      "milliseconds": 3701
+    },
+    {
+      "name": "Real pointer controls combine D-pad movement with A and B and release individual fingers",
+      "passed": true,
+      "milliseconds": 373
+    },
+    {
+      "name": "Lost capture, leaving D-pad bounds and hiding controls never leave a NES button held",
+      "passed": true,
+      "milliseconds": 352
+    },
+    {
+      "name": "Pause/resume invalidates old touch-pointer ownership until a new pointerdown",
+      "passed": true,
+      "milliseconds": 336
+    },
+    {
+      "name": "Touch buttons are keyboard accessible without leaking Enter into NES Start",
+      "passed": true,
+      "milliseconds": 343
+    },
+    {
+      "name": "Controller settings pause playback, block input, and leave resumption explicit",
+      "passed": true,
+      "milliseconds": 345
+    },
+    {
+      "name": "Controller mapper waits for release and captures a button or signed axis with input blocked",
+      "passed": true,
+      "milliseconds": 344
+    },
+    {
+      "name": "Player status reflects controller selection, neutralization and disconnect",
+      "passed": true,
+      "milliseconds": 345
+    },
+    {
+      "name": "Fullscreen unsupported and rejected requests retain usable expanded play without resetting state",
+      "passed": true,
+      "milliseconds": 354
+    },
+    {
+      "name": "Successful container fullscreen includes the original canvas and cleans up on exit",
+      "passed": true,
+      "milliseconds": 357
+    },
+    {
+      "name": "A late rejected fullscreen request cannot steal focus after Exit",
+      "passed": true,
+      "milliseconds": 366
+    },
+    {
+      "name": "A late successful fullscreen request is dismissed, and concurrent requests do not overlap",
+      "passed": true,
+      "milliseconds": 345
+    },
+    {
+      "name": "Changing editor tab exits expanded view, closes settings and releases touch input",
+      "passed": true,
+      "milliseconds": 346
+    },
+    {
+      "name": "Play settings retain native selector keyboard behavior while containing Escape",
+      "passed": true,
+      "milliseconds": 346
+    },
+    {
+      "name": "Expanded rendering preserves canvas uploads and frame state without rebuilding the hidden sidebar",
+      "passed": true,
+      "milliseconds": 407
+    },
+    {
+      "name": "Tab, Save As and fullscreen exits flush deferred sidebar presentation once",
+      "passed": true,
+      "milliseconds": 1054
+    },
+    {
+      "name": "Entering and exiting without a deferred redraw does not invent sidebar work",
+      "passed": true,
+      "milliseconds": 338
+    },
+    {
+      "name": "ResizeObserver-supported stable play avoids periodic layout reads and unchanged CSS writes",
+      "passed": true,
+      "milliseconds": 358
+    },
+    {
+      "name": "Without ResizeObserver the timer detects size changes but skips equal size writes",
+      "passed": true,
+      "milliseconds": 331
+    },
+    {
+      "name": "Touch visibility and reentry still fit canvas while paused without advancing the ROM",
+      "passed": true,
+      "milliseconds": 335
+    }
+  ]
+}

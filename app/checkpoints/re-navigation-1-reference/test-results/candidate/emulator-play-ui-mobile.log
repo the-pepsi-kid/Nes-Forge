@@ -1,0 +1,26 @@
+PASS Play UI startup preserves intrinsic canvas size and accurately labels default touch visibility
+PASS Enter and exit retain the same canvas, ROM, framebuffer, running state and editor project
+PASS Expanded view hides editor siblings from focus/assistive access and restores their prior values
+PASS Protected Save As exits expanded view, restores dialog access and preserves its focused field
+PASS Ctrl and Command Save reach the actual protected export handler from focused player controls
+PASS Real pointer controls combine D-pad movement with A and B and release individual fingers
+PASS Lost capture, leaving D-pad bounds and hiding controls never leave a NES button held
+PASS Pause/resume invalidates old touch-pointer ownership until a new pointerdown
+PASS Touch buttons are keyboard accessible without leaking Enter into NES Start
+PASS Controller settings pause playback, block input, and leave resumption explicit
+PASS Controller mapper waits for release and captures a button or signed axis with input blocked
+PASS Player status reflects controller selection, neutralization and disconnect
+PASS Fullscreen unsupported and rejected requests retain usable expanded play without resetting state
+PASS Successful container fullscreen includes the original canvas and cleans up on exit
+PASS A late rejected fullscreen request cannot steal focus after Exit
+PASS A late successful fullscreen request is dismissed, and concurrent requests do not overlap
+PASS Changing editor tab exits expanded view, closes settings and releases touch input
+PASS Play settings retain native selector keyboard behavior while containing Escape
+PASS Expanded rendering preserves canvas uploads and frame state without rebuilding the hidden sidebar
+PASS Tab, Save As and fullscreen exits flush deferred sidebar presentation once
+PASS Entering and exiting without a deferred redraw does not invent sidebar work
+PASS ResizeObserver-supported stable play avoids periodic layout reads and unchanged CSS writes
+PASS Without ResizeObserver the timer detects size changes but skips equal size writes
+PASS Touch visibility and reentry still fit canvas while paused without advancing the ROM
+
+24/24 passed

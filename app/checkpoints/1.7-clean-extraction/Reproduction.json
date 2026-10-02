@@ -1,0 +1,35 @@
+{
+  "release": "1.7",
+  "status": "passed",
+  "inputArchive": "NES_Forge_1.7_staging_2.zip",
+  "inputArchiveSha256": "ce93ad09567df7d4c0529cdd470b0bdc4ac289f7f730d523ff888276d7faa1cb",
+  "verifiedInputFiles": 410,
+  "freshDirectory": "/workspace/scratch/014b1b4653fd/clean-1.7-complete/NES_Forge_1.7",
+  "initialReportsPresent": false,
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "node tests/run_all.cjs"
+  ],
+  "htmlSha256": "abcf22812bf027001d8a25ac6f64295755d4f1a2ddf281ac3ce0760a3039ed3f",
+  "htmlBytes": 921984,
+  "passed": 606,
+  "failed": 0,
+  "skipped": 0,
+  "suiteCount": 24,
+  "exitCode": 0,
+  "startedAt": "2026-09-14T21:28:48.881Z",
+  "finishedAt": "2026-09-14T21:43:22.613Z",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "python": "3.12.14"
+  },
+  "sourceBundleCheck": "passed",
+  "measuredReport": "test-results/candidate/Summary.json",
+  "summarySha256": "118a544bbfb4b2b951d231a863f076e309b5fd373693ce711e64a2920ff9c2db",
+  "testedInputsUnchangedInReleaseTree": true,
+  "provenanceInputCount": 121,
+  "packagingNote": "Final packaging adds measured reports, this reproduction record and finalized documentation. Candidate HTML, source modules, runners, suites, fixtures, baselines and examples retain their tested identities. The packager checks all measured input and report hashes and verifies every archived byte.",
+  "browserAcceptance": "Unverified for all eight inherited actions and the new World controls; the permitted browser attempt was blocked before inspection."
+}

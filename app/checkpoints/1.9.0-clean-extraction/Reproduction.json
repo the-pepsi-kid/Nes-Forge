@@ -1,0 +1,59 @@
+{
+  "release": "1.9.0",
+  "candidate": "mobile-play-2",
+  "maturity": "alpha",
+  "status": "passed",
+  "authority": "D047",
+  "referenceHtmlSha256": "e7c75ccd43007c46b5e0336105f6551f4b6183cc39730802cd1fba226eb7fe12",
+  "htmlSha256": "4fc607a6cbdbdfed027db10df138c64f8bfe5fa95fc7a46063041313cb63ad62",
+  "htmlBytes": 1112391,
+  "summary": "test-results/candidate/Summary.json",
+  "summarySha256": "5e9a6db4b3849dfb3fd57e36bbde9601d9913062c10f0104141fd4f4485cfc71",
+  "suiteCount": 28,
+  "passed": 708,
+  "total": 708,
+  "failed": 0,
+  "recordedAt": "2026-10-01T03:59:59.717974+00:00",
+  "cleanExtraction": {
+    "stagingArchiveSha256": "07e093a5c8f02e97fdc2fe1a352ff92f648ed59df43d70cd35005bc38989adb0",
+    "checksumEntries": 490,
+    "allChecksumsPassed": true,
+    "extractedAt": "2026-10-01T03:47:47.343672+00:00",
+    "extractionRoot": "/workspace/scratch/eed3f92a7165/mobile-stabilization-2026-09-30/clean-extraction/NES_Forge_1.9.0"
+  },
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "node tests/run_all.cjs",
+    "node tests/browser-mobile-play.cjs"
+  ],
+  "priorAttempt": {
+    "status": "failed",
+    "suite": "gameplay-core190",
+    "cause": "The supplied example build record retained the mobile-play-1 HTML hash.",
+    "resolution": "Regenerated with tools/build_gameplay_example.cjs. Project JSON and ROM remained byte-identical; only build-record htmlSha256 changed. Repackaged, verified all 490 staging checksums, and reran the complete suite from a new extraction.",
+    "evidence": "checkpoints/1.9.0-clean-extraction/mobile-play-2-attempt-1/"
+  },
+  "sourcePreservation": {
+    "reference": "mobile-play-1",
+    "unchangedSourceFiles": 53,
+    "changedSourceFiles": [
+      "src/services/emulator-play-ui.js",
+      "src/services/release-info.js"
+    ],
+    "scope": "Defer hidden expanded-Play sidebar rebuilds and avoid unchanged canvas layout/style work. Existing CPU/PPU/APU, scheduler, audio scheduling, renderer uploads and input implementation remain unchanged."
+  },
+  "browserAutomation": {
+    "status": "blocked",
+    "passed": 0,
+    "failed": 0,
+    "report": "test-results/browser-mobile/Report.json"
+  },
+  "acceptanceBoundary": "Automated source/mock-DOM/ROM evidence. Not a phone-lag fix claim or browser, physical controller, audio, fullscreen or NES hardware certification. Owner acceptance/promotion remain pending.",
+  "startedAt": "2026-10-01T03:47:54.533Z",
+  "finishedAt": "2026-10-01T03:57:21.776Z",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  }
+}

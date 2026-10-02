@@ -1,0 +1,3 @@
+HISTORICAL RE-BRIDGE-1 EVIDENCE
+
+These records describe the prior 1.9.0 alpha re-bridge-1 candidate, not the current navigation candidate. Reproduction.json is preserved byte-for-byte from that package. Its original test-results/candidate paths refer to that historical package; the corresponding reports are copied here under Reports/. The summary hash matches the historical record. Source provenance paths likewise describe the original package. The standalone executable is preserved at baseline/NES_Forge_1.9.0_RE_Bridge_1_Reference.html. Current navigation evidence is under checkpoints/re-navigation-1-clean-extraction and the current test-results/candidate folder.

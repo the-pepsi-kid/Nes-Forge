@@ -1,0 +1,902 @@
+{
+  "release": "1.7",
+  "status": "failed",
+  "html": "mainline/NES_Forge_1.7_World_Runtime.html",
+  "sha256": "abcf22812bf027001d8a25ac6f64295755d4f1a2ddf281ac3ce0760a3039ed3f",
+  "startedAt": "2026-09-14T21:11:57.572Z",
+  "finishedAt": "2026-09-14T21:23:35.560Z",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "failedSuite": "rom-compat167",
+  "error": "rom-compat167 exited 1; see test-results/candidate/rom-compat167.log\n\n1 !== 0\n",
+  "completedSuites": [
+    {
+      "name": "world-codec",
+      "script": "stabilization/tests/world_codec.test.cjs",
+      "passed": 55,
+      "total": 55,
+      "failed": 0,
+      "milliseconds": 860,
+      "scriptSha256": "a18b18ea8dc799fcbc1bfc1963becfbdfdf661e77506ae8a10aa5648418a27d6",
+      "report": "test-results/candidate/world-codec.json",
+      "reportSha256": "a34496447dc00d6b671860cdb2968b15864017106f33539394e97aafcd51efc8",
+      "log": "test-results/candidate/world-codec.log"
+    },
+    {
+      "name": "regression",
+      "script": "tests/regression.cjs",
+      "passed": 52,
+      "total": 52,
+      "failed": 0,
+      "milliseconds": 54571,
+      "scriptSha256": "b2ec388d6cd9f2c09b903bf25d7675edd02f55c821e464095bb26f3b0189723c",
+      "report": "test-results/candidate/regression.json",
+      "reportSha256": "310e91e5f4316c7418cd4b7c95c0627ee3ea7be09efb742ddd847d8f18be7572",
+      "log": "test-results/candidate/regression.log"
+    },
+    {
+      "name": "metasprites",
+      "script": "tests/metasprites.cjs",
+      "passed": 27,
+      "total": 27,
+      "failed": 0,
+      "milliseconds": 32665,
+      "scriptSha256": "4dcd71d6be31a4f3e028f5b5a6eba66dd7a7e46dc643b36e64b7261bfd2b54dc",
+      "report": "test-results/candidate/metasprites.json",
+      "reportSha256": "9866815dc767e61052cadd3d4f0822c7101cef81173931c901a3d0d57c942fb3",
+      "log": "test-results/candidate/metasprites.log"
+    },
+    {
+      "name": "composer-interactions",
+      "script": "tests/composer-interactions.cjs",
+      "passed": 10,
+      "total": 10,
+      "failed": 0,
+      "milliseconds": 1825,
+      "scriptSha256": "ad96d19b48f58bc6305a79dbae4c6cdd3b3352c4fa73f322bf37f48c24deb055",
+      "report": "test-results/candidate/composer-interactions.json",
+      "reportSha256": "75c307811bfe56f896f228f99753bb24b4b7ed0e05986762b838e5fe4a7c7779",
+      "log": "test-results/candidate/composer-interactions.log"
+    },
+    {
+      "name": "model164",
+      "script": "tests/model164.cjs",
+      "passed": 71,
+      "total": 71,
+      "failed": 0,
+      "milliseconds": 71635,
+      "scriptSha256": "9850209e088e804d97fc810b8fe7d36fd8e964325ff56ac1dcbf47a03e07c517",
+      "report": "test-results/candidate/model164.json",
+      "reportSha256": "382a86c9b89bacf757754835cf4e3a20a62e834d4b18f9a1f6b4c89abb9c4d65",
+      "log": "test-results/candidate/model164.log"
+    },
+    {
+      "name": "frame-editor164",
+      "script": "tests/frame-editor164.cjs",
+      "passed": 27,
+      "total": 27,
+      "failed": 0,
+      "milliseconds": 1484,
+      "scriptSha256": "0b49f9578ee6527d090cd5e5d8dbdaec4a3736d64ae4e121ee4d93919d5f89dd",
+      "report": "test-results/candidate/frame-editor164.json",
+      "reportSha256": "80f648f64816582f4a0f407b9f351918a0159ebb072359b95b392be77bfbd334",
+      "log": "test-results/candidate/frame-editor164.log"
+    },
+    {
+      "name": "entity-studio164",
+      "script": "tests/entity-studio164.cjs",
+      "passed": 23,
+      "total": 23,
+      "failed": 0,
+      "milliseconds": 4202,
+      "scriptSha256": "2a8aa9d4fd4c414d0d1fa0bc2bba03c6a49529c6fad1eac5e96edd2ba23905c1",
+      "report": "test-results/candidate/entity-studio164.json",
+      "reportSha256": "8d4a978dc35646dbc396c7302ca1e54cc27c035b74b5edbd567f5332d937c314",
+      "log": "test-results/candidate/entity-studio164.log"
+    },
+    {
+      "name": "persistence164",
+      "script": "tests/persistence164.cjs",
+      "passed": 38,
+      "total": 38,
+      "failed": 0,
+      "milliseconds": 42965,
+      "scriptSha256": "813cc0a0d98428279a7d68aa9ac9c8215de4d37a8a35bdae0e3ccba92201edbf",
+      "report": "test-results/candidate/persistence164.json",
+      "reportSha256": "e7b03943a1567a150b0e8ed7e9ba03e3bcbcab419330e485247e83450b9de418",
+      "log": "test-results/candidate/persistence164.log"
+    },
+    {
+      "name": "compiler165",
+      "script": "tests/compiler165.cjs",
+      "passed": 29,
+      "total": 29,
+      "failed": 0,
+      "milliseconds": 25360,
+      "scriptSha256": "487ea5ed7453d774389ed09ddd7e31115504827535b46f4cc98098f7cee2b769",
+      "report": "test-results/candidate/compiler165.json",
+      "reportSha256": "b682ebbfccf388a3e36f6ee5b28bdd2b8ab304d6f06220a667774ce18d359531",
+      "log": "test-results/candidate/compiler165.log"
+    },
+    {
+      "name": "ui165",
+      "script": "tests/ui165.cjs",
+      "passed": 21,
+      "total": 21,
+      "failed": 0,
+      "milliseconds": 3296,
+      "scriptSha256": "8f519522f6d1162429e47e932f4e42fdf89e5ef6a3edc4aa2baa579d44473370",
+      "report": "test-results/candidate/ui165.json",
+      "reportSha256": "9562486f0edd9b95678d1655f5e2e0b0ba8dcf1d28af2ac8a5118c6becc41c6a",
+      "log": "test-results/candidate/ui165.log"
+    },
+    {
+      "name": "persistence165",
+      "script": "tests/persistence165.cjs",
+      "passed": 18,
+      "total": 18,
+      "failed": 0,
+      "milliseconds": 27218,
+      "scriptSha256": "e9238aa06aa1fcdb566086e574dc07df91a2a6e2322a3343051782c3b22d87c8",
+      "report": "test-results/candidate/persistence165.json",
+      "reportSha256": "fc48c56d4fa2ba57c23fb9143545720088b243e068d1be65f3638896070c12da",
+      "log": "test-results/candidate/persistence165.log"
+    },
+    {
+      "name": "gameplay165",
+      "script": "tests/gameplay165.cjs",
+      "passed": 39,
+      "total": 39,
+      "failed": 0,
+      "milliseconds": 143543,
+      "scriptSha256": "073091e8357551990b7bc720b7351315178d6bd5cfad24d32a66a59733f1ecdc",
+      "report": "test-results/candidate/gameplay165.json",
+      "reportSha256": "b81062ef28621ef64672a8b2f037292787840c8479117c5a073439c5ec4dde3b",
+      "log": "test-results/candidate/gameplay165.log"
+    },
+    {
+      "name": "engine165",
+      "script": "tests/engine165.cjs",
+      "passed": 5,
+      "total": 5,
+      "failed": 0,
+      "milliseconds": 11061,
+      "scriptSha256": "5371f662eef3d54e7b504b8a27c96e3f846524e77946a2f3b0cdc2a9317118b6",
+      "report": "test-results/candidate/engine165.json",
+      "reportSha256": "1af93782cf5b0f1ca0723434241fbac03cec234bc415d78da078aef8c27279fd",
+      "log": "test-results/candidate/engine165.log"
+    },
+    {
+      "name": "project166",
+      "script": "tests/project166.cjs",
+      "passed": 17,
+      "total": 17,
+      "failed": 0,
+      "milliseconds": 26434,
+      "scriptSha256": "f5434a0a75a2bd75c05bb135ba28a3f81273564def426ee7c64276036a8c1f63",
+      "report": "test-results/candidate/project166.json",
+      "reportSha256": "0347c07444b331e5e76ce38157be89c12b2de28f87f3b1468b863fc253d9e642",
+      "log": "test-results/candidate/project166.log"
+    },
+    {
+      "name": "placement166",
+      "script": "tests/placement166.cjs",
+      "passed": 28,
+      "total": 28,
+      "failed": 0,
+      "milliseconds": 2362,
+      "scriptSha256": "41a8e73034f48d208410a5dba31c69f02168b41a5153f1021a767ddab9ea4643",
+      "report": "test-results/candidate/placement166.json",
+      "reportSha256": "4401cc97fb479aea37f4389566aefa0db0ba25fa6a0d2e217c5212468e9db9a3",
+      "log": "test-results/candidate/placement166.log"
+    },
+    {
+      "name": "native-ui166",
+      "script": "tests/native-ui166.cjs",
+      "passed": 12,
+      "total": 12,
+      "failed": 0,
+      "milliseconds": 12297,
+      "scriptSha256": "faa146a3c21704c717d661633e6e5fc30cd12680fc6176053befdc1630dcbfb5",
+      "report": "test-results/candidate/native-ui166.json",
+      "reportSha256": "9722e4674721245f18dc68a7a90aaaa0c247d325727a18ea767b047109701dc5",
+      "log": "test-results/candidate/native-ui166.log"
+    },
+    {
+      "name": "native-authoring166",
+      "script": "tests/native-authoring166.cjs",
+      "passed": 7,
+      "total": 7,
+      "failed": 0,
+      "milliseconds": 131461,
+      "scriptSha256": "61fc7d643f126106e23e72b5d120911b579c7655479cc3978a0f5b9376ca7323",
+      "report": "test-results/candidate/native-authoring166.json",
+      "reportSha256": "267606bd0a04a11ac5421ae56489fa058128db7f3a10cd136f2ce19f7e842a95",
+      "log": "test-results/candidate/native-authoring166.log"
+    },
+    {
+      "name": "project-store167",
+      "script": "tests/project-store167.cjs",
+      "passed": 21,
+      "total": 21,
+      "failed": 0,
+      "milliseconds": 27066,
+      "scriptSha256": "4e089340b1e42316c3902865cab998dea8f40e79a2e297069c51bba3322f2c36",
+      "report": "test-results/candidate/project-store167.json",
+      "reportSha256": "d55bd9188f49f6a2cef7f74c9517898e5292dec336bdfb60ffa56892a47f8bb9",
+      "log": "test-results/candidate/project-store167.log"
+    },
+    {
+      "name": "lifecycle167",
+      "script": "tests/lifecycle167.cjs",
+      "passed": 26,
+      "total": 26,
+      "failed": 0,
+      "milliseconds": 25404,
+      "scriptSha256": "96c82f55506bd9bd51a549b3b2126109024daee2985ce59f847c32927e033eef",
+      "report": "test-results/candidate/lifecycle167.json",
+      "reportSha256": "d3f19f2fba903c684973ad4a83f2c0a556ed7374b3a58a7b0382bdb436fcd607",
+      "log": "test-results/candidate/lifecycle167.log"
+    },
+    {
+      "name": "golden-parity167",
+      "script": "tests/golden-parity167.cjs",
+      "passed": 7,
+      "total": 7,
+      "failed": 0,
+      "milliseconds": 6394,
+      "scriptSha256": "49490c66799d8c4723698c38ddef59ff0dddee7e2c747ecbf0b89844af63410a",
+      "report": "test-results/candidate/golden-parity167.json",
+      "reportSha256": "552137e0701636892619a3b849a802ab4013e0b25f1ced24fab3fbb678e756ad",
+      "log": "test-results/candidate/golden-parity167.log"
+    },
+    {
+      "name": "services167",
+      "script": "tests/services167.cjs",
+      "passed": 14,
+      "total": 14,
+      "failed": 0,
+      "milliseconds": 21285,
+      "scriptSha256": "31ce6bdcd3eb6a5150b3ec6053f0ff7e59097df1ee77293c520a2829420befa1",
+      "report": "test-results/candidate/services167.json",
+      "reportSha256": "02f7ebaa95ed7d5bca6ac7c7af01d5621fb354628c3c4ee1b923e9df00b194fe",
+      "log": "test-results/candidate/services167.log"
+    }
+  ],
+  "requiredSuites": [
+    "world-codec",
+    "regression",
+    "metasprites",
+    "composer-interactions",
+    "model164",
+    "frame-editor164",
+    "entity-studio164",
+    "persistence164",
+    "compiler165",
+    "ui165",
+    "persistence165",
+    "gameplay165",
+    "engine165",
+    "project166",
+    "placement166",
+    "native-ui166",
+    "native-authoring166",
+    "project-store167",
+    "lifecycle167",
+    "golden-parity167",
+    "services167",
+    "rom-compat167",
+    "convergence-source167",
+    "world-runtime170"
+  ],
+  "provenance": [
+    {
+      "path": "baseline/NES_Forge_1.6.3_Metasprite_Composer.html",
+      "bytes": 645030,
+      "sha256": "54d462caa253828a9d4da8242cb68324bdef10c11e563d66b3b0b705c67cfb53"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.4_Animation_Entity_Binding.html",
+      "bytes": 728823,
+      "sha256": "43564ce820d6db4b50d54d895ecfecd60fdc28a1dce76422f1bca2fdcddd2f7c"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.5_First_Playable_Room.html",
+      "bytes": 783291,
+      "sha256": "aae0002a5b991d21260612177619ca696d4baef8ca00e08affc25cd193618bb8"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.6_Frozen_Release.zip",
+      "bytes": 1759574,
+      "sha256": "b03f16c3c94b7a41a0030fe5a9cb0a213e40bc0f6a3fbf1c1b7f22376b6e742a"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.6_Original_Workflow.html",
+      "bytes": 929217,
+      "sha256": "b02e9b6f54d495e7dd0de3ecc858911e5d5bdeb62eb97b875f3c4805c95eb15d"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.6_Visual_Workspace.html",
+      "bytes": 909180,
+      "sha256": "d9e3c44d0349e50cca1be800a630486bba1ad9584623c99a81f84bf058df33cb"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.7_Architecture_Convergence.html",
+      "bytes": 846047,
+      "sha256": "4fbe63a0676b903850e72004dba2ea66ae18df7f45bb366ca2688b63a8346b07"
+    },
+    {
+      "path": "baseline/NES_Forge_1.6.7_Frozen_Release.zip",
+      "bytes": 4917563,
+      "sha256": "23b42022c4d7671c3526db8c3d758371cdcc03f1eacc1321699c1f94b9f0a85a"
+    },
+    {
+      "path": "build-inputs.json",
+      "bytes": 7337,
+      "sha256": "d3fbe5f4f515535c50bdd4c39b0e9ac6cd2e516941551e49a23e0fdb82ff15c3"
+    },
+    {
+      "path": "examples/Forge_Scout_Demo_1.6.4.nesforge.json",
+      "bytes": 177671,
+      "sha256": "100854365e0fb56dcc5be08d9764baee08bad7ed1b2baf52c9a4096672dc3a8b"
+    },
+    {
+      "path": "examples/Forge_Scout_Demo_1.6.5.nes",
+      "bytes": 40976,
+      "sha256": "223a9934ae463ac2a0626b959b73feec0bf3e4e4c7f99b020c98103b97bdcf67"
+    },
+    {
+      "path": "examples/Forge_Scout_Demo_1.6.5.nesforge.json",
+      "bytes": 178187,
+      "sha256": "c24490b8ab72913faae308f5ad48f8860a352605e0191cb0c79d777a98aaf3a1"
+    },
+    {
+      "path": "examples/Gameplay_Symbols.json",
+      "bytes": 6050,
+      "sha256": "afa98368dfadbb5f3e4e8a07bac75842302767b86b0908ab8a5c7aaa6dec8133"
+    },
+    {
+      "path": "examples/Native_Authoring_Evidence.json",
+      "bytes": 3990,
+      "sha256": "e5523f6125eb6ce8c2e661d99707c37687ae5000b7e2a7ffaeb4ea0e048406b3"
+    },
+    {
+      "path": "examples/Scout_Authored_in_Editor_1.6.6.nes",
+      "bytes": 40976,
+      "sha256": "c4931acd68384f5d6c3c85648202854c766217d93afc26862a536c0f57923ded"
+    },
+    {
+      "path": "examples/Scout_Authored_in_Editor_1.6.6.nesforge.json",
+      "bytes": 1122035,
+      "sha256": "675c4a9df46c817616c7ee1e0e72b1cb65c842d223703f03b8b1a33f9146b41a"
+    },
+    {
+      "path": "examples/Scout_Gameplay_Preview.png",
+      "bytes": 4046,
+      "sha256": "c1f42ce5b63d1f86960e5bb204831faa72e6f80e0cfb07aadf2169af31787297"
+    },
+    {
+      "path": "examples/Scout_Gameplay_Replay.gif",
+      "bytes": 163124,
+      "sha256": "226b29d72f0e07a125c38561679c97509341008d58aabadd44e7fdd1b24575e7"
+    },
+    {
+      "path": "examples/Scout_Reopened_Edited_1.6.6.nes",
+      "bytes": 40976,
+      "sha256": "324adfebb6e8d1030a30063f7a4649a78cdb84e2ee5cd2b9a703c6336f96d1c3"
+    },
+    {
+      "path": "examples/Scout_Reopened_Edited_1.6.6.nesforge.json",
+      "bytes": 1176769,
+      "sha256": "9ffe5563d63ce7d9053a84a57cbac3c2077b6a6a481f8f579ec4a4ef3300e69e"
+    },
+    {
+      "path": "examples/Scout_World_Traversal_1.7.build.json",
+      "bytes": 410,
+      "sha256": "eeeb995502338ed8b246f957fca967b77d4f25c95642a36c5603a298c221e4f9"
+    },
+    {
+      "path": "examples/Scout_World_Traversal_1.7.nes",
+      "bytes": 40976,
+      "sha256": "e1de39f8e5d19dc0be5a65c81063f9db77f3ee325b3699e86d6c807b8ac90a95"
+    },
+    {
+      "path": "examples/Scout_World_Traversal_1.7.nesforge.json",
+      "bytes": 1133711,
+      "sha256": "6068b2f691092201add14619fd26b7cc2afe3770e70ad665c68848af3c902c45"
+    },
+    {
+      "path": "source-manifest.json",
+      "bytes": 1702,
+      "sha256": "c1c1aa1c44413fdaf3f9086c14662aca7f39e9bb82682cb15ca2f4492b7a6f47"
+    },
+    {
+      "path": "src/composition.js",
+      "bytes": 165,
+      "sha256": "2ba43b63b407559c5ed3c08679afea89a4ad1db14f2a16c0c1f4f0611dd09119"
+    },
+    {
+      "path": "src/legacy/00-editor.js",
+      "bytes": 190408,
+      "sha256": "5136b1e398d03a2e7c952929ed9ded203fd1ce41a74e62cdddd817c684afe0d4"
+    },
+    {
+      "path": "src/legacy/01-emulator.js",
+      "bytes": 62112,
+      "sha256": "8e7244e55e97f31b2a1cb0d0a5070d77445cd9aa3248b7760341d4e587c6b0e3"
+    },
+    {
+      "path": "src/legacy/02-interaction-bootstrap.js",
+      "bytes": 19036,
+      "sha256": "73679b216f248119f1180bb94ba6d01da2b63df6b8aaf10a72e9dda06bdc9113"
+    },
+    {
+      "path": "src/legacy/03-runtime-capture.js",
+      "bytes": 36412,
+      "sha256": "d195645cb56d212f578588d3b408dd6c80ca4010cf8f73583f6ac827c7c27643"
+    },
+    {
+      "path": "src/legacy/04-saveas-chr.js",
+      "bytes": 32167,
+      "sha256": "3023b8bb9867eb2c4acf17e598bdb6146592ff6a0b5e855cb955e0102f5ee079"
+    },
+    {
+      "path": "src/legacy/05-foundation.js",
+      "bytes": 30089,
+      "sha256": "9d8ea5f959f39d6c4caf2091a34155f2be3599ced3a468d3800d6d70db364720"
+    },
+    {
+      "path": "src/legacy/06-integration.js",
+      "bytes": 19585,
+      "sha256": "7bb8699218910ac09e7761c7a3fc66abb258649009bb46982b58fb4fc9fdbbf6"
+    },
+    {
+      "path": "src/legacy/07-metatiles.js",
+      "bytes": 47690,
+      "sha256": "a6a2685a82b81b33eef0b72462a86c95b060770bd3f2904ac7dba0a6e43227f7"
+    },
+    {
+      "path": "src/legacy/08-world.js",
+      "bytes": 30739,
+      "sha256": "4c456b87955c43ac28bfdee319a4c3a81cf673b9ffb6b9ca8cdd3849c174cd8c"
+    },
+    {
+      "path": "src/legacy/09-world-codec.js",
+      "bytes": 8475,
+      "sha256": "6c6016e03bc806d07a22af0f31cb839cd920230ca0fbb7665139e5e99f8ea76b"
+    },
+    {
+      "path": "src/legacy/10-world-build.js",
+      "bytes": 7445,
+      "sha256": "3749afc6d4d7bd0f77ab28128026d67d7f6bbb29f9fb2894d96958be4c1a1f9f"
+    },
+    {
+      "path": "src/legacy/11-world-interaction.js",
+      "bytes": 23284,
+      "sha256": "58ad4d66edd6ded56e23c208e4a8a4c1715bd0944b2319d549f9a172b8f009ba"
+    },
+    {
+      "path": "src/legacy/12-stabilization-info.js",
+      "bytes": 1432,
+      "sha256": "e572763e14d2a07961df5b9fe14ab3f5842681b9e6bfa342c8ebeffcf17c40d2"
+    },
+    {
+      "path": "src/legacy/13-metasprites.js",
+      "bytes": 35411,
+      "sha256": "a3da1d59af7479fb512a0d96168c2b5102e2233129c5c0eb3f0af02b8901281b"
+    },
+    {
+      "path": "src/legacy/14-composed-animation.js",
+      "bytes": 9533,
+      "sha256": "2daea40692a2028be149d440a7d768b4d10b1a81ac638964aebdbac629edd77c"
+    },
+    {
+      "path": "src/legacy/15-assets-codec.js",
+      "bytes": 15901,
+      "sha256": "2c0b020a8bb83a861263c4d2f60705b169995393c6dd66df0f0c5bd43227dbd6"
+    },
+    {
+      "path": "src/legacy/16-model.js",
+      "bytes": 14385,
+      "sha256": "80232ade26469b4a0c7fdb72c33196b0fd45d5f9cd6c2483da5a902f34e49df8"
+    },
+    {
+      "path": "src/legacy/17-frame-editor.js",
+      "bytes": 22204,
+      "sha256": "c8ab55c35c58d9e131592a997232f268d6330accfea4491e58098360f0947e37"
+    },
+    {
+      "path": "src/legacy/18-entity-studio.js",
+      "bytes": 30125,
+      "sha256": "38b5d96e377eb491d42ad34fa708ed2930da5300ffa7e99dbe8dd388f7869dba"
+    },
+    {
+      "path": "src/legacy/19-entity-codec.js",
+      "bytes": 15113,
+      "sha256": "ed640a0ccbaefb65d1442bebeb7612380294a06664d8668d27d81a079fe6f05b"
+    },
+    {
+      "path": "src/legacy/20-release164.js",
+      "bytes": 1922,
+      "sha256": "1bd827f4cad469707662c6b7734d970c1fb4bcea14945357424a75618c62b86c"
+    },
+    {
+      "path": "src/legacy/21-config165.js",
+      "bytes": 3515,
+      "sha256": "5c78acf80b607215d4687a4816f78032026d36ed18323603496bf2d5d475545d"
+    },
+    {
+      "path": "src/legacy/22-compiler-engine165.js",
+      "bytes": 30744,
+      "sha256": "859eecd4bb2d9980a8e30fcbef7aac7e12b05d10249e6bcf797b73cec4681b6a"
+    },
+    {
+      "path": "src/legacy/23-build165.js",
+      "bytes": 7294,
+      "sha256": "739bc1a1952a489552d4580c6578972c49afe4be9921364079bdba428a0446b2"
+    },
+    {
+      "path": "src/legacy/24-ui165.js",
+      "bytes": 10962,
+      "sha256": "493efce339d6631fb08463642512b82d8468934af6c3dcdca71606fbabe34cea"
+    },
+    {
+      "path": "src/legacy/25-release165.js",
+      "bytes": 2318,
+      "sha256": "6324c7c7a5720153475c8df5d54e09efd385ae79c2a2266731ae1991f7180608"
+    },
+    {
+      "path": "src/legacy/26-project166.js",
+      "bytes": 9596,
+      "sha256": "25707d609da0f629755ce09d20fec533d3024899299f8c0346a1296a2744b44b"
+    },
+    {
+      "path": "src/legacy/27-placement166.js",
+      "bytes": 6535,
+      "sha256": "8f40497e52e002827d1bd11ef63cc4d01fb275ab87147ed220f77cccf8f3917d"
+    },
+    {
+      "path": "src/legacy/28-ui166.js",
+      "bytes": 6976,
+      "sha256": "54a8af973538b0ae5490c12a622aa9653087e93a22bbcd711bdaac76bc705111"
+    },
+    {
+      "path": "src/legacy/29-release166.js",
+      "bytes": 2802,
+      "sha256": "981be068de7d44a6dfb17b10b6554866f2eadce4b2eebc39e5727b182b5ba82d"
+    },
+    {
+      "path": "src/services/asset-registry.js",
+      "bytes": 3726,
+      "sha256": "5e28ee004648b965fd75f751f494defe5d75a62fef2297aefb96f36089d38924"
+    },
+    {
+      "path": "src/services/build-services.js",
+      "bytes": 18016,
+      "sha256": "c79deb64ae9cbe554591a7c307c268f5bdaa2e1e41135b8952811b471dda10d1"
+    },
+    {
+      "path": "src/services/documentation.js",
+      "bytes": 7426,
+      "sha256": "f7291c56c4becb2888af010845bb39302c24d10b70e6d14f49aff9c7f095ddd6"
+    },
+    {
+      "path": "src/services/emulator-bridge.js",
+      "bytes": 965,
+      "sha256": "f1f7731180c5701ede49911cf4447d3a352b2684d7907a4c05faad353005c680"
+    },
+    {
+      "path": "src/services/project-store.js",
+      "bytes": 25142,
+      "sha256": "ef75faf1d7930a4fe8943ac650a54645382582d4b689301b956fa79939f52bb1"
+    },
+    {
+      "path": "src/services/release-info.js",
+      "bytes": 983,
+      "sha256": "768acab0ec34b4ee83393c3cf71bcc241ec42ea873483884da7b82cfc42e1783"
+    },
+    {
+      "path": "src/shell-prefix.html",
+      "bytes": 59097,
+      "sha256": "30e0349140bc9644a7e601dec7391a4ebc10fedff1ed86a8fadf3b477a1966dd"
+    },
+    {
+      "path": "src/shell-suffix.html",
+      "bytes": 25,
+      "sha256": "893cb35f3016a3523c33b676c4dfbe5686c4b99a1e7128d78e2e3fa271cd4829"
+    },
+    {
+      "path": "src/world/world-compiler.js",
+      "bytes": 18972,
+      "sha256": "a33a2a3ac9d04069542ea1a008814bbdeb6d54f06f6fd5568f62c989c1ad788a"
+    },
+    {
+      "path": "src/world/world-config.js",
+      "bytes": 2842,
+      "sha256": "2679675a22a663fd4e31de13a99e3640c3c1c24036272c840d351810378e24c5"
+    },
+    {
+      "path": "src/world/world-engine.js",
+      "bytes": 24241,
+      "sha256": "1c0c41961bb5c566b28fb96c862990088e40cff91c2a42e09038648a430a11dd"
+    },
+    {
+      "path": "src/world/world-rom.js",
+      "bytes": 18968,
+      "sha256": "59c26328f0bb564aa7d4c71570f23590a7bebc6ca7fa19f3faba541624fb36fb"
+    },
+    {
+      "path": "src/world/world-ui.js",
+      "bytes": 7206,
+      "sha256": "2e3176ef65f7944cb492a5c27aa56d6aa9f522a7987e7847bc421de25afee87f"
+    },
+    {
+      "path": "stabilization/tests/world_codec.test.cjs",
+      "bytes": 11370,
+      "sha256": "a18b18ea8dc799fcbc1bfc1963becfbdfdf661e77506ae8a10aa5648418a27d6"
+    },
+    {
+      "path": "tests/compiler165.cjs",
+      "bytes": 11032,
+      "sha256": "487ea5ed7453d774389ed09ddd7e31115504827535b46f4cc98098f7cee2b769"
+    },
+    {
+      "path": "tests/composer-cases.cjs",
+      "bytes": 8870,
+      "sha256": "8fca98c90e504725ccbb44dd46b62ccd4bcbc350476296f15cf6cd3fa083f62f"
+    },
+    {
+      "path": "tests/composer-interactions.cjs",
+      "bytes": 4637,
+      "sha256": "ad96d19b48f58bc6305a79dbae4c6cdd3b3352c4fa73f322bf37f48c24deb055"
+    },
+    {
+      "path": "tests/convergence-source167.cjs",
+      "bytes": 3834,
+      "sha256": "a9408f4f408e3e184667e799e39eed3f40cd26e50fdc4cc7988cbad564a994e7"
+    },
+    {
+      "path": "tests/engine165.cjs",
+      "bytes": 6934,
+      "sha256": "5371f662eef3d54e7b504b8a27c96e3f846524e77946a2f3b0cdc2a9317118b6"
+    },
+    {
+      "path": "tests/entity-studio164.cjs",
+      "bytes": 12371,
+      "sha256": "2a8aa9d4fd4c414d0d1fa0bc2bba03c6a49529c6fad1eac5e96edd2ba23905c1"
+    },
+    {
+      "path": "tests/fixtures.cjs",
+      "bytes": 3057,
+      "sha256": "c200b72c52d81bd76bee051173d2c7e4e7ce7de2956a453d25602a0bbdbda986"
+    },
+    {
+      "path": "tests/fixtures/golden167/manifest.json",
+      "bytes": 3426,
+      "sha256": "0f95fbe1839ae25aeac3ac342e3288eda9ee5c8dd99819cc93870adebe1b98e8"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-custom-asm.metadata.json",
+      "bytes": 6010,
+      "sha256": "4938f0247e57c06e48d3df04683aac66b0f2f197e52d1be349dc0b409b75c932"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-custom-asm.nes",
+      "bytes": 24592,
+      "sha256": "3a75b9031674e9e3c5b66af6a8c23783c830044680d045b9d91c1189c8ee34ca"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-custom-asm.project.json",
+      "bytes": 618922,
+      "sha256": "9689475f2b0acb3cdab4e9f7300712e775ac1b2c95e1f575a355fb73aeefd916"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-viewer.metadata.json",
+      "bytes": 6010,
+      "sha256": "5347c94dda1997beadd420218fecdccc6c7647d7c352d2a674413fd6b78e4694"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-viewer.nes",
+      "bytes": 24592,
+      "sha256": "ebc946452a74ebed9d1eb796d78ae7349d1b3d4014a00bd6aacb9c53a4f6abc9"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-viewer.project.json",
+      "bytes": 618799,
+      "sha256": "d46fb91ea5a931c4b4e794d427c66b98b24f5467ca968f19a960b5db1f33d0f1"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-world-assets-reordered.metadata.json",
+      "bytes": 41540,
+      "sha256": "60da25f30600a3e70fc338ecc1e2fe626f6f9a2154bd7633e2805884d4db885b"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-world-assets-reordered.nes",
+      "bytes": 24592,
+      "sha256": "1b3e4cfcd9aad31a63dde23f056774941ad643a2fa993b699389ca607cc0b68d"
+    },
+    {
+      "path": "tests/fixtures/golden167/packed-world-assets-reordered.project.json",
+      "bytes": 1247163,
+      "sha256": "78ef61820f2bfc230af3d5c0b3dd65afbcdd095ffac4e4737df0f0be9022fa77"
+    },
+    {
+      "path": "tests/fixtures/golden167/single-room-poc.metadata.json",
+      "bytes": 61761,
+      "sha256": "17d9e13eb45064ddef1e0491d5491ba77a97ba18c4c1b0aeb14c4427d54a49a4"
+    },
+    {
+      "path": "tests/fixtures/golden167/single-room-poc.nes",
+      "bytes": 40976,
+      "sha256": "c4931acd68384f5d6c3c85648202854c766217d93afc26862a536c0f57923ded"
+    },
+    {
+      "path": "tests/fixtures/golden167/single-room-poc.project.json",
+      "bytes": 1122035,
+      "sha256": "675c4a9df46c817616c7ee1e0e72b1cb65c842d223703f03b8b1a33f9146b41a"
+    },
+    {
+      "path": "tests/fixtures/golden167/unpacked-custom-asm.metadata.json",
+      "bytes": 482,
+      "sha256": "b25f6b1b8fbe6169ecd44945b27aedc34e96c02dd6c0075540e362f5889c41b0"
+    },
+    {
+      "path": "tests/fixtures/golden167/unpacked-custom-asm.nes",
+      "bytes": 24592,
+      "sha256": "8989fdf01b6758974cab030dbf50795969de1949f15ec25b9689d1a406463c9a"
+    },
+    {
+      "path": "tests/fixtures/golden167/unpacked-custom-asm.project.json",
+      "bytes": 618900,
+      "sha256": "acb24133590c5dc42eb6450f2259c6f8b1af6b853c5df698187d21747d36f098"
+    },
+    {
+      "path": "tests/fixtures/legacy-startup-art.json",
+      "bytes": 16069,
+      "sha256": "476801670395d431d880e3f7956c9377049f23cdd7b6140dbb2f888ca0c59b85"
+    },
+    {
+      "path": "tests/fixtures/scout166.json",
+      "bytes": 679398,
+      "sha256": "1004c0afa7876e9e3bbb4e2dcdcc5a1223f97d1e42efff36e936f40aabd8fb3c"
+    },
+    {
+      "path": "tests/frame-editor164.cjs",
+      "bytes": 8868,
+      "sha256": "0b49f9578ee6527d090cd5e5d8dbdaec4a3736d64ae4e121ee4d93919d5f89dd"
+    },
+    {
+      "path": "tests/gameplay165.cjs",
+      "bytes": 22327,
+      "sha256": "073091e8357551990b7bc720b7351315178d6bd5cfad24d32a66a59733f1ecdc"
+    },
+    {
+      "path": "tests/golden-parity167.cjs",
+      "bytes": 3827,
+      "sha256": "49490c66799d8c4723698c38ddef59ff0dddee7e2c747ecbf0b89844af63410a"
+    },
+    {
+      "path": "tests/harness.cjs",
+      "bytes": 8111,
+      "sha256": "a2fc0675ae81d7ecd589952f75d9677849cd803b3960d0fd9241d977b619d672"
+    },
+    {
+      "path": "tests/lifecycle167.cjs",
+      "bytes": 20822,
+      "sha256": "96c82f55506bd9bd51a549b3b2126109024daee2985ce59f847c32927e033eef"
+    },
+    {
+      "path": "tests/metasprites.cjs",
+      "bytes": 14748,
+      "sha256": "4dcd71d6be31a4f3e028f5b5a6eba66dd7a7e46dc643b36e64b7261bfd2b54dc"
+    },
+    {
+      "path": "tests/model164.cjs",
+      "bytes": 24718,
+      "sha256": "9850209e088e804d97fc810b8fe7d36fd8e964325ff56ac1dcbf47a03e07c517"
+    },
+    {
+      "path": "tests/native-authoring166.cjs",
+      "bytes": 17289,
+      "sha256": "61fc7d643f126106e23e72b5d120911b579c7655479cc3978a0f5b9376ca7323"
+    },
+    {
+      "path": "tests/native-ui166.cjs",
+      "bytes": 13560,
+      "sha256": "faa146a3c21704c717d661633e6e5fc30cd12680fc6176053befdc1630dcbfb5"
+    },
+    {
+      "path": "tests/persistence164.cjs",
+      "bytes": 16565,
+      "sha256": "813cc0a0d98428279a7d68aa9ac9c8215de4d37a8a35bdae0e3ccba92201edbf"
+    },
+    {
+      "path": "tests/persistence165.cjs",
+      "bytes": 7292,
+      "sha256": "e9238aa06aa1fcdb566086e574dc07df91a2a6e2322a3343051782c3b22d87c8"
+    },
+    {
+      "path": "tests/placement166.cjs",
+      "bytes": 12749,
+      "sha256": "41a8e73034f48d208410a5dba31c69f02168b41a5153f1021a767ddab9ea4643"
+    },
+    {
+      "path": "tests/preserved-source.json",
+      "bytes": 990,
+      "sha256": "df8515c6c9e149c7c93eb224b21be4e9d72692ede54fed198f1bc6e8e11d3722"
+    },
+    {
+      "path": "tests/project-store167.cjs",
+      "bytes": 11591,
+      "sha256": "4e089340b1e42316c3902865cab998dea8f40e79a2e297069c51bba3322f2c36"
+    },
+    {
+      "path": "tests/project166.cjs",
+      "bytes": 12797,
+      "sha256": "f5434a0a75a2bd75c05bb135ba28a3f81273564def426ee7c64276036a8c1f63"
+    },
+    {
+      "path": "tests/regression.cjs",
+      "bytes": 16327,
+      "sha256": "b2ec388d6cd9f2c09b903bf25d7675edd02f55c821e464095bb26f3b0189723c"
+    },
+    {
+      "path": "tests/rom-compat167.cjs",
+      "bytes": 6867,
+      "sha256": "8caccc84c68aa7d6db7518369e5ee12104aca5fca930f8031d76e5c8a08a14e3"
+    },
+    {
+      "path": "tests/run_all.cjs",
+      "bytes": 419,
+      "sha256": "391e6e98051ac56bc07464a02bd32e31ef504d3bced7678d58aff6f16e3923f9"
+    },
+    {
+      "path": "tests/run_candidate.cjs",
+      "bytes": 10617,
+      "sha256": "b30ed16b8cf7ba140946aed1261e57036ef05c85063f6275bd22a291dbeeb322"
+    },
+    {
+      "path": "tests/run_frozen.cjs",
+      "bytes": 2884,
+      "sha256": "958fb2c10b0f61de1625a2684127ce8ea7464ac7061ca037ceca8a296615df33"
+    },
+    {
+      "path": "tests/services167.cjs",
+      "bytes": 13368,
+      "sha256": "31ce6bdcd3eb6a5150b3ec6053f0ff7e59097df1ee77293c520a2829420befa1"
+    },
+    {
+      "path": "tests/storage-harness167.cjs",
+      "bytes": 3564,
+      "sha256": "0140cf0d37f4f5d2b4af1110da62b970704f4d9fddf44fe23ff6b8db2025d2b6"
+    },
+    {
+      "path": "tests/ui165.cjs",
+      "bytes": 10408,
+      "sha256": "8f519522f6d1162429e47e932f4e42fdf89e5ef6a3edc4aa2baa579d44473370"
+    },
+    {
+      "path": "tests/version-expectations.cjs",
+      "bytes": 825,
+      "sha256": "2917d137c3306a7af0d780dcc5ac6257ae0ffe4ac5c3c4d66ee59b4f667598db"
+    },
+    {
+      "path": "tests/world-fixtures170.cjs",
+      "bytes": 3227,
+      "sha256": "d60d3a9642a4ddbc3b453b29cec8c1d10aa0512f5a56d80c91fdf0c242ddbf8b"
+    },
+    {
+      "path": "tests/world-runtime170.cjs",
+      "bytes": 33022,
+      "sha256": "87abfd4a2fed9aa29cc1edd407cd0314cdfe170fde3e3d11e66965c82ec4c99d"
+    },
+    {
+      "path": "tools/capture_goldens.cjs",
+      "bytes": 6142,
+      "sha256": "1edfba2283128b328a51a58a2204e7dc63f701f7c49344e57f67a39db4bfb03d"
+    }
+  ]
+}

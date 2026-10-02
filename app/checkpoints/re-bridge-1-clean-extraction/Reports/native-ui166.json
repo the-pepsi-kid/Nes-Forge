@@ -1,0 +1,72 @@
+{
+  "suite": "native-ui166",
+  "source": "NES_Forge_1.9.0_Gameplay_Core.html",
+  "sha256": "7e7c0e53509d31cee4a17bca8f4a8c051fa41e074a5865e46160dd3ceba1106c",
+  "environment": "Node.js complete application VM and shared DOM stub",
+  "limitations": "No browser layout, physical input, native confirmation, file picker or Save As verification.",
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Project actions are attached to the existing project bar and no workflow popup is constructed",
+      "passed": true,
+      "milliseconds": 397
+    },
+    {
+      "name": "Gameplay navigation opens the existing Scene settings without replacing controls or compiling",
+      "passed": true,
+      "milliseconds": 591
+    },
+    {
+      "name": "Cancelling New Project preserves project references, undo history, save identity and running ROM",
+      "passed": true,
+      "milliseconds": 377
+    },
+    {
+      "name": "Confirming New Project creates a blank Scene in one undo step with no inherited runtime",
+      "passed": true,
+      "milliseconds": 557
+    },
+    {
+      "name": "Open Forge ROM uses its registered file input and cancellation retains the entire workspace",
+      "passed": true,
+      "milliseconds": 382
+    },
+    {
+      "name": "Malformed and unrelated ROM files are rejected before replacement confirmation or mutation",
+      "passed": true,
+      "milliseconds": 403
+    },
+    {
+      "name": "Confirmed Forge ROM input opens one editable project and keeps the Scene gameplay controls live",
+      "passed": true,
+      "milliseconds": 651
+    },
+    {
+      "name": "A newer ROM selection wins and a late older read cannot replace it or add history",
+      "passed": true,
+      "milliseconds": 616
+    },
+    {
+      "name": "Confirming a blank project invalidates an outstanding ROM read before it can prompt or import",
+      "passed": true,
+      "milliseconds": 572
+    },
+    {
+      "name": "Cancelling New Project does not silently discard an already selected ROM file",
+      "passed": true,
+      "milliseconds": 620
+    },
+    {
+      "name": "Read failures and oversized files release the input without confirming or changing project state",
+      "passed": true,
+      "milliseconds": 370
+    },
+    {
+      "name": "A failed Scene gameplay build exposes the shared build log beside the same settings",
+      "passed": true,
+      "milliseconds": 364
+    }
+  ]
+}
