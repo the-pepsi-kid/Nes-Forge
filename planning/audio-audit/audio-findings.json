@@ -1,0 +1,72 @@
+{
+  "format": "NESForgeAudioAlignmentFindings",
+  "version": 1,
+  "recordedAt": "2026-10-02T18:34:23.864Z",
+  "htmlSha256": "e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d",
+  "sourceSha256": {
+    "mainline/NES_Forge_1.9.0_Gameplay_Core.html": "e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d",
+    "tests/harness.cjs": "a2fc0675ae81d7ecd589952f75d9677849cd803b3960d0fd9241d977b619d672",
+    "tests/fixtures/scout166.json": "1004c0afa7876e9e3bbb4e2dcdcc5a1223f97d1e42efff36e936f40aabd8fb3c",
+    "src/audio/audio-compiler.js": "bf9c72e9da12b321cb6f6a820d08e007d31bde9800088e94735c6b21f3d0e333",
+    "src/audio/audio-engine.js": "8fac8bcc0f45c01d2829952422bf7f38215abdc3d9fb8880b372846be587bfe2",
+    "src/legacy/00-editor.js": "5136b1e398d03a2e7c952929ed9ded203fd1ce41a74e62cdddd817c684afe0d4",
+    "src/legacy/01-emulator.js": "8e7244e55e97f31b2a1cb0d0a5070d77445cd9aa3248b7760341d4e587c6b0e3"
+  },
+  "scriptSha256": "7def2186613b772f203a0154fd378ce059f375086c53e7891ef30619d0ff4570",
+  "scope": "Read-only focused compiler/emulator probes, not a full regression run, frame-by-frame walkthrough, speaker test or hardware verification.",
+  "inputFilesUnchanged": true,
+  "densePattern": {
+    "control63": {
+      "rows": 128,
+      "eventCount": 63,
+      "probeRow": 64,
+      "initialCursor": 252,
+      "instructionBudget": 20000,
+      "compiledRomSha256": "6e6222c00d9ebf1edbe9bb60352039afe66fe41acb51128829b6f96dc9135898",
+      "instructions": 13,
+      "returned": true,
+      "finalPC": 32768,
+      "finalCursor": 252,
+      "scanLoopAddress": 34853,
+      "missedOpcodes": 0
+    },
+    "dense64": {
+      "rows": 128,
+      "eventCount": 64,
+      "probeRow": 64,
+      "initialCursor": 252,
+      "instructionBudget": 20000,
+      "compiledRomSha256": "5a7e81b258a81de080d5943e0d8779e288c4a037dc9d1c3a9df5a8e67fb5a714",
+      "instructions": 20000,
+      "returned": false,
+      "finalPC": 34855,
+      "finalCursor": 4,
+      "scanLoopAddress": 34853,
+      "missedOpcodes": 0
+    },
+    "reproduced": true,
+    "conclusion": "The accepted 64-event stream wraps its byte cursor before the sentinel and remains in the scan loop at row 64. The 63-event control returns."
+  },
+  "trianglePitch": {
+    "trackerNote": 57,
+    "note": "A4",
+    "previewHz": 440,
+    "ntscCpuHz": 1789773,
+    "compilerTimer": 253,
+    "actualAPUPulsePeriod": 253,
+    "actualAPUTrianglePeriod": 253,
+    "pulseHzFromInternalAPU": 440.3968996062992,
+    "triangleHzFromInternalAPU": 220.1984498031496,
+    "pulseInstructions": 84,
+    "triangleInstructions": 84,
+    "evidence": "Actual emitted render routines wrote the bundled APU periods; frequencies derive from its clock/phase implementation.",
+    "reproduced": true,
+    "conclusion": "Generated triangle uses the pulse timer and plays approximately one octave below the authored/preview A4 pitch."
+  },
+  "limitations": [
+    "Dense-pattern probe exercises generated music reading only; the related SFX reader was inspected but not executed in this probe.",
+    "Direct routine entry deliberately supplies valid boundary state; it does not claim a complete end-user playback walkthrough.",
+    "Pitch evidence is compiler/APU register and clock-model evidence, not measured speaker or physical-console audio.",
+    "No production code, project fixture or packaged report is modified. These findings do not promote or fix the candidate."
+  ]
+}

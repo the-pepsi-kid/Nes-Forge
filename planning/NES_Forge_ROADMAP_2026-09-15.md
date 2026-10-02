@@ -1,6 +1,6 @@
 # NES Forge — Authoritative Roadmap
-**Revision date:** 2026-10-02 (America/Denver), roadmap reconciliation, 2.0 Alpha development track and cross-ROM scope clarification  
-**Status:** Current direction adopted by the owner's “Ok, proceed.” Delivered candidates, acceptance and planned scope are recorded separately.
+**Revision date:** 2026-10-02 (America/Denver), audio-first alignment priority following roadmap and cross-ROM scope reconciliation  
+**Status:** Latest owner direction prioritizes audio correctness, workflow completion and alignment with RE. Delivered candidates, acceptance and planned scope are recorded separately.
 
 ## Current position
 
@@ -38,22 +38,29 @@ The numbered sections below are capability and dependency identifiers. They are 
 
 | Track | Next action / dependency |
 | --- | --- |
+| **First priority: Audio alignment / 1.9.3 capability scope** | Audit and correct demonstrated preview/runtime differences; verify author/import → edit → build → audible playback → save/reopen and music/SFX behavior. Investigate mobile playback with measured evidence. Keep one canonical Audio model shared with supported RE recovery. |
 | **Now: current candidate acceptance** | Run `docs/RE_RUNTIME_CHECKLIST.txt` R1–R6 on re-runtime-1. Record build/device/browser and results. Resolve concrete regressions before changing the reference. |
-| **Now: source control** | Prepare a private local Git reference from the exact delivered ZIP, preserve its test evidence, and place current planning beside the frozen application. Establish the private remote once its owner/destination is selected. |
-| **Next: 2.0 Alpha native-resource recovery** | Build a shared recovery pipeline with reusable format adapters. Prove inspection → decoded canonical resources → reviewed import → edit → rebuild → runtime verification across unrelated engines from the first graphics slice. Pepsi is a test input, not the architecture or an exclusive target. Detailed slice: `NES_Forge_2.0_ALPHA_PLAN.md`. |
+| **Prepared: source control** | Local Git reference, preserved test evidence and portable bundle are ready. Keep current planning beside the frozen application; establish a private remote once its owner/destination is selected. Remote setup does not block audio work. |
+| **Next recovery priority: 2.0 Alpha native audio** | Align APU observations and supported driver recovery with canonical Audio; develop reusable evidence/preview/import contracts and verify a declared independent driver subset. APU logs alone are not recovered songs. Detailed scope: `NES_Forge_2.0_ALPHA_PLAN.md`. |
+| **After audio: additional graphics/map recovery** | Retain the shared recovery pipeline and cross-engine acceptance requirements. Pepsi is a test input, not the architecture or an exclusive target. |
 | **Parallel: 1.9 Alpha closeout** | Reproduce mobile A/V lag with exact device, browser, ROM and steps. Record controller results when hardware is available. Absence of a controller is an evidence gap, not a blanket block on independent RE development. |
 | **Preserved backlog: 1.9.1 / 1.9.2** | Gameplay Expansion and Behavior UX remain deferred and separately scoped. Bringing RE forward neither implements nor cancels them. |
-| **Separately scoped: 1.9.3 Audio** | Verify and complete the supported author/import → edit → build → audible playback → save/reopen path over the existing 1.8 Audio baseline. |
 | **Separately scoped: ASM migration** | Preserve and integrate representative supplied source through declared dialects, dependencies and hooks. Lua compatibility is a separate host-tooling problem. |
 | **Later: 3.x / 4.x** | Retain the finite audio/RE gate before hosted/wallet implementation, then prove portable host roles before custom hardware. |
 
-## Immediate review and next recovery milestone
+## Immediate audio priority and recovery sequence
 
-First review the **runtime-investigation candidate**, using **`docs/RE_RUNTIME_CHECKLIST.txt`**, not the previous picker checklist. R1–R6 cover shared ROM identity, background initialization, a Pepsi mode change, credit-write provenance, positive audio observation on Bridge Room, and export/lifecycle behavior. Do not require the Pepsi program to contain stages, damage, enemies, collision or music that its investigation did not identify.
+**Latest owner direction, October 2:** audio comes first because development has moved between areas. Close the supported audio workflow and align it with the existing RE foundation before expanding graphics/map recovery. Preserve the 1.8 runtime and existing MIDI/MusicXML/SFX services; audit actual gaps rather than treating those capabilities as absent. Keep authored/imported/recovered audio in one canonical model. The 1.9.3 capability identifier remains useful, while integrated candidate versioning stays under the 2.0 Alpha policy above.
+
+First establish audio preview/compiled-ROM correctness, repeatable author/import/edit/build/save/reopen behavior and listening evidence, including the reported mobile playback issue. Then extend reusable native audio-driver recovery with explicit supported scope. The detailed bounded sequence and acceptance checks are in `NES_Forge_2.0_ALPHA_PLAN.md`. General ROM inspection and APU observations are available; they do not mean comprehensive audio RE is complete.
+
+The focused October 2 audit identified two first correction targets in the current reference: a generated music-reader loop on an accepted dense 64-event pattern, reproduced against a 63-event control, and triangle pitch one octave below Studio preview because runtime uses pulse timer values. These findings supplement the historical passing suite; they are not fixed by this documentation update. Reproduction evidence and the bounded correction criteria accompany the development plan.
+
+The **runtime-investigation candidate** still needs its **`docs/RE_RUNTIME_CHECKLIST.txt`** review, which may overlap audio work. R1–R6 cover shared ROM identity, background initialization, a Pepsi mode change, credit-write provenance, positive audio observation on Bridge Room, and export/lifecycle behavior. Do not require the Pepsi program to contain stages, damage, enemies, collision or music that its investigation did not identify.
 
 **Owner scope clarification, October 2:** RE is intended for user-supplied ROMs across engines. Pepsi is one test case and must not become the basis of a one-ROM recovery feature. The shared discovery, evidence, resource, preview and import interfaces must remain independent of game identity. Reusable format/engine/driver adapters extend them; unknown engines retain inspection and annotation. No filename or whole-ROM hash allowlist may substitute for interpreting and validating a declared format.
 
-The next recovery milestone must produce editable canonical content from documented native representations through that shared pipeline. Select the cross-engine corpus before implementation. Preserve Bridge Room as a control, and require at least two independently authored ROMs from unrelated engines beyond Forge/Bridge Room controls to accept the first graphics recovery slice. Pepsi may be one input. Include suitable map/collision and music examples for later slices; those resource types need their own acceptance evidence. Record the corpus, hashes, mapping, supported records, unknowns and expected behavioral adaptations before claiming decoder acceptance. Include valid-data modifications, false-positive recognition and unknown-engine fallback checks so identity matching cannot masquerade as format support.
+Recovery milestones must produce editable canonical content from documented native representations through that shared pipeline. Native audio now precedes additional graphics/maps: select an independent driver with actual music/SFX data and retain Bridge Room as a control. A first driver establishes only its declared subset. When graphics recovery resumes, require at least two independently authored ROMs from unrelated engines beyond Forge/Bridge Room controls before accepting that pipeline. Pepsi may be one graphics input. Record each corpus, hashes, mapping, supported records, unknowns and expected behavioral adaptations before claiming decoder acceptance. Include valid-data modifications, false-positive recognition and unknown-engine fallback checks so identity matching cannot masquerade as format support.
 
 Acceptance requires an explicit preview/import boundary, useful edits inside Forge, native-project save/reopen, a rebuilt ROM and a comparison against the original for the declared supported behavior. Broad analysis across NES ROMs and supported raw 6502 inputs, alongside progressively wider native-resource recovery, remains the direction. Automatic editable recovery depends on verified format support; execution and rebuild also depend on hardware/runtime support. Static analysis remains available where execution or editable recovery is unsupported.
 
@@ -540,7 +547,7 @@ No competing behavior representation.
 
 ## 1.9.3 — Audio Workflow Verification & Completion
 
-New planned milestone, before the 2.x RE readiness gate and all hosted/wallet implementation. Implementation requires a bounded scope based on the current Audio Studio audit.
+**Current first priority, October 2.** Complete this capability before additional graphics/map recovery and all hosted/wallet implementation. Existing RE inspection remains available. The bounded scope is audio correctness and complete supported workflows, followed by canonical integration of native audio recovery; see `NES_Forge_2.0_ALPHA_PLAN.md` for the sequence and evidence requirements.
 
 **Starting point:** 1.8 already established runtime music, SFX, animation sound events, Pulse 1 / Pulse 2 / Triangle / Noise playback, MIDI import and MusicXML import. Preserve that baseline. First determine which authoring, import, export, editing or playback paths are incomplete; implement demonstrated gaps rather than rebuilding working services.
 
@@ -555,13 +562,13 @@ Planned capability path:
 
 **Exit evidence:** exact app/ROM hashes, declared supported channels and import/export subset, reference inputs and expected events, automated regressions, and recorded listening results in Forge plus an independent emulator. Test physical-console audio separately and report it only when performed. Manual authoring and both existing import paths must survive save/reopen without silent changes.
 
-Mobile emulator A/V lag belongs to 1.9.0 stabilization. ROM audio-driver decoding and decoded-audio export belong to supported 2.x RE adapters. Scanned sheet music, photographic tablature, direct FL Studio project import, DPCM and expansion audio are later proposals requiring their own scope; none is implied by MIDI/MusicXML support.
+Mobile emulator A/V lag retains its 1.9.0 stabilization classification and is now investigated alongside audio alignment. ROM audio-driver decoding and decoded-audio export remain supported 2.x RE adapter work, following authoring/runtime correctness. Scanned sheet music, photographic tablature, direct FL Studio project import, DPCM and expansion audio are later proposals requiring their own scope; none is implied by MIDI/MusicXML support.
 
 ---
 
 # 8. 2.0 Alpha — RE Development and Required Foundations
 
-This is the active direction for subsequent RE candidates. The implementation order follows the bounded recovery plan and demonstrated dependencies. The original resource linker, runtime-profile, raster and live-foundation scope is preserved in 2.0.1–2.0.5 below; existing observation tools do not complete those foundations.
+This is the active direction for subsequent integrated candidates. Audio alignment now leads the implementation order, followed by reusable native audio recovery and then additional graphics/maps. The original resource linker, runtime-profile, raster and live-foundation scope is preserved in 2.0.1–2.0.5 below; existing observation tools do not complete those foundations.
 
 Deliver the minimum resource/address identity, mapper/profile declaration, source mapping and time-dependent evidence contracts needed for a first supported RE path. Do not wait for every mapper, scrolling profile or LiveLink operation before extending the existing bounded RE bridge. Add each runtime/compiler capability behind explicit validation; unsupported captures must not be silently flattened into NROM.
 
