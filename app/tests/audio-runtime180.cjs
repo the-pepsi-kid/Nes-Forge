@@ -6,7 +6,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs'),{worldProject,clone}=require('./world-fixtures170.cjs'),scout=require('./fixtures/scout166.json'),viewerFixture=require('./fixtures/golden167/packed-viewer.project.json');
 const root=path.resolve(__dirname,'..');
-const html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const baseline=path.join(root,'baseline/NES_Forge_1.7_World_Runtime.html');
 const tests=[],test=(name,fn)=>tests.push({name,fn}),metrics={};
 const cell=()=>({note:-1,inst:-1,vol:-1,fx:0,fxp:0});
@@ -55,7 +55,7 @@ function projectState(h){return h.json('({project:projectData(),undo:undoStack,r
 function buildFails(project,pattern){const h=fresh(project);h.run('window._lastBuiltRom=new Uint8Array([1,2,3])');assert.equal(h.run('buildNesRom()',30000),null);assert.equal(h.run('window._lastBuiltRom'),null);assert.match(h.errors.at(-1)||'',pattern);}
 
 test('Schema 12 preserves Audio Runtime and stable SFX references while schema 10 migrates disabled',()=>{
- const p=withAudio(),h=fresh(p),saved=h.json('projectData()');assert.equal(saved.version,12);assert.equal(saved.foundation,'1.9.0');assert.deepEqual(saved.audioRuntime,p.audioRuntime);assert.deepEqual(saved.sfx,p.sfx);
+ const p=withAudio(),h=fresh(p),saved=h.json('projectData()');assert.equal(saved.version,12);assert.equal(saved.foundation,'2.0.0-alpha.1');assert.deepEqual(saved.audioRuntime,p.audioRuntime);assert.deepEqual(saved.sfx,p.sfx);
  h.context.saved180=saved;h.run('db_deserializeState(JSON.stringify(saved180))');assert.deepEqual(h.json('S.audioRuntime'),p.audioRuntime);assert.deepEqual(h.json('S.sfx'),p.sfx);
  const old=clone(p);old.version=10;old.foundation='1.7';delete old.audioRuntime;delete old.sfx;h.context.old180=old;h.run('db_deserializeState(old180)');assert.deepEqual(h.json('S.audioRuntime'),{enabled:false,musicEnabled:true});assert.deepEqual(h.json('S.sfx'),[]);
 });

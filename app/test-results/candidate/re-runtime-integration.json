@@ -1,7 +1,7 @@
 {
   "suite": "re-runtime-integration",
-  "html": "NES_Forge_1.9.0_Gameplay_Core.html",
-  "htmlSha256": "e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d",
+  "html": "NES_Forge_2.0.0-alpha.1.html",
+  "htmlSha256": "4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0",
   "scope": "Independent original user ROM and Bridge Room CPU/PPU/APU execution; exact runtime trace on/off parity, RAM discovery, native PPU-write reconstruction, MMC3 physical provenance and project/history isolation. VM harness, not browser, audible-output or physical-hardware acceptance.",
   "passed": 11,
   "failed": 0,
@@ -313,59 +313,59 @@
   },
   "results": [
     {
-      "name": "All prior picker candidate source bytes are preserved except the exact release tag and two new modules",
+      "name": "All prior picker candidate source bytes survive only the exact audio correction, release tag and two runtime modules",
       "passed": true,
-      "milliseconds": 8
+      "milliseconds": 21
     },
     {
       "name": "The supplied Pepsi ROM is pinned by exact bytes and runtime identity",
       "passed": true,
-      "milliseconds": 446
+      "milliseconds": 473
     },
     {
       "name": "Pepsi vending trace on/off preserves actual CPU, RAM, mapper, video, APU and PCM execution",
       "passed": true,
-      "milliseconds": 3497
+      "milliseconds": 3738
     },
     {
       "name": "Bridge Room music and movement trace on/off preserves actual CPU, RAM, mapper, video, APU and PCM execution",
       "passed": true,
-      "milliseconds": 3523
+      "milliseconds": 3496
     },
     {
       "name": "Pepsi boot PPU-write reconstruction matches all 1024 native background bytes and all 32 palette bytes",
       "passed": true,
-      "milliseconds": 1001
+      "milliseconds": 949
     },
     {
       "name": "Pepsi Start and A inputs are discoverable as actual state and credit RAM differences with write origins",
       "passed": true,
-      "milliseconds": 1599
+      "milliseconds": 1566
     },
     {
       "name": "Bridge Room produces genuine APU commands and collision-constrained movement while tracing",
       "passed": true,
-      "milliseconds": 8940
+      "milliseconds": 9009
     },
     {
       "name": "MMC3 instruction provenance follows real 8 KiB bank pages at a shared CPU address",
       "passed": true,
-      "milliseconds": 357
+      "milliseconds": 376
     },
     {
       "name": "Timeline backward and retained forward restoration invalidate observations and RAM snapshot lineage",
       "passed": true,
-      "milliseconds": 1757
+      "milliseconds": 1865
     },
     {
       "name": "Static inspection and runtime evidence never replace the active authored project or undo history",
       "passed": true,
-      "milliseconds": 1255
+      "milliseconds": 1419
     },
     {
       "name": "Yielding frame navigation refuses RAM snapshots until a stable paused state is reached",
       "passed": true,
-      "milliseconds": 1021
+      "milliseconds": 1058
     }
   ]
 }

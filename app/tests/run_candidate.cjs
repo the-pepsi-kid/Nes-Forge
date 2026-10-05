@@ -6,11 +6,21 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const root=path.resolve(__dirname,'..');
 const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const fileHash=file=>hash(fs.readFileSync(file));
-const html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const manifestPath=path.join(root,'source-manifest.json');
+let release='unverified',html=path.resolve(process.argv[2]||root);
+function loadCandidateManifest(){
+  requireFile(manifestPath);const manifest=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
+  assert.equal(manifest.format,'NESForgeSourceManifest','Candidate source manifest format');
+  assert.equal(manifest.version,1,'Candidate source manifest version');
+  assert.ok(typeof manifest.release==='string'&&manifest.release.trim(),'Candidate source manifest needs a release');
+  assert.ok(typeof manifest.output==='string'&&manifest.output.trim()&&!path.isAbsolute(manifest.output),'Candidate source manifest needs a relative output');
+  const bundled=path.resolve(root,manifest.output);assert.ok(bundled.startsWith(root+path.sep),'Candidate output must remain within the package');
+  release=manifest.release;html=path.resolve(process.argv[2]||bundled);
+}
 const output=path.resolve(process.argv[3]||path.join(root,'test-results/candidate'));
 const summaryPath=path.join(output,'Summary.json');
 const expectedBaseline=['world-codec','regression','metasprites','composer-interactions','model164','frame-editor164','entity-studio164','persistence164','compiler165','ui165','persistence165','gameplay165','engine165','project166','placement166','native-ui166','native-authoring166'];
-const additional=[['project-store167','tests/project-store167.cjs'],['lifecycle167','tests/lifecycle167.cjs'],['golden-parity167','tests/golden-parity167.cjs'],['services167','tests/services167.cjs'],['rom-compat167','tests/rom-compat167.cjs'],['convergence-source167','tests/convergence-source167.cjs'],['world-runtime170','tests/world-runtime170.cjs'],['audio-runtime180','tests/audio-runtime180.cjs'],['gameplay-core190','tests/gameplay-core190.cjs'],['emulator-input-mobile','tests/emulator-input-mobile.cjs'],['emulator-play-ui-mobile','tests/emulator-play-ui-mobile.cjs'],['re-bridge-model','tests/re-bridge-model.cjs'],['re-bridge-ui','tests/re-bridge-ui.cjs'],['re-bridge-runtime','tests/re-bridge-runtime.cjs'],['re-report-import','tests/re-report-import.cjs'],['emulator-timeline','tests/emulator-timeline.cjs'],['emulator-timeline-ui','tests/emulator-timeline-ui.cjs'],['emulator-timeline-runtime','tests/emulator-timeline-runtime.cjs'],['re-analysis-model','tests/re-analysis-model.cjs'],['re-analysis-ui','tests/re-analysis-ui.cjs'],['re-analysis-integration','tests/re-analysis-integration.cjs'],['re-runtime','tests/re-runtime.cjs'],['re-runtime-ui','tests/re-runtime-ui.cjs'],['re-runtime-integration','tests/re-runtime-integration.cjs']];
+const additional=[['project-store167','tests/project-store167.cjs'],['lifecycle167','tests/lifecycle167.cjs'],['golden-parity167','tests/golden-parity167.cjs'],['services167','tests/services167.cjs'],['rom-compat167','tests/rom-compat167.cjs'],['convergence-source167','tests/convergence-source167.cjs'],['world-runtime170','tests/world-runtime170.cjs'],['audio-runtime180','tests/audio-runtime180.cjs'],['gameplay-core190','tests/gameplay-core190.cjs'],['emulator-input-mobile','tests/emulator-input-mobile.cjs'],['emulator-play-ui-mobile','tests/emulator-play-ui-mobile.cjs'],['re-bridge-model','tests/re-bridge-model.cjs'],['re-bridge-ui','tests/re-bridge-ui.cjs'],['re-bridge-runtime','tests/re-bridge-runtime.cjs'],['re-report-import','tests/re-report-import.cjs'],['emulator-timeline','tests/emulator-timeline.cjs'],['emulator-timeline-ui','tests/emulator-timeline-ui.cjs'],['emulator-timeline-runtime','tests/emulator-timeline-runtime.cjs'],['re-analysis-model','tests/re-analysis-model.cjs'],['re-analysis-ui','tests/re-analysis-ui.cjs'],['re-analysis-integration','tests/re-analysis-integration.cjs'],['re-runtime','tests/re-runtime.cjs'],['re-runtime-ui','tests/re-runtime-ui.cjs'],['re-runtime-integration','tests/re-runtime-integration.cjs'],['audio-correction200','tests/audio-correction200.cjs']];
 function requireFile(file){assert.ok(fs.existsSync(file)&&fs.statSync(file).isFile(),'Required package file is missing: '+path.relative(root,file));}
 function discoverBaselineJobs(){
   const runner=path.join(__dirname,'run_frozen.cjs');requireFile(runner);
@@ -24,7 +34,7 @@ function walk(dir){
 }
 function requireDirectory(dir){assert.ok(fs.existsSync(dir)&&fs.statSync(dir).isDirectory(),'Required package directory is missing: '+path.relative(root,dir));}
 function inputProvenance(jobs){
-  const files=new Set([__filename,path.join(__dirname,'run_all.cjs'),path.join(__dirname,'run_frozen.cjs'),path.join(__dirname,'harness.cjs'),path.join(__dirname,'fixtures.cjs'),path.join(__dirname,'composer-cases.cjs'),path.join(__dirname,'version-expectations.cjs'),path.join(__dirname,'preserved-source.json'),path.join(__dirname,'world-fixtures170.cjs'),path.join(root,'source-manifest.json'),path.join(root,'build-inputs.json'),...JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'),'utf8')).parts.map(part=>path.join(root,part)),path.join(root,'tools/capture_goldens.cjs'),path.join(root,'tools/build_world_example.cjs'),path.join(root,'tools/build_audio_example.cjs'),...jobs.map(j=>path.join(root,j[1]))]);
+  const files=new Set([__filename,path.join(__dirname,'run_all.cjs'),path.join(__dirname,'run_frozen.cjs'),path.join(__dirname,'harness.cjs'),path.join(__dirname,'fixtures.cjs'),path.join(__dirname,'composer-cases.cjs'),path.join(__dirname,'version-expectations.cjs'),path.join(__dirname,'preserved-source.json'),path.join(__dirname,'source-preservation200.cjs'),path.join(__dirname,'world-fixtures170.cjs'),path.join(root,'source-manifest.json'),path.join(root,'build-inputs.json'),...JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'),'utf8')).parts.map(part=>path.join(root,part)),path.join(root,'tools/capture_goldens.cjs'),path.join(root,'tools/build_world_example.cjs'),path.join(root,'tools/build_audio_example.cjs'),path.join(root,'tools/build_audio_correction_examples.cjs'),...jobs.map(j=>path.join(root,j[1]))]);
   for(const file of ['README.md','PROJECT_CHARTER.md','ARCHITECTURE_CONTRACT.md','DECISION_LOG.md','ROADMAP.md','CURRENT_BASELINE.md','TEST_POLICY.md','HANDOFF.md','package.json','tools/package_release.py','tests/browser-mobile-play.cjs','tests/browser-re-analysis.cjs','tests/browser-re-runtime.cjs'])files.add(path.join(root,file));
   for(const dir of ['baseline','examples','tests/fixtures','docs'])for(const file of walk(path.join(root,dir)))files.add(file);
   // The lifecycle suite uses an independent deterministic browser-storage harness.
@@ -61,6 +71,7 @@ function main(){
   fs.mkdirSync(output,{recursive:true});
   // Clear owned reports even if required inputs or suite discovery later fail.
   for(const file of [summaryPath,...[...expectedBaseline,...additional.map(j=>j[0])].flatMap(name=>[path.join(output,name+'.json'),path.join(output,name+'.log')])])if(fs.existsSync(file))fs.unlinkSync(file);
+  loadCandidateManifest();
   assert.ok(!process.env.FORGE_TEST_FILTER,'FORGE_TEST_FILTER is not permitted by the complete release gate');
   assert.ok(process.argv.length<=4,'Usage: node tests/run_candidate.cjs [candidate.html] [report-directory]');
   requireFile(html);const jobs=[...discoverBaselineJobs(),...additional];
@@ -73,7 +84,7 @@ function main(){
     for(const [name,script]of jobs){
       failedSuite=name;assert.equal(fileHash(html),initialHash,'The release HTML changed between suites');unchangedInputs(inputs);
       const report=path.join(output,name+'.json'),log=path.join(output,name+'.log'),start=Date.now();
-      const result=cp.spawnSync(process.execPath,[path.join(root,script),html,report],{cwd:root,env:{...process.env,FORGE_TEST_REPORT:report,FORGE_TEST_FILTER:''},encoding:'utf8',timeout:name==='world-runtime170'?900000:name==='audio-runtime180'||name==='gameplay-core190'||name==='re-bridge-runtime'||name==='emulator-timeline-runtime'||name==='emulator-timeline'?360000:name==='native-authoring166'?360000:180000,maxBuffer:8*1024*1024});
+      const result=cp.spawnSync(process.execPath,[path.join(root,script),html,report],{cwd:root,env:{...process.env,FORGE_TEST_REPORT:report,FORGE_TEST_FILTER:''},encoding:'utf8',timeout:name==='world-runtime170'||name==='audio-correction200'?900000:name==='audio-runtime180'||name==='gameplay-core190'||name==='re-bridge-runtime'||name==='emulator-timeline-runtime'||name==='emulator-timeline'?360000:name==='native-authoring166'?360000:180000,maxBuffer:8*1024*1024});
       fs.writeFileSync(log,(result.stdout||'')+(result.stderr||''));
       if(result.error)throw Error(name+' process error: '+result.error.message);
       assert.equal(result.signal,null,name+' was terminated by '+result.signal);assert.equal(result.status,0,name+' exited '+result.status+'; see '+path.relative(root,log));
@@ -85,11 +96,11 @@ function main(){
     }
     failedSuite=null;assert.equal(suites.length,expectedBaseline.length+additional.length,'Every required suite must complete');
   }catch(error){
-    fs.writeFileSync(summaryPath,JSON.stringify({release:'1.9.0',status:'failed',html:path.relative(root,html),sha256:initialHash,startedAt,finishedAt:new Date().toISOString(),runtime,failedSuite,error:error.message,completedSuites:suites,requiredSuites:jobs.map(j=>j[0]),provenance:inputs},null,2)+'\n');throw error;
+    fs.writeFileSync(summaryPath,JSON.stringify({release,status:'failed',html:path.relative(root,html),sha256:initialHash,startedAt,finishedAt:new Date().toISOString(),runtime,failedSuite,error:error.message,completedSuites:suites,requiredSuites:jobs.map(j=>j[0]),provenance:inputs},null,2)+'\n');throw error;
   }
-  const summary={release:'1.9.0',status:'passed',html:path.relative(root,html),sha256:initialHash,unchangedCandidate:true,startedAt,finishedAt:new Date().toISOString(),runtime,
+  const summary={release,status:'passed',html:path.relative(root,html),sha256:initialHash,unchangedCandidate:true,startedAt,finishedAt:new Date().toISOString(),runtime,
     passed:suites.reduce((n,s)=>n+s.passed,0),failed:0,total:suites.reduce((n,s)=>n+s.total,0),suiteCount:suites.length,suites,
-    policy:'All 17 retained baseline suites plus architecture, World Runtime, Audio Runtime/Studio, Gameplay Core, Mobile Play input/presentation, four integrated RE bridge suites, three emulator navigation suites, three independent binary-analysis suites and three integrated runtime-investigation suites, with no filters or skipped cases; totals measured from fresh explicit case records.',
+    policy:'All 17 retained baseline suites plus architecture, World Runtime, Audio Runtime/Studio, Gameplay Core, Mobile Play input/presentation, four integrated RE bridge suites, three emulator navigation suites, three independent binary-analysis suites, three integrated runtime-investigation suites, and the independent Audio Correction suite, with no filters or skipped cases; totals measured from fresh explicit case records.',
     provenance:inputs,browserAcceptance:'Separate evidence is required. This automated VM runner makes no real-browser, native picker, or browser rendering claim.'};
   fs.writeFileSync(summaryPath,JSON.stringify(summary,null,2)+'\n');process.stdout.write(summary.passed+'/'+summary.total+' automated cases passed against unchanged '+initialHash+'\n');
 }
@@ -97,6 +108,6 @@ module.exports={expectedBaseline,additional,discoverBaselineJobs,validateReport,
 if(require.main===module)try{main();}catch(error){
   // A missing file, filtered invocation, or malformed manifest cannot leave an
   // older successful Summary.json in place to masquerade as this run's result.
-  if(!fs.existsSync(summaryPath)){fs.mkdirSync(output,{recursive:true});fs.writeFileSync(summaryPath,JSON.stringify({release:'1.9.0',status:'failed',html:path.relative(root,html),error:error.message,finishedAt:new Date().toISOString()},null,2)+'\n');}
+  if(!fs.existsSync(summaryPath)){fs.mkdirSync(output,{recursive:true});fs.writeFileSync(summaryPath,JSON.stringify({release,status:'failed',html:path.relative(root,html),error:error.message,finishedAt:new Date().toISOString()},null,2)+'\n');}
   console.error('FAIL release gate: '+error.message);process.exitCode=1;
 }

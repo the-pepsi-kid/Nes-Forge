@@ -9,6 +9,9 @@ const fail=message=>{throw Error('Audio Runtime: '+message);};
 const integer=(value,min,max,label)=>{if(!Number.isInteger(value)||value<min||value>max)fail(label+' must be an integer from '+min+' through '+max);return value;};
 const copy=value=>JSON.parse(JSON.stringify(value));
 function timer(note){const frequency=440*Math.pow(2,(note-57)/12);return Math.max(8,Math.min(2047,Math.round(1789773/(16*frequency)-1)));}
+// Triangle advances through 32 steps per timer period; pulse uses 8 steps at
+// half the CPU clock. Keep the established pulse timer API for its consumers.
+function triangleTimer(note){const frequency=440*Math.pow(2,(note-57)/12);return Math.max(2,Math.min(2047,Math.round(1789773/(32*frequency)-1)));}
 function normalizeSfx(item,index,rows){
  if(!item||typeof item!=='object'||Array.isArray(item))fail('SFX '+(index+1)+' must be an object');
  const id=String(item.id||'').trim(),name=String(item.name||'').trim();if(!id)fail('SFX '+(index+1)+' needs a stable ID');if(!name)fail('SFX '+id+' needs a name');
@@ -58,8 +61,8 @@ function plan(source){
   const events=(frame?.events||[]).filter(event=>event?.type==='sound');if(events.length>1)fail(label+' has more than one sound event; one SFX may start per frame entry');if(!events.length)return 255;
   const value=String(events[0].value||'').trim();if(!value)fail(label+' sound event needs an SFX ID or unique name');let index=byId.get(value);if(index===undefined)index=byName.get(value);if(index===-1)fail(label+' sound event name is ambiguous: '+value);if(index===undefined)fail(label+' references missing SFX: '+value);return index;
  }
- const estimated=192+instruments.reduce((n,i)=>n+8+i.volume.length+i.arp.length,0)+records.reduce((n,r)=>n+1+r.events.length*4,0)+orders.length*8+sfx.length*7;
- return {enabled:true,musicEnabled:config.musicEnabled,tempo,speed,rows,instruments,records,orders,sfx,noteTimers:Array.from({length:96},(_,note)=>timer(note)),soundIndex,estimatedBytes:estimated,source:copy(config)};
+ const estimated=384+instruments.reduce((n,i)=>n+8+i.volume.length+i.arp.length,0)+records.reduce((n,r)=>n+1+r.events.length*4,0)+orders.length*8+sfx.length*7;
+ return {enabled:true,musicEnabled:config.musicEnabled,tempo,speed,rows,instruments,records,orders,sfx,noteTimers:Array.from({length:96},(_,note)=>timer(note)),triangleNoteTimers:Array.from({length:96},(_,note)=>triangleTimer(note)),soundIndex,estimatedBytes:estimated,source:copy(config)};
 }
-services.AudioCompiler=Object.freeze({plan,normalizeSfx,timer});
+services.AudioCompiler=Object.freeze({plan,normalizeSfx,timer,triangleTimer});
 })();

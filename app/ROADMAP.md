@@ -1,57 +1,94 @@
 # NES Forge — Authoritative Roadmap
-**Revision date:** 2026-10-01 (America/Denver), integrated runtime-investigation continuation  
-**Status:** Current planning sequence and product-scope authority; later implementation remains separately bounded
+**Revision date:** 2026-10-04 (America/Denver), consolidated execution roadmap following audio findings and Sol Games consideration  
+**Status:** The owner authorized the bounded audio correction. Candidate **2.0.0-alpha.1 / audio-correction-1** implements that scope; its packaged reports govern verification. Owner acceptance and the broader audio workflow remain open. Sol Games informs later architecture only.
 
-**October 1 integrated ROM analysis — D051:** The owner supplied `pepsi_vending_v9e.nes`, completed the six scoped tests for the prior picker-repair candidate, and approved continuing with the investigation tools inside Forge. Candidate **re-runtime-1** implements opt-in executed-code and PPU/APU-write observations, loaded-ROM adoption into static analysis, before/after RAM comparison, up to eight named RAM-write watches, source-code links where physical mapping is known, and evidence/observed-resource exports. These are general investigation tools rather than a Pepsi-specific decoder. The new candidate has its own full 41-suite gate and manual walkthrough; historical external scripts and prior owner passes do not certify changed code.
+## Active correction candidate
 
-The next acceptance demonstrates a real Pepsi state transition inside the integrated workflow and sound-register observations on an input that contains sound. Trace limits and unobserved data remain explicit. Generic scene/collision/music reconstruction, stage selection, health/enemy commands, breakpoints, controlled patches and broad mapper support are still future work. The next substantive recovery milestone must turn evidence into verified canonical content using unfamiliar ROMs and avoid a succession of fixture-only claims. This continuation does not complete comprehensive RE, promote the release or authorize hosted/wallet work.
+**2.0.0-alpha.1 / audio-correction-1**, schema 12, corrects dense music/SFX event-stream advancement and triangle timer values. HTML SHA-256: `4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0`. The package requires all 895 retained checks and the new audio-correction regression suite across 42 suites; consult its measured `test-results/candidate/Summary.json` and clean-extraction proof for outcomes. Browser/listening/device evidence is separate. The review entry point is `docs/AUDIO_CORRECTION_CHECKLIST.txt`, with two editable audio examples. No promotion is claimed.
 
-**Historical October 1 picker correction:** The shell's global file-input CSS hid general analysis until re-analysis-1a supplied its visible override. The owner subsequently reported all T1–T6 scoped checks successful, including unknown-engine static intake and preservation of the imported editor project. Bridge Room-only recovery remains separate from general investigation. Prior roadmap sequence and protected contracts remain authoritative.
+After this correction is accepted, continue the supported audio author/import/edit/build/listen/save/reopen workshop, including mobile A/V investigation, before another recovery adapter. The frozen starting reference below remains unchanged.
 
-**September 30 continuation:** The owner said “Ok, let's continue” after the immediate mobile-stabilization plan. A bounded presentation follow-up, **mobile-play-2**, is prepared for review: HTML SHA-256 `4fc607a6cbdbdfed027db10df138c64f8bfe5fa95fc7a46063041313cb63ad62`. It defers hidden editor-sidebar work during expanded Play and avoids unchanged canvas sizing work. Its exact automated evidence belongs to its own `test-results/candidate/Summary.json`, not the older totals below. CPU/PPU/APU, timing and audio buffering are unchanged. Device-level lag improvement and owner acceptance are still unverified.
+## Frozen starting reference
 
-**September 30 review reference:** The preserved prior application is **1.9.0 Alpha / mobile-play-1**, SHA-256 `e7c75ccd43007c46b5e0336105f6551f4b6183cc39730802cd1fba226eb7fe12`. Its September 28 suite passed **702/702 cases across 28 suites**. The owner reported working mobile touch, mobile audio/video lag, a successful guided tutorial through steps 1–9, and playback of that tutorial ROM in another emulator. The independent emulator's name/version, ROM hash and device details were not supplied; this is an owner-reported project result, not a general compatibility certificate. Physical controllers remain untested; physical NES-console testing is a separate unverified track.
+NES Forge is a functional NES authoring alpha with early 2.x reverse-engineering tools already integrated into the same standalone application. RE was deliberately brought forward. That sequencing change has not completed Gameplay Expansion, Behavior UX, the full resource linker, the raster model or comprehensive editable recovery.
 
-**Documentation:** The expanded manual, tutorial and operator-reference PDFs were delivered after rendering and visual checks. Review-kit revision 2 corrects the tutorial's tab locations, separate World fields, palette explanation and Player selection; adds an editable feedback form and portable reproduction instructions; and records the completed owner walkthrough. The original application/source ZIP remains unchanged. Historical statements below about pending documentation are superseded by this update.
+| Item | Current evidence / status |
+| --- | --- |
+| Frozen application | **1.9.0 Alpha / re-runtime-1**, schema **12**; review candidate, not promoted. |
+| Reference HTML | SHA-256 `e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d`. |
+| Reference ZIP | SHA-256 `8cc66184914c21422b346bcbf60af19eb5da69046e13aeeea0aa9fa65037b0d0`; 1,009 payload checksums verified. |
+| Automated evidence | **895/895 cases across 41 suites** on a clean extraction: 846 retained cases and 49 new runtime-investigation cases. |
+| Owner/browser acceptance | The current **R1–R6** walkthrough remains pending. All three packaged browser runners recorded blocked launch with zero checks; device/controller and physical-console claims remain separate. |
+| Earlier owner evidence | Tutorial steps 1–9, an independently emulated tutorial ROM, mobile touch, and prior T1–T6 analysis checks were reported successful on their respective earlier builds. Those results are retained without being reassigned to changed bytes. |
+| Reference audio defects | Dense-pattern music-reader loop and triangle pitch mismatch, reproduced October 2. The active correction candidate addresses both; the frozen reference remains unchanged. |
+| Planning/source control | Local Git history, frozen reference tag, portable bundle and audio reproduction scripts prepared; remote destination remains unselected. |
+| Sol Games v0.2 | Source reviewed for architectural fit on October 4. Separate prototype; no integration, live-chain validation or FCEUX execution performed in this consideration review. |
 
-**September 30 owner direction:** Put audio and reverse engineering before the connected platform. The long-term goal now explicitly includes developer-hosted custom Worlds, server-sold and gameplay-earned mintable items, wallet ownership, opted-in loss of eligible loot in combat, and a physical tech deck that can develop/deploy, play as a client, or host a server. Wi-Fi and cellular are the primary internet paths; Meshtastic is an optional transport investigation. Solana is the preferred initial low-fee candidate, subject to review of the existing crypto project and measured total costs.
+The frozen reference report remains attached to the earlier delivered package. Its application, source, hash and result are unchanged; the active candidate has separate reports and acceptance.
 
-**Earlier September 30 RE-entry priority:** The owner then instructed that RE needs to start now because the authoring environment is in a good state. Bring forward **RE Entry A: branch intake and evidence-backed ROM inspection**, in parallel with remaining mobile closeout. Do not require 1.9.1, 1.9.2, 1.9.3, GitHub setup or every proposed 2.0 linker capability to finish before that bounded read-only work. This supersedes the earlier strictly sequential placement of all RE after Audio Studio completion.
+## Implemented capabilities and remaining gaps
 
-**Current authorized RE demonstration:** The owner asked to see the end-to-end bridge after clarifying that an inspection report does not recover editable scenes, collision or audio. A separate **1.9.0 Alpha / re-bridge-1** candidate now implements one declared profile for the independently authored `Bridge_Room.nes`. Its own 6502 engine contains native graphics, room, collision and Pulse 1 music data; it has no embedded Forge project. The bridge stages a preview, then explicitly imports a genuine schema-12 project through the existing undoable replacement path. Original ROM bytes remain available for Run Original. The exact candidate and clean-extraction result are identified in its packaged `test-results/candidate/Summary.json`; this roadmap does not imply promotion or browser/device acceptance.
+| Capability | Position at this revision |
+| --- | --- |
+| Create/edit → build → play | Functional alpha over the existing World, Audio and Gameplay Core models. Mobile A/V lag and physical-controller evidence remain open. |
+| General ROM analysis | Bounded independent byte inspection, explicit mappings, offline documented-NMOS-6502/NES-2A03 disassembly, search, CHR inspection and notes. Unknown engines and unsupported emulator mappers can retain static inspection. |
+| Runtime investigation | Opt-in instruction coverage, before/after RAM comparisons, up to eight labeled RAM-write watches, PPU/APU write observations, verified physical source links and evidence exports. Requires a ROM the existing NES emulator can execute. |
+| Execution navigation | Bounded frame history and backward/forward restoration; no automatic stage selection. |
+| Editable recovery | One declared Native Room v1 / Bridge Room profile demonstrates graphics, room/collision and Pulse 1 melody conversion. It does not establish general engine recovery or preserve the original engine's behavior. |
+| Further 2.x work | Native resource decoding for additional engines, richer debugger control, source migration, required linker/profile/raster foundations and controlled live editing remain incomplete. |
 
-Recovered content is one room, 512 CHR tiles, palettes/attributes, a 960-cell collision map, a player spawn and a 16-row Pulse 1 melody. Rebuilding uses Forge’s existing player runtime, which adds jump/attack/gravity to the original left/right-only demo. Original engine behavior, SFX, general NESmaker support and arbitrary-ROM reconstruction are not recovered. Graphics, collision and note edits must survive native JSON save/reload and affect the rebuilt runtime. The test kit supplies source, reproduction commands and measured evidence; browser, audible output and hardware checks remain separate.
+A/B RAM snapshots are observations, not restorable full-machine checkpoints. An observed PPU write identifies runtime storage and its writer; it does not establish the original compressed data format. APU writes are sound-chip commands, not recovered tracker songs. Analysis reports are not editable Forge projects.
 
-**Latest emulator/RE direction:** The owner requested forward/backward navigation for loaded ROMs, clarified its use for RE analysis, and confirmed comprehensive RE as the goal. The separately reviewed **re-navigation-1** candidate builds on re-bridge-1 with an optional playback-tools strip: existing forward-frame capability, backward/forward recorded-state navigation and bounded frame skips. History is opt-in, with up to 300 snapshots and a 32 MiB stored-snapshot budget; the actual retained frame range is displayed rather than promising a fixed number of seconds. Restored state must include CPU, PPU, mapper, logical APU, controller latches and runtime-capture evidence. Host audio queues are cleared while seeking; this is not reversed speaker playback or reverse execution of individual 6502 instructions. Original and built ROMs use the same emulator boundary. Exact implemented behavior and measured evidence belong to `docs/EMULATOR_NAVIGATION.md` and its candidate reports; release promotion and real-browser/device acceptance remain separate.
+## Execution roadmap
 
-**Authorized implementation continuation:** The owner followed the engine-independent requirement with “Ok, let's implement please.” Candidate `re-analysis-1` adds independent binary inspection and offline documented-NMOS-6502/NES-2A03 disassembly, explicit mappings, bounded hex/search views, physical CHR inspection and exportable user notes. Its exact current evidence belongs to `test-results/candidate/Summary.json`; browser evidence is separate. Unknown engines and unsupported emulator mappers retain general inspection; unknown/malformed containers retain raw bytes with diagnostics. Recovery remains Native Room v1 only. Game-specific health/enemy/stage investigation is the following debugger tranche, not an implemented navigation command.
+The sequence below is the current delivery order. Detailed numbered sections retain capability definitions and earlier decisions; they do not override this sequence. Dates identify decisions, not promised delivery deadlines. Complete one bounded candidate at a time, with a usable result and explicit evidence, before broadening its scope.
 
-**Latest owner clarification:** “All 6502 roms should be analyzable. Regardless of engine.” General analysis must open a binary without requiring a recognized engine, successful emulator load or editable-recovery adapter. The previous re-navigation-1 candidate did not meet this requirement: its profile-gated Analyze ROM action and emulator-dependent disassembler were verified gaps. The new re-analysis-1 path separates general intake from both; the full product goal still exceeds its declared size, opcode and interpretation limits. Prioritize independent binary/6502 inspection before selecting another recovery profile; follow it with runtime state discovery and event tracing for investigating health, enemies and stage transitions. See the explicit acceptance scope in section 9.
-
-**Proceed by dependency:** Review the bounded integrated RE demonstration and emulator-navigation follow-up alongside the remaining mobile closeout. Next establish engine-independent analysis, then use its evidence and debugger facilities to support additional recovery profiles. Keep planned gameplay/behavior improvements and Audio Studio completion as separately scoped work; integrate deeper RE adapters as their resource/profile contracts become ready. Audio and the finite supported-RE gate still precede hosted Worlds and wallet implementation. Establish authoritative hosted Worlds and inventories before mintable ownership and consented loot loss. Prove portable server/client/development roles on existing hardware before a custom tech deck. Repeating the owner's whole tutorial is not a new gate.
-
-The initial roadmap request was planning authority. The later continuation and RE-start instructions authorize the bounded work recorded above, not wholesale integration or release promotion. Existing implementation authorization remains in force for its bounded scope. Assembly-source export is not an established current capability. Milestone numbers below are planning identifiers, not delivery dates.
-
-| Priority | Milestone | Milestone outcome / dependency |
+| Phase | Priority and deliverable | Completion evidence |
 | --- | --- | --- |
-| 1 | 1.9.0 Alpha stabilization | Reproduce/profile mobile A/V lag, document input isolation and physical-controller/device results, review the exact candidate and unresolved limits for acceptance. |
-| Now, parallel | Engine-independent 6502 analysis + gameplay debugging | Open and inspect binaries without engine recognition or emulator loading. Add explicit address mapping and offline disassembly, then runtime memory discovery, watches and event tracing. Keep existing RE Bridge recovery and emulator history as separately reviewed capabilities. |
-| Foundation | GitHub setup after stabilization, before substantial RE integration | Recommended private source repository, frozen reference tags, issue tracking and reproducible checks. Initial local RE intake need not wait. Public release follows an explicit licensing/contribution decision; no repository has been created. |
-| 2 | 1.9.1 Gameplay Expansion | Deliver bounded gameplay capabilities, including Door traversal semantics, exercised in a small original playable game. |
-| 3 | 1.9.2 Behavior UX | Author and diagnose the same canonical behaviors through a visual graph; retain table parity. |
-| 4 | 1.9.3 Audio workflow verification and completion | Demonstrate author/import → edit → build → audible ROM playback → save/reopen for the declared supported audio scope. |
-| 5 | 2.x Resource foundation and supported RE | Inspect, decode, edit and rebuild a declared set of assets and an audio-driver example with provenance; unknowns remain explicit. Pass the finite RE readiness gate below. |
-| 6 | 3.0, 3.2–3.3 Hosted gameplay foundation | Two clients use a server-authoritative World with durable inventory and reconnect recovery. 3.1 traditional netplay is a separate optional branch. |
-| 7 | 3.4.1–3.4.4 Economy and wallet items | Prove ordinary inventories and earned loot, audit the existing crypto project, validate minting on a test network, then validate consented loss settlement. |
-| 8 | 4.0–4.3 Portable platform and tech deck | Branch after hosted foundations; real-value wallet launch is not a prerequisite. Prove develop/build/deploy, client and server roles on existing hardware; measure mesh feasibility; then validate a physical prototype. |
+| **1. Audio and alpha reliability** | **Active priority.** First correct the reproduced dense-pattern and triangle-pitch defects. Then close supported four-channel authoring, imports, SFX, persistence and listening; investigate mobile A/V behavior. | Focused failures become passing regressions, complete candidate gate, author/import → edit → build → audible playback → save/reopen workshop, Forge plus independent-emulator listening, and separately labeled device evidence. |
+| **2. Reusable RE recovery** | **Next.** Recover supported native audio into canonical Audio, then graphics/maps/collision into editable Forge content. Build shared discovery/evidence/import interfaces and reusable format adapters. | Declared native records, preview/import, useful edit and rebuilt behavior. Unknown engines retain inspection. First graphics pipeline requires two unrelated independently authored engines beyond Forge/Bridge Room controls. No universal-recovery claim. |
+| **3. Creator portability and review readiness** | **After audio; coordinate with bounded RE slices.** Prove a representative ASM migration through declared hooks, usable import/export, accurate manual/workshops and reviewer packaging. Select gameplay/behavior work from the preserved backlog only when needed. | A supported external source example builds and behaves as documented; native data and references survive save/reopen; a reviewer can reproduce the supported workflow from the supplied package. Full 1.9.1/1.9.2 completion is not required for every later slice. |
+| **4. Hosted Worlds and ordinary items** | **After the finite audio/RE gate.** Define the host bridge and server-authoritative actions, persistent World state, stable item instances and inventory rules. Start without blockchain dependence. | Two clients interact with one item; conflicting pickup, retries, reconnect and server restart preserve one accepted outcome and consistent inventories. Each client's projected state stays within its declared NES runtime budgets. |
+| **5. Optional wallet ownership and earned loot** | **After authoritative items.** Evaluate Sol Games components; add wallet authentication and test-network ownership/issuance. Separately prove mint/reconcile, then explicit opt-in loot-loss settlement. | A server-verified earned item maps to one eligible claim, can be held/reconciled and used after reconnect without duplication. Transfer authorization and combat authority remain separate. Any real-value launch requires its own accepted evidence and decision. |
+| **6. Portable roles, then tech-deck hardware** | **Branches after accepted hosted foundations; may overlap phase 5.** Prove development-kit, client and server roles on existing hardware, including build/deploy from the device. Then choose custom hardware from measured requirements. | Reproducible install/build/deploy, declared capacity, backup/recovery and connectivity results. Wi-Fi/cellular and optional constrained mesh have separate tested profiles. Wallet launch, voice and large-match features are not prerequisites. |
 
-Large matches, voice, and collaborative creation remain 3.x extensions. Their milestone numbers do not make every extension a prerequisite for a tech-deck prototype. Continuous RE knowledge expansion also continues alongside later work after the bounded readiness gate passes.
+Phase 3 does not create an indefinite tool-completeness gate: only the creator/runtime interfaces needed by a selected hosted slice are dependencies. Traditional netplay/rollback, richer gameplay, visual behavior graphs, voice, collaboration, universal decoder coverage and custom hardware remain distinct branches. Preserve them without letting them displace the active candidate.
 
-**Immediate next work:** manually review the `re-runtime-1` picker repair using `docs/RE_OWNER_CHECKLIST.txt`, recording exact actions and observed results. Then use the owner's actual ROM and a specific stage/damage/enemy scenario as the next end-to-end acceptance target: connect runtime state discovery and event tracing to verified gameplay findings and genuine native audio/scene/collision decoding, while identifying unknowns. A fixture-only recovery pass or visual capture does not establish that outcome for the owner's ROM. In parallel, record the phone/OS/browser, affected ROM and reproducible steps for mobile lag; separate simulation speed, rendering, input latency and audio behavior; compare against the existing desktop reference before selecting any correction. Record physical-controller results when devices are available. These are host playback/input checks, not a restart of the accepted 1.8 Audio Runtime work. No arbitrary-ROM or NES-console compatibility claim follows from the successful tutorial ROM.
+Review of the existing R1–R6 candidate, device checks, source-control setup and documentation may continue alongside the active implementation. Local history is ready; a private GitHub destination, CI and eventual public-release materials are development infrastructure, not a reason to delay audio correction. Reuse the owner's completed tutorial evidence against its original build; do not require a new from-scratch general tutorial merely to begin audio work.
 
-**September 28 implementation authority:** After the September 28 roadmap update, the owner instructed **“ok let's begin.”** This authorizes the bounded Mobile Play & Controller Support follow-up only, recorded in D046. Deliver **1.9.0 Gameplay Core — Alpha**, candidate **`mobile-play-1`**, with its own hash and verification. Acceptance/promotion and 1.9.1/1.9.2 or later work are not authorized by that instruction. Historical corrected-reference evidence below remains tied to its original artifact.
+## Delivery and acceptance rules
 
-**September 28 update:** Record NES Forge's current maturity as a functional alpha and insert a bounded Mobile Play & Controller Support follow-up before Gameplay Expansion. Reconcile 1.9.0 status with the corrected candidate and September 17 re-audit, including its September 24 review correction. This roadmap edit records scope and priority; it does not claim implementation, build acceptance, or release promotion. The existing 1.9.1, 1.9.2, 2.x, and 3.x milestone assignments remain in place. The filename retains its original date to preserve this document's identity; the revision date above is current.
+1. **One active implementation candidate:** state its reference hash, concrete outcome, included changes and exit checks. Ideas are recorded for the relevant phase; they do not silently expand current work.
+2. **Complete the workflow:** each feature connects input → edit/use → persistence/output → verification. An inspector, picture, register trace or mock-only pass cannot stand in for the claimed editable or audible result.
+3. **Label evidence:** distinguish implemented, reproduced defect, verified, owner-accepted, blocked and planned. Keep automated results separate from browser, listening, controller and physical-console evidence.
+4. **Preserve the reference:** isolate changes, retain provenance and protected behavior, package a reproducible candidate, and update the manual/checklist with the actual controls. Promotion follows acceptance of that candidate's stated scope.
+5. **Keep support finite and extensible:** declare supported hardware/formats and unknowns. Neither a single-ROM demonstration nor a promise to understand every ROM is an adequate completion criterion.
+
+**Active executable deliverable:** `2.0.0-alpha.1 / audio-correction-1`, bounded to the two reproduced defects, focused regressions and the full clean-extraction gate. Broader preview/import/mobile findings must be reproduced and scoped separately. The subsequent audio workflow candidate closes the listening/manual evidence.
+
+## Version policy
+
+Use **2.0 Alpha — RE development and required foundations** for subsequent RE development. The bounded audio-correction candidate uses **2.0.0-alpha.1**. This label identifies an alpha review candidate; it does not imply completion of 2.0 or release promotion. Keep all existing 1.9.0 package names, candidate tags, hashes and evidence unchanged.
+
+The numbered sections below are capability and dependency identifiers. They are not a requirement to finish every 1.9.x feature before continuing RE, and they are not a claim that a feature is complete because it appears in a 2.0 Alpha build. The 2.0.1–2.0.5 foundation work and 2.1–2.5 RE scope remain visible; the new Alpha track draws bounded work from those areas as needed. A version-label change alone does not require a project-schema change.
+
+## Immediate audio priority and recovery sequence
+
+**Latest owner direction, October 2:** audio comes first because development has moved between areas. Close the supported audio workflow and align it with the existing RE foundation before expanding graphics/map recovery. Preserve the 1.8 runtime and existing MIDI/MusicXML/SFX services; audit actual gaps rather than treating those capabilities as absent. Keep authored/imported/recovered audio in one canonical model. The 1.9.3 capability identifier remains useful, while integrated candidate versioning stays under the 2.0 Alpha policy above.
+
+First establish audio preview/compiled-ROM correctness, repeatable author/import/edit/build/save/reopen behavior and listening evidence, including the reported mobile playback issue. Then extend reusable native audio-driver recovery with explicit supported scope. The detailed bounded sequence and acceptance checks are in `docs/NES_Forge_2.0_ALPHA_PLAN.md`. General ROM inspection and APU observations are available; they do not mean comprehensive audio RE is complete.
+
+The focused October 2 audit identified two first correction targets in the frozen starting reference: a generated music-reader loop on an accepted dense 64-event pattern, reproduced against a 63-event control, and triangle pitch one octave below Studio preview because runtime uses pulse timer values. These findings supplement the historical passing suite; the active correction candidate supplies the implementation and separate regression evidence. Reproduction evidence and the bounded correction criteria accompany the development plan.
+
+The **runtime-investigation candidate** still needs its **`docs/RE_RUNTIME_CHECKLIST.txt`** review, which may overlap audio work. R1–R6 cover shared ROM identity, background initialization, a Pepsi mode change, credit-write provenance, positive audio observation on Bridge Room, and export/lifecycle behavior. Do not require the Pepsi program to contain stages, damage, enemies, collision or music that its investigation did not identify.
+
+**Owner scope clarification, October 2:** RE is intended for user-supplied ROMs across engines. Pepsi is one test case and must not become the basis of a one-ROM recovery feature. The shared discovery, evidence, resource, preview and import interfaces must remain independent of game identity. Reusable format/engine/driver adapters extend them; unknown engines retain inspection and annotation. No filename or whole-ROM hash allowlist may substitute for interpreting and validating a declared format.
+
+Recovery milestones must produce editable canonical content from documented native representations through that shared pipeline. Native audio now precedes additional graphics/maps: select an independent driver with actual music/SFX data and retain Bridge Room as a control. A first driver establishes only its declared subset. When graphics recovery resumes, require at least two independently authored ROMs from unrelated engines beyond Forge/Bridge Room controls before accepting that pipeline. Pepsi may be one graphics input. Record each corpus, hashes, mapping, supported records, unknowns and expected behavioral adaptations before claiming decoder acceptance. Include valid-data modifications, false-positive recognition and unknown-engine fallback checks so identity matching cannot masquerade as format support.
+
+Acceptance requires an explicit preview/import boundary, useful edits inside Forge, native-project save/reopen, a rebuilt ROM and a comparison against the original for the declared supported behavior. Broad analysis across NES ROMs and supported raw 6502 inputs, alongside progressively wider native-resource recovery, remains the direction. Automatic editable recovery depends on verified format support; execution and rebuild also depend on hardware/runtime support. Static analysis remains available where execution or editable recovery is unsupported.
+
+**Standing limits:** NES/Famicom remains the authored game target; broader raw-6502 inspection does not provide other machines' emulation. Preserve schema 12 unless a separately justified compatibility decision requires otherwise, the five templates, 12-actor/64-persistent-byte limits, Door Option B, one-way synchronization and the protected editor/build/emulator/capture/Save As/CHR/undo behavior. Existing historical decisions remain below and in the dated history appendix.
 
 ---
 
@@ -85,7 +122,7 @@ Use actual developer interviews, issue reports and reproducible examples to prio
 
 The owner identified custom ASM, Lua and other scripts as important for developers moving from NESmaker and other tools. Treat source portability as a first-class product requirement alongside RE. When original source is supplied, preserve its comments, labels, files and dependencies directly. ROM inspection and source migration have different inputs and acceptance criteria.
 
-**Recommended next authoring priority: bounded ASM intake and integration, in parallel with RE Entry A.** This records the requirement and proposed sequence; no NESmaker adapter, Lua runtime or universal script-import capability has been implemented by this update.
+**Recommended separately scoped authoring priority after audio closeout: bounded ASM intake and integration coordinated with continued RE development.** This records the requirement and proposed sequence; no NESmaker adapter, Lua runtime or universal script-import capability has been implemented by this update.
 
 The current Forge source already contains a custom 6502 assembler and custom NROM build path. That is a foundation, not established compatibility with third-party engines or assembler dialects. Its assembler consumes one source text, explicitly rejects `.incbin`, and does not implement a general multi-file include workflow. The current build service rejects custom ASM combined with Audio Runtime or generated single-room gameplay. Migration must resolve those integration contracts without silently changing existing build behavior.
 
@@ -95,17 +132,17 @@ The current Forge source already contains a custom 6502 assembler and custom NRO
 4. **Lua host tooling:** Add a separately scoped runtime for emulator/debugger automation, memory inspection, overlays and test scripts. Choose a named API compatibility profile. FCEUX documents emulator-specific APIs; supporting Lua syntax alone does not establish FCEUX script compatibility. Host scripts do not automatically become cartridge-resident gameplay code.
 5. **Other languages/toolchains:** Add explicit adapters based on demonstrated user needs and reproducible samples. Preserve separate identities for editable source, ROM inspection evidence and host scripts. Avoid a universal-import promise.
 
-**First migration acceptance case:** take one representative user-owned custom script plus its includes/macros/assets and source engine/version, preserve the original files, report its dependencies, adapt it through a documented supported hook, build a ROM and demonstrate the expected behavior in an external emulator. Check the same behavior in Forge and preserve existing project/build regression coverage. This milestone can proceed without waiting for full RE, audio completion, hosted worlds or wallet work; unsupported integration combinations remain explicit until their own contracts are implemented.
+**First migration acceptance case:** take one representative user-owned custom script plus its includes/macros/assets and source engine/version, preserve the original files, report its dependencies, adapt it through a documented supported hook, build a ROM and demonstrate the expected behavior in an external emulator. Check the same behavior in Forge and preserve existing project/build regression coverage. Under the current priority decision, implementation follows audio closeout and can then proceed alongside bounded RE slices without waiting for full RE, hosted Worlds or wallet work. Unsupported integration combinations remain explicit until their own contracts are implemented.
 
 Reference checks: [NESmaker official downloads](https://www.thenew8bitheroes.com/downloads) discusses custom scripts, engine routines and customized modules; [ca65 documentation](https://cc65.github.io/doc/ca65.html) documents dialect/include/symbol/segment features; [FCEUX Lua API introduction](https://fceux.com/web/help/LuaGettingStarted.html) explains emulator-specific functions. These references inform the proposal and do not certify any Forge compatibility.
 
 ## Source control and community sequence
 
-Recommend establishing a **private GitHub repository after this stabilization round and before substantial RE integration**, rather than waiting for RE completion. The owner's subsequent RE-start instruction allows initial local intake/inspection now; GitHub account setup is not a blocker for it. Keep the standalone HTML deliverable; source control supports its development.
+RE integration has begun. The private local Git reference, exact re-runtime-1 package, immutable reference tag and portable bundle are prepared. Current planning occupies a separate directory on the main development branch. Connect a private GitHub remote once the owner/account and destination are selected. Keep the standalone HTML deliverable; source control supports its development.
 
-The initial setup should preserve the exact source, build/test commands, frozen references and release evidence; add a documented branch/review process, regression CI and an issue backlog organized by milestone. Select the owner/organization and repository name when setup begins. Review what belongs in source versus release assets and exclude credentials and unrelated user files.
+Preserve the exact source, build/test commands, frozen references and release evidence; complete remote setup, regression CI and an issue backlog organized by accepted scope. Select the owner/organization and repository name before remote creation. Review what belongs in source versus release assets and exclude credentials and unrelated user files.
 
-Public community access is a later publication decision with an explicit license, contribution guide, issue templates, supported-scope documentation and reproducible starter workflows. Check distribution rights for bundled dependencies and ROM fixtures before public publication. Private repository setup does not commit to a paid service, particular license or immediate public launch. No GitHub repository or remote publication has been created by this update.
+Public community access is a later publication decision with an explicit license, contribution guide, issue templates, supported-scope documentation and reproducible starter workflows. Check distribution rights for bundled dependencies and ROM fixtures before public publication. Private repository setup does not commit to a paid service, particular license or immediate public launch. The October 2 handoff established local version history; subsequent planning revisions preserve it. No GitHub remote or public publication is claimed; the accompanying source-control handoff records the actual local commit/tag and verification results.
 
 ---
 
@@ -287,7 +324,7 @@ A vertical slice may span multiple domains and infrastructure layers, but must n
 
 NES Forge has a working create/edit → build NES ROM → run/test workflow. The owner reported a successful mobile-browser demonstration on September 28. That is useful qualitative feedback, not a substitute for a recorded device/browser acceptance matrix.
 
-Use **NES Forge 1.9.0 — Alpha** as the current product-maturity description. The presentation follow-up mobile-play-2 remains pending acceptance; mobile-play-1 is its preserved comparison reference. This wording does not promote a release.
+The active correction candidate is **NES Forge 2.0.0-alpha.1 / audio-correction-1**, pending acceptance of its bounded scope. **1.9.0 Alpha / re-runtime-1** remains the frozen predecessor. Subsequent RE development uses the **2.0 Alpha** track defined above. Earlier mobile-play builds remain dated comparison references. These labels do not promote a release or establish beta readiness.
 
 Beta readiness should be judged by reliable, repeatable create → build → play → save → reopen workflows for new users, completion of the intended beta feature scope, accurate instructions, and documented coverage on supported browsers. Neither the alpha label nor a version increment automatically satisfies those criteria.
 
@@ -363,14 +400,15 @@ Use:
 ## 1.9.0 — Gameplay Core
 
 Current status:
-**Functional alpha; presentation follow-up mobile-play-2 is under review, with remaining browser/device closeout and owner acceptance still pending.**
+**Functional alpha. The frozen re-runtime-1 predecessor introduced early 2.x analysis and runtime-investigation tools, retained by the active audio-correction candidate. R1–R6 and browser/device closeout remain separately pending.**
 
 Current evidence:
 
-- Presentation follow-up: **mobile-play-2**, SHA-256 `4fc607a6cbdbdfed027db10df138c64f8bfe5fa95fc7a46063041313cb63ad62`; read its packaged current test report for measured totals and its review note for remaining device checks.
+- Frozen predecessor: **re-runtime-1**, HTML SHA-256 `e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d`; **895/895 cases across 41 suites** passed on a clean extraction. Browser launch was blocked with zero checks; use `docs/RE_RUNTIME_CHECKLIST.txt` for current manual review.
+- Historical presentation follow-up: **mobile-play-2**, SHA-256 `4fc607a6cbdbdfed027db10df138c64f8bfe5fa95fc7a46063041313cb63ad62`; read its packaged current test report for measured totals and its review note for remaining device checks.
 - Prior comparison application: **1.9.0 Alpha / mobile-play-1**, SHA-256 `e7c75ccd43007c46b5e0336105f6551f4b6183cc39730802cd1fba226eb7fe12`; September 28 clean-extraction suite **702/702 cases across 28 suites**. These results are retained evidence, not certification of new application bytes.
 - Historical corrected reference: SHA-256 `472c4eaa427c466e204a07f0c0c30d3ecfc24c318b5ee1566dddaa2bb4903e08`; September 17 clean-extraction audit **658/658 cases across 26 suites**, zero failures or skips.
-- The corrected reference addressed reachable destination-World actors, invalid component-value emission, disabled Behavior execution, and opposite-edge overlap. The mobile candidate inherits that correction coverage.
+- The corrected reference addressed reachable destination-World actors, invalid component-value emission, disabled Behavior execution, and opposite-edge overlap. The current audio-correction candidate retains that gameplay correction coverage.
 - Native-browser layout/input, project lifecycle, file dialogs, and audible output still need documented closeout. The owner's mobile demonstration does not close that full checklist.
 - Expanded printable documentation was completed September 30; revision 2 incorporates the owner walkthrough findings. Documentation completion is separate from application acceptance.
 - Independent NES hardware timing/compatibility remains unverified. This roadmap update does not introduce a new physical-console acceptance gate.
@@ -432,7 +470,7 @@ This preserves abstraction so future Doors may support:
 
 ## 1.9.0 alpha follow-up — Mobile Play & Controller Support
 
-**Roadmap status:** implementation authorized September 28 after the roadmap update; bounded usability work before 1.9.1. This scope label does not introduce a numbered release. The resulting candidate is `mobile-play-1`, with 702/702 automated cases and owner-reported touch/tutorial results recorded above; remaining device/browser evidence and separate owner acceptance are still open. The corrected candidate remains the historical reference. See D046 and `CURRENT_BASELINE.md`.
+**Historical implementation authority:** September 28 authorized the bounded Mobile Play follow-up (D046). Its original `mobile-play-1` result was 702/702; later candidates inherited and extended that work. The active audio-correction-1 candidate inherits those capabilities; re-runtime-1 is its frozen predecessor. Device/browser and physical-controller closeout remain open and must identify the tested candidate. See the current-position record above and the candidate-specific `CURRENT_BASELINE.md`.
 
 **Purpose:** let someone open NES Forge on a phone, run a built or loaded ROM, and control it immediately. This lives inside the **Emulator tab**. The manual and workshop explain and exercise it; they are not a separate emulator environment.
 
@@ -533,7 +571,7 @@ No competing behavior representation.
 
 ## 1.9.3 — Audio Workflow Verification & Completion
 
-New planned milestone, before the 2.x RE readiness gate and all hosted/wallet implementation. Implementation requires a bounded scope based on the current Audio Studio audit.
+**Current first priority, October 2.** Complete this capability before additional graphics/map recovery and all hosted/wallet implementation. Existing RE inspection remains available. The bounded scope is audio correctness and complete supported workflows, followed by canonical integration of native audio recovery; see `docs/NES_Forge_2.0_ALPHA_PLAN.md` for the sequence and evidence requirements.
 
 **Starting point:** 1.8 already established runtime music, SFX, animation sound events, Pulse 1 / Pulse 2 / Triangle / Noise playback, MIDI import and MusicXML import. Preserve that baseline. First determine which authoring, import, export, editing or playback paths are incomplete; implement demonstrated gaps rather than rebuilding working services.
 
@@ -548,15 +586,15 @@ Planned capability path:
 
 **Exit evidence:** exact app/ROM hashes, declared supported channels and import/export subset, reference inputs and expected events, automated regressions, and recorded listening results in Forge plus an independent emulator. Test physical-console audio separately and report it only when performed. Manual authoring and both existing import paths must survive save/reopen without silent changes.
 
-Mobile emulator A/V lag belongs to 1.9.0 stabilization. ROM audio-driver decoding and decoded-audio export belong to supported 2.x RE adapters. Scanned sheet music, photographic tablature, direct FL Studio project import, DPCM and expansion audio are later proposals requiring their own scope; none is implied by MIDI/MusicXML support.
+Mobile emulator A/V lag retains its 1.9.0 stabilization classification and is now investigated alongside audio alignment. ROM audio-driver decoding and decoded-audio export remain supported 2.x RE adapter work, following authoring/runtime correctness. Scanned sheet music, photographic tablature, direct FL Studio project import, DPCM and expansion audio are later proposals requiring their own scope; none is implied by MIDI/MusicXML support.
 
 ---
 
-# 8. 2.0 — Resource Linker, Runtime Profiles, Raster Model, Live Foundation
+# 8. 2.0 Alpha — RE Development and Required Foundations
 
-This is the next major architecture era.
+This is the active direction for subsequent integrated candidates. Audio alignment now leads the implementation order, followed by reusable native audio recovery and then additional graphics/maps. The original resource linker, runtime-profile, raster and live-foundation scope is preserved in 2.0.1–2.0.5 below; existing observation tools do not complete those foundations.
 
-Deliver the minimum resource/address identity, mapper/profile declaration, source mapping and time-dependent evidence contracts needed for a first supported RE path. Do not wait for every mapper, scrolling profile or LiveLink operation before beginning the bounded RE bridge. Add each runtime/compiler capability behind explicit validation; unsupported captures must not be silently flattened into NROM.
+Deliver the minimum resource/address identity, mapper/profile declaration, source mapping and time-dependent evidence contracts needed for a first supported RE path. Do not wait for every mapper, scrolling profile or LiveLink operation before extending the existing bounded RE bridge. Add each runtime/compiler capability behind explicit validation; unsupported captures must not be silently flattened into NROM.
 
 ## 2.0.1 — Mapper-aware Resource Linker
 
@@ -653,11 +691,11 @@ Then:
 
 # 9. 2.1 — RE Bridge + Evidence Model
 
-## RE Entry A — brought forward September 30
+## RE Entry A — historical September 30 scope, implemented bounded subset
 
-This bounded inspection track starts now, alongside mobile closeout. The existing separate RE branch is an input to audit and selectively adapt, not a replacement for the current editor. It does not change the current project schema, generated-ROM formats or release number.
+This bounded inspection track was brought forward alongside mobile closeout and is now represented by the delivered analysis/runtime candidates. The existing separate RE branch is an input to audit and selectively adapt, not a replacement for the current editor. It does not change the current project schema, generated-ROM formats or release number.
 
-First deliverables:
+Original entry scope, retained for traceability:
 
 - recover and identify the exact existing RE branch, notes, fixtures and test evidence;
 - establish immutable input-ROM identity and validated header/PRG/CHR/trainer boundaries;
@@ -676,7 +714,7 @@ Analysis does not change the active project. Explicit import uses the existing u
 
 This is a finite first recovery profile, not completion of the full RE or audio program. Tests must exercise original and rebuilt CPU/PPU/APU behavior, exact collision data, actual editor changes and native project save/reload. Byte-identical ROM reconstruction and preservation of original engine behavior are not claimed. The existing five Gameplay Core templates, schema 12, actor/persistence limits and protected editor/emulator pathways remain in place.
 
-Next scope: establish independent binary/6502 analysis using the contract below, then choose another independently supported input, write its data/engine contract, and prove the same recovery/edit/rebuild chain. Source migration remains a parallel proposal requiring representative ASM files and named engine/toolchain dependencies; Lua and universal script support remain unimplemented.
+Current position: bounded independent binary/6502 analysis and runtime investigation are implemented. Complete the current review, then apply those tools to additional independently supported inputs, document their data/engine contracts, and prove the recovery/edit/rebuild chain in the 2.0 Alpha plan. Source migration remains a parallel proposal requiring representative ASM files and named engine/toolchain dependencies; Lua and universal script support remain unimplemented.
 
 ## Engine-independent 6502 analysis — owner requirement, September 30
 
@@ -684,9 +722,9 @@ Next scope: establish independent binary/6502 analysis using the contract below,
 
 This extends analysis intake to raw 6502 binaries, including binaries from other 6502 machines. NES Forge's authored game target remains NES. Running a non-NES machine requires its own hardware emulation and is not delivered by adding a disassembler. CPU variant/opcode interpretation, load addresses and bank mappings must be explicit; do not infer NES hardware merely from 6502 instructions.
 
-**Verified current gaps:** In `re-navigation-1`, `src/re/re-ui.js` routes Analyze ROM to the Bridge Room-only `REBridge.analyze()` fingerprint check. Legacy `disasm_run()` requires an emulator-loaded ROM and examines one current CPU mapping. The separate RE Entry A inspector preserves physical bytes for its supported iNES 1.0 subset, but has no raw binary path or opcode decoder. These are implementation starting points, not proof that the requirement is met.
+**Historical gaps before general analysis was implemented:** In `re-navigation-1`, `src/re/re-ui.js` routes Analyze ROM to the Bridge Room-only `REBridge.analyze()` fingerprint check. Legacy `disasm_run()` requires an emulator-loaded ROM and examines one current CPU mapping. The separate RE Entry A inspector preserves physical bytes for its supported iNES 1.0 subset, but has no raw binary path or opcode decoder. These findings explain the subsequent re-analysis implementation. They are not current missing-intake claims. The delivered general-analysis path has a 64 MiB bound, documented opcode policy, explicit mapping and raw fallback; those limits still prevent a universal execution or automatic-recovery claim.
 
-### Next implementation: general analysis before profile recovery
+### Implemented bounded general analysis — retained contract
 
 - Open a file independently of emulation and recovery. Preserve immutable original bytes, full-file identity and physical offsets. Provide bounded hex/byte reads, search and exportable analysis notes. State size/resource limits explicitly and never truncate silently.
 - Treat container parsing as an additional capability. Recognized NES formats expose validated physical PRG/CHR/trainer ranges and header claims. Unsupported formats, unsupported emulator mappers and malformed headers retain an explicit raw-inspection option; malformed structures never acquire trusted boundaries or a valid-ROM claim.
@@ -697,19 +735,19 @@ This extends analysis intake to raw 6502 binaries, including binaries from other
 
 **Acceptance cases:** unknown-engine NROM; valid NES ROM with an emulator-unsupported mapper; NES 2.0 or other unparsed container with honest raw fallback; headerless 6502 binary at a supplied origin; two physical banks mapped to the same CPU range; malformed/truncated container; opcode interpretation differences/unknown bytes; file-selection races and project isolation. Test meaningful bounded operations on a declared corpus. Do not turn a finite corpus pass into a universal execution or recovery claim.
 
-### Following implementation: gameplay state discovery and controlled experiments
+### Runtime state discovery — delivered subset and remaining debugger scope
 
-The owner reports that frame advancement works but does not reach later stages or trigger events such as health loss and enemy defeat. The new navigation controls execute neutral-input frames at the live edge. Normal simulation can produce timed events, but navigation does not deliberately supply gameplay inputs or force stage, health or enemy conditions. Frame navigation remains useful for reaching and comparing nearby machine states.
+The delivered re-runtime-1 candidate provides A/B snapshots of RAM backing arrays, changed/unchanged/increased/decreased/after-equals filtering, eight analyst-labeled RAM-write watches, instruction coverage, PPU/APU-write observations and verified physical source links. These are observations within the existing emulator. The A/B copies are not full restorable machine checkpoints; write watches do not include CPU read watches, automatic breaks or value freezing.
 
-Add a separate debugger workflow for supported runtime targets:
+The following work remains separately bounded:
 
-1. Take named state checkpoints and compare RAM before/after an observed action. Filter candidates by changed, unchanged, increased, decreased or known values; retain address-space/bank identity and observation time.
-2. Watch candidate locations and trace the code that reads or writes them. Combine controlled controller inputs, breakpoints, access watches and execution evidence to explain events and transitions.
-3. Label discoveries with ROM identity, evidence and conditions of validity. A health value, enemy state or level index is a discovered game convention rather than a universal 6502 field.
-4. Provide explicit reversible experiments against a checkpoint, with modified state clearly marked. Direct value edits and executing the game's event routine are different operations; changing a level byte or health value alone must not be described as a verified transition or defeat.
-5. Add named actions such as stage transition, damage or enemy defeat only when their required state/routine contract is established through observation or a verified profile. User annotations and manual discovery remain available for unknown engines.
+1. Restorable named machine checkpoints and reproducible scripted-input experiments with explicit timeline semantics.
+2. Breakpoints, read/access watches and richer code/data relationships needed to explain unfamiliar programs.
+3. Persistent interpreted discoveries tied to ROM identity and stated conditions of validity.
+4. Explicit reversible RAM/ROM experiments with original state retained, visible modification status and safe restoration.
+5. Named stage-transition, damage or enemy-defeat actions only after their required state/routine contract is verified. A changed byte alone does not prove that the game's complete transition routine ran.
 
-Live edits and scripted inputs must have explicit effects on history, capture evidence and reproducibility. Preserve original ROM bytes and keep authoring-project mutation behind its existing validated boundary. These debugger capabilities are planned work; frame history does not already implement them.
+Normal controller input and frame navigation remain available. Neither tracing nor neutral frame advancement automatically finds a later stage or invents gameplay systems. Live edits and scripted inputs must define their effect on history, capture evidence and reproducibility. Preserve original ROM bytes and keep authoring-project mutation behind its validated import boundary.
 
 Technical references: [NESdev CPU memory map](https://www.nesdev.org/wiki/CPU_memory_map), [mapper and bank mapping](https://www.nesdev.org/wiki/Mapper), and [iNES container format](https://www.nesdev.org/wiki/INES). These explain hardware/container distinctions; they do not establish Forge compatibility.
 
@@ -719,12 +757,12 @@ Comprehensive RE is the product goal, not a present universal-import claim. Buil
 
 1. **Control and reproduce execution:** identify the original ROM, pause/advance frames, navigate recorded machine state and retain valid capture evidence. Add broader checkpoint/debugger control only through explicit state contracts.
 2. **Understand code and addressing:** bank-aware 6502 disassembly, physical/CPU address provenance, symbols and code/data annotations. Unknown bank mappings and ambiguous regions stay visible.
-3. **Observe behavior:** supported breakpoints, watchpoints, traces and execution coverage linked to CPU/PPU/APU state. These debugger facilities remain future work unless their own acceptance evidence exists; a frame-history buffer does not implement them.
+3. **Observe behavior:** bounded execution coverage, named RAM-write watches and PPU/APU-write observations are implemented in re-runtime-1. Breakpoints, CPU read watches and broader debugger control remain future work. Retain each capability's own acceptance evidence; frame history alone does not implement it.
 4. **Decode native resources:** engine-specific graphics/metasprites, palettes, compressed maps/scenes, collision, entities and audio drivers. Show decoded versus inferred versus unknown meaning, source offsets and unsupported features. A picture or PPU capture alone does not establish gameplay semantics.
 5. **Recover editable projects and migrate source:** canonical assets and authoring data enter through explicit validated, undoable adapters. When original ASM/includes/macros are available, preserve that source and dependencies rather than claiming ROM recovery recreates them. Named toolchain/engine migration and host Lua remain separately scoped.
 6. **Validate edits and outputs:** save/reopen, compile/export, compare relevant original and rebuilt behavior, preserve original input bytes and document every runtime adaptation. Follow with independent emulator and hardware checks where the supported profile requires them.
 
-The first Native Room v1 decoder and bounded emulator navigation are the beginning of this chain. They do not complete arbitrary-ROM scene/audio recovery, full-engine reconstruction, source migration or the larger 2.x readiness gate. Advance next with engine-independent analysis and the debugging facilities needed to explain unfamiliar programs. A second recovery adapter follows that foundation rather than becoming another prerequisite for opening an unknown ROM.
+The first Native Room v1 decoder and bounded emulator navigation are the beginning of this chain. They do not complete arbitrary-ROM scene/audio recovery, full-engine reconstruction, source migration or the larger 2.x readiness gate. Retain the current runtime-investigation review; after audio workflow closeout, apply the existing analysis foundation to native audio recovery and then additional graphics/maps in the stated execution order. Add debugger capabilities where a concrete decoder experiment requires them. Another recovery adapter must never become a prerequisite for opening an unknown ROM.
 
 ## Full bridge scope
 
@@ -807,16 +845,18 @@ original binary
 
 # 11. 2.3 — Integrated RE Workspace
 
-Planned:
+**Delivered subset:** offline disassembly with explicit mappings, annotations, execution coverage, bounded PPU/APU write evidence and verified physical source jumps live in RE / DISASM. These tools are included in re-runtime-1 and still require its browser/owner review.
 
-- bank-aware disassembly;
-- code/data classification;
-- labels/xrefs;
-- execution coverage;
-- mapper state;
+**Remaining broader scope:**
+
+- richer automatic bank-context analysis beyond explicit/observed mappings;
+- general code/data classification;
+- inferred symbols and cross-references beyond analyst annotations;
+- richer execution profiling beyond bounded coverage;
+- mapper-state exploration;
 - pointer discovery;
 - compression tracing;
-- CHR/palette provenance;
+- native CHR/palette source-format provenance beyond observed PPU writes and physical CHR inspection;
 - OAM/metasprite inspection;
 - animation tracing;
 - entity/spawn analysis;
@@ -831,13 +871,15 @@ Planned:
 
 # 12. 2.4 — Live RE / Debugger / Hot Patch
 
-Potential:
+**Delivered observation subset:** labeled RAM-write watches, actual emulator-bank provenance for recorded instructions, and bounded PPU/APU writes.
+
+**Remaining manipulation/debugger scope:**
 
 - runtime asset selection;
-- RAM watches/freeze;
+- CPU read/access watches, breakpoint behavior and explicit value freeze;
 - breakpoints/watchpoints;
-- mapper-aware addresses;
-- PPU/APU/OAM inspection;
+- bank-aware patch/experiment addresses beyond read-only recorded provenance;
+- deeper CPU/PPU/APU/OAM inspection;
 - CHR/palette hot replacement;
 - map/metatile edits;
 - entity parameter edits;
@@ -868,7 +910,7 @@ Audio and reverse engineering precede hosted/wallet work, but universal ROM reco
 
 1. Accept the 1.9.3 authoring/audio workflow for its declared scope.
 2. Declare supported mapper/runtime profiles and freeze a small reference corpus, including an independent source-free input; record hashes and provenance.
-3. Prove inspection → decoded canonical data → edit → rebuild → runtime verification for a bounded graphics/World example and at least one supported music/SFX driver example. MusicXML/MIDI export must identify supported semantics and preserve the full NES representation natively.
+3. Prove inspection → decoded canonical data → edit → rebuild → runtime verification for supported graphics/World content and at least one independent supported music/SFX driver example. The graphics path must satisfy A1's two unrelated independently authored engines beyond Forge/Bridge Room controls; a control fixture alone cannot close this gate. MusicXML/MIDI export must identify supported semantics and preserve the full NES representation natively.
 4. Keep Observed, Inferred, Decoded, Round-trip validated and Converted claims distinct. Preserve unknown data and refuse unsupported executable reconstruction.
 5. Demonstrate the inspection/debugging tools required to diagnose those examples, plus regression evidence for original project creation, save/reopen and ROM output.
 6. Record unresolved limits and obtain acceptance of that supported slice.
@@ -1056,7 +1098,21 @@ Prove earn → equip/use → trade/store → save/reconnect without duplicates. 
 
 ### 3.4.2 — Existing Crypto Project Audit & Solana Test Integration
 
-Inspect the user's current crypto-project source, tests, deployment state, custody model and wallet/asset contracts before choosing reusable components. Its current safety and integration readiness are not established by this roadmap. Keep chain-specific behavior behind an adapter; do not wholesale-merge the project or create a new currency merely to enable items.
+**Consideration review completed October 4:** the owner supplied `sol_games_v0.2.zip` explicitly for consideration, not implementation. Its source/documentation were inspected for architectural fit. Archive SHA-256: `070e2408345db8131398d3f1c84f78ad6ac3f44a40d9ef859ef7fb37f1dfcdc6`. No tests, FCEUX execution, live-chain calls, deployment or Forge integration were performed in that review. The supplied build report's earlier test claims remain that package's evidence, not a newly measured pass.
+
+The prototype separates declarative item manifests, entitlement lookup, equipment slots and typed RAM effects. Its current client is FCEUX Lua with a local Python bridge and filesystem messaging. Defaults use a development inventory file, placeholder wallet and null mint addresses; ROM fingerprint enforcement and manifest signatures are optional and not enabled by the supplied configuration. It has an ownership-read provider, not a wallet login, mint/transfer service or authoritative multiplayer server.
+
+| Concept to retain | Forge adaptation to evaluate later |
+| --- | --- |
+| Item manifests and equipment slots | Versioned canonical item definitions plus separate stable item-instance identity, issuing World, owner and inventory location. Item meaning remains independent of chain and transport. |
+| Pluggable entitlement provider | A host service can map verified external ownership to eligible game items. Wallet authentication, ownership lookup and transfer authorization remain separate contracts. |
+| Typed effects and lifecycle handling | Forge-authored games use named components, variables and gameplay events. Imported ROMs need verified game/build-specific RE mappings. Resolve bindings for the selected runtime rather than embedding one game's RAM addresses in shared definitions. |
+| Request identity and validation | Preserve correlation, bounded messages and explicit failures in a supported browser/host transport. FCEUX Lua and filesystem polling are prototype adapters, not directly portable Forge browser integration. |
+| Gameplay feedback | Item actions refer to canonical animation/SFX events. The prototype contributes no audio engine or native-audio recovery capability to the current audio tranche. |
+
+General analysis must remain open to unknown ROMs. Applying an item effect is a separate, explicitly compatible operation: a RAM write may enable an existing ability but does not insert arbitrary new artwork, scenes or mechanics. The host/client contract must specify reset, rewind, ROM switching, death, save/reopen, reconnect and ownership changes; local captured RAM state cannot establish authoritative loot outcomes.
+
+Before reuse, audit the prototype's tests, runtime behavior, deployment state and wallet/asset contracts against the actual hosted design. Its security or integration readiness is not established by this consideration review. Keep chain-specific behavior behind an adapter; do not wholesale-merge the project or create a new currency merely to enable items. Sol Games remains a reference candidate until a separately scoped integration decision.
 
 Solana is the preferred first candidate, not a locked dependency. Use local/test-network assets initially. Define wallet authentication separately from asset-transfer authorization; normal game login must not grant blanket spending power. Keep secrets out of ROMs, project files and game servers that do not need them.
 
@@ -1312,7 +1368,7 @@ External references inform feasibility, not proof that Forge has implemented a f
 - **[R1]** [Meshtastic radio settings and data rates](https://meshtastic.org/docs/overview/radio-settings/). Supports a separately budgeted low-throughput mesh mode; quoted data-rate maxima exclude headers, hops and retransmissions.
 - **[R2]** [Solana fee abstraction](https://solana.com/docs/payments/send-payments/payment-processing/fee-abstraction). Supports evaluating a separate transaction fee payer; sponsorship still needs funding, limits and transaction validation. No fixed mint-price claim is made here.
 
-This revision preserves the completed 1.7/1.8 record, historical 1.9.0 evidence, five-template/schema-12 limits and protected behavior. It retains the 1.9.1/1.9.2 assignments; adds 1.9.3 audio workflow completion, a finite 2.x RE gate, ordered 3.4 item/wallet/loot stages and a 4.x portable platform track. It records accessible developer tooling and recommended private GitHub setup before RE. It corrects stale PDF-closeout wording and distinguishes the separately prepared mobile-play-2 follow-up from earlier evidence. The delivered review kit remains a dated mobile-play-1 snapshot; the new candidate is supplied separately. The existing roadmap filename is retained to preserve its identity.
+**Historical September 30 revision summary:** That revision preserved the completed 1.7/1.8 record, historical 1.9.0 evidence, five-template/schema-12 limits and protected behavior. It retains the 1.9.1/1.9.2 assignments; adds 1.9.3 audio workflow completion, a finite 2.x RE gate, ordered 3.4 item/wallet/loot stages and a 4.x portable platform track. It records accessible developer tooling and recommended private GitHub setup before RE. It corrects stale PDF-closeout wording and distinguishes the separately prepared mobile-play-2 follow-up from earlier evidence. The delivered review kit remains a dated mobile-play-1 snapshot; the new candidate is supplied separately. The existing roadmap filename is retained to preserve its identity.
 
 **Integrated RE continuation:** This revision records the authorized re-bridge-1 demonstration and its bounded acceptance path. It preserves the preceding ASM migration proposal and all long-term dependencies; no release promotion, publication, hosted implementation or universal decoder is authorized by the demonstration.
 
@@ -1323,3 +1379,73 @@ This revision preserves the completed 1.7/1.8 record, historical 1.9.0 evidence,
 **D050 implementation continuation:** The owner explicitly authorized the next independent-analysis slice. Candidate re-analysis-1 keeps a 64 MiB input limit and documented NMOS 6502/NES-2A03 opcode interpretation; other encodings remain bytes rather than guessed instructions. Explicit raw/physical inspection does not establish emulator compatibility or recover engine-specific resources. Use the current package's exact evidence and docs/RE_ANALYSIS.md, and stop at the review candidate before promotion.
 
 **D051 implementation continuation:** Runtime investigation is now implemented as part of the standalone Forge RE workspace, with opt-in observation, bounded evidence and a checked identity shared with static analysis. Use the current candidate's measured reports and `docs/RE_RUNTIME_CHECKLIST.txt`; do not treat prior external investigation results as integrated-tool or new-browser acceptance.
+
+
+## October 2 reconciliation — adopted direction
+
+The owner's “Ok, proceed” follows the review of roadmap drift. This revision identifies re-runtime-1 and its measured 895/41 result as the delivered reference, corrects the current checklist, moves older sequencing updates into the dated appendix, and distinguishes delivered observation tools from remaining native recovery and live manipulation. Subsequent RE development uses the 2.0 Alpha track without retroactively renaming existing releases. The original 2.0.1–2.0.5 and 2.1–2.5 capability scopes remain visible; 1.9.1/1.9.2 remain deferred.
+
+The companion `docs/NES_Forge_2.0_ALPHA_PLAN.md` defines the bounded next recovery path and required evidence. The source-control handoff identifies the actual local Git reference. No new executable, schema change, candidate promotion, GitHub publication, license grant, hosted/wallet implementation or hardware purchase is implied by this documentation revision.
+
+---
+
+## October 4 consolidation — current execution order
+
+At the owner's request, consolidated the roadmap into six delivery phases with concrete exits, one active implementation candidate and explicit parallel support work. Audio correction remains next; audio workflow/listening closure precedes additional recovery. Clarified the independent-engine gate, corrected stale ASM/source-control sequencing and recorded the Sol Games v0.2 consideration as a later reuse evaluation, not an integration approval. Portable software can branch after hosted foundations without waiting for wallet launch. Detailed capability numbering, historical evidence and protected application behavior remain preserved.
+
+---
+
+# 22. Historical sequencing notes — September 28 through October 1
+
+The following notes preserve prior instructions, proposed ordering and findings verbatim. Terms such as “current,” “next,” “latest” and checklist references in this appendix describe their original dates and are superseded by the current-position and execution-order sections above. The old picker-repair wording is retained only as historical evidence of the documentation issue corrected October 2.
+
+**October 1 integrated ROM analysis — D051:** The owner supplied `pepsi_vending_v9e.nes`, completed the six scoped tests for the prior picker-repair candidate, and approved continuing with the investigation tools inside Forge. Candidate **re-runtime-1** implements opt-in executed-code and PPU/APU-write observations, loaded-ROM adoption into static analysis, before/after RAM comparison, up to eight named RAM-write watches, source-code links where physical mapping is known, and evidence/observed-resource exports. These are general investigation tools rather than a Pepsi-specific decoder. The new candidate has its own full 41-suite gate and manual walkthrough; historical external scripts and prior owner passes do not certify changed code.
+
+The next acceptance demonstrates a real Pepsi state transition inside the integrated workflow and sound-register observations on an input that contains sound. Trace limits and unobserved data remain explicit. Generic scene/collision/music reconstruction, stage selection, health/enemy commands, breakpoints, controlled patches and broad mapper support are still future work. The next substantive recovery milestone must turn evidence into verified canonical content using unfamiliar ROMs and avoid a succession of fixture-only claims. This continuation does not complete comprehensive RE, promote the release or authorize hosted/wallet work.
+
+**Historical October 1 picker correction:** The shell's global file-input CSS hid general analysis until re-analysis-1a supplied its visible override. The owner subsequently reported all T1–T6 scoped checks successful, including unknown-engine static intake and preservation of the imported editor project. Bridge Room-only recovery remains separate from general investigation. Prior roadmap sequence and protected contracts remain authoritative.
+
+**September 30 continuation:** The owner said “Ok, let's continue” after the immediate mobile-stabilization plan. A bounded presentation follow-up, **mobile-play-2**, is prepared for review: HTML SHA-256 `4fc607a6cbdbdfed027db10df138c64f8bfe5fa95fc7a46063041313cb63ad62`. It defers hidden editor-sidebar work during expanded Play and avoids unchanged canvas sizing work. Its exact automated evidence belongs to its own `test-results/candidate/Summary.json`, not the older totals below. CPU/PPU/APU, timing and audio buffering are unchanged. Device-level lag improvement and owner acceptance are still unverified.
+
+**September 30 review reference:** The preserved prior application is **1.9.0 Alpha / mobile-play-1**, SHA-256 `e7c75ccd43007c46b5e0336105f6551f4b6183cc39730802cd1fba226eb7fe12`. Its September 28 suite passed **702/702 cases across 28 suites**. The owner reported working mobile touch, mobile audio/video lag, a successful guided tutorial through steps 1–9, and playback of that tutorial ROM in another emulator. The independent emulator's name/version, ROM hash and device details were not supplied; this is an owner-reported project result, not a general compatibility certificate. Physical controllers remain untested; physical NES-console testing is a separate unverified track.
+
+**Documentation:** The expanded manual, tutorial and operator-reference PDFs were delivered after rendering and visual checks. Review-kit revision 2 corrects the tutorial's tab locations, separate World fields, palette explanation and Player selection; adds an editable feedback form and portable reproduction instructions; and records the completed owner walkthrough. The original application/source ZIP remains unchanged. Historical statements below about pending documentation are superseded by this update.
+
+**September 30 owner direction:** Put audio and reverse engineering before the connected platform. The long-term goal now explicitly includes developer-hosted custom Worlds, server-sold and gameplay-earned mintable items, wallet ownership, opted-in loss of eligible loot in combat, and a physical tech deck that can develop/deploy, play as a client, or host a server. Wi-Fi and cellular are the primary internet paths; Meshtastic is an optional transport investigation. Solana is the preferred initial low-fee candidate, subject to review of the existing crypto project and measured total costs.
+
+**Earlier September 30 RE-entry priority:** The owner then instructed that RE needs to start now because the authoring environment is in a good state. Bring forward **RE Entry A: branch intake and evidence-backed ROM inspection**, in parallel with remaining mobile closeout. Do not require 1.9.1, 1.9.2, 1.9.3, GitHub setup or every proposed 2.0 linker capability to finish before that bounded read-only work. This supersedes the earlier strictly sequential placement of all RE after Audio Studio completion.
+
+**Current authorized RE demonstration:** The owner asked to see the end-to-end bridge after clarifying that an inspection report does not recover editable scenes, collision or audio. A separate **1.9.0 Alpha / re-bridge-1** candidate now implements one declared profile for the independently authored `Bridge_Room.nes`. Its own 6502 engine contains native graphics, room, collision and Pulse 1 music data; it has no embedded Forge project. The bridge stages a preview, then explicitly imports a genuine schema-12 project through the existing undoable replacement path. Original ROM bytes remain available for Run Original. The exact candidate and clean-extraction result are identified in its packaged `test-results/candidate/Summary.json`; this roadmap does not imply promotion or browser/device acceptance.
+
+Recovered content is one room, 512 CHR tiles, palettes/attributes, a 960-cell collision map, a player spawn and a 16-row Pulse 1 melody. Rebuilding uses Forge’s existing player runtime, which adds jump/attack/gravity to the original left/right-only demo. Original engine behavior, SFX, general NESmaker support and arbitrary-ROM reconstruction are not recovered. Graphics, collision and note edits must survive native JSON save/reload and affect the rebuilt runtime. The test kit supplies source, reproduction commands and measured evidence; browser, audible output and hardware checks remain separate.
+
+**Latest emulator/RE direction:** The owner requested forward/backward navigation for loaded ROMs, clarified its use for RE analysis, and confirmed comprehensive RE as the goal. The separately reviewed **re-navigation-1** candidate builds on re-bridge-1 with an optional playback-tools strip: existing forward-frame capability, backward/forward recorded-state navigation and bounded frame skips. History is opt-in, with up to 300 snapshots and a 32 MiB stored-snapshot budget; the actual retained frame range is displayed rather than promising a fixed number of seconds. Restored state must include CPU, PPU, mapper, logical APU, controller latches and runtime-capture evidence. Host audio queues are cleared while seeking; this is not reversed speaker playback or reverse execution of individual 6502 instructions. Original and built ROMs use the same emulator boundary. Exact implemented behavior and measured evidence belong to `docs/EMULATOR_NAVIGATION.md` and its candidate reports; release promotion and real-browser/device acceptance remain separate.
+
+**Authorized implementation continuation:** The owner followed the engine-independent requirement with “Ok, let's implement please.” Candidate `re-analysis-1` adds independent binary inspection and offline documented-NMOS-6502/NES-2A03 disassembly, explicit mappings, bounded hex/search views, physical CHR inspection and exportable user notes. Its exact current evidence belongs to `test-results/candidate/Summary.json`; browser evidence is separate. Unknown engines and unsupported emulator mappers retain general inspection; unknown/malformed containers retain raw bytes with diagnostics. Recovery remains Native Room v1 only. Game-specific health/enemy/stage investigation is the following debugger tranche, not an implemented navigation command.
+
+**Latest owner clarification:** “All 6502 roms should be analyzable. Regardless of engine.” General analysis must open a binary without requiring a recognized engine, successful emulator load or editable-recovery adapter. The previous re-navigation-1 candidate did not meet this requirement: its profile-gated Analyze ROM action and emulator-dependent disassembler were verified gaps. The new re-analysis-1 path separates general intake from both; the full product goal still exceeds its declared size, opcode and interpretation limits. Prioritize independent binary/6502 inspection before selecting another recovery profile; follow it with runtime state discovery and event tracing for investigating health, enemies and stage transitions. See the explicit acceptance scope in section 9.
+
+**Proceed by dependency:** Review the bounded integrated RE demonstration and emulator-navigation follow-up alongside the remaining mobile closeout. Next establish engine-independent analysis, then use its evidence and debugger facilities to support additional recovery profiles. Keep planned gameplay/behavior improvements and Audio Studio completion as separately scoped work; integrate deeper RE adapters as their resource/profile contracts become ready. Audio and the finite supported-RE gate still precede hosted Worlds and wallet implementation. Establish authoritative hosted Worlds and inventories before mintable ownership and consented loot loss. Prove portable server/client/development roles on existing hardware before a custom tech deck. Repeating the owner's whole tutorial is not a new gate.
+
+The initial roadmap request was planning authority. The later continuation and RE-start instructions authorize the bounded work recorded above, not wholesale integration or release promotion. Existing implementation authorization remains in force for its bounded scope. Assembly-source export is not an established current capability. Milestone numbers below are planning identifiers, not delivery dates.
+
+| Priority | Milestone | Milestone outcome / dependency |
+| --- | --- | --- |
+| 1 | 1.9.0 Alpha stabilization | Reproduce/profile mobile A/V lag, document input isolation and physical-controller/device results, review the exact candidate and unresolved limits for acceptance. |
+| Now, parallel | Engine-independent 6502 analysis + gameplay debugging | Open and inspect binaries without engine recognition or emulator loading. Add explicit address mapping and offline disassembly, then runtime memory discovery, watches and event tracing. Keep existing RE Bridge recovery and emulator history as separately reviewed capabilities. |
+| Foundation | GitHub setup after stabilization, before substantial RE integration | Recommended private source repository, frozen reference tags, issue tracking and reproducible checks. Initial local RE intake need not wait. Public release follows an explicit licensing/contribution decision; no repository has been created. |
+| 2 | 1.9.1 Gameplay Expansion | Deliver bounded gameplay capabilities, including Door traversal semantics, exercised in a small original playable game. |
+| 3 | 1.9.2 Behavior UX | Author and diagnose the same canonical behaviors through a visual graph; retain table parity. |
+| 4 | 1.9.3 Audio workflow verification and completion | Demonstrate author/import → edit → build → audible ROM playback → save/reopen for the declared supported audio scope. |
+| 5 | 2.x Resource foundation and supported RE | Inspect, decode, edit and rebuild a declared set of assets and an audio-driver example with provenance; unknowns remain explicit. Pass the finite RE readiness gate below. |
+| 6 | 3.0, 3.2–3.3 Hosted gameplay foundation | Two clients use a server-authoritative World with durable inventory and reconnect recovery. 3.1 traditional netplay is a separate optional branch. |
+| 7 | 3.4.1–3.4.4 Economy and wallet items | Prove ordinary inventories and earned loot, audit the existing crypto project, validate minting on a test network, then validate consented loss settlement. |
+| 8 | 4.0–4.3 Portable platform and tech deck | Branch after hosted foundations; real-value wallet launch is not a prerequisite. Prove develop/build/deploy, client and server roles on existing hardware; measure mesh feasibility; then validate a physical prototype. |
+
+Large matches, voice, and collaborative creation remain 3.x extensions. Their milestone numbers do not make every extension a prerequisite for a tech-deck prototype. Continuous RE knowledge expansion also continues alongside later work after the bounded readiness gate passes.
+
+**Immediate next work:** manually review the `re-runtime-1` picker repair using `docs/RE_OWNER_CHECKLIST.txt`, recording exact actions and observed results. Then use the owner's actual ROM and a specific stage/damage/enemy scenario as the next end-to-end acceptance target: connect runtime state discovery and event tracing to verified gameplay findings and genuine native audio/scene/collision decoding, while identifying unknowns. A fixture-only recovery pass or visual capture does not establish that outcome for the owner's ROM. In parallel, record the phone/OS/browser, affected ROM and reproducible steps for mobile lag; separate simulation speed, rendering, input latency and audio behavior; compare against the existing desktop reference before selecting any correction. Record physical-controller results when devices are available. These are host playback/input checks, not a restart of the accepted 1.8 Audio Runtime work. No arbitrary-ROM or NES-console compatibility claim follows from the successful tutorial ROM.
+
+**September 28 implementation authority:** After the September 28 roadmap update, the owner instructed **“ok let's begin.”** This authorizes the bounded Mobile Play & Controller Support follow-up only, recorded in D046. Deliver **1.9.0 Gameplay Core — Alpha**, candidate **`mobile-play-1`**, with its own hash and verification. Acceptance/promotion and 1.9.1/1.9.2 or later work are not authorized by that instruction. Historical corrected-reference evidence below remains tied to its original artifact.
+
+**September 28 update:** Record NES Forge's current maturity as a functional alpha and insert a bounded Mobile Play & Controller Support follow-up before Gameplay Expansion. Reconcile 1.9.0 status with the corrected candidate and September 17 re-audit, including its September 24 review correction. This roadmap edit records scope and priority; it does not claim implementation, build acceptance, or release promotion. The existing 1.9.1, 1.9.2, 2.x, and 3.x milestone assignments remain in place. The filename retains its original date to preserve this document's identity; the revision date above is current.

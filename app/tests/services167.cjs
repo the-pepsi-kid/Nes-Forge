@@ -4,7 +4,7 @@
 // Forwarding spies count real calls; no production module is replaced or repaired.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const dir=path.join(__dirname,'fixtures/golden167'),tests=[],test=(name,fn)=>tests.push({name,fn});
 const input=id=>JSON.parse(fs.readFileSync(path.join(dir,id+'.project.json'),'utf8'));
 const rom=id=>Uint8Array.from(fs.readFileSync(path.join(dir,id+'.nes')));
@@ -66,15 +66,15 @@ test('Failed compile clears published artifacts and does not run/export a stale 
 });
 
 test('ReleaseInfo owns current version/schema and production has no embedded Scout starter',()=>{
-  const h=fresh();assert.equal(h.context.Forge.release.version,'1.9.0');assert.equal(h.context.Forge.release.schema,12);
-  assert.match(h.context.document.title,/1\.9\.0.*Gameplay Core/);
-  assert.equal(h.run('projectData().version'),12);assert.equal(h.run('projectData().foundation'),'1.9.0');
+  const h=fresh();assert.equal(h.context.Forge.release.version,'2.0.0-alpha.1');assert.equal(h.context.Forge.release.schema,12);
+  assert.match(h.context.document.title,/2\.0\.0-alpha\.1.*Audio Correction/);assert.equal(h.context.Forge.release.candidate,'audio-correction-1');
+  assert.equal(h.run('projectData().version'),12);assert.equal(h.run('projectData().foundation'),'2.0.0-alpha.1');
   assert.doesNotMatch(h.html,/const\s+STARTER\s*=/);assert.doesNotMatch(h.html,/const\s+SCOUT_STARTER\s*=/);
 });
 test('Current Tech Docs render through one owner without accumulating historical sections',()=>{
   const h=fresh(),docs=h.context.Forge.services.Documentation;assert.equal(h.run('renderDocs'),docs.render);
   h.run('renderDocs()');const first=h.get('sideDocs').innerHTML;h.run('renderDocs();renderDocs()');assert.equal(h.get('sideDocs').innerHTML,first);
-  assert.match(first,/1\.9\.0/);assert.match(first,/Gameplay Core/);assert.match(first,/Audio Runtime/);assert.match(first,/World Runtime/);
+  assert.match(first,/2\.0\.0-alpha\.1/);assert.match(first,/Audio Correction/);assert.match(first,/Gameplay Core/);assert.match(first,/Audio Runtime/);assert.match(first,/World Runtime/);
   assert.doesNotMatch(first,/<h[1-6][^>]*>\s*(?:NES Forge\s+)?1\.[0-5][^<]*<\/h/i);
   for(const term of ['World','Audio','Live','Save','Capture'])assert.match(first,new RegExp(term,'i'),'Current reference documents '+term);
 });

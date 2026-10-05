@@ -1,4 +1,18 @@
-# Test and release policy — 1.9.0 Alpha re-runtime-1
+# Test and release policy — 2.0.0-alpha.1 / audio-correction-1
+
+## Current mandatory gate
+
+Run `python3 tools/bundle.py --check`, then `node tests/run_candidate.cjs` on a fresh extraction of an explicit staging archive. The gate contains all 41 retained suites and 895 measured cases, plus `audio-correction200`. Every case must pass, with no filtering, skipped suites, injected modules or substituted application. The report records actual totals and full input provenance.
+
+Create a staging archive with `python3 tools/package_release.py --stage --output /absolute/path/audio-correction-staging.zip`. Verify every SHA256SUMS.txt payload after extraction, run the full gate in that extracted tree, and record matching candidate/HTML/summary identities and counts in `checkpoints/audio-correction-1-clean-extraction/Reproduction.json`. Final packaging requires those reports plus fresh browser records tied to the same HTML. Do not change provenance inputs after the full run.
+
+Source-preservation adaptations reverse only the exact declared four-file delta (audio compiler/engine, title and ReleaseInfo) before checking historical hashes. The new runtime tests verify changed behavior independently. Historical golden bytes remain fixed. Release/foundation metadata expectations change to 2.0.0-alpha.1; the schema remains 12.
+
+Browser launch failure is blocked and must report zero executed checks. VM/APU evidence is not a claim of audible browser output, physical controller compatibility, mobile lag improvement or NES hardware acceptance.
+
+## Preserved policy history
+
+The following rules and dated tranche records remain historical unless superseded by the current mandatory gate above.
 
 ## Evidence rules
 

@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs'),{loadStoredForge,settle}=require('./storage-harness167.cjs');
 const {project,scene}=require('./fixtures.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const baseline=path.join(root,'baseline/NES_Forge_1.6.6_Visual_Workspace.html');
 const tests=[],test=(name,fn)=>tests.push({name,fn}),cp=value=>JSON.parse(JSON.stringify(value));
 async function fresh(){const h=loadStoredForge(html);await settle();assert.ok(h.context.Forge?.services?.ProjectStore,'Candidate must expose the production ProjectStore service');assert.deepEqual(h.errors,[]);return h;}
@@ -14,7 +14,7 @@ function count(h,names){h.context.names=names;h.run(`window.calls167={};window.o
 
 test('Schema 12 is the actual portable output and explicit schema downgrade is rejected',async()=>{
   const h=await fresh();fixture(h);assert.equal(h.run('Forge.services.ProjectStore.schema'),12);assert.equal(h.run('projectData().version'),12);assert.equal(h.run('JSON.parse(db_serializeState()).version'),12);
-  assert.equal(h.run('projectData().foundation'),'1.9.0');const before=state(h);
+  assert.equal(h.run('projectData().foundation'),'2.0.0-alpha.1');const before=state(h);
   for(const targetVersion of [8,9,10]){
     h.context.targetVersion=targetVersion;
     assert.throws(()=>h.run('Forge.services.ProjectStore.capture({targetVersion})'),/downgrade|schema|version/i);

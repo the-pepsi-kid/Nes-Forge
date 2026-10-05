@@ -4,7 +4,8 @@
 // input/lifecycle contracts; these tests do not establish hardware compatibility.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const {referenceSource,verifyRuntimeReference}=require('./source-preservation200.cjs');
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 function pad(index=0,id='Test controller',mapping='standard'){return {index,id,mapping,connected:true,buttons:Array.from({length:17},()=>({pressed:false,value:0})),axes:[0,0,0,0]};}
 function press(device,index,value=true){device.buttons[index]={pressed:value,value:value?1:0};}
@@ -20,12 +21,13 @@ function joy(h){return h.run('emuReadJoyState()');}
 function loopRom(){const bytes=new Uint8Array(16+16384+8192);bytes.set([78,69,83,26,1,1]);bytes.set([0x4c,0,0xc0],16);for(const offset of[0x3ffa,0x3ffc,0x3ffe])bytes.set([0,0xc0],16+offset);return bytes;}
 function load(h){h.context.mobileRom=loopRom();assert.equal(h.run('emuLoadRomData(mobileRom,"input loop",0)'),true);h.run('S.tab="emu";emu.running=true');}
 
-test('Only enumerated mobile and RE extensions change the corrected baseline sources',()=>{
+test('Only enumerated mobile, RE and exact audio correction changes affect the corrected baseline sources',()=>{
+  verifyRuntimeReference();
   const baseline=JSON.parse(fs.readFileSync(path.join(root,'baseline/1.9.0-corrected-build-inputs.json'))),manifest=JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json')));
   const exceptions=new Set(['src/services/release-info.js','src/services/documentation.js']);
   for(const input of baseline.inputs){
     if(exceptions.has(input.path))continue;
-    let source=fs.readFileSync(path.join(root,input.path),'utf8');
+    let source=referenceSource(input.path);
     // Recognize only the two exact D048-approved edits; every other byte keeps
     // its original hash guard, including the emulator and project lifecycle.
     if(input.path==='src/shell-prefix.html'){

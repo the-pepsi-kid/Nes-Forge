@@ -1,4 +1,6 @@
-# Architecture contract — 1.9.0 Gameplay Core and forward constraints
+# Architecture contract — 2.0 Alpha continuation and preserved boundaries
+
+The audio-correction-1 continuation changes only AudioCompiler/AudioEngine runtime correctness and release metadata. The event-stream cursor retains existing zero-page allocation; pointer carry supports all accepted rows. Triangle has a dedicated timer table. Project/Audio schema and service ownership remain unchanged.
 
 ## Ownership
 

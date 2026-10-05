@@ -1,12 +1,16 @@
-# NES Forge 1.9.0 — Gameplay Core — Alpha
+# NES Forge 2.0.0-alpha.1 — Audio Correction
 
-Candidate: **`re-runtime-1`**, the October 1 integrated runtime-investigation follow-up (D051), schema **12**. Open `mainline/NES_Forge_1.9.0_Gameplay_Core.html` in a browser. NES Forge remains one standalone HTML editor; no server or installation is required. Implementation authorization does not promote this candidate.
+Candidate: **`audio-correction-1`**, schema **12**. Open **`mainline/NES_Forge_2.0.0-alpha.1.html`** in a browser. This is a standalone review candidate for the two reproduced audio defects; owner acceptance is pending.
 
-**ROM investigation now lives inside Forge.** In **RE / DISASM → RUNTIME INVESTIGATION**, use the emulator's loaded ROM for analysis, observe executed code and graphics/sound-register writes, compare before/after RAM snapshots, and add named RAM-write watches. Every trace is opt-in and bounded. Source-code references retain the originating CPU address and the physical ROM offset when the emulator mapping is known. A changed byte or an APU write is evidence to investigate; neither automatically establishes gameplay meaning or an editable song.
+The generated music and SFX readers now advance through dense patterns up to the supported 128 rows without wrapping their byte cursor into an endless scan. Triangle playback uses channel-correct timer values: authored A4 now generates approximately 440.4 Hz. Pulse/noise behavior and the existing canonical Audio data model remain intact. Timer resolution and very-low-note limits still apply.
 
-Read [RE_RUNTIME.md](docs/RE_RUNTIME.md) and perform [RE_RUNTIME_CHECKLIST.txt](docs/RE_RUNTIME_CHECKLIST.txt). The checklist uses the owner's `pepsi_vending_v9e.nes` for real state transitions and the separate Bridge Room fixture for sound-register observation. Static inspection still works when a ROM cannot run. Stage selection, health/enemy manipulation and general recovery of native scenes, collisions and audio are still absent. The existing profile-specific recovery and visual captures retain their distinct roles.
+Start with **`docs/AUDIO_CORRECTION_CHECKLIST.txt`**. Two editable review projects and their generated ROMs are supplied in `examples/Audio_Correction_2.0.0-alpha.1/`: `Dense_128` and `Pulse_Triangle`. Their manifest identifies exact source/build hashes. `docs/AUDIO_CORRECTION.md` explains scope, memory behavior and evidence.
 
-The previous `re-analysis-1a` candidate repaired the hidden general-analysis picker. The owner reported all six scoped manual checks successful, including project preservation. Those observations are historical evidence for that delivered build, not acceptance of this changed candidate. The external Pepsi investigation identified graphics and gameplay states; its scripts did not establish that the new integrated UI works. Current results must come from this candidate's own reports and walkthrough.
+Verification is recorded in `test-results/candidate/Summary.json` for this exact HTML: all 895 retained cases plus the new audio-correction suite are mandatory. Fresh extraction proof is in `checkpoints/audio-correction-1-clean-extraction/Reproduction.json`. Browser reports are separate; missing Chromium means blocked with zero checks, not a browser pass. Listening, real mobile A/V lag, physical controllers and hardware acceptance remain open. This correction does not complete the whole Audio workflow milestone.
+
+The frozen predecessor is **1.9.0 Alpha / re-runtime-1**, HTML SHA-256 `e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d`. Its 895/895 result is preserved as historical evidence, alongside the later defect reproductions. Its standalone HTML is retained in `baseline/NES_Forge_1.9.0_RE_Runtime.html` and prior current documents/reports are archived separately. Do not attach its acceptance claims to these changed bytes.
+
+All existing authoring, mobile controls, frame navigation, general ROM analysis, read-only runtime investigation and bounded Native Room recovery remain available. RE is still incomplete; APU observations are evidence, not automatic recovery of tracker songs. Additional audio, RE, hosted/wallet and Sol Games implementation is outside this correction. The current roadmap is `ROADMAP.md`; the detailed execution plan is `docs/NES_Forge_2.0_ALPHA_PLAN.md`.
 
 ## Analyze a ROM or raw 6502 binary
 
@@ -57,7 +61,7 @@ python3 tools/bundle.py --check
 node tests/run_all.cjs
 ```
 
-Use `build-inputs.json` for this HTML identity, `test-results/candidate/Summary.json` for actual hash/totals and all required suite results, and `checkpoints/re-runtime-1-clean-extraction/Reproduction.json` for package reproduction. All 38 prior suites remain required alongside `re-runtime`, `re-runtime-ui` and `re-runtime-integration`, for 41 suites on the same frozen candidate. Read the current runner and matching `Summary.json` for the required suite list and measured outcomes. The historical `re-navigation-1` build passed 788/788 across 35 suites; that result does not certify changed bytes. No current total is predicted here.
+Use `build-inputs.json` for this HTML identity, `test-results/candidate/Summary.json` for measured results and test provenance, and `checkpoints/audio-correction-1-clean-extraction/Reproduction.json` for clean-extraction proof. All 41 prior suites and their 895 cases remain required, alongside `audio-correction200`, for 42 suites on the same unchanged candidate. Historical results remain attached to their original HTML.
 
 Browser walkthrough remains pending because the available Playwright Chromium executable is missing. Automated VM and bundled-emulator checks do not establish native picker behavior, visible browser layout, audible speakers, physical controllers or independent NES hardware timing. See `docs/BROWSER_QA.md`.
 

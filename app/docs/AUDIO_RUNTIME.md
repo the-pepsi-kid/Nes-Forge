@@ -1,4 +1,4 @@
-# Audio Runtime and Studio — 1.8
+# Audio Runtime and Studio — 1.8 foundation / 2.0 Alpha correction
 
 Audio Runtime turns the existing AUDIO tracker into generated NES APU code. It does not add another song, instrument or event representation.
 
@@ -36,3 +36,12 @@ Sheet-music image recognition, tablature transcription and a separate score edit
 - Pattern cells may change note, instrument and volume. Effect/parameter bytes have no 1.8 runtime meaning.
 - Volume and arpeggio envelopes are tick-based. A nonlooping volume envelope becomes silent after its final value.
 - Generated runtime playback is verified in the bundled emulator. Real-browser audible output and independent NES hardware timing remain separate acceptance work.
+
+
+## Audio correction candidate
+
+`2.0.0-alpha.1 / audio-correction-1` corrects event-stream advancement for dense music and SFX patterns through the supported 128-row range. The generated reader carries into its stream pointer instead of wrapping every 64 four-byte events. Pattern/order and SFX restarts still reset to the original stream. The existing 60-byte zero-page allocation is unchanged.
+
+Triangle now uses its own timer table because its hardware waveform has twice the pulse period at the same timer. A4 emits triangle timer 126 (about 440.4 Hz), rather than pulse timer 253 (about 220.2 Hz on triangle). Pulse timers remain unchanged. Arpeggios are clamped to the existing 0–95 note range before channel-specific lookup. C0 through G-sharp0 on triangle clamp to timer 2047, about 27.31 Hz; A0 is about 27.50 Hz. These low notes cannot all produce their requested pitch in this timer model. High notes retain ordinary timer quantization.
+
+The triangle table adds 192 PRG bytes plus event-reader carry instructions; existing PRG-capacity checks still apply. This is a runtime correctness correction, not a Studio preview fidelity rewrite. See `AUDIO_CORRECTION.md` and `AUDIO_CORRECTION_CHECKLIST.txt` for the supported evidence and manual review.

@@ -1,0 +1,14 @@
+PASS RE panel mounts once in DISASM without replacing the blank project or starting playback
+PASS Choosing a ROM is separate from analysis and never changes active authoring state
+PASS Actual supported ROM stages room, collision and audio counts without importing or altering history
+PASS Preview renders decoded graphics and cell-specific collision overrides instead of treating every shared tile as solid
+PASS Untrusted filenames remain literal text in the result and never create markup
+PASS Invalid ROM and oversized file failures remain visible and preserve the project
+PASS A delayed earlier file read cannot replace a newer staged ROM or status
+PASS A delayed hash analysis cannot publish after another file selection
+PASS Project changes during analysis reject the preview without overwriting newer edits
+PASS Changed project content or lifecycle epoch prevents a staged import
+PASS Explicit supported import is a single undoable project replacement and a repeated click does nothing
+PASS Project and inspection exports are distinct JSON formats through the existing Save As transport
+PASS Download failures leave the staged recovery available and show the actual error
+13/13 passed

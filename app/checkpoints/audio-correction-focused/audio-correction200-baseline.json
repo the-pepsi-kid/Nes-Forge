@@ -1,0 +1,198 @@
+{
+  "suite": "audio-correction200",
+  "html": "NES_Forge_1.9.0_Gameplay_Core.html",
+  "htmlSha256": "e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d",
+  "scope": "Complete standalone candidate; actual generated CPU/APU execution for dense music and animation-triggered SFX, sentinel/order/end-row continuation, and triangle pitch/arpeggio/saturation. VM harness; no browser speaker, mobile latency, or physical-hardware acceptance.",
+  "passed": 5,
+  "failed": 21,
+  "total": 26,
+  "metrics": {
+    "viewerMusic63": {
+      "eventCount": 63,
+      "observedChanges": 66,
+      "completedFrame": 131,
+      "romSha256": "253457aa57a8bc50b21e8f1b5b7f95d5e2a009bf52e0101fa9ef38bdabf1f9ca"
+    },
+    "single-roomMusic63": {
+      "eventCount": 63,
+      "observedChanges": 66,
+      "completedFrame": 131,
+      "romSha256": "1b6b433f50eea562b8528272e7dca764c9e6570d6f79c66254d2d085bb0bb17b"
+    },
+    "worldMusic63": {
+      "eventCount": 63,
+      "observedChanges": 66,
+      "completedFrame": 132,
+      "romSha256": "38e99b9a4d0749432bf0fae94f11abbd7757e3be3200000cc686d831e962cd3f"
+    },
+    "single-roomSfx63From0": {
+      "eventCount": 63,
+      "startRow": 0,
+      "endRow": 127,
+      "observedChanges": 64,
+      "completedFrame": 76,
+      "romSha256": "0fdefbbbedd74b4eb5a6242bdf5d7a4e464928dc9fec4882f7560a914f9848e2"
+    },
+    "worldSfx63From0": {
+      "eventCount": 63,
+      "startRow": 0,
+      "endRow": 127,
+      "observedChanges": 64,
+      "completedFrame": 76,
+      "romSha256": "1fc616b561e24712803b5737b5264ea829c8705d804f65974f854a7201d0ada1"
+    }
+  },
+  "results": [
+    {
+      "name": "viewer music 63 dense events reaches the sentinel, next order and loop without a stalled CPU",
+      "passed": true,
+      "milliseconds": 11235
+    },
+    {
+      "name": "viewer music 64 dense events reaches the sentinel, next order and loop without a stalled CPU",
+      "passed": false,
+      "milliseconds": 17525,
+      "error": "AssertionError [ERR_ASSERTION]: Expected 67 pitch changes within 180 frames; observed 64\n    at awaitChanges (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:44:149)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:52:2\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "viewer music 128 dense events reaches the sentinel, next order and loop without a stalled CPU",
+      "passed": false,
+      "milliseconds": 17362,
+      "error": "AssertionError [ERR_ASSERTION]: Expected 131 pitch changes within 180 frames; observed 64\n    at awaitChanges (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:44:149)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:52:2\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "single-room music 63 dense events reaches the sentinel, next order and loop without a stalled CPU",
+      "passed": true,
+      "milliseconds": 15506
+    },
+    {
+      "name": "single-room music 64 dense events reaches the sentinel, next order and loop without a stalled CPU",
+      "passed": false,
+      "milliseconds": 4134,
+      "error": "regression-command.js:1\nfor(var correctionSteps=0;emu.PC!==correctionSymbols.labels.main||emu.ram[correctionSymbols.frameReady];correctionSteps++){if(correctionSteps>=60000)throw Error(\"Audio update did not return to the game loop within 60000 instructions\");cpuStep();}\n                                                                                                                                                     ^\n\nError: Audio update did not return to the game loop within 60000 instructions\n    at regression-command.js:1:156\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/harness.cjs:97:46)\n    at frame (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:40:69)\n    at awaitChanges (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:44:81)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:52:2\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)"
+    },
+    {
+      "name": "single-room music 128 dense events reaches the sentinel, next order and loop without a stalled CPU",
+      "passed": false,
+      "milliseconds": 4084,
+      "error": "regression-command.js:1\nfor(var correctionSteps=0;emu.PC!==correctionSymbols.labels.main||emu.ram[correctionSymbols.frameReady];correctionSteps++){if(correctionSteps>=60000)throw Error(\"Audio update did not return to the game loop within 60000 instructions\");cpuStep();}\n                                                                                                                                                     ^\n\nError: Audio update did not return to the game loop within 60000 instructions\n    at regression-command.js:1:156\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/harness.cjs:97:46)\n    at frame (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:40:69)\n    at awaitChanges (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:44:81)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:52:2\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)"
+    },
+    {
+      "name": "world music 63 dense events reaches the sentinel, next order and loop without a stalled CPU",
+      "passed": true,
+      "milliseconds": 14316
+    },
+    {
+      "name": "world music 64 dense events reaches the sentinel, next order and loop without a stalled CPU",
+      "passed": false,
+      "milliseconds": 4043,
+      "error": "regression-command.js:1\nfor(var correctionSteps=0;emu.PC!==correctionSymbols.labels.main||emu.ram[correctionSymbols.frameReady];correctionSteps++){if(correctionSteps>=60000)throw Error(\"Audio update did not return to the game loop within 60000 instructions\");cpuStep();}\n                                                                                                                                                     ^\n\nError: Audio update did not return to the game loop within 60000 instructions\n    at regression-command.js:1:156\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/harness.cjs:97:46)\n    at frame (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:40:69)\n    at awaitChanges (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:44:81)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:52:2\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)"
+    },
+    {
+      "name": "world music 128 dense events reaches the sentinel, next order and loop without a stalled CPU",
+      "passed": false,
+      "milliseconds": 4413,
+      "error": "regression-command.js:1\nfor(var correctionSteps=0;emu.PC!==correctionSymbols.labels.main||emu.ram[correctionSymbols.frameReady];correctionSteps++){if(correctionSteps>=60000)throw Error(\"Audio update did not return to the game loop within 60000 instructions\");cpuStep();}\n                                                                                                                                                     ^\n\nError: Audio update did not return to the game loop within 60000 instructions\n    at regression-command.js:1:156\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/harness.cjs:97:46)\n    at frame (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:40:69)\n    at awaitChanges (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:44:81)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:52:2\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)"
+    },
+    {
+      "name": "single-room animation-triggered SFX 63 dense events honors end row 127 and restores music",
+      "passed": true,
+      "milliseconds": 7065
+    },
+    {
+      "name": "single-room animation-triggered SFX 64 dense events honors end row 127 and restores music",
+      "passed": false,
+      "milliseconds": 4809,
+      "error": "regression-command.js:1\nfor(var correctionSteps=0;emu.PC!==correctionSymbols.labels.main||emu.ram[correctionSymbols.frameReady];correctionSteps++){if(correctionSteps>=60000)throw Error(\"Audio update did not return to the game loop within 60000 instructions\");cpuStep();}\n                                                                                                                                                     ^\n\nError: Audio update did not return to the game loop within 60000 instructions\n    at regression-command.js:1:156\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/harness.cjs:97:46)\n    at frame (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:40:69)\n    at sfxCase (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:63:58)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:70:148\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)"
+    },
+    {
+      "name": "single-room animation-triggered SFX 128 dense events honors end row 127 and restores music",
+      "passed": false,
+      "milliseconds": 4432,
+      "error": "regression-command.js:1\nfor(var correctionSteps=0;emu.PC!==correctionSymbols.labels.main||emu.ram[correctionSymbols.frameReady];correctionSteps++){if(correctionSteps>=60000)throw Error(\"Audio update did not return to the game loop within 60000 instructions\");cpuStep();}\n                                                                                                                                                     ^\n\nError: Audio update did not return to the game loop within 60000 instructions\n    at regression-command.js:1:156\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/harness.cjs:97:46)\n    at frame (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:40:69)\n    at sfxCase (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:63:58)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:70:148\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)"
+    },
+    {
+      "name": "single-room late SFX range scans past 64 events and plays rows 120–127 before restoring music",
+      "passed": false,
+      "milliseconds": 1957,
+      "error": "regression-command.js:1\nfor(var correctionSteps=0;emu.PC!==correctionSymbols.labels.main||emu.ram[correctionSymbols.frameReady];correctionSteps++){if(correctionSteps>=60000)throw Error(\"Audio update did not return to the game loop within 60000 instructions\");cpuStep();}\n                                                                                                                                                     ^\n\nError: Audio update did not return to the game loop within 60000 instructions\n    at regression-command.js:1:156\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/harness.cjs:97:46)\n    at frame (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:40:69)\n    at sfxCase (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:63:58)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:71:104\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)"
+    },
+    {
+      "name": "world animation-triggered SFX 63 dense events honors end row 127 and restores music",
+      "passed": true,
+      "milliseconds": 7063
+    },
+    {
+      "name": "world animation-triggered SFX 64 dense events honors end row 127 and restores music",
+      "passed": false,
+      "milliseconds": 4698,
+      "error": "regression-command.js:1\nfor(var correctionSteps=0;emu.PC!==correctionSymbols.labels.main||emu.ram[correctionSymbols.frameReady];correctionSteps++){if(correctionSteps>=60000)throw Error(\"Audio update did not return to the game loop within 60000 instructions\");cpuStep();}\n                                                                                                                                                     ^\n\nError: Audio update did not return to the game loop within 60000 instructions\n    at regression-command.js:1:156\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/harness.cjs:97:46)\n    at frame (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:40:69)\n    at sfxCase (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:63:58)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:70:148\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)"
+    },
+    {
+      "name": "world animation-triggered SFX 128 dense events honors end row 127 and restores music",
+      "passed": false,
+      "milliseconds": 4220,
+      "error": "regression-command.js:1\nfor(var correctionSteps=0;emu.PC!==correctionSymbols.labels.main||emu.ram[correctionSymbols.frameReady];correctionSteps++){if(correctionSteps>=60000)throw Error(\"Audio update did not return to the game loop within 60000 instructions\");cpuStep();}\n                                                                                                                                                     ^\n\nError: Audio update did not return to the game loop within 60000 instructions\n    at regression-command.js:1:156\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/harness.cjs:97:46)\n    at frame (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:40:69)\n    at sfxCase (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:63:58)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:70:148\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)"
+    },
+    {
+      "name": "world late SFX range scans past 64 events and plays rows 120–127 before restoring music",
+      "passed": false,
+      "milliseconds": 1692,
+      "error": "regression-command.js:1\nfor(var correctionSteps=0;emu.PC!==correctionSymbols.labels.main||emu.ram[correctionSymbols.frameReady];correctionSteps++){if(correctionSteps>=60000)throw Error(\"Audio update did not return to the game loop within 60000 instructions\");cpuStep();}\n                                                                                                                                                     ^\n\nError: Audio update did not return to the game loop within 60000 instructions\n    at regression-command.js:1:156\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/harness.cjs:97:46)\n    at frame (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:40:69)\n    at sfxCase (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:63:58)\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:71:104\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)"
+    },
+    {
+      "name": "viewer triangle A4 uses the authored pitch and independent channel period limits",
+      "passed": false,
+      "milliseconds": 1584,
+      "error": "AssertionError [ERR_ASSERTION]: Triangle APU evidence missing authored note 57\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:81:141\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "viewer triangle arpeggio uses the authored pitch and independent channel period limits",
+      "passed": false,
+      "milliseconds": 1542,
+      "error": "AssertionError [ERR_ASSERTION]: Triangle APU evidence missing authored note 33\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:81:141\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "viewer triangle bounds uses the authored pitch and independent channel period limits",
+      "passed": false,
+      "milliseconds": 3368,
+      "error": "AssertionError [ERR_ASSERTION]: Triangle APU evidence missing authored note 24\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:81:141\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "single-room triangle A4 uses the authored pitch and independent channel period limits",
+      "passed": false,
+      "milliseconds": 1667,
+      "error": "AssertionError [ERR_ASSERTION]: Triangle APU evidence missing authored note 57\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:81:141\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "single-room triangle arpeggio uses the authored pitch and independent channel period limits",
+      "passed": false,
+      "milliseconds": 1628,
+      "error": "AssertionError [ERR_ASSERTION]: Triangle APU evidence missing authored note 33\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:81:141\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "single-room triangle bounds uses the authored pitch and independent channel period limits",
+      "passed": false,
+      "milliseconds": 3701,
+      "error": "AssertionError [ERR_ASSERTION]: Triangle APU evidence missing authored note 24\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:81:141\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "world triangle A4 uses the authored pitch and independent channel period limits",
+      "passed": false,
+      "milliseconds": 1616,
+      "error": "AssertionError [ERR_ASSERTION]: Triangle APU evidence missing authored note 57\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:81:141\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "world triangle arpeggio uses the authored pitch and independent channel period limits",
+      "passed": false,
+      "milliseconds": 1575,
+      "error": "AssertionError [ERR_ASSERTION]: Triangle APU evidence missing authored note 33\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:81:141\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "world triangle bounds uses the authored pitch and independent channel period limits",
+      "passed": false,
+      "milliseconds": 3814,
+      "error": "AssertionError [ERR_ASSERTION]: Triangle APU evidence missing authored note 24\n    at /workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:81:141\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/audio-correction-2026-10-04/NES_Forge/app/tests/audio-correction200.cjs:87:76)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    }
+  ]
+}

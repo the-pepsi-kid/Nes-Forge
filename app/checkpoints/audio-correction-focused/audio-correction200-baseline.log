@@ -1,0 +1,48 @@
+PASS viewer music 63 dense events reaches the sentinel, next order and loop without a stalled CPU
+FAIL viewer music 64 dense events reaches the sentinel, next order and loop without a stalled CPU
+Expected 67 pitch changes within 180 frames; observed 64
+FAIL viewer music 128 dense events reaches the sentinel, next order and loop without a stalled CPU
+Expected 131 pitch changes within 180 frames; observed 64
+PASS single-room music 63 dense events reaches the sentinel, next order and loop without a stalled CPU
+FAIL single-room music 64 dense events reaches the sentinel, next order and loop without a stalled CPU
+Audio update did not return to the game loop within 60000 instructions
+FAIL single-room music 128 dense events reaches the sentinel, next order and loop without a stalled CPU
+Audio update did not return to the game loop within 60000 instructions
+PASS world music 63 dense events reaches the sentinel, next order and loop without a stalled CPU
+FAIL world music 64 dense events reaches the sentinel, next order and loop without a stalled CPU
+Audio update did not return to the game loop within 60000 instructions
+FAIL world music 128 dense events reaches the sentinel, next order and loop without a stalled CPU
+Audio update did not return to the game loop within 60000 instructions
+PASS single-room animation-triggered SFX 63 dense events honors end row 127 and restores music
+FAIL single-room animation-triggered SFX 64 dense events honors end row 127 and restores music
+Audio update did not return to the game loop within 60000 instructions
+FAIL single-room animation-triggered SFX 128 dense events honors end row 127 and restores music
+Audio update did not return to the game loop within 60000 instructions
+FAIL single-room late SFX range scans past 64 events and plays rows 120–127 before restoring music
+Audio update did not return to the game loop within 60000 instructions
+PASS world animation-triggered SFX 63 dense events honors end row 127 and restores music
+FAIL world animation-triggered SFX 64 dense events honors end row 127 and restores music
+Audio update did not return to the game loop within 60000 instructions
+FAIL world animation-triggered SFX 128 dense events honors end row 127 and restores music
+Audio update did not return to the game loop within 60000 instructions
+FAIL world late SFX range scans past 64 events and plays rows 120–127 before restoring music
+Audio update did not return to the game loop within 60000 instructions
+FAIL viewer triangle A4 uses the authored pitch and independent channel period limits
+Triangle APU evidence missing authored note 57
+FAIL viewer triangle arpeggio uses the authored pitch and independent channel period limits
+Triangle APU evidence missing authored note 33
+FAIL viewer triangle bounds uses the authored pitch and independent channel period limits
+Triangle APU evidence missing authored note 24
+FAIL single-room triangle A4 uses the authored pitch and independent channel period limits
+Triangle APU evidence missing authored note 57
+FAIL single-room triangle arpeggio uses the authored pitch and independent channel period limits
+Triangle APU evidence missing authored note 33
+FAIL single-room triangle bounds uses the authored pitch and independent channel period limits
+Triangle APU evidence missing authored note 24
+FAIL world triangle A4 uses the authored pitch and independent channel period limits
+Triangle APU evidence missing authored note 57
+FAIL world triangle arpeggio uses the authored pitch and independent channel period limits
+Triangle APU evidence missing authored note 33
+FAIL world triangle bounds uses the authored pitch and independent channel period limits
+Triangle APU evidence missing authored note 24
+5/26 passed

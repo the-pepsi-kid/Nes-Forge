@@ -1,9 +1,12 @@
-# Current documentation index — 1.9.0 Alpha re-runtime-1
+# Current documentation index — 2.0.0-alpha.1 / audio-correction-1
 
 | Document | Purpose |
 | --- | --- |
+| `AUDIO_CORRECTION.md` | Current correction scope, evidence and limitations |
+| `AUDIO_CORRECTION_CHECKLIST.txt` | Short owner review using supplied dense and pitch examples |
+| `NES_Forge_2.0_ALPHA_PLAN.md` | Current detailed execution plan |
 | `RE_RUNTIME.md` | Integrated runtime tracing, memory comparisons, watched RAM and evidence boundaries |
-| `RE_RUNTIME_CHECKLIST.txt` | Exact current-candidate actions and expected results using Pepsi and Bridge Room |
+| `RE_RUNTIME_CHECKLIST.txt` | Retained runtime-investigation workflow using Pepsi and Bridge Room; separate from audio correction acceptance |
 | `RE_ANALYSIS.md` | Engine-independent binary inspection, official 6502 interpretation, search, mappings, notes and limits |
 | `RE_BRIDGE.md` | Supported Native Room v1 editable recovery and edit/build/play walkthrough |
 | `EMULATOR_NAVIGATION.md` | Temporary emulator history, frame stepping, branches and limits |

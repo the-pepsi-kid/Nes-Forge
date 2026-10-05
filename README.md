@@ -1,73 +1,58 @@
-# NES Forge — local source-control handoff
+# NES Forge — audio-correction review branch
 
-This repository preserves the delivered **1.9.0 Alpha / re-runtime-1** candidate and records the roadmap reconciliation separately. It is a local, portable Git handoff. No GitHub repository, remote, CI run, deployment, or public release was created.
+This branch carries **2.0.0-alpha.1 / audio-correction-1**, schema 12. It corrects dense music/SFX stream advancement and triangle timer values. The candidate remains subject to owner review and separate listening/device evidence. No release promotion, main-branch merge, hosted repository or remote push is represented here.
 
-## Reference and current planning
+## Branches and identities
 
-- `app/` is the exact extracted payload of `NES_Forge_1.9.0_RE_Runtime_Candidate.zip`, including its checksum manifest and historical verification evidence. Its embedded roadmap and status files describe that frozen package. Do not rewrite these files merely to make the historical package describe a later planning decision.
-- `planning/` holds the revised roadmap and the bounded 2.0 plan once committed. These documents govern prospective work; they do not change the reference application's version or acceptance status.
-- The annotated tag `reference/re-runtime-1` identifies the initial exact application import. It is a reference tag, **not an accepted release**. `main` contains that import followed by planning changes.
-- Licensing is **UNDECIDED**. No project-wide open-source license is granted by this handoff. Existing notices in the supplied files remain as supplied. Resolve repository visibility and distribution rights before publication.
+| Reference | Contents |
+| --- | --- |
+| `work/audio-correction-1` | Current review candidate. `app/` matches the final candidate ZIP exactly, including measured reports and its checksum manifest. See `CANDIDATE.json`. |
+| `main` | Preserved pre-correction application and October 4 planning history at `45d0b31bf30d67b013ce8e1cb6c4dbdfd709baec`. |
+| `reference/re-runtime-1` | Annotated historical reference tag at `86fdbf4639389be01c9af8c8860a44566a62d83d`; not an accepted release. |
 
-## Verify locally
+`REFERENCE.json` and `tools/verify_reference.py` describe the retained **1.9.0 / re-runtime-1** predecessor. Use that verifier after checking out `main` or the reference tag. Its old expected hash/count are deliberately unchanged; they are not the identity of the audio-correction branch.
 
-Requirements: Python 3.9 or later, Node.js 20 or later for the automated suite, and Git for repository operations. The application itself is standalone HTML.
+`planning/` contains candidate-era roadmap and plan snapshots. Paths within those snapshots generally use the application root. Current candidate details and review steps are in `app/docs/AUDIO_CORRECTION.md` and `app/docs/AUDIO_CORRECTION_CHECKLIST.txt`. The retained `planning/audio-audit/` probe documents the predecessor's defects; its success condition is defect reproduction and it is not the candidate's regression test.
+
+## Open and verify the candidate
+
+Open `app/mainline/NES_Forge_2.0.0-alpha.1.html`. Read the audio correction checklist and use the projects under `app/examples/Audio_Correction_2.0.0-alpha.1/`.
 
 From the repository root:
 
 ```sh
+python3 app/tools/bundle.py --check
+```
+
+This checks source-to-HTML reproduction without changing the application. **921/921 automated cases passed across 42 suites** on the tested clean extraction. The complete measured results are `app/test-results/candidate/Summary.json`; clean-extraction proof is `app/checkpoints/audio-correction-1-clean-extraction/Reproduction.json`. Exact identity and measured totals belong to `CANDIDATE.json` and those reports. Browser, speaker output, independent-emulator listening and mobile performance are separately labeled evidence.
+
+The executable candidate ZIP carries `app/SHA256SUMS.txt` as its manifest inside the extracted application. Run further tests in a disposable copy of `app/`; the runner rewrites report files. The full gate command inside that copy is `node tests/run_candidate.cjs`. Node.js 20+ and Python 3.9+ are required for the supplied tooling. The HTML itself is standalone.
+
+## Compare with the predecessor
+
+With a clean working tree:
+
+```sh
+git switch main
 python3 tools/verify_reference.py
+git switch work/audio-correction-1
 ```
 
-This verifies all 1,009 packaged payload checksums, the exact expected file inventory and HTML hash, and invokes `python3 tools/bundle.py --check` inside `app/`. It does not rewrite the reference.
+The main/reference application retains historical 895/895 evidence across 41 suites. Those earlier results and audio probes remain attached to their exact original bytes.
 
-To run the complete automated candidate gate on a disposable copy:
+## Portable bundle
+
+The separate source-control ZIP contains a complete Git bundle, handoff and verification record. Clone the candidate and retain both local branches before removing the bundle-file remote:
 
 ```sh
-python3 tools/verify_reference.py --full-gate
+git clone --branch work/audio-correction-1 NES_Forge_Local_Repository.bundle NES_Forge
+cd NES_Forge
+git branch main origin/main
+git remote remove origin
 ```
 
-The helper runs `node tests/run_candidate.cjs` from the copied application. It prints the temporary report location and removes the copy afterward. Use `--keep-workdir PATH` with `--full-gate` to retain fresh reports in an initially absent directory. For example:
+The `main` command preserves that branch locally; removing the bundle origin does not delete its commit or the reference tag. No online account or credentials are required to clone a bundle.
 
-```sh
-python3 tools/verify_reference.py --full-gate --keep-workdir local/full-gate
-```
+## Publication and licensing
 
-The delivered candidate includes **895/895 passed checks across 41 suites** from its earlier clean-extraction gate. This handoff does not claim a fresh full-suite rerun. Packaged browser reports are blocked because Chromium was unavailable; actual browser, device, controller, and R1–R6 acceptance remain separate pending checks. A successful checksum or bundle check does not establish browser compatibility.
-
-Direct equivalent commands, after making a disposable copy of `app/`, are:
-
-```sh
-python3 tools/bundle.py --check
-node tests/run_candidate.cjs
-```
-
-Run those commands inside the copied application directory. Running the candidate suite directly in the frozen `app/` rewrites report files and will make the packaged checksum verification fail afterward.
-
-## Work from the reference
-
-Create a new branch from `main` for the next authorized work. Make intentional application changes there and record the resulting version, updated tests, and evidence. Retain `reference/re-runtime-1` as the unchanged comparison point. The current source-control handoff does not authorize accepting or publishing a 2.0 release.
-
-## Later: private GitHub remote
-
-Cloning a Git bundle creates a local `origin` pointing at the bundle file. Remove that local reference with `git remote remove origin` after cloning, as shown in the handoff, before adding a GitHub remote. The preparation repository itself has no remote.
-
-No account or repository owner was selected, and no credentials or authentication state were inspected. After the owner chooses an account and repository name, create an **empty private** repository in GitHub (do not initialize a second README or license). In this local clone, review the intended payload and then run:
-
-```sh
-git remote add origin <PRIVATE_REPOSITORY_URL>
-git push -u origin main
-git push origin reference/re-runtime-1
-```
-
-Replace the placeholder with the chosen remote URL; the commands above have not been run. GitHub authentication, repository creation, rights review, and the remote push remain later owner-controlled actions. Hosting and CI configuration are not included.
-
-## Reference identity
-
-- Candidate ZIP SHA-256: `8cc66184914c21422b346bcbf60af19eb5da69046e13aeeea0aa9fa65037b0d0`
-- Application HTML SHA-256: `e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d`
-- Project schema: 12
-- Package file count: 1,010 including `SHA256SUMS.txt`
-- Application entry point: `app/mainline/NES_Forge_1.9.0_Gameplay_Core.html`
-
-The initial commit uses an explicit automated preparation identity, **Codex Handoff Preparation**, rather than impersonating the project owner or original authors.
+No remote is configured. Licensing remains **UNDECIDED**; existing notices remain as supplied. The owner will select any private GitHub destination and decide publication separately. Keep candidate review, main-branch promotion and public release as explicit decisions. The historical planning/source-control kit remains a dated handoff; this candidate has a separate source-control delivery.

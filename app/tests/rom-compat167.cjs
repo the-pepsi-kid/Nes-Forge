@@ -2,7 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {loadStoredForge,settle}=require('./storage-harness167.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 const fixtures=[{name:'16 KB viewer',file:'packed-viewer',size:16384,marker:0x0ff0,kind:'forge'},
   {name:'32 KB playable slice',file:'single-room-poc',size:32768,marker:0x4ff0,kind:'playable'}];
@@ -30,7 +30,7 @@ function rejectAll(h,rom,pattern,{decoderCalls}={}){
 test('Native blank factory submits schema 12 and current foundation before project normalization',async()=>{
   const h=await fresh();h.run(`window.factoryInput167=null;const prepare167=Forge.services.ProjectStore.prepareLoad;
   Forge.services.ProjectStore.prepareLoad=function(input){factoryInput167={version:input.version,foundation:input.foundation};return prepare167(input);};Forge166.project.create('blank')`);
-  assert.deepEqual(h.json('factoryInput167'),{version:12,foundation:'1.9.0'});assert.equal(h.run('S.gameplay.mode'),'single-room');
+  assert.deepEqual(h.json('factoryInput167'),{version:12,foundation:'2.0.0-alpha.1'});assert.equal(h.run('S.gameplay.mode'),'single-room');
 });
 for(const fixture of fixtures)test('Current layout 3 '+fixture.name+' remains recognizable and appendable',async()=>{
   const h=await fresh();h.context.current167=bytes(fixture);assert.equal(h.context.current167[16+fixture.marker+8],3);
@@ -38,7 +38,7 @@ for(const fixture of fixtures)test('Current layout 3 '+fixture.name+' remains re
   if(fixture.kind==='playable'){
     h.run(`window.factoryInput167=null;const prepare167=Forge.services.ProjectStore.prepareLoad;
     Forge.services.ProjectStore.prepareLoad=function(input){factoryInput167={version:input.version,foundation:input.foundation};return prepare167(input);}`);
-    assert.equal(h.run('Forge166.project.openRom(current167,"Current.nes")',20000),true);assert.deepEqual(h.json('factoryInput167'),{version:12,foundation:'1.9.0'});
+    assert.equal(h.run('Forge166.project.openRom(current167,"Current.nes")',20000),true);assert.deepEqual(h.json('factoryInput167'),{version:12,foundation:'2.0.0-alpha.1'});
     assert.deepEqual(h.json('Array.from(S.importedRom)'),Array.from(h.context.current167));
   }
   const append=await fresh();append.context.current167=bytes(fixture);assert.equal(append.run('importRom(current167,"Compatible.nes")',20000),true);

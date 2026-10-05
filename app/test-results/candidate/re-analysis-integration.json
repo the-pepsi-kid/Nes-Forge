@@ -1,76 +1,76 @@
 {
   "suite": "re-analysis-integration",
-  "html": "NES_Forge_1.9.0_Gameplay_Core.html",
-  "htmlSha256": "e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d",
+  "html": "NES_Forge_2.0.0-alpha.1.html",
+  "htmlSha256": "4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0",
   "scope": "Independent bundled analysis, explicit CPU mapping and authored opcode fixtures; isolation from actual loaded emulator, APU, original ROM, active project, undo/redo and recorded history. VM DOM, not browser or hardware acceptance.",
   "passed": 13,
   "total": 13,
   "failed": 0,
   "results": [
     {
-      "name": "Every protected navigation baseline source remains byte-identical apart from named release and recovery-label edits",
+      "name": "Every protected navigation baseline source survives the exact audio correction, release and recovery-label edits",
       "passed": true,
-      "milliseconds": 12
+      "milliseconds": 24
     },
     {
       "name": "Unknown engine and unsupported mapper are inspectable beside a populated emulator and recorded history",
       "passed": true,
-      "milliseconds": 660
+      "milliseconds": 896
     },
     {
       "name": "Authentic Bridge Room recovery refusal leaves a general analysis and original emulator intact",
       "passed": true,
-      "milliseconds": 535
+      "milliseconds": 729
     },
     {
       "name": "NROM mirror aliases have distinct branch destinations while every row retains its physical file offset",
       "passed": true,
-      "milliseconds": 356
+      "milliseconds": 588
     },
     {
       "name": "Independent opcode bytes decode addressing and endian order without inventing indirect jump targets",
       "passed": true,
-      "milliseconds": 368
+      "milliseconds": 458
     },
     {
       "name": "Relative branches wrap CPU addresses while user mappings never silently cross the address space",
       "passed": true,
-      "milliseconds": 361
+      "milliseconds": 456
     },
     {
       "name": "Physical search resumes across chunk and overlapping-pattern boundaries without omitted matches",
       "passed": true,
-      "milliseconds": 352
+      "milliseconds": 397
     },
     {
       "name": "ROM identity and readable bytes remain fixed even when callers mutate input during hashing",
       "passed": true,
-      "milliseconds": 358
+      "milliseconds": 462
     },
     {
       "name": "Malformed container declarations retain every original byte and do not manufacture banks or vectors",
       "passed": true,
-      "milliseconds": 360
+      "milliseconds": 437
     },
     {
       "name": "Actual analysis UI opens unknown mapper, maps banks, searches and labels without replacing emulator or authoring state",
       "passed": true,
-      "milliseconds": 568
+      "milliseconds": 677
     },
     {
       "name": "New raw file owns fresh mappings and annotations while an older pending file cannot publish over it",
       "passed": true,
-      "milliseconds": 380
+      "milliseconds": 453
     },
     {
       "name": "A canceled asynchronous search cannot append stale matches after another file opens",
       "passed": true,
-      "milliseconds": 390
+      "milliseconds": 542
     },
     {
       "name": "Inspection exports identify user evidence and reject project import without dropping active work",
       "passed": true,
-      "milliseconds": 602
+      "milliseconds": 688
     }
   ]
 }

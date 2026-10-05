@@ -17,6 +17,13 @@ function emit(spec,api,zBase){
  const ldaX=zp=>e(0xB5,zp),staX=zp=>e(0x95,zp),ldx=zp=>e(0xA6,zp),ldy=zp=>e(0xA4,zp),cmp=value=>e(0xC9,value&255);
  const table=(name,values,kind='audio-data')=>{label(p+name);const start=current();for(const value of values)e(value&255);api.resource?.({kind,ownerId:p+name,address:start,byteLength:current()-start,alignment:1,region:'PRG',bank:0});};
  const pointer=(name,index,dest)=>{e(0xA6,index);abs(0xBD,p+name+'_lo');st(dest);abs(0xBD,p+name+'_hi');st(dest+1);};
+ function advanceEvent(position,streamPointer,name){
+  // Four-byte records keep Y at 0,4,...,252, so apply_event never wraps Y
+  // within a record. Carry into the stream's next 256-byte window, including
+  // the scratch pointer used by the current scan. This also reaches the
+  // sentinel after 128 events without allocating additional zero-page bytes.
+  ld(position);e(0x18,0x69,4);st(position);b(0x90,name);e(0xE6,streamPointer+1,0xE6,Z.ptr+1);label(name);
+ }
  function applyEvent(){
   label(p+'apply_event');st(Z.tempCh); // Call with A=channel and Y on the row byte.
   e(0xC8,0xB1,Z.ptr);st(Z.tempNote);e(0xC8,0xB1,Z.ptr);st(Z.tempInst);e(0xC8,0xB1,Z.ptr);st(Z.tempVol);ldx(Z.tempCh);
@@ -28,16 +35,16 @@ function emit(spec,api,zBase){
   const base=p+'music_'+channel,ptr=Z.patPtr+channel*2;
   label(base);ld(Z.sfxActive);b(0xF0,base+'_load');ld(Z.sfxChannel);cmp(channel);b(0xF0,base+'_done');
   label(base+'_load');copy(ptr,Z.ptr);copy(ptr+1,Z.ptr+1);label(base+'_loop');ldy(Z.patPos+channel);e(0xB1,Z.ptr);cmp(255);b(0xF0,base+'_done');e(0xC5,Z.row);b(0xF0,base+'_hit');b(0xB0,base+'_done');
-  ld(Z.patPos+channel);e(0x18,0x69,4);st(Z.patPos+channel);jmp(base+'_loop');
-  label(base+'_hit');imm(channel);jsr(p+'apply_event');ld(Z.patPos+channel);e(0x18,0x69,4);st(Z.patPos+channel);label(base+'_done');e(0x60);
+  advanceEvent(Z.patPos+channel,ptr,base+'_skip_advanced');jmp(base+'_loop');
+  label(base+'_hit');imm(channel);jsr(p+'apply_event');advanceEvent(Z.patPos+channel,ptr,base+'_hit_advanced');label(base+'_done');e(0x60);
  }
 function loadOrder(){
   label(p+'load_order');if(spec.musicEnabled)for(let channel=0;channel<4;channel++){e(0xA6,Z.order);abs(0xBD,p+'order_'+channel+'_lo');st(Z.patPtr+channel*2);abs(0xBD,p+'order_'+channel+'_hi');st(Z.patPtr+channel*2+1);set(Z.patPos+channel,0);}e(0x60);
 }
  function processSfx(){
   label(p+'process_sfx');ld(Z.sfxActive);b(0xF0,p+'process_sfx_done');copy(Z.sfxPtr,Z.ptr);copy(Z.sfxPtr+1,Z.ptr+1);
-  label(p+'sfx_scan');ldy(Z.sfxPos);e(0xB1,Z.ptr);cmp(255);b(0xF0,p+'process_sfx_done');e(0xC5,Z.sfxRow);b(0xF0,p+'sfx_hit');b(0xB0,p+'process_sfx_done');ld(Z.sfxPos);e(0x18,0x69,4);st(Z.sfxPos);jmp(p+'sfx_scan');
-  label(p+'sfx_hit');ld(Z.sfxChannel);jsr(p+'apply_event');ld(Z.sfxPos);e(0x18,0x69,4);st(Z.sfxPos);label(p+'process_sfx_done');e(0x60);
+  label(p+'sfx_scan');ldy(Z.sfxPos);e(0xB1,Z.ptr);cmp(255);b(0xF0,p+'process_sfx_done');e(0xC5,Z.sfxRow);b(0xF0,p+'sfx_hit');b(0xB0,p+'process_sfx_done');advanceEvent(Z.sfxPos,Z.sfxPtr,p+'sfx_skip_advanced');jmp(p+'sfx_scan');
+  label(p+'sfx_hit');ld(Z.sfxChannel);jsr(p+'apply_event');advanceEvent(Z.sfxPos,Z.sfxPtr,p+'sfx_hit_advanced');label(p+'process_sfx_done');e(0x60);
  }
  function silenceChannel(){
   label(p+'silence_channel');ldx(Z.tempCh);e(0xE0,0);b(0xD0,p+'silence_1');imm(0x30);abs(0x8D,0x4000);e(0x60);label(p+'silence_1');e(0xE0,1);b(0xD0,p+'silence_2');imm(0x30);abs(0x8D,0x4004);e(0x60);label(p+'silence_2');e(0xE0,2);b(0xD0,p+'silence_3');imm(0x80);abs(0x8D,0x4008);e(0x60);label(p+'silence_3');imm(0x30);abs(0x8D,0x400C);e(0x60);
@@ -54,7 +61,7 @@ function loadOrder(){
   // Channel-specific APU registers.
   ldx(Z.tempCh);e(0xE0,0);b(0xD0,p+'render_1');ld(Z.tempDuty);for(let i=0;i<6;i++)e(0x0A);e(0x09,0x30,0x05,Z.tempVol);abs(0x8D,0x4000);ldx(Z.tempNote);abs(0xBD,p+'timer_lo');abs(0x8D,0x4002);abs(0xBD,p+'timer_hi');e(0x09,0xF8);abs(0x8D,0x4003);e(0x60);
   label(p+'render_1');e(0xE0,1);b(0xD0,p+'render_2');ld(Z.tempDuty);for(let i=0;i<6;i++)e(0x0A);e(0x09,0x30,0x05,Z.tempVol);abs(0x8D,0x4004);ldx(Z.tempNote);abs(0xBD,p+'timer_lo');abs(0x8D,0x4006);abs(0xBD,p+'timer_hi');e(0x09,0xF8);abs(0x8D,0x4007);e(0x60);
-  label(p+'render_2');e(0xE0,2);b(0xD0,p+'render_3');ld(Z.tempVol);b(0xF0,p+'render_silence');imm(0xFF);abs(0x8D,0x4008);ldx(Z.tempNote);abs(0xBD,p+'timer_lo');abs(0x8D,0x400A);abs(0xBD,p+'timer_hi');e(0x09,0xF8);abs(0x8D,0x400B);e(0x60);
+  label(p+'render_2');e(0xE0,2);b(0xD0,p+'render_3');ld(Z.tempVol);b(0xF0,p+'render_silence');imm(0xFF);abs(0x8D,0x4008);ldx(Z.tempNote);abs(0xBD,p+'triangle_timer_lo');abs(0x8D,0x400A);abs(0xBD,p+'triangle_timer_hi');e(0x09,0xF8);abs(0x8D,0x400B);e(0x60);
   label(p+'render_3');ld(Z.tempVol);b(0xF0,p+'render_silence');e(0x09,0x30);abs(0x8D,0x400C);ldx(Z.tempNote);abs(0xBD,p+'noise_period');abs(0x8D,0x400E);imm(0xF8);abs(0x8D,0x400F);e(0x60);
   label(p+'render_silence');jsr(p+'silence_channel');e(0x60);
  }
@@ -81,7 +88,7 @@ function loadOrder(){
  for(const [index,instrument]of spec.instruments.entries()){table('vol_'+index,instrument.volume,'audio-envelope');table('arp_'+index,instrument.arp.map(v=>v&255),'audio-envelope');}
  for(const [kind,key]of[['inst_vol','vol'],['inst_arp','arp']])for(const part of['lo','hi']){label(p+kind+'_'+part);const start=current();for(let index=0;index<spec.instruments.length;index++)api.fixupByte(p+key+'_'+index,part);api.resource?.({kind:'audio-envelope-pointers',ownerId:p+kind+'_'+part,address:start,byteLength:current()-start,alignment:1,region:'PRG',bank:0});}
  table('sfx_channel',spec.sfx.map(x=>x.channel));table('sfx_start',spec.sfx.map(x=>x.startRow));table('sfx_end',spec.sfx.map(x=>x.endRow));for(const part of['lo','hi']){label(p+'sfx_ptr_'+part);const start=current();for(const item of spec.sfx)api.fixupByte(p+'pattern_'+item.record,part);api.resource?.({kind:'audio-sfx-pointers',ownerId:p+'sfx_ptr_'+part,address:start,byteLength:current()-start,alignment:1,region:'PRG',bank:0});}
- table('timer_lo',spec.noteTimers.map(v=>v&255),'audio-note-table');table('timer_hi',spec.noteTimers.map(v=>v>>8),'audio-note-table');table('noise_period',Array.from({length:96},(_,note)=>Math.max(0,Math.min(15,15-Math.floor(note/6)))),'audio-note-table');
+ table('timer_lo',spec.noteTimers.map(v=>v&255),'audio-note-table');table('timer_hi',spec.noteTimers.map(v=>v>>8),'audio-note-table');table('triangle_timer_lo',spec.triangleNoteTimers.map(v=>v&255),'audio-note-table');table('triangle_timer_hi',spec.triangleNoteTimers.map(v=>v>>8),'audio-note-table');table('noise_period',Array.from({length:96},(_,note)=>Math.max(0,Math.min(15,15-Math.floor(note/6)))),'audio-note-table');
  table('volume_scale',Array.from({length:256},(_,i)=>Math.round(((i>>4)*(i&15))/15)),'audio-volume-table');
  return {frame:p+'frame',init:p+'init',playSfx:p+'play_sfx',zp:{...Z}};
 }
