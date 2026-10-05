@@ -1,6 +1,6 @@
 # NES Forge — 2.0 Alpha Development Plan
 
-Revision: October 2, 2026 (America/Denver). Direction adopted following the owner's “Ok, proceed,” cross-ROM clarification, and latest instruction to prioritize audio alignment. Audio correctness and workflow completion now precede further graphics/map recovery. This is the bounded working plan; no 2.0 executable or release promotion is claimed.
+Revision: October 4, 2026 (America/Denver). Aligned with the consolidated execution roadmap after the owner's step-back review. Audio correctness and workflow completion precede further recovery; Sol Games is a later architectural reference only. This is the bounded working plan; no 2.0 executable or release promotion is claimed.
 
 ## Starting reference
 
@@ -35,6 +35,8 @@ The roadmap's original 2.0.1–2.0.5 foundation topics and 2.1–2.5 RE topics r
 Gameplay Expansion (1.9.1) and Behavior UX (1.9.2) remain deferred. Audio workflow verification (1.9.3) is now the first implementation priority, followed by native audio-driver recovery within the integrated 2.0 Alpha track. These remain distinct acceptance scopes; the capability label 1.9.3 does not require downgrading the integrated application. ASM source migration, further graphics/map recovery, Hosted Worlds, wallets and physical hardware remain later work.
 
 ## Immediate actions
+
+**Next candidate boundary:** correct the two reproduced audio defects first, with focused regressions and a complete clean-extraction gate. Package this as a review candidate before broadening into preview redesign, importer changes, new decoders or hosted functionality. Additional defects enter only after reproduction and explicit scope recording. The subsequent audio workflow candidate supplies the listening/workshop evidence; the whole audio phase is not claimed complete by two code fixes.
 
 1. Audit and reproduce audio correctness differences across Audio Studio preview, canonical data, compiled ROM execution and RE observations. Correct confirmed defects in a bounded candidate, preserving the existing services and native data model.
 2. Close the supported author/import → edit → preview → build → audible playback → save/reopen workflow with a short repeatable audio workshop. Exercise the existing MIDI/MusicXML paths and music/SFX interaction. Record browser/mobile listening separately from automated register evidence.
@@ -126,6 +128,12 @@ A successful finite corpus establishes its declared supported scope. It does not
 The audio-related mobile investigation is included in the first-priority tranche above. Other controller/device checks may continue independently. Further graphics/map recovery and ASM migration resume after audio closeout; ASM migration still needs representative source files, dialect/dependency preservation and declared integration hooks. Host Lua scripts are not automatically cartridge-executable 6502 code.
 
 Before hosted/wallet implementation, pass the roadmap's finite audio/RE gate: a declared graphics/World recovery path and supported native audio-driver example, useful edits and rebuilt verification, working authoring/audio workflows, explicit limits and accepted evidence. Universal recovery and every hot-patch feature are not prerequisites. Server-authoritative worlds/inventories precede wallet settlement; portable software roles precede custom tech-deck hardware.
+
+The authoritative roadmap now groups execution into six phases: audio/reliability; reusable RE recovery; creator portability/reviewer readiness; authoritative Hosted Worlds/items; optional wallet/earned-loot integration; and portable roles/hardware. Creator portability can coordinate with RE after audio closeout. Complete the creator/runtime contracts needed by a hosted slice without making every ASM dialect, gameplay template, visual graph or debugger tool an indefinite prerequisite. Portable software branches after accepted hosted foundations and does not wait for wallet launch, voice or large matches.
+
+The October 4 Sol Games v0.2 source consideration informs phase 5 only. Preserve its separation of item definitions, entitlement providers and runtime application, but do not merge its FCEUX/Python/filesystem implementation into the current candidate. Forge-authored item behavior should use canonical bindings and sound events; imported games require verified mappings. See roadmap section 3.4.2 for the exact source identity, reuse candidates and unverified scope.
+
+Keep one active implementation candidate. Documentation, candidate review and private source-control/CI setup may proceed alongside it. New ideas remain recorded under their phase until deliberately selected. All release labels remain provisional until an implemented candidate is packaged and its evidence is attached to exact bytes.
 
 ## Deliverables for each candidate
 

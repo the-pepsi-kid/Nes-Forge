@@ -1,6 +1,6 @@
 # NES Forge — Authoritative Roadmap
-**Revision date:** 2026-10-02 (America/Denver), audio-first alignment priority following roadmap and cross-ROM scope reconciliation  
-**Status:** Latest owner direction prioritizes audio correctness, workflow completion and alignment with RE. Delivered candidates, acceptance and planned scope are recorded separately.
+**Revision date:** 2026-10-04 (America/Denver), consolidated execution roadmap following audio findings and Sol Games consideration  
+**Status:** Roadmap revised at the owner's request. Audio remains first; Sol Games informs later architecture only. Delivered candidates, acceptance and planned scope are recorded separately. This revision does not implement or promote a release.
 
 ## Current position
 
@@ -14,6 +14,9 @@ NES Forge is a functional NES authoring alpha with early 2.x reverse-engineering
 | Automated evidence | **895/895 cases across 41 suites** on a clean extraction: 846 retained cases and 49 new runtime-investigation cases. |
 | Owner/browser acceptance | The current **R1–R6** walkthrough remains pending. All three packaged browser runners recorded blocked launch with zero checks; device/controller and physical-console claims remain separate. |
 | Earlier owner evidence | Tutorial steps 1–9, an independently emulated tutorial ROM, mobile touch, and prior T1–T6 analysis checks were reported successful on their respective earlier builds. Those results are retained without being reassigned to changed bytes. |
+| Confirmed open audio defects | Dense-pattern music-reader loop and triangle pitch mismatch, with focused October 2 reproductions. Neither is corrected in the delivered reference. |
+| Planning/source control | Local Git history, frozen reference tag, portable bundle and audio reproduction scripts prepared; remote destination remains unselected. |
+| Sol Games v0.2 | Source reviewed for architectural fit on October 4. Separate prototype; no integration, live-chain validation or FCEUX execution performed in this consideration review. |
 
 The exact current report is `test-results/candidate/Summary.json` in the delivered package. The application, source and that report remain a frozen review reference. This document update does not alter the delivered ZIP or application hash.
 
@@ -30,23 +33,38 @@ The exact current report is `test-results/candidate/Summary.json` in the deliver
 
 A/B RAM snapshots are observations, not restorable full-machine checkpoints. An observed PPU write identifies runtime storage and its writer; it does not establish the original compressed data format. APU writes are sound-chip commands, not recovered tracker songs. Analysis reports are not editable Forge projects.
 
-## Version policy and execution order
+## Execution roadmap
+
+The sequence below is the current delivery order. Detailed numbered sections retain capability definitions and earlier decisions; they do not override this sequence. Dates identify decisions, not promised delivery deadlines. Complete one bounded candidate at a time, with a usable result and explicit evidence, before broadening its scope.
+
+| Phase | Priority and deliverable | Completion evidence |
+| --- | --- | --- |
+| **1. Audio and alpha reliability** | **Active priority.** First correct the reproduced dense-pattern and triangle-pitch defects. Then close supported four-channel authoring, imports, SFX, persistence and listening; investigate mobile A/V behavior. | Focused failures become passing regressions, complete candidate gate, author/import → edit → build → audible playback → save/reopen workshop, Forge plus independent-emulator listening, and separately labeled device evidence. |
+| **2. Reusable RE recovery** | **Next.** Recover supported native audio into canonical Audio, then graphics/maps/collision into editable Forge content. Build shared discovery/evidence/import interfaces and reusable format adapters. | Declared native records, preview/import, useful edit and rebuilt behavior. Unknown engines retain inspection. First graphics pipeline requires two unrelated independently authored engines beyond Forge/Bridge Room controls. No universal-recovery claim. |
+| **3. Creator portability and review readiness** | **After audio; coordinate with bounded RE slices.** Prove a representative ASM migration through declared hooks, usable import/export, accurate manual/workshops and reviewer packaging. Select gameplay/behavior work from the preserved backlog only when needed. | A supported external source example builds and behaves as documented; native data and references survive save/reopen; a reviewer can reproduce the supported workflow from the supplied package. Full 1.9.1/1.9.2 completion is not required for every later slice. |
+| **4. Hosted Worlds and ordinary items** | **After the finite audio/RE gate.** Define the host bridge and server-authoritative actions, persistent World state, stable item instances and inventory rules. Start without blockchain dependence. | Two clients interact with one item; conflicting pickup, retries, reconnect and server restart preserve one accepted outcome and consistent inventories. Each client's projected state stays within its declared NES runtime budgets. |
+| **5. Optional wallet ownership and earned loot** | **After authoritative items.** Evaluate Sol Games components; add wallet authentication and test-network ownership/issuance. Separately prove mint/reconcile, then explicit opt-in loot-loss settlement. | A server-verified earned item maps to one eligible claim, can be held/reconciled and used after reconnect without duplication. Transfer authorization and combat authority remain separate. Any real-value launch requires its own accepted evidence and decision. |
+| **6. Portable roles, then tech-deck hardware** | **Branches after accepted hosted foundations; may overlap phase 5.** Prove development-kit, client and server roles on existing hardware, including build/deploy from the device. Then choose custom hardware from measured requirements. | Reproducible install/build/deploy, declared capacity, backup/recovery and connectivity results. Wi-Fi/cellular and optional constrained mesh have separate tested profiles. Wallet launch, voice and large-match features are not prerequisites. |
+
+Phase 3 does not create an indefinite tool-completeness gate: only the creator/runtime interfaces needed by a selected hosted slice are dependencies. Traditional netplay/rollback, richer gameplay, visual behavior graphs, voice, collaboration, universal decoder coverage and custom hardware remain distinct branches. Preserve them without letting them displace the active candidate.
+
+Review of the existing R1–R6 candidate, device checks, source-control setup and documentation may continue alongside the active implementation. Local history is ready; a private GitHub destination, CI and eventual public-release materials are development infrastructure, not a reason to delay audio correction. Reuse the owner's completed tutorial evidence against its original build; do not require a new from-scratch general tutorial merely to begin audio work.
+
+## Delivery and acceptance rules
+
+1. **One active implementation candidate:** state its reference hash, concrete outcome, included changes and exit checks. Ideas are recorded for the relevant phase; they do not silently expand current work.
+2. **Complete the workflow:** each feature connects input → edit/use → persistence/output → verification. An inspector, picture, register trace or mock-only pass cannot stand in for the claimed editable or audible result.
+3. **Label evidence:** distinguish implemented, reproduced defect, verified, owner-accepted, blocked and planned. Keep automated results separate from browser, listening, controller and physical-console evidence.
+4. **Preserve the reference:** isolate changes, retain provenance and protected behavior, package a reproducible candidate, and update the manual/checklist with the actual controls. Promotion follows acceptance of that candidate's stated scope.
+5. **Keep support finite and extensible:** declare supported hardware/formats and unknowns. Neither a single-ROM demonstration nor a promise to understand every ROM is an adequate completion criterion.
+
+**Next executable deliverable:** a bounded audio-correction candidate addressing the two reproduced defects, with targeted regressions and the full clean-extraction gate. Broader preview/import/mobile findings must be reproduced and scoped before inclusion. The subsequent audio workflow candidate closes the listening/manual evidence. The proposed integrated version remains `2.0.0-alpha.1`; no version is assigned to changed application bytes by this planning edit.
+
+## Version policy
 
 Use **2.0 Alpha — RE development and required foundations** for subsequent RE development. The next executable candidate may use **2.0.0-alpha.1** when a bounded slice is implemented and packaged. No 2.0 executable is created or released by this planning revision. Keep all existing 1.9.0 package names, candidate tags, hashes and evidence unchanged.
 
 The numbered sections below are capability and dependency identifiers. They are not a requirement to finish every 1.9.x feature before continuing RE, and they are not a claim that a feature is complete because it appears in a 2.0 Alpha build. The 2.0.1–2.0.5 foundation work and 2.1–2.5 RE scope remain visible; the new Alpha track draws bounded work from those areas as needed. A version-label change alone does not require a project-schema change.
-
-| Track | Next action / dependency |
-| --- | --- |
-| **First priority: Audio alignment / 1.9.3 capability scope** | Audit and correct demonstrated preview/runtime differences; verify author/import → edit → build → audible playback → save/reopen and music/SFX behavior. Investigate mobile playback with measured evidence. Keep one canonical Audio model shared with supported RE recovery. |
-| **Now: current candidate acceptance** | Run `docs/RE_RUNTIME_CHECKLIST.txt` R1–R6 on re-runtime-1. Record build/device/browser and results. Resolve concrete regressions before changing the reference. |
-| **Prepared: source control** | Local Git reference, preserved test evidence and portable bundle are ready. Keep current planning beside the frozen application; establish a private remote once its owner/destination is selected. Remote setup does not block audio work. |
-| **Next recovery priority: 2.0 Alpha native audio** | Align APU observations and supported driver recovery with canonical Audio; develop reusable evidence/preview/import contracts and verify a declared independent driver subset. APU logs alone are not recovered songs. Detailed scope: `NES_Forge_2.0_ALPHA_PLAN.md`. |
-| **After audio: additional graphics/map recovery** | Retain the shared recovery pipeline and cross-engine acceptance requirements. Pepsi is a test input, not the architecture or an exclusive target. |
-| **Parallel: 1.9 Alpha closeout** | Reproduce mobile A/V lag with exact device, browser, ROM and steps. Record controller results when hardware is available. Absence of a controller is an evidence gap, not a blanket block on independent RE development. |
-| **Preserved backlog: 1.9.1 / 1.9.2** | Gameplay Expansion and Behavior UX remain deferred and separately scoped. Bringing RE forward neither implements nor cancels them. |
-| **Separately scoped: ASM migration** | Preserve and integrate representative supplied source through declared dialects, dependencies and hooks. Lua compatibility is a separate host-tooling problem. |
-| **Later: 3.x / 4.x** | Retain the finite audio/RE gate before hosted/wallet implementation, then prove portable host roles before custom hardware. |
 
 ## Immediate audio priority and recovery sequence
 
@@ -98,7 +116,7 @@ Use actual developer interviews, issue reports and reproducible examples to prio
 
 The owner identified custom ASM, Lua and other scripts as important for developers moving from NESmaker and other tools. Treat source portability as a first-class product requirement alongside RE. When original source is supplied, preserve its comments, labels, files and dependencies directly. ROM inspection and source migration have different inputs and acceptance criteria.
 
-**Recommended separately scoped authoring priority: bounded ASM intake and integration alongside continued RE development.** This records the requirement and proposed sequence; no NESmaker adapter, Lua runtime or universal script-import capability has been implemented by this update.
+**Recommended separately scoped authoring priority after audio closeout: bounded ASM intake and integration coordinated with continued RE development.** This records the requirement and proposed sequence; no NESmaker adapter, Lua runtime or universal script-import capability has been implemented by this update.
 
 The current Forge source already contains a custom 6502 assembler and custom NROM build path. That is a foundation, not established compatibility with third-party engines or assembler dialects. Its assembler consumes one source text, explicitly rejects `.incbin`, and does not implement a general multi-file include workflow. The current build service rejects custom ASM combined with Audio Runtime or generated single-room gameplay. Migration must resolve those integration contracts without silently changing existing build behavior.
 
@@ -108,17 +126,17 @@ The current Forge source already contains a custom 6502 assembler and custom NRO
 4. **Lua host tooling:** Add a separately scoped runtime for emulator/debugger automation, memory inspection, overlays and test scripts. Choose a named API compatibility profile. FCEUX documents emulator-specific APIs; supporting Lua syntax alone does not establish FCEUX script compatibility. Host scripts do not automatically become cartridge-resident gameplay code.
 5. **Other languages/toolchains:** Add explicit adapters based on demonstrated user needs and reproducible samples. Preserve separate identities for editable source, ROM inspection evidence and host scripts. Avoid a universal-import promise.
 
-**First migration acceptance case:** take one representative user-owned custom script plus its includes/macros/assets and source engine/version, preserve the original files, report its dependencies, adapt it through a documented supported hook, build a ROM and demonstrate the expected behavior in an external emulator. Check the same behavior in Forge and preserve existing project/build regression coverage. This milestone can proceed without waiting for full RE, audio completion, hosted worlds or wallet work; unsupported integration combinations remain explicit until their own contracts are implemented.
+**First migration acceptance case:** take one representative user-owned custom script plus its includes/macros/assets and source engine/version, preserve the original files, report its dependencies, adapt it through a documented supported hook, build a ROM and demonstrate the expected behavior in an external emulator. Check the same behavior in Forge and preserve existing project/build regression coverage. Under the current priority decision, implementation follows audio closeout and can then proceed alongside bounded RE slices without waiting for full RE, hosted Worlds or wallet work. Unsupported integration combinations remain explicit until their own contracts are implemented.
 
 Reference checks: [NESmaker official downloads](https://www.thenew8bitheroes.com/downloads) discusses custom scripts, engine routines and customized modules; [ca65 documentation](https://cc65.github.io/doc/ca65.html) documents dialect/include/symbol/segment features; [FCEUX Lua API introduction](https://fceux.com/web/help/LuaGettingStarted.html) explains emulator-specific functions. These references inform the proposal and do not certify any Forge compatibility.
 
 ## Source control and community sequence
 
-RE integration has begun. Establish source control now: prepare a private local Git reference from the exact re-runtime-1 package, retain its evidence and immutable reference tag, and put the revised roadmap and upcoming work on the main development branch. Connect a private GitHub remote once the owner/account and destination are selected. Keep the standalone HTML deliverable; source control supports its development.
+RE integration has begun. The private local Git reference, exact re-runtime-1 package, immutable reference tag and portable bundle are prepared. Current planning occupies a separate directory on the main development branch. Connect a private GitHub remote once the owner/account and destination are selected. Keep the standalone HTML deliverable; source control supports its development.
 
-The initial setup should preserve the exact source, build/test commands, frozen references and release evidence; add a documented branch/review process, regression CI and an issue backlog organized by milestone. Select the owner/organization and repository name when setup begins. Review what belongs in source versus release assets and exclude credentials and unrelated user files.
+Preserve the exact source, build/test commands, frozen references and release evidence; complete remote setup, regression CI and an issue backlog organized by accepted scope. Select the owner/organization and repository name before remote creation. Review what belongs in source versus release assets and exclude credentials and unrelated user files.
 
-Public community access is a later publication decision with an explicit license, contribution guide, issue templates, supported-scope documentation and reproducible starter workflows. Check distribution rights for bundled dependencies and ROM fixtures before public publication. Private repository setup does not commit to a paid service, particular license or immediate public launch. The October 2 handoff prepares local version history. No GitHub remote or public publication is claimed; the accompanying source-control handoff records the actual local commit/tag and verification results.
+Public community access is a later publication decision with an explicit license, contribution guide, issue templates, supported-scope documentation and reproducible starter workflows. Check distribution rights for bundled dependencies and ROM fixtures before public publication. Private repository setup does not commit to a paid service, particular license or immediate public launch. The October 2 handoff established local version history; subsequent planning revisions preserve it. No GitHub remote or public publication is claimed; the accompanying source-control handoff records the actual local commit/tag and verification results.
 
 ---
 
@@ -738,7 +756,7 @@ Comprehensive RE is the product goal, not a present universal-import claim. Buil
 5. **Recover editable projects and migrate source:** canonical assets and authoring data enter through explicit validated, undoable adapters. When original ASM/includes/macros are available, preserve that source and dependencies rather than claiming ROM recovery recreates them. Named toolchain/engine migration and host Lua remain separately scoped.
 6. **Validate edits and outputs:** save/reopen, compile/export, compare relevant original and rebuilt behavior, preserve original input bytes and document every runtime adaptation. Follow with independent emulator and hardware checks where the supported profile requires them.
 
-The first Native Room v1 decoder and bounded emulator navigation are the beginning of this chain. They do not complete arbitrary-ROM scene/audio recovery, full-engine reconstruction, source migration or the larger 2.x readiness gate. Complete the current runtime-investigation review and apply the existing analysis foundation to declared native-resource recovery. Add debugger capabilities where a concrete decoder experiment requires them. Another recovery adapter must never become a prerequisite for opening an unknown ROM.
+The first Native Room v1 decoder and bounded emulator navigation are the beginning of this chain. They do not complete arbitrary-ROM scene/audio recovery, full-engine reconstruction, source migration or the larger 2.x readiness gate. Retain the current runtime-investigation review; after audio workflow closeout, apply the existing analysis foundation to native audio recovery and then additional graphics/maps in the stated execution order. Add debugger capabilities where a concrete decoder experiment requires them. Another recovery adapter must never become a prerequisite for opening an unknown ROM.
 
 ## Full bridge scope
 
@@ -886,7 +904,7 @@ Audio and reverse engineering precede hosted/wallet work, but universal ROM reco
 
 1. Accept the 1.9.3 authoring/audio workflow for its declared scope.
 2. Declare supported mapper/runtime profiles and freeze a small reference corpus, including an independent source-free input; record hashes and provenance.
-3. Prove inspection → decoded canonical data → edit → rebuild → runtime verification for a bounded graphics/World example and at least one supported music/SFX driver example. MusicXML/MIDI export must identify supported semantics and preserve the full NES representation natively.
+3. Prove inspection → decoded canonical data → edit → rebuild → runtime verification for supported graphics/World content and at least one independent supported music/SFX driver example. The graphics path must satisfy A1's two unrelated independently authored engines beyond Forge/Bridge Room controls; a control fixture alone cannot close this gate. MusicXML/MIDI export must identify supported semantics and preserve the full NES representation natively.
 4. Keep Observed, Inferred, Decoded, Round-trip validated and Converted claims distinct. Preserve unknown data and refuse unsupported executable reconstruction.
 5. Demonstrate the inspection/debugging tools required to diagnose those examples, plus regression evidence for original project creation, save/reopen and ROM output.
 6. Record unresolved limits and obtain acceptance of that supported slice.
@@ -1074,7 +1092,21 @@ Prove earn → equip/use → trade/store → save/reconnect without duplicates. 
 
 ### 3.4.2 — Existing Crypto Project Audit & Solana Test Integration
 
-Inspect the user's current crypto-project source, tests, deployment state, custody model and wallet/asset contracts before choosing reusable components. Its current safety and integration readiness are not established by this roadmap. Keep chain-specific behavior behind an adapter; do not wholesale-merge the project or create a new currency merely to enable items.
+**Consideration review completed October 4:** the owner supplied `sol_games_v0.2.zip` explicitly for consideration, not implementation. Its source/documentation were inspected for architectural fit. Archive SHA-256: `070e2408345db8131398d3f1c84f78ad6ac3f44a40d9ef859ef7fb37f1dfcdc6`. No tests, FCEUX execution, live-chain calls, deployment or Forge integration were performed in that review. The supplied build report's earlier test claims remain that package's evidence, not a newly measured pass.
+
+The prototype separates declarative item manifests, entitlement lookup, equipment slots and typed RAM effects. Its current client is FCEUX Lua with a local Python bridge and filesystem messaging. Defaults use a development inventory file, placeholder wallet and null mint addresses; ROM fingerprint enforcement and manifest signatures are optional and not enabled by the supplied configuration. It has an ownership-read provider, not a wallet login, mint/transfer service or authoritative multiplayer server.
+
+| Concept to retain | Forge adaptation to evaluate later |
+| --- | --- |
+| Item manifests and equipment slots | Versioned canonical item definitions plus separate stable item-instance identity, issuing World, owner and inventory location. Item meaning remains independent of chain and transport. |
+| Pluggable entitlement provider | A host service can map verified external ownership to eligible game items. Wallet authentication, ownership lookup and transfer authorization remain separate contracts. |
+| Typed effects and lifecycle handling | Forge-authored games use named components, variables and gameplay events. Imported ROMs need verified game/build-specific RE mappings. Resolve bindings for the selected runtime rather than embedding one game's RAM addresses in shared definitions. |
+| Request identity and validation | Preserve correlation, bounded messages and explicit failures in a supported browser/host transport. FCEUX Lua and filesystem polling are prototype adapters, not directly portable Forge browser integration. |
+| Gameplay feedback | Item actions refer to canonical animation/SFX events. The prototype contributes no audio engine or native-audio recovery capability to the current audio tranche. |
+
+General analysis must remain open to unknown ROMs. Applying an item effect is a separate, explicitly compatible operation: a RAM write may enable an existing ability but does not insert arbitrary new artwork, scenes or mechanics. The host/client contract must specify reset, rewind, ROM switching, death, save/reopen, reconnect and ownership changes; local captured RAM state cannot establish authoritative loot outcomes.
+
+Before reuse, audit the prototype's tests, runtime behavior, deployment state and wallet/asset contracts against the actual hosted design. Its security or integration readiness is not established by this consideration review. Keep chain-specific behavior behind an adapter; do not wholesale-merge the project or create a new currency merely to enable items. Sol Games remains a reference candidate until a separately scoped integration decision.
 
 Solana is the preferred first candidate, not a locked dependency. Use local/test-network assets initially. Define wallet authentication separately from asset-transfer authorization; normal game login must not grant blanket spending power. Keep secrets out of ROMs, project files and game servers that do not need them.
 
@@ -1348,6 +1380,12 @@ External references inform feasibility, not proof that Forge has implemented a f
 The owner's “Ok, proceed” follows the review of roadmap drift. This revision identifies re-runtime-1 and its measured 895/41 result as the delivered reference, corrects the current checklist, moves older sequencing updates into the dated appendix, and distinguishes delivered observation tools from remaining native recovery and live manipulation. Subsequent RE development uses the 2.0 Alpha track without retroactively renaming existing releases. The original 2.0.1–2.0.5 and 2.1–2.5 capability scopes remain visible; 1.9.1/1.9.2 remain deferred.
 
 The companion `NES_Forge_2.0_ALPHA_PLAN.md` defines the bounded next recovery path and required evidence. The source-control handoff identifies the actual local Git reference. No new executable, schema change, candidate promotion, GitHub publication, license grant, hosted/wallet implementation or hardware purchase is implied by this documentation revision.
+
+---
+
+## October 4 consolidation — current execution order
+
+At the owner's request, consolidated the roadmap into six delivery phases with concrete exits, one active implementation candidate and explicit parallel support work. Audio correction remains next; audio workflow/listening closure precedes additional recovery. Clarified the independent-engine gate, corrected stale ASM/source-control sequencing and recorded the Sol Games v0.2 consideration as a later reuse evaluation, not an integration approval. Portable software can branch after hosted foundations without waiting for wallet launch. Detailed capability numbering, historical evidence and protected application behavior remain preserved.
 
 ---
 
