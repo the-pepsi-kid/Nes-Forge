@@ -2,7 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn}),plain=value=>JSON.parse(JSON.stringify(value)),digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function fresh(environment={}){const h=loadForge(html,{environment:{crypto:crypto.webcrypto,...environment}});assert.deepEqual(h.errors,[]);h.model=h.context.Forge.services.REAnalysis;assert.ok(h.model,'Actual bundle must include REAnalysis');return h;}
 function rom({prg=1,chr=1,mapper=0,trainer=false,nes2=false,submapper=0,extra=0}={}){const b=new Uint8Array(16+(trainer?512:0)+prg*16384+chr*8192+extra);b.set([0x4e,0x45,0x53,0x1a,prg,chr,((mapper&15)<<4)|(trainer?4:0),(mapper&0xf0)|(nes2?8:0)]);if(nes2)b[8]=((submapper&15)<<4)|((mapper>>8)&15);return b;}

@@ -2,7 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {loadForge}=require('./harness.cjs'),{gameplayProject}=require('./gameplay165.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn}),cp=x=>JSON.parse(JSON.stringify(x));
 function fresh(p=gameplayProject()){const h=loadForge(html);h.context.fixture=p;h.run('db_deserializeState(fixture);window._buildAndRunMode=true');assert.equal(h.errors.length,0,h.errors.join('; '));return h;}
 function build(h){h.context.rom=h.run('buildNesRom()',10000);assert.ok(h.context.rom instanceof Uint8Array,h.errors.join('; '));return h.context.rom;}

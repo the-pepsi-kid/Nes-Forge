@@ -1,3 +1,13 @@
+# Test policy — 2.0.0-alpha.2 Mobile Playback
+
+The mandatory gate is 43 suites: all 42 predecessor suites / 921 cases, unchanged in count, plus independently measured mobile-playback200 cases. No skipped cases, filters, injected missing modules or stale reports. Measured totals belong to test-results/candidate/Summary.json. Exact source guards reverse only the declared mobile delta and then the previous declared audio delta to the pinned historical oracles; old hashes are not regenerated.
+
+Run on one freshly extracted staging package. Freeze sources, docs, examples and tests before the gate. Final packaging checks all provenance, each report hash, the current HTML and a clean-extraction record. Three fresh browser runners must report passed checks or a blocked launch with zero checks. CPU/APU/PPU, raster capture, CHR-RAM/bank changes, rewind, save/load, desktop input and generated-ROM behavior remain preservation requirements.
+
+Mobile performance and listening are separately measured on the actual device. The owner's Cricket Dream 5G / Chrome is a review target, not a certified supported-device result. Use docs/MOBILE_PLAYBACK_CHECKLIST.txt and record old/new same-ROM observations. A lower operation count or synthetic 60 FPS does not establish phone performance.
+
+## Preserved policy history
+
 # Test and release policy — 2.0.0-alpha.1 / audio-correction-1
 
 ## Current mandatory gate

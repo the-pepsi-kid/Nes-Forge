@@ -5,7 +5,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {loadForge}=require('./harness.cjs'),fixtures=require('./fixtures.cjs');
 const {schemaFor,foundationFor}=require('./version-expectations.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn}),plain=x=>JSON.parse(JSON.stringify(x));
 function project(){
   const p=fixtures.composedProject();p.version=7;p.projectName='Entity animation roundtrip';

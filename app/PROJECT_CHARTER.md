@@ -1,5 +1,7 @@
 # NES Forge project charter
 
+**Current continuation, October 5 (D053):** the owner approved addressing the diagnosed mobile playback issues. Deliver a bounded 2.0.0-alpha.2 / mobile-playback-1 candidate: host frame scheduling, exact capture allocation optimization and a Play performance readout. Preserve project/runtime contracts and desktop behavior. Physical phone improvement and candidate acceptance remain separate evidence; do not broaden this into a CPU/PPU/APU rewrite or new feature milestone.
+
 NES Forge is a visual **NES / 8-bit / 6502-class** game-development, runtime and reverse-engineering environment with optional assembly and existing ROM inspection/capture tools. Ordinary editor controls remain the primary workflow. The distributed application remains one standalone HTML with reproducible source, tools, tests and editable external examples.
 
 ## Hard platform identity
@@ -12,7 +14,7 @@ NES Forge is not a general-purpose game engine, Unity/Unreal-style client, SNES/
 
 ## Current baseline and authorization boundary
 
-**Current continuation, October 4 (D052):** after adopting the audio-first roadmap, the owner said “Ok, let's continue.” Implement only the two reproduced audio corrections and their regression/review package. Candidate 2.0.0-alpha.1 / audio-correction-1 retains schema 12 and protected behavior. Prior dated approvals below explain the existing capabilities; the new version label does not authorize every 2.x feature or hosted/wallet work. Acceptance and promotion remain pending.
+**Previous continuation, October 4 (D052):** after adopting the audio-first roadmap, the owner said “Ok, let's continue.” Implement only the two reproduced audio corrections and their regression/review package. Candidate 2.0.0-alpha.1 / audio-correction-1 retains schema 12 and protected behavior. Prior dated approvals below explain the existing capabilities; the new version label does not authorize every 2.x feature or hosted/wallet work. Acceptance and promotion remain pending.
 
 ### Historical authorizations retained
 

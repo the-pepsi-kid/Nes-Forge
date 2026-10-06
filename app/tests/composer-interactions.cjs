@@ -8,7 +8,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
 const {loadForge} = require('./harness.cjs');
-const htmlPath = path.resolve(process.argv[2] || path.join(__dirname,'../mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const htmlPath = path.resolve(process.argv[2] || path.join(__dirname,'..',JSON.parse(fs.readFileSync(path.join(__dirname,'../source-manifest.json'))).output));
 const outputPath = path.resolve(process.argv[3] || path.join(__dirname,'composer-interactions-results.json'));
 const h = loadForge(htmlPath);
 const result = h.json(`(()=>{

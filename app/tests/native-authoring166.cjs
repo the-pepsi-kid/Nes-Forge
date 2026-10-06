@@ -6,7 +6,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
 const {frames,state,tick,keys}=require('./gameplay165.cjs');
-const root=path.resolve(__dirname,'..'),defaultHTML=path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html');
+const root=path.resolve(__dirname,'..'),defaultHTML=path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output);
 const referencePath=path.join(root,'examples/Forge_Scout_Demo_1.6.5.nesforge.json');
 const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
 const plain=x=>JSON.parse(JSON.stringify(x));

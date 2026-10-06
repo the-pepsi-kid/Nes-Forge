@@ -1,16 +1,16 @@
-# NES Forge 2.0.0-alpha.1 — Audio Correction
+# NES Forge 2.0.0-alpha.2 — Mobile Playback
 
-Candidate: **`audio-correction-1`**, schema **12**. Open **`mainline/NES_Forge_2.0.0-alpha.1.html`** in a browser. This is a standalone review candidate for the two reproduced audio defects; owner acceptance is pending.
+Candidate **mobile-playback-1**, schema **12**. Open `mainline/NES_Forge_2.0.0-alpha.2.html`. This review candidate addresses the scheduling and capture overhead found while investigating mobile gameplay/audio lag. The owner's test device is Cricket Dream 5G with Chrome; performance on that physical phone remains to be measured.
 
-The generated music and SFX readers now advance through dense patterns up to the supported 128 rows without wrapping their byte cursor into an endless scan. Triangle playback uses channel-correct timer values: authored A4 now generates approximately 440.4 Hz. Pulse/noise behavior and the existing canonical Audio data model remain intact. Timer resolution and very-low-note limits still apply.
+The scheduler retains unfinished frame time and uses a bounded catch-up budget, instead of discarding it after each short callback. Native CHR-ROM capture reuses unchanged tile records within each frame while checking their bytes, banks and source identity. Capture remains active and preserves the exact completed frame. A compact performance readout in Play shows FPS, frame cost, queued audio, gaps/resyncs, pending emulation time and overload timing discards.
 
-Start with **`docs/AUDIO_CORRECTION_CHECKLIST.txt`**. Two editable review projects and their generated ROMs are supplied in `examples/Audio_Correction_2.0.0-alpha.1/`: `Dense_128` and `Pulse_Triangle`. Their manifest identifies exact source/build hashes. `docs/AUDIO_CORRECTION.md` explains scope, memory behavior and evidence.
+Start with `docs/MOBILE_PLAYBACK_CHECKLIST.txt`; use the SAME ROM in old and new HTML when comparing. `docs/MOBILE_PLAYBACK.md` explains the changes and measured evidence. The older audio review projects and their alpha.1 ROMs remain included, alongside current alpha.2 examples. A rebuilt project's release metadata can change ROM bytes; use one unchanged ROM for a playback comparison.
 
-Verification is recorded in `test-results/candidate/Summary.json` for this exact HTML: all 895 retained cases plus the new audio-correction suite are mandatory. Fresh extraction proof is in `checkpoints/audio-correction-1-clean-extraction/Reproduction.json`. Browser reports are separate; missing Chromium means blocked with zero checks, not a browser pass. Listening, real mobile A/V lag, physical controllers and hardware acceptance remain open. This correction does not complete the whole Audio workflow milestone.
+All **921 retained cases across 42 suites** plus `mobile-playback200` are mandatory. Actual full-gate totals and exact provenance are in `test-results/candidate/Summary.json`; clean-extraction proof is in `checkpoints/mobile-playback-1-clean-extraction/Reproduction.json`. The three browser reports distinguish passed checks from blocked launch. Automated timings are not phone FPS or speaker acceptance.
 
-The frozen predecessor is **1.9.0 Alpha / re-runtime-1**, HTML SHA-256 `e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d`. Its 895/895 result is preserved as historical evidence, alongside the later defect reproductions. Its standalone HTML is retained in `baseline/NES_Forge_1.9.0_RE_Runtime.html` and prior current documents/reports are archived separately. Do not attach its acceptance claims to these changed bytes.
+The prior audio correction remains included: dense music/SFX stream advancement and channel-correct triangle timers. Its frozen HTML is `baseline/NES_Forge_2.0.0-alpha.1_Audio_Correction.html`, SHA-256 `4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0`. Its 921/921 result, documents and examples remain tied to those original bytes. Neither candidate is promoted by this follow-up.
 
-All existing authoring, mobile controls, frame navigation, general ROM analysis, read-only runtime investigation and bounded Native Room recovery remain available. RE is still incomplete; APU observations are evidence, not automatic recovery of tracker songs. Additional audio, RE, hosted/wallet and Sol Games implementation is outside this correction. The current roadmap is `ROADMAP.md`; the detailed execution plan is `docs/NES_Forge_2.0_ALPHA_PLAN.md`.
+CPU/APU/PPU instruction and rendering semantics, the audio queue policy, project schema, generated Audio/Gameplay compilers and protected authoring behavior remain unchanged. The scope is host scheduling, capture work and diagnostics. The roadmap remains audio reliability, supported native audio recovery, then further resource recovery; no hosted/wallet/ASM or general RE expansion is included.
 
 ## Analyze a ROM or raw 6502 binary
 
@@ -61,7 +61,7 @@ python3 tools/bundle.py --check
 node tests/run_all.cjs
 ```
 
-Use `build-inputs.json` for this HTML identity, `test-results/candidate/Summary.json` for measured results and test provenance, and `checkpoints/audio-correction-1-clean-extraction/Reproduction.json` for clean-extraction proof. All 41 prior suites and their 895 cases remain required, alongside `audio-correction200`, for 42 suites on the same unchanged candidate. Historical results remain attached to their original HTML.
+Use `build-inputs.json` for this HTML identity, `test-results/candidate/Summary.json` for measured results and test provenance, and `checkpoints/mobile-playback-1-clean-extraction/Reproduction.json` for clean-extraction proof. All 42 prior suites and their 921 cases remain required, alongside `mobile-playback200`, for 43 suites on the same unchanged candidate. Historical results remain attached to their original HTML.
 
 Browser walkthrough remains pending because the available Playwright Chromium executable is missing. Automated VM and bundled-emulator checks do not establish native picker behavior, visible browser layout, audible speakers, physical controllers or independent NES hardware timing. See `docs/BROWSER_QA.md`.
 

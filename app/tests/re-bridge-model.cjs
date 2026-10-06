@@ -2,7 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const fixture=path.join(root,'examples/RE_Bridge_Room/Bridge_Room.nes');
 const tests=[],test=(name,fn)=>tests.push({name,fn}),copy=value=>JSON.parse(JSON.stringify(value));
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex'),at=cpu=>16+cpu-0x8000;

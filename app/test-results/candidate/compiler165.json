@@ -1,6 +1,6 @@
 {
   "suite": "compiler165",
-  "html": "NES_Forge_2.0.0-alpha.1.html",
+  "html": "NES_Forge_2.0.0-alpha.2.html",
   "scope": "Real packed-ROM compilation, linked graphics and palettes, collision provenance, actor bindings, hardware budgets, and invalid-input rejection. Full-script VM; no browser layout claims.",
   "passed": 29,
   "failed": 0,
@@ -9,147 +9,147 @@
     {
       "name": "Compiles actual linked ROM into selected actor and fixed-room specifications",
       "passed": true,
-      "milliseconds": 652
+      "milliseconds": 651
     },
     {
       "name": "Expands nonadjacent 8×16 tiles with vertical flip, origin, palette, and priority intact",
       "passed": true,
-      "milliseconds": 536
+      "milliseconds": 498
     },
     {
       "name": "Legacy tile animation uses centered eight-pixel geometry and linked tile ID",
       "passed": true,
-      "milliseconds": 567
+      "milliseconds": 505
     },
     {
       "name": "Event types become observational bits without rewriting ordered authoring events",
       "passed": true,
-      "milliseconds": 632
+      "milliseconds": 492
     },
     {
       "name": "Linked metatile quadrants override tile properties at their exact four cells",
       "passed": true,
-      "milliseconds": 584
+      "milliseconds": 500
     },
     {
       "name": "Unsupported raw collision properties fail with a location and named property",
       "passed": true,
-      "milliseconds": 570
+      "milliseconds": 509
     },
     {
       "name": "Metatile cells detached by packed-build reconciliation do not add invisible collision",
       "passed": true,
-      "milliseconds": 606
+      "milliseconds": 500
     },
     {
       "name": "Metatile hazard override fails even when its source raw tile is empty",
       "passed": true,
-      "milliseconds": 567
+      "milliseconds": 473
     },
     {
       "name": "Missing required player state fails explicitly",
       "passed": true,
-      "milliseconds": 578
+      "milliseconds": 518
     },
     {
       "name": "Looping attack is rejected before runtime generation",
       "passed": true,
-      "milliseconds": 559
+      "milliseconds": 512
     },
     {
       "name": "Looping target hurt animation is rejected",
       "passed": true,
-      "milliseconds": 588
+      "milliseconds": 484
     },
     {
       "name": "Optional target can be omitted without changing the source entity",
       "passed": true,
-      "milliseconds": 539
+      "milliseconds": 478
     },
     {
       "name": "Optional jump binding is compiled separately when authored",
       "passed": true,
-      "milliseconds": 549
+      "milliseconds": 477
     },
     {
       "name": "Empty hit and hurt boxes remain authorable with actionable runtime warnings",
       "passed": true,
-      "milliseconds": 570
+      "milliseconds": 475
     },
     {
       "name": "Out-of-range piece offsets are rejected without byte wrapping",
       "passed": true,
-      "milliseconds": 533
+      "milliseconds": 476
     },
     {
       "name": "Expanded second half of an 8×16 piece also obeys signed offset bounds",
       "passed": true,
-      "milliseconds": 499
+      "milliseconds": 492
     },
     {
       "name": "More than four contact boxes in an executed frame fails clearly",
       "passed": true,
-      "milliseconds": 520
+      "milliseconds": 482
     },
     {
       "name": "Out-of-range contact dimensions fail clearly",
       "passed": true,
-      "milliseconds": 569
+      "milliseconds": 482
     },
     {
       "name": "More than 24 expanded hardware pieces per frame is rejected",
       "passed": true,
-      "milliseconds": 585
+      "milliseconds": 496
     },
     {
       "name": "Player and fixed target plus static room OAM enforce eight sprites per scanline",
       "passed": true,
-      "milliseconds": 584
+      "milliseconds": 483
     },
     {
       "name": "Static decorative OAM uses packed linked bytes and screen Y coordinates",
       "passed": true,
-      "milliseconds": 571
+      "milliseconds": 477
     },
     {
       "name": "Player feet origin must keep the body inside the room",
       "passed": true,
-      "milliseconds": 734
+      "milliseconds": 494
     },
     {
       "name": "Player cannot spawn intersecting the authored solid floor",
       "passed": true,
-      "milliseconds": 561
+      "milliseconds": 475
     },
     {
       "name": "Camera scrolling requires an explicit fixed-room configuration change",
       "passed": true,
-      "milliseconds": 609
+      "milliseconds": 472
     },
     {
       "name": "Excluded or absent selected room is rejected",
       "passed": true,
-      "milliseconds": 577
+      "milliseconds": 473
     },
     {
       "name": "Different visible palette colors in a referenced source scene fail instead of recoloring",
       "passed": true,
-      "milliseconds": 683
+      "milliseconds": 562
     },
     {
       "name": "Unused source palette rows may differ and transparent slot differences are harmless",
       "passed": true,
-      "milliseconds": 720
+      "milliseconds": 560
     },
     {
       "name": "Changing selected actor identity after the base build fails instead of misbinding",
       "passed": true,
-      "milliseconds": 641
+      "milliseconds": 471
     },
     {
       "name": "Compiler rejects a gameplay32 KB ROM as the required viewer16 KB input",
       "passed": true,
-      "milliseconds": 656
+      "milliseconds": 471
     }
   ]
 }

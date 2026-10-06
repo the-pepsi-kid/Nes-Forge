@@ -5,7 +5,7 @@
 // Mock DOM and approximate bundled PPU timing are not real-browser/hardware QA.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs'),{worldProject,IDS,clone,marker}=require('./world-fixtures170.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const baseline=path.join(root,'baseline/NES_Forge_1.6.7_Architecture_Convergence.html');
 const htmlSha256=crypto.createHash('sha256').update(fs.readFileSync(html)).digest('hex'),filtered=!!process.env.FORGE_TEST_FILTER;
 const tests=[],test=(name,fn)=>tests.push({name,fn}),metrics={};

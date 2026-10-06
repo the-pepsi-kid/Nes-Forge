@@ -4,7 +4,7 @@
 // recording canvas verifies coordinates/colors, not browser rasterization.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),candidate=path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html');
+const root=path.resolve(__dirname,'..'),candidate=path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output);
 const htmlPath=path.resolve(process.argv[2]||candidate);
 const outputPath=path.resolve(process.argv[3]||path.join(__dirname,'placement166-results.json'));
 const h=loadForge(htmlPath),results=[];

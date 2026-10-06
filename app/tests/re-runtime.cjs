@@ -4,7 +4,7 @@
 // The small synthetic programs are independently authored instruction fixtures.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const digest=data=>crypto.createHash('sha256').update(data).digest('hex'),plain=value=>JSON.parse(JSON.stringify(value));
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 function fresh(environment={}){const h=loadForge(html,{environment:{crypto:crypto.webcrypto,structuredClone,...environment}});assert.deepEqual(h.errors,[]);h.re=h.context.Forge.services.RERuntime;assert.ok(h.re,'Standalone candidate must contain RERuntime');return h;}

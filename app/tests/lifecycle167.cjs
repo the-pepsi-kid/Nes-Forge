@@ -2,7 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {loadStoredForge,settle}=require('./storage-harness167.cjs'),{project}=require('./fixtures.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 const recoveryKey='nes-tile-studio-v8-autosave';
 function recovered(name='Recovery from previous session'){const p=project();p.projectName=name;return {key:'autosave',state:JSON.stringify(p),timestamp:123456};}

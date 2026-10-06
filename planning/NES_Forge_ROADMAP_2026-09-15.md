@@ -1,12 +1,21 @@
 # NES Forge — Authoritative Roadmap
-**Revision date:** 2026-10-04 (America/Denver), consolidated execution roadmap following audio findings and Sol Games consideration  
-**Status:** The owner authorized the bounded audio correction. Candidate **2.0.0-alpha.1 / audio-correction-1** implements that scope; its packaged reports govern verification. Owner acceptance and the broader audio workflow remain open. Sol Games informs later architecture only.
+**Revision date:** 2026-10-05 (America/Denver), bounded mobile playback correction after owner device feedback
+**Status:** Mobile Playback candidate **2.0.0-alpha.2 / mobile-playback-1** follows the owner's “Ok, address them.” Correct scheduling, reduce exact capture overhead and expose Play diagnostics. Verification belongs to the packaged reports; device review and promotion remain pending.
 
-## Active correction candidate
+## Active mobile correction
+
+The owner reports gameplay/audio lag on **Cricket Dream 5G + Chrome**, with desktop-browser playback satisfactory. The supplied recording shows irregular gameplay updates and PCM gaps; those are recorder measurements, not direct emulator FPS or proof of a device fault. The exact recorded application hash was not visible. The current alpha.1 source independently reproduced scheduler time discard under slower callbacks and substantial native capture allocation overhead.
+
+The bounded alpha.2 correction preserves CPU/APU/PPU semantics, the existing audio queue, exact completed-frame captures and schema 12. Review `docs/MOBILE_PLAYBACK_CHECKLIST.txt`. All 921 retained cases / 42 suites plus the new mobile suite are mandatory; actual results belong to `test-results/candidate/Summary.json`. Browser and device evidence remain separately labeled. No claim of improved phone speed is made before the same-device comparison.
+
+This owner-directed correction takes priority within phase 1. The supported audio workflow/listening workshop and then native audio-driver recovery remain next; it does not reopen unrelated milestones or promote alpha.1.
+
+
+## Preserved audio correction reference
 
 **2.0.0-alpha.1 / audio-correction-1**, schema 12, corrects dense music/SFX event-stream advancement and triangle timer values. HTML SHA-256: `4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0`. The package requires all 895 retained checks and the new audio-correction regression suite across 42 suites; consult its measured `test-results/candidate/Summary.json` and clean-extraction proof for outcomes. Browser/listening/device evidence is separate. The review entry point is `docs/AUDIO_CORRECTION_CHECKLIST.txt`, with two editable audio examples. No promotion is claimed.
 
-After this correction is accepted, continue the supported audio author/import/edit/build/listen/save/reopen workshop, including mobile A/V investigation, before another recovery adapter. The frozen starting reference below remains unchanged.
+After the current bounded mobile correction review, continue the supported audio author/import/edit/build/listen/save/reopen workshop before another recovery adapter. The frozen starting reference below remains unchanged.
 
 ## Frozen starting reference
 
@@ -20,7 +29,7 @@ NES Forge is a functional NES authoring alpha with early 2.x reverse-engineering
 | Automated evidence | **895/895 cases across 41 suites** on a clean extraction: 846 retained cases and 49 new runtime-investigation cases. |
 | Owner/browser acceptance | The current **R1–R6** walkthrough remains pending. All three packaged browser runners recorded blocked launch with zero checks; device/controller and physical-console claims remain separate. |
 | Earlier owner evidence | Tutorial steps 1–9, an independently emulated tutorial ROM, mobile touch, and prior T1–T6 analysis checks were reported successful on their respective earlier builds. Those results are retained without being reassigned to changed bytes. |
-| Reference audio defects | Dense-pattern music-reader loop and triangle pitch mismatch, reproduced October 2. The active correction candidate addresses both; the frozen reference remains unchanged. |
+| Reference audio defects | Dense-pattern music-reader loop and triangle pitch mismatch, reproduced October 2. The preserved audio correction addresses both; the frozen reference remains unchanged. |
 | Planning/source control | Local Git history, frozen reference tag, portable bundle and audio reproduction scripts prepared; remote destination remains unselected. |
 | Sol Games v0.2 | Source reviewed for architectural fit on October 4. Separate prototype; no integration, live-chain validation or FCEUX execution performed in this consideration review. |
 
@@ -45,7 +54,7 @@ The sequence below is the current delivery order. Detailed numbered sections ret
 
 | Phase | Priority and deliverable | Completion evidence |
 | --- | --- | --- |
-| **1. Audio and alpha reliability** | **Active priority.** First correct the reproduced dense-pattern and triangle-pitch defects. Then close supported four-channel authoring, imports, SFX, persistence and listening; investigate mobile A/V behavior. | Focused failures become passing regressions, complete candidate gate, author/import → edit → build → audible playback → save/reopen workshop, Forge plus independent-emulator listening, and separately labeled device evidence. |
+| **1. Audio and alpha reliability** | **Active priority.** Retain the implemented dense-pattern and triangle-pitch corrections. Review the current mobile scheduling/capture correction, then close supported four-channel authoring, imports, SFX, persistence and listening. | Focused failures become passing regressions, complete candidate gate, author/import → edit → build → audible playback → save/reopen workshop, Forge plus independent-emulator listening, and separately labeled device evidence. |
 | **2. Reusable RE recovery** | **Next.** Recover supported native audio into canonical Audio, then graphics/maps/collision into editable Forge content. Build shared discovery/evidence/import interfaces and reusable format adapters. | Declared native records, preview/import, useful edit and rebuilt behavior. Unknown engines retain inspection. First graphics pipeline requires two unrelated independently authored engines beyond Forge/Bridge Room controls. No universal-recovery claim. |
 | **3. Creator portability and review readiness** | **After audio; coordinate with bounded RE slices.** Prove a representative ASM migration through declared hooks, usable import/export, accurate manual/workshops and reviewer packaging. Select gameplay/behavior work from the preserved backlog only when needed. | A supported external source example builds and behaves as documented; native data and references survive save/reopen; a reviewer can reproduce the supported workflow from the supplied package. Full 1.9.1/1.9.2 completion is not required for every later slice. |
 | **4. Hosted Worlds and ordinary items** | **After the finite audio/RE gate.** Define the host bridge and server-authoritative actions, persistent World state, stable item instances and inventory rules. Start without blockchain dependence. | Two clients interact with one item; conflicting pickup, retries, reconnect and server restart preserve one accepted outcome and consistent inventories. Each client's projected state stays within its declared NES runtime budgets. |
@@ -64,11 +73,11 @@ Review of the existing R1–R6 candidate, device checks, source-control setup an
 4. **Preserve the reference:** isolate changes, retain provenance and protected behavior, package a reproducible candidate, and update the manual/checklist with the actual controls. Promotion follows acceptance of that candidate's stated scope.
 5. **Keep support finite and extensible:** declare supported hardware/formats and unknowns. Neither a single-ROM demonstration nor a promise to understand every ROM is an adequate completion criterion.
 
-**Active executable deliverable:** `2.0.0-alpha.1 / audio-correction-1`, bounded to the two reproduced defects, focused regressions and the full clean-extraction gate. Broader preview/import/mobile findings must be reproduced and scoped separately. The subsequent audio workflow candidate closes the listening/manual evidence.
+**Active executable deliverable:** `2.0.0-alpha.2 / mobile-playback-1`, bounded to scheduling, exact capture overhead and Play diagnostics, with focused regressions and the full clean-extraction gate. Broader preview/import/mobile findings must be reproduced and scoped separately. The subsequent audio workflow candidate closes the listening/manual evidence.
 
 ## Version policy
 
-Use **2.0 Alpha — RE development and required foundations** for subsequent RE development. The bounded audio-correction candidate uses **2.0.0-alpha.1**. This label identifies an alpha review candidate; it does not imply completion of 2.0 or release promotion. Keep all existing 1.9.0 package names, candidate tags, hashes and evidence unchanged.
+Use **2.0 Alpha — RE development and required foundations** for subsequent RE development. The bounded audio-correction reference uses **2.0.0-alpha.1**; the mobile playback follow-up uses **2.0.0-alpha.2**. This label identifies an alpha review candidate; it does not imply completion of 2.0 or release promotion. Keep all existing 1.9.0 package names, candidate tags, hashes and evidence unchanged.
 
 The numbered sections below are capability and dependency identifiers. They are not a requirement to finish every 1.9.x feature before continuing RE, and they are not a claim that a feature is complete because it appears in a 2.0 Alpha build. The 2.0.1–2.0.5 foundation work and 2.1–2.5 RE scope remain visible; the new Alpha track draws bounded work from those areas as needed. A version-label change alone does not require a project-schema change.
 
@@ -78,7 +87,7 @@ The numbered sections below are capability and dependency identifiers. They are 
 
 First establish audio preview/compiled-ROM correctness, repeatable author/import/edit/build/save/reopen behavior and listening evidence, including the reported mobile playback issue. Then extend reusable native audio-driver recovery with explicit supported scope. The detailed bounded sequence and acceptance checks are in `docs/NES_Forge_2.0_ALPHA_PLAN.md`. General ROM inspection and APU observations are available; they do not mean comprehensive audio RE is complete.
 
-The focused October 2 audit identified two first correction targets in the frozen starting reference: a generated music-reader loop on an accepted dense 64-event pattern, reproduced against a 63-event control, and triangle pitch one octave below Studio preview because runtime uses pulse timer values. These findings supplement the historical passing suite; the active correction candidate supplies the implementation and separate regression evidence. Reproduction evidence and the bounded correction criteria accompany the development plan.
+The focused October 2 audit identified two first correction targets in the frozen starting reference: a generated music-reader loop on an accepted dense 64-event pattern, reproduced against a 63-event control, and triangle pitch one octave below Studio preview because runtime uses pulse timer values. These findings supplement the historical passing suite; the preserved audio correction supplies the implementation and separate regression evidence. Reproduction evidence and the bounded correction criteria accompany the development plan.
 
 The **runtime-investigation candidate** still needs its **`docs/RE_RUNTIME_CHECKLIST.txt`** review, which may overlap audio work. R1–R6 cover shared ROM identity, background initialization, a Pepsi mode change, credit-write provenance, positive audio observation on Bridge Room, and export/lifecycle behavior. Do not require the Pepsi program to contain stages, damage, enemies, collision or music that its investigation did not identify.
 
@@ -324,7 +333,7 @@ A vertical slice may span multiple domains and infrastructure layers, but must n
 
 NES Forge has a working create/edit → build NES ROM → run/test workflow. The owner reported a successful mobile-browser demonstration on September 28. That is useful qualitative feedback, not a substitute for a recorded device/browser acceptance matrix.
 
-The active correction candidate is **NES Forge 2.0.0-alpha.1 / audio-correction-1**, pending acceptance of its bounded scope. **1.9.0 Alpha / re-runtime-1** remains the frozen predecessor. Subsequent RE development uses the **2.0 Alpha** track defined above. Earlier mobile-play builds remain dated comparison references. These labels do not promote a release or establish beta readiness.
+The active correction candidate is **NES Forge 2.0.0-alpha.2 / mobile-playback-1**, pending acceptance of its bounded scope. **1.9.0 Alpha / re-runtime-1** remains the frozen predecessor. Subsequent RE development uses the **2.0 Alpha** track defined above. Earlier mobile-play builds remain dated comparison references. These labels do not promote a release or establish beta readiness.
 
 Beta readiness should be judged by reliable, repeatable create → build → play → save → reopen workflows for new users, completion of the intended beta feature scope, accurate instructions, and documented coverage on supported browsers. Neither the alpha label nor a version increment automatically satisfies those criteria.
 
@@ -400,7 +409,7 @@ Use:
 ## 1.9.0 — Gameplay Core
 
 Current status:
-**Functional alpha. The frozen re-runtime-1 predecessor introduced early 2.x analysis and runtime-investigation tools, retained by the active audio-correction candidate. R1–R6 and browser/device closeout remain separately pending.**
+**Functional alpha. The frozen re-runtime-1 predecessor introduced early 2.x analysis and runtime-investigation tools, retained by the active mobile-playback candidate. R1–R6 and browser/device closeout remain separately pending.**
 
 Current evidence:
 
@@ -470,7 +479,7 @@ This preserves abstraction so future Doors may support:
 
 ## 1.9.0 alpha follow-up — Mobile Play & Controller Support
 
-**Historical implementation authority:** September 28 authorized the bounded Mobile Play follow-up (D046). Its original `mobile-play-1` result was 702/702; later candidates inherited and extended that work. The active audio-correction-1 candidate inherits those capabilities; re-runtime-1 is its frozen predecessor. Device/browser and physical-controller closeout remain open and must identify the tested candidate. See the current-position record above and the candidate-specific `CURRENT_BASELINE.md`.
+**Historical implementation authority:** September 28 authorized the bounded Mobile Play follow-up (D046). Its original `mobile-play-1` result was 702/702; later candidates inherited and extended that work. The active mobile-playback-1 candidate inherits those capabilities; re-runtime-1 is its frozen predecessor. Device/browser and physical-controller closeout remain open and must identify the tested candidate. See the current-position record above and the candidate-specific `CURRENT_BASELINE.md`.
 
 **Purpose:** let someone open NES Forge on a phone, run a built or loaded ROM, and control it immediately. This lives inside the **Emulator tab**. The manual and workshop explain and exercise it; they are not a separate emulator environment.
 

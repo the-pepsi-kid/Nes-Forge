@@ -2,7 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 const excluded=['prgRom','chrRom','lastBuiltRom','loaded','running','loading','romName','rafId','loadGeneration'];
 function loopRom(){const rom=new Uint8Array(40976);rom.set([78,69,83,26,2,1]);rom.set([0xe6,0x10,0x4c,0x00,0x80],16);for(const off of[0x7ffa,0x7ffc,0x7ffe])rom.set([0,0x80],16+off);return rom;}

@@ -6,7 +6,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
 const root=path.resolve(__dirname,'..');
-const htmlPath=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const htmlPath=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 const fixtureRom=Uint8Array.from(fs.readFileSync(path.join(root,'examples/Forge_Scout_Demo_1.6.5.nes')));
 function fresh(){const h=loadForge(htmlPath);assert.ok(h.context.Forge166?.workspace,'Candidate must include the native workspace module');assert.deepEqual(h.errors,[]);return h;}

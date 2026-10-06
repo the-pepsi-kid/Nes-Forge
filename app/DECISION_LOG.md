@@ -405,3 +405,12 @@ Retain 38 suites and add `re-runtime`, `re-runtime-ui` and `re-runtime-integrati
 **Decision:** use 2.0.0-alpha.1 / audio-correction-1, schema 12. Correct generated music/SFX stream cursor carry for the supported 128-row range, and emit a channel-correct triangle timer table. Preserve the existing canonical tracker/instrument/SFX representation, 60-byte zero-page reservation, pulse/noise paths, emulator and protected services. Hardware timer saturation at the low end remains explicit. No new music driver, preview engine or broader feature is included.
 
 Retain all 895 preexisting cases and add independent compiled-runtime boundary/pitch regressions. Preserve exact historical source checks through a narrowly declared correction delta, frozen reference HTML/reports and unchanged golden oracles. Measure the whole candidate from clean extraction and report browser/listening/device evidence separately. Supply editable dense-pattern and pitch-comparison examples plus a short owner checklist. Correctness evidence does not complete the broader audio-workflow/RE milestone or promote this candidate.
+
+
+## D053 — bounded Mobile Playback correction (October 5, 2026, America/Denver)
+
+**Authority:** after submitting a mobile screen recording, identifying Cricket Dream 5G with Chrome, and receiving the scheduling/capture diagnosis, the owner said “Ok, address them.” Desktop playback was owner-reported satisfactory; the video does not display an exact application hash.
+
+**Decision:** deliver 2.0.0-alpha.2 / mobile-playback-1, schema 12. Retain frame debt within bounded catch-up safeguards, reduce duplicate native capture allocations with exact-data parity, and add a throttled Play performance readout. Do not change CPU/APU/PPU semantics, audio queue depth, generated audio/gameplay code, capture timing, project format, input isolation, Save As, CHR or undo contracts.
+
+**Evidence:** preserve the alpha.1 reference and all 921 existing checks; add independent timing, capture and diagnostic regressions; require clean-extraction gate and exact packaging. Synthetic clocks, Node profiling, recorder measurements, real browsers, listening and physical devices are separate evidence categories. Browser blockage and device testing remain explicit. No release promotion, source publication or later-feature authorization follows from this correction.

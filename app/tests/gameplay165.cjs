@@ -6,7 +6,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs'),fixtures=require('./fixtures.cjs');
 const root=path.resolve(__dirname,'..');
-const html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn}),plain=x=>JSON.parse(JSON.stringify(x));
 const STATES={idle:0,walk:1,jump:2,attack:3};
 function gameplayProject(options={}){

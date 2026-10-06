@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {loadForge}=require('./harness.cjs');
 const {BASELINE_SHA256,hash,buildCase}=require('../tools/capture_goldens.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const dir=path.join(__dirname,'fixtures/golden167'),manifest=JSON.parse(fs.readFileSync(path.join(dir,'manifest.json'),'utf8'));
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 test('Golden inputs and expected outputs have complete immutable manifest hashes',()=>{

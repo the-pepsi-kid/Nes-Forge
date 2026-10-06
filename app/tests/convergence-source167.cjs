@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process'),crypto=require('node:crypto');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex'),tests=[],test=(name,fn)=>tests.push({name,fn});
 test('The supplied manifest and source hashes reproduce the exact tested standalone HTML',()=>{
  const manifest=JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))),inputs=JSON.parse(fs.readFileSync(path.join(root,'build-inputs.json')));

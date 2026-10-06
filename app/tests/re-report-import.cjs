@@ -2,7 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[];
 function test(name,fn){const started=Date.now();try{fn();tests.push({name,passed:true,milliseconds:Date.now()-started});console.log('PASS '+name);}catch(error){tests.push({name,passed:false,error:error.stack});console.log('FAIL '+name+'\n'+error.message);}}
 function state(h){return h.json('({project:projectData(),undo:undoStack,redo:redoStack,epoch:Forge.services.ProjectStore.state.epoch,id:S.projectId,runtime:{loaded:emu.loaded,running:emu.running,last:Array.from(window._lastBuiltRom||[])}})');}

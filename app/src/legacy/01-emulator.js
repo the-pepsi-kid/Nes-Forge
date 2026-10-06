@@ -553,7 +553,7 @@ function emuRunFrame(){if(!emu.loaded)return;const deadline=performance.now()+20
 }
 
 // ── Reset ──
-function emuDoReset(){emu.A=emu.X=emu.Y=0;emu.SP=0xFD;emu.C=emu.Z=emu.D=emu.V=emu.N=0;emu.I=1;emu.cycles=0;emu.frameCount=0;emu._nextFrameCycle=0;emu.ram.fill(0);emu.vram.fill(0);emu.palRam.fill(0);emu.oamMem.fill(255);if(emu.hasChrRam)emu.chrRam.fill(0);emu.mirroring=emu.initialMirror??1;emu.prgBank0=0;emu.prgBank1=Math.max(0,emu.prgSize-16384);emu.chrBank0=0;emu.chrBank1=4096;emu.chrPages=Array.from({length:8},(_,i)=>i*1024);if(emu.mapper===1){emu.mmc1Shift=0x10;emu.mmc1Ctrl=0x0C;emu.mmc1Chr0=emu.mmc1Chr1=emu.mmc1Prg=0;mmc1UpdateBanks();}if(emu.mapper===4){emu.mmc3Banks.fill(0);emu.mmc3BankSel=emu.mmc3PrgMode=emu.mmc3ChrMode=emu.mmc3IrqLatch=emu.mmc3IrqCounter=0;emu.mmc3IrqEnabled=emu.mmc3IrqReload=false;mmc3UpdateBanks();}if([7,11,66].includes(emu.mapper)){emu.prgBank1=16384%emu.prgSize;if(emu.mapper===7)emu.mirroring=2;}emu.irqPending=false;emu.apuRegs.fill(0);emu.apuStatus=emu.apuFrameCounter=0;emu.ppuCtrl=emu.ppuMask=emu.oamAddr=0;emu.ppuStatus=0;emu.vAddr=emu.tAddr=emu.ppuBuf=emu.fineX=0;emu.wLatch=false;emu.joyShift=emu.joyState=0;emu.joyStrobe=false;emu.spr0Line=-1;emu.tAddrPre=emu.tAddrPost=emu.fineXPre=emu.fineXPost=0;emu.chrBank0Pre=emu.chrBank0Post=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1Post=emu.chrBank1;emu.PC=cpuRead16(0xFFFC);apuSilence();apuReset();emu.opsMissed=0;emuPerf.fps=emuPerf.frameMs=emuPerf.maxFrameMs=emuPerf.dropped=0;if(emu.frameBuffer)emu.frameBuffer.fill(0);if(emu.bgFrameBuffer)emu.bgFrameBuffer.fill(0);}
+function emuDoReset(){emu.A=emu.X=emu.Y=0;emu.SP=0xFD;emu.C=emu.Z=emu.D=emu.V=emu.N=0;emu.I=1;emu.cycles=0;emu.frameCount=0;emu._nextFrameCycle=0;emu.ram.fill(0);emu.vram.fill(0);emu.palRam.fill(0);emu.oamMem.fill(255);if(emu.hasChrRam)emu.chrRam.fill(0);emu.mirroring=emu.initialMirror??1;emu.prgBank0=0;emu.prgBank1=Math.max(0,emu.prgSize-16384);emu.chrBank0=0;emu.chrBank1=4096;emu.chrPages=Array.from({length:8},(_,i)=>i*1024);if(emu.mapper===1){emu.mmc1Shift=0x10;emu.mmc1Ctrl=0x0C;emu.mmc1Chr0=emu.mmc1Chr1=emu.mmc1Prg=0;mmc1UpdateBanks();}if(emu.mapper===4){emu.mmc3Banks.fill(0);emu.mmc3BankSel=emu.mmc3PrgMode=emu.mmc3ChrMode=emu.mmc3IrqLatch=emu.mmc3IrqCounter=0;emu.mmc3IrqEnabled=emu.mmc3IrqReload=false;mmc3UpdateBanks();}if([7,11,66].includes(emu.mapper)){emu.prgBank1=16384%emu.prgSize;if(emu.mapper===7)emu.mirroring=2;}emu.irqPending=false;emu.apuRegs.fill(0);emu.apuStatus=emu.apuFrameCounter=0;emu.ppuCtrl=emu.ppuMask=emu.oamAddr=0;emu.ppuStatus=0;emu.vAddr=emu.tAddr=emu.ppuBuf=emu.fineX=0;emu.wLatch=false;emu.joyShift=emu.joyState=0;emu.joyStrobe=false;emu.spr0Line=-1;emu.tAddrPre=emu.tAddrPost=emu.fineXPre=emu.fineXPost=0;emu.chrBank0Pre=emu.chrBank0Post=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1Post=emu.chrBank1;emu.PC=cpuRead16(0xFFFC);apuSilence();apuReset();emu.opsMissed=0;emuPerf.fps=emuPerf.frameMs=emuPerf.maxFrameMs=emuPerf.dropped=emuPerf.backlogMs=emuPerf.budgetYields=0;if(emu.frameBuffer)emu.frameBuffer.fill(0);if(emu.bgFrameBuffer)emu.bgFrameBuffer.fill(0);}
 
 // ── Load ROM into emulator ──
 async function emuLoadRom(e){
@@ -576,14 +576,15 @@ async function emuLoadRom(e){
 // frame count made v1.4's `while(frames--)` run forever. Anchor to the first RAF,
 // reject invalid clocks and use a bounded, positively-tested loop instead.
 const EMU_FRAME_MS=1000/60.0988;
+const EMU_MAX_PENDING_FRAMES=4,EMU_MAX_SLICE_MS=40;
 let emuLastFrameTime=null,emuAccumulator=0,emuRunGeneration=0;
-const emuPerf={fps:0,frameMs:0,maxFrameMs:0,dropped:0,frames:0,since:0,lastHUD:0};
+const emuPerf={fps:0,frameMs:0,maxFrameMs:0,dropped:0,backlogMs:0,budgetYields:0,frames:0,since:0,lastHUD:0};
 function emuToggleRun(){
   if(!emu.loaded)return;
   if(emu.running){emuPause();return;}
   emu.loadGeneration=(emu.loadGeneration||0)+1;emu.loading=false;
   emu.running=true;emuLastFrameTime=null;emuAccumulator=0;
-  emuPerf.frames=0;emuPerf.since=performance.now();emuPerf.lastHUD=0;
+  emuPerf.frames=0;emuPerf.backlogMs=0;emuPerf.since=performance.now();emuPerf.lastHUD=0;
   const generation=++emuRunGeneration;
   document.getElementById('emuRunBtn').textContent='⏸ Pause';apuStart();
   emu.rafId=requestAnimationFrame(t=>emuLoop(t,generation));
@@ -597,15 +598,32 @@ function emuLoop(now,generation=emuRunGeneration){
     if(emuLastFrameTime===null){emuLastFrameTime=now;}
     else if(now>=emuLastFrameTime){
       const elapsed=now-emuLastFrameTime;emuLastFrameTime=now;
-      emuAccumulator=Math.min(EMU_FRAME_MS*4,emuAccumulator+Math.min(250,elapsed));
+      if(!Number.isFinite(elapsed))throw Error('Invalid animation timestamp delta');
+      // Keep the former 250 ms elapsed safety cap, accounting for discarded
+      // whole frames and carrying the fraction so clock phase stays consistent.
+      const acceptedElapsed=Math.min(250,elapsed),stalledMs=elapsed-acceptedElapsed;
+      emuPerf.dropped+=Math.floor(stalledMs/EMU_FRAME_MS);
+      emuAccumulator+=acceptedElapsed+stalledMs%EMU_FRAME_MS;
+      // A 30 Hz callback may owe two or occasionally three NES frames. Keep
+      // unfinished work for the next callback instead of silently halving speed.
+      // Long stalls retain at most four whole frames plus the fractional phase;
+      // every discarded frame is reported rather than growing a catch-up spiral.
+      const excess=Math.max(0,Math.floor(emuAccumulator/EMU_FRAME_MS)-EMU_MAX_PENDING_FRAMES);
+      if(excess){emuPerf.dropped+=excess;emuAccumulator-=excess*EMU_FRAME_MS;}
+      const sliceBudget=Math.min(EMU_MAX_SLICE_MS,Math.max(EMU_FRAME_MS,acceptedElapsed));
       const sliceStart=performance.now();let completed=0;
-      for(let i=0;i<2&&emuAccumulator>=EMU_FRAME_MS;i++){
+      for(let i=0;i<EMU_MAX_PENDING_FRAMES&&emuAccumulator>=EMU_FRAME_MS;i++){
         const start=performance.now();emuRunFrame();const cost=performance.now()-start;
         emuPerf.frameMs=cost;emuPerf.maxFrameMs=Math.max(emuPerf.maxFrameMs,cost);emuPerf.frames++;
         emuAccumulator-=EMU_FRAME_MS;completed++;apuFlush();
-        if(performance.now()-sliceStart>=10)break; // Yield UI time even on slow CPUs.
+        // Yield only between complete CPU/APU/PPU frames. The frame runner's
+        // own safety deadline still applies if one frame exceeds this budget.
+        if(performance.now()-sliceStart>=sliceBudget){
+          if(emuAccumulator>=EMU_FRAME_MS)emuPerf.budgetYields++;
+          break;
+        }
       }
-      if(emuAccumulator>=EMU_FRAME_MS){emuPerf.dropped+=Math.floor(emuAccumulator/EMU_FRAME_MS);emuAccumulator%=EMU_FRAME_MS;}
+      emuPerf.backlogMs=emuAccumulator;
       if(completed&&S.tab==='emu')renderEmu();
     }
     // Earlier timestamps do no work and do not move our clock backwards.
@@ -614,6 +632,7 @@ function emuLoop(now,generation=emuRunGeneration){
   }catch(e){emuPause();emuLog('Stopped safely: '+e.message);reportError(e);}
 }
 function emuUpdatePerformance(force=false){
+  emuPerf.backlogMs=emuAccumulator;
   const el=document.getElementById('emuPerformance');if(!el)return;const now=performance.now();
   if(!force&&now-emuPerf.lastHUD<250)return;emuPerf.lastHUD=now;
   if(emu.running&&now-emuPerf.since>=1000){emuPerf.fps=emuPerf.frames*1000/(now-emuPerf.since);emuPerf.since=now;emuPerf.frames=0;}

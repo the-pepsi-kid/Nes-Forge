@@ -7,8 +7,9 @@ const crypto = require('node:crypto');
 const {loadForge} = require('./harness.cjs');
 const fixtures = require('./fixtures.cjs');
 const {migratedFrames} = require('./version-expectations.cjs');
+const {referenceSource,verifyRuntimeReference} = require('./source-preservation200.cjs');
 
-const htmlPath = path.resolve(process.argv[2] || path.join(__dirname, '../mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const htmlPath = path.resolve(process.argv[2] || path.join(__dirname,'..',JSON.parse(fs.readFileSync(path.join(__dirname,'../source-manifest.json'))).output));
 const tests = [];
 const test = (name, fn) => tests.push({name, fn});
 function fresh(data = fixtures.project()) {
@@ -24,8 +25,14 @@ function build(h, timeout = 2500) {
 function plain(x) { return JSON.parse(JSON.stringify(x)); }
 const deferred = () => { let resolve, reject; const promise = new Promise((a,b) => {resolve = a; reject = b;}); return {promise,resolve,reject}; };
 
-test('Emulator, provenance capture, and Save As/CHR source blocks match supplied 1.6.2 baseline exactly', () => {
-  const source=fs.readFileSync(htmlPath,'utf8');
+test('Emulator, provenance capture, and Save As/CHR blocks retain exact 1.6.2 bytes outside the declared correction delta', () => {
+  verifyRuntimeReference();
+  const root=path.resolve(__dirname,'..'),manifest=JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json')));
+  // Bind the supplied standalone HTML to the sources being restored. Only the
+  // exact hash-pinned correction delta may be reversed; runtime tests below
+  // continue to execute the unmodified candidate HTML itself.
+  assert.equal(fs.readFileSync(htmlPath,'utf8'),manifest.parts.map(part=>fs.readFileSync(path.join(root,part),'utf8')).join(''),'Supplied HTML must match the current source bundle');
+  const source=manifest.parts.map(referenceSource).join('');
   for(const expected of require('./preserved-source.json').sections){
     const start=source.indexOf(expected.start),end=source.indexOf(expected.end,start+1);assert.ok(start>=0&&end>start,expected.name+' bounds');
     const block=source.slice(start,end);assert.equal(Buffer.byteLength(block),expected.bytes,expected.name+' length');

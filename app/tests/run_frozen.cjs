@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const output=path.join(root,'test-results');fs.mkdirSync(output,{recursive:true});
 const summaryPath=path.join(output,'Summary.json');if(fs.existsSync(summaryPath))fs.unlinkSync(summaryPath);
 const sourceHash=()=>crypto.createHash('sha256').update(fs.readFileSync(html)).digest('hex');

@@ -1,22 +1,23 @@
-# NES Forge — audio-correction review branch
+# NES Forge — mobile-playback review branch
 
-This branch carries **2.0.0-alpha.1 / audio-correction-1**, schema 12. It corrects dense music/SFX stream advancement and triangle timer values. The candidate remains subject to owner review and separate listening/device evidence. No release promotion, main-branch merge, hosted repository or remote push is represented here.
+This branch carries **2.0.0-alpha.2 / mobile-playback-1**, schema 12. Its bounded changes cover frame scheduling, exact native-capture work and a Play performance readout. The audio-correction candidate remains preserved as the predecessor. Phone improvement, listening and owner acceptance require their own evidence. No main merge, release promotion, hosted repository or remote push is represented here.
 
 ## Branches and identities
 
 | Reference | Contents |
 | --- | --- |
-| `work/audio-correction-1` | Current review candidate. `app/` matches the final candidate ZIP exactly, including measured reports and its checksum manifest. See `CANDIDATE.json`. |
+| `work/mobile-playback-1` | Current mobile review candidate. `app/` matches the final candidate ZIP exactly, including measured reports and checksums. See `CANDIDATE.json`. |
+| `work/audio-correction-1` | Preserved 2.0.0-alpha.1 audio candidate at `bd1d46e5fe3eb575c22abcb377841534f197469c`, with its own 921/921-case evidence across 42 suites. |
 | `main` | Preserved pre-correction application and October 4 planning history at `45d0b31bf30d67b013ce8e1cb6c4dbdfd709baec`. |
 | `reference/re-runtime-1` | Annotated historical reference tag at `86fdbf4639389be01c9af8c8860a44566a62d83d`; not an accepted release. |
 
-`REFERENCE.json` and `tools/verify_reference.py` describe the retained **1.9.0 / re-runtime-1** predecessor. Use that verifier after checking out `main` or the reference tag. Its old expected hash/count are deliberately unchanged; they are not the identity of the audio-correction branch.
+`REFERENCE.json` and `tools/verify_reference.py` describe the retained **1.9.0 / re-runtime-1** predecessor. Use that verifier after checking out `main` or the reference tag. The audio branch has its own `CANDIDATE.json`; the mobile branch has the current mobile candidate record.
 
-`planning/` contains candidate-era roadmap and plan snapshots. Paths within those snapshots generally use the application root. Current candidate details and review steps are in `app/docs/AUDIO_CORRECTION.md` and `app/docs/AUDIO_CORRECTION_CHECKLIST.txt`. The retained `planning/audio-audit/` probe documents the predecessor's defects; its success condition is defect reproduction and it is not the candidate's regression test.
+Current roadmap and plan snapshots are in `planning/`. Application-relative paths in those documents use `app/` as their root. Review the mobile candidate through `app/docs/MOBILE_PLAYBACK_CHECKLIST.txt`, using the same unchanged ROM on the old and new HTML. Recorded Cricket Dream 5G / Chrome feedback does not by itself identify a tested build or demonstrate improvement in this candidate.
 
-## Open and verify the candidate
+## Open and verify the mobile candidate
 
-Open `app/mainline/NES_Forge_2.0.0-alpha.1.html`. Read the audio correction checklist and use the projects under `app/examples/Audio_Correction_2.0.0-alpha.1/`.
+Open `app/mainline/NES_Forge_2.0.0-alpha.2.html`.
 
 From the repository root:
 
@@ -24,35 +25,32 @@ From the repository root:
 python3 app/tools/bundle.py --check
 ```
 
-This checks source-to-HTML reproduction without changing the application. **921/921 automated cases passed across 42 suites** on the tested clean extraction. The complete measured results are `app/test-results/candidate/Summary.json`; clean-extraction proof is `app/checkpoints/audio-correction-1-clean-extraction/Reproduction.json`. Exact identity and measured totals belong to `CANDIDATE.json` and those reports. Browser, speaker output, independent-emulator listening and mobile performance are separately labeled evidence.
+This checks source-to-HTML reproduction without changing the application. **940/940 automated cases passed across 43 suites** on the tested clean extraction. Measured results are in `app/test-results/candidate/Summary.json`; clean-extraction proof is `app/checkpoints/mobile-playback-1-clean-extraction/Reproduction.json`. See `CANDIDATE.json` for final package identity and measured counts. Browser launches, phone testing, speaker output and independent-emulator listening remain separately labeled evidence.
 
-The executable candidate ZIP carries `app/SHA256SUMS.txt` as its manifest inside the extracted application. Run further tests in a disposable copy of `app/`; the runner rewrites report files. The full gate command inside that copy is `node tests/run_candidate.cjs`. Node.js 20+ and Python 3.9+ are required for the supplied tooling. The HTML itself is standalone.
+Run further tests in a disposable copy of `app/`, because the runner rewrites reports. The full gate command inside that copy is `node tests/run_candidate.cjs`. Node.js 20+ and Python 3.9+ support the supplied tooling. The HTML application itself is standalone.
 
-## Compare with the predecessor
+## Portable restore
 
-With a clean working tree:
+The separate mobile source-control ZIP contains a complete Git bundle, handoff and verification record. Preserve all three local branches before removing the bundle-file remote:
+
+```sh
+git clone --branch work/mobile-playback-1 NES_Forge_Local_Repository.bundle NES_Forge
+cd NES_Forge
+git branch main origin/main
+git branch work/audio-correction-1 origin/work/audio-correction-1
+git remote remove origin
+```
+
+No online account or credentials are needed to clone the bundle. With a clean working tree, switch to `work/audio-correction-1` to inspect the retained audio candidate or `main` to inspect the older reference. For the original reference verification:
 
 ```sh
 git switch main
 python3 tools/verify_reference.py
-git switch work/audio-correction-1
+git switch work/mobile-playback-1
 ```
 
-The main/reference application retains historical 895/895 evidence across 41 suites. Those earlier results and audio probes remain attached to their exact original bytes.
-
-## Portable bundle
-
-The separate source-control ZIP contains a complete Git bundle, handoff and verification record. Clone the candidate and retain both local branches before removing the bundle-file remote:
-
-```sh
-git clone --branch work/audio-correction-1 NES_Forge_Local_Repository.bundle NES_Forge
-cd NES_Forge
-git branch main origin/main
-git remote remove origin
-```
-
-The `main` command preserves that branch locally; removing the bundle origin does not delete its commit or the reference tag. No online account or credentials are required to clone a bundle.
+The old planning/audio-audit probes remain historical defect evidence. Their success condition is reproduction of the predecessor's defects, so they are not the mobile candidate's acceptance suite.
 
 ## Publication and licensing
 
-No remote is configured. Licensing remains **UNDECIDED**; existing notices remain as supplied. The owner will select any private GitHub destination and decide publication separately. Keep candidate review, main-branch promotion and public release as explicit decisions. The historical planning/source-control kit remains a dated handoff; this candidate has a separate source-control delivery.
+No remote is configured. Licensing remains **UNDECIDED**; existing notices remain as supplied. The owner will select any private GitHub destination and decide publication separately. The earlier planning and audio source-control kits remain dated handoffs. This mobile candidate has a separate source-control delivery and remains a review branch until accepted and deliberately promoted.

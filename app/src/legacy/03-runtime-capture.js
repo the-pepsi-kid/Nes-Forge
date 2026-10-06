@@ -11,6 +11,9 @@ const previous={makeScene,normalizeTiles,projectData,renderEmuLine,emuDoReset,
   setPalQuad,openPicker,pickColor,buildGraphicsAtlas,exportAll,updateChrBankBrowser,
   loadSceneData,setChrBank,rebuildAllUI,buildPalEditor};
 const rasterCaches=new WeakMap();
+// Optimization only: keep this out of serialized traces and rewind snapshots.
+// A fresh/restored trace lazily receives a bounded cache of mapped CHR-ROM tiles.
+const traceChrCaches=new WeakMap();
 let chrPage=0,rasterPaletteSet=0;
 const PIXELS=256*240,MAX_TILES=8192;
 function liveScene(){return {...S.scenes[S.activeScene],nt:S.nt,attr:S.attr,pal:S.pal,sprPal:S.sprPal,chr:S.chr,sprChr:S.sprChr,oam:S.oam,tileProps:S.tileProps};}
@@ -19,9 +22,30 @@ function attrPal(attr,x,y){const tr=y>>3,tc=x>>3;return ((attr[(tr>>2)*8+(tc>>2)
 function quadId(x,y){return (y>>4)*16+(x>>4);}
 function tilePixels(bytes){return Array.from({length:8},(_,y)=>Array.from({length:8},(_,x)=>((bytes[y]>>(7-x))&1)|(((bytes[y+8]>>(7-x))&1)<<1)));}
 function physicalChr(addr){const src=emu.hasChrRam?emu.chrRam:emu.chrRom;let off=emu.mapper===4?(emu.chrPages?.[addr>>10]||0)+(addr&1023):(addr<4096?emu.chrBank0:emu.chrBank1)+(addr&4095);return {src,off:src?.length?off%src.length:0};}
-function readNativeTile(addr){const {src,off}=physicalChr(addr),bytes=new Uint8Array(16);if(src)for(let i=0;i<16;i++)bytes[i]=src[(off+i)%src.length]||0;return {bytes,off};}
+function readNativeTile(addr,physical=physicalChr(addr)){const {src,off}=physical,bytes=new Uint8Array(16);if(src)for(let i=0;i<16;i++)bytes[i]=src[(off+i)%src.length]||0;return {bytes,off};}
+function nativeTileUnchanged(src,off,bytes){
+  // CHR-ROM can still be replaced or patched by a debugger. Check the actual
+  // bytes, not an assumed immutability flag or only the first rendered row.
+  if(off+16<=src.length){for(let i=0;i<16;i++)if(src[off+i]!==bytes[i])return false;}
+  else for(let i=0;i<16;i++)if((src[(off+i)%src.length]||0)!==bytes[i])return false;
+  return true;
+}
 function newTrace(){return {rows:Array(240).fill(null),linePal:Array(240),masks:Array(240),lineState:Array(240),palettes:[],palMap:new Map(),tiles:[blankTileData()],sources:[{kind:'blank'}],tileMap:new Map(),sprites:Array(64),complete:false,frame:emu.frameCount+1,rom:emu.romName,mapper:emu.mapper,geometryChange:false};}
-function traceTile(trace,addr){const {bytes,off}=readNativeTile(addr);let key=(emu.hasChrRam?'ram:':'rom:')+off+':';for(const byte of bytes)key+=String.fromCharCode(byte);let id=trace.tileMap.get(key);if(id===undefined){id=trace.tiles.length;if(id>=MAX_TILES)throw Error('Capture trace exceeded its safe native-tile budget');trace.tileMap.set(key,id);trace.tiles.push(tilePixels(bytes));trace.sources.push({kind:emu.hasChrRam?'CHR-RAM':'CHR-ROM',offset:off,ppuAddress:addr,originalTile:(addr&4095)>>4});}return id;}
+function traceTile(trace,addr){
+  const physical=physicalChr(addr),{src,off}=physical;let cache;
+  // Mutable CHR-RAM retains the live read path, including mid-scanline writes.
+  // Mapper banks are resolved before lookup, so bank switches cannot alias IDs.
+  if(!emu.hasChrRam&&src?.length){
+    cache=traceChrCaches.get(trace);
+    if(!cache||cache.src!==src){cache={src,tiles:new Map()};traceChrCaches.set(trace,cache);}
+    const found=cache.tiles.get(off);
+    if(found&&nativeTileUnchanged(src,off,found.bytes))return found.id;
+  }
+  const {bytes}=readNativeTile(addr,physical);let key=(emu.hasChrRam?'ram:':'rom:')+off+':';for(const byte of bytes)key+=String.fromCharCode(byte);let id=trace.tileMap.get(key);
+  if(id===undefined){id=trace.tiles.length;if(id>=MAX_TILES)throw Error('Capture trace exceeded its safe native-tile budget');trace.tileMap.set(key,id);trace.tiles.push(tilePixels(bytes));trace.sources.push({kind:emu.hasChrRam?'CHR-RAM':'CHR-ROM',offset:off,ppuAddress:addr,originalTile:(addr&4095)>>4});}
+  if(cache){if(cache.tiles.size>=MAX_TILES&&!cache.tiles.has(off))cache.tiles.clear();cache.tiles.set(off,{bytes,id});}
+  return id;
+}
 function recordLine(line,baseY,baseNTY){
   if(line===0||!emu.captureTrace)emu.captureTrace=newTrace();
   const t=emu.captureTrace,mask=emu.ppuMask,scrollX=(emu.tAddr&31)*8+emu.fineX,ntx=(emu.tAddr>>10)&1,worldY=baseY+line,ly=((worldY%240)+240)%240,nty=baseNTY^(Math.floor(worldY/240)&1);
@@ -150,7 +174,6 @@ document.querySelector('h1').innerHTML='NES FORGE <small style="color:var(--grn)
 document.title='NES Forge 1.4.2 — Verified Runtime Capture';
 rebuildAllUI();
 })();
-
 
 
 

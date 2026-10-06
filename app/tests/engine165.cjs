@@ -2,7 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {loadForge}=require('./harness.cjs');
-const htmlPath=path.resolve(process.argv[2]||path.join(__dirname,'../mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const htmlPath=path.resolve(process.argv[2]||path.join(__dirname,'..',JSON.parse(fs.readFileSync(path.join(__dirname,'../source-manifest.json'))).output));
 const tests=[];const metrics={};const test=(name,fn)=>tests.push({name,fn});
 const frame=(duration=3)=>({duration,eventMask:0,pieces:[{x:-4,y:-8,tile:1,attr:0}],hitboxes:[],hurtboxes:[{x:-6,y:-22,w:12,h:22}]});
 function spec(){const idle={loop:true,frames:[frame(4),frame(6)]};return{sceneAddress:0xD000,collision:Array.from({length:960},(_,i)=>i>=28*32?1:0),physics:{moveSpeed:2,jumpSpeed:9,gravity:1,maxFallSpeed:6,bodyWidth:12,bodyHeight:22},player:{x:80,y:224,facing:0,animations:{idle,walk:{loop:true,frames:[frame(2),frame(3)]},attack:{loop:false,frames:[frame(2),{...frame(3),hitboxes:[{x:5,y:-16,w:24,h:14}],eventMask:1},frame(3)]}}},target:{x:108,y:224,facing:1,animations:{idle,hurt:{loop:false,frames:[frame(3),frame(4)]}}},staticOAM:[]};}

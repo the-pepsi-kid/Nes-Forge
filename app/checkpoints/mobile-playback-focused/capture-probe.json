@@ -1,0 +1,66 @@
+{
+  "scope": "Capture-only source change against immutable audio-correction-1. Actual CPU/PPU frame execution in Node VM; elapsed times are container observations, not phone/browser performance. Identical input ROM, 8 warmup frames, 3 batches of 30 frames.",
+  "baseline": {
+    "htmlSha256": "4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0",
+    "measurements": [
+      {
+        "frames": 30,
+        "milliseconds": 2058.402802,
+        "nativeTileAllocations16": 230730
+      },
+      {
+        "frames": 30,
+        "milliseconds": 2047.2320839999998,
+        "nativeTileAllocations16": 230730
+      },
+      {
+        "frames": 30,
+        "milliseconds": 2020.2343419999997,
+        "nativeTileAllocations16": 230730
+      }
+    ],
+    "frame": 98,
+    "captureSha256": "c9f945cca39d5ec24507ae2110248c73167002c472d3b529b2b04c8415258d55",
+    "framebufferSha256": "4465c2c45f821c98be7c1acf983e2f1b297b38b986ed9b4abc458bf21365cc1e",
+    "traceSha256": "5a21b4b85f82fb3a5d6fee4042e4320768655c0888772e189115fb3ccc432e01",
+    "validation": {
+      "backgroundDifferentPixels": 0,
+      "compositeDifferentPixels": 0,
+      "pixels": 61440,
+      "reference": "completed emulator framebuffer, without editor overlays"
+    },
+    "errors": []
+  },
+  "candidate": {
+    "htmlSha256": "893c38d461439754d6c94335a3874192fb20fdf7e019664dca7a8ce966705bf3",
+    "measurements": [
+      {
+        "frames": 30,
+        "milliseconds": 1329.4640049999998,
+        "nativeTileAllocations16": 390
+      },
+      {
+        "frames": 30,
+        "milliseconds": 1231.1577319999997,
+        "nativeTileAllocations16": 390
+      },
+      {
+        "frames": 30,
+        "milliseconds": 1421.8228309999995,
+        "nativeTileAllocations16": 390
+      }
+    ],
+    "frame": 98,
+    "captureSha256": "c9f945cca39d5ec24507ae2110248c73167002c472d3b529b2b04c8415258d55",
+    "framebufferSha256": "4465c2c45f821c98be7c1acf983e2f1b297b38b986ed9b4abc458bf21365cc1e",
+    "traceSha256": "5a21b4b85f82fb3a5d6fee4042e4320768655c0888772e189115fb3ccc432e01",
+    "validation": {
+      "backgroundDifferentPixels": 0,
+      "compositeDifferentPixels": 0,
+      "pixels": 61440,
+      "reference": "completed emulator framebuffer, without editor overlays"
+    },
+    "errors": []
+  },
+  "parity": true
+}

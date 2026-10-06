@@ -1,5 +1,7 @@
 # Architecture contract — 2.0 Alpha continuation and preserved boundaries
 
+D053 changes host scheduling and capture implementation work, preserving the same CPU/APU/PPU behavior and exact completed-frame capture contract. A transient, per-trace CHR-ROM lookup stays outside serialized state and verifies source bytes/mapping. Play diagnostics observe existing counters; they do not start emulation or audio. Schema 12 and generated runtime/compiler contracts remain unchanged.
+
 The audio-correction-1 continuation changes only AudioCompiler/AudioEngine runtime correctness and release metadata. The event-stream cursor retains existing zero-page allocation; pointer carry supports all accepted rows. Triangle has a dedicated timer table. Project/Audio schema and service ownership remain unchanged.
 
 ## Ownership

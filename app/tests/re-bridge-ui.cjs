@@ -5,7 +5,7 @@
 // browser, layout, canvas screenshot, audio, or device validation claim.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const romPath=path.join(root,'examples/RE_Bridge_Room/Bridge_Room.nes');
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 const bytes=()=>new Uint8Array(fs.readFileSync(romPath));

@@ -4,7 +4,7 @@
 // Does not establish canvas appearance, pointer capture, or touch behavior.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const {loadForge}=require('./harness.cjs');
-const htmlPath=path.resolve(process.argv[2]||path.join(__dirname,'../mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const htmlPath=path.resolve(process.argv[2]||path.join(__dirname,'..',JSON.parse(fs.readFileSync(path.join(__dirname,'../source-manifest.json'))).output));
 const outputPath=path.resolve(process.argv[3]||path.join(__dirname,'frame-editor164-results.json'));
 const h=loadForge(htmlPath),results=[];
 function test(name,source,expected=true){try{assert.deepEqual(h.json(source),expected);results.push({name,passed:true});}catch(e){results.push({name,passed:false,error:e.message});}}

@@ -4,7 +4,7 @@
 // simulation substitutes for execution. Browser/device acceptance is separate.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const native=Uint8Array.from(fs.readFileSync(path.join(root,'examples/RE_Bridge_Room/Bridge_Room.nes'))),world=Uint8Array.from(fs.readFileSync(path.join(root,'examples/Scout_Gameplay_Core_1.9.0.nes')));
 const hash=data=>crypto.createHash('sha256').update(Buffer.from(data)).digest('hex');
 const tests=[],test=(name,fn)=>tests.push({name,fn}),metrics={};

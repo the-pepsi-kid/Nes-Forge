@@ -7,7 +7,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const harnessPath=require.resolve('./harness.cjs'),source=fs.readFileSync(harnessPath,'utf8'),stub='addEventListener: noop, removeEventListener: noop, dispatchEvent: noop,';
 assert.equal(source.split(stub).length,2);const moduleWithEvents=new Module(harnessPath,module);moduleWithEvents.filename=harnessPath;moduleWithEvents.paths=module.paths;
 moduleWithEvents._compile(source.replace(stub,'_testListeners: [], addEventListener(type, fn, options) { this._testListeners.push({type,fn,capture:options===true||!!options?.capture}); }, removeEventListener: noop, dispatchEvent(e) { for (const item of this._testListeners.filter(item=>item.type===e.type)) item.fn(e); },'),harnessPath);
-const {loadForge}=moduleWithEvents.exports,root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const {loadForge}=moduleWithEvents.exports,root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 function rom(){const data=new Uint8Array(16+16384+8192);data.set([78,69,83,26,1,1]);data.set([0x4c,0,0xc0],16);for(const at of[0x3ffa,0x3ffc,0x3ffe])data.set([0,0xc0],16+at);return data;}
 function fresh({loaded=true,width=390}={}){

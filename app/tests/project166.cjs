@@ -2,7 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),candidate=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const root=path.resolve(__dirname,'..'),candidate=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const html=candidate;if(!fs.existsSync(html))throw Error('Missing release candidate: '+html);
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 function fresh(){const h=loadForge(html);assert.ok(h.run('!!window.Forge166?.project'),'Project actions must be bundled');h.context.externalScoutFixture=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/scout166.json'),'utf8'));assert.deepEqual(h.errors,[]);h.run('window._buildAndRunMode=true');return h;}

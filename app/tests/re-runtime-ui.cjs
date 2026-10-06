@@ -4,7 +4,7 @@
 // rendering, mobile layout, audio quality, or actual download dialog coverage.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn}),clone=v=>JSON.parse(JSON.stringify(v));
 function fixture(){const b=new Uint8Array(16+16384+8192);b.set([0x4e,0x45,0x53,0x1a,1,1,0,0]);b.fill(0xea,16,16+16384);b.set([0xa9,0x20,0x8d,0x06,0x20,0xa9,0,0x8d,0x06,0x20,0xa9,0x44,0x8d,0x07,0x20,0xa9,0x9f,0x8d,0,0x40,0xe6,1,0x4c,0x14,0x80],16);for(const i of [0x3ffa,0x3ffc,0x3ffe])b.set([0,0x80],16+i);return b;}
 function fresh(){const h=loadForge(html,{environment:{crypto:crypto.webcrypto}});assert.deepEqual(h.errors,[]);h.ui=h.context.Forge.services.RERuntimeUI;h.model=h.context.Forge.services.RERuntime;assert.ok(h.ui,'Bundle includes RERuntimeUI');assert.ok(h.model,'Bundle includes RERuntime');return h;}

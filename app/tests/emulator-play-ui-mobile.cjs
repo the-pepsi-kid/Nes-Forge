@@ -13,7 +13,7 @@ assert.equal(harnessSource.split(documentEventStub).length,2,'Expected one docum
 const eventHarness=new Module(harnessPath,module);eventHarness.filename=harnessPath;eventHarness.paths=module.paths;
 eventHarness._compile(harnessSource.replace(documentEventStub,'_testListeners: [], addEventListener(type, fn, options) { this._testListeners.push({type,fn,capture:options===true||!!options?.capture}); }, removeEventListener: noop, dispatchEvent: noop,'),harnessPath);
 const loadWithDocumentEvents=eventHarness.exports.loadForge;
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 function pad(index=0){return {index,id:'Test controller '+index,mapping:'standard',connected:true,buttons:Array.from({length:17},()=>({pressed:false,value:0})),axes:[0,0,0,0]};}
 function press(device,index,value=true){device.buttons[index]={pressed:value,value:value?1:0};}

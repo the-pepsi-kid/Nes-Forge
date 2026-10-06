@@ -9,7 +9,7 @@ const path = require('node:path');
 const {loadForge} = require('./harness.cjs');
 const fixtures = require('./fixtures.cjs');
 const {schemaFor,foundationFor,migratedFrames} = require('./version-expectations.cjs');
-const htmlPath = path.resolve(process.argv[2] || path.join(__dirname,'../mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const htmlPath = path.resolve(process.argv[2] || path.join(__dirname,'..',JSON.parse(fs.readFileSync(path.join(__dirname,'../source-manifest.json'))).output));
 const tests=[];
 const test=(name,fn)=>tests.push({name,fn});
 const plain=x=>JSON.parse(JSON.stringify(x));

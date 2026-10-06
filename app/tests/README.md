@@ -1,4 +1,4 @@
-# Reproducible tests — NES Forge 1.9.0
+# Reproducible tests — NES Forge 2.0.0-alpha.2
 
 Run from a clean release extraction with Node.js 20+ and Python 3:
 
@@ -7,7 +7,7 @@ python3 tools/bundle.py --check
 node tests/run_all.cjs
 ```
 
-The strict runner tests `mainline/NES_Forge_1.9.0_Gameplay_Core.html`, requires all 41 suites, writes fresh per-suite reports/logs and verifies that the candidate and every provenance input remain unchanged. Missing inputs, skips, filters, source injection or older-HTML fallback fail the gate.
+The strict runner tests `mainline/NES_Forge_2.0.0-alpha.2.html`, requires all 43 suites, writes fresh per-suite reports/logs and verifies that the candidate and every provenance input remain unchanged. Missing inputs, skips, filters, source injection or older-HTML fallback fail the gate.
 
 ## Retained coverage
 
@@ -35,8 +35,16 @@ Examples are hashed runner inputs and must not change during a measured run.
 
 The VM harness has a mock DOM and controlled storage/timers. Bundled-emulator execution validates generated instructions and APU state under that emulator. It does not establish real-browser layout, native picker behavior, audible speaker output or independent NES hardware timing. See `../docs/BROWSER_QA.md`.
 
-Current clean-extraction evidence belongs under `../checkpoints/re-runtime-1-clean-extraction/`; historical checkpoint names retain their original release meaning.
+Current clean-extraction evidence belongs under `../checkpoints/mobile-playback-1-clean-extraction/`; historical checkpoint names retain their original release meaning.
 
 ## Runtime investigation
 
 The full gate retains all 38 analysis/navigation/recovery/mobile/core suites and adds `re-runtime`, `re-runtime-ui` and `re-runtime-integration`. Actual totals come from the frozen candidate report. The owner's Pepsi ROM is an exact input fixture, not a production recognition allowlist; Bridge Room supplies a sound-producing comparison. Keep model/VM/bundled-emulator evidence separate from browser/manual checks in `../docs/RE_RUNTIME_CHECKLIST.txt`.
+
+## Mobile Playback correction
+
+The gate retains all 921 explicit cases across the 42 Audio Correction suites and adds `mobile-playback200.cjs`. New totals are measured from fresh case records; this document does not predict a pass count. The packager preserves each old suite count, the 26 Audio Correction cases, and every earlier regression floor.
+
+`source-preservation200.cjs` reverses only the exact declared five-file Mobile Playback delta to the frozen `audio-correction-1` candidate, then reverses the original four-file Audio Correction delta to the frozen `re-runtime-1` candidate. The source module order and every restored byte must match their pinned reference hashes. Historical fixtures, whole-ROM oracles, and previous source-delta records remain unchanged.
+
+Frame pacing, capture representation, touch/focus isolation, and timing diagnostics are tested independently of phone acceptance. Three fresh browser reports remain mandatory; an unavailable browser must record a blocked run with zero checks, not a pass. The owner's Cricket Dream 5G / Chrome test is separate from VM and desktop evidence.

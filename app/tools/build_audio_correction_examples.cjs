@@ -4,7 +4,7 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('../tests/harness.cjs');
 const root=path.resolve(__dirname,'..'),manifest=JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json')));
-const html=path.join(root,manifest.output),out=path.join(root,'examples/Audio_Correction_2.0.0-alpha.1');
+const html=path.join(root,manifest.output),out=path.join(root,'examples/Audio_Correction_'+manifest.release);
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const cell=()=>({note:-1,inst:-1,vol:-1,fx:0,fxp:0});
 const pattern=n=>({rows:Array.from({length:n},()=>Array.from({length:5},cell))});
@@ -28,5 +28,5 @@ for(const [name,p,expected] of [['Dense_128',dense,'128 authored rows loop; B tr
  fs.writeFileSync(project,JSON.stringify(saved,null,2)+'\n');fs.writeFileSync(rom,Buffer.from(artifact.rom));
  examples.push({name,expected,backend:artifact.backend,project:path.relative(root,project),projectSha256:sha(fs.readFileSync(project)),rom:path.relative(root,rom),romSha256:sha(fs.readFileSync(rom)),romBytes:artifact.rom.length});
 }
-const report={release:manifest.release,candidate:'audio-correction-1',html:manifest.output,htmlSha256:sha(fs.readFileSync(html)),scope:'Reproducibly compiled review examples; no browser/speaker/device acceptance claimed.',examples};
+const report={release:manifest.release,candidate:'mobile-playback-1',html:manifest.output,htmlSha256:sha(fs.readFileSync(html)),scope:'Reproducibly compiled review examples; no browser/speaker/device acceptance claimed.',examples};
 fs.writeFileSync(path.join(out,'Manifest.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));

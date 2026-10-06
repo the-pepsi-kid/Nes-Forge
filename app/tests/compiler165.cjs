@@ -2,7 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {loadForge}=require('./harness.cjs'),fixtures=require('./fixtures.cjs');
-const htmlPath=path.resolve(process.argv[2]||path.join(__dirname,'../mainline/NES_Forge_1.8_Audio_Runtime.html'));
+const htmlPath=path.resolve(process.argv[2]||path.join(__dirname,'..',JSON.parse(fs.readFileSync(path.join(__dirname,'../source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn}),copy=v=>JSON.parse(JSON.stringify(v));
 function fixture(){
   const p=fixtures.composedProject();p.version=7;p.worlds=[];const room=p.scenes[0];

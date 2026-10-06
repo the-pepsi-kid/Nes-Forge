@@ -1,33 +1,22 @@
-# NES Forge 2.0.0-alpha.1 — audio-correction-1 handoff
+# NES Forge 2.0.0-alpha.2 — mobile-playback-1 handoff
 
-## Delivered scope
+D053 follows owner mobile-lag feedback, the supplied screen recording, Cricket Dream 5G / Chrome identification, and “Ok, address them.” Scope: correct bounded host scheduling, reduce native capture allocation overhead while preserving exact completed-frame data, and surface Play diagnostics. No release promotion or broader feature work is included.
 
-D052 implements the owner-authorized two-defect audio correction: safe event-stream pointer carry through 128-row music/SFX patterns and channel-correct triangle pitch. Release identity changes to 2.0.0-alpha.1 while project schema remains 12. No separate Audio representation or additional feature tranche is introduced.
+1. Read CURRENT_BASELINE.md and docs/MOBILE_PLAYBACK.md.
+2. Verify build-inputs.json and test-results/candidate/Summary.json against the actual HTML. All 921 previous cases and the new mobile suite are required.
+3. Read checkpoints/mobile-playback-1-clean-extraction/Reproduction.json and the three fresh browser reports. Node VM timing and synthetic clocks are not browser/phone results.
+4. Use docs/MOBILE_PLAYBACK_CHECKLIST.txt for same-ROM old/new desktop and phone comparisons. Record phone/OS/browser, route, settings and the visible diagnostic counters. Mobile speed improvement and listening remain unverified until that review.
+5. Preserve the exact alpha.1 reference in baseline/, its reports under checkpoints/audio-correction-1-reference/, and its historical docs. The audio-correction regressions remain mandatory.
 
-Open mainline/NES_Forge_2.0.0-alpha.1.html. Follow docs/AUDIO_CORRECTION_CHECKLIST.txt with the two editable examples and generated ROMs in examples/Audio_Correction_2.0.0-alpha.1/. Old generated audio ROMs retain their old code; load the project and build again to receive a fix.
+From the application root:
 
-## Evidence to inspect
+```sh
+python3 tools/bundle.py --check
+node tests/run_candidate.cjs
+```
 
-- source-manifest.json and build-inputs.json identify the ordered sources and exact bundled HTML.
-- test-results/candidate/Summary.json records the complete gate against unchanged candidate bytes, all 895 retained cases and the new audio-correction suite.
-- checkpoints/audio-correction-1-clean-extraction/Reproduction.json ties the result to an independently extracted staging ZIP and verified payloads.
-- Three test-results/browser-* reports separately record actual browser availability and executed checks. No speaker/device acceptance is inferred from VM or register tests.
-- baseline/NES_Forge_1.9.0_RE_Runtime.html and checkpoints/re-runtime-1-reference/ preserve the predecessor; prior current documents are in docs/history/re-runtime-1/.
+For a new clean input archive, use `python3 tools/package_release.py --stage --output /absolute/path/mobile-playback-staging.zip`, extract to a fresh directory, verify its SHA256SUMS.txt, and run the full gate there. Final packaging rejects stale source/docs/test provenance, missing cases, stale browser hashes and absent clean-extraction proof. Test execution rewrites reports; use a disposable copy to retain delivered evidence.
 
-Regressions exercise dense music/SFX boundaries, order/loop and repeated-start behavior, and pulse/triangle timing through actual emitted routines and generated runtimes. The exact suite report gives the cases and scope; package examples are review inputs, not listening evidence.
+The scheduler's catch-up budget is checked between indivisible frames, with the existing frame safety guard. A truly overloaded device can still slow down; backlog/discard counters remain honest. Capture uses a transient CHR-ROM cache that compares current bytes and source mapping. CHR-RAM stays on the original live path; no capture, history or raster behavior is disabled.
 
-## Reproduce
-
-    python3 tools/bundle.py --check
-    node tests/run_candidate.cjs
-    node tools/build_audio_correction_examples.cjs
-
-The example generator intentionally rewrites only current examples. Run it in a disposable copy for reproduction so the delivered provenance stays intact. All historical fixtures, reports and golden ROMs are preserved. For release reproduction, use the staging option documented in TEST_POLICY.md.
-
-## Protected behavior and remaining work
-
-Keep schema 12, the five gameplay templates, 12-actor and 64-persistent-byte bounds, native reference validation, Door Option B and partial single-room editable recovery. Retain emulator/capture, CHR, Save As, input, undo and RE lifecycle behavior. Audio-off legacy oracles must remain unchanged.
-
-Broader Studio preview fidelity, imports/export semantics, the full audio workshop, mobile A/V lag and actual listening/device checks remain separate open work. Triangle notes C0–G#0 saturate at the hardware timer limit; this correction does not redesign low-note policy or browser preview. RE audio is still one limited decoder plus general observations. Sol Games, wallets, hosted Worlds, new graphics/map recovery and hardware are not implemented here.
-
-Owner review determines acceptance of this candidate. The next work after this correction is the supported audio workflow/listening closeout under ROADMAP.md, not automatic release promotion.
+Next: owner review of the bounded mobile correction, then the supported audio author/import/edit/build/listen/save/reopen workshop. Native audio-driver recovery follows that foundation. RE, ASM portability, hosted/wallet and tech-deck plans retain separate scope. No GitHub destination or publication is implied.

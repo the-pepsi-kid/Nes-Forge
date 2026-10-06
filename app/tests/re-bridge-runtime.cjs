@@ -5,7 +5,7 @@
 // This uses the bundled CPU/PPU/APU and a mock DOM, not browser or hardware QA.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),zlib=require('node:zlib');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const fixturePath=path.join(root,'examples/RE_Bridge_Room/Bridge_Room.nes'),original=Uint8Array.from(fs.readFileSync(fixturePath));
 const digest=data=>crypto.createHash('sha256').update(data).digest('hex'),originalHash=digest(original),plain=value=>JSON.parse(JSON.stringify(value));
 // Authored fixture expectations, deliberately independent of REBridge output.

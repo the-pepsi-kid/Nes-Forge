@@ -1,12 +1,18 @@
 # NES Forge — 2.0 Alpha Development Plan
 
-Revision: October 4, 2026 (America/Denver). Aligned with the consolidated execution roadmap after the owner's step-back review. Audio correctness and workflow completion precede further recovery; Sol Games is a later architectural reference only. This is the bounded working plan. The owner authorized the first audio correction, now implemented in candidate 2.0.0-alpha.1 / audio-correction-1. Release promotion is not claimed.
+Revision: October 5, 2026 (America/Denver). Aligned with the consolidated execution roadmap after the owner's step-back review. Audio correctness and workflow completion precede further recovery; Sol Games is a later architectural reference only. This is the bounded working plan. The audio correction is implemented in the preserved 2.0.0-alpha.1 / audio-correction-1 reference. Owner-directed mobile playback correction is now active as 2.0.0-alpha.2 / mobile-playback-1. Release promotion is not claimed.
 
-## Active candidate
+## Current mobile correction
+
+Owner direction October 5: “Ok, address them,” after mobile lag feedback and Cricket Dream 5G / Chrome identification. Candidate **2.0.0-alpha.2 / mobile-playback-1**, schema 12, addresses bounded frame scheduling, exact native capture work and a Play performance readout. CPU/APU/PPU behavior, capture fidelity, audio queue policy and desktop contracts remain protected.
+
+Retain all 921 existing tests / 42 suites and add the mobile regression suite. Full clean-extraction results and exact source identity are packaged separately from blocked browser launches, phone testing and listening. Use `docs/MOBILE_PLAYBACK_CHECKLIST.txt` to compare the same unchanged ROM on old/new HTML. The owner's recorded app hash was not visible; phone improvement is pending measurement. This correction is phase 1 reliability work, followed by the supported audio workflow workshop, then native audio-driver recovery.
+
+## Preserved audio correction candidate
 
 **2.0.0-alpha.1 / audio-correction-1**, schema 12. HTML SHA-256 `4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0`. Dense music/SFX cursor advancement and channel-correct triangle timers are implemented. The required gate retains 895 cases and adds a focused audio-correction suite, for 42 suites. Actual outcomes and exact test provenance belong to the candidate reports and clean-extraction proof.
 
-Review `docs/AUDIO_CORRECTION_CHECKLIST.txt` and the two projects under `examples/Audio_Correction_2.0.0-alpha.1/`. Automated CPU/APU execution does not establish speaker output, independent-emulator acceptance or mobile performance. Owner acceptance is pending. The next implementation scope is the audio workflow/listening workshop after this bounded correction review; new native RE adapters remain later.
+Review `docs/AUDIO_CORRECTION_CHECKLIST.txt` and the two projects under `examples/Audio_Correction_2.0.0-alpha.1/`. Automated CPU/APU execution does not establish speaker output, independent-emulator acceptance or mobile performance. Owner acceptance is pending. The next implementation scope is the audio workflow/listening workshop after the current bounded mobile correction review; new native RE adapters remain later.
 
 ## Starting reference
 
@@ -42,9 +48,9 @@ Gameplay Expansion (1.9.1) and Behavior UX (1.9.2) remain deferred. Audio workfl
 
 ## Immediate actions
 
-**Current candidate boundary:** correct the two reproduced audio defects first, with focused regressions and a complete clean-extraction gate. Package this as a review candidate before broadening into preview redesign, importer changes, new decoders or hosted functionality. Additional defects enter only after reproduction and explicit scope recording. The subsequent audio workflow candidate supplies the listening/workshop evidence; the whole audio phase is not claimed complete by two code fixes.
+**Current candidate boundary:** correct mobile frame scheduling, reduce exact native-capture overhead and add Play diagnostics, with focused regressions and a complete clean-extraction gate. Retain the two implemented audio corrections and their evidence. Package this as a review candidate before broadening into preview redesign, importer changes, new decoders or hosted functionality. Additional defects enter only after reproduction and explicit scope recording. The subsequent audio workflow candidate supplies the listening/workshop evidence; the whole audio phase is not claimed complete by the bounded code corrections.
 
-1. Audit and reproduce audio correctness differences across Audio Studio preview, canonical data, compiled ROM execution and RE observations. Correct confirmed defects in a bounded candidate, preserving the existing services and native data model.
+1. Review the bounded mobile playback correction on the reported phone and preserve the implemented audio fixes. Continue to distinguish audio correctness across Studio preview, canonical data, compiled ROM execution and RE observations; scope any additional reproduced defects explicitly.
 2. Close the supported author/import → edit → preview → build → audible playback → save/reopen workflow with a short repeatable audio workshop. Exercise the existing MIDI/MusicXML paths and music/SFX interaction. Record browser/mobile listening separately from automated register evidence.
 3. Align RE audio evidence and recovery with that same canonical Audio model. Preserve the bounded Bridge Room control, then select an independent native audio-driver input and define a reusable adapter contract. Unknown drivers remain inspectable. Do not wait for graphics/map recovery to do this work.
 4. Resume additional graphics/map recovery after the audio tranche is accepted, retaining the cross-engine requirements below. Add debugger features only where a concrete audio/recovery experiment needs them.
@@ -57,18 +63,18 @@ The re-runtime-1 R1–R6 review remains open and may overlap this work; prior re
 
 | Order | Deliverable | Acceptance evidence |
 | --- | --- | --- |
-| 1 — Audio correctness | Resolve reproduced note/timing/envelope, sequence-length or music/SFX differences between supported preview behavior and emitted ROM behavior. Document intentional limitations. | Expected notes and event timing are independently specified; compare canonical records, emitted APU behavior and listening. Exercise Pulse 1, Pulse 2, Triangle and Noise, order/loop boundaries and gameplay sound triggers. |
-| 2 — Complete audio workflow | Author a short song and SFX; import supported MIDI and MusicXML; make an edit, build, play and save/reopen. Update the manual/workshop to match exact controls. | Native audio IDs/references survive persistence and undo; unsupported input fails explicitly. Listen in Forge and an independent emulator. Define any notation/performance export subset before claiming round-trip interchange. |
-| 3 — Host playback alignment | Reproduce reported mobile A/V lag and verify audio activation, mute, pause/resume and frame-history behavior. | Record phone/OS/browser and ROM; distinguish emulation speed, host buffering and rendering/input delay. Do not infer a mobile performance pass from desktop or register-only tests. |
-| 4 — RE audio alignment | Route supported decoded native notes/instruments/music/SFX into the existing canonical Audio model through the shared recovery boundary. | Keep register observations, inferred events and verified native-driver decoding distinct. Preview, explicit import, useful edit, save/reopen and rebuilt listening must work for the declared driver subset. |
+| Implemented reference — Audio correctness | Resolve reproduced note/timing/envelope, sequence-length or music/SFX differences between supported preview behavior and emitted ROM behavior. Document intentional limitations. | Expected notes and event timing are independently specified; compare canonical records, emitted APU behavior and listening. Exercise Pulse 1, Pulse 2, Triangle and Noise, order/loop boundaries and gameplay sound triggers. |
+| Current — Host playback alignment | Reproduce reported mobile A/V lag and verify audio activation, mute, pause/resume and frame-history behavior. | Record phone/OS/browser and ROM; distinguish emulation speed, host buffering and rendering/input delay. Do not infer a mobile performance pass from desktop or register-only tests. |
+| Next — Complete audio workflow | Author a short song and SFX; import supported MIDI and MusicXML; make an edit, build, play and save/reopen. Update the manual/workshop to match exact controls. | Native audio IDs/references survive persistence and undo; unsupported input fails explicitly. Listen in Forge and an independent emulator. Define any notation/performance export subset before claiming round-trip interchange. |
+| Then — RE audio alignment | Route supported decoded native notes/instruments/music/SFX into the existing canonical Audio model through the shared recovery boundary. | Keep register observations, inferred events and verified native-driver decoding distinct. Preview, explicit import, useful edit, save/reopen and rebuilt listening must work for the declared driver subset. |
 
 Authored audio, MIDI/MusicXML imports and verified RE recovery converge on the same tracker/instrument/SFX data. No second song model is introduced. Raw APU-write logs remain evidence; they are not automatically editable songs or source-driver recovery. Unsupported effects/channels must retain evidence and clear diagnostics rather than disappearing.
 
-The retained `audio-runtime180` suite reports 17/17 cases against the exact starting HTML and includes mock-DOM/bundled-emulator evidence. It does not certify browser speaker output. The next executable candidate requires focused regressions for each reproduced defect, the complete clean-extraction gate, exact hashes and separately reported listening/device evidence. The correction candidate has its own full gate and does not replace the frozen application reports.
+The retained `audio-runtime180` suite reports 17/17 cases against the exact starting HTML and includes mock-DOM/bundled-emulator evidence. It does not certify browser speaker output. The current executable candidate requires focused regressions for each reproduced defect, the complete clean-extraction gate, exact hashes and separately reported listening/device evidence. The correction candidate has its own full gate and does not replace the frozen application reports.
 
 ### October 2 focused audit — first correction targets
 
-These findings concern the exact starting reference above. They supplement, rather than rewrite, its retained 17/17 audio report and 895/895 overall report. The active audio-correction candidate implements these two corrections with separate reports; the findings and old reference remain preserved.
+These findings concern the exact starting reference above. They supplement, rather than rewrite, its retained 17/17 audio report and 895/895 overall report. The preserved audio-correction candidate implemented these two corrections with separate reports; the findings and old reference remain preserved.
 
 | Finding | Evidence and scope | Required correction proof |
 | --- | --- | --- |

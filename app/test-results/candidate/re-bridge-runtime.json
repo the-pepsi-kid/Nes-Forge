@@ -1,7 +1,7 @@
 {
   "suite": "re-bridge-runtime",
-  "html": "NES_Forge_2.0.0-alpha.1.html",
-  "htmlSha256": "4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0",
+  "html": "NES_Forge_2.0.0-alpha.2.html",
+  "htmlSha256": "27c436d1b7356fc8d2ce4c22396a0b768c4c2f3e6b2754f1be14e5db00389782",
   "scope": "Independent authored source ROM versus recovered canonical project and rebuilt actual 6502 CPU/PPU/APU execution; collision, CHR and tracker edits; ProjectStore JSON round trip. Mock DOM, not browser or hardware acceptance.",
   "passed": 9,
   "failed": 0,
@@ -65,7 +65,7 @@
       "spriteTiles": 256,
       "musicRows": 16,
       "sfxRecovered": 0,
-      "projectSha256": "af8305b17463301fc22bcdd4cf5e137661f8cd2103569febb57a301b0af89f22"
+      "projectSha256": "ef0a291b6d2ad03f0e4db98ffb22aa927d6fa0df93a47701e9dacaa8e50f6a20"
     },
     "rebuiltBoot": {
       "x": 40,
@@ -295,7 +295,7 @@
       "romSha256": "ced59cebeab253b5c75e34c86a50cbf5b555ca0cf39cfa7deeba80517486a5d1"
     },
     "projectRoundTrip": {
-      "jsonSha256": "af8305b17463301fc22bcdd4cf5e137661f8cd2103569febb57a301b0af89f22",
+      "jsonSha256": "ef0a291b6d2ad03f0e4db98ffb22aa927d6fa0df93a47701e9dacaa8e50f6a20",
       "romSha256": "6dedaddb055e42f2e2cf3d1d77742ffbf19bb6533ef813dd2886d7e365ca069c",
       "jsonBytes": 217861
     }
@@ -304,47 +304,47 @@
     {
       "name": "Independent source ROM is metadata-free and executes its native collision and pulse music",
       "passed": true,
-      "milliseconds": 10384
+      "milliseconds": 5871
     },
     {
       "name": "ROM recovery materializes every authored collision cell, graphic tile, palette and music row",
       "passed": true,
-      "milliseconds": 908
+      "milliseconds": 666
     },
     {
       "name": "Imported project rebuilds and its displayed scene pixels equal the original completed frame",
       "passed": true,
-      "milliseconds": 1063
+      "milliseconds": 778
     },
     {
       "name": "Rebuilt 6502 engine honors recovered wall, floor and matching left/right movement",
       "passed": true,
-      "milliseconds": 10478
+      "milliseconds": 6236
     },
     {
       "name": "Original and rebuilt programs emit the complete authored pulse-note sequence through the APU",
       "passed": true,
-      "milliseconds": 28772
+      "milliseconds": 16628
     },
     {
       "name": "Canonical wall-collision edit changes emitted collision and lets actual 6502 player cross the wall",
       "passed": true,
-      "milliseconds": 9251
+      "milliseconds": 5076
     },
     {
       "name": "Canonical CHR pixel edit reaches rebuilt pattern bytes and the displayed 6502 framebuffer",
       "passed": true,
-      "milliseconds": 1048
+      "milliseconds": 756
     },
     {
       "name": "Canonical tracker-note edit changes the actual APU timer from C4 to C5",
       "passed": true,
-      "milliseconds": 1024
+      "milliseconds": 776
     },
     {
       "name": "Authoritative ProjectStore JSON save/reload preserves canonical recovery and deterministic rebuilt bytes",
       "passed": true,
-      "milliseconds": 704
+      "milliseconds": 643
     }
   ]
 }

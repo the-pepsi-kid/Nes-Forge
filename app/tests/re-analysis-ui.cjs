@@ -3,7 +3,7 @@
 // Bundled application commands and DOM state, not browser layout/audio claims.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,'mainline/NES_Forge_1.9.0_Gameplay_Core.html'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn}),clone=value=>JSON.parse(JSON.stringify(value));
 const binary=()=>new Uint8Array([0xa9,1,0x8d,0,2,0xd0,0xf9,0x60,0xff,0x4c,0,0x80]);
 const file=(name='raw.bin',data=binary())=>({name,size:data.length,arrayBuffer:async()=>data.slice().buffer});
