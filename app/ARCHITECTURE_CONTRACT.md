@@ -1,5 +1,10 @@
 # Architecture contract — 2.0 Alpha continuation and preserved boundaries
 
+
+## D054 — Mobile Audio Entry boundary
+
+The alpha.3 correction adds native tracker-cell and envelope controls through the existing Audio UI service. They edit the same `S.patterns` and `S.instruments` records, use established snapshot/notify ownership and preserve untouched effect fields. Validate complete edits before mutation; never redirect an unfinished draft to a different playback row. Preserve native text/select focus, desktop piano shortcuts and emulator input isolation. No second Audio model, runtime/compiler change, schema change or emulator rewrite is included. The D053 playback implementation is the preserved reference for this correction.
+
 D053 changes host scheduling and capture implementation work, preserving the same CPU/APU/PPU behavior and exact completed-frame capture contract. A transient, per-trace CHR-ROM lookup stays outside serialized state and verifies source bytes/mapping. Play diagnostics observe existing counters; they do not start emulation or audio. Schema 12 and generated runtime/compiler contracts remain unchanged.
 
 The audio-correction-1 continuation changes only AudioCompiler/AudioEngine runtime correctness and release metadata. The event-stream cursor retains existing zero-page allocation; pointer carry supports all accepted rows. Triangle has a dedicated timer table. Project/Audio schema and service ownership remain unchanged.

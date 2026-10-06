@@ -1,16 +1,14 @@
-# NES Forge 2.0.0-alpha.2 — Mobile Playback
+# NES Forge 2.0.0-alpha.3 — Mobile Audio Entry
 
-Candidate **mobile-playback-1**, schema **12**. Open `mainline/NES_Forge_2.0.0-alpha.2.html`. This review candidate addresses the scheduling and capture overhead found while investigating mobile gameplay/audio lag. The owner's test device is Cricket Dream 5G with Chrome; performance on that physical phone remains to be measured.
+Candidate **mobile-audio-entry-1**, schema **12**. Open `mainline/NES_Forge_2.0.0-alpha.3.html`. This bounded follow-up addresses the owner's report that audio note values cannot be entered on mobile. The canvas tracker previously selected cells on a tap but required physical piano-key shortcuts to enter notes.
 
-The scheduler retains unfinished frame time and uses a bounded catch-up budget, instead of discarding it after each short callback. Native CHR-ROM capture reuses unchanged tile records within each frame while checking their bytes, banks and source identity. Capture remains active and preserves the exact completed frame. A compact performance readout in Play shows FPS, frame cost, queued audio, gaps/resyncs, pending emulation time and overload timing discards.
+Audio Studio now supplies native controls for choosing a tracker cell and editing its note, octave, instrument and volume. Explicit Apply, Clear and Cut actions use the existing canonical tracker data. Native envelope step/value controls make instrument volume and arpeggio values editable without a mouse drag. Desktop tracker shortcuts and envelope drawing remain available. These controls do not introduce another song model or change the audio compiler, preview engine or emulator.
 
-Start with `docs/MOBILE_PLAYBACK_CHECKLIST.txt`; use the SAME ROM in old and new HTML when comparing. `docs/MOBILE_PLAYBACK.md` explains the changes and measured evidence. The older audio review projects and their alpha.1 ROMs remain included, alongside current alpha.2 examples. A rebuilt project's release metadata can change ROM bytes; use one unchanged ROM for a playback comparison.
+Start with `docs/MOBILE_AUDIO_ENTRY_CHECKLIST.txt`; `docs/MOBILE_AUDIO_ENTRY.md` explains the controls and evidence limits. The mobile playback changes from alpha.2 remain included, with phone speed/listening acceptance still pending under `docs/MOBILE_PLAYBACK_CHECKLIST.txt`. This authoring fix does not itself establish improved gameplay performance.
 
-All **921 retained cases across 42 suites** plus `mobile-playback200` are mandatory. Actual full-gate totals and exact provenance are in `test-results/candidate/Summary.json`; clean-extraction proof is in `checkpoints/mobile-playback-1-clean-extraction/Reproduction.json`. The three browser reports distinguish passed checks from blocked launch. Automated timings are not phone FPS or speaker acceptance.
+All **940 retained cases across 43 suites** plus `mobile-audio-entry200` are mandatory. Actual measured totals and unchanged source identity are in `test-results/candidate/Summary.json`; clean-extraction proof is in `checkpoints/mobile-audio-entry-1-clean-extraction/Reproduction.json`. Browser reports are separate from VM checks; a blocked launch executes zero checks. Physical Android keyboard/picker behavior requires the short owner review.
 
-The prior audio correction remains included: dense music/SFX stream advancement and channel-correct triangle timers. Its frozen HTML is `baseline/NES_Forge_2.0.0-alpha.1_Audio_Correction.html`, SHA-256 `4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0`. Its 921/921 result, documents and examples remain tied to those original bytes. Neither candidate is promoted by this follow-up.
-
-CPU/APU/PPU instruction and rendering semantics, the audio queue policy, project schema, generated Audio/Gameplay compilers and protected authoring behavior remain unchanged. The scope is host scheduling, capture work and diagnostics. The roadmap remains audio reliability, supported native audio recovery, then further resource recovery; no hosted/wallet/ASM or general RE expansion is included.
+The exact alpha.2 reference is `baseline/NES_Forge_2.0.0-alpha.2_Mobile_Playback.html`, SHA-256 `27c436d1b7356fc8d2ce4c22396a0b768c4c2f3e6b2754f1be14e5db00389782`. Its 940/940 results and original documents are preserved under `checkpoints/mobile-playback-1-reference/` and `docs/history/mobile-playback-1/`. The earlier audio corrections and their references remain preserved too. No candidate is promoted by this follow-up.
 
 ## Analyze a ROM or raw 6502 binary
 
@@ -61,7 +59,7 @@ python3 tools/bundle.py --check
 node tests/run_all.cjs
 ```
 
-Use `build-inputs.json` for this HTML identity, `test-results/candidate/Summary.json` for measured results and test provenance, and `checkpoints/mobile-playback-1-clean-extraction/Reproduction.json` for clean-extraction proof. All 42 prior suites and their 921 cases remain required, alongside `mobile-playback200`, for 43 suites on the same unchanged candidate. Historical results remain attached to their original HTML.
+Use `build-inputs.json` for this HTML identity, `test-results/candidate/Summary.json` for measured results and test provenance, and `checkpoints/mobile-audio-entry-1-clean-extraction/Reproduction.json` for clean-extraction proof. All 43 prior suites and their 940 cases remain required, alongside `mobile-audio-entry200`, for 44 suites on the same unchanged candidate. Historical results remain attached to their original HTML.
 
 Browser walkthrough remains pending because the available Playwright Chromium executable is missing. Automated VM and bundled-emulator checks do not establish native picker behavior, visible browser layout, audible speakers, physical controllers or independent NES hardware timing. See `docs/BROWSER_QA.md`.
 

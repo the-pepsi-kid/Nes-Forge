@@ -1,0 +1,116 @@
+{
+  "suite": "mobile-audio-entry200",
+  "html": "NES_Forge_2.0.0-alpha.2_Mobile_Playback.html",
+  "htmlSha256": "27c436d1b7356fc8d2ce4c22396a0b768c4c2f3e6b2754f1be14e5db00389782",
+  "scope": "Complete standalone application and real registered Audio Studio handlers in a test-local DOM/event adapter; canonical authoring, native-input isolation, canvas/native envelope synchronization and persistence contracts. Mock AudioContext sink only. Does not establish mobile keyboard activation, browser layout, trusted pointer behavior, audible output or hardware acceptance.",
+  "passed": 3,
+  "failed": 15,
+  "total": 18,
+  "results": [
+    {
+      "name": "Desktop tracker piano keys, navigation, cut and clear still use the selected instrument",
+      "passed": true,
+      "milliseconds": 425
+    },
+    {
+      "name": "Desktop repeated keys and unsupported DPCM do not add unintended note edits",
+      "passed": true,
+      "milliseconds": 368
+    },
+    {
+      "name": "Existing instrument name and numeric fields keep native typing without tracker edits",
+      "passed": true,
+      "milliseconds": 367
+    },
+    {
+      "name": "Audio Studio exposes native note, octave, instrument and volume controls without a physical keyboard",
+      "passed": false,
+      "milliseconds": 346,
+      "error": "AssertionError [ERR_ASSERTION]: audCellNote must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:84:116\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "Mobile note entry changes exactly the chosen order, channel and row while retaining existing effect data",
+      "passed": false,
+      "milliseconds": 356,
+      "error": "AssertionError [ERR_ASSERTION]: audCellOrder must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at fields (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:62:73)\n    at address (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:64:34)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:90:117\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)"
+    },
+    {
+      "name": "Mobile clear and cut preserve volume and effect fields and create one undoable edit each",
+      "passed": false,
+      "milliseconds": 338,
+      "error": "AssertionError [ERR_ASSERTION]: audCellCut must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at action (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:55:11)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:96:2\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "Mobile entry accepts canonical note endpoints and blank inherited instrument and volume values",
+      "passed": false,
+      "milliseconds": 337,
+      "error": "AssertionError [ERR_ASSERTION]: audCellNote must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at fields (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:62:73)\n    at draft (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:63:29)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:100:18\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)"
+    },
+    {
+      "name": "Malformed mobile cell fields are rejected atomically instead of coercing or partially saving",
+      "passed": false,
+      "milliseconds": 349,
+      "error": "AssertionError [ERR_ASSERTION]: audCellNote must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at fields (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:62:73)\n    at draft (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:63:29)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:105:19\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)"
+    },
+    {
+      "name": "Invalid order, row and channel addresses cannot write another cell or add history",
+      "passed": false,
+      "milliseconds": 341,
+      "error": "AssertionError [ERR_ASSERTION]: audCellNote must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at fields (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:62:73)\n    at draft (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:63:29)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:110:98\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)"
+    },
+    {
+      "name": "Mobile entry retains the no-instrument and unsupported DPCM boundaries",
+      "passed": false,
+      "milliseconds": 436,
+      "error": "AssertionError [ERR_ASSERTION]: audCellNote must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at fields (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:62:73)\n    at draft (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:63:29)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:118:73\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)"
+    },
+    {
+      "name": "A mobile cell edit round-trips through undo, redo and the existing portable project format",
+      "passed": false,
+      "milliseconds": 315,
+      "error": "AssertionError [ERR_ASSERTION]: audCellNote must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at fields (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:62:73)\n    at draft (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:63:29)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:122:39\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)"
+    },
+    {
+      "name": "Ordinary Audio sidebar refreshes preserve an unfinished native draft without mutating the project",
+      "passed": false,
+      "milliseconds": 351,
+      "error": "AssertionError [ERR_ASSERTION]: audCellNote must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at fields (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:62:73)\n    at draft (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:63:29)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:126:36\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)"
+    },
+    {
+      "name": "Changing selected cells loads the new values and cannot apply an old draft to the old address",
+      "passed": false,
+      "milliseconds": 397,
+      "error": "AssertionError [ERR_ASSERTION]: audCellNote must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at fields (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:62:73)\n    at draft (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:63:29)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:130:95\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)"
+    },
+    {
+      "name": "Native mobile fields keep typing, editing shortcuts and arrows isolated from tracker and emulator actions",
+      "passed": false,
+      "milliseconds": 347,
+      "error": "AssertionError [ERR_ASSERTION]: audCellRow must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:136:12\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "Focused Audio entry buttons contain tracker hotkeys without suppressing normal button activation keys",
+      "passed": false,
+      "milliseconds": 369,
+      "error": "AssertionError [ERR_ASSERTION]: audCellApply must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:142:125\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47"
+    },
+    {
+      "name": "Browser preview playback prevents mobile edits from following a moving row",
+      "passed": false,
+      "milliseconds": 358,
+      "error": "AssertionError [ERR_ASSERTION]: audCellNote must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at fields (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:62:73)\n    at draft (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:63:29)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:146:18\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)"
+    },
+    {
+      "name": "Native envelope values update only the chosen existing instrument step and round-trip with history",
+      "passed": false,
+      "milliseconds": 338,
+      "error": "AssertionError [ERR_ASSERTION]: audEnvKind must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at fields (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:62:73)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:152:39\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    },
+    {
+      "name": "Malformed envelope values or step addresses do not clamp, extend arrays or create history",
+      "passed": false,
+      "milliseconds": 340,
+      "error": "AssertionError [ERR_ASSERTION]: audEnvKind must be an actual Audio Studio control\n    at control (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:39:9)\n    at fields (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:62:73)\n    at /workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:163:19\n    at Object.<anonymous> (/workspace/scratch/eed3f92a7165/mobile-note-entry-2026-10-06/NES_Forge/app/tests/mobile-audio-entry200.cjs:167:74)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)"
+    }
+  ]
+}

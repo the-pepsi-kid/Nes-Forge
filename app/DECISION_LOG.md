@@ -414,3 +414,14 @@ Retain all 895 preexisting cases and add independent compiled-runtime boundary/p
 **Decision:** deliver 2.0.0-alpha.2 / mobile-playback-1, schema 12. Retain frame debt within bounded catch-up safeguards, reduce duplicate native capture allocations with exact-data parity, and add a throttled Play performance readout. Do not change CPU/APU/PPU semantics, audio queue depth, generated audio/gameplay code, capture timing, project format, input isolation, Save As, CHR or undo contracts.
 
 **Evidence:** preserve the alpha.1 reference and all 921 existing checks; add independent timing, capture and diagnostic regressions; require clean-extraction gate and exact packaging. Synthetic clocks, Node profiling, recorder measurements, real browsers, listening and physical devices are separate evidence categories. Browser blockage and device testing remain explicit. No release promotion, source publication or later-feature authorization follows from this correction.
+
+
+## D054 — bounded Mobile Audio Entry correction (October 6, 2026, America/Denver)
+
+**Scope basis:** after delivery of alpha.2, the owner reported: “On mobile i can't input values for audio notes for the instruments.” Treat this as a defect follow-up within the active audio/reliability work.
+
+**Finding:** tracker cells are drawn on a canvas; tapping selects a cell but insertion requires physical piano-key events. Instrument volume/arpeggio envelopes separately depend on mouse dragging. Native fields are needed for touch authoring.
+
+**Decision:** deliver 2.0.0-alpha.3 / mobile-audio-entry-1, schema 12, with native row/order/channel and note/octave/instrument/volume controls plus existing envelope step/value editing. Use canonical records, validate before mutation and preserve undo/persistence, untouched effect data and desktop shortcuts. Prevent playback cursor movement or form focus from redirecting edits or triggering emulator/site commands. Keep compiler, audio engine, scheduling, capture and input services unchanged.
+
+**Evidence:** retain exact alpha.2 source/reports and all 940 tests; add focused authoring regressions and run all 44 suites from one unchanged clean extraction. Keep browser/phone acceptance explicit and separate from VM tests. The existing mobile playback review and full audio workshop remain open. No promotion or later milestone follows automatically.

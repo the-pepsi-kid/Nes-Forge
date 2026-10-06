@@ -1,0 +1,34 @@
+PASS Desktop tracker piano keys, navigation, cut and clear still use the selected instrument
+PASS Desktop repeated keys and unsupported DPCM do not add unintended note edits
+PASS Existing instrument name and numeric fields keep native typing without tracker edits
+FAIL Audio Studio exposes native note, octave, instrument and volume controls without a physical keyboard
+audCellNote must be an actual Audio Studio control
+FAIL Mobile note entry changes exactly the chosen order, channel and row while retaining existing effect data
+audCellOrder must be an actual Audio Studio control
+FAIL Mobile clear and cut preserve volume and effect fields and create one undoable edit each
+audCellCut must be an actual Audio Studio control
+FAIL Mobile entry accepts canonical note endpoints and blank inherited instrument and volume values
+audCellNote must be an actual Audio Studio control
+FAIL Malformed mobile cell fields are rejected atomically instead of coercing or partially saving
+audCellNote must be an actual Audio Studio control
+FAIL Invalid order, row and channel addresses cannot write another cell or add history
+audCellNote must be an actual Audio Studio control
+FAIL Mobile entry retains the no-instrument and unsupported DPCM boundaries
+audCellNote must be an actual Audio Studio control
+FAIL A mobile cell edit round-trips through undo, redo and the existing portable project format
+audCellNote must be an actual Audio Studio control
+FAIL Ordinary Audio sidebar refreshes preserve an unfinished native draft without mutating the project
+audCellNote must be an actual Audio Studio control
+FAIL Changing selected cells loads the new values and cannot apply an old draft to the old address
+audCellNote must be an actual Audio Studio control
+FAIL Native mobile fields keep typing, editing shortcuts and arrows isolated from tracker and emulator actions
+audCellRow must be an actual Audio Studio control
+FAIL Focused Audio entry buttons contain tracker hotkeys without suppressing normal button activation keys
+audCellApply must be an actual Audio Studio control
+FAIL Browser preview playback prevents mobile edits from following a moving row
+audCellNote must be an actual Audio Studio control
+FAIL Native envelope values update only the chosen existing instrument step and round-trip with history
+audEnvKind must be an actual Audio Studio control
+FAIL Malformed envelope values or step addresses do not clamp, extend arrays or create history
+audEnvKind must be an actual Audio Studio control
+3/18 passed

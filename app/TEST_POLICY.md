@@ -1,3 +1,11 @@
+# Test and release policy — 2.0.0-alpha.3 / mobile-audio-entry-1
+
+Retain all 940 prior cases across 43 suites and add `mobile-audio-entry200`, for 44 mandatory suites. Freeze source, docs, examples and tests before running the complete gate from a verified clean extraction. Preserve every historical oracle; reverse only the exact declared UI/release delta before checking older source identities. Runtime tests execute the actual candidate HTML.
+
+Require targeted touch-entry/native-field event tests, canonical data preservation, invalid-edit atomicity, undo/save/reopen and desktop/input isolation. Browser automation and physical-phone keyboard/picker/layout acceptance are separate. Three fresh browser runners must report passed checks or a blocked launch with zero checks. Final packaging checks report hashes, exact provenance and `checkpoints/mobile-audio-entry-1-clean-extraction/Reproduction.json`.
+
+## Preserved prior policy history
+
 # Test policy — 2.0.0-alpha.2 Mobile Playback
 
 The mandatory gate is 43 suites: all 42 predecessor suites / 921 cases, unchanged in count, plus independently measured mobile-playback200 cases. No skipped cases, filters, injected missing modules or stale reports. Measured totals belong to test-results/candidate/Summary.json. Exact source guards reverse only the declared mobile delta and then the previous declared audio delta to the pinned historical oracles; old hashes are not regenerated.

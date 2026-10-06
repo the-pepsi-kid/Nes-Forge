@@ -1,0 +1,19 @@
+PASS Desktop tracker piano keys, navigation, cut and clear still use the selected instrument
+PASS Desktop repeated keys and unsupported DPCM do not add unintended note edits
+PASS Existing instrument name and numeric fields keep native typing without tracker edits
+PASS Audio Studio exposes native note, octave, instrument and volume controls without a physical keyboard
+PASS Mobile note entry changes exactly the chosen order, channel and row while retaining existing effect data
+PASS Mobile clear and cut preserve volume and effect fields and create one undoable edit each
+PASS Mobile entry accepts canonical note endpoints and blank inherited instrument and volume values
+PASS Malformed mobile cell fields are rejected atomically instead of coercing or partially saving
+PASS Invalid order, row and channel addresses cannot write another cell or add history
+PASS Mobile entry retains the no-instrument and unsupported DPCM boundaries
+PASS A mobile cell edit round-trips through undo, redo and the existing portable project format
+PASS Ordinary Audio sidebar refreshes preserve an unfinished native draft without mutating the project
+PASS Changing selected cells loads the new values and cannot apply an old draft to the old address
+PASS Native mobile fields keep typing, editing shortcuts and arrows isolated from tracker and emulator actions
+PASS Focused Audio entry buttons contain tracker hotkeys without suppressing normal button activation keys
+PASS Browser preview playback prevents mobile edits from following a moving row
+PASS Native envelope values update only the chosen existing instrument step and round-trip with history
+PASS Malformed envelope values or step addresses do not clamp, extend arrays or create history
+18/18 passed

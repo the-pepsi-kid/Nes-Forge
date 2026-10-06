@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<title>NES Forge 2.0.0-alpha.2 — Mobile Playback</title>
+<title>NES Forge 2.0.0-alpha.3 — Mobile Audio Entry</title>
 <style>
 :root{--bg:#0c0c10;--bg2:#101018;--bg3:#16161e;--bdr:#252530;--bdr2:#3a3a4a;--txt:#b8b8c8;--dim:#667;--acc:#5ad4ff;--acc2:#3a9abf;--grn:#8df57a;--red:#f57a7a;--ylw:#f5d07a;--orn:#f5a07a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -261,6 +261,13 @@ input[type=file]{display:none}
 .top{max-height:32vh;overflow-y:auto}.tabs{flex-wrap:wrap}.ctl{flex-wrap:wrap;justify-content:flex-start;margin-left:0}.main{min-height:0}.left-panel{min-width:0;justify-content:flex-start}.right-panel{width:330px;min-width:240px}.code-wrap{min-height:480px;min-width:400px}.code-textarea,.code-highlight{line-height:1.55;font-size:13px}.code-lines{line-height:1.55;font-size:13px}.emu-wrap{width:100%;min-width:300px}.emu-screen{max-width:100%;height:auto!important;aspect-ratio:256/240}.scene-thumb .st-name{max-width:210px;font-size:9px}.scene-thumb canvas{margin:0;flex-shrink:0}.toast{max-width:90vw;white-space:normal;font-size:12px;top:auto;bottom:34px}.bar{gap:8px;flex-wrap:wrap}.nes-picker{max-width:96vw}.col-tile-cell canvas{display:block;width:100%;height:100%}.col-tile-cell .col-dot{pointer-events:none}.link-row{display:flex;gap:5px;margin:4px 0}.link-del{cursor:pointer;color:var(--red)}button:focus-visible,canvas:focus-visible{outline:2px solid var(--acc);outline-offset:2px}.build-log{max-height:220px;font-size:10px}.emu-log{font-size:10px}.doc p,.doc td{font-size:11px}.doc h2{font-size:15px}.project-modal-inner{max-width:90vw}.repair-note{font-size:10px;line-height:1.5;color:var(--ylw);padding:6px;border:1px solid var(--bdr)}
 @media(max-width:850px){.main{flex-direction:column;overflow:auto}.left-panel{flex:0 0 auto;max-width:100%;overflow:auto}.right-panel{width:100%;border-left:0;border-top:1px solid var(--bdr);overflow:visible}.top{max-height:35vh}.scene-browser{max-height:140px}.emu-screen{width:min(512px,92vw)!important}.code-wrap{height:65vh;min-width:0;min-height:350px}.bar{font-size:8px}}
 
+.audio-entry{border:1px solid var(--bdr);padding:8px;margin:10px 0;min-width:0}
+.audio-entry p{font-size:11px;line-height:1.4;margin:6px 0;overflow-wrap:anywhere}
+.audio-entry .spr-props{grid-template-columns:70px minmax(0,1fr)}
+.audio-entry input,.audio-entry select{box-sizing:border-box;max-width:100%;min-width:0;min-height:36px;font-size:14px}
+.audio-entry button{min-height:36px;padding:6px 9px;font-size:12px}
+.audio-entry-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+@media(pointer:coarse){.audio-entry input,.audio-entry select{min-height:44px;font-size:16px}.audio-entry button{min-height:44px}}
 </style>
 </head><body>
 <div class="top">
@@ -635,6 +642,21 @@ input[type=file]{display:none}
 <label>Speed</label><input type="number" id="audSpeed" value="6" min="1" max="15" onchange="aud_updateSpeed()">
 <label>Rows</label><input type="number" id="audRows" value="64" min="16" max="128" step="16" onchange="aud_updateRows()">
 </div>
+<fieldset class="audio-entry" id="audCellEditor"><legend>Tracker cell</legend>
+<p id="audCellLocation"></p>
+<div class="spr-props">
+<label for="audCellOrder">Order</label><input id="audCellOrder" type="number" inputmode="numeric" min="0" step="1" value="0" onchange="audio20_selectCell()">
+<label for="audCellChannel">Channel</label><select id="audCellChannel" onchange="audio20_selectCell()"><option value="0">Pulse 1</option><option value="1">Pulse 2</option><option value="2">Triangle</option><option value="3">Noise</option><option value="4">DPCM (unavailable)</option></select>
+<label for="audCellRow">Row</label><input id="audCellRow" type="number" inputmode="numeric" min="0" step="1" value="0" onchange="audio20_selectCell()">
+<label for="audCellNote">Note</label><select id="audCellNote"><option value="blank">Blank (---)</option><option value="cut">Cut (===)</option><option value="0">C</option><option value="1">C#</option><option value="2">D</option><option value="3">D#</option><option value="4">E</option><option value="5">F</option><option value="6">F#</option><option value="7">G</option><option value="8">G#</option><option value="9">A</option><option value="10">A#</option><option value="11">B</option></select>
+<label for="audCellOctave">Octave</label><select id="audCellOctave"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option></select>
+<label for="audCellInstrument">Instrument</label><select id="audCellInstrument"><option value="-1">Previous / default</option></select>
+<label for="audCellVolume">Volume</label><input id="audCellVolume" type="number" inputmode="numeric" min="0" max="15" step="1" placeholder="Keep previous">
+</div>
+<div class="audio-entry-actions"><button id="audCellApply" onclick="audio20_applyCell()">Apply</button><button id="audCellClear" onclick="audio20_clearCell()">Clear note</button><button id="audCellCut" onclick="audio20_cutCell()">Cut note</button></div>
+<p id="audCellStatus" role="status" aria-live="polite">Choose a row, note and instrument, then Apply. Stop preview to edit.</p>
+<p>Notes: C0–B7. Order and row start at 0. Clear/Cut keep volume and existing effects. Desktop piano keys still work on the tracker.</p>
+</fieldset>
 <h3>Instruments (<span id="instCount">0</span>)</h3>
 <button class="spr-add-btn" onclick="aud_addInstrument()">+ Add Instrument</button>
 <div class="inst-list" id="instList"></div>
@@ -650,6 +672,11 @@ input[type=file]{display:none}
 <canvas class="env-canvas" id="envVol" width="240" height="48"></canvas>
 <h3>Arpeggio Envelope</h3>
 <canvas class="env-canvas" id="envArp" width="240" height="48"></canvas>
+<fieldset class="audio-entry" id="audEnvelopeEditor"><legend>Envelope value</legend><p>Edits the instrument selected in the Instruments list.</p><div class="spr-props">
+<label for="audEnvKind">Envelope</label><select id="audEnvKind" onchange="audio20_selectEnvelope()"><option value="volEnv">Volume (0–15)</option><option value="arpEnv">Arpeggio (−12–12)</option></select>
+<label for="audEnvStep">Step</label><input id="audEnvStep" type="number" inputmode="numeric" min="0" step="1" value="0" onchange="audio20_selectEnvelope()">
+<label for="audEnvValue">Value</label><input id="audEnvValue" type="number" min="0" max="15" step="1" value="15">
+</div><button id="audEnvApply" onclick="audio20_updateEnvelope()">Apply envelope value</button><p id="audEnvStatus" role="status" aria-live="polite"></p></fieldset>
 </div>
 <h3>Pattern Order</h3><p style="font-size:8px;color:var(--dim)">Click a channel in an order row to choose its pattern. Notes go into the highlighted tracker cell.</p>
 <div class="order-list" id="orderList"></div>

@@ -1,6 +1,8 @@
 # NES Forge project charter
 
-**Current continuation, October 5 (D053):** the owner approved addressing the diagnosed mobile playback issues. Deliver a bounded 2.0.0-alpha.2 / mobile-playback-1 candidate: host frame scheduling, exact capture allocation optimization and a Play performance readout. Preserve project/runtime contracts and desktop behavior. Physical phone improvement and candidate acceptance remain separate evidence; do not broaden this into a CPU/PPU/APU rewrite or new feature milestone.
+**Current continuation, October 6 (D054):** address the owner's mobile Audio note-entry bug with native tracker-cell and instrument-envelope controls in 2.0.0-alpha.3 / mobile-audio-entry-1. Preserve canonical Audio, desktop shortcuts, validation, undo/persistence, runtime and prior playback corrections. This is bounded authoring-UI remediation; physical touch acceptance and release promotion remain separate.
+
+**Previous continuation, October 5 (D053):** the owner approved addressing the diagnosed mobile playback issues. Deliver a bounded 2.0.0-alpha.2 / mobile-playback-1 candidate: host frame scheduling, exact capture allocation optimization and a Play performance readout. Preserve project/runtime contracts and desktop behavior. Physical phone improvement and candidate acceptance remain separate evidence; do not broaden this into a CPU/PPU/APU rewrite or new feature milestone.
 
 NES Forge is a visual **NES / 8-bit / 6502-class** game-development, runtime and reverse-engineering environment with optional assembly and existing ROM inspection/capture tools. Ordinary editor controls remain the primary workflow. The distributed application remains one standalone HTML with reproducible source, tools, tests and editable external examples.
 

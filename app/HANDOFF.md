@@ -1,12 +1,12 @@
-# NES Forge 2.0.0-alpha.2 — mobile-playback-1 handoff
+# NES Forge 2.0.0-alpha.3 — mobile-audio-entry-1 handoff
 
-D053 follows owner mobile-lag feedback, the supplied screen recording, Cricket Dream 5G / Chrome identification, and “Ok, address them.” Scope: correct bounded host scheduling, reduce native capture allocation overhead while preserving exact completed-frame data, and surface Play diagnostics. No release promotion or broader feature work is included.
+D054 addresses the October 6 owner report: “On mobile i can't input values for audio notes for the instruments.” Source inspection found canvas selection with physical-keyboard-only note insertion and mouse-only envelope dragging. Supply native Audio authoring controls using the existing canonical data and undo/persistence paths. No audio-engine, compiler, emulator or broader RE changes are included.
 
-1. Read CURRENT_BASELINE.md and docs/MOBILE_PLAYBACK.md.
-2. Verify build-inputs.json and test-results/candidate/Summary.json against the actual HTML. All 921 previous cases and the new mobile suite are required.
-3. Read checkpoints/mobile-playback-1-clean-extraction/Reproduction.json and the three fresh browser reports. Node VM timing and synthetic clocks are not browser/phone results.
-4. Use docs/MOBILE_PLAYBACK_CHECKLIST.txt for same-ROM old/new desktop and phone comparisons. Record phone/OS/browser, route, settings and the visible diagnostic counters. Mobile speed improvement and listening remain unverified until that review.
-5. Preserve the exact alpha.1 reference in baseline/, its reports under checkpoints/audio-correction-1-reference/, and its historical docs. The audio-correction regressions remain mandatory.
+1. Read CURRENT_BASELINE.md and docs/MOBILE_AUDIO_ENTRY.md.
+2. Verify build-inputs.json and test-results/candidate/Summary.json against the delivered HTML. All 940 previous cases and the new mobile-audio-entry suite are required across 44 suites.
+3. Read checkpoints/mobile-audio-entry-1-clean-extraction/Reproduction.json and the three fresh browser reports. VM event tests do not prove Android keyboard/picker behavior or visible layout.
+4. Use docs/MOBILE_AUDIO_ENTRY_CHECKLIST.txt for touch note entry, instrument-envelope editing, save/reopen and desktop preservation. Keep mobile gameplay/audio-performance comparison separate under docs/MOBILE_PLAYBACK_CHECKLIST.txt.
+5. Preserve alpha.2 in baseline/, its reports under checkpoints/mobile-playback-1-reference/ and historical documents. Preserve alpha.1 and earlier references too.
 
 From the application root:
 
@@ -15,8 +15,6 @@ python3 tools/bundle.py --check
 node tests/run_candidate.cjs
 ```
 
-For a new clean input archive, use `python3 tools/package_release.py --stage --output /absolute/path/mobile-playback-staging.zip`, extract to a fresh directory, verify its SHA256SUMS.txt, and run the full gate there. Final packaging rejects stale source/docs/test provenance, missing cases, stale browser hashes and absent clean-extraction proof. Test execution rewrites reports; use a disposable copy to retain delivered evidence.
+Create a fresh staging archive with `python3 tools/package_release.py --stage --output /absolute/path/mobile-audio-entry-staging.zip`, extract to a new directory, verify every SHA256SUMS.txt entry, and run the full gate there. Final packaging rejects stale provenance, missing cases, mismatched browser hashes and absent clean-extraction proof. Test execution rewrites reports; use a disposable copy to preserve delivered evidence.
 
-The scheduler's catch-up budget is checked between indivisible frames, with the existing frame safety guard. A truly overloaded device can still slow down; backlog/discard counters remain honest. Capture uses a transient CHR-ROM cache that compares current bytes and source mapping. CHR-RAM stays on the original live path; no capture, history or raster behavior is disabled.
-
-Next: owner review of the bounded mobile correction, then the supported audio author/import/edit/build/listen/save/reopen workshop. Native audio-driver recovery follows that foundation. RE, ASM portability, hosted/wallet and tech-deck plans retain separate scope. No GitHub destination or publication is implied.
+Next: review this mobile authoring correction and the still-pending alpha.2 playback improvement on the reported phone, then complete the supported Audio author/import/edit/build/listen/save/reopen workshop. Native audio-driver recovery follows. No release promotion, hosted/wallet work or public repository is implied.

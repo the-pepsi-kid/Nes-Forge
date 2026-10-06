@@ -1,0 +1,101 @@
+{
+  "suite": "mobile-audio-entry200",
+  "html": "NES_Forge_2.0.0-alpha.3.html",
+  "htmlSha256": "a48e356541e94ddaca9fc237e76596512c249eda624f4a2c719c52041773c851",
+  "scope": "Complete standalone application and real registered Audio Studio handlers in a test-local DOM/event adapter; canonical authoring, native-input isolation, canvas/native envelope synchronization and persistence contracts. Mock AudioContext sink only. Does not establish mobile keyboard activation, browser layout, trusted pointer behavior, audible output or hardware acceptance.",
+  "passed": 18,
+  "failed": 0,
+  "total": 18,
+  "results": [
+    {
+      "name": "Desktop tracker piano keys, navigation, cut and clear still use the selected instrument",
+      "passed": true,
+      "milliseconds": 478
+    },
+    {
+      "name": "Desktop repeated keys and unsupported DPCM do not add unintended note edits",
+      "passed": true,
+      "milliseconds": 394
+    },
+    {
+      "name": "Existing instrument name and numeric fields keep native typing without tracker edits",
+      "passed": true,
+      "milliseconds": 366
+    },
+    {
+      "name": "Audio Studio exposes native note, octave, instrument and volume controls without a physical keyboard",
+      "passed": true,
+      "milliseconds": 350
+    },
+    {
+      "name": "Mobile note entry changes exactly the chosen order, channel and row while retaining existing effect data",
+      "passed": true,
+      "milliseconds": 377
+    },
+    {
+      "name": "Mobile clear and cut preserve volume and effect fields and create one undoable edit each",
+      "passed": true,
+      "milliseconds": 456
+    },
+    {
+      "name": "Mobile entry accepts canonical note endpoints and blank inherited instrument and volume values",
+      "passed": true,
+      "milliseconds": 383
+    },
+    {
+      "name": "Malformed mobile cell fields are rejected atomically instead of coercing or partially saving",
+      "passed": true,
+      "milliseconds": 2670
+    },
+    {
+      "name": "Invalid order, row and channel addresses cannot write another cell or add history",
+      "passed": true,
+      "milliseconds": 2137
+    },
+    {
+      "name": "Mobile entry retains the no-instrument and unsupported DPCM boundaries",
+      "passed": true,
+      "milliseconds": 695
+    },
+    {
+      "name": "A mobile cell edit round-trips through undo, redo and the existing portable project format",
+      "passed": true,
+      "milliseconds": 838
+    },
+    {
+      "name": "Ordinary Audio sidebar refreshes preserve an unfinished native draft without mutating the project",
+      "passed": true,
+      "milliseconds": 341
+    },
+    {
+      "name": "Changing selected cells loads the new values and cannot apply an old draft to the old address",
+      "passed": true,
+      "milliseconds": 358
+    },
+    {
+      "name": "Native mobile fields keep typing, editing shortcuts and arrows isolated from tracker and emulator actions",
+      "passed": true,
+      "milliseconds": 351
+    },
+    {
+      "name": "Focused Audio entry buttons contain tracker hotkeys without suppressing normal button activation keys",
+      "passed": true,
+      "milliseconds": 357
+    },
+    {
+      "name": "Browser preview playback prevents mobile edits from following a moving row",
+      "passed": true,
+      "milliseconds": 377
+    },
+    {
+      "name": "Native envelope values update only the chosen existing instrument step and round-trip with history",
+      "passed": true,
+      "milliseconds": 493
+    },
+    {
+      "name": "Malformed envelope values or step addresses do not clamp, extend arrays or create history",
+      "passed": true,
+      "milliseconds": 2508
+    }
+  ]
+}
