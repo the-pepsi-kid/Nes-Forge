@@ -1,4 +1,4 @@
-# Reproducible tests — NES Forge 2.0.0-alpha.2
+# Reproducible tests — NES Forge 2.0.0-alpha.4
 
 Run from a clean release extraction with Node.js 20+ and Python 3:
 
@@ -7,7 +7,7 @@ python3 tools/bundle.py --check
 node tests/run_all.cjs
 ```
 
-The strict runner tests `mainline/NES_Forge_2.0.0-alpha.2.html`, requires all 43 suites, writes fresh per-suite reports/logs and verifies that the candidate and every provenance input remain unchanged. Missing inputs, skips, filters, source injection or older-HTML fallback fail the gate.
+The strict runner tests `mainline/NES_Forge_2.0.0-alpha.4.html`, requires all 44 suites, writes fresh per-suite reports/logs and verifies that the candidate and every provenance input remain unchanged. Missing inputs, skips, filters, source injection or older-HTML fallback fail the gate.
 
 ## Retained coverage
 
@@ -35,16 +35,26 @@ Examples are hashed runner inputs and must not change during a measured run.
 
 The VM harness has a mock DOM and controlled storage/timers. Bundled-emulator execution validates generated instructions and APU state under that emulator. It does not establish real-browser layout, native picker behavior, audible speaker output or independent NES hardware timing. See `../docs/BROWSER_QA.md`.
 
-Current clean-extraction evidence belongs under `../checkpoints/mobile-playback-1-clean-extraction/`; historical checkpoint names retain their original release meaning.
+Current clean-extraction evidence belongs under `../checkpoints/mobile-keyboard-1-clean-extraction/`; historical checkpoint names retain their original release meaning.
 
 ## Runtime investigation
 
 The full gate retains all 38 analysis/navigation/recovery/mobile/core suites and adds `re-runtime`, `re-runtime-ui` and `re-runtime-integration`. Actual totals come from the frozen candidate report. The owner's Pepsi ROM is an exact input fixture, not a production recognition allowlist; Bridge Room supplies a sound-producing comparison. Keep model/VM/bundled-emulator evidence separate from browser/manual checks in `../docs/RE_RUNTIME_CHECKLIST.txt`.
 
-## Mobile Playback correction
+## Retained Mobile Playback correction
 
 The gate retains all 921 explicit cases across the 42 Audio Correction suites and adds `mobile-playback200.cjs`. New totals are measured from fresh case records; this document does not predict a pass count. The packager preserves each old suite count, the 26 Audio Correction cases, and every earlier regression floor.
 
 `source-preservation200.cjs` reverses only the exact declared five-file Mobile Playback delta to the frozen `audio-correction-1` candidate, then reverses the original four-file Audio Correction delta to the frozen `re-runtime-1` candidate. The source module order and every restored byte must match their pinned reference hashes. Historical fixtures, whole-ROM oracles, and previous source-delta records remain unchanged.
 
 Frame pacing, capture representation, touch/focus isolation, and timing diagnostics are tested independently of phone acceptance. Three fresh browser reports remain mandatory; an unavailable browser must record a blocked run with zero checks, not a pass. The owner's Cricket Dream 5G / Chrome test is separate from VM and desktop evidence.
+
+## Mobile Keyboard correction
+
+The current gate retains all 940 explicit cases across the 43 Mobile Playback suites and adds the 24 cases in `mobile-keyboard200.cjs` (964 required cases across 44 suites). The packager pins all retained suite counts, including the 26 Audio Correction cases and 19 Mobile Playback cases. New totals come from fresh case records.
+
+The source-preservation chain first reverses only the exact three-file Mobile Keyboard UI/release delta to the frozen `mobile-playback-1` candidate, before applying the two older exact deltas described above. `tools/generate_mobile_keyboard_delta.py` reproduces this reviewable delta from the pinned alpha.2 HTML and source byte boundaries; no historical oracle is regenerated. The original regression suite executes the complete chain and checks the actual candidate bundle against these sources before inspecting protected source blocks.
+
+Direct native tracker keyboard events, composition, canonical undo/persistence, desktop parity, and input isolation have focused VM coverage. These reports do not establish Android keyboard appearance, keyboard layout, touchscreen interaction, speaker output, or physical controller acceptance. Fresh browser reports and owner device review remain separate evidence.
+
+The owner withdrew alpha.3's separate Audio forms. Its 18 form-specific cases are explicitly superseded by the direct keyboard suite; its source and measured reports remain historical evidence, not active acceptance requirements. The candidate starts from alpha.2 and retains all of its 940 cases.

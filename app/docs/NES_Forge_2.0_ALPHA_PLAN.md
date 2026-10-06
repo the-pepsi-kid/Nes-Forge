@@ -1,8 +1,16 @@
 # NES Forge — 2.0 Alpha Development Plan
 
-Revision: October 5, 2026 (America/Denver). Aligned with the consolidated execution roadmap after the owner's step-back review. Audio correctness and workflow completion precede further recovery; Sol Games is a later architectural reference only. This is the bounded working plan. The audio correction is implemented in the preserved 2.0.0-alpha.1 / audio-correction-1 reference. Owner-directed mobile playback correction is now active as 2.0.0-alpha.2 / mobile-playback-1. Release promotion is not claimed.
+Revision: October 6, 2026 (America/Denver). Audio correctness and workflow completion precede further recovery; Sol Games remains a later architectural reference. Alpha.1 audio corrections and alpha.2 mobile playback corrections remain preserved. Active **2.0.0-alpha.4 / mobile-keyboard-1** starts from alpha.2 and replaces the owner-rejected alpha.3 Audio forms. No promotion is claimed.
 
-## Current mobile correction
+## Current direct mobile keyboard correction
+
+D055 supersedes D054 following the owner's request to bring up the keyboard on mobile and enter values as on PC. Tap the original tracker to request native keyboard focus; map committed text through the existing piano keys and canonical note-entry path. There is no separate form, Apply action or new envelope editor. Original envelope painting, desktop controls, undo/persistence and previous playback fixes remain unchanged.
+
+Retain all 940 alpha.2 cases / 43 suites plus `mobile-keyboard200`, for 44 mandatory suites. The 18 withdrawn alpha.3 form cases are explicitly superseded, with their original source and results preserved historically. Actual fresh totals belong to the candidate Summary. Use `docs/MOBILE_KEYBOARD_CHECKLIST.txt` for physical keyboard, composition, focus and save/reopen review; VM checks are separate. Alpha.2 gameplay/audio-performance comparison remains pending.
+
+This correction precedes the supported Audio workshop, then native driver recovery. A capability-adaptive UI audit is recommended in response to the owner's cross-device discussion; its scope and implementation remain pending a decision. It does not authorize a rewrite or reorder approved audio/recovery work.
+
+## Preserved mobile playback correction
 
 Owner direction October 5: “Ok, address them,” after mobile lag feedback and Cricket Dream 5G / Chrome identification. Candidate **2.0.0-alpha.2 / mobile-playback-1**, schema 12, addresses bounded frame scheduling, exact native capture work and a Play performance readout. CPU/APU/PPU behavior, capture fidelity, audio queue policy and desktop contracts remain protected.
 
@@ -48,9 +56,9 @@ Gameplay Expansion (1.9.1) and Behavior UX (1.9.2) remain deferred. Audio workfl
 
 ## Immediate actions
 
-**Current candidate boundary:** correct mobile frame scheduling, reduce exact native-capture overhead and add Play diagnostics, with focused regressions and a complete clean-extraction gate. Retain the two implemented audio corrections and their evidence. Package this as a review candidate before broadening into preview redesign, importer changes, new decoders or hosted functionality. Additional defects enter only after reproduction and explicit scope recording. The subsequent audio workflow candidate supplies the listening/workshop evidence; the whole audio phase is not claimed complete by the bounded code corrections.
+**Current candidate boundary:** correct native keyboard entry in the original tracker, with focused regressions and a complete clean-extraction gate. Retain the implemented audio and mobile playback corrections and their evidence. Package this as a review candidate before broadening into preview redesign, importer changes, new decoders or hosted functionality. Additional defects enter only after reproduction and explicit scope recording. The subsequent audio workflow candidate supplies the listening/workshop evidence; the whole audio phase is not claimed complete by the bounded code corrections.
 
-1. Review the bounded mobile playback correction on the reported phone and preserve the implemented audio fixes. Continue to distinguish audio correctness across Studio preview, canonical data, compiled ROM execution and RE observations; scope any additional reproduced defects explicitly.
+1. Correct and review direct mobile tracker-keyboard entry, then finish the separate phone playback comparison while preserving the implemented audio fixes. Continue to distinguish audio correctness across Studio preview, canonical data, compiled ROM execution and RE observations; scope any additional reproduced defects explicitly.
 2. Close the supported author/import → edit → preview → build → audible playback → save/reopen workflow with a short repeatable audio workshop. Exercise the existing MIDI/MusicXML paths and music/SFX interaction. Record browser/mobile listening separately from automated register evidence.
 3. Align RE audio evidence and recovery with that same canonical Audio model. Preserve the bounded Bridge Room control, then select an independent native audio-driver input and define a reusable adapter contract. Unknown drivers remain inspectable. Do not wait for graphics/map recovery to do this work.
 4. Resume additional graphics/map recovery after the audio tranche is accepted, retaining the cross-engine requirements below. Add debugger features only where a concrete audio/recovery experiment needs them.
@@ -64,7 +72,8 @@ The re-runtime-1 R1–R6 review remains open and may overlap this work; prior re
 | Order | Deliverable | Acceptance evidence |
 | --- | --- | --- |
 | Implemented reference — Audio correctness | Resolve reproduced note/timing/envelope, sequence-length or music/SFX differences between supported preview behavior and emitted ROM behavior. Document intentional limitations. | Expected notes and event timing are independently specified; compare canonical records, emitted APU behavior and listening. Exercise Pulse 1, Pulse 2, Triangle and Noise, order/loop boundaries and gameplay sound triggers. |
-| Current — Host playback alignment | Reproduce reported mobile A/V lag and verify audio activation, mute, pause/resume and frame-history behavior. | Record phone/OS/browser and ROM; distinguish emulation speed, host buffering and rendering/input delay. Do not infer a mobile performance pass from desktop or register-only tests. |
+| Implemented reference, phone review pending — Host playback alignment | Reproduce reported mobile A/V lag and verify audio activation, mute, pause/resume and frame-history behavior. | Record phone/OS/browser and ROM; distinguish emulation speed, host buffering and rendering/input delay. Do not infer a mobile performance pass from desktop or register-only tests. |
+| Current — Mobile Keyboard | Tap the original tracker for native keyboard input using the PC piano-key workflow; preserve original envelope painting. | Committed-text/composition handling, input isolation, canonical undo/save/reopen and desktop preservation. Actual phone keyboard/layout evidence remains separate from VM events. |
 | Next — Complete audio workflow | Author a short song and SFX; import supported MIDI and MusicXML; make an edit, build, play and save/reopen. Update the manual/workshop to match exact controls. | Native audio IDs/references survive persistence and undo; unsupported input fails explicitly. Listen in Forge and an independent emulator. Define any notation/performance export subset before claiming round-trip interchange. |
 | Then — RE audio alignment | Route supported decoded native notes/instruments/music/SFX into the existing canonical Audio model through the shared recovery boundary. | Keep register observations, inferred events and verified native-driver decoding distinct. Preview, explicit import, useful edit, save/reopen and rebuilt listening must work for the declared driver subset. |
 

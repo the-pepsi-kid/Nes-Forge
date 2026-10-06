@@ -1,51 +1,47 @@
 {
   "format": "NESForgeCandidateHandoff",
   "version": 1,
-  "status": "review-candidate",
-  "release": "2.0.0-alpha.2",
-  "candidate": "mobile-playback-1",
+  "release": "2.0.0-alpha.4",
+  "candidate": "mobile-keyboard-1",
   "schema": 12,
-  "branch": "work/mobile-playback-1",
-  "appRoot": "app",
-  "html": "mainline/NES_Forge_2.0.0-alpha.2.html",
-  "htmlSha256": "27c436d1b7356fc8d2ce4c22396a0b768c4c2f3e6b2754f1be14e5db00389782",
-  "archive": "NES_Forge_2.0.0-alpha.2_Mobile_Playback_Candidate.zip",
-  "archiveSha256": "bea94dc3c2002636605b8a5d59bddfc246cdeca735bd1d26d4e4437f7e846b32",
-  "payloadChecksums": 1265,
-  "packageFiles": 1266,
-  "automatedSummary": "app/test-results/candidate/Summary.json",
-  "cleanExtractionProof": "app/checkpoints/mobile-playback-1-clean-extraction/Reproduction.json",
+  "status": "review-candidate",
+  "branch": "work/mobile-keyboard-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.4.html",
+  "htmlSha256": "4871312c2fbedc312a89d7400d669b525732e7f9fb2965b87bf74d1d75c00e42",
+  "archive": "NES_Forge_2.0.0-alpha.4_Mobile_Keyboard_Candidate.zip",
+  "archiveSha256": "d8a9370d7171037c6ab77ab46a5d82427fd1698fd270c1bb8c8dce60bd34bbf1",
   "automatedResult": {
     "status": "passed",
-    "passed": 940,
+    "passed": 964,
     "failed": 0,
-    "total": 940,
-    "suiteCount": 43,
-    "startedAt": "2026-10-06T04:33:31.605Z",
-    "finishedAt": "2026-10-06T04:46:17.092Z"
+    "total": 964,
+    "suiteCount": 44,
+    "startedAt": "2026-10-06T21:39:09.661Z",
+    "finishedAt": "2026-10-06T21:52:37.128Z"
   },
-  "automatedSummarySha256": "274e1d68c733eb7c7aad34a73c2fa3249b6df5b84d6b8de9f7b940b7be45ff8c",
-  "browserEvidence": {
-    "status": "blocked",
-    "executedChecks": 0,
-    "reports": [
-      "app/test-results/browser-mobile/Report.json",
-      "app/test-results/browser-re-analysis/Report.json",
-      "app/test-results/browser-re-runtime/Report.json"
-    ]
-  },
+  "automatedSummary": "app/test-results/candidate/Summary.json",
+  "cleanExtractionProof": "app/checkpoints/mobile-keyboard-1-clean-extraction/Reproduction.json",
+  "browserEvidence": [
+    {
+      "name": "browser-mobile",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-re-analysis",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-re-runtime",
+      "status": "blocked",
+      "checks": 0
+    }
+  ],
   "ownerAcceptance": "pending",
-  "phoneImprovement": "pending comparison on the reported device/browser and unchanged ROM",
-  "promotion": "not promoted; main and predecessor branches remain unchanged",
-  "parentCommit": "bd1d46e5fe3eb575c22abcb377841534f197469c",
-  "parentBranch": "work/audio-correction-1",
-  "mainCommit": "45d0b31bf30d67b013ce8e1cb6c4dbdfd709baec",
-  "referenceTag": "reference/re-runtime-1",
-  "referenceCommit": "86fdbf4639389be01c9af8c8860a44566a62d83d",
-  "referenceMetadata": "REFERENCE.json applies to main/reference only",
-  "license": "UNDECIDED",
-  "sourceControlDelivery": "NES_Forge_2.0.0-alpha.2_Mobile_Playback_Source_Control.zip",
-  "historicalPlanningDelivery": "NES_Forge_2.0_Alpha_Planning_and_Source_Control.zip",
-  "predecessorSourceControlDelivery": "NES_Forge_2.0.0-alpha.1_Audio_Correction_Source_Control.zip",
-  "manualChecklist": "app/docs/MOBILE_PLAYBACK_CHECKLIST.txt"
+  "physicalPhoneKeyboard": "pending",
+  "promotion": "not promoted",
+  "parentCommit": "e85fbef07e97fb8810fe19f5a84dea7cd62b6892",
+  "withdrawnFormCandidate": "30ae1a2709470c08ed0925376bcebeb0783f9cb3",
+  "license": "UNDECIDED"
 }

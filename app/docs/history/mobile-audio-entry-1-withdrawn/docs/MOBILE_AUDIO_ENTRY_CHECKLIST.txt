@@ -1,0 +1,53 @@
+NES Forge 2.0.0-alpha.3 / mobile-audio-entry-1 — touch Audio review
+
+Open mainline/NES_Forge_2.0.0-alpha.3.html. Confirm the alpha.3 header.
+Save a copy of your current project before making a test melody.
+You do not need to repeat the general nine-step authoring tutorial.
+
+N1 — Enter notes with touch
+Open AUDIO. Under Instruments, use + Add Instrument if needed.
+Find Tracker cell in the Audio options panel (scroll to it on a narrow display).
+Set Order 0, Channel Pulse 1, Row 0. Choose Note C, Octave 4,
+your instrument (for example 00), and Volume 12. Tap Apply.
+Expected: row 0 displays C-4 with the selected instrument; no physical keyboard needed.
+Set Row 4 and apply E4; set Row 8 and apply G4. At Row 12 tap Cut note.
+Use the Audio Play and Stop buttons. Native edit controls should be disabled
+while preview plays and available after Stop. Listening quality is a separate check.
+Try Clear note on a test note, then use Undo to restore it.
+PASS / FAIL / BLOCKED:
+
+N2 — Change instrument envelope values
+Select the instrument in the Instruments list. In Envelope value, choose
+Volume, Step 0, Value 9, then Apply envelope value.
+Switch Envelope to Arpeggio, choose Step 0, enter -3, then Apply envelope value.
+Expected: the selected instrument's graphs show the new values. Other instruments
+remain unchanged. Step indices count from zero and address existing steps.
+Confirm the phone can enter the negative arpeggio value and that buttons/fields
+remain reachable in portrait and landscape. Undo/Redo should restore/reapply edits.
+PASS / FAIL / BLOCKED:
+
+N3 — Save/reopen
+Download Project, then reopen that project copy with Open Project.
+Expected: entered notes, instrument assignments, volume and envelope values remain.
+Invalid numeric values should show a reason without editing a different row.
+PASS / FAIL / BLOCKED:
+
+N4 — Desktop preservation (when available)
+On desktop, select a tracker cell and use the existing Z–M / Q–U piano keys.
+Confirm arrows, Clear/Delete, note cut, undo and envelope mouse drawing still work.
+Typing into native fields must not insert notes, start Audio playback or drive
+the Emulator. Return to Emulator only when intentionally testing ROM playback.
+PASS / FAIL / BLOCKED:
+
+SEND BACK
+Phone/Android/Chrome versions:
+Forge filename/header:
+N1:
+N2:
+N3:
+N4:
+Any field that fails, exact action and message/screenshot:
+
+This is touch authoring acceptance. The previous mobile gameplay/audio-speed
+comparison remains under MOBILE_PLAYBACK_CHECKLIST.txt. Neither checklist
+claims physical-controller or NES-console acceptance.

@@ -1,7 +1,7 @@
 {
   "suite": "gameplay-core190",
-  "html": "NES_Forge_2.0.0-alpha.2.html",
-  "htmlSha256": "27c436d1b7356fc8d2ce4c22396a0b768c4c2f3e6b2754f1be14e5db00389782",
+  "html": "NES_Forge_2.0.0-alpha.4.html",
+  "htmlSha256": "4871312c2fbedc312a89d7400d669b525732e7f9fb2965b87bf74d1d75c00e42",
   "scope": "Schema 12 canonical Gameplay Core; Definition/Instance/Runtime/Persistent identities; deterministic state tables; typed operand validation and generated-profile parity; exact 64/max+1 persistent RAM boundary; explicit Room/World persistence and scope rejection; all five template execution contracts; complete typed-table authoring and UI-authored Room reconstruction; retained-Player compatibility binding; legacy byte parity; actual frozen-1.8 downgrade rejection; generated single-room and World 6502 execution. Mock DOM/emulator evidence, not real-browser or hardware acceptance.",
   "passed": 35,
   "failed": 0,
@@ -10,82 +10,82 @@
     {
       "name": "Schema 12 persists the canonical Gameplay Core and older inputs default it disabled",
       "passed": true,
-      "milliseconds": 995
+      "milliseconds": 980
     },
     {
       "name": "The public starter set is exactly the five approved templates and recipes create ordinary canonical records",
       "passed": true,
-      "milliseconds": 451
+      "milliseconds": 448
     },
     {
       "name": "Actor Definitions stay reusable while Actor Instance overrides and transient state remain isolated",
       "passed": true,
-      "milliseconds": 431
+      "milliseconds": 434
     },
     {
       "name": "Runtime Actor slot reuse rejects stale handles through generation-tagged identity",
       "passed": true,
-      "milliseconds": 509
+      "milliseconds": 432
     },
     {
       "name": "Room persistence survives reconstruction while Runtime Actor state resets",
       "passed": true,
-      "milliseconds": 434
+      "milliseconds": 429
     },
     {
       "name": "World variables communicate across authored Rooms without serializing Runtime Actors",
       "passed": true,
-      "milliseconds": 422
+      "milliseconds": 455
     },
     {
       "name": "Missing and cross-owner Room/World references are rejected atomically",
       "passed": true,
-      "milliseconds": 462
+      "milliseconds": 484
     },
     {
       "name": "Unknown conditions/actions survive authoring and executable builds reject them without stale output",
       "passed": true,
-      "milliseconds": 922
+      "milliseconds": 886
     },
     {
       "name": "Every canonical operation has a typed operand schema and malformed operands reject before code emission",
       "passed": true,
-      "milliseconds": 461
+      "milliseconds": 466
     },
     {
       "name": "Known canonical actions never compile as no-ops in the generated NROM profile",
       "passed": true,
-      "milliseconds": 449
+      "milliseconds": 475
     },
     {
       "name": "The generated profile explicitly executes or rejects every canonical condition and action type",
       "passed": true,
-      "milliseconds": 508
+      "milliseconds": 546
     },
     {
       "name": "Generated persistent RAM accepts the exact 64-byte profile capacity and rejects max plus one",
       "passed": true,
-      "milliseconds": 430
+      "milliseconds": 452
     },
     {
       "name": "Transition evaluation is deterministic by priority and then authored order",
       "passed": true,
-      "milliseconds": 448
+      "milliseconds": 458
     },
     {
       "name": "Single-room generated runtime links actor graphics, executes actors and preserves Room state across restart",
       "passed": true,
-      "milliseconds": 835
+      "milliseconds": 823
     },
     {
       "name": "World generated runtime links actor graphics and executes the same canonical patrol/pickup semantics",
       "passed": true,
-      "milliseconds": 969
+      "milliseconds": 943
     },
     {
       "name": "Canonical transition semantics and authored ordering match across single-room and World plans",
       "passed": true,
-      "milliseconds": 1084
+      "milliseconds": 1076
     },
     {
       "name": "Sideview Player template is an explicit retained-runtime binding and preserves legacy movement",
@@ -95,67 +95,67 @@
     {
       "name": "Ground Patrol template executes movement and contact damage against the compatibility player",
       "passed": true,
-      "milliseconds": 737
+      "milliseconds": 717
     },
     {
       "name": "Stationary Contact Hazard template obeys its authored persistent enable flag",
       "passed": true,
-      "milliseconds": 814
+      "milliseconds": 842
     },
     {
       "name": "Collectible and Switch + Door templates retain their declared Room state across reconstruction",
       "passed": true,
-      "milliseconds": 881
+      "milliseconds": 894
     },
     {
       "name": "Typed table UI can author every core record family without project JSON editing",
       "passed": true,
-      "milliseconds": 803
+      "milliseconds": 903
     },
     {
       "name": "Room placement and Room persistence are authored through UI and survive World leave/re-entry while transient state resets",
       "passed": true,
-      "milliseconds": 5644
+      "milliseconds": 6285
     },
     {
       "name": "Reachable destination-World actors are linked, instantiated and executed while unreachable actors remain diagnosed authoring data",
       "passed": true,
-      "milliseconds": 9240
+      "milliseconds": 9803
     },
     {
       "name": "The 12-actor executable limit counts the Sideview compatibility Player and rejects overflow without omission",
       "passed": true,
-      "milliseconds": 482
+      "milliseconds": 477
     },
     {
       "name": "Canonical component schemas validate effective values and reject malformed known fields before emission",
       "passed": true,
-      "milliseconds": 496
+      "milliseconds": 534
     },
     {
       "name": "Behavior actions and Actor Instance bindings remain authoritative over legacy component mirrors",
       "passed": true,
-      "milliseconds": 467
+      "milliseconds": 489
     },
     {
       "name": "Disabled Behavior is inert in emitted single-room and World runtimes and re-enabling restores execution",
       "passed": true,
-      "milliseconds": 2508
+      "milliseconds": 2761
     },
     {
       "name": "Generated overlap uses boundary-safe unsigned distance on both axes in single-room ROM execution",
       "passed": true,
-      "milliseconds": 1057
+      "milliseconds": 1147
     },
     {
       "name": "World emitted overlap uses the same unsigned boundary contract and current-screen isolation",
       "passed": true,
-      "milliseconds": 1198
+      "milliseconds": 1236
     },
     {
       "name": "Single-room Gameplay Core ROM reopening reports partial restoration and preserves original bytes",
       "passed": true,
-      "milliseconds": 1248
+      "milliseconds": 1207
     },
     {
       "name": "syncActiveFromPersistent remains explicitly one-way until reconstruction and is not a physical Door contract",
@@ -165,22 +165,22 @@
     {
       "name": "All five legacy whole-ROM oracles remain byte-identical when Gameplay Core is unused",
       "passed": true,
-      "milliseconds": 2540
+      "milliseconds": 2550
     },
     {
       "name": "The current-release editable Gameplay Core example reproducibly builds its matching World ROM",
       "passed": true,
-      "milliseconds": 588
+      "milliseconds": 631
     },
     {
       "name": "The actual frozen 1.8 baseline rejects schema 12 atomically",
       "passed": true,
-      "milliseconds": 818
+      "milliseconds": 848
     },
     {
       "name": "Table-oriented authoring adds a template through one undoable canonical edit",
       "passed": true,
-      "milliseconds": 582
+      "milliseconds": 573
     }
   ]
 }

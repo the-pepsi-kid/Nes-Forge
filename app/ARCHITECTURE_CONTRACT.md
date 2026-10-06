@@ -1,5 +1,14 @@
 # Architecture contract — 2.0 Alpha continuation and preserved boundaries
 
+
+## D055 — Direct Mobile Keyboard boundary
+
+The alpha.4 correction starts from alpha.2. A real native text input requests focus during a valid tracker touch/pen tap; committed text maps to the original PC piano keys and calls the existing note-entry path. It edits the same `S.patterns` records through established snapshot/notify ownership. The original desktop canvas keyboard path and instrument-envelope painting remain intact. There is no separate tracker form, Apply action, envelope editor, second Audio model or new schema.
+
+Input sessions are transient and invalidated on leaving Audio, focus loss or model replacement. Provisional IME text must not leak to another cell or project. Composition must apply one valid committed letter at most once; reject unsupported multiword/paste/autofill input instead of treating it as a song. Keep Undo/Redo/Save routed to existing canonical commands and prevent note keys from reaching emulator controls or unrelated tabs. Tap recognition must not turn scroll or multi-touch gestures into note-entry focus.
+
+D055 supersedes D054's native tracker/envelope forms after explicit owner rejection. The alpha.3 implementation and its exact test evidence remain historical. CPU/APU/PPU, audio scheduling/capture, AudioCompiler/AudioEngine and project service ownership are not changed by this correction.
+
 D053 changes host scheduling and capture implementation work, preserving the same CPU/APU/PPU behavior and exact completed-frame capture contract. A transient, per-trace CHR-ROM lookup stays outside serialized state and verifies source bytes/mapping. Play diagnostics observe existing counters; they do not start emulation or audio. Schema 12 and generated runtime/compiler contracts remain unchanged.
 
 The audio-correction-1 continuation changes only AudioCompiler/AudioEngine runtime correctness and release metadata. The event-stream cursor retains existing zero-page allocation; pointer carry supports all accepted rows. Triangle has a dedicated timer table. Project/Audio schema and service ownership remain unchanged.

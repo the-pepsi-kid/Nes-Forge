@@ -1,5 +1,5 @@
 {
-  "html": "NES_Forge_2.0.0-alpha.2.html",
+  "html": "NES_Forge_2.0.0-alpha.4.html",
   "scope": "1.6.4 full-script schema v7/ZIP/MS16 v2 and legacy v1 preservation, identity remapping, malformed input atomicity, and capacity rejection; Node VM with mock DOM.",
   "passed": 38,
   "failed": 0,
@@ -8,192 +8,192 @@
     {
       "name": "v7 JSON save/reopen retains entity identities, bindings, all contacts, ordered events and existing assets",
       "passed": true,
-      "milliseconds": 643
+      "milliseconds": 681
     },
     {
       "name": "Portable ZIP contains independent extension manifest and restores v7 project completely",
       "passed": true,
-      "milliseconds": 591
+      "milliseconds": 645
     },
     {
       "name": "Legacy v5 migration supplies stable IDs and empty frame extension arrays without changing graphics",
       "passed": true,
-      "milliseconds": 530
+      "milliseconds": 537
     },
     {
       "name": "Legacy v6 composer migration retains animation and metasprite IDs with scene source associations",
       "passed": true,
-      "milliseconds": 422
+      "milliseconds": 434
     },
     {
       "name": "Malformed duplicate entity ID rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 445
+      "milliseconds": 456
     },
     {
       "name": "Malformed missing entity ID rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 452
+      "milliseconds": 463
     },
     {
       "name": "Malformed duplicate box ID across hit/hurt kinds rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 457
+      "milliseconds": 445
     },
     {
       "name": "Malformed fractional box coordinate rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 440
+      "milliseconds": 448
     },
     {
       "name": "Malformed zero box width rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 438
+      "milliseconds": 450
     },
     {
       "name": "Malformed null box array rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 444
+      "milliseconds": 465
     },
     {
       "name": "Malformed null event array rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 474
+      "milliseconds": 457
     },
     {
       "name": "Malformed null binding rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 461
+      "milliseconds": 452
     },
     {
       "name": "Malformed duplicate event ID rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 454
+      "milliseconds": 456
     },
     {
       "name": "Malformed unknown event type rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 448
+      "milliseconds": 485
     },
     {
       "name": "Malformed event UTF-8 byte overflow rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 445
+      "milliseconds": 477
     },
     {
       "name": "Malformed invalid binding default rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 446
+      "milliseconds": 474
     },
     {
       "name": "Malformed duplicate binding state rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 447
+      "milliseconds": 468
     },
     {
       "name": "Malformed invalid facing rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 446
+      "milliseconds": 487
     },
     {
       "name": "Malformed unknown future schema rejects before live project/history mutation",
       "passed": true,
-      "milliseconds": 439
+      "milliseconds": 486
     },
     {
       "name": "Repairable missing binding source survives project reopen but prevents a ROM build",
       "passed": true,
-      "milliseconds": 572
+      "milliseconds": 636
     },
     {
       "name": "MS16 v2 encodes all frame extensions and entity binding identities in a bounded signed block",
       "passed": true,
-      "milliseconds": 477
+      "milliseconds": 494
     },
     {
       "name": "MS16 preserves empty bindings independently of absent bindings",
       "passed": true,
-      "milliseconds": 466
+      "milliseconds": 494
     },
     {
       "name": "ROM loop flag preserves implicit default looping and explicit stop semantics",
       "passed": true,
-      "milliseconds": 541
+      "milliseconds": 555
     },
     {
       "name": "MS16 v2 stores entity identities when no composer or animation assets exist",
       "passed": true,
-      "milliseconds": 508
+      "milliseconds": 584
     },
     {
       "name": "ROM build scene ordering maps each entity binding to its own scene/entity ordinal",
       "passed": true,
-      "milliseconds": 1970
+      "milliseconds": 2023
     },
     {
       "name": "Reimport into original project preserves existing assets and rekeys every appended asset/reference",
       "passed": true,
-      "milliseconds": 1771
+      "milliseconds": 1774
     },
     {
       "name": "Older MS16 v1 ROM imports into 1.6.4 with normalized frame extensions",
       "passed": true,
-      "milliseconds": 2072
+      "milliseconds": 2198
     },
     {
       "name": "MS16 checksum and outer size reject byte corruption and truncation",
       "passed": true,
-      "milliseconds": 470
+      "milliseconds": 499
     },
     {
       "name": "Rechecksummed malformed v2 animation count mismatch is structurally rejected",
       "passed": true,
-      "milliseconds": 471
+      "milliseconds": 512
     },
     {
       "name": "Rechecksummed malformed v2 frame count mismatch is structurally rejected",
       "passed": true,
-      "milliseconds": 461
+      "milliseconds": 566
     },
     {
       "name": "Rechecksummed malformed v2 box count overflow is structurally rejected",
       "passed": true,
-      "milliseconds": 467
+      "milliseconds": 504
     },
     {
       "name": "Rechecksummed malformed v2 unknown event type is structurally rejected",
       "passed": true,
-      "milliseconds": 468
+      "milliseconds": 491
     },
     {
       "name": "Rechecksummed malformed v2 invalid UTF-8 is structurally rejected",
       "passed": true,
-      "milliseconds": 473
+      "milliseconds": 504
     },
     {
       "name": "Rechecksummed malformed v2 duplicate entity ID is structurally rejected",
       "passed": true,
-      "milliseconds": 464
+      "milliseconds": 529
     },
     {
       "name": "Rechecksummed malformed v2 unresolved bound animation index is structurally rejected",
       "passed": true,
-      "milliseconds": 497
+      "milliseconds": 501
     },
     {
       "name": "Rechecksummed trailing extension bytes reject before any ROM import mutation",
       "passed": true,
-      "milliseconds": 534
+      "milliseconds": 551
     },
     {
       "name": "Rechecksummed entity table mismatch with NFEX rejects before project/history mutation",
       "passed": true,
-      "milliseconds": 521
+      "milliseconds": 567
     },
     {
       "name": "Excluded animation source and exhausted metadata capacity fail with no stale ROM",
       "passed": true,
-      "milliseconds": 608
+      "milliseconds": 589
     }
   ]
 }

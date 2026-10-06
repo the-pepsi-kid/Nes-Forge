@@ -1,0 +1,152 @@
+{
+  "suite": "mobile-keyboard200",
+  "html": "NES_Forge_2.0.0-alpha.2_Mobile_Playback.html",
+  "htmlSha256": "27c436d1b7356fc8d2ce4c22396a0b768c4c2f3e6b2754f1be14e5db00389782",
+  "scope": "Freshly reconstructed focused suite; complete standalone application and real registered pointer/touch/input/beforeinput/composition/keyboard handlers. Test-local DOM event/focus/task adapter and synthetic AudioContext sink only. No physical phone, native keyboard visibility, browser layout, browser activation or speaker claim.",
+  "passed": 3,
+  "failed": 21,
+  "total": 24,
+  "results": [
+    {
+      "name": "Desktop tracker retains piano mapping, navigation, cut, clear and no automatic advance",
+      "passed": true,
+      "milliseconds": 613
+    },
+    {
+      "name": "Desktop envelope painting and ordinary text fields keep their original behavior",
+      "passed": true,
+      "milliseconds": 387
+    },
+    {
+      "name": "Rejected separate note and envelope forms are absent",
+      "passed": true,
+      "milliseconds": 408
+    },
+    {
+      "name": "A stationary touch focuses a real text input synchronously without changing the model",
+      "passed": false,
+      "milliseconds": 372,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:47:157\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Pen and touch-event fallback select the requested cell and request keyboard focus",
+      "passed": false,
+      "milliseconds": 367,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:48:167\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Scrolling and canceled gestures do not focus or replace an existing keyboard session",
+      "passed": false,
+      "milliseconds": 368,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:49:255\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Multi-touch cancels both pointer and touch-fallback keyboard activation",
+      "passed": false,
+      "milliseconds": 384,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:50:244\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Header, outside-grid and other-tab taps leave the keyboard and project inactive",
+      "passed": false,
+      "milliseconds": 369,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:51:338\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Compatibility mouse events cannot steal native focus; later desktop clicks still work",
+      "passed": false,
+      "milliseconds": 419,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:52:121\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Native text input uses all PC piano keys and canonical selected-instrument mutations",
+      "passed": false,
+      "milliseconds": 456,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:53:179\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Android Unidentified and keyCode 229 defer mutation until native input arrives",
+      "passed": false,
+      "milliseconds": 406,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:54:112\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Cancelable deletion applies once across beforeinput and its same-task input echo",
+      "passed": false,
+      "milliseconds": 394,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:55:119\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Noncancelable and input-only deletion fallbacks use the original cut and clear commands",
+      "passed": false,
+      "milliseconds": 406,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:56:121\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Composition is provisional, commits one note at end and suppresses a microtask echo",
+      "passed": false,
+      "milliseconds": 353,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:57:158\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Explicit trailing composition echoes stay suppressed until a new ordinary edit",
+      "passed": false,
+      "milliseconds": 363,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:58:112\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Composition cannot commit into a different row, channel, order or replacement project",
+      "passed": false,
+      "milliseconds": 366,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:59:288\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Native Done commits a single provisional note and dismisses the keyboard",
+      "passed": false,
+      "milliseconds": 371,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:60:195\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Escape cancels a composition even when the keyboard marks it as IME keyCode 229",
+      "passed": false,
+      "milliseconds": 468,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:61:113\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Paste, drop, replacement, cut and bulk text never become an unintended note importer",
+      "passed": false,
+      "milliseconds": 367,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:62:118\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Blur, tab change and visibility loss stop native edits and leave other fields isolated",
+      "passed": false,
+      "milliseconds": 450,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:63:182\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Project replacement and canonical Undo invalidate a stale native typing session",
+      "passed": false,
+      "milliseconds": 383,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:64:198\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Ctrl and Command shortcuts invoke real Undo, Redo and protected Save As",
+      "passed": false,
+      "milliseconds": 381,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:65:150\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Native history events use canonical history with no duplicate same-task undo",
+      "passed": false,
+      "milliseconds": 425,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:66:110\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    },
+    {
+      "name": "Keyboard edits round-trip through project JSON while unsupported DPCM and missing instruments retain guards",
+      "passed": false,
+      "milliseconds": 377,
+      "error": "AssertionError [ERR_ASSERTION]: Native tracker text input must exist\n    at h.keyboard (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:32:189)\n    at h.tap (/workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:36:296)\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:67:141\n    at /workspace/scratch/eed3f92a7165/mobile-keyboard-recovery-2026-10-06/NES_Forge/app/tests/mobile-keyboard200.cjs:69:91"
+    }
+  ]
+}

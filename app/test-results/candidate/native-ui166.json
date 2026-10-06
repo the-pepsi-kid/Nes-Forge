@@ -1,7 +1,7 @@
 {
   "suite": "native-ui166",
-  "source": "NES_Forge_2.0.0-alpha.2.html",
-  "sha256": "27c436d1b7356fc8d2ce4c22396a0b768c4c2f3e6b2754f1be14e5db00389782",
+  "source": "NES_Forge_2.0.0-alpha.4.html",
+  "sha256": "4871312c2fbedc312a89d7400d669b525732e7f9fb2965b87bf74d1d75c00e42",
   "environment": "Node.js complete application VM and shared DOM stub",
   "limitations": "No browser layout, physical input, native confirmation, file picker or Save As verification.",
   "total": 12,
@@ -11,62 +11,62 @@
     {
       "name": "Project actions are attached to the existing project bar and no workflow popup is constructed",
       "passed": true,
-      "milliseconds": 415
+      "milliseconds": 427
     },
     {
       "name": "Gameplay navigation opens the existing Scene settings without replacing controls or compiling",
       "passed": true,
-      "milliseconds": 612
+      "milliseconds": 676
     },
     {
       "name": "Cancelling New Project preserves project references, undo history, save identity and running ROM",
       "passed": true,
-      "milliseconds": 363
+      "milliseconds": 384
     },
     {
       "name": "Confirming New Project creates a blank Scene in one undo step with no inherited runtime",
       "passed": true,
-      "milliseconds": 525
+      "milliseconds": 560
     },
     {
       "name": "Open Forge ROM uses its registered file input and cancellation retains the entire workspace",
       "passed": true,
-      "milliseconds": 356
+      "milliseconds": 388
     },
     {
       "name": "Malformed and unrelated ROM files are rejected before replacement confirmation or mutation",
       "passed": true,
-      "milliseconds": 391
+      "milliseconds": 392
     },
     {
       "name": "Confirmed Forge ROM input opens one editable project and keeps the Scene gameplay controls live",
       "passed": true,
-      "milliseconds": 611
+      "milliseconds": 647
     },
     {
       "name": "A newer ROM selection wins and a late older read cannot replace it or add history",
       "passed": true,
-      "milliseconds": 573
+      "milliseconds": 602
     },
     {
       "name": "Confirming a blank project invalidates an outstanding ROM read before it can prompt or import",
       "passed": true,
-      "milliseconds": 528
+      "milliseconds": 635
     },
     {
       "name": "Cancelling New Project does not silently discard an already selected ROM file",
       "passed": true,
-      "milliseconds": 566
+      "milliseconds": 589
     },
     {
       "name": "Read failures and oversized files release the input without confirming or changing project state",
       "passed": true,
-      "milliseconds": 339
+      "milliseconds": 369
     },
     {
       "name": "A failed Scene gameplay build exposes the shared build log beside the same settings",
       "passed": true,
-      "milliseconds": 336
+      "milliseconds": 376
     }
   ]
 }

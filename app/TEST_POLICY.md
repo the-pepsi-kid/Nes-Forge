@@ -1,3 +1,13 @@
+# Test and release policy — 2.0.0-alpha.4 / mobile-keyboard-1
+
+Retain all 940 alpha.2 cases across 43 suites and add `mobile-keyboard200`, for 44 mandatory suites. D055 supersedes alpha.3's 18 separate-form cases because the owner rejected that interface; keep their original evidence with the withdrawn artifact. Do not count alpha.3 as the behavioral base or silently omit any alpha.2 case. Actual totals belong to the measured candidate Summary, not a planned or lost intermediate run.
+
+Freeze source, docs, examples and tests before running the complete gate from a verified clean extraction. Preserve every historical oracle; reverse only the exact declared keyboard/release delta to alpha.2 before applying the existing older source guards. Runtime tests execute the actual candidate HTML.
+
+Require real registered input/beforeinput/composition event paths, including Android-style unidentified key events, text-event deletion, canonical data/undo/save/reopen, desktop shortcuts, tap-versus-scroll/multitouch handling, IME cancellation and cross-tab/input isolation. Multiword text, paste and autofill are not an alternate note importer. Browser automation and physical phone keyboard/layout acceptance remain separate. Three fresh browser runners must report measured checks or a blocked launch with zero checks. Final packaging verifies report hashes, exact provenance and `checkpoints/mobile-keyboard-1-clean-extraction/Reproduction.json`.
+
+## Preserved prior policy history
+
 # Test policy — 2.0.0-alpha.2 Mobile Playback
 
 The mandatory gate is 43 suites: all 42 predecessor suites / 921 cases, unchanged in count, plus independently measured mobile-playback200 cases. No skipped cases, filters, injected missing modules or stale reports. Measured totals belong to test-results/candidate/Summary.json. Exact source guards reverse only the declared mobile delta and then the previous declared audio delta to the pinned historical oracles; old hashes are not regenerated.

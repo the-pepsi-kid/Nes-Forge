@@ -1,14 +1,22 @@
 # NES Forge — Authoritative Roadmap
-**Revision date:** 2026-10-05 (America/Denver), bounded mobile playback correction after owner device feedback
-**Status:** Mobile Playback candidate **2.0.0-alpha.2 / mobile-playback-1** follows the owner's “Ok, address them.” Correct scheduling, reduce exact capture overhead and expose Play diagnostics. Verification belongs to the packaged reports; device review and promotion remain pending.
+**Revision date:** 2026-10-06 (America/Denver), direct mobile keyboard correction
+**Status:** Mobile Keyboard candidate **2.0.0-alpha.4 / mobile-keyboard-1** replaces the owner-rejected alpha.3 forms. Verification belongs to the packaged reports; physical phone review and promotion remain pending.
 
-## Active mobile correction
+## Active direct mobile keyboard correction
+
+The owner rejected the separate native tracker/envelope forms: “I should be able to bring up the keyboard on mobile and enter the values like I do on PC”. D055 supersedes D054. Alpha.4 starts from alpha.2 and requests the phone keyboard when an ordinary tracker cell is tapped, using the same PC piano keys and canonical note-entry/undo/persistence path. There is no separate form, Apply action, automatic row advance or new envelope editor. Existing envelope painting remains unchanged.
+
+Review `docs/MOBILE_KEYBOARD_CHECKLIST.txt`. Retain all 940 alpha.2 cases / 43 suites plus `mobile-keyboard200`, for 44 mandatory suites. Alpha.3's 18 form-specific cases are explicitly superseded and preserved as historical evidence. Actual fresh totals belong to the current Summary; earlier intermediate runs do not validate restored or changed files. VM events do not establish physical keyboard opening or phone layout. The alpha.2 gameplay/audio-performance comparison on Cricket Dream 5G / Chrome remains open.
+
+This is phase 1 Audio usability/reliability work. After review, complete the supported author/import/edit/build/listen/save/reopen workshop, then native audio-driver recovery. The owner's cross-device UI discussion supports a recommendation for a bounded capability-adaptive UI audit; it does not authorize a rewrite or reorder this sequence.
+
+## Preserved mobile playback correction
 
 The owner reports gameplay/audio lag on **Cricket Dream 5G + Chrome**, with desktop-browser playback satisfactory. The supplied recording shows irregular gameplay updates and PCM gaps; those are recorder measurements, not direct emulator FPS or proof of a device fault. The exact recorded application hash was not visible. The current alpha.1 source independently reproduced scheduler time discard under slower callbacks and substantial native capture allocation overhead.
 
 The bounded alpha.2 correction preserves CPU/APU/PPU semantics, the existing audio queue, exact completed-frame captures and schema 12. Review `docs/MOBILE_PLAYBACK_CHECKLIST.txt`. All 921 retained cases / 42 suites plus the new mobile suite are mandatory; actual results belong to `test-results/candidate/Summary.json`. Browser and device evidence remain separately labeled. No claim of improved phone speed is made before the same-device comparison.
 
-This owner-directed correction takes priority within phase 1. The supported audio workflow/listening workshop and then native audio-driver recovery remain next; it does not reopen unrelated milestones or promote alpha.1.
+This preserved correction remains part of phase 1; the current entry correction is described above. The supported audio workflow/listening workshop and then native audio-driver recovery remain next; it does not reopen unrelated milestones or promote alpha.1.
 
 
 ## Preserved audio correction reference
@@ -54,7 +62,7 @@ The sequence below is the current delivery order. Detailed numbered sections ret
 
 | Phase | Priority and deliverable | Completion evidence |
 | --- | --- | --- |
-| **1. Audio and alpha reliability** | **Active priority.** Retain the implemented dense-pattern and triangle-pitch corrections. Review the current mobile scheduling/capture correction, then close supported four-channel authoring, imports, SFX, persistence and listening. | Focused failures become passing regressions, complete candidate gate, author/import → edit → build → audible playback → save/reopen workshop, Forge plus independent-emulator listening, and separately labeled device evidence. |
+| **1. Audio and alpha reliability** | **Active priority.** Retain the implemented dense-pattern and triangle-pitch corrections. Correct direct mobile tracker-keyboard entry, retain the pending phone review of scheduling/capture, then close supported four-channel authoring, imports, SFX, persistence and listening. | Focused failures become passing regressions, complete candidate gate, author/import → edit → build → audible playback → save/reopen workshop, Forge plus independent-emulator listening, and separately labeled device evidence. |
 | **2. Reusable RE recovery** | **Next.** Recover supported native audio into canonical Audio, then graphics/maps/collision into editable Forge content. Build shared discovery/evidence/import interfaces and reusable format adapters. | Declared native records, preview/import, useful edit and rebuilt behavior. Unknown engines retain inspection. First graphics pipeline requires two unrelated independently authored engines beyond Forge/Bridge Room controls. No universal-recovery claim. |
 | **3. Creator portability and review readiness** | **After audio; coordinate with bounded RE slices.** Prove a representative ASM migration through declared hooks, usable import/export, accurate manual/workshops and reviewer packaging. Select gameplay/behavior work from the preserved backlog only when needed. | A supported external source example builds and behaves as documented; native data and references survive save/reopen; a reviewer can reproduce the supported workflow from the supplied package. Full 1.9.1/1.9.2 completion is not required for every later slice. |
 | **4. Hosted Worlds and ordinary items** | **After the finite audio/RE gate.** Define the host bridge and server-authoritative actions, persistent World state, stable item instances and inventory rules. Start without blockchain dependence. | Two clients interact with one item; conflicting pickup, retries, reconnect and server restart preserve one accepted outcome and consistent inventories. Each client's projected state stays within its declared NES runtime budgets. |
@@ -73,11 +81,11 @@ Review of the existing R1–R6 candidate, device checks, source-control setup an
 4. **Preserve the reference:** isolate changes, retain provenance and protected behavior, package a reproducible candidate, and update the manual/checklist with the actual controls. Promotion follows acceptance of that candidate's stated scope.
 5. **Keep support finite and extensible:** declare supported hardware/formats and unknowns. Neither a single-ROM demonstration nor a promise to understand every ROM is an adequate completion criterion.
 
-**Active executable deliverable:** `2.0.0-alpha.2 / mobile-playback-1`, bounded to scheduling, exact capture overhead and Play diagnostics, with focused regressions and the full clean-extraction gate. Broader preview/import/mobile findings must be reproduced and scoped separately. The subsequent audio workflow candidate closes the listening/manual evidence.
+**Active executable deliverable:** `2.0.0-alpha.4 / mobile-keyboard-1`, bounded to native keyboard entry in the original tracker, with focused regressions and the full clean-extraction gate. Broader preview/import/mobile findings must be reproduced and scoped separately. The subsequent audio workflow candidate closes the listening/manual evidence.
 
 ## Version policy
 
-Use **2.0 Alpha — RE development and required foundations** for subsequent RE development. The bounded audio-correction reference uses **2.0.0-alpha.1**; the mobile playback follow-up uses **2.0.0-alpha.2**. This label identifies an alpha review candidate; it does not imply completion of 2.0 or release promotion. Keep all existing 1.9.0 package names, candidate tags, hashes and evidence unchanged.
+Use **2.0 Alpha — RE development and required foundations** for subsequent RE development. The bounded audio-correction reference uses **2.0.0-alpha.1**; the mobile playback reference uses **2.0.0-alpha.2**; the withdrawn separate-form Audio entry follow-up uses **2.0.0-alpha.3**, and the direct-keyboard replacement uses **2.0.0-alpha.4**. This label identifies an alpha review candidate; it does not imply completion of 2.0 or release promotion. Keep all existing 1.9.0 package names, candidate tags, hashes and evidence unchanged.
 
 The numbered sections below are capability and dependency identifiers. They are not a requirement to finish every 1.9.x feature before continuing RE, and they are not a claim that a feature is complete because it appears in a 2.0 Alpha build. The 2.0.1–2.0.5 foundation work and 2.1–2.5 RE scope remain visible; the new Alpha track draws bounded work from those areas as needed. A version-label change alone does not require a project-schema change.
 
@@ -333,7 +341,7 @@ A vertical slice may span multiple domains and infrastructure layers, but must n
 
 NES Forge has a working create/edit → build NES ROM → run/test workflow. The owner reported a successful mobile-browser demonstration on September 28. That is useful qualitative feedback, not a substitute for a recorded device/browser acceptance matrix.
 
-The active correction candidate is **NES Forge 2.0.0-alpha.2 / mobile-playback-1**, pending acceptance of its bounded scope. **1.9.0 Alpha / re-runtime-1** remains the frozen predecessor. Subsequent RE development uses the **2.0 Alpha** track defined above. Earlier mobile-play builds remain dated comparison references. These labels do not promote a release or establish beta readiness.
+The active correction candidate is **NES Forge 2.0.0-alpha.4 / mobile-keyboard-1**, pending acceptance of its bounded scope. **1.9.0 Alpha / re-runtime-1** remains the frozen predecessor. Subsequent RE development uses the **2.0 Alpha** track defined above. Earlier mobile-play builds remain dated comparison references. These labels do not promote a release or establish beta readiness.
 
 Beta readiness should be judged by reliable, repeatable create → build → play → save → reopen workflows for new users, completion of the intended beta feature scope, accurate instructions, and documented coverage on supported browsers. Neither the alpha label nor a version increment automatically satisfies those criteria.
 
@@ -409,7 +417,7 @@ Use:
 ## 1.9.0 — Gameplay Core
 
 Current status:
-**Functional alpha. The frozen re-runtime-1 predecessor introduced early 2.x analysis and runtime-investigation tools, retained by the active mobile-playback candidate. R1–R6 and browser/device closeout remain separately pending.**
+**Functional alpha. The frozen re-runtime-1 predecessor introduced early 2.x analysis and runtime-investigation tools, retained by the active mobile-keyboard candidate. R1–R6 and browser/device closeout remain separately pending.**
 
 Current evidence:
 
@@ -479,7 +487,7 @@ This preserves abstraction so future Doors may support:
 
 ## 1.9.0 alpha follow-up — Mobile Play & Controller Support
 
-**Historical implementation authority:** September 28 authorized the bounded Mobile Play follow-up (D046). Its original `mobile-play-1` result was 702/702; later candidates inherited and extended that work. The active mobile-playback-1 candidate inherits those capabilities; re-runtime-1 is its frozen predecessor. Device/browser and physical-controller closeout remain open and must identify the tested candidate. See the current-position record above and the candidate-specific `CURRENT_BASELINE.md`.
+**Historical implementation authority:** September 28 authorized the bounded Mobile Play follow-up (D046). Its original `mobile-play-1` result was 702/702; later candidates inherited and extended that work. The active mobile-keyboard-1 candidate inherits those capabilities; re-runtime-1 is its frozen predecessor. Device/browser and physical-controller closeout remain open and must identify the tested candidate. See the current-position record above and the candidate-specific `CURRENT_BASELINE.md`.
 
 **Purpose:** let someone open NES Forge on a phone, run a built or loaded ROM, and control it immediately. This lives inside the **Emulator tab**. The manual and workshop explain and exercise it; they are not a separate emulator environment.
 

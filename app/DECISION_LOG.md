@@ -414,3 +414,24 @@ Retain all 895 preexisting cases and add independent compiled-runtime boundary/p
 **Decision:** deliver 2.0.0-alpha.2 / mobile-playback-1, schema 12. Retain frame debt within bounded catch-up safeguards, reduce duplicate native capture allocations with exact-data parity, and add a throttled Play performance readout. Do not change CPU/APU/PPU semantics, audio queue depth, generated audio/gameplay code, capture timing, project format, input isolation, Save As, CHR or undo contracts.
 
 **Evidence:** preserve the alpha.1 reference and all 921 existing checks; add independent timing, capture and diagnostic regressions; require clean-extraction gate and exact packaging. Synthetic clocks, Node profiling, recorder measurements, real browsers, listening and physical devices are separate evidence categories. Browser blockage and device testing remain explicit. No release promotion, source publication or later-feature authorization follows from this correction.
+
+
+## D054 — bounded Mobile Audio Entry correction (October 6, 2026, America/Denver)
+
+**Scope basis:** after delivery of alpha.2, the owner reported: “On mobile i can't input values for audio notes for the instruments.” Treat this as a defect follow-up within the active audio/reliability work.
+
+**Finding:** tracker cells are drawn on a canvas; tapping selects a cell but insertion requires physical piano-key events. Instrument volume/arpeggio envelopes separately depend on mouse dragging. Native fields are needed for touch authoring.
+
+**Decision:** deliver 2.0.0-alpha.3 / mobile-audio-entry-1, schema 12, with native row/order/channel and note/octave/instrument/volume controls plus existing envelope step/value editing. Use canonical records, validate before mutation and preserve undo/persistence, untouched effect data and desktop shortcuts. Prevent playback cursor movement or form focus from redirecting edits or triggering emulator/site commands. Keep compiler, audio engine, scheduling, capture and input services unchanged.
+
+**Evidence:** retain exact alpha.2 source/reports and all 940 tests; add focused authoring regressions and run all 44 suites from one unchanged clean extraction. Keep browser/phone acceptance explicit and separate from VM tests. The existing mobile playback review and full audio workshop remain open. No promotion or later milestone follows automatically.
+
+## D055 — direct Mobile Keyboard supersedes separate forms (October 6, 2026, America/Denver)
+
+**Owner direction:** “eh. scratch those changes. I should be able to bring up the keyboard on mobile and enter the values like I do on PC”. The separate alpha.3 tracker and envelope forms are withdrawn. D054 remains an exact historical record, not the current interface contract.
+
+**Decision:** deliver 2.0.0-alpha.4 / mobile-keyboard-1 from the alpha.2 playback reference. Tapping an ordinary tracker cell requests the phone's native keyboard; committed input uses the existing PC piano-key mapping and canonical note-entry/undo/persistence path. Preserve the original desktop workflow and envelope painting. Do not add an Apply step, note/octave dropdown editor, new envelope editor or alternative Audio model. Handle native text/composition events, safe cancellation and input isolation without changing the compiler, audio engine, emulator or project schema.
+
+**Evidence:** preserve all 940 alpha.2 cases / 43 suites and add `mobile-keyboard200` for 44 required suites. The 18 alpha.3 form-specific tests are superseded by the owner's explicit rejection; retain their source branch, delivered artifact and original results. Verify full gate and exact packaging on a fresh unchanged extraction. Earlier intermediate results, including lost work, do not certify restored files. Native keyboard opening and phone layout require actual device review. Browser blocked launches, VM events and physical-device evidence remain separate.
+
+The supported Audio workshop and native driver recovery retain their existing sequence. Discussion of a capability-adaptive interface is a recommendation for a bounded audit, not authorization to implement a cross-platform UI rewrite. No release promotion, public publication or later milestone follows from this correction.
