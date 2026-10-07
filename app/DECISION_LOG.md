@@ -1,3 +1,17 @@
+# D056 — Bounded Audio adaptive editing
+
+Date: October 7, 2026 UTC (October 6 America/Denver). Owner: “ok, continue”, after the bounded adaptive UI audit.
+
+Retained current-release assertions are updated from alpha.4 to alpha.5, including the displayed title; case contracts and counts remain unchanged. New alpha.5 Gameplay Core and Audio review examples are generated independently, and all historical examples and oracle files remain preserved.
+
+Implement alpha.5 from preserved alpha.4. Keep direct native tracker entry, original desktop mouse strokes and canonical data/undo/save. Add compact Audio layout, selected-cell scrolling around viewport changes, and touch/pen envelope painting. Add the missing device-width viewport declaration; this enables existing narrow layouts across tabs and must be covered by cross-tab phone review. It does not expand the game model or engine.
+
+Preserve all 964 alpha.4 cases and add 26 meaningful gesture/layout cases. Reverse only the exact declared delta to pinned alpha.4, retain older oracles, and run from a verified fresh extraction. Record browser launch blockers as zero checks; do not imply native keyboard, audible output or physical-device acceptance. The successful alpha.4 owner report does not accept alpha.5.
+
+This closes the scoped implementation proposal, not the full Audio phase, manual/PDF work or cross-device UI program. Audio workflow/listening precedes native driver recovery. Existing milestone boundaries and later phases stay unchanged.
+
+## Preserved decisions
+
 # Decision log
 
 Historical 1.6.7 decisions D001–D007 are preserved verbatim in `docs/history/1.6.7-current/root/DECISION_LOG.md` and the frozen release. Decisions D008–D013 below record 1.7. Their completed-milestone stop instructions are superseded only by the explicit 1.8 authority in D014. Blank startup, explicit factories, lifecycle ownership, protected boundaries and evidence discipline continue to apply.

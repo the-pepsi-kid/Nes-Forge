@@ -1,6 +1,6 @@
 {
   "suite": "gameplay165",
-  "html": "NES_Forge_2.0.0-alpha.4.html",
+  "html": "NES_Forge_2.0.0-alpha.5.html",
   "scope": "Actual generated 6502 gameplay-ROM execution in bundled emulator, compiler/configuration contracts, original synthetic art and collision fixtures. Mock DOM; browser/native-dialog and hardware-accuracy QA not implied.",
   "passed": 39,
   "failed": 0,
@@ -9,62 +9,62 @@
     {
       "name": "Schema8 migration defaults legacy projects to viewer and preserves authored state",
       "passed": true,
-      "milliseconds": 526
+      "milliseconds": 518
     },
     {
       "name": "Gameplay configuration survives JSON, undo and redo",
       "passed": true,
-      "milliseconds": 828
+      "milliseconds": 794
     },
     {
       "name": "Invalid gameplay moveSpeed rejects atomically",
       "passed": true,
-      "milliseconds": 458
+      "milliseconds": 454
     },
     {
       "name": "Invalid gameplay jumpSpeed rejects atomically",
       "passed": true,
-      "milliseconds": 442
+      "milliseconds": 473
     },
     {
       "name": "Invalid gameplay gravity rejects atomically",
       "passed": true,
-      "milliseconds": 436
+      "milliseconds": 465
     },
     {
       "name": "Invalid gameplay maxFallSpeed rejects atomically",
       "passed": true,
-      "milliseconds": 493
+      "milliseconds": 463
     },
     {
       "name": "Invalid gameplay bodyWidth rejects atomically",
       "passed": true,
-      "milliseconds": 474
+      "milliseconds": 446
     },
     {
       "name": "Invalid gameplay bodyHeight rejects atomically",
       "passed": true,
-      "milliseconds": 461
+      "milliseconds": 449
     },
     {
       "name": "Invalid gameplay mode rejects atomically",
       "passed": true,
-      "milliseconds": 480
+      "milliseconds": 432
     },
     {
       "name": "Viewer mode preserves the complete original 16 KB ROM bytes",
       "passed": true,
-      "milliseconds": 845
+      "milliseconds": 814
     },
     {
       "name": "Gameplay build emits 32 KB NROM with unchanged linked CHR and legacy metadata",
       "passed": true,
-      "milliseconds": 588
+      "milliseconds": 580
     },
     {
       "name": "Compiler uses raw tile collision and linked metatile quadrant overrides",
       "passed": true,
-      "milliseconds": 526
+      "milliseconds": 516
     },
     {
       "name": "Unsupported collision values fail without a stale ROM",
@@ -79,127 +79,127 @@
     {
       "name": "Missing player state and looping attack fail clearly",
       "passed": true,
-      "milliseconds": 997
+      "milliseconds": 965
     },
     {
       "name": "Excluded gameplay room fails without silently choosing another scene",
       "passed": true,
-      "milliseconds": 503
+      "milliseconds": 494
     },
     {
       "name": "Mismatched source sprite palettes reject silent recoloring",
       "passed": true,
-      "milliseconds": 604
+      "milliseconds": 598
     },
     {
       "name": "Conservative total scanline sprite overflow is rejected",
       "passed": true,
-      "milliseconds": 528
+      "milliseconds": 496
     },
     {
       "name": "Game boots with rendered room, grounded actor, balanced stack and advancing ticks",
       "passed": true,
-      "milliseconds": 1197
+      "milliseconds": 1204
     },
     {
       "name": "Directional input moves exact distance, selects walk and release returns idle",
       "passed": true,
-      "milliseconds": 1629
+      "milliseconds": 1476
     },
     {
       "name": "Opposing directions do not move and preserve last unambiguous facing",
       "passed": true,
-      "milliseconds": 1056
+      "milliseconds": 994
     },
     {
       "name": "Solid wall blocks every movement pixel and prevents horizontal tunneling",
       "passed": true,
-      "milliseconds": 1553
+      "milliseconds": 1472
     },
     {
       "name": "Room bounds prevent left and right coordinate byte wrapping",
       "passed": true,
-      "milliseconds": 3838
+      "milliseconds": 3672
     },
     {
       "name": "Minimum two-pixel body width reaches both room edges without compare overflow",
       "passed": true,
-      "milliseconds": 3810
+      "milliseconds": 3763
     },
     {
       "name": "Nonlooping idle and walk hold their final frame without repeated entry events",
       "passed": true,
-      "milliseconds": 2001
+      "milliseconds": 1977
     },
     {
       "name": "A edge jumps, reaches an apex, lands and does not automatically repeat while held",
       "passed": true,
-      "milliseconds": 3221
+      "milliseconds": 3097
     },
     {
       "name": "Ceiling contact stops rising without pushing the body into solid tiles",
       "passed": true,
-      "milliseconds": 2156
+      "milliseconds": 2131
     },
     {
       "name": "Jumping over a ledge lands on its top and walking off resumes gravity",
       "passed": true,
-      "milliseconds": 2694
+      "milliseconds": 2913
     },
     {
       "name": "Terminal fall speed is bounded while falling from a clear high spawn",
       "passed": true,
-      "milliseconds": 2061
+      "milliseconds": 1981
     },
     {
       "name": "Attack outside all target hurtboxes has no effect",
       "passed": true,
-      "milliseconds": 1462
+      "milliseconds": 1427
     },
     {
       "name": "An attack hits once in its active frame; held B does not retrigger; new edge hits again",
       "passed": true,
-      "milliseconds": 2411
+      "milliseconds": 2521
     },
     {
       "name": "Target reaction expires and restores idle without changing actor position",
       "passed": true,
-      "milliseconds": 3541
+      "milliseconds": 3534
     },
     {
       "name": "Left-facing attack mirrors contact geometry and cannot strike behind the player",
       "passed": true,
-      "milliseconds": 2512
+      "milliseconds": 2178
     },
     {
       "name": "Frame-entry markers appear once at authored attack duration boundaries",
       "passed": true,
-      "milliseconds": 1281
+      "milliseconds": 1109
     },
     {
       "name": "Walk frame durations follow authored 2/3 tick cadence",
       "passed": true,
-      "milliseconds": 1342
+      "milliseconds": 1179
     },
     {
       "name": "Facing reflects asymmetric hardware pieces around feet origin and flips their pixels",
       "passed": true,
-      "milliseconds": 1097
+      "milliseconds": 949
     },
     {
       "name": "Start edge resets position, attack and target hit state",
       "passed": true,
-      "milliseconds": 1450
+      "milliseconds": 1407
     },
     {
       "name": "NMI completes within a bounded DMA budget without visible-frame PPU writes",
       "passed": true,
-      "milliseconds": 1724
+      "milliseconds": 1578
     },
     {
       "name": "Identical boot and input sequence gives identical CPU RAM, OAM and framebuffer",
       "passed": true,
-      "milliseconds": 5978
+      "milliseconds": 5890
     }
   ]
 }

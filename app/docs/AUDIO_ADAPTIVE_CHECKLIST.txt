@@ -1,0 +1,44 @@
+NES Forge 2.0.0-alpha.5 / audio-adaptive-1 — phone and desktop review
+
+Use a COPY of an editable project. Record phone/device, OS, browser and keyboard
+versions, orientation and exact HTML hash from CURRENT_BASELINE.md. Compare
+with alpha.4 using the same project; alpha.4 keyboard success does not accept
+this new candidate. These are expected actions, not claimed test results.
+
+A1 — Direct notes
+AUDIO -> add/select instrument -> tap a tracker cell -> keyboard opens.
+Type z, x, q, 2 individually. Expect C3, D3, C4, C#4 in that same cell.
+Done closes keyboard. Existing PC keys and desktop mouse behavior still work.
+
+A2 — Layout and scrolling
+Reach Noise using horizontal tracker scrolling; reach row 60 vertically.
+Tap a cell, open/close keyboard and rotate portrait/landscape. Expect readable
+controls and selected-cell visibility inside the tracker. Scroll outside the
+envelopes to reach tempo, instruments, pattern orders and SFX. Editing a normal
+field must keep its keyboard/focus and must not enter tracker notes.
+
+A3 — Envelope strokes
+Drag Volume and Arpeggio using ONE finger/pen. Expect bounded values in the
+selected instrument only. Undo once restores the whole stroke; redo restores
+it. A second pointer, tab change, focus loss or cancelled gesture ends painting.
+Returning must not resume an old stroke. A no-op tap should not add an undo step.
+
+A4 — Save/reopen
+Save/export the edited project using the usual Save As flow. Reopen it, including
+on desktop. Expect notes, envelopes, instrument choices, orders and SFX retained.
+
+A5 — Cross-tab and Play
+Visit Scene, CHR, Code, RE and Emulator. Existing narrow layouts should remain
+reachable with the added viewport declaration. Touch/typing in Audio or native
+fields must never press emulator buttons. Emulator Play must not edit Audio.
+Check protected CHR painting, capture and Save As through their normal workflow.
+
+A6 — Audio workshop remains separate
+Optional starting projects: examples/Audio_Correction_2.0.0-alpha.5/.
+Preview the song, enable Compile Audio Runtime, Build & Run and listen. Export
+the ROM and run it in an independent emulator. Record music/SFX, mute and
+pause/resume outcomes. Compare mobile A/V lag with the same ROM/device; this UI
+candidate does not claim a scheduler or audio-engine performance fix.
+
+Send back A1–A6 PASS/FAIL/NOT TESTED, plus device details and a short description
+or recording of failures. USB-C/Bluetooth controllers remain a separate test.

@@ -1,7 +1,7 @@
 {
   "suite": "golden-parity167",
-  "html": "NES_Forge_2.0.0-alpha.4.html",
-  "htmlSha256": "4871312c2fbedc312a89d7400d669b525732e7f9fb2965b87bf74d1d75c00e42",
+  "html": "NES_Forge_2.0.0-alpha.5.html",
+  "htmlSha256": "be63ce7ddd3eec76f1736b9aff78922f0dc10e945ff2a96b26139f2393fff76a",
   "referenceSha256": "d9e3c44d0349e50cca1be800a630486bba1ad9584623c99a81f84bf058df33cb",
   "scope": "Five frozen complete-ROM byte comparisons through actual runtime dispatch, immutable inputs and expected metadata; actual frozen 1.6.6 schema v9 atomic downgrade rejection. Full-script VM; no real-browser claim.",
   "passed": 7,
@@ -11,37 +11,37 @@
     {
       "name": "Golden inputs and expected outputs have complete immutable manifest hashes",
       "passed": true,
-      "milliseconds": 5
+      "milliseconds": 6
     },
     {
       "name": "Whole-ROM golden parity: packed-viewer",
       "passed": true,
-      "milliseconds": 567
+      "milliseconds": 588
     },
     {
       "name": "Whole-ROM golden parity: packed-custom-asm",
       "passed": true,
-      "milliseconds": 506
+      "milliseconds": 530
     },
     {
       "name": "Whole-ROM golden parity: unpacked-custom-asm",
       "passed": true,
-      "milliseconds": 455
+      "milliseconds": 472
     },
     {
       "name": "Whole-ROM golden parity: packed-world-assets-reordered",
       "passed": true,
-      "milliseconds": 654
+      "milliseconds": 588
     },
     {
       "name": "Whole-ROM golden parity: single-room-poc",
       "passed": true,
-      "milliseconds": 579
+      "milliseconds": 562
     },
     {
       "name": "Actual frozen 1.6.6 rejects schema v9 before changing project or undo history",
       "passed": true,
-      "milliseconds": 350
+      "milliseconds": 346
     }
   ]
 }

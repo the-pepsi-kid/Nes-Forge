@@ -1,4 +1,4 @@
-"""Package the reproducibly bundled and clean-tested 2.0.0-alpha.4 Mobile Keyboard candidate."""
+"""Package the reproducibly bundled and clean-tested 2.0.0-alpha.5 Audio Adaptive Editing candidate."""
 from pathlib import Path
 import argparse
 import hashlib
@@ -17,10 +17,10 @@ digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
 subprocess.run(['python3', str(root/'tools/bundle.py'), '--check'], cwd=root, check=True)
 manifest = json.loads((root/'source-manifest.json').read_text())
 html = root/manifest['output']
-assert manifest['release'] == '2.0.0-alpha.4'
-assert manifest['output'] == 'mainline/NES_Forge_2.0.0-alpha.4.html'
+assert manifest['release'] == '2.0.0-alpha.5'
+assert manifest['output'] == 'mainline/NES_Forge_2.0.0-alpha.5.html'
 release = manifest['release']
-candidate = 'mobile-keyboard-1'
+candidate = 'audio-adaptive-1'
 archive_prefix = 'NES_Forge_'+release+'/'
 summary = None
 browser = None
@@ -29,10 +29,14 @@ if not args.stage:
     assert summary['status'] == 'passed' and summary['failed'] == 0
     assert summary['release'] == release
     assert summary['html'] == manifest['output'] and summary['unchangedCandidate'] is True
-    assert summary['passed'] == summary['total'] and summary['suiteCount'] == 44
-    assert len(summary['suites']) == 44
+    assert summary['passed'] == summary['total'] and summary['suiteCount'] == 45
+    assert len(summary['suites']) == 45
     audio_names = {'audio-correction200'}
     playback_names = {'mobile-playback200'}
+    adaptive_names = {'audio-adaptive200'}
+    adaptive_suites = [suite for suite in summary['suites'] if suite['name'] in adaptive_names]
+    assert len(adaptive_suites) == 1 and adaptive_suites[0]['total'] == 26
+    assert sum(suite['total'] for suite in summary['suites'] if suite['name'] not in adaptive_names) == 964, 'All alpha.4 cases must remain'
     correction_names = {'mobile-keyboard200'}
     correction_suites = [suite for suite in summary['suites'] if suite['name'] in correction_names]
     assert len(correction_suites) == 1 and correction_suites[0]['total'] == 24, '24-case Mobile Keyboard correction suite missing or changed'
@@ -85,12 +89,12 @@ if not args.stage:
         're-runtime-ui': 14,
         're-runtime-integration': 11,
     }
-    prior_suites = [suite for suite in summary['suites'] if suite['name'] not in audio_names | playback_names | correction_names]
+    prior_suites = [suite for suite in summary['suites'] if suite['name'] not in audio_names | playback_names | correction_names | adaptive_names]
     assert len(prior_suites) == 41
     assert {suite['name']: suite['total'] for suite in prior_suites} == retained_counts, 'Retained 895-case suite inventory changed'
     assert sum(suite['total'] for suite in prior_suites) == 895, 'Retained re-runtime-1 regression floor changed'
-    assert sum(suite['total'] for suite in summary['suites'] if suite['name'] not in playback_names | correction_names) == 921, 'Retained audio-correction-1 regression floor changed'
-    assert sum(suite['total'] for suite in summary['suites'] if suite['name'] not in correction_names) == 940, 'Retained mobile-playback-1 regression floor changed'
+    assert sum(suite['total'] for suite in summary['suites'] if suite['name'] not in playback_names | correction_names | adaptive_names) == 921, 'Retained audio-correction-1 regression floor changed'
+    assert sum(suite['total'] for suite in summary['suites'] if suite['name'] not in correction_names | adaptive_names) == 940, 'Retained mobile-playback-1 regression floor changed'
     assert summary['total'] == sum(suite['total'] for suite in summary['suites'])
     assert summary['passed'] == sum(suite['passed'] for suite in summary['suites'])
     mobile_names = {'emulator-input-mobile', 'emulator-play-ui-mobile'}
@@ -98,7 +102,7 @@ if not args.stage:
     navigation_names = {'emulator-timeline', 'emulator-timeline-ui', 'emulator-timeline-runtime'}
     analysis_names = {'re-analysis-model', 're-analysis-ui', 're-analysis-integration'}
     runtime_names = {'re-runtime', 're-runtime-ui', 're-runtime-integration'}
-    retained = [suite for suite in summary['suites'] if suite['name'] not in mobile_names | re_names | navigation_names | analysis_names | runtime_names | audio_names | playback_names | correction_names]
+    retained = [suite for suite in summary['suites'] if suite['name'] not in mobile_names | re_names | navigation_names | analysis_names | runtime_names | audio_names | playback_names | correction_names | adaptive_names]
     assert len(retained) == 26 and sum(suite['total'] for suite in retained) == 658, 'Retained regression floor changed'
     mobile = [suite for suite in summary['suites'] if suite['name'] in mobile_names]
     assert {suite['name'] for suite in mobile} == mobile_names and all(suite['total'] > 0 for suite in mobile), 'Mobile suites missing'
@@ -108,18 +112,18 @@ if not args.stage:
     for suite in summary['suites']:
         assert suite['passed'] == suite['total'] and suite['failed'] == 0
         assert digest(root/suite['report']) == suite['reportSha256'], 'Changed measured report'
-    assert sum(suite['total'] for suite in summary['suites'] if suite['name'] not in re_names | navigation_names | analysis_names | runtime_names | audio_names | playback_names | correction_names) == 708, 'Retained mobile-play-2 regression floor changed'
+    assert sum(suite['total'] for suite in summary['suites'] if suite['name'] not in re_names | navigation_names | analysis_names | runtime_names | audio_names | playback_names | correction_names | adaptive_names) == 708, 'Retained mobile-play-2 regression floor changed'
     re_suites = [suite for suite in summary['suites'] if suite['name'] in re_names]
     assert {suite['name'] for suite in re_suites} == re_names and all(suite['total'] > 0 for suite in re_suites), 'RE suites missing'
     navigation_suites = [suite for suite in summary['suites'] if suite['name'] in navigation_names]
     assert {suite['name'] for suite in navigation_suites} == navigation_names and all(suite['total'] > 0 for suite in navigation_suites), 'Navigation suites missing'
     analysis_suites = [suite for suite in summary['suites'] if suite['name'] in analysis_names]
     assert {suite['name'] for suite in analysis_suites} == analysis_names and all(suite['total'] > 0 for suite in analysis_suites), 'Analysis suites missing'
-    assert sum(suite['total'] for suite in summary['suites'] if suite['name'] not in analysis_names | runtime_names | audio_names | playback_names | correction_names) == 788, 'Retained navigation regression floor changed'
+    assert sum(suite['total'] for suite in summary['suites'] if suite['name'] not in analysis_names | runtime_names | audio_names | playback_names | correction_names | adaptive_names) == 788, 'Retained navigation regression floor changed'
     runtime_suites = [suite for suite in summary['suites'] if suite['name'] in runtime_names]
     assert {suite['name'] for suite in runtime_suites} == runtime_names and all(suite['total'] > 0 for suite in runtime_suites), 'Runtime suites missing'
-    assert sum(suite['total'] for suite in summary['suites'] if suite['name'] not in runtime_names | audio_names | playback_names | correction_names) == 846, 'Retained analysis-1a regression floor changed'
-    reproduction = json.loads((root/'checkpoints/mobile-keyboard-1-clean-extraction/Reproduction.json').read_text())
+    assert sum(suite['total'] for suite in summary['suites'] if suite['name'] not in runtime_names | audio_names | playback_names | correction_names | adaptive_names) == 846, 'Retained analysis-1a regression floor changed'
+    reproduction = json.loads((root/'checkpoints/audio-adaptive-1-clean-extraction/Reproduction.json').read_text())
     assert reproduction['candidate'] == candidate
     assert reproduction['status'] == 'passed' and reproduction['htmlSha256'] == summary['sha256']
     assert reproduction['passed'] == summary['passed'] and reproduction['total'] == summary['total'] and reproduction['suiteCount'] == summary['suiteCount']
@@ -133,6 +137,10 @@ if not args.stage:
     assert runtime_browser['sha256'] == summary['sha256'] and runtime_browser['status'] in {'passed', 'blocked'}, 'Runtime browser evidence failed or stale'
     if runtime_browser['status'] == 'blocked':
         assert runtime_browser['passed'] == 0 and runtime_browser['failed'] == 0 and runtime_browser['checks'] == [], 'Blocked runtime browser run cannot claim checks'
+    adaptive_browser = json.loads((root/'test-results/browser-audio-adaptive/Report.json').read_text())
+    assert adaptive_browser['sha256'] == summary['sha256'] and adaptive_browser['status'] in {'passed', 'blocked'}
+    if adaptive_browser['status'] == 'blocked':
+        assert adaptive_browser['passed'] == 0 and adaptive_browser['failed'] == 0 and adaptive_browser['checks'] == []
     browser = json.loads((root/'test-results/browser-mobile/Report.json').read_text())
     assert browser['sha256'] == summary['sha256'], 'Browser record belongs to another candidate'
     assert browser['status'] in {'passed', 'blocked'}, 'Browser failures must be resolved before packaging'
@@ -145,7 +153,7 @@ names = ['README.md', 'PROJECT_CHARTER.md', 'ARCHITECTURE_CONTRACT.md', 'DECISIO
 files = {root/name for name in names}
 directories = ['src', 'tools', 'tests', 'stabilization', 'baseline', 'examples', 'docs', 'checkpoints']
 if not args.stage:
-    directories.extend(['test-results/candidate', 'test-results/browser-mobile', 'test-results/browser-re-analysis', 'test-results/browser-re-runtime'])
+    directories.extend(['test-results/candidate', 'test-results/browser-mobile', 'test-results/browser-re-analysis', 'test-results/browser-re-runtime', 'test-results/browser-audio-adaptive'])
 for name in directories:
     folder = root/name
     assert folder.is_dir(), 'Required directory missing: '+name
@@ -157,12 +165,12 @@ for file in files:
 files = sorted(files, key=lambda p: p.relative_to(root).as_posix())
 checksums = root/'SHA256SUMS.txt'
 checksums.write_text(''.join(digest(p)+'  '+p.relative_to(root).as_posix()+'\n' for p in files))
-target = (args.output or root.parent/'NES_Forge_2.0.0-alpha.4_Mobile_Keyboard_Candidate.zip').resolve()
+target = (args.output or root.parent/'NES_Forge_2.0.0-alpha.5_Audio_Adaptive_Candidate.zip').resolve()
 assert not target.is_relative_to(root), 'Write the archive outside its source tree'
 target.parent.mkdir(parents=True, exist_ok=True)
 with zipfile.ZipFile(target, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
     for file in files+[checksums]:
-        entry = zipfile.ZipInfo(archive_prefix+file.relative_to(root).as_posix(), (2026, 10, 6, 0, 0, 0))
+        entry = zipfile.ZipInfo(archive_prefix+file.relative_to(root).as_posix(), (2026, 10, 7, 0, 0, 0))
         entry.compress_type = zipfile.ZIP_DEFLATED
         entry.external_attr = 0o100644 << 16
         z.writestr(entry, file.read_bytes(), compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)

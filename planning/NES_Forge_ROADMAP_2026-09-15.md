@@ -1,14 +1,24 @@
 # NES Forge — Authoritative Roadmap
-**Revision date:** 2026-10-06 (America/Denver), direct mobile keyboard correction
-**Status:** Mobile Keyboard candidate **2.0.0-alpha.4 / mobile-keyboard-1** replaces the owner-rejected alpha.3 forms. Verification belongs to the packaged reports; physical phone review and promotion remain pending.
+**Revision date:** 2026-10-07 (UTC), Audio adaptive editing review candidate
+**Status:** Audio Adaptive Editing candidate **2.0.0-alpha.5 / audio-adaptive-1**, based on alpha.4. Basic phone keyboard entry was owner-reported successful on alpha.4. New layout/envelope changes require their own review; listening, mobile performance, hardware controllers and promotion remain pending.
 
-## Active direct mobile keyboard correction
+## Active Audio adaptive editing candidate
+
+Owner “ok, continue” authorizes the bounded Audio pilot following the source audit. Alpha.5 preserves alpha.4 direct native tracker entry and desktop mouse strokes; it adds responsive Audio panels, selected-cell scrolling on selection/viewport changes, and touch/pen painting on the original volume/arpeggio canvases. The previously missing device-width viewport declaration is added: it enables the existing narrow layouts across tabs and therefore requires cross-tab device review. Project schema and CPU/APU/PPU, compiler, import, capture and persistence sources remain unchanged.
+
+All 964 alpha.4 cases across 44 suites plus the 26-case `audio-adaptive200` suite are mandatory, for 45 suites. Actual fresh results belong to `test-results/candidate/Summary.json`; browser rendering and physical-device outcomes stay separate. Source guards reconstruct the exact alpha.4 reference and then the older correction references; no historical oracle is regenerated.
+
+Use `docs/AUDIO_ADAPTIVE_CHECKLIST.txt` and `docs/AUDIO_ADAPTIVE_GUIDE.md`. This is an Audio UI review candidate, not completion of the audio/listening workshop or the whole adaptive UI program. After review, complete supported author/import/edit/build/listen/save/reopen, then native audio-driver recovery. No promotion or later milestone implementation is authorized by this candidate.
+
+## Preserved direct mobile keyboard correction
 
 The owner rejected the separate native tracker/envelope forms: “I should be able to bring up the keyboard on mobile and enter the values like I do on PC”. D055 supersedes D054. Alpha.4 starts from alpha.2 and requests the phone keyboard when an ordinary tracker cell is tapped, using the same PC piano keys and canonical note-entry/undo/persistence path. There is no separate form, Apply action, automatic row advance or new envelope editor. Existing envelope painting remains unchanged.
 
 Review `docs/MOBILE_KEYBOARD_CHECKLIST.txt`. Retain all 940 alpha.2 cases / 43 suites plus `mobile-keyboard200`, for 44 mandatory suites. Alpha.3's 18 form-specific cases are explicitly superseded and preserved as historical evidence. Actual fresh totals belong to the current Summary; earlier intermediate runs do not validate restored or changed files. VM events do not establish physical keyboard opening or phone layout. The alpha.2 gameplay/audio-performance comparison on Cricket Dream 5G / Chrome remains open.
 
-This is phase 1 Audio usability/reliability work. After review, complete the supported author/import/edit/build/listen/save/reopen workshop, then native audio-driver recovery. The owner's cross-device UI discussion supports a recommendation for a bounded capability-adaptive UI audit; it does not authorize a rewrite or reorder this sequence.
+This is phase 1 Audio usability/reliability work. On October 7 UTC, the owner reported ‘yeah it worked’ for direct phone keyboard entry. This closes only the basic reported interaction, not the entire checklist or the separate playback/performance review.
+
+The bounded source audit is complete: see `NES_Forge_Adaptive_UI_Audit_2026-10-07.md`. It proposes an Audio pilot for tracker/panel layout, native keyboard visibility and touch/pen envelope strokes through existing canonical edits. The audit makes no production changes, supplies no new browser pass and does not authorize a rewrite. Complete the supported author/import/edit/build/listen/save/reopen workshop, then native audio-driver recovery; the six-phase order remains unchanged.
 
 ## Preserved mobile playback correction
 
@@ -81,11 +91,11 @@ Review of the existing R1–R6 candidate, device checks, source-control setup an
 4. **Preserve the reference:** isolate changes, retain provenance and protected behavior, package a reproducible candidate, and update the manual/checklist with the actual controls. Promotion follows acceptance of that candidate's stated scope.
 5. **Keep support finite and extensible:** declare supported hardware/formats and unknowns. Neither a single-ROM demonstration nor a promise to understand every ROM is an adequate completion criterion.
 
-**Active executable deliverable:** `2.0.0-alpha.4 / mobile-keyboard-1`, bounded to native keyboard entry in the original tracker, with focused regressions and the full clean-extraction gate. Broader preview/import/mobile findings must be reproduced and scoped separately. The subsequent audio workflow candidate closes the listening/manual evidence.
+**Active executable deliverable:** `2.0.0-alpha.5 / audio-adaptive-1`, bounded to Audio layout, selected-cell visibility and touch/pen strokes on existing envelopes while preserving direct native keyboard entry, with focused regressions and the full clean-extraction gate. Broader preview/import/mobile findings must be reproduced and scoped separately. The subsequent audio workflow candidate closes the listening/manual evidence.
 
 ## Version policy
 
-Use **2.0 Alpha — RE development and required foundations** for subsequent RE development. The bounded audio-correction reference uses **2.0.0-alpha.1**; the mobile playback reference uses **2.0.0-alpha.2**; the withdrawn separate-form Audio entry follow-up uses **2.0.0-alpha.3**, and the direct-keyboard replacement uses **2.0.0-alpha.4**. This label identifies an alpha review candidate; it does not imply completion of 2.0 or release promotion. Keep all existing 1.9.0 package names, candidate tags, hashes and evidence unchanged.
+Use **2.0 Alpha — RE development and required foundations** for subsequent RE development. The bounded audio-correction reference uses **2.0.0-alpha.1**; the mobile playback reference uses **2.0.0-alpha.2**; the withdrawn separate-form Audio entry follow-up uses **2.0.0-alpha.3**, the direct-keyboard replacement uses **2.0.0-alpha.4**, and the bounded adaptive Audio follow-up uses **2.0.0-alpha.5**. This label identifies an alpha review candidate; it does not imply completion of 2.0 or release promotion. Keep all existing 1.9.0 package names, candidate tags, hashes and evidence unchanged.
 
 The numbered sections below are capability and dependency identifiers. They are not a requirement to finish every 1.9.x feature before continuing RE, and they are not a claim that a feature is complete because it appears in a 2.0 Alpha build. The 2.0.1–2.0.5 foundation work and 2.1–2.5 RE scope remain visible; the new Alpha track draws bounded work from those areas as needed. A version-label change alone does not require a project-schema change.
 
@@ -341,7 +351,7 @@ A vertical slice may span multiple domains and infrastructure layers, but must n
 
 NES Forge has a working create/edit → build NES ROM → run/test workflow. The owner reported a successful mobile-browser demonstration on September 28. That is useful qualitative feedback, not a substitute for a recorded device/browser acceptance matrix.
 
-The active correction candidate is **NES Forge 2.0.0-alpha.4 / mobile-keyboard-1**, pending acceptance of its bounded scope. **1.9.0 Alpha / re-runtime-1** remains the frozen predecessor. Subsequent RE development uses the **2.0 Alpha** track defined above. Earlier mobile-play builds remain dated comparison references. These labels do not promote a release or establish beta readiness.
+The active correction candidate is **NES Forge 2.0.0-alpha.5 / audio-adaptive-1**, pending acceptance of its bounded scope. **1.9.0 Alpha / re-runtime-1** remains the frozen predecessor. Subsequent RE development uses the **2.0 Alpha** track defined above. Earlier mobile-play builds remain dated comparison references. These labels do not promote a release or establish beta readiness.
 
 Beta readiness should be judged by reliable, repeatable create → build → play → save → reopen workflows for new users, completion of the intended beta feature scope, accurate instructions, and documented coverage on supported browsers. Neither the alpha label nor a version increment automatically satisfies those criteria.
 

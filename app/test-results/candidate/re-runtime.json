@@ -1,7 +1,7 @@
 {
   "suite": "re-runtime",
-  "html": "NES_Forge_2.0.0-alpha.4.html",
-  "htmlSha256": "4871312c2fbedc312a89d7400d669b525732e7f9fb2965b87bf74d1d75c00e42",
+  "html": "NES_Forge_2.0.0-alpha.5.html",
+  "htmlSha256": "be63ce7ddd3eec76f1736b9aff78922f0dc10e945ff2a96b26139f2393fff76a",
   "scope": "Actual standalone runtime public API with independently authored machine-code fixtures; no module injection, browser, audio-device or hardware acceptance.",
   "passed": 24,
   "failed": 0,
@@ -10,67 +10,67 @@
     {
       "name": "Unloaded runtime cannot silently pretend to have a tracing source",
       "passed": true,
-      "milliseconds": 400
+      "milliseconds": 396
     },
     {
       "name": "Loaded source identity is its actual immutable file, including trainer bytes",
       "passed": true,
-      "milliseconds": 357
+      "milliseconds": 358
     },
     {
       "name": "Observation is opt-in and coverage names original instruction PCs and physical offsets",
       "passed": true,
-      "milliseconds": 373
+      "milliseconds": 394
     },
     {
       "name": "Snapshot A/B reads backing memory without changing PPU, controller or APU read latches",
       "passed": true,
-      "milliseconds": 379
+      "milliseconds": 383
     },
     {
       "name": "Snapshot outputs cannot alter retained comparison data",
       "passed": true,
-      "milliseconds": 386
+      "milliseconds": 340
     },
     {
       "name": "RAM comparisons distinguish unsigned increase, decrease, equal value and unchanged",
       "passed": true,
-      "milliseconds": 379
+      "milliseconds": 347
     },
     {
       "name": "RAM comparison result pagination neither skips nor duplicates matches",
       "passed": true,
-      "milliseconds": 376
+      "milliseconds": 335
     },
     {
       "name": "Comparison filters and paging reject malformed requests rather than silently widening a search",
       "passed": true,
-      "milliseconds": 349
+      "milliseconds": 332
     },
     {
       "name": "RAM watches canonicalize mirrored writes and report the actual STA instruction",
       "passed": true,
-      "milliseconds": 350
+      "milliseconds": 331
     },
     {
       "name": "Eight watch bound and permitted memory regions are enforced without duplicates",
       "passed": true,
-      "milliseconds": 353
+      "milliseconds": 336
     },
     {
       "name": "PPU and APU events retain execution origin without inventing origins for external bus writes",
       "passed": true,
-      "milliseconds": 358
+      "milliseconds": 336
     },
     {
       "name": "Observed-resource copies preserve unknown bytes and cannot mutate evidence",
       "passed": true,
-      "milliseconds": 406
+      "milliseconds": 367
     },
     {
       "name": "Trace event cap stops recording with bounded evidence while emulation continues",
       "passed": true,
-      "milliseconds": 415
+      "milliseconds": 436
     },
     {
       "name": "Reset invalidates snapshots and observations but preserves watches within the same ROM",
@@ -80,52 +80,52 @@
     {
       "name": "Replacement ROM clears old identity, observations, snapshots and watch meaning",
       "passed": true,
-      "milliseconds": 332
+      "milliseconds": 343
     },
     {
       "name": "A failed unsupported emulator load leaves the existing analysis source intact",
       "passed": true,
-      "milliseconds": 340
+      "milliseconds": 341
     },
     {
       "name": "Exported observation report is a copied record and cannot be imported as a project",
       "passed": true,
-      "milliseconds": 354
+      "milliseconds": 366
     },
     {
       "name": "Pending identity and trace start cannot survive reset of their original runtime session",
       "passed": true,
-      "milliseconds": 337
+      "milliseconds": 357
     },
     {
       "name": "Pending identity and trace start cannot survive replacement of their original runtime session",
       "passed": true,
-      "milliseconds": 388
+      "milliseconds": 387
     },
     {
       "name": "Pending identity and trace start cannot survive clear of their original runtime session",
       "passed": true,
-      "milliseconds": 382
+      "milliseconds": 373
     },
     {
       "name": "Executed RAM code is observed without inventing a physical ROM source",
       "passed": true,
-      "milliseconds": 360
+      "milliseconds": 349
     },
     {
       "name": "A failing presentation subscriber cannot change instruction execution or trace collection",
       "passed": true,
-      "milliseconds": 365
+      "milliseconds": 325
     },
     {
       "name": "Coverage-entry bound stops before collecting an unbounded NOP region",
       "passed": true,
-      "milliseconds": 376
+      "milliseconds": 344
     },
     {
       "name": "Explicit Stop cancels a pending hash and cannot arm tracing after the user stopped it",
       "passed": true,
-      "milliseconds": 361
+      "milliseconds": 330
     }
   ]
 }

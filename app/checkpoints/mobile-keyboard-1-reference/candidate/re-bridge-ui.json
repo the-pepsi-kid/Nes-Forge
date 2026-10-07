@@ -1,0 +1,61 @@
+{
+  "suite": "re-bridge-ui",
+  "htmlSha256": "4871312c2fbedc312a89d7400d669b525732e7f9fb2965b87bf74d1d75c00e42",
+  "passed": 13,
+  "total": 13,
+  "failed": 0,
+  "results": [
+    {
+      "name": "RE panel mounts once in DISASM without replacing the blank project or starting playback",
+      "passed": true
+    },
+    {
+      "name": "Choosing a ROM is separate from analysis and never changes active authoring state",
+      "passed": true
+    },
+    {
+      "name": "Actual supported ROM stages room, collision and audio counts without importing or altering history",
+      "passed": true
+    },
+    {
+      "name": "Preview renders decoded graphics and cell-specific collision overrides instead of treating every shared tile as solid",
+      "passed": true
+    },
+    {
+      "name": "Untrusted filenames remain literal text in the result and never create markup",
+      "passed": true
+    },
+    {
+      "name": "Invalid ROM and oversized file failures remain visible and preserve the project",
+      "passed": true
+    },
+    {
+      "name": "A delayed earlier file read cannot replace a newer staged ROM or status",
+      "passed": true
+    },
+    {
+      "name": "A delayed hash analysis cannot publish after another file selection",
+      "passed": true
+    },
+    {
+      "name": "Project changes during analysis reject the preview without overwriting newer edits",
+      "passed": true
+    },
+    {
+      "name": "Changed project content or lifecycle epoch prevents a staged import",
+      "passed": true
+    },
+    {
+      "name": "Explicit supported import is a single undoable project replacement and a repeated click does nothing",
+      "passed": true
+    },
+    {
+      "name": "Project and inspection exports are distinct JSON formats through the existing Save As transport",
+      "passed": true
+    },
+    {
+      "name": "Download failures leave the staged recovery available and show the actual error",
+      "passed": true
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the frozen delivery; optionally run its gate in a disposable copy."""
+"""Verify the current candidate (or frozen reference), with an optional disposable gate."""
 import argparse
 import hashlib
 import json
@@ -11,7 +11,10 @@ import tempfile
 
 
 def verify(root):
-    reference = json.loads((root / "REFERENCE.json").read_text(encoding="utf-8"))
+    identity_path = root / "CANDIDATE.json"
+    if not identity_path.is_file():
+        identity_path = root / "REFERENCE.json"
+    reference = json.loads(identity_path.read_text(encoding="utf-8"))
     app = root / "app"
     manifest = app / "SHA256SUMS.txt"
     names = set()
@@ -34,7 +37,7 @@ def verify(root):
     if hashlib.sha256(html.read_bytes()).hexdigest() != reference["htmlSha256"]:
         raise RuntimeError("Reference HTML identity differs")
     subprocess.run([sys.executable, "tools/bundle.py", "--check"], cwd=app, check=True)
-    print(f"Verified {len(names)} payload checksums and exact reference bundle.", flush=True)
+    print(f"Verified {len(names)} payload checksums and exact {identity_path.name} bundle.", flush=True)
     return app
 
 

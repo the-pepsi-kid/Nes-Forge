@@ -24,7 +24,7 @@ test('Every protected navigation baseline source survives the exact audio correc
  verifyRuntimeReference();
  const baseline=JSON.parse(fs.readFileSync(path.join(root,'baseline/re-navigation-1-build-inputs.json'))),manifest=JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json')));
  for(const input of baseline.inputs){let source=referenceSource(input.path);if(input.path==='src/services/release-info.js'){const revised="candidate:'re-runtime-1'";assert.equal(source.split(revised).length,2,'Exactly one updated candidate identity');source=source.replace(revised,"candidate:'re-navigation-1'");}if(input.path==='src/re/re-ui.js'){const revised="'Preview editable recovery'";assert.equal(source.split(revised).length,2,'Exactly one renamed recovery command');source=source.replace(revised,"'Analyze ROM'");}assert.equal(hash(source),input.sha256,input.path);}
- const previous=baseline.inputs.map(input=>input.path);assert.deepEqual(manifest.parts.filter(part=>!previous.includes(part)),['src/re/re-analysis.js','src/re/re-analysis-ui.js','src/re/re-runtime.js','src/re/re-runtime-ui.js']);assert.deepEqual(manifest.parts.filter(part=>previous.includes(part)),previous);
+ const previous=baseline.inputs.map(input=>input.path);assert.deepEqual(manifest.parts.filter(part=>!previous.includes(part)),['src/audio/audio-adaptive-ui.js','src/re/re-analysis.js','src/re/re-analysis-ui.js','src/re/re-runtime.js','src/re/re-runtime-ui.js']);assert.deepEqual(manifest.parts.filter(part=>previous.includes(part)),previous);
 });
 
 test('Unknown engine and unsupported mapper are inspectable beside a populated emulator and recorded history',async()=>{

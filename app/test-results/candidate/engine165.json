@@ -1,6 +1,6 @@
 {
   "suite": "engine165",
-  "html": "NES_Forge_2.0.0-alpha.4.html",
+  "html": "NES_Forge_2.0.0-alpha.5.html",
   "scope": "Actual bundled 6502 emulator: maximum frame-cycle budget, signed OAM edges, smallest collision body, nonloop timing and reserved-memory limits.",
   "passed": 5,
   "failed": 0,
@@ -14,27 +14,27 @@
     {
       "name": "Maximum supported frame work completes inside an NTSC CPU-frame budget",
       "passed": true,
-      "milliseconds": 1286
+      "milliseconds": 1294
     },
     {
       "name": "Two-pixel player body reaches both room boundaries without byte wrap",
       "passed": true,
-      "milliseconds": 869
+      "milliseconds": 805
     },
     {
       "name": "Nonloop idle holds its final frame without repeatedly firing entry events",
       "passed": true,
-      "milliseconds": 1436
+      "milliseconds": 1390
     },
     {
       "name": "Offscreen signed actor offsets are hidden and facing mirrors surviving OAM",
       "passed": true,
-      "milliseconds": 641
+      "milliseconds": 612
     },
     {
       "name": "Runtime table overflow fails explicitly before gameplay metadata reservation",
       "passed": true,
-      "milliseconds": 351
+      "milliseconds": 333
     }
   ]
 }

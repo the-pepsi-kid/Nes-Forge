@@ -1,3 +1,5 @@
+> Inherited alpha.4 direct-entry behavior remains in alpha.5. Its original release identity and evidence below belong to alpha.4. For current layout and touch envelope review use AUDIO_ADAPTIVE_GUIDE.md.
+
 # Mobile Keyboard — 2.0.0-alpha.4 / mobile-keyboard-1
 
 Add or select an instrument in **AUDIO** first; note entry requires an instrument, as on PC. Tap an ordinary note cell to request the phone's keyboard. Enter the same piano keys shown in the tracker on PC. The tapped cell remains selected; notes do not advance the row automatically. There is no separate editor form or Apply button.

@@ -1,3 +1,15 @@
+# Test and release policy — alpha.5 / audio-adaptive-1
+
+Retain all 964 alpha.4 cases across 44 suites; add the 26-case `audio-adaptive200` suite, for 45 mandatory suites. No filters, skips, missing-module repair, stale reports or historical-oracle regeneration. Preserve every retained suite count individually.
+
+Retained current-release assertions are updated from alpha.4 to alpha.5, including the displayed title; case contracts and counts remain unchanged. New alpha.5 Gameplay Core and Audio review examples are generated independently, and all historical examples and oracle files remain preserved.
+
+Freeze source, tests, documentation and examples, create a staging archive, verify every payload checksum after fresh extraction, and execute the complete gate there. Source guards reverse the exact shell/release changes, verify the added Audio module and reconstruct pinned alpha.4 bytes before applying older guards. The new suite uses actual registered handlers in the full standalone candidate, with declared test-local DOM/task/geometry adapters.
+
+Four fresh Chromium runners report measured checks or a blocked launch with zero checks. Physical keyboard, IME layout, rendering, native audio, controllers and owner acceptance are separate. Final packaging verifies source/test/report provenance, browser hashes and clean-extraction proof. A device-width viewport enables existing cross-tab responsive CSS; device review must cover those tabs as well as Audio.
+
+## Preserved alpha.4 policy
+
 # Test and release policy — 2.0.0-alpha.4 / mobile-keyboard-1
 
 Retain all 940 alpha.2 cases across 43 suites and add `mobile-keyboard200`, for 44 mandatory suites. D055 supersedes alpha.3's 18 separate-form cases because the owner rejected that interface; keep their original evidence with the withdrawn artifact. Do not count alpha.3 as the behavioral base or silently omit any alpha.2 case. Actual totals belong to the measured candidate Summary, not a planned or lost intermediate run.

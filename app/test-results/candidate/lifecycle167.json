@@ -7,112 +7,112 @@
     {
       "name": "Cold startup is a blank viewer workspace with one effective autosave schedule and no recovery writes",
       "passed": true,
-      "milliseconds": 477
+      "milliseconds": 381
     },
     {
       "name": "IndexedDB-only recovery is gated from startup through discovery, including unload autosave",
       "passed": true,
-      "milliseconds": 382
+      "milliseconds": 369
     },
     {
       "name": "Legacy local recovery stays available even when IndexedDB is unavailable",
       "passed": true,
-      "milliseconds": 416
+      "milliseconds": 368
     },
     {
       "name": "Corrupt local recovery is retained and blocks autosave when IndexedDB cannot be read",
       "passed": true,
-      "milliseconds": 445
+      "milliseconds": 336
     },
     {
       "name": "Explicit restore loads recovery once, clears its record, and marks restored edits unsaved",
       "passed": true,
-      "milliseconds": 609
+      "milliseconds": 475
     },
     {
       "name": "Recovery deletion failure retains the recovery copy and leaves restored content unsaved",
       "passed": true,
-      "milliseconds": 563
+      "milliseconds": 492
     },
     {
       "name": "Legacy local recovery restores and clears both storage locations after success",
       "passed": true,
-      "milliseconds": 544
+      "milliseconds": 475
     },
     {
       "name": "Unsupported recovery rejects atomically and keeps the original bytes offered for recovery",
       "passed": true,
-      "milliseconds": 881
+      "milliseconds": 687
     },
     {
       "name": "Malformed recovery stays intact and can be explicitly dismissed without replacing the workspace",
       "passed": true,
-      "milliseconds": 411
+      "milliseconds": 378
     },
     {
       "name": "Dismiss invalidates a pending recovery read and gates autosave through deletion",
       "passed": true,
-      "milliseconds": 434
+      "milliseconds": 332
     },
     {
       "name": "Recovery storage denial leaves a usable blank editor with an accurate unavailable message",
       "passed": true,
-      "milliseconds": 599
+      "milliseconds": 553
     },
     {
       "name": "Late restore cannot overwrite author edits made while its storage read was pending",
       "passed": true,
-      "milliseconds": 394
+      "milliseconds": 384
     },
     {
       "name": "Late restore cannot overwrite a New Project replacement",
       "passed": true,
-      "milliseconds": 589
+      "milliseconds": 551
     },
     {
       "name": "Autosave queued before a project replacement cannot write the old snapshot afterward",
       "passed": true,
-      "milliseconds": 556
+      "milliseconds": 538
     },
     {
       "name": "An old browser save persists its original identity but cannot rebind a new project",
       "passed": true,
-      "milliseconds": 586
+      "milliseconds": 561
     },
     {
       "name": "Browser save completion cannot mark later edits clean even within the same lifecycle epoch",
       "passed": true,
-      "milliseconds": 368
+      "milliseconds": 390
     },
     {
       "name": "Unchanged browser save binds one saved identity and marks only the saved snapshot clean",
       "passed": true,
-      "milliseconds": 365
+      "milliseconds": 343
     },
     {
       "name": "A failed browser save does not change project identity, content or dirty status",
       "passed": true,
-      "milliseconds": 376
+      "milliseconds": 340
     },
     {
       "name": "Saved project opening uses one authoritative commit and restores its browser identity",
       "passed": true,
-      "milliseconds": 502
+      "milliseconds": 449
     },
     {
       "name": "A delayed saved-project read cannot replace a newer project",
       "passed": true,
-      "milliseconds": 609
+      "milliseconds": 552
     },
     {
       "name": "Project file opening uses one authoritative commit and preserves authored data",
       "passed": true,
-      "milliseconds": 477
+      "milliseconds": 470
     },
     {
       "name": "Delayed project-file reads cannot overwrite subsequent edits or project replacement",
       "passed": true,
-      "milliseconds": 963
+      "milliseconds": 934
     },
     {
       "name": "Portable JSON and ZIP completion cannot clear edits or update save status made after export began",
@@ -122,17 +122,17 @@
     {
       "name": "Portable JSON and ZIP completion cannot rebind or mark a newer project saved",
       "passed": true,
-      "milliseconds": 1143
+      "milliseconds": 1115
     },
     {
       "name": "Unchanged JSON and ZIP portable saves complete only after close and update save status exactly once",
       "passed": true,
-      "milliseconds": 693
+      "milliseconds": 696
     },
     {
       "name": "Legacy lifecycle globals call the authoritative service once for each requested operation",
       "passed": true,
-      "milliseconds": 470
+      "milliseconds": 464
     }
   ]
 }

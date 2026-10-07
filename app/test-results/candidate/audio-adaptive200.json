@@ -1,0 +1,141 @@
+{
+  "suite": "audio-adaptive200",
+  "html": "NES_Forge_2.0.0-alpha.5.html",
+  "htmlSha256": "be63ce7ddd3eec76f1736b9aff78922f0dc10e945ff2a96b26139f2393fff76a",
+  "scope": "Complete standalone application with real registered handlers. Test-local event/focus/task and modeled geometry adapters. No physical device, browser rendering, native keyboard presentation or audible output claim.",
+  "passed": 26,
+  "failed": 0,
+  "total": 26,
+  "results": [
+    {
+      "name": "Exact alpha.4 sources and prior correction boundaries remain recoverable",
+      "passed": true,
+      "milliseconds": 13
+    },
+    {
+      "name": "Workspace adaptation is transient and bootstrap has no errors",
+      "passed": true,
+      "milliseconds": 409
+    },
+    {
+      "name": "Touch paints canonical volume data with one undo step for a stroke",
+      "passed": true,
+      "milliseconds": 482
+    },
+    {
+      "name": "Pen paints signed arpeggio values without affecting volume or notes",
+      "passed": true,
+      "milliseconds": 417
+    },
+    {
+      "name": "Scaled canvas coordinates select the correct canonical envelope point",
+      "passed": true,
+      "milliseconds": 385
+    },
+    {
+      "name": "A no-op touch does not create an undo snapshot or dirty the project",
+      "passed": true,
+      "milliseconds": 385
+    },
+    {
+      "name": "Captured drags clamp at envelope endpoints and value limits",
+      "passed": true,
+      "milliseconds": 353
+    },
+    {
+      "name": "Secondary pointers, right buttons, outside starts and zero-sized canvases are ignored",
+      "passed": true,
+      "milliseconds": 356
+    },
+    {
+      "name": "Missing instruments and empty envelopes remain guarded",
+      "passed": true,
+      "milliseconds": 724
+    },
+    {
+      "name": "A second pointer cancels the active stroke across canvases",
+      "passed": true,
+      "milliseconds": 369
+    },
+    {
+      "name": "Pointer cancellation stops further editing and preserves prior committed changes",
+      "passed": true,
+      "milliseconds": 369
+    },
+    {
+      "name": "Lost pointer capture releases the stroke",
+      "passed": true,
+      "milliseconds": 393
+    },
+    {
+      "name": "Window blur releases envelope input",
+      "passed": true,
+      "milliseconds": 380
+    },
+    {
+      "name": "Visibility loss releases envelope input",
+      "passed": true,
+      "milliseconds": 384
+    },
+    {
+      "name": "Tab changes release strokes and remove Audio layout state",
+      "passed": true,
+      "milliseconds": 412
+    },
+    {
+      "name": "Project replacement and undo cannot receive stale envelope writes",
+      "passed": true,
+      "milliseconds": 823
+    },
+    {
+      "name": "Instrument selection changes cannot redirect a stroke to another instrument",
+      "passed": true,
+      "milliseconds": 376
+    },
+    {
+      "name": "Touch compatibility mouse events cannot add a duplicate desktop stroke",
+      "passed": true,
+      "milliseconds": 358
+    },
+    {
+      "name": "Touch-event fallback paints and releases with the same undo contract",
+      "passed": true,
+      "milliseconds": 374
+    },
+    {
+      "name": "Touch fallback cancels on multi-touch or cancellation",
+      "passed": true,
+      "milliseconds": 730
+    },
+    {
+      "name": "Selected row and channel scroll into the modeled tracker viewport",
+      "passed": true,
+      "milliseconds": 360
+    },
+    {
+      "name": "Rendering an unchanged selection does not snap a manually scrolled tracker",
+      "passed": true,
+      "milliseconds": 392
+    },
+    {
+      "name": "Viewport resize and scroll update Audio height without project edits",
+      "passed": true,
+      "milliseconds": 558
+    },
+    {
+      "name": "Playback does not force tracker follow-scrolling",
+      "passed": true,
+      "milliseconds": 394
+    },
+    {
+      "name": "Touch envelope edits persist through canonical project save and reopen",
+      "passed": true,
+      "milliseconds": 538
+    },
+    {
+      "name": "Envelope input releases the native keyboard and does not press emulator buttons",
+      "passed": true,
+      "milliseconds": 364
+    }
+  ]
+}

@@ -1,20 +1,13 @@
-# NES Forge 2.0.0-alpha.4 — mobile-keyboard-1 handoff
+# Audio Adaptive Editing review handoff
 
-D055 supersedes D054 following the owner's rejection of separate Audio forms: tapping the original tracker must request the mobile keyboard and use the PC piano-key workflow. Alpha.4 begins from alpha.2. It retains the playback corrections and original envelope painting; there is no new tracker form, Apply button or envelope editor. No audio-engine, compiler, emulator or broader RE changes are included.
+Owner “ok, continue” authorizes this bounded implementation following the UI audit. This candidate is alpha.5 / audio-adaptive-1, schema 12; the owner-tested alpha.4 keyboard adapter and original desktop strokes remain unchanged.
 
-1. Read CURRENT_BASELINE.md and docs/MOBILE_KEYBOARD.md.
-2. Verify build-inputs.json and test-results/candidate/Summary.json against the delivered HTML. All 940 alpha.2 cases and the new mobile-keyboard suite are required across 44 suites. The 18 withdrawn alpha.3 form-specific cases are explicitly superseded under D055.
-3. Read checkpoints/mobile-keyboard-1-clean-extraction/Reproduction.json and all three fresh browser reports. VM event tests do not prove Android keyboard opening, IME layout or visible browser rendering.
-4. Use docs/MOBILE_KEYBOARD_CHECKLIST.txt for direct entry, composition, focus isolation, undo/redo/save and desktop preservation. Keep gameplay/audio-performance comparison separate under docs/MOBILE_PLAYBACK_CHECKLIST.txt.
-5. Preserve alpha.2 in baseline/, its reports under checkpoints/mobile-playback-1-reference/ and historical documents. Preserve alpha.1 and earlier references. Withdrawn alpha.3 documents, identity and Summary are under docs/history/mobile-audio-entry-1-withdrawn/; its source branch and delivered artifacts remain historical.
+1. Open `mainline/NES_Forge_2.0.0-alpha.5.html`; compare its SHA-256 with CURRENT_BASELINE.md and build-inputs.json.
+2. Check the fresh Summary, all 45 suite reports and `checkpoints/audio-adaptive-1-clean-extraction/Reproduction.json`. All 964 predecessor cases plus 26 new cases are mandatory.
+3. Read all four fresh browser reports. Blocked launch records execute no checks and are not rendering acceptance.
+4. Follow `docs/AUDIO_ADAPTIVE_GUIDE.md` and `docs/AUDIO_ADAPTIVE_CHECKLIST.txt` on the reported phone and desktop. The added viewport declaration requires cross-tab review.
+5. Preserve predecessor artifacts and their hashes. Alpha.4 historical docs and measured evidence remain under docs/history/mobile-keyboard-1 and checkpoints/mobile-keyboard-1-reference; earlier branches/references remain in the Git bundle.
 
-From the application root:
+Next complete supported Audio author/import/edit/build/listen/save/reopen and update the full manual against accepted controls. Native audio-driver recovery follows. Mobile lag and hardware-controller review remain independent. No full editor rewrite, promotion, hosted/wallet implementation or public GitHub publication is included.
 
-```sh
-python3 tools/bundle.py --check
-node tests/run_candidate.cjs
-```
-
-Create a fresh staging archive with `python3 tools/package_release.py --stage --output /absolute/path/mobile-keyboard-staging.zip`, extract to a new directory, verify every SHA256SUMS.txt entry, and run the full gate there. Final packaging rejects stale provenance, missing cases, mismatched browser hashes and absent clean-extraction proof. Test execution rewrites reports; use a disposable copy to preserve delivered evidence.
-
-Next: review this direct-keyboard correction and the pending alpha.2 playback improvement on the reported phone, then complete the supported Audio author/import/edit/build/listen/save/reopen workshop. Native audio-driver recovery follows. Capability-adaptive UI is a recommendation for a separately bounded audit, not authority to rewrite the interface in this candidate. No promotion, hosted/wallet work or public repository is implied.
+To reproduce: `python3 tools/bundle.py --check`, then `node tests/run_candidate.cjs` in a disposable extraction. To stage: `python3 tools/package_release.py --stage --output /absolute/path/audio-adaptive-staging.zip`. Final packaging requires fresh clean-extraction proof and current browser evidence.

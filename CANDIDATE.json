@@ -1,26 +1,28 @@
 {
   "format": "NESForgeCandidateHandoff",
   "version": 1,
-  "release": "2.0.0-alpha.4",
-  "candidate": "mobile-keyboard-1",
+  "release": "2.0.0-alpha.5",
+  "candidate": "audio-adaptive-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "work/mobile-keyboard-1",
-  "html": "mainline/NES_Forge_2.0.0-alpha.4.html",
-  "htmlSha256": "4871312c2fbedc312a89d7400d669b525732e7f9fb2965b87bf74d1d75c00e42",
-  "archive": "NES_Forge_2.0.0-alpha.4_Mobile_Keyboard_Candidate.zip",
-  "archiveSha256": "d8a9370d7171037c6ab77ab46a5d82427fd1698fd270c1bb8c8dce60bd34bbf1",
+  "branch": "candidate/audio-adaptive-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.5.html",
+  "htmlSha256": "be63ce7ddd3eec76f1736b9aff78922f0dc10e945ff2a96b26139f2393fff76a",
+  "archive": "NES_Forge_2.0.0-alpha.5_Audio_Adaptive_Candidate.zip",
+  "archiveSha256": "797f5e74fdafbdcb2accb93a816f1f09e22905d776e17ed337fa4c7458f881d6",
+  "payloadChecksums": 1523,
+  "packageFiles": 1524,
   "automatedResult": {
     "status": "passed",
-    "passed": 964,
+    "passed": 990,
     "failed": 0,
-    "total": 964,
-    "suiteCount": 44,
-    "startedAt": "2026-10-06T21:39:09.661Z",
-    "finishedAt": "2026-10-06T21:52:37.128Z"
+    "total": 990,
+    "suiteCount": 45,
+    "startedAt": "2026-10-07T03:54:04.793Z",
+    "finishedAt": "2026-10-07T04:07:22.255Z"
   },
   "automatedSummary": "app/test-results/candidate/Summary.json",
-  "cleanExtractionProof": "app/checkpoints/mobile-keyboard-1-clean-extraction/Reproduction.json",
+  "cleanExtractionProof": "app/checkpoints/audio-adaptive-1-clean-extraction/Reproduction.json",
   "browserEvidence": [
     {
       "name": "browser-mobile",
@@ -36,12 +38,18 @@
       "name": "browser-re-runtime",
       "status": "blocked",
       "checks": 0
+    },
+    {
+      "name": "browser-audio-adaptive",
+      "status": "blocked",
+      "checks": 0
     }
   ],
   "ownerAcceptance": "pending",
-  "physicalPhoneKeyboard": "pending",
+  "physicalPhoneKeyboard": "pending for alpha.5; alpha.4 basic entry owner-reported passed",
+  "mobilePerformance": "pending same-device comparison",
+  "hardwareControllers": "not physically tested",
   "promotion": "not promoted",
-  "parentCommit": "e85fbef07e97fb8810fe19f5a84dea7cd62b6892",
-  "withdrawnFormCandidate": "30ae1a2709470c08ed0925376bcebeb0783f9cb3",
+  "parentCommit": "e6dd5a726df2f1144605b631be44d63874ea5e00",
   "license": "UNDECIDED"
 }

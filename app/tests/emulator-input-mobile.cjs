@@ -43,7 +43,7 @@ test('Only enumerated mobile, RE and exact audio correction changes affect the c
     assert.equal(crypto.createHash('sha256').update(source).digest('hex'),input.sha256,input.path);
   }
   const previous=baseline.inputs.map(input=>input.path),extra=manifest.parts.filter(part=>!previous.includes(part));
-  assert.deepEqual(extra,['src/services/emulator-input.js','src/services/emulator-timeline.js','src/services/emulator-play-ui.js','src/re/re-bridge.js','src/re/re-ui.js','src/re/re-analysis.js','src/re/re-analysis-ui.js','src/re/re-runtime.js','src/re/re-runtime-ui.js']);
+  assert.deepEqual(extra,['src/services/emulator-input.js','src/services/emulator-timeline.js','src/services/emulator-play-ui.js','src/audio/audio-adaptive-ui.js','src/re/re-bridge.js','src/re/re-ui.js','src/re/re-analysis.js','src/re/re-analysis-ui.js','src/re/re-runtime.js','src/re/re-runtime-ui.js']);
   assert.deepEqual(manifest.parts.filter(part=>previous.includes(part)),previous,'Original source ordering is preserved');
 });
 

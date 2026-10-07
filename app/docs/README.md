@@ -1,3 +1,7 @@
+# Current Audio adaptive review entry
+
+For alpha.5 begin with AUDIO_ADAPTIVE_GUIDE.md and AUDIO_ADAPTIVE_CHECKLIST.txt. The archived source audit is NES_Forge_Adaptive_UI_Audit_2026-10-07.md; D056 records the subsequent implementation authorization. Older guides below retain their historical release identities.
+
 # Current documentation index — 2.0.0-alpha.4 / mobile-keyboard-1
 
 Current mobile authoring review: **MOBILE_KEYBOARD.md** and **MOBILE_KEYBOARD_CHECKLIST.txt**. Retained host playback review: **MOBILE_PLAYBACK.md** and **MOBILE_PLAYBACK_CHECKLIST.txt**. The earlier audio-correction instructions and examples remain available as retained content; current exact identity and evidence are in the root README and reports.
