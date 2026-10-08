@@ -1,3 +1,23 @@
+# Current implementation update — Seeded Mashup
+
+October 8, 2026 UTC. Candidate **2.0.0-alpha.10 / seeded-mashup-1**, schema 12, not promoted. The owner explicitly asked to implement random mashups now. This bounded canonical authoring checkpoint precedes the next native-recovery dependency; the existing complete-roadmap authorization continues.
+
+The checkpoint draws compatible background tiles, sprite tiles, palettes and music from the current Forge project and optional Forge project JSON donors. A deterministic text seed and exact source identities produce repeatable choices. Users can keep current assets, choose donors, lock choices, preview a detached candidate, inspect validation and explicitly apply through one ordinary project Undo action. Candidate-project and recipe downloads preserve separate outcomes; a recipe identifies sources but does not embed them. Gameplay variation is opt-in and remains within supported patrol/placement rules on existing entities.
+
+Preserve the base project's scenes, World, collision references, runtime settings and existing gameplay templates. Music selection appends/rebases supported canonical patterns/instruments and replaces order/global tempo/speed, which can alter existing SFX timing. Invalid references, incompatible formats/capacity and custom-ASM base projects receive explicit refusals. Preview/refusal/cancellation must preserve the active project, source pool and emulator. Successful compiler validation does not establish visual coherence, musical fit, reachability or physical-device performance.
+
+This is a canonical asset mixer, not a new arbitrary-ROM semantic decoder or a way to combine unrelated games' original code. General ROM Analysis and supported recovery/import still precede use of native content as an editable donor. Full-room assembly and broader recovered maps/collision/gameplay remain separate work.
+
+See `docs/SEEDED_MASHUP.md`, `docs/SEEDED_MASHUP_CHECKLIST.txt` and `docs/ROADMAP_IMPLEMENTATION_STATUS.md`. Retain all **61 alpha.9 suites / 1,330 cases** and add the declared mashup suites. The current Summary and `checkpoints/seeded-mashup-1-clean-extraction/Reproduction.json` establish actual results. Browser, listening/mobile/controller/hardware and full manual/PDF acceptance remain separate.
+
+After this requested checkpoint, continue cross-engine native graphics/maps/collision, additional supported Audio profiles/fidelity and remaining source-migration/gameplay requirements. Linker/runtime/raster/LiveLink and debugging dependencies remain, followed by integrated Hosted Worlds/networking/wallet/deck work. The complete roadmap remains unfinished.
+
+## Preserved alpha.9 roadmap and complete prior history
+
+The following saved alpha.9 roadmap is retained verbatim. Its evidence belongs to its original candidate; this current update controls alpha.10 status.
+
+---
+
 # Current implementation update — Recovery Methods
 
 October 8, 2026 UTC. Candidate **2.0.0-alpha.9 / recovery-methods-1**, schema 12, not promoted. Full roadmap implementation authorization and the owner's one-item-at-a-time direction continue.

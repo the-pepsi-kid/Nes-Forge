@@ -1,5 +1,42 @@
 # NES Forge — Authoritative Roadmap
 
+**Current revision:** October 8, 2026 UTC — Seeded Mashup.
+**Active candidate:** **2.0.0-alpha.10 / seeded-mashup-1**, schema **12**, **not promoted**.
+**Measured alpha.10 gate:** **1,430/1,430 cases across 65 suites, zero failures**, from a verified clean extraction, 2026-10-08T21:50:30.607Z to 2026-10-08T22:07:11.237Z. All 61 alpha.9 suites / 1,330 cases retained; 100 new mashup cases.
+**Frozen HTML SHA-256:** `58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375` (1,584,566 bytes).
+**Candidate ZIP:** `NES_Forge_2.0.0-alpha.10_Seeded_Mashup_Candidate.zip`; SHA-256 `696732dcfa3d06b20aa2ba415998e269f46e05b47e302a768497efa41eea1ced`; 36163109 bytes; 3333 files / 3332 payload checksums.
+**Browser evidence:** nine blocked current-hash runners, zero browser checks. Listening/mobile/controllers/hardware remain unverified.
+**Current identity/evidence:** `CANDIDATE.json`, application `build-inputs.json`, current candidate Summary and clean-extraction proof agree.
+**Preserved parent:** alpha.9 / recovery-methods-1; HTML SHA-256 `b61825396f375e1e6a4ad13822e9db163f59584d545d158ee96af731c0e74f50`; verified **1,330/1,330 cases across 61 suites**. Eight parent browser runners were blocked with zero checks. Those historical results do not certify alpha.10.
+
+## Authority and current authoring checkpoint
+
+The owner explicitly requested mashup implementation now, after discussing seeded cross-source combinations. This adds a bounded canonical authoring checkpoint before the next A1 native-recovery item. Full roadmap implementation authorization and the one-item-at-a-time direction continue. The complete roadmap remains unfinished. Promotion, browser/device acceptance and public or real-value deployment remain distinct.
+
+**SCENE → Seeded mashup** combines compatible background tiles, sprite tiles, palettes and music from a frozen current project and optional Forge project JSON donors. A deterministic text seed, exact source identities, explicit donor/keep choices and locks make results reproducible and adjustable. Preview builds a detached candidate and reports validation before any confirmed application. Apply uses one project Undo action. Candidate-project and recipe downloads serve different purposes: recipes identify source hashes and selected assets but do not embed donor data.
+
+The base project's scene/World/collision structure and existing five gameplay templates remain. Gameplay variation is opt-in and bounded to supported patrol/placement rules on existing entities. Music selection appends/rebases compatible canonical patterns/instruments, preserves existing definitions and bindings, and replaces music order/global tempo/speed; existing SFX timing can consequently change. Invalid references, unsupported capacity/formats and custom-ASM base projects receive explicit refusals. Donor code is not executed.
+
+This checkpoint supplies no new raw-ROM resource decoder or arbitrary engine/code merging. Native content must first pass an existing supported recovery/import workflow into editable canonical content. Shared method discovery, original-driver ROM-copy editing and finite canonical Audio transcription retain their distinct evidence, confirmations and limits. Full-room assembly and broader maps/collision/gameplay composition remain separate work.
+
+## Evidence and review
+
+Retain all **61 alpha.9 suites / 1,330 cases** and add the current declared mashup suites. Require deterministic and lock/recipe checks, malformed/incompatible/stale/cancel cases, source/project/emulator isolation, canonical edit/Undo/save/reopen and actual generated-ROM evidence. Freeze inputs, verify every staged payload and run the complete gate on the unchanged clean extraction. Fresh reports establish results. Compiler validity alone does not prove playability, visual coherence, musical fit or device performance.
+
+Follow `app/docs/SEEDED_MASHUP.md` and `app/docs/SEEDED_MASHUP_CHECKLIST.txt`. Browser layout/interaction, native dialogs, listening, same-device Cricket Dream 5G / Chrome A/V comparison, USB-C/Bluetooth controllers and NES/deck hardware remain separately unverified unless actually measured. A blocked browser launch records zero checks. Earlier owner feedback and deferred A6 retain their historical scope. The complete manual/PDF is not comprehensively current; supplied guides supplement it.
+
+## Remaining sequence
+
+Resume cross-engine native graphics/maps/collision after this requested authoring item. Further supported Audio profiles/fidelity, source migration/gameplay and linker/runtime/raster/LiveLink/debugging dependencies remain; broad debugger expansion is not a new prerequisite. Complete those finite Audio/RE/runtime requirements before integrated Hosted Worlds/networking/wallet/mint/loot and portable physical-deck milestones. Existing local hosted drafts do not establish those integrations. The complete prior requirements below remain in force.
+
+## Preserved alpha.9 revision and complete prior history
+
+The following saved alpha.9 revision is retained verbatim, including all prior history. Its identities, measured results and then-current next-work descriptions remain historical; the update above controls alpha.10 status.
+
+---
+
+# NES Forge — Authoritative Roadmap
+
 **Current revision:** October 8, 2026 UTC — Recovery Methods.
 **Active candidate:** **2.0.0-alpha.9 / recovery-methods-1**, schema **12**, **not promoted**.
 **Measured alpha.9 gate:** **1,330/1,330 cases across 61 suites, zero failures**, from a verified clean extraction, 2026-10-08T20:56:41.436Z to 2026-10-08T21:11:50.540Z. All 58 alpha.8 suites / 1,263 cases retained.

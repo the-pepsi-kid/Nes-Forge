@@ -1,8 +1,8 @@
 {
   "name": "nes-forge-release",
-  "version": "2.0.0-alpha.9",
+  "version": "2.0.0-alpha.10",
   "private": true,
-  "description": "NES Forge 2.0.0-alpha.9 \u2014 Recovery Methods candidate",
+  "description": "NES Forge 2.0.0-alpha.10 \u2014 Seeded Mashup candidate",
   "scripts": {
     "test": "node tests/run_all.cjs",
     "build": "python3 tools/bundle.py",
@@ -16,7 +16,8 @@
     "test:hosted": "node hosted/test.cjs",
     "test:browser-native-audio": "node tests/browser-native-audio.cjs",
     "test:browser-native-audio-import": "node tests/browser-native-audio-import.cjs",
-    "test:browser-recovery-methods": "node tests/browser-recovery-methods.cjs"
+    "test:browser-recovery-methods": "node tests/browser-recovery-methods.cjs",
+    "test:browser-seeded-mashup": "node tests/browser-seeded-mashup.cjs"
   },
   "engines": {
     "node": ">=20"

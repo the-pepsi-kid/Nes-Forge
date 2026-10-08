@@ -1,0 +1,53 @@
+NES FORGE — SEEDED MASHUP CHECKPOINT
+2.0.0-alpha.10 / seeded-mashup-1 / schema 12 / review candidate, not promoted
+
+Implemented
+SCENE -> Seeded mashup combines compatible background tiles, sprite tiles,
+palettes and music from the current project and up to eight Forge JSON donors.
+Seeded choices, per-domain locks and saved recipes reproduce exact sources.
+Preview stays detached; confirmed Apply creates one project Undo action.
+Optional supported patrol speeds and compatible existing placement slots vary
+within authored bounds. The base's layout, collision, World and IDs remain.
+Candidate downloads are editable projects. Recipes require the unchanged
+original base and every donor; they do not embed those projects.
+
+Start here
+Open NES_Forge_2.0.0-alpha.10.html. In the candidate ZIP, use
+examples/Seeded_Mashup_2.0.0-alpha.10/Scout_Base.nesforge.json as the base,
+then add Copper_Orchard_Donor and Moonlit_Circuit_Donor through the mashup
+panel. Follow docs/SEEDED_MASHUP.md and M1-M9 in the review checklist.
+Two editable generated project/recipe/ROM sets are included as controls.
+
+Measured evidence
+1,430/1,430 automated cases passed across 65 suites. All 61 prior suites and
+1,330 cases retained. New model 37, gameplay 26, UI 25, integration 12.
+Verified clean extraction: 3191 payload checksums.
+Interval: 2026-10-08T21:50:30.607Z to 2026-10-08T22:07:11.237Z.
+Generated World and single-room ROM execution tested, with changed graphics,
+actual patrol motion and APU writes. Save As/reopen and UI recipe replay
+preserve exact generated ROM bytes. This is not physical/listening acceptance.
+
+HTML SHA-256: 58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375
+Candidate ZIP SHA-256: 696732dcfa3d06b20aa2ba415998e269f46e05b47e302a768497efa41eea1ced
+Candidate ZIP: 36163109 bytes, 3333 files.
+Source/history ZIP includes the committed tree and portable Git history.
+
+Still open
+Nine browser runners are blocked by the unavailable Chromium executable;
+zero browser checks ran. Desktop/mobile walkthrough, native dialogs, listening,
+Cricket Dream 5G / Chrome lag comparison, USB-C/Bluetooth controllers and
+physical NES/deck acceptance remain open. Earlier A6 remains deferred.
+Whole-bank graphic swaps can look mismatched. Compiler validity cannot prove
+level solvability or musical fit. Selected music changes global tempo/speed,
+so existing SFX timing can change. Custom-ASM bases are refused.
+
+Scope and next work
+This mixes editable canonical content. It adds no raw-ROM decoder, arbitrary
+original-engine code fusion or full-room assembly. Broader native graphics,
+map/collision recovery, Audio profiles/fidelity and source migration remain.
+Next coding dependency returns to A1 shared native-background recovery/import
+on suitable independent inputs, followed by A2 on a permitted native
+map/collision input. Hosted networking/wallet/loot and physical-deck milestones
+remain later. The complete roadmap remains unfinished.
+The guide and checklist supplement the manual; the full manual/PDF has not
+been comprehensively updated. No publication or promotion is recorded.

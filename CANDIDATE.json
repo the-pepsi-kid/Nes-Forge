@@ -1,30 +1,30 @@
 {
   "format": "NESForgeCandidateHandoff",
   "version": 1,
-  "release": "2.0.0-alpha.9",
-  "candidate": "recovery-methods-1",
+  "release": "2.0.0-alpha.10",
+  "candidate": "seeded-mashup-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/recovery-methods-2026-10-08",
-  "html": "mainline/NES_Forge_2.0.0-alpha.9.html",
-  "htmlSha256": "b61825396f375e1e6a4ad13822e9db163f59584d545d158ee96af731c0e74f50",
-  "archive": "NES_Forge_2.0.0-alpha.9_Recovery_Methods_Candidate.zip",
-  "archiveSha256": "7ca14b4f5c660469039e857292e691d31d862bfb148dd5cb8405f46a0c772b09",
-  "payloadChecksums": 2837,
-  "packageFiles": 2838,
+  "branch": "implementation/seeded-mashup-2026-10-08",
+  "html": "mainline/NES_Forge_2.0.0-alpha.10.html",
+  "htmlSha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375",
+  "archive": "NES_Forge_2.0.0-alpha.10_Seeded_Mashup_Candidate.zip",
+  "archiveSha256": "696732dcfa3d06b20aa2ba415998e269f46e05b47e302a768497efa41eea1ced",
+  "payloadChecksums": 3332,
+  "packageFiles": 3333,
   "automatedResult": {
     "status": "passed",
-    "passed": 1330,
+    "passed": 1430,
     "failed": 0,
-    "total": 1330,
-    "suiteCount": 61,
-    "startedAt": "2026-10-08T20:56:41.436Z",
-    "finishedAt": "2026-10-08T21:11:50.540Z"
+    "total": 1430,
+    "suiteCount": 65,
+    "startedAt": "2026-10-08T21:50:30.607Z",
+    "finishedAt": "2026-10-08T22:07:11.237Z"
   },
-  "retainedCases": 1263,
-  "retainedSuites": 58,
+  "retainedCases": 1330,
+  "retainedSuites": 61,
   "automatedSummary": "app/test-results/candidate/Summary.json",
-  "cleanExtractionProof": "app/checkpoints/recovery-methods-1-clean-extraction/Reproduction.json",
+  "cleanExtractionProof": "app/checkpoints/seeded-mashup-1-clean-extraction/Reproduction.json",
   "browserEvidence": [
     {
       "name": "browser-mobile",
@@ -65,6 +65,11 @@
       "name": "browser-recovery-methods",
       "status": "blocked",
       "checks": 0
+    },
+    {
+      "name": "browser-seeded-mashup",
+      "status": "blocked",
+      "checks": 0
     }
   ],
   "nativeAudio": {
@@ -78,12 +83,12 @@
     "nativeEngineEquivalence": false,
     "listening": "pending"
   },
-  "ownerAcceptance": "pending for alpha.9; earlier owner reports retain their original artifact scope",
+  "ownerAcceptance": "pending for alpha.10; earlier owner reports retain their original artifact scope",
   "mobilePerformance": "pending same-device comparison",
   "hardwareControllers": "not physically tested",
   "promotion": "not promoted",
   "roadmap": "in progress; complete roadmap is not implemented",
-  "parentCommit": "811f3117d5f1a3d965f219df483f55fc45c88238",
+  "parentCommit": "f8b4fbf1cb00471810ede38635d9f234f85590ec",
   "nextCodingDependency": "A1 shared native-background recovery and editable import on independent Pepsi and source-backed HonkeyPong inputs; then A2 on a suitable independent native map/collision input",
   "license": "UNDECIDED",
   "recoveryMethods": {
@@ -96,5 +101,24 @@
     "dispatch": "Separate physical CHR decode/encode and native Audio inspect/copied-ROM patch/canonical transcription preview operations with source/span checks",
     "universalEngineRecovery": false,
     "nativeSceneCollisionRecovery": false
+  },
+  "seededMashup": {
+    "version": 1,
+    "algorithm": "sha256-mulberry32-domains-1",
+    "ui": "SCENE > Seeded mashup",
+    "sources": "Current canonical schema-12 project plus up to eight donor Forge JSON projects; canonical content SHA-256 identities",
+    "domains": [
+      "background tiles",
+      "sprite tiles",
+      "palettes",
+      "canonical music"
+    ],
+    "gameplay": "Opt-in authored-bound patrol speeds and compatible collision-clear existing enemy/pickup slot permutations",
+    "commit": "Detached preview and exact-source recipe replay; explicit guarded Apply with one project Undo",
+    "runtimeEvidence": "Actual generated World and single-room execution; changed pixel/APU traces; exact UI recipe replay to shipped ROM and Save As/reopen ROM bytes",
+    "newRawRomDecoder": false,
+    "arbitraryEngineCodeFusion": false,
+    "wholeRoomComposition": false,
+    "solvabilityGuaranteed": false
   }
 }

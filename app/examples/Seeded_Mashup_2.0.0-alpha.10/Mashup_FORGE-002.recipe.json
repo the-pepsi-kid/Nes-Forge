@@ -1,0 +1,118 @@
+{
+  "format": "NESForgeMashupRecipe",
+  "version": 1,
+  "algorithm": "sha256-mulberry32-domains-1",
+  "sources": [
+    {
+      "sha256": "547fdfa7292846353ffdc88b4acad3bc99cf497a78618fd91c4eae5e2aad1705",
+      "byteLength": 190323
+    },
+    {
+      "sha256": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84",
+      "byteLength": 190326
+    },
+    {
+      "sha256": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b",
+      "byteLength": 205353
+    }
+  ],
+  "baseSourceId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b",
+  "targetSceneId": "scout-source",
+  "seed": "FORGE-002",
+  "choices": {
+    "background": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b:scene:scout-source",
+    "sprites": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84:scene:scout-source",
+    "palettes": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b:scene:scout-source",
+    "music": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84"
+  },
+  "locks": {
+    "background": false,
+    "sprites": false,
+    "palettes": false,
+    "music": false,
+    "gameplay": false
+  },
+  "gameplay": {
+    "method": "mashup-gameplay-1",
+    "seed": "FORGE-002",
+    "options": {
+      "enemyParameters": true,
+      "placement": true,
+      "itemValues": false
+    },
+    "sourceFingerprint": "eda3952ad4671c275e1a7bf4b312b804b67d4e87248c934db638b1a42af46a15",
+    "decisions": [
+      {
+        "domain": "enemyParameters",
+        "actorId": "mashup-patrol-a",
+        "parameter": "speed",
+        "before": 1,
+        "after": 3
+      },
+      {
+        "domain": "enemyParameters",
+        "actorId": "mashup-patrol-b",
+        "parameter": "speed",
+        "before": 1,
+        "after": 3
+      },
+      {
+        "domain": "placement",
+        "actorId": "mashup-patrol-a",
+        "role": "patrol",
+        "before": {
+          "x": 104,
+          "y": 176
+        },
+        "after": {
+          "x": 168,
+          "y": 176
+        },
+        "sourceSlotActorId": "mashup-patrol-b"
+      },
+      {
+        "domain": "placement",
+        "actorId": "mashup-patrol-b",
+        "role": "patrol",
+        "before": {
+          "x": 168,
+          "y": 176
+        },
+        "after": {
+          "x": 104,
+          "y": 176
+        },
+        "sourceSlotActorId": "mashup-patrol-a"
+      },
+      {
+        "domain": "placement",
+        "actorId": "mashup-pickup-a",
+        "role": "pickup",
+        "before": {
+          "x": 72,
+          "y": 160
+        },
+        "after": {
+          "x": 208,
+          "y": 160
+        },
+        "sourceSlotActorId": "mashup-pickup-b"
+      },
+      {
+        "domain": "placement",
+        "actorId": "mashup-pickup-b",
+        "role": "pickup",
+        "before": {
+          "x": 208,
+          "y": 160
+        },
+        "after": {
+          "x": 72,
+          "y": 160
+        },
+        "sourceSlotActorId": "mashup-pickup-a"
+      }
+    ]
+  },
+  "resultSha256": "8aa04242ee999f05158ea8210b8cffedb554aea2b17614493852e1b727ab30f0"
+}

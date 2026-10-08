@@ -1,0 +1,69 @@
+{
+  "suite": "source-workspace",
+  "htmlSha256": "b61825396f375e1e6a4ad13822e9db163f59584d545d158ee96af731c0e74f50",
+  "passed": 15,
+  "total": 15,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Multi-file example resolves includes, macros, binary bytes and builds runnable NROM",
+      "passed": true
+    },
+    {
+      "name": "Build is deterministic and preserves active project, assembly and emulator state",
+      "passed": true
+    },
+    {
+      "name": "Original arbitrary binary bytes and CRLF source survive edits, JSON and ZIP export",
+      "passed": true
+    },
+    {
+      "name": "Relative parent references resolve inside the root and path escapes are rejected",
+      "passed": true
+    },
+    {
+      "name": "Duplicate normalized paths and invalid base64 are diagnosed before build",
+      "passed": true
+    },
+    {
+      "name": "Missing includes and cycles report originating files and 1-based lines",
+      "passed": true
+    },
+    {
+      "name": "Include and incbin expressions are refused explicitly, comments retain quoted semicolons",
+      "passed": true
+    },
+    {
+      "name": "Unsupported dialects, foreign directives and Lua entry points do not translate silently",
+      "passed": true
+    },
+    {
+      "name": "Assembly failures map to included source and restore project assembly state",
+      "passed": true
+    },
+    {
+      "name": "NROM rejects mirrored aliases, missing vectors, RAM output and unbacked vectors",
+      "passed": true
+    },
+    {
+      "name": "32 KiB layout and selected CHR bytes are respected; unsupported sizes fail",
+      "passed": true
+    },
+    {
+      "name": "Expansion limits reject runaway inclusion before invoking the assembler",
+      "passed": true
+    },
+    {
+      "name": "Exponential and recursive macro inputs fail before unbounded assembly work",
+      "passed": true
+    },
+    {
+      "name": "Empty macro fan-out counts visits and emitted labels before calling the assembler",
+      "passed": true
+    },
+    {
+      "name": "Source encoding errors preserve bytes and report a file rather than replacement text",
+      "passed": true
+    }
+  ]
+}

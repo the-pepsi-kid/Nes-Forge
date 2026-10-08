@@ -1,0 +1,27 @@
+{
+  "candidate": "seeded-mashup-1",
+  "status": "passed",
+  "release": "2.0.0-alpha.10",
+  "htmlSha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375",
+  "summarySha256": "d0f21afe73112ecbe561e89cdedb73f10aa25316a2d9e974f4892b8ea53649f5",
+  "passed": 1430,
+  "total": 1430,
+  "suiteCount": 65,
+  "stagingVerifiedPayloads": 3191,
+  "stagingArchiveSha256": "c97edc13eba301d7d682efa0715a9f9a000239045f6ca26e1c8e062195e4a34c",
+  "stagingArchive": "seeded-mashup-staging.zip",
+  "startedAt": "2026-10-08T21:50:30.607Z",
+  "finishedAt": "2026-10-08T22:07:11.237Z",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "commands": [
+    "python3 tools/package_release.py --stage --output seeded-mashup-staging.zip",
+    "Validate ZIP CRC, paths, exact inventory and every SHA256SUMS payload; extract to a fresh directory",
+    "node tests/run_candidate.cjs"
+  ],
+  "unchangedCandidate": true,
+  "browserWalkthrough": "Nine current-hash runners blocked by missing Chromium; zero browser checks. No listening, phone, controller or hardware pass claimed."
+}

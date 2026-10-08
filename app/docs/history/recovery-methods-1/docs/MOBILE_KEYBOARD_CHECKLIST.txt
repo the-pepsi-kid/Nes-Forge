@@ -1,0 +1,41 @@
+NES Forge 2.0.0-alpha.4 / mobile-keyboard-1 — direct keyboard review
+Status before owner review: all physical phone checks PENDING.
+Record HTML hash from build-inputs.json, device, OS, browser/version and keyboard app/layout.
+Use a disposable project copy. Original alpha.2 playback and alpha.3 withdrawn artifacts remain preserved.
+
+K1 — Tap and type
+Open AUDIO in a disposable project with at least one instrument, or add/select an instrument first.
+Select an existing pattern, then tap one ordinary tracker note cell.
+Expected: the native phone keyboard opens; no separate note form or Apply button appears.
+Type Z: selected cell becomes C3. Tap another cell and type X: D3.
+Tap another cell and type Q: C4. Use the keyboard number page and type 2: C#4.
+Expected: the chosen cell changes once; there is no automatic row advance.
+If a letter is underlined/composing, use Done/Enter to commit one letter before changing cells.
+Record whether the tapped cell remains visible with the keyboard open, in portrait and landscape.
+
+K2 — Composition and isolation
+Try a multiword suggestion or paste: it must not import a string of notes.
+Begin composing a letter, then leave AUDIO or tap another editor control before committing.
+Expected: provisional text is discarded and does not mutate another cell or project later.
+Scroll across the tracker and try a two-finger gesture: neither should open note entry accidentally.
+Return to AUDIO and confirm a deliberate one-cell tap can enter another single piano key.
+Type into another ordinary text field, switch tabs and use emulator controls.
+Expected: tracker keys apply only during the Audio entry session; no stuck game input or cross-tab edits.
+
+K3 — Undo, redo and persistence
+Enter a note in a chosen cell, use the existing Undo action, then Redo.
+Expected: one committed note is one canonical edit; unrelated cells and effects remain unchanged.
+Save the native project, reopen it, and confirm notes/instrument references persist.
+Where a hardware keyboard is available, check Ctrl/Cmd Z, redo and Save while tracker keyboard entry is active.
+Expected: these use the existing project commands and do not insert note letters.
+Backspace should retain the existing cut action. Delete/arrow keys may require a hardware keyboard.
+
+K4 — PC and pending acceptance
+On the desktop browser, click the tracker and use the existing Z/X/Q/2 piano keys and row/channel navigation.
+Expected: existing behavior, without an added mobile form or automatic row advance.
+Check that original instrument-envelope painting and Audio preview still behave as before.
+Record any phone keyboard opening, Done/Enter, composition, scrolling or obscured-cell issue precisely.
+Do not infer phone playback improvement from this check: run MOBILE_PLAYBACK_CHECKLIST.txt separately.
+Browser automation, audible listening, physical controllers and independent hardware remain separate evidence.
+
+Report K1/K2/K3/K4 PASS/FAIL/NOT RUN, device/browser/keyboard, exact HTML identity, observed result and expected result.

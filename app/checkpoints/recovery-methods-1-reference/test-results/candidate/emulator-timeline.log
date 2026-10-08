@@ -1,0 +1,18 @@
+PASS Default-off history adds no frame storage or per-frame subscriber work
+PASS Forward works with recording off, stays paused, and does not implicitly enable history
+PASS Back restores complete physical state and forward reuses recorded future without executing CPU
+PASS Re-executing from restored state produces the same CPU, APU, trace and video
+PASS Navigation preserves ROM, project and APU callbacks while clearing host audio and live controls
+PASS Existing Frame retains held-key behavior and branches after a rewind
+PASS Starting Run after rewind discards recorded future without restarting ROM state
+PASS The 300-state cap evicts oldest snapshots and reports the actual retained range
+PASS Stored-byte cap evicts snapshots before 32 MiB and reports a shorter window
+PASS Unknown current function state rejects restoration atomically and clears unusable history
+PASS Successful load isolates sessions while rejected headers retain current history
+PASS Reset reseeds, CPU instruction tracing invalidates, and project unload clears history
+PASS Large forward requests yield and can be canceled without additional frames
+PASS Inputs pressed during a yielded seek stay blocked until completion without removing other blockers
+PASS New loads during a yielded seek cannot apply the previous ROM future
+PASS Disabling history releases its storage and rejects invalid navigation distances
+
+16/16 passed

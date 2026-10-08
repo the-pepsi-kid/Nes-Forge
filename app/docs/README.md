@@ -1,3 +1,22 @@
+# Current documentation index — 2.0.0-alpha.10 / seeded-mashup-1
+
+Begin with `SEEDED_MASHUP.md` and `SEEDED_MASHUP_CHECKLIST.txt` for **SCENE → Seeded mashup**. D061 records the owner's explicit request to add reproducible canonical asset mashups at this point. Read `../CURRENT_BASELINE.md`, `../HANDOFF.md` and `ROADMAP_IMPLEMENTATION_STATUS.md` for exact scope, evidence authority and remaining work. The complete manual/PDF has not been comprehensively updated; these guides supplement it.
+
+| Document | Purpose |
+| --- | --- |
+| `SEEDED_MASHUP.md` | Canonical donor sources, deterministic seed/locks, preview/apply, exports and compatibility limits |
+| `SEEDED_MASHUP_CHECKLIST.txt` | M1–M9 owner review, including persistence/build, refusals and mobile input |
+| `RECOVERY_METHODS.md` | Retained shared method discovery and routes to explicit recovery workflows |
+| `RECOVERY_METHODS_CHECKLIST.txt` | Retained D1–D7 source/routing/evidence review |
+| `NATIVE_AUDIO_IMPORT.md` | Supported finite native score transcription into canonical AUDIO |
+| `NATIVE_AUDIO_IMPORT_CHECKLIST.txt` | Retained I1–I7 edit/save/rebuild/listening review |
+| `NATIVE_AUDIO_INVESTIGATION.md` | Isolated original-driver ROM-copy editing and native evidence |
+| `ROADMAP_IMPLEMENTATION_STATUS.md` | Current complete capability ledger and remaining dependencies |
+
+## Preserved earlier index
+
+The entries below retain their historical candidate context. The current index and root identity/report files take precedence for this candidate.
+
 # Current Audio adaptive review entry
 
 For alpha.5 begin with AUDIO_ADAPTIVE_GUIDE.md and AUDIO_ADAPTIVE_CHECKLIST.txt. The archived source audit is NES_Forge_Adaptive_UI_Audit_2026-10-07.md; D056 records the subsequent implementation authorization. Older guides below retain their historical release identities.

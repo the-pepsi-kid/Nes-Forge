@@ -1,3 +1,17 @@
+# Current Alpha plan — 2.0.0-alpha.10 / seeded-mashup-1
+
+The owner explicitly requested seeded random mashups now. D061 adds a bounded canonical authoring checkpoint before the next A1 native-recovery item: compatible editable assets from the captured current project and Forge JSON donors, deterministic seed/domain choices/locks, preview/build validation and confirmed one-Undo application. Follow `SEEDED_MASHUP.md` and `SEEDED_MASHUP_CHECKLIST.txt`; consult `ROADMAP_IMPLEMENTATION_STATUS.md` for the complete capability ledger.
+
+The mandatory current gate retains every alpha.9 case: 1,330 across 61 suites, plus declared mashup suites. Current build inputs, candidate Summary and seeded-mashup clean-extraction proof establish exact identity and outcomes. Browser, listening/mobile/controller/hardware acceptance remain separate. The full manual/PDF remains incomplete.
+
+This checkpoint keeps the base scene/World/collision structure and existing gameplay templates. It does not add raw-ROM semantics or combine arbitrary games' native code. Mashup music uses selected global tempo/speed, which can affect existing SFX timing. Resume cross-engine graphics/maps/collision, broader Audio and migration/gameplay/runtime dependencies afterward, then integrated Hosted/networking/wallet/deck work. Complete-roadmap implementation authorization continues; the entire roadmap remains unfinished.
+
+## Preserved packaged plan and historical requirements
+
+The following previous packaged plan is retained verbatim. Its historical candidate status is superseded by this preface; its remaining requirements still apply. Authoritative planning history is also retained under the source package's `planning/` directory.
+
+---
+
 # NES Forge — 2.0 Alpha Development Plan
 
 Revision: October 7, 2026 (UTC), Audio adaptive editing candidate. Audio correctness and workflow completion precede further recovery; Sol Games remains a later architectural reference. Alpha.1 audio corrections and alpha.2 mobile playback corrections remain preserved. Active **2.0.0-alpha.5 / audio-adaptive-1** starts from alpha.4 and preserves the owner-tested direct keyboard interaction. No promotion is claimed.

@@ -1,7 +1,7 @@
 {
   "suite": "audio-correction200",
-  "html": "NES_Forge_2.0.0-alpha.9.html",
-  "htmlSha256": "b61825396f375e1e6a4ad13822e9db163f59584d545d158ee96af731c0e74f50",
+  "html": "NES_Forge_2.0.0-alpha.10.html",
+  "htmlSha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375",
   "scope": "Complete standalone candidate; actual generated CPU/APU execution for dense music and animation-triggered SFX, sentinel/order/end-row continuation, and triangle pitch/arpeggio/saturation. VM harness; no browser speaker, mobile latency, or physical-hardware acceptance.",
   "passed": 26,
   "failed": 0,
@@ -47,19 +47,19 @@
       "eventCount": 63,
       "observedChanges": 66,
       "completedFrame": 132,
-      "romSha256": "8f755fe238846dfd4264e23ac27595d4adebb332f40e689424d9d9cd2769a9f4"
+      "romSha256": "1b572db9d3f2d822086d705e979c0eac9b256f7d3c03fd3a2f95110578a3aeaa"
     },
     "worldMusic64": {
       "eventCount": 64,
       "observedChanges": 67,
       "completedFrame": 132,
-      "romSha256": "b0963df0fe052dd669ce1cae8b2708efba3c739dabd2ac690696f8b1dd19c72e"
+      "romSha256": "36d07bd89e0f0dd3dd322e1b900cc64149932c8a93bd4bb7794c90e18e4be91a"
     },
     "worldMusic128": {
       "eventCount": 128,
       "observedChanges": 131,
       "completedFrame": 132,
-      "romSha256": "925974c7e05fa954cd5d6cab4373b2cc876014dbffb8a348aa21838d36f4f0b4"
+      "romSha256": "7646a50564dc1638ec1e19b3ba2433b07481aaa35e03df5222df6bccd1772486"
     },
     "single-roomSfx63From0": {
       "eventCount": 63,
@@ -99,7 +99,7 @@
       "endRow": 127,
       "observedChanges": 64,
       "completedFrame": 76,
-      "romSha256": "2d3edfdc95f24b148fc189572a1ba11c5e9b55223f3be01bb8009c09b248c9e8"
+      "romSha256": "06aceeff348de8373542dbee5b018f36057fa09d1bdc4cd3fd5d55f3116a78f0"
     },
     "worldSfx64From0": {
       "eventCount": 64,
@@ -107,7 +107,7 @@
       "endRow": 127,
       "observedChanges": 65,
       "completedFrame": 76,
-      "romSha256": "d0da8abfb621aada64cb4e0c12679ced370ea3fc7ba77110f65f60c7a3d4783c"
+      "romSha256": "cc9a8ab160b651b39462ce7a54154fa99a4e314bfacfb579abcd79f873eddffe"
     },
     "worldSfx128From0": {
       "eventCount": 128,
@@ -115,7 +115,7 @@
       "endRow": 127,
       "observedChanges": 129,
       "completedFrame": 76,
-      "romSha256": "ebfaf5187a1c2bccbc5de1a895cf7738786adaf31b421dcf9127f8c702100067"
+      "romSha256": "2bffd509a10929a269ba79c772c8544cf8172ed561c55d4dc52e825ce225d5ce"
     },
     "worldSfx128From120": {
       "eventCount": 128,
@@ -123,7 +123,7 @@
       "endRow": 127,
       "observedChanges": 9,
       "completedFrame": 16,
-      "romSha256": "a5a9cedda1772fddd261e82cc1d3389620428152fe0cf19f8dd7fad1e6bfe627"
+      "romSha256": "e86f375d951decc06aadce9b81ac1f0bf9f7cf9400500fa106950ad433fa864b"
     },
     "viewerTriangleA4": {
       "pulsePeriods": [
@@ -322,7 +322,7 @@
       "trianglePeriods": [
         126
       ],
-      "romSha256": "363beb3f964768351ee763998c092f186176d93b1e3d3298bb538a7ebcbf5f65"
+      "romSha256": "ef0f48b6e0de88b421f06b706d28eadd0f05fa76b75d3eff532eb30738c1b566"
     },
     "worldTrianglearpeggio": {
       "pulsePeriods": [
@@ -351,7 +351,7 @@
         507,
         126
       ],
-      "romSha256": "c2fa405fd37edea5f8d679291929bd6d7703f3c59cb1c58b091f80b74ec65428"
+      "romSha256": "1ccef8c1c353fa9d79e48c28a1f9abae91b34052e1233013a1789bf092b13f0f"
     },
     "worldTrianglebounds": {
       "pulsePeriods": [
@@ -406,139 +406,139 @@
         56,
         13
       ],
-      "romSha256": "0fb6ea03d9ab85892c056bd8c569a1f342c18a880ef2572aba6c3135f17b76c3"
+      "romSha256": "0d345ee6d8f9c36c4e01dd6b929e651499db98dedab6756b5782af898620f7f2"
     }
   },
   "results": [
     {
       "name": "viewer music 63 dense events reaches the sentinel, next order and loop without a stalled CPU",
       "passed": true,
-      "milliseconds": 4965
+      "milliseconds": 5155
     },
     {
       "name": "viewer music 64 dense events reaches the sentinel, next order and loop without a stalled CPU",
       "passed": true,
-      "milliseconds": 4907
+      "milliseconds": 5027
     },
     {
       "name": "viewer music 128 dense events reaches the sentinel, next order and loop without a stalled CPU",
       "passed": true,
-      "milliseconds": 4898
+      "milliseconds": 4950
     },
     {
       "name": "single-room music 63 dense events reaches the sentinel, next order and loop without a stalled CPU",
       "passed": true,
-      "milliseconds": 5375
+      "milliseconds": 5464
     },
     {
       "name": "single-room music 64 dense events reaches the sentinel, next order and loop without a stalled CPU",
       "passed": true,
-      "milliseconds": 5445
+      "milliseconds": 5484
     },
     {
       "name": "single-room music 128 dense events reaches the sentinel, next order and loop without a stalled CPU",
       "passed": true,
-      "milliseconds": 5488
+      "milliseconds": 5875
     },
     {
       "name": "world music 63 dense events reaches the sentinel, next order and loop without a stalled CPU",
       "passed": true,
-      "milliseconds": 5427
+      "milliseconds": 5793
     },
     {
       "name": "world music 64 dense events reaches the sentinel, next order and loop without a stalled CPU",
       "passed": true,
-      "milliseconds": 5346
+      "milliseconds": 5562
     },
     {
       "name": "world music 128 dense events reaches the sentinel, next order and loop without a stalled CPU",
       "passed": true,
-      "milliseconds": 5483
+      "milliseconds": 5554
     },
     {
       "name": "single-room animation-triggered SFX 63 dense events honors end row 127 and restores music",
       "passed": true,
-      "milliseconds": 3434
+      "milliseconds": 3435
     },
     {
       "name": "single-room animation-triggered SFX 64 dense events honors end row 127 and restores music",
       "passed": true,
-      "milliseconds": 3290
+      "milliseconds": 3427
     },
     {
       "name": "single-room animation-triggered SFX 128 dense events honors end row 127 and restores music",
       "passed": true,
-      "milliseconds": 3289
+      "milliseconds": 3443
     },
     {
       "name": "single-room late SFX range scans past 64 events and plays rows 120–127 before restoring music",
       "passed": true,
-      "milliseconds": 1057
+      "milliseconds": 1088
     },
     {
       "name": "world animation-triggered SFX 63 dense events honors end row 127 and restores music",
       "passed": true,
-      "milliseconds": 3273
+      "milliseconds": 3468
     },
     {
       "name": "world animation-triggered SFX 64 dense events honors end row 127 and restores music",
       "passed": true,
-      "milliseconds": 3279
+      "milliseconds": 3396
     },
     {
       "name": "world animation-triggered SFX 128 dense events honors end row 127 and restores music",
       "passed": true,
-      "milliseconds": 3362
+      "milliseconds": 3487
     },
     {
       "name": "world late SFX range scans past 64 events and plays rows 120–127 before restoring music",
       "passed": true,
-      "milliseconds": 1224
+      "milliseconds": 1124
     },
     {
       "name": "viewer triangle A4 uses the authored pitch and independent channel period limits",
       "passed": true,
-      "milliseconds": 949
+      "milliseconds": 941
     },
     {
       "name": "viewer triangle arpeggio uses the authored pitch and independent channel period limits",
       "passed": true,
-      "milliseconds": 917
+      "milliseconds": 935
     },
     {
       "name": "viewer triangle bounds uses the authored pitch and independent channel period limits",
       "passed": true,
-      "milliseconds": 1808
+      "milliseconds": 1764
     },
     {
       "name": "single-room triangle A4 uses the authored pitch and independent channel period limits",
       "passed": true,
-      "milliseconds": 1121
+      "milliseconds": 1004
     },
     {
       "name": "single-room triangle arpeggio uses the authored pitch and independent channel period limits",
       "passed": true,
-      "milliseconds": 1078
+      "milliseconds": 1016
     },
     {
       "name": "single-room triangle bounds uses the authored pitch and independent channel period limits",
       "passed": true,
-      "milliseconds": 1875
+      "milliseconds": 1952
     },
     {
       "name": "world triangle A4 uses the authored pitch and independent channel period limits",
       "passed": true,
-      "milliseconds": 983
+      "milliseconds": 1033
     },
     {
       "name": "world triangle arpeggio uses the authored pitch and independent channel period limits",
       "passed": true,
-      "milliseconds": 980
+      "milliseconds": 1040
     },
     {
       "name": "world triangle bounds uses the authored pitch and independent channel period limits",
       "passed": true,
-      "milliseconds": 1870
+      "milliseconds": 1934
     }
   ]
 }

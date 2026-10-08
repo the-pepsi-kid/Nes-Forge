@@ -1,0 +1,76 @@
+NES FORGE 2.0.0-alpha.9 — RECOVERY METHODS REVIEW
+Candidate: recovery-methods-1; schema 12
+
+This checklist reviews the shared discovery interface and routes to existing tools. It does not certify universal ROM recovery, complete A0/A1/A2/A3 acceptance, a full manual update or the whole roadmap. Record pass/fail/not tested for each item. Browser, listening and hardware checks need actual observation.
+
+Before starting
+- Open mainline/NES_Forge_2.0.0-alpha.9.html. Save current work with Save Project As; export any unsaved native ROM-copy edits before changing the analyzed source.
+- Record the candidate HTML SHA-256 from build-inputs.json, device, OS and browser/version. The current measured gate is test-results/candidate/Summary.json with checkpoints/recovery-methods-1-clean-extraction/Reproduction.json; previous passes do not validate changed bytes.
+- Graphics control: examples/RE_Bridge_Room/Bridge_Room.nes, 40,976 bytes, SHA-256 03e4038e323931b5028298682e0ec0c464101ebf542175e25351a4c02eb334e6.
+- Native Audio control: examples/RE_Native_Audio/HonkeyPong-reproduced.nes, 24,592 bytes, SHA-256 cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b.
+- Unknown raw control: examples/RE_Analysis/raw_counter.bin. This is a short byte-analysis fixture, not a playable ROM.
+- Optionally keep an unrelated project open and a paused ROM loaded in EMULATOR, noting its frame/state, to check noninterference. Do not expect discovery to change either one.
+
+D1 — Discover physical CHR and reach its existing tools
+1. Open RE / DISASM -> General ROM Analysis, choose Bridge_Room.nes and press Open for analysis.
+2. Find Available recovery methods and press Discover recovery methods.
+3. Check the displayed filename, byte count and SHA-256. Read the physical CHR method's status, reason, operations, evidence and limits.
+4. Choose Open tile recovery tools.
+Expected: physical CHR is supported; the FamiTone2 method is unknown for this control. The route expands Raw CHR and focuses Preview native tile import without pressing it or importing a sheet. You must separately preview and choose Import as new tile sheet to add editable content. Discovery/routing alone leaves project assets/history, native edit sessions and the emulator unchanged. Physical tile pixels do not imply source palettes, scene placement, collision or visible bank usage.
+Result D1: ______ Notes: _______________________________________________
+
+D2 — Discover native Audio without treating it as a ready score
+1. Choose HonkeyPong-reproduced.nes, press Open for analysis, then Discover recovery methods.
+2. Check the new source identity and the FamiTone2 native Audio method's status, operations, reason and limits.
+3. Choose Open native Audio tools.
+Expected: the supported structural FamiTone2 profile is recognized. Its route reveals the native inspector without pressing Analyze current ROM. This control's reserved header byte causes General ROM Analysis to withhold a trusted physical CHR range, so its physical CHR method reports unsupported. Native Audio recognition uses its separately validated bounded profile. No score, native edit or emulator load is created by discovery. Recognizing a driver does not guarantee that every selected subsong/excerpt can be transcribed.
+Result D2: ______ Notes: _______________________________________________
+
+D3 — Preserve native edits and require explicit transcription
+1. In the native inspector, choose Analyze current ROM and select Native subsong 0. These are explicit native-session actions, separate from discovery.
+2. Select an editable pulse-channel note command. Note its current value, change it to another valid nonzero value shown as acceptable by the editor and choose Apply native edit. Record the edited-copy SHA-256. Do not use a cut, noise or instrument command for this check.
+3. Return to Available recovery methods, discover again, then choose Open native Audio tools. Check that the edited-copy identity/value and native Undo remain available. Do not press Analyze current ROM again: that intentionally starts a new native session from the original source.
+4. Choose Open AUDIO transcription tools. Then separately choose Preview import to AUDIO for the selected 64-native-row excerpt. Read the source/current-copy identity, warnings and limits. Do not confirm an import for this routing check.
+5. Use Undo native edit once and confirm it restores the original note/copy state. Export a native copy before leaving if you want to retain edits.
+Expected: discovery still describes the original general-analysis file. Routing preserves the native edited copy; the explicit transcription preview uses the current native session and identifies its edited bytes. Opening transcription tools does not preview, import, switch to AUDIO or start playback automatically. Canonical score import remains a separate confirmed action; use NATIVE_AUDIO_IMPORT_CHECKLIST.txt I1–I7 for its full edit/save/rebuild/listening review. Supported native editing is not lossless canonical conversion.
+Result D3: ______ Notes: _______________________________________________
+
+D4 — Export method evidence with source and limits
+1. With a completed discovery result, choose Download method evidence.
+2. If a location dialog is offered, cancel once and check that cancellation does not create a fallback download; then save successfully.
+3. Inspect the saved JSON in a text viewer. Compare its source SHA-256, method statuses, declared operations and limits to the displayed discovery results.
+Expected: evidence is a historical original-source inspection report. It is not a Forge project, native edit-session backup, embedded ROM or proof that a selected asset can be converted. It does not contain the full ROM or project. Cancelling or encountering an already-busy Save As workflow preserves the discovery result; export does not mutate the project or emulator.
+Result D4: ______ Notes: _______________________________________________
+
+D5 — Invalidate selected-source results and inspect unknown input
+1. Start from a supported discovery result, then select raw_counter.bin in the General ROM Analysis file chooser without pressing Open for analysis yet.
+2. Check that the previous method result/routes can no longer be used as current. An attempted discovery must not silently analyze the previous file as the new selection.
+3. Press Open for analysis, then Discover recovery methods. Read both methods' non-supported reasons and the displayed source identity.
+4. Return to the ordinary byte/disassembly controls and inspect the file. Then reopen Bridge_Room.nes and discover again.
+Expected: choosing a new file invalidates old applicability immediately. After opening, the raw fixture remains available for ordinary inspection without invented tiles or music and without recovery routes for unsupported methods. The restored Bridge Room source has its own current result. No source selection imports assets or replaces the emulator ROM. A method's unsupported/unknown/invalid/ambiguous result describes that method, not an inability to inspect all physical bytes.
+Result D5: ______ Notes: _______________________________________________
+
+D6 — Cancellation and source-change safety
+1. Start Discover recovery methods and, if the pending state is visible, use Cancel discovery.
+2. Repeat and select another source while discovery is pending if the device is slow enough to make that possible; complete Open for analysis for the new source.
+3. Discover again after the new file is open.
+Expected: cancelled or old-source work cannot publish stale method results as current. Trusted synchronous probes complete their bounded current step before cancellation takes effect. If the fixture finishes too quickly to interrupt manually, record the cancellation race as not observed; do not infer a browser pass from automated model tests. A fresh completed run must identify only the currently opened source.
+Result D6: ______ Notes: _______________________________________________
+
+D7 — Mobile reachability and input isolation
+1. On the phone, open both fixture sources and repeat discovery and each applicable route. Read long reasons/limits and return to the discovery section.
+2. Use the native subsong selector and excerpt field, scroll and rotate the device, then return to the ordinary editor view. Check that the intended field owns keyboard input.
+3. With the optional paused emulator ROM still loaded, confirm discovery, routing and typing do not run/reset it, change its ROM or press gameplay controls. Check that leaving input/play views does not leave controls held.
+Expected: controls, results, source identities and warnings remain reachable and readable. Desktop success does not establish touch/native-keyboard success. Record exact device/browser/keyboard versions and any clipped controls or focus problems. The Cricket Dream 5G / Chrome audio/video performance comparison, listening, USB-C/Bluetooth controllers and physical NES checks remain distinct unverified work unless you separately perform them.
+Result D7: ______ Notes: _______________________________________________
+
+Send back
+Candidate/hash:
+Device / OS / browser / keyboard:
+D1: ___ D2: ___ D3: ___ D4: ___ D5: ___ D6: ___ D7: ___
+Source filenames / hashes:
+First unexpected action and exact message:
+Any project/native-session/emulator change caused by discovery or routing:
+Screenshot or recording (if available):
+
+Existing native Audio and import checklists, earlier deferred A6, listening and device/hardware reviews remain separate. This guide supplements the manual; it is not a completed full manual/PDF update.

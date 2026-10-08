@@ -1,0 +1,262 @@
+{
+  "release": "2.0.0-alpha.10",
+  "candidate": "seeded-mashup-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.10.html",
+  "htmlSha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375",
+  "scope": "Scout-derived canonical World projects. Multiple source graphic/music donors, deterministic seeded selection and bounded existing actor variation. Actual generated ROM compilation; no browser, audible output, physical hardware, arbitrary-ROM recovery, or playability guarantee.",
+  "inputs": [
+    {
+      "filename": "Scout_Base.nesforge.json",
+      "sha256": "2bcad770ca14c57719fb497d65cf1a94ee4a456516bcdf68bc0da71ba1476659",
+      "projectName": "Mashup Workshop — Scout Base",
+      "sourceId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b"
+    },
+    {
+      "filename": "Copper_Orchard_Donor.nesforge.json",
+      "sha256": "73808e19beddf60df4f99630ba4e37d6fd61b38200732c96926c105bf1239ec6",
+      "projectName": "Mashup Workshop — Copper Orchard",
+      "sourceId": "547fdfa7292846353ffdc88b4acad3bc99cf497a78618fd91c4eae5e2aad1705"
+    },
+    {
+      "filename": "Moonlit_Circuit_Donor.nesforge.json",
+      "sha256": "993a13660e5e594d223247e8b237a3187f4d00cca6de163d18afd329723839fd",
+      "projectName": "Mashup Workshop — Moonlit Circuit",
+      "sourceId": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84"
+    }
+  ],
+  "outputs": [
+    {
+      "seed": "FORGE-001",
+      "project": "Mashup_FORGE-001.nesforge.json",
+      "projectSha256": "17f9cf2456d55182d1a082dea1cb6a8db4952e3eed432a5d79c22eba95f1c4b8",
+      "recipe": "Mashup_FORGE-001.recipe.json",
+      "recipeSha256": "31907c56d9e5155ec802e1174e7623e5127e24720a16f8eba851badffc5e960d",
+      "rom": "Mashup_FORGE-001.nes",
+      "romSha256": "fbf07ffaa565bd1daae44b5af92866fcbdf8fbe53051f4b2d2ab7f074a718494",
+      "romBytes": 40976,
+      "backend": "world",
+      "changes": [
+        {
+          "domain": "background",
+          "targetSceneId": "scout-source",
+          "sourceId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b",
+          "assetId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b:scene:scout-source",
+          "description": "background from Mashup Workshop — Scout Base / Scout Training Room"
+        },
+        {
+          "domain": "sprites",
+          "targetSceneId": "scout-source",
+          "sourceId": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84",
+          "assetId": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84:scene:scout-source",
+          "description": "sprites from Mashup Workshop — Moonlit Circuit / Moonlit Circuit tiles"
+        },
+        {
+          "domain": "palettes",
+          "targetSceneId": "scout-source",
+          "sourceId": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84",
+          "assetId": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84:scene:scout-source",
+          "description": "palettes from Mashup Workshop — Moonlit Circuit / Moonlit Circuit tiles"
+        },
+        {
+          "domain": "music",
+          "targetSceneId": null,
+          "sourceId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b",
+          "assetId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b",
+          "description": "music from Mashup Workshop — Scout Base / music"
+        },
+        {
+          "domain": "enemyParameters",
+          "actorId": "mashup-patrol-a",
+          "parameter": "speed",
+          "before": 1,
+          "after": 3
+        },
+        {
+          "domain": "enemyParameters",
+          "actorId": "mashup-patrol-b",
+          "parameter": "speed",
+          "before": 1,
+          "after": 3
+        },
+        {
+          "domain": "placement",
+          "actorId": "mashup-patrol-a",
+          "role": "patrol",
+          "before": {
+            "x": 104,
+            "y": 176
+          },
+          "after": {
+            "x": 168,
+            "y": 176
+          },
+          "sourceSlotActorId": "mashup-patrol-b"
+        },
+        {
+          "domain": "placement",
+          "actorId": "mashup-patrol-b",
+          "role": "patrol",
+          "before": {
+            "x": 168,
+            "y": 176
+          },
+          "after": {
+            "x": 104,
+            "y": 176
+          },
+          "sourceSlotActorId": "mashup-patrol-a"
+        },
+        {
+          "domain": "placement",
+          "actorId": "mashup-pickup-a",
+          "role": "pickup",
+          "before": {
+            "x": 72,
+            "y": 160
+          },
+          "after": {
+            "x": 208,
+            "y": 160
+          },
+          "sourceSlotActorId": "mashup-pickup-b"
+        },
+        {
+          "domain": "placement",
+          "actorId": "mashup-pickup-b",
+          "role": "pickup",
+          "before": {
+            "x": 208,
+            "y": 160
+          },
+          "after": {
+            "x": 72,
+            "y": 160
+          },
+          "sourceSlotActorId": "mashup-pickup-a"
+        }
+      ],
+      "warnings": [
+        "CHR banks are replaced by tile number. Layout, collisions and gameplay meanings remain from the base; visual semantics and playability need review.",
+        "Patrol speed and compatible authored placement slots can vary. This does not prove level solvability, difficulty, or complete playability.",
+        "Player/start positions, actor IDs, persistent bindings, Switch + Door logic, maps and World links remain unchanged. Door physical blocking remains deferred."
+      ]
+    },
+    {
+      "seed": "FORGE-002",
+      "project": "Mashup_FORGE-002.nesforge.json",
+      "projectSha256": "3b0f4dc3649cc4157fd7522314f10e65df7ef78be84a6a54b3603be6af3b4ddf",
+      "recipe": "Mashup_FORGE-002.recipe.json",
+      "recipeSha256": "087258381bfaa548b19e1e70e58afa45eae0430728523cd386bd5a1b48820f4c",
+      "rom": "Mashup_FORGE-002.nes",
+      "romSha256": "929b53a5ab5796d704125471882cb7bdab79ecf74f520c8ddcabaa2528f63498",
+      "romBytes": 40976,
+      "backend": "world",
+      "changes": [
+        {
+          "domain": "background",
+          "targetSceneId": "scout-source",
+          "sourceId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b",
+          "assetId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b:scene:scout-source",
+          "description": "background from Mashup Workshop — Scout Base / Scout Training Room"
+        },
+        {
+          "domain": "sprites",
+          "targetSceneId": "scout-source",
+          "sourceId": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84",
+          "assetId": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84:scene:scout-source",
+          "description": "sprites from Mashup Workshop — Moonlit Circuit / Moonlit Circuit tiles"
+        },
+        {
+          "domain": "palettes",
+          "targetSceneId": "scout-source",
+          "sourceId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b",
+          "assetId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b:scene:scout-source",
+          "description": "palettes from Mashup Workshop — Scout Base / Scout Training Room"
+        },
+        {
+          "domain": "music",
+          "targetSceneId": null,
+          "sourceId": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84",
+          "assetId": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84",
+          "description": "music from Mashup Workshop — Moonlit Circuit / music"
+        },
+        {
+          "domain": "enemyParameters",
+          "actorId": "mashup-patrol-a",
+          "parameter": "speed",
+          "before": 1,
+          "after": 3
+        },
+        {
+          "domain": "enemyParameters",
+          "actorId": "mashup-patrol-b",
+          "parameter": "speed",
+          "before": 1,
+          "after": 3
+        },
+        {
+          "domain": "placement",
+          "actorId": "mashup-patrol-a",
+          "role": "patrol",
+          "before": {
+            "x": 104,
+            "y": 176
+          },
+          "after": {
+            "x": 168,
+            "y": 176
+          },
+          "sourceSlotActorId": "mashup-patrol-b"
+        },
+        {
+          "domain": "placement",
+          "actorId": "mashup-patrol-b",
+          "role": "patrol",
+          "before": {
+            "x": 168,
+            "y": 176
+          },
+          "after": {
+            "x": 104,
+            "y": 176
+          },
+          "sourceSlotActorId": "mashup-patrol-a"
+        },
+        {
+          "domain": "placement",
+          "actorId": "mashup-pickup-a",
+          "role": "pickup",
+          "before": {
+            "x": 72,
+            "y": 160
+          },
+          "after": {
+            "x": 208,
+            "y": 160
+          },
+          "sourceSlotActorId": "mashup-pickup-b"
+        },
+        {
+          "domain": "placement",
+          "actorId": "mashup-pickup-b",
+          "role": "pickup",
+          "before": {
+            "x": 208,
+            "y": 160
+          },
+          "after": {
+            "x": 72,
+            "y": 160
+          },
+          "sourceSlotActorId": "mashup-pickup-a"
+        }
+      ],
+      "warnings": [
+        "CHR banks are replaced by tile number. Layout, collisions and gameplay meanings remain from the base; visual semantics and playability need review.",
+        "Music replaces the order and tempo/speed; existing SFX definitions and source patterns remain. Existing SFX timing follows the new tempo/speed.",
+        "Patrol speed and compatible authored placement slots can vary. This does not prove level solvability, difficulty, or complete playability.",
+        "Player/start positions, actor IDs, persistent bindings, Switch + Door logic, maps and World links remain unchanged. Door physical blocking remains deferred."
+      ]
+    }
+  ]
+}

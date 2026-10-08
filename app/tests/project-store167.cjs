@@ -14,7 +14,7 @@ function count(h,names){h.context.names=names;h.run(`window.calls167={};window.o
 
 test('Schema 12 is the actual portable output and explicit schema downgrade is rejected',async()=>{
   const h=await fresh();fixture(h);assert.equal(h.run('Forge.services.ProjectStore.schema'),12);assert.equal(h.run('projectData().version'),12);assert.equal(h.run('JSON.parse(db_serializeState()).version'),12);
-  assert.equal(h.run('projectData().foundation'),'2.0.0-alpha.9');const before=state(h);
+  assert.equal(h.run('projectData().foundation'),'2.0.0-alpha.10');const before=state(h);
   for(const targetVersion of [8,9,10]){
     h.context.targetVersion=targetVersion;
     assert.throws(()=>h.run('Forge.services.ProjectStore.capture({targetVersion})'),/downgrade|schema|version/i);

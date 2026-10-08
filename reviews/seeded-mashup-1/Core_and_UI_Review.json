@@ -1,0 +1,30 @@
+{
+  "scope": "Seeded mashup pure model, source identities, recipe replay, and independent review of UI transaction boundaries",
+  "method": "Source review plus actual bundled-model contract tests; no browser acceptance is claimed",
+  "findings": [
+    {
+      "id": "MASHUP-SERIALIZATION-1",
+      "issue": "Canonical sorted source objects caused donated pattern-cell and instrument property insertion order to differ from ProjectStore reopening order, changing the packed authoring record on a later build.",
+      "evidence": "Integration agent compared full pre/post Save and reopen records and isolated those two object families. Actual World ROMs differed before the correction.",
+      "correction": "Model now uses ProjectStore.prepareLoad output ordering for patterns and instruments before hashing the result and running preflight. Model test verifies exact JSON ordering, while integration retains its actual rebuilt-ROM equality oracle.",
+      "state": "Corrected in source; final bundled integration gate required"
+    },
+    {
+      "id": "MASHUP-SHUFFLE-1",
+      "issue": "Shuffle unlocked changed only the seed while explicit source selectors remained fixed. Loading a saved recipe populated all selectors with resolved IDs, making unlocked domains remain fixed after shuffle.",
+      "reproduction": "Load a saved recipe with unlocked domain choices, then invoke Shuffle unlocked. Prior implementation retained each explicit selected donor irrespective of the new seed.",
+      "correction": "UI agent reset unlocked selectors to random before shuffle and retained locked choices. A new UI regression covers recipe load followed by shuffle.",
+      "state": "Corrected by UI owner; final bundled UI gate required"
+    }
+  ],
+  "reviewed_guards": [
+    "Detached frozen source snapshots use canonical JSON SHA-256 identities; source names and original file whitespace are not identity inputs.",
+    "Source byte and pool bounds are enforced; recipe replay requires exact source identities, selected IDs, version and result identity.",
+    "Source normalizer repairs to critical scene and Audio data are refused before donor selection.",
+    "Custom assembly in the base is refused. Donor code and original ROM images are not executed or copied into the base.",
+    "UI Apply replays the exact recipe, verifies current project epoch and full serialized content, and compares a whitelist-built expected candidate.",
+    "UI commits only selected target scene graphics/palettes, changed Audio fields and declared actor instance variations, with one history snapshot.",
+    "Fallible post-commit refreshes happen after dirty marking; they do not masquerade as an uncommitted mutation.",
+    "World preflight compiles detached bytes. Other generated runtimes explicitly retain pending full-build capacity checks. Neither proves browser, audio-listening or hardware acceptance."
+  ]
+}

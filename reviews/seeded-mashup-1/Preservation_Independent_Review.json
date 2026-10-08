@@ -1,0 +1,59 @@
+{
+  "status": "passed",
+  "htmlSha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375",
+  "checks": [
+    {
+      "name": "Deepest retained source restoration verifies all layers back to RE Runtime",
+      "passed": true
+    },
+    {
+      "name": "All 61 alpha.9 suites remain ordered with 1330 retained cases",
+      "passed": true
+    },
+    {
+      "name": "All retained suite scripts restore exactly to parent Git bytes",
+      "passed": true
+    },
+    {
+      "name": "Native Audio Import preservation guard is byte-identical to parent",
+      "passed": true
+    },
+    {
+      "name": "Frozen alpha.9 release summary is byte-identical to parent",
+      "passed": true
+    },
+    {
+      "name": "Alpha.10 only modifies release identity in inherited production sources",
+      "passed": true
+    },
+    {
+      "name": "Formerly omitted frozen world-codec suite is now exact and inventoried",
+      "passed": true
+    }
+  ],
+  "retainedSuites": 61,
+  "retainedCases": 1330,
+  "newSuites": [
+    "mashup-gameplay200",
+    "mashup200",
+    "mashup-ui",
+    "mashup-integration200"
+  ],
+  "guardSourceSha256": "0f4272c81cc8a4511b101a576983ec56931bb795e60c0fbc81fbe11777682bb6",
+  "resolvedFindings": [
+    {
+      "id": "ARCHIVE-OMISSION",
+      "issue": "The new alpha.9 frozen archive initially omitted stabilization/tests/world_codec.test.cjs. Deepest guard failed with ENOENT before reading the first retained suite.",
+      "resolution": "Root restored exact parent Git bytes and added the file to the new reference inventory; deepest guard now passes."
+    },
+    {
+      "id": "UNNECESSARY-LEGACY-GUARD-CHANGE",
+      "issue": "Native Audio Import guard replaced a direct file read with a newer restoration helper, although raw and restored bytes are identical for both unchanged modules in this candidate.",
+      "resolution": "Root restored the exact parent guard bytes. Historical assertions and oracles remain unmodified."
+    }
+  ],
+  "notes": [
+    "Existing frozen source deltas, inherited suite assertions and golden oracles were not regenerated.",
+    "This receipt verifies preservation wiring; it is not a substitute for the complete clean-extraction runtime gate."
+  ]
+}

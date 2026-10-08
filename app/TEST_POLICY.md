@@ -1,3 +1,17 @@
+# Test policy — 2.0.0-alpha.10 Seeded Mashup
+
+Retain every **1,330 alpha.9 case across 61 suites**, with exact per-suite counts, then add the declared mashup suites. No filters, skipped cases, substituted production modules, regenerated historical oracles or stale outcome records. The fresh current Summary establishes measured totals and outcomes.
+
+Require deterministic source identity, source-order-independent seeded selection where declared, explicit retained choices, lock behavior, bounded pool/seed/recipe handling and atomic refusal of malformed, incompatible, unresolved or over-capacity content. Use distinct canonical donor projects and verify that source data remains unchanged. Recipe reproduction requires the same exact source hashes. Imported music must rebase instrument/pattern references, preserve existing definitions and disclose the effect of changed global tempo/speed on SFX.
+
+Exercise real bundled UI handlers: source capture/intake, target scene and options, preview, seed changes, locks, pending/cancel/stale state, confirmation, one-step Undo/Redo, save/reopen and protected downloads. Preview and failed/cancelled application must preserve the active project/emulator; exact source/option/project state must be revalidated before mutation. Gameplay variation stays within its independently tested bounds; collision/World/scene references remain coherent. Require a detached actual build preflight and actual generated-ROM evidence that selected graphics, music and supported gameplay changes reach runtime. Do not equate compiler validity with fun, reachability, visual/music quality or universal semantic recovery.
+
+Freeze source, docs, examples and tests before staging. Verify every payload checksum, clean-extract and run the complete gate on one unchanged HTML. Record `checkpoints/seeded-mashup-1-clean-extraction/Reproduction.json`. Exact normalization reconstructs pinned alpha.9 before its preserved source chain. Final packaging checks provenance, reports, counts and identities; no provenance input changes after the run.
+
+Browser reports identify the current HTML and actual measured checks, or an explicit blocked launch with zero checks. Unavailable Chromium is not a pass. Native dialogs/layout, speakers, phone A/V latency, USB-C/Bluetooth controllers and NES/deck hardware remain separate evidence. Preserve deferred A6 and earlier owner results on their original builds. The full manual/PDF remains incomplete.
+
+## Preserved alpha.9 policy and complete prior history
+
 # Test policy — 2.0.0-alpha.9 Recovery Methods
 
 Retain every **1,263 alpha.8 case across 58 suites**, with exact per-suite counts, and add the declared recovery-method suites. No filters, skipped cases, substituted production modules, regenerated historical oracles or stale result records. The fresh current Summary establishes actual totals and outcomes.

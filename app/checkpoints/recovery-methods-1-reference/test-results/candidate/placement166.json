@@ -1,0 +1,124 @@
+{
+  "suite": "placement166",
+  "source": "NES_Forge_2.0.0-alpha.9.html",
+  "sha256": "b61825396f375e1e6a4ad13822e9db163f59584d545d158ee96af731c0e74f50",
+  "environment": "Node.js full application VM with recording draw context and real scene pointer handlers",
+  "limitations": "Not browser layout, native pointer input, canvas rasterization or native Save As QA.",
+  "total": 28,
+  "passed": 28,
+  "failed": 0,
+  "results": [
+    {
+      "name": "A nonzero frame origin aligns opaque source pixels to entity feet",
+      "passed": true
+    },
+    {
+      "name": "Facing left reflects each pixel around feet without a one-pixel shift",
+      "passed": true
+    },
+    {
+      "name": "Preview uses source-scene sprite palette instead of room palette",
+      "passed": true
+    },
+    {
+      "name": "Per-piece palette and horizontal flip remain effective",
+      "passed": true
+    },
+    {
+      "name": "Saved default state selects its first frame independently of editor preview state",
+      "passed": true
+    },
+    {
+      "name": "An unavailable default animation can use the existing idle binding",
+      "passed": true
+    },
+    {
+      "name": "Fully transparent art retains a selectable marker",
+      "passed": true
+    },
+    {
+      "name": "A missing source scene retains the marker and does not throw",
+      "passed": true
+    },
+    {
+      "name": "Partially missing tile assets use a marker rather than an incomplete character",
+      "passed": true
+    },
+    {
+      "name": "Drawing includes real scaled pixels and no old marker beneath a bound actor",
+      "passed": true
+    },
+    {
+      "name": "Selected configured player movement body ends exactly at feet height",
+      "passed": true
+    },
+    {
+      "name": "Unselected actors do not show a movement-body overlay",
+      "passed": true
+    },
+    {
+      "name": "Other player entities do not inherit the configured collision body",
+      "passed": true
+    },
+    {
+      "name": "Viewer mode keeps authored actor art but has no gameplay body",
+      "passed": true
+    },
+    {
+      "name": "Changing active scene does not reuse another room player body",
+      "passed": true
+    },
+    {
+      "name": "The visible art can be selected above the old centered marker",
+      "passed": true
+    },
+    {
+      "name": "Selection follows reflected geometry instead of the right-facing pose",
+      "passed": true
+    },
+    {
+      "name": "Selected player body is draggable with exclusive floor/right boundaries",
+      "passed": true
+    },
+    {
+      "name": "Overlapping actors keep the highest entity-index selection priority",
+      "passed": true
+    },
+    {
+      "name": "Mixed scenes preserve legacy marker size, icon, and selection index",
+      "passed": true
+    },
+    {
+      "name": "Unbound viewer actors retain the original marker drawing and hit regions",
+      "passed": true
+    },
+    {
+      "name": "A configured player with unavailable art still shows body and feet",
+      "passed": true
+    },
+    {
+      "name": "8 by 16 vertical flips swap the two tiles around the frame origin",
+      "passed": true
+    },
+    {
+      "name": "Source pixels and palette edits take effect immediately without saving a scene",
+      "passed": true
+    },
+    {
+      "name": "Numeric entity coordinates move the whole pose while retaining the anchor",
+      "passed": true
+    },
+    {
+      "name": "Existing canvas drag handler grabs visible art and preserves feet offset",
+      "passed": true
+    },
+    {
+      "name": "Scene placement preview does not mutate saved data, animation playback, or undo history",
+      "passed": true
+    },
+    {
+      "name": "Placement module and handlers report no unexpected application errors",
+      "passed": true
+    }
+  ]
+}

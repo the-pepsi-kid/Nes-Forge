@@ -1,0 +1,17 @@
+# Original 1.6.7 comparison copies
+
+The `.cjs` files in this directory preserve the exact original bytes of inherited 1.6.7 tests whose expectations were adapted for 1.7. Their original imports and fixture paths belong to the complete 1.6.7 release tree; this directory is a comparison record, not an alternate runner.
+
+For a runnable frozen reference, extract `../../baseline/NES_Forge_1.6.7_Frozen_Release.zip` into a separate directory and use that release's own runner. Current candidate results come from `node tests/run_all.cjs` at the 1.7 release root.
+
+The 1.7 adaptations in the corresponding active files are limited to:
+
+- `version-expectations.cjs`: read the actual authoritative ProjectStore schema; retain release ownership and explicit legacy frame defaults.
+- `project-store167.cjs`: expect schema 10 / release 1.7, retain schema-8 downgrade rejection and add schema-9 rejection, migrate legacy inputs through v9 with World Runtime disabled, and generate the unsupported future version from the current schema plus one. ROM layout 4 is now supported for World Runtime, so the unsupported outer-layout declaration uses 5; the other extension-version rejection cases are retained. The actual frozen-1.6.6 unresolved-reference comparison still runs unchanged; its name now correctly describes the current-schema snapshot.
+- `lifecycle167.cjs`: derive the unsupported recovery schema from the actual current schema plus one, and compare the pending portable export version with the actual ProjectStore schema.
+- `services167.cjs`: expect release 1.7 / schema 10 / World Runtime documentation and the additional `world` compiler backend. Existing backends, complete-ROM byte comparisons, active service ownership, emulator behavior, and inactive LiveLink assertions remain required.
+- `rom-compat167.cjs`: expect schema 10 / release 1.7 at the existing native project factory boundary. Unknown outer-layout checks use versions 0, 5, and 255 because layout 4 now selects World Runtime. The World ROM reader reserves layouts 4 and above to prevent fallback into legacy decoders; versions 5 and 255 therefore require the specific World size or unsupported-layout diagnostic. The same legacy fixtures relabeled as layout 4 must still reject with the applicable World size or source-format diagnostic before retained decoding and without changing project, history, imported bytes, or emulator state. These checks stay within the original eight test cases; all retained compatibility and atomic rejection assertions remain required.
+
+All standalone suite defaults now select `mainline/NES_Forge_1.7_World_Runtime.html`. Additional comparison copies cover these path-only edits: `compiler165.cjs`, `composer-interactions.cjs`, `convergence-source167.cjs`, `engine165.cjs`, `entity-studio164.cjs`, `frame-editor164.cjs`, `gameplay165.cjs`, `golden-parity167.cjs`, `metasprites.cjs`, `model164.cjs`, `native-authoring166.cjs`, `native-ui166.cjs`, `persistence164.cjs`, `persistence165.cjs`, `placement166.cjs`, `project166.cjs`, `regression.cjs`, and `ui165.cjs`. Explicit frozen-reference paths retain their original baseline targets. The release runner is maintained separately.
+
+No inherited test case was removed. The explicit actual-frozen-1.6.6 schema-v9 rejection body in `golden-parity167.cjs`, immutable golden fixtures, fixture hashes, and protected source hashes are unchanged. This record makes no test-pass claim; candidate execution must produce fresh measured results.
