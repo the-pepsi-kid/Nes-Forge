@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import io
+import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -33,6 +34,25 @@ def main():
             for item in source.infolist():
                 if not item.is_dir():
                     payload[item.filename] = source.read(item)
+        # Check committed bytes, not only the live worktree. An obsolete tracked
+        # build must never slip into a source kit outside the app manifest.
+        identity = json.loads(payload["CANDIDATE.json"])
+        app = {name[4:]: data for name, data in payload.items() if name.startswith("app/")}
+        expected = {}
+        for line in app["SHA256SUMS.txt"].decode().splitlines():
+            digest, name = line.split("  ", 1)
+            if name in expected:
+                raise RuntimeError("Duplicate committed application checksum: " + name)
+            expected[name] = digest
+        if set(app) != set(expected) | {"SHA256SUMS.txt"}:
+            raise RuntimeError("Committed app inventory differs from the delivered manifest")
+        if len(expected) != identity["payloadChecksums"] or len(app) != identity["packageFiles"]:
+            raise RuntimeError("Committed app file counts differ from candidate identity")
+        for name, digest in expected.items():
+            if hashlib.sha256(app[name]).hexdigest() != digest:
+                raise RuntimeError("Committed application bytes differ: " + name)
+        if hashlib.sha256(app[identity["html"]]).hexdigest() != identity["htmlSha256"]:
+            raise RuntimeError("Committed HTML differs from candidate identity")
         payload["NES_Forge_History.bundle"] = bundle.read_bytes()
         payload["SOURCE_COMMIT.txt"] = (head + "\n").encode()
         payload["SOURCE_SHA256SUMS.txt"] = "".join(
