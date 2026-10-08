@@ -1,3 +1,13 @@
+# Test and release policy — alpha.6 / roadmap-1
+
+Preserve every one of the 45 alpha.5 suites and their 990 cases, individually checked by `tests/retained-suite-counts.json`. Add all suites in `roadmap-suites.json`; a standalone hosted profile remains explicitly identified separately from cartridge execution. The mandatory runner executes all cases on an unchanged bundled application, with no skips, missing-module injection, filters or historical oracle regeneration.
+
+The exact current-source delta reconstructs alpha.5 SHA-256 be63ce7ddd3eec76f1736b9aff78922f0dc10e945ff2a96b26139f2393fff76a before prior guards run. New modules are explicitly ordered and hashed. Intended existing-file changes are limited to release identity, Audio profile reimport, additive emulator checkpoint/replay APIs, analysis accessor, graph refresh/tooltip and current capability documentation. Original CPU/PPU/APU algorithms and generated runtime remain unchanged.
+
+Freeze code, docs, tests and examples, package staging inputs atomically, verify all extracted payload checksums, then run the full gate from that fresh extraction. Record proof under checkpoints/roadmap-1-clean-extraction. Final packaging validates input provenance, reports, old case inventory, all new suites and five fresh browser reports. Browser failure cannot pass; unavailable Chromium records blocked with zero checks. No browser, listening, external-tool, real-device, controller or hardware result may be inferred from VM tests.
+
+## Historical policy (applies to its original candidate)
+
 # Test and release policy — alpha.5 / audio-adaptive-1
 
 Retain all 964 alpha.4 cases across 44 suites; add the 26-case `audio-adaptive200` suite, for 45 mandatory suites. No filters, skips, missing-module repair, stale reports or historical-oracle regeneration. Preserve every retained suite count individually.

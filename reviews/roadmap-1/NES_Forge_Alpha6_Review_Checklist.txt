@@ -1,0 +1,130 @@
+NES FORGE ALPHA.6 — REVIEW CHECKLIST
+October 8, 2026 UTC | 2.0.0-alpha.6 / roadmap-1 | schema 12
+HTML: mainline/NES_Forge_2.0.0-alpha.6.html
+SHA-256: ea16ded043216063572f5ba708e4efeea2f1f84d6a594b0393a8a5e1711783f9
+
+Review one workflow at a time, starting with Audio. Save a portable copy of your
+project before reviewing. Mark each check PASS, FAIL, or NOT TESTED. Record the
+browser/OS/version, input filename/hash and what actually happened. An available
+control or passing automated suite does not establish human acceptance.
+
+Measured release gate: 1126/1126 cases, 53 suites, from fresh clean extraction.
+This includes all 990/990 retained alpha.5 cases in 45 suites. Five browser runners
+were blocked before any checks ran. No alpha.6 browser, speaker, phone, hardware
+controller or physical NES pass is claimed. The candidate is not promoted and
+the complete roadmap is unfinished.
+
+1. AUDIO INTERCHANGE AND BUILT-IN WORKSHOP — REVIEW FIRST
+[ ] AUDIO → Audio workshop examples → Four-note melody / Four NES channels →
+    Add example to this project. Confirm order replacement. Edit a note, Undo,
+    Redo, Save Project As, then reopen the saved native JSON.
+    Expect editable notes to persist; old patterns/SFX remain and runtime
+    switches stay as set. The example chooser is now inside Forge.
+[ ] Export MIDI and MusicXML under Export Score Data. Read the warnings. Import
+    each into a project copy. Check channel assignment, tempo/speed, notes,
+    cuts, note-start volume and silence. Cancel one export.
+    Expect supported score data to survive; cancellation changes no project.
+    A short score imported into longer patterns may gain reported silent
+    padding, but the final note must end at its original cut.
+[ ] Complete the deferred A6 listening workshop using Pulse_Triangle or a
+    project with valid SFX bindings: preview, Compile Audio Runtime, Build &
+    Run, export ROM and play in an independent emulator. Check music/SFX,
+    mute, pause/resume and same-ROM phone playback against desktop.
+    Expect supported music/SFX to play. Record lag or sound differences.
+    Missing animation SFX references must be fixed explicitly; examples do
+    not silently rewrite bindings. Score files do not preserve NES timbre,
+    envelopes, SFX bindings or the entire project. Native JSON is the backup.
+
+2. NATIVE GRAPHICS RECOVERY
+[ ] RE / DISASM → General ROM Analysis: open a ROM with physical CHR ROM.
+    Raw CHR patterns → select a page → Preview native tile import → Import
+    as new tile sheet. Expect one added editable sheet; previous scenes stay.
+[ ] Edit a CHR pixel, Undo/Redo, Save Project As/reopen. Download active sheet
+    CHR and recovery evidence. Expect the edit, original source SHA-256,
+    physical range/bank and stable tile IDs to persist. Undoing the import
+    removes the sheet; Redo restores it. Builds exclude the sheet by default.
+[ ] Try CHR RAM or an unsupported/raw input. Expect an explicit unsupported
+    recovery result while general inspection remains available.
+    Grayscale and sheet layout are generated aids. Palette, visible bank,
+    scene layout, collision, gameplay and audio have NOT been recovered.
+
+3. CHECKPOINTS, INPUT SCRIPTS AND REVERSIBLE RAM
+[ ] Load Bridge_Room.nes or another supported ROM in EMULATOR. In RE runtime →
+    Checkpoints and reversible experiments, save a named checkpoint. Run
+    [{"frames":9,"buttons":["Right"]},{"frames":3,"buttons":[]}].
+    Restore the same checkpoint and repeat. Expect the same game outcome;
+    emulator pauses after replay. Cancel a longer script: already executed
+    frames remain, and restoring the checkpoint rewinds them.
+[ ] Apply a RAM byte change at an address you have investigated. Observe its
+    effect, then Restore experiment. Expect the entire pre-edit CPU/PPU/APU,
+    RAM and frame state to return. Keep emulator state retains changes only
+    in that emulator session. The active experiment's checkpoint cannot be
+    deleted before Restore or Keep.
+[ ] Try an I/O or ROM address; expect refusal with no edit. Reset or load a
+    different ROM; expect old checkpoints to be unavailable. No automatic
+    health, enemy, collision or advance-stage meaning is supplied.
+
+4. CANONICAL BEHAVIOR GRAPH
+[ ] Open Gameplay Core → BEHAVIOR GRAPH. Select a Behavior/state, add a state
+    and transition, edit supported typed conditions/actions and their order.
+    Expect the existing tables to show exactly the same canonical records.
+[ ] Use a diagnostic link to find its record. Undo/Redo and save/reopen.
+    Expect IDs, ordering and edits to persist. Initial/connected state removal
+    must require valid retargeting; no silent dangling references.
+[ ] Compile and exercise a supported generic-actor transition. Expect its
+    selected runtime behavior. The retained legacy Player runtime does not
+    become graph-driven. This adds no new template, runtime action, memory
+    budget or schema; five templates and existing limits remain.
+
+5. MULTI-FILE SOURCE WORKSPACE
+[ ] CODE → Open source workspace. Confirm file, folder and saved-workspace
+    pickers are visible and keyboard accessible. Open multi-file example →
+    Build source ROM. Download and load the ROM in EMULATOR.
+    Expect a valid mapper 0 ROM with no graphics: its reset routine writes
+    decimal 70 to RAM $0000 and loops. Run briefly and pause. In RE runtime,
+    take memory snapshots A and B; compare After equals 70 in internal RAM.
+    Expect address $0000 in the results.
+[ ] Import supported source files/folder, select entry and CHR source, edit,
+    build, then export workspace JSON/ZIP, expanded ASM and symbols/map.
+    Reopen workspace JSON. Expect current edits and original file bytes to
+    survive. Workspace builds must leave the active Forge project unchanged.
+[ ] Try a missing include, root escape or unsupported directive; expect a
+    source diagnostic and no stale ROM download. Edit during a slow source
+    replacement import; expect the edit retained and replacement refused.
+    This profile supports Forge-6502 and NROM only. Lua/NESmaker/ca65
+    translation and generated-gameplay/Audio Runtime insertion are absent.
+    Save this separate workspace before closing the page.
+
+6. SEPARATE LOCAL HOSTED DRAFT — LATER REVIEW, NOT A NES GAME BRIDGE
+[ ] From the extracted app directory, run:
+    node hosted/server.cjs --data ./forge-hosted-data --port 8787
+    Open its printed loopback address in two browser tabs. Follow
+    hosted/README.md to register two players and race for the same item.
+    Expect only one owner. Retrying an identical request must not duplicate it.
+[ ] Equip and transfer the item. Expect the same item ID to move to the new
+    owner and old equipped status to clear. Stop the server with Ctrl+C,
+    restart with the same data directory and reconnect using saved keys.
+    Expect ownership/state to persist. Protect reconnect keys as credentials.
+[ ] Stop before following the README's backup/restore commands. Restore into
+    a new directory and run only one authority for the data.
+    This is a local ordinary-item service draft. It does not connect a wallet,
+    implement financial loot loss, deploy publicly or project a World into a
+    NES ROM. Browser two-tab review and other-platform durability remain open.
+
+RETURN RECORD
+Workflow/check: ______________  Result: PASS / FAIL / NOT TESTED
+Device / OS / browser / version: _________________________________________
+Input filename / SHA-256: _______________________________________________
+Expected / actual / reproduction steps: _________________________________
+Screenshot, recording or exported output: _______________________________
+
+OUTSTANDING ACCEPTANCE
+- USB-C/Bluetooth gamepads: connect, map, disconnect/reconnect, focus isolation.
+- Cricket Dream 5G / Chrome: same-ROM A/V lag, audio gaps, orientation, native
+  keyboard, touch, fullscreen/fallback and controls across editor modes.
+- macOS/PC/mobile/cyberdeck browser usability and physical NES behavior require
+  actual runs on those targets. VM tests cannot substitute for them.
+- This checklist supplements existing manuals. The full manual/PDF editions
+  have not yet been comprehensively updated for alpha.6.
+- Native independent Audio decoding is separate work underway after a verified
+  HonkeyPong/FamiTone2 input checkpoint; it is NOT implemented in this alpha.6.

@@ -1,6 +1,24 @@
+# October 7 implementation update (America/Denver) — alpha.6 / roadmap-1
+
+The owner authorized the complete roadmap and then requested item-by-item implementation and verification. This supersedes historical implementation-authorization limits below. It does not mark any missing runtime, device, independent-input, launch or hardware evidence complete.
+
+The first implementation checkpoint contains supported Audio score export/reimport and built-in examples; generic physical CHR recovery with persisted evidence; named checkpoints/input replay/reversible RAM investigation; a canonical Behavior graph; and a bounded multi-file ASM workspace. A local authoritative ordinary-item service is a separately runnable draft, without a cartridge bridge. See `docs/ROADMAP_IMPLEMENTATION_STATUS.md` for every remaining area and `docs/ROADMAP_REVIEW_GUIDE.md` for the controls to test. The whole roadmap is not complete, and the alpha is not promoted.
+
+The original roadmap below is retained as requirements and dated history. Exact candidate outcomes belong to its fresh full-gate Summary, not to an earlier build or this status description.
+
+---
+
 # NES Forge — Authoritative Roadmap
 **Revision date:** 2026-10-07 (UTC), Audio adaptive editing review candidate
 **Status:** Audio Adaptive Editing candidate **2.0.0-alpha.5 / audio-adaptive-1**, based on alpha.4. Basic phone keyboard entry was owner-reported successful on alpha.4. New layout/envelope changes require their own review; listening, mobile performance, hardware controllers and promotion remain pending.
+
+## October 7 owner review and Audio workflow supplement
+
+The owner reports completion of A1–A5 on alpha.5 and explicitly reports arpeggio and envelope editing working as expected. This is owner-reported checklist evidence; no device/OS/browser/keyboard versions or candidate hash were supplied with that result. A6 was not performed and is deferred at the owner's direction: “ok let's continue and we will circle back to that”. Audio listening, phone playback/performance, physical controllers and promotion remain pending.
+
+A documentation/example supplement, `NES_Forge_2.0.0-alpha.5_Audio_Workshop.zip`, prepares the existing Audio workflow while A6 remains open. It includes the unchanged alpha.5 HTML, exact Open Project / Save Project As… / MIDI / MusicXML controls, two retained audio controls, an editable four-channel music/SFX project, and original four-note MIDI/MusicXML practice files. The accompanying `NES_Forge_2.0.0-alpha.5_Audio_Workshop.txt` provides the sequence. Open Project loads editable `.nesforge.json`; AUDIO score imports load `.mid` / uncompressed `.musicxml`; EMULATOR Load ROM plays `.nes`. Examples live in the package and have no in-app example chooser.
+
+Five package-input scenarios verify canonical load/build, exact retained ROM reproduction, import/edit/persistence/undo and a limited bundled-emulator smoke. They are separate from the unchanged 990/990 release gate and do not establish speakers, native file pickers, browser layout or phone performance. No application source changed; this is not alpha.6, promotion, a full manual/PDF delivery, or authorization to start later milestones. Complete the listening/workflow gate before native audio-driver recovery.
 
 ## Active Audio adaptive editing candidate
 

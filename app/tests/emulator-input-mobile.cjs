@@ -5,6 +5,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
 const {referenceSource,verifyRuntimeReference}=require('./source-preservation200.cjs');
+const {roadmapReferenceManifest}=require('./roadmap-preservation.cjs');
 const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const tests=[],test=(name,fn)=>tests.push({name,fn});
 function pad(index=0,id='Test controller',mapping='standard'){return {index,id,mapping,connected:true,buttons:Array.from({length:17},()=>({pressed:false,value:0})),axes:[0,0,0,0]};}
@@ -23,7 +24,7 @@ function load(h){h.context.mobileRom=loopRom();assert.equal(h.run('emuLoadRomDat
 
 test('Only enumerated mobile, RE and exact audio correction changes affect the corrected baseline sources',()=>{
   verifyRuntimeReference();
-  const baseline=JSON.parse(fs.readFileSync(path.join(root,'baseline/1.9.0-corrected-build-inputs.json'))),manifest=JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json')));
+  const baseline=JSON.parse(fs.readFileSync(path.join(root,'baseline/1.9.0-corrected-build-inputs.json'))),manifest=roadmapReferenceManifest(JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))));
   const exceptions=new Set(['src/services/release-info.js','src/services/documentation.js']);
   for(const input of baseline.inputs){
     if(exceptions.has(input.path))continue;

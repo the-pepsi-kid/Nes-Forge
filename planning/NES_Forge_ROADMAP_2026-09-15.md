@@ -1,6 +1,105 @@
 # NES Forge — Authoritative Roadmap
+
+**Current revision:** October 8, 2026 UTC — Roadmap Workbench implementation checkpoint.
+**Active candidate:** **2.0.0-alpha.6 / roadmap-1**, schema **12**, **not promoted**.
+**Frozen HTML SHA-256:** `ea16ded043216063572f5ba708e4efeea2f1f84d6a594b0393a8a5e1711783f9`.
+**Candidate ZIP SHA-256:** `9ca9df396e5b4b35254e29566f9976cb95b095f28a6c6937370c0fb104724d37` (1,602 files; 1,601 payload checksums).
+
+The complete roadmap remains unfinished. This update records working, bounded implementations and their measured evidence. It does not turn prepared later work into accepted milestones.
+
+## Current authority and review order
+
+The owner explicitly authorized **“Implement the roadmap completely”** and subsequently directed work **one item at a time**. Full implementation authorization remains active; integration and review proceed in dependency order with **Audio first**, followed by reusable native Audio recovery and the remaining roadmap. Earlier entries restricting implementation to their then-current slice are preserved historical decisions, superseded for implementation by this authorization. Neither the authorization nor this checkpoint implies release promotion, external publication, hardware acceptance or a real-value launch.
+
+Independently prepared graphics, runtime investigation, Behavior, source migration and local-host drafts are available for bounded review. They do not waive the finite Audio/RE acceptance gate or reorder acceptance of integrated Hosted Worlds and wallet/deck capabilities.
+
+## Measured evidence for these exact bytes
+
+- **1126/1126 cases across 53 suites passed**, with zero failures, on a fresh clean extraction of unchanged alpha.6 candidate bytes.
+- This retains **990/990 alpha.5 cases across all 45 suites**, plus **136 cases in eight additional suites**. Historical references and their preservation checks remain mandatory.
+- **Five browser runners were blocked with zero checks run**: mobile play, general RE analysis, RE runtime, Audio adaptive UI and the new roadmap workflows. A blocked launch is not a browser pass.
+- Alpha.5 owner-reported A1–A5 success remains evidence for that earlier candidate. Deferred **A6 listening**, alpha.6 browser/mobile/device behavior, the Cricket Dream 5G / Chrome A/V comparison, USB-C/Bluetooth controllers and physical NES acceptance remain open.
+- The fresh packaged `test-results/candidate/Summary.json`, matching source provenance and browser reports are the evidence. A changed HTML needs new evidence.
+
+## Implemented workflows in this candidate
+
+1. **Audio:** MIDI/MusicXML score export and bounded reimport, plus an in-app workshop example chooser. Native JSON remains the full project backup; score interchange does not preserve NES timbre/envelopes, SFX bindings or gameplay.
+2. **Native graphics:** a versioned method/evidence registry and generic physical CHR ROM decode/import/edit/export. Generated grayscale tile sheets are explicit conversions, not recovered scenes. Palettes, bank visibility, maps/collision, CHR RAM and compressed resource semantics remain unknown without a suitable method.
+3. **Runtime investigation:** named complete machine checkpoints, bounded scripted inputs and reversible RAM experiments, including service-level protection of active rollback checkpoints. This does not infer health, enemies or stages.
+4. **Behavior UX:** a graph over the existing canonical typed state/transition records, with diagnostics and reference navigation. No new runtime operations, templates, memory budget or schema are implied.
+5. **Source migration:** an isolated, byte-preserving multi-file Forge-6502/NROM workspace, literal includes/incbin, native text editing, source/JSON/ZIP/ROM exports and actual preprocessing maps/symbols. Foreign dialect translation and generated-gameplay/Audio Runtime hooks remain absent.
+6. **Local hosted reference:** a separate loopback ordinary-item authority draft with durable receipts, item races, issuer policy and offline backup/restore. It is not connected to cartridge execution and contains no wallet or financial-loot mechanism.
+
+## Audio next step and independent input checkpoint
+
+Begin review with **Audio workshop examples** and **Export Score Data**. Complete supported author/import/edit/export/reimport/build/listen/save/reopen, including prior A6 and independent-emulator listening. Preserve project data and state conversion omissions explicitly. The new review checklist is `NES_Forge_Alpha6_Review_Checklist.txt`; the brief measured handoff is `NES_Forge_Alpha6_Progress.txt`.
+
+The missing independent Audio input is now materially advanced: **HonkeyPong**, an existing MIT-licensed third-party game using FamiTone2, has a separately preserved source-backed reproduction and runtime checkpoint. The 24,592-byte ROM SHA-256 is `cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b`. Its unmodified upstream game/driver/score sources were retained; a separately identified host-converter compatibility patch is documented. Build and runtime reports verify reproduction, natural music/SFX calls and logical APU activity.
+
+This checkpoint does **not** implement Forge native Audio recovery or establish sound fidelity. A reusable FamiTone2-compatible structural decoder is **underway separately and is not in frozen alpha.6**. Recognition must use validated structures and mapping, not a filename, whole-ROM hash or fixed addresses. Timers, frame-based envelopes, fixed-point tempo, changing speeds and multi-channel native SFX require explicit fidelity decisions and refusal of unrepresentable conversion. The next bounded result needs original-byte evidence, independent source validation, supported canonical conversion, edited save/reopen/rebuild evidence and human listening. A new decoder changes the executable and must receive its own candidate hash and complete gate.
+
+## Remaining acceptance and documentation boundaries
+
+The full manual/PDF editions have not been comprehensively updated for alpha.6; the new guide/checklist supplement them. Hardware controller tests, phone listening/performance, target-browser usability, physical deck work and external deployment/chain acceptance require actual environment evidence. The finite acceptance gate for later integrated systems is still open. “Unimplemented,” “draft,” “partial” and “not tested” remain distinct states.
+
+## Current capability ledger
+
+| Roadmap area | Status in this candidate | Remaining work / evidence |
+|---|---|---|
+| Existing World, Audio Runtime and Gameplay Core baselines | Preserved by mandatory regression gate | Device listening/performance/controller review; historical documented limits remain |
+| 1.9.1 gameplay breadth | Unimplemented | Projectiles/groups, moving platforms, checkpoints, NPC dialogue, traversal, physical Door semantics and typed animation events |
+| 1.9.2 canonical visual behavior graph | Implemented for the existing profile | Browser/mobile usability acceptance; future operation profiles remain separate |
+| 1.9.3 supported Audio workflow | MIDI/MusicXML export/reimport and built-in examples implemented | Audible comparison/external application compatibility, A6, full manual review; no DPCM/expansion/FLP/OCR claim |
+| 2.0.1 linker and bank allocation | Unimplemented | Mapper-aware PRG/CHR allocation, relocations, dependency packing and streaming |
+| 2.0.2 Debug/Edit versus Release outputs | Partial | External source workspace exports its actual expanded ASM/maps; generated-game assembly export and separated ROM metadata profiles remain |
+| 2.0.3 runtime profiles | Existing limited profiles preserved | Additional scroll/mixed/mapper profiles and their executable contracts |
+| 2.0.4 raster contracts | Existing captured evidence only | Canonical represented/compilable raster events and profile support |
+| 2.0.5 incremental build/LiveLink | Unimplemented | Dependency invalidation, stable resource address mappings and safe replacement |
+| General arbitrary-ROM inspection | Existing bounded independent intake retained | Execution still depends on emulator/mapper support; raw analysis does not imply semantic recovery |
+| Alpha A0 / 2.2 recovery contracts and methods | Physical-source method registry and provenance implemented | More drivers/domains, signatures, decoders, encoders and independent validation |
+| Alpha A3 native Audio recovery | No new driver decoder in frozen alpha.6; verified independent HonkeyPong/FamiTone2 input checkpoint now available separately | Reusable structural decoding is underway outside this candidate; canonical conversion, edit/rebuild proof and listening remain required |
+| Alpha A1 graphics recovery | Generic physical CHR ROM import/edit/export implemented | Independent-engine end-to-end evidence; source palette/bank-use/compressed/CHR-RAM semantics remain unknown |
+| Alpha A2 scenes/maps/collision | Existing Native Room control only | Reusable native formats, independent source/behavior proof; no screenshot-derived semantic guesses |
+| 2.1/2.3 runtime investigation | Existing traces plus named full checkpoints and scripted input implemented | Breakpoints/read watches, broader code/data/xrefs/structures/profiling and verified game-specific actions |
+| 2.4 live experiments and patches | Reversible internal/cartridge RAM experiments implemented | Value freezes, bank-aware ROM shadow patches and safe asset/LiveLink replacement |
+| 2.5 technique discovery | Ongoing research target | Cannot be declared complete for every unknown engine or program |
+| ASM migration | Bounded preserved multi-file Forge-6502/NROM workspace implemented | Named external dialects, real migration corpus, generated-runtime hooks/clobbers/budgets, mapper/linker integration |
+| NESmaker/Lua/other languages | Unimplemented | Named versions/profiles, user-owned sources and explicit host/cartridge boundaries |
+| Public repository/reviewer readiness | Source, tests and history packaged | License choice, repository setup/publication and reviewer/device acceptance |
+| 3.0 input/deterministic sessions | Existing single-controller profile plus scripted RE replay | Multi-player/peripheral profiles and deterministic hosted session protocol |
+| 3.1 netplay | Unimplemented | Networking, rollback/reconnect/spectators/lobbies for declared ROM profiles |
+| 3.2 authority/transport contracts | Separate local server draft | Forge/cartridge intent bridge and integrated session acceptance |
+| 3.3 persistent hosted worlds | Separate durable bounded state draft | Real chunk/world projection into NES budgets and integrated multi-client play |
+| 3.4 economy | Separate ordinary-item/vendor/crafting reference subset | Full inventory/currency/resources/equipment/abilities/structures/XP domains and game bridge |
+| 3.4.1 earned ordinary items | Local authoritative claims, items and issuer acceptance draft | Integrated game evidence, richer cross-world opt-in and lifecycle rules |
+| 3.4.2 wallet/chain adapter | Unimplemented | SolGames audit, explicit testnet adapter, authentication/ownership/transfer separation, ROM effect bindings and lifecycle |
+| 3.4.3 mintable loot | Unimplemented | Reserve/idempotent mint/settlement/failure and ownership lifecycle |
+| 3.4.4 real-value combat loss | Unimplemented | Consent/custody model, authoritative combat, durable settlement and independent prelaunch review |
+| 3.5 competitive matches | Unimplemented | Match/team/zone/spectate/rank/history profile |
+| 3.6 social/voice | Unimplemented | Friends/parties/text/voice and moderation controls outside NES determinism |
+| 3.7 collaborative editing | Unimplemented | Presence/concurrent edits/conflicts/versioned shared builds |
+| 4.0 portable roles | Local Node host draft only | Developer/client/server role packaging and measured resource capacity on target hardware |
+| 4.1 device deployment | Local server offline backup/restore draft | Build/deploy/update/logs/rollback plus actual Wi-Fi/cellular behavior |
+| 4.2 Meshtastic/LoRa | Unimplemented | Hardware adapter, asynchronous message contract and measured network constraints |
+| 4.3 physical deck | Unimplemented | BOM, assembly, power/thermal/battery/suspend/loss tests and field session |
+
+
+---
+
+## Preserved prior revision and full historical requirements
+
+The following October 7 revision is retained verbatim. Its then-current labels, limits, results and authorization statements apply to their historical artifacts; the October 8 update above controls the current implementation status. Nothing below is deleted or silently reassigned to alpha.6.
+
 **Revision date:** 2026-10-07 (UTC), Audio adaptive editing review candidate
 **Status:** Audio Adaptive Editing candidate **2.0.0-alpha.5 / audio-adaptive-1**, based on alpha.4. Basic phone keyboard entry was owner-reported successful on alpha.4. New layout/envelope changes require their own review; listening, mobile performance, hardware controllers and promotion remain pending.
+
+## October 7 owner review and Audio workflow supplement
+
+The owner reports completion of A1–A5 on alpha.5 and explicitly reports arpeggio and envelope editing working as expected. This is owner-reported checklist evidence; no device/OS/browser/keyboard versions or candidate hash were supplied with that result. A6 was not performed and is deferred at the owner's direction: “ok let's continue and we will circle back to that”. Audio listening, phone playback/performance, physical controllers and promotion remain pending.
+
+A documentation/example supplement, `NES_Forge_2.0.0-alpha.5_Audio_Workshop.zip`, prepares the existing Audio workflow while A6 remains open. It includes the unchanged alpha.5 HTML, exact Open Project / Save Project As… / MIDI / MusicXML controls, two retained audio controls, an editable four-channel music/SFX project, and original four-note MIDI/MusicXML practice files. The accompanying `NES_Forge_2.0.0-alpha.5_Audio_Workshop.txt` provides the sequence. Open Project loads editable `.nesforge.json`; AUDIO score imports load `.mid` / uncompressed `.musicxml`; EMULATOR Load ROM plays `.nes`. Examples live in the package and have no in-app example chooser.
+
+Five package-input scenarios verify canonical load/build, exact retained ROM reproduction, import/edit/persistence/undo and a limited bundled-emulator smoke. They are separate from the unchanged 990/990 release gate and do not establish speakers, native file pickers, browser layout or phone performance. No application source changed; this is not alpha.6, promotion, a full manual/PDF delivery, or authorization to start later milestones. Complete the listening/workflow gate before native audio-driver recovery.
 
 ## Active Audio adaptive editing candidate
 

@@ -1,6 +1,72 @@
 # NES Forge — 2.0 Alpha Development Plan
 
+**Current revision:** October 8, 2026 UTC — Roadmap Workbench implementation checkpoint.
+**Active candidate:** **2.0.0-alpha.6 / roadmap-1**, schema **12**, **not promoted**.
+**Frozen HTML SHA-256:** `ea16ded043216063572f5ba708e4efeea2f1f84d6a594b0393a8a5e1711783f9`.
+**Candidate ZIP SHA-256:** `9ca9df396e5b4b35254e29566f9976cb95b095f28a6c6937370c0fb104724d37` (1,602 files; 1,601 payload checksums).
+
+The complete roadmap remains unfinished. This update records working, bounded implementations and their measured evidence. It does not turn prepared later work into accepted milestones.
+
+## Current authority and review order
+
+The owner explicitly authorized **“Implement the roadmap completely”** and subsequently directed work **one item at a time**. Full implementation authorization remains active; integration and review proceed in dependency order with **Audio first**, followed by reusable native Audio recovery and the remaining roadmap. Earlier entries restricting implementation to their then-current slice are preserved historical decisions, superseded for implementation by this authorization. Neither the authorization nor this checkpoint implies release promotion, external publication, hardware acceptance or a real-value launch.
+
+Independently prepared graphics, runtime investigation, Behavior, source migration and local-host drafts are available for bounded review. They do not waive the finite Audio/RE acceptance gate or reorder acceptance of integrated Hosted Worlds and wallet/deck capabilities.
+
+## Measured evidence for these exact bytes
+
+- **1126/1126 cases across 53 suites passed**, with zero failures, on a fresh clean extraction of unchanged alpha.6 candidate bytes.
+- This retains **990/990 alpha.5 cases across all 45 suites**, plus **136 cases in eight additional suites**. Historical references and their preservation checks remain mandatory.
+- **Five browser runners were blocked with zero checks run**: mobile play, general RE analysis, RE runtime, Audio adaptive UI and the new roadmap workflows. A blocked launch is not a browser pass.
+- Alpha.5 owner-reported A1–A5 success remains evidence for that earlier candidate. Deferred **A6 listening**, alpha.6 browser/mobile/device behavior, the Cricket Dream 5G / Chrome A/V comparison, USB-C/Bluetooth controllers and physical NES acceptance remain open.
+- The fresh packaged `test-results/candidate/Summary.json`, matching source provenance and browser reports are the evidence. A changed HTML needs new evidence.
+
+## Implemented workflows in this candidate
+
+1. **Audio:** MIDI/MusicXML score export and bounded reimport, plus an in-app workshop example chooser. Native JSON remains the full project backup; score interchange does not preserve NES timbre/envelopes, SFX bindings or gameplay.
+2. **Native graphics:** a versioned method/evidence registry and generic physical CHR ROM decode/import/edit/export. Generated grayscale tile sheets are explicit conversions, not recovered scenes. Palettes, bank visibility, maps/collision, CHR RAM and compressed resource semantics remain unknown without a suitable method.
+3. **Runtime investigation:** named complete machine checkpoints, bounded scripted inputs and reversible RAM experiments, including service-level protection of active rollback checkpoints. This does not infer health, enemies or stages.
+4. **Behavior UX:** a graph over the existing canonical typed state/transition records, with diagnostics and reference navigation. No new runtime operations, templates, memory budget or schema are implied.
+5. **Source migration:** an isolated, byte-preserving multi-file Forge-6502/NROM workspace, literal includes/incbin, native text editing, source/JSON/ZIP/ROM exports and actual preprocessing maps/symbols. Foreign dialect translation and generated-gameplay/Audio Runtime hooks remain absent.
+6. **Local hosted reference:** a separate loopback ordinary-item authority draft with durable receipts, item races, issuer policy and offline backup/restore. It is not connected to cartridge execution and contains no wallet or financial-loot mechanism.
+
+## Audio next step and independent input checkpoint
+
+Begin review with **Audio workshop examples** and **Export Score Data**. Complete supported author/import/edit/export/reimport/build/listen/save/reopen, including prior A6 and independent-emulator listening. Preserve project data and state conversion omissions explicitly. The new review checklist is `NES_Forge_Alpha6_Review_Checklist.txt`; the brief measured handoff is `NES_Forge_Alpha6_Progress.txt`.
+
+The missing independent Audio input is now materially advanced: **HonkeyPong**, an existing MIT-licensed third-party game using FamiTone2, has a separately preserved source-backed reproduction and runtime checkpoint. The 24,592-byte ROM SHA-256 is `cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b`. Its unmodified upstream game/driver/score sources were retained; a separately identified host-converter compatibility patch is documented. Build and runtime reports verify reproduction, natural music/SFX calls and logical APU activity.
+
+This checkpoint does **not** implement Forge native Audio recovery or establish sound fidelity. A reusable FamiTone2-compatible structural decoder is **underway separately and is not in frozen alpha.6**. Recognition must use validated structures and mapping, not a filename, whole-ROM hash or fixed addresses. Timers, frame-based envelopes, fixed-point tempo, changing speeds and multi-channel native SFX require explicit fidelity decisions and refusal of unrepresentable conversion. The next bounded result needs original-byte evidence, independent source validation, supported canonical conversion, edited save/reopen/rebuild evidence and human listening. A new decoder changes the executable and must receive its own candidate hash and complete gate.
+
+## Remaining acceptance and documentation boundaries
+
+The full manual/PDF editions have not been comprehensively updated for alpha.6; the new guide/checklist supplement them. Hardware controller tests, phone listening/performance, target-browser usability, physical deck work and external deployment/chain acceptance require actual environment evidence. The finite acceptance gate for later integrated systems is still open. “Unimplemented,” “draft,” “partial” and “not tested” remain distinct states.
+
+## Dependency sequence from this checkpoint
+
+1. Review and resolve the supported Audio workshop/interchange workflow, including explicit listening and device results.
+2. Complete the separately started native Audio driver method through source recognition, decoded evidence and bounded canonical conversion; verify edited rebuilds and preserve unsupported cases. The independent input is available; A3 acceptance is not yet complete.
+3. Review the prepared physical-CHR and runtime-investigation slices against unrelated engines and declared boundaries, then continue native maps/collision and the remaining resource/mapper/raster foundations.
+4. Review canonical Behavior UX and the supported source-workspace profile; implement gameplay breadth, real dialect/runtime-hook migration and reviewer/repository readiness under their explicit contracts.
+5. Integrate authoritative Hosted Worlds and ordinary items only through the required game/session bridge and finite Audio/RE acceptance gate. The local host draft is supporting work, not milestone completion.
+6. Continue optional wallet/mint/settlement, deployment roles and physical deck branches with their separate contracts and actual external/hardware evidence. Keep optional mesh asynchronous and distinct from frame-synchronous gameplay.
+
+The six-phase roadmap and its detailed acceptance requirements remain preserved below. Prepared code can reduce future implementation work; it does not establish a passed manual, independent-engine, hardware, financial or release gate.
+
+---
+
+## Preserved prior revision and full historical requirements
+
+The following October 7 revision is retained verbatim. Its then-current labels, limits, results and authorization statements apply to their historical artifacts; the October 8 update above controls the current implementation status. Nothing below is deleted or silently reassigned to alpha.6.
+
+
 Revision: October 7, 2026 (UTC), Audio adaptive editing candidate. Audio correctness and workflow completion precede further recovery; Sol Games remains a later architectural reference. Alpha.1 audio corrections and alpha.2 mobile playback corrections remain preserved. Active **2.0.0-alpha.5 / audio-adaptive-1** starts from alpha.4 and preserves the owner-tested direct keyboard interaction. No promotion is claimed.
+
+## October 7 owner review and workshop preparation
+
+Owner-reported alpha.5 A1–A5 completion includes working arpeggio and envelope editing; exact device/browser/keyboard versions and candidate hash were not supplied. A6 listening remains NOT TESTED and is deferred by the owner's latest instruction. Existing browser-runner blocks, phone performance and physical-controller gaps remain explicit; no promotion is claimed.
+
+Proceed with the existing Audio workflow by preparing its documentation and practice inputs. `NES_Forge_2.0.0-alpha.5_Audio_Workshop.zip` carries the unchanged HTML, an explicit Open Project walkthrough, four-channel music/SFX authoring/editing, original MIDI/MusicXML import inputs, save/reopen/build steps, and deferred listening checks. Its five package-input verification scenarios are separate from the existing 990-case gate, with modeled DOM/silent Web Audio adapters and no speaker or native-picker acceptance. Examples are files, not an in-app chooser. This supplement changes no executable and creates no alpha.6. Complete supported audible workflow acceptance before implementing native audio-driver recovery; all other phase ordering remains preserved.
 
 ## Current Audio adaptive editing candidate
 

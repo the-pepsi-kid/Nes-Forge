@@ -1,0 +1,50 @@
+{
+  "scope": "Independent review of actual implementations before full gate; each correction has a regression case. These reviews do not replace the full clean-extraction run.",
+  "findings": [
+    {
+      "area": "Audio",
+      "issue": "Final sustained note extended when importing into a larger existing pattern",
+      "resolution": "Preserve in-range final cut and report silent padding"
+    },
+    {
+      "area": "Audio",
+      "issue": "Legal MusicXML attribute spacing lost channel/timing/volume metadata",
+      "resolution": "Accept whitespace around XML attribute assignment"
+    },
+    {
+      "area": "Audio",
+      "issue": "Dense exported MusicXML falsely failed fractional row-boundary check",
+      "resolution": "Validate grid tolerance, then integer row bounds"
+    },
+    {
+      "area": "Source workspace",
+      "issue": "Empty macros bypassed expansion work/label limits",
+      "resolution": "Bound every expansion visit and emitted macro label bytes"
+    },
+    {
+      "area": "Source workspace",
+      "issue": "Asynchronous replacement discarded intervening user edits/settings",
+      "resolution": "Revision guard refuses stale replacement"
+    },
+    {
+      "area": "Source workspace",
+      "issue": "Global CSS hid new native source pickers",
+      "resolution": "Scoped visible native picker rule and ancestry coverage"
+    },
+    {
+      "area": "RE",
+      "issue": "Public checkpoint deletion removed an active experiment rollback state",
+      "resolution": "Owned checkpoints reject deletion; private release for Restore/Keep"
+    },
+    {
+      "area": "Hosted draft",
+      "issue": "Issuer/source IDs containing colons collided in claim keys",
+      "resolution": "Tuple-safe claim identity with regression"
+    },
+    {
+      "area": "Hosted draft",
+      "issue": "Health endpoint reported ready after poisoned storage",
+      "resolution": "Readiness reflects storage health"
+    }
+  ]
+}

@@ -1,28 +1,30 @@
 {
   "format": "NESForgeCandidateHandoff",
   "version": 1,
-  "release": "2.0.0-alpha.5",
-  "candidate": "audio-adaptive-1",
+  "release": "2.0.0-alpha.6",
+  "candidate": "roadmap-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "candidate/audio-adaptive-1",
-  "html": "mainline/NES_Forge_2.0.0-alpha.5.html",
-  "htmlSha256": "be63ce7ddd3eec76f1736b9aff78922f0dc10e945ff2a96b26139f2393fff76a",
-  "archive": "NES_Forge_2.0.0-alpha.5_Audio_Adaptive_Candidate.zip",
-  "archiveSha256": "797f5e74fdafbdcb2accb93a816f1f09e22905d776e17ed337fa4c7458f881d6",
-  "payloadChecksums": 1523,
-  "packageFiles": 1524,
+  "branch": "implementation/roadmap-2026-10-08",
+  "html": "mainline/NES_Forge_2.0.0-alpha.6.html",
+  "htmlSha256": "ea16ded043216063572f5ba708e4efeea2f1f84d6a594b0393a8a5e1711783f9",
+  "archive": "NES_Forge_2.0.0-alpha.6_Roadmap_Workbench_Candidate.zip",
+  "archiveSha256": "9ca9df396e5b4b35254e29566f9976cb95b095f28a6c6937370c0fb104724d37",
+  "payloadChecksums": 1601,
+  "packageFiles": 1602,
   "automatedResult": {
     "status": "passed",
-    "passed": 990,
+    "passed": 1126,
     "failed": 0,
-    "total": 990,
-    "suiteCount": 45,
-    "startedAt": "2026-10-07T03:54:04.793Z",
-    "finishedAt": "2026-10-07T04:07:22.255Z"
+    "total": 1126,
+    "suiteCount": 53,
+    "startedAt": "2026-10-08T05:18:37.404Z",
+    "finishedAt": "2026-10-08T05:33:53.530Z"
   },
+  "retainedCases": 990,
+  "retainedSuites": 45,
   "automatedSummary": "app/test-results/candidate/Summary.json",
-  "cleanExtractionProof": "app/checkpoints/audio-adaptive-1-clean-extraction/Reproduction.json",
+  "cleanExtractionProof": "app/checkpoints/roadmap-1-clean-extraction/Reproduction.json",
   "browserEvidence": [
     {
       "name": "browser-mobile",
@@ -43,13 +45,19 @@
       "name": "browser-audio-adaptive",
       "status": "blocked",
       "checks": 0
+    },
+    {
+      "name": "browser-roadmap",
+      "status": "blocked",
+      "checks": 0
     }
   ],
-  "ownerAcceptance": "pending",
-  "physicalPhoneKeyboard": "pending for alpha.5; alpha.4 basic entry owner-reported passed",
+  "ownerAcceptance": "pending for alpha.6; alpha.5 A1\u2013A5 owner reported passed and A6 deferred",
+  "physicalPhoneKeyboard": "alpha.4 basic entry owner-reported passed; alpha.6 untested",
   "mobilePerformance": "pending same-device comparison",
   "hardwareControllers": "not physically tested",
   "promotion": "not promoted",
-  "parentCommit": "e6dd5a726df2f1144605b631be44d63874ea5e00",
+  "roadmap": "in progress; full roadmap is not implemented",
+  "parentCommit": "9cc5171449b112078ac911b8062bde2aea6b16d0",
   "license": "UNDECIDED"
 }

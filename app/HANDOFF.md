@@ -1,13 +1,13 @@
-# Audio Adaptive Editing review handoff
+# Roadmap implementation handoff
 
-Owner “ok, continue” authorizes this bounded implementation following the UI audit. This candidate is alpha.5 / audio-adaptive-1, schema 12; the owner-tested alpha.4 keyboard adapter and original desktop strokes remain unchanged.
+The owner authorized implementation of the complete roadmap, proceeding item by item. Continue in dependency order without asking for repeated coding permission. Read `docs/ROADMAP_IMPLEMENTATION_STATUS.md` before claiming completion of a milestone.
 
-1. Open `mainline/NES_Forge_2.0.0-alpha.5.html`; compare its SHA-256 with CURRENT_BASELINE.md and build-inputs.json.
-2. Check the fresh Summary, all 45 suite reports and `checkpoints/audio-adaptive-1-clean-extraction/Reproduction.json`. All 964 predecessor cases plus 26 new cases are mandatory.
-3. Read all four fresh browser reports. Blocked launch records execute no checks and are not rendering acceptance.
-4. Follow `docs/AUDIO_ADAPTIVE_GUIDE.md` and `docs/AUDIO_ADAPTIVE_CHECKLIST.txt` on the reported phone and desktop. The added viewport declaration requires cross-tab review.
-5. Preserve predecessor artifacts and their hashes. Alpha.4 historical docs and measured evidence remain under docs/history/mobile-keyboard-1 and checkpoints/mobile-keyboard-1-reference; earlier branches/references remain in the Git bundle.
+1. Open the alpha.6 HTML and compare its hash to build-inputs.json and Summary.json.
+2. Confirm the entire mandatory gate, retained per-suite counts, clean-extraction proof and five current browser reports. Blocked means zero browser checks, not pass.
+3. Review Audio first with `docs/AUDIO_INTERCHANGE.md` and the built-in workshop. Its supported score subset does not recover instruments/envelopes from arbitrary files and is not audible acceptance.
+4. Review native CHR, experiments, canonical graph and source workspace using the new guide. Preserve unknown semantic domains instead of filling them with guessed data.
+5. Keep `hosted/` as a separate local reference draft until its production, cartridge projection and broader economy milestones are implemented and accepted.
 
-Next complete supported Audio author/import/edit/build/listen/save/reopen and update the full manual against accepted controls. Native audio-driver recovery follows. Mobile lag and hardware-controller review remain independent. No full editor rewrite, promotion, hosted/wallet implementation or public GitHub publication is included.
+The next primary dependency remains independent native audio-driver recovery. The supplied Pepsi input has no identified music/SFX in observed states; Bridge Room is a controlled native example. They do not establish an independent third-party audio driver. Broader engine maps/collisions require format evidence and independent permitted test inputs. Stage manipulation requires a verified mapping for that ROM; frame replay and RAM editing alone are not that mapping.
 
-To reproduce: `python3 tools/bundle.py --check`, then `node tests/run_candidate.cjs` in a disposable extraction. To stage: `python3 tools/package_release.py --stage --output /absolute/path/audio-adaptive-staging.zip`. Final packaging requires fresh clean-extraction proof and current browser evidence.
+Code work is authorized; listening/phone/controller tests, external engine proofs, deployment choices, wallet ownership/settlement policy and physical hardware measurements cannot be reported as done without their corresponding evidence. The remainder is explicitly tracked; neither this candidate nor its checklist closes the whole roadmap.

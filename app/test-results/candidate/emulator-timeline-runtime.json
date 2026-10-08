@@ -1,7 +1,7 @@
 {
   "suite": "emulator-timeline-runtime",
-  "html": "NES_Forge_2.0.0-alpha.5.html",
-  "htmlSha256": "be63ce7ddd3eec76f1736b9aff78922f0dc10e945ff2a96b26139f2393fff76a",
+  "html": "NES_Forge_2.0.0-alpha.6.html",
+  "htmlSha256": "ea16ded043216063572f5ba708e4efeea2f1f84d6a594b0393a8a5e1711783f9",
   "scope": "Independent actual CPU/PPU/APU execution with native/world and original synthetic MMC1/MMC3 CHR-RAM fixtures; complete historical state, PCM continuation, frame-validated runtime capture, branching, cancellation and unknown-state rejection. Mock DOM, not browser or physical-hardware acceptance.",
   "passed": 9,
   "failed": 0,
@@ -36,6 +36,11 @@
         "storedBytes": 16796246,
         "maxStates": 300,
         "maxBytes": 33554432,
+        "session": 2,
+        "checkpointCount": 0,
+        "checkpointBytes": 0,
+        "maxCheckpoints": 16,
+        "maxCheckpointBytes": 33554432,
         "canBack": true,
         "canForward": true,
         "message": "Restored recorded frame 16."
@@ -66,6 +71,11 @@
         "storedBytes": 19377281,
         "maxStates": 300,
         "maxBytes": 33554432,
+        "session": 2,
+        "checkpointCount": 0,
+        "checkpointBytes": 0,
+        "maxCheckpoints": 16,
+        "maxCheckpointBytes": 33554432,
         "canBack": true,
         "canForward": true,
         "message": "Restored recorded frame 16."
@@ -134,47 +144,47 @@
     {
       "name": "History is opt-in and ordinary frame execution changes no authoring project or original ROM",
       "passed": true,
-      "milliseconds": 916
+      "milliseconds": 939
     },
     {
       "name": "Recorded native frames restore full state and re-execute identical machine state and PCM samples",
       "passed": true,
-      "milliseconds": 8422
+      "milliseconds": 8073
     },
     {
       "name": "Recorded world frames restore full state and re-execute identical machine state and PCM samples",
       "passed": true,
-      "milliseconds": 8210
+      "milliseconds": 8612
     },
     {
       "name": "Runtime capture after rewind uses restored native tiles, scanline provenance and prior sprite positions",
       "passed": true,
-      "milliseconds": 2363
+      "milliseconds": 2265
     },
     {
       "name": "Mapper 1 rewind restores actual bank state, CHR-RAM, SRAM, controller latch and active DMC internals",
       "passed": true,
-      "milliseconds": 2318
+      "milliseconds": 2367
     },
     {
       "name": "Mapper 4 rewind restores actual bank state, CHR-RAM, SRAM, controller latch and active DMC internals",
       "passed": true,
-      "milliseconds": 2446
+      "milliseconds": 2369
     },
     {
       "name": "Recorded future is restored without CPU execution; resumed play branches and discards that future",
       "passed": true,
-      "milliseconds": 1977
+      "milliseconds": 1900
     },
     {
       "name": "Unknown current emulator state rejects rewind atomically instead of dropping unsupported state",
       "passed": true,
-      "milliseconds": 1053
+      "milliseconds": 1076
     },
     {
       "name": "A replacement ROM cancels a yielding forward skip and cannot receive stale execution or restore",
       "passed": true,
-      "milliseconds": 801
+      "milliseconds": 833
     }
   ]
 }

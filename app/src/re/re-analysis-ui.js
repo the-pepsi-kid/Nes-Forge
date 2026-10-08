@@ -134,6 +134,6 @@ function mount(){
   for(const hostEl of [panel,workspace])for(const type of ['keydown','keyup'])hostEl.addEventListener(type,event=>event.stopPropagation?.());
   enable();status('Choose a ROM or binary. General inspection needs no engine profile.');return panel;
 }
-F.services.REAnalysisUI=Object.freeze({mount,selectFile,openFile,viewRange,pageBy,chrPageBy,saveMapping,goMapping,searchBytes,cancelSearch,goResult,annotate,downloadReport,exportData,showWorkspace,getState:()=>Object.freeze({busy:state.busy,opened:!!state.analysis,generation:state.generation,searching:state.searching,selection:state.selection?Object.freeze({...state.selection}):null,page:state.page,chrFirst:state.chrFirst,mappings:state.mappings.length,annotations:state.annotations.length,matches:state.matches.length})});
+F.services.REAnalysisUI=Object.freeze({mount,selectFile,openFile,viewRange,pageBy,chrPageBy,saveMapping,goMapping,searchBytes,cancelSearch,goResult,annotate,downloadReport,exportData,showWorkspace,currentAnalysis:()=>state.busy?null:state.analysis,getState:()=>Object.freeze({busy:state.busy,opened:!!state.analysis,generation:state.generation,searching:state.searching,selection:state.selection?Object.freeze({...state.selection}):null,page:state.page,chrFirst:state.chrFirst,mappings:state.mappings.length,annotations:state.annotations.length,matches:state.matches.length})});
 mount();
 })();

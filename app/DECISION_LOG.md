@@ -449,3 +449,10 @@ Retain all 895 preexisting cases and add independent compiled-runtime boundary/p
 **Evidence:** preserve all 940 alpha.2 cases / 43 suites and add `mobile-keyboard200` for 44 required suites. The 18 alpha.3 form-specific tests are superseded by the owner's explicit rejection; retain their source branch, delivered artifact and original results. Verify full gate and exact packaging on a fresh unchanged extraction. Earlier intermediate results, including lost work, do not certify restored files. Native keyboard opening and phone layout require actual device review. Browser blocked launches, VM events and physical-device evidence remain separate.
 
 The supported Audio workshop and native driver recovery retain their existing sequence. Discussion of a capability-adaptive interface is a recommendation for a bounded audit, not authorization to implement a cross-platform UI rewrite. No release promotion, public publication or later milestone follows from this correction.
+
+
+## D057 — complete roadmap implementation authorization (October 7, 2026, America/Denver)
+
+Owner: “Implement the roadmap completely”, then “just work through each item on the road map. One at a time”. Implementation is authorized across the recorded roadmap, with dependency order and preservation of existing behavior. Earlier bounded-candidate restrictions are historical and do not require renewed coding permission. Promotion, physical-device acceptance and public/real-money deployment require their actual distinct evidence and actions.
+
+The first implementation checkpoint is alpha.6 / roadmap-1. It adds supported Audio interchange/workshop, generic physical CHR recovery and evidence registry, checkpoint/replay/RAM investigation, canonical gameplay graph and multi-file source workspace. A separate local hosted-item service draft is included for later review; it is not integrated into NES execution or described as a completed hosted milestone. Every changed protected file is enumerated in the exact source delta; baseline bytes and golden ROMs are not regenerated. All 990 inherited cases and new mandatory suites remain required.

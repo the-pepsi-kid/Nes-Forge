@@ -1,0 +1,26 @@
+{
+  "candidate": "roadmap-1",
+  "status": "passed",
+  "release": "2.0.0-alpha.6",
+  "htmlSha256": "ea16ded043216063572f5ba708e4efeea2f1f84d6a594b0393a8a5e1711783f9",
+  "summarySha256": "6217d2138ed237e015bd10effe7e9fff92db895d0b671cf5b2d14354823b13a6",
+  "passed": 1126,
+  "total": 1126,
+  "suiteCount": 53,
+  "stagingVerifiedPayloads": 1488,
+  "stagingArchiveSha256": "eb09b0beb51153b58a08e3164a02284e0ab92bdd5930fcd0774be940c6bd5c7c",
+  "stagingArchive": "roadmap-staging-2.zip",
+  "startedAt": "2026-10-08T05:18:37.404Z",
+  "finishedAt": "2026-10-08T05:33:53.530Z",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "node tests/run_candidate.cjs"
+  ],
+  "unchangedCandidate": true,
+  "browserWalkthrough": "All five runners blocked before checks by missing Chromium; no visual pass claimed."
+}

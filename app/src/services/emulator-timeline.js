@@ -9,6 +9,8 @@ const excluded=new Set(['prgRom','chrRom','lastBuiltRom','loaded','running','loa
 const callbacks=new Set(['onSample','readMemory']);
 const constructors={Uint8Array,Uint8ClampedArray,Uint16Array,Uint32Array,Int8Array,Int16Array,Int32Array,Float32Array,Float64Array};
 const encoder=new TextEncoder(),decoder=new TextDecoder(),listeners=new Set();
+const MAX_CHECKPOINTS=16,MAX_CHECKPOINT_BYTES=32*1024*1024;
+let checkpoints=new Map(),checkpointBytes=0,nextCheckpoint=1,scriptMask=null;
 let enabled=false,supported=true,busy=false,navigationBlocked=false,history=[],cursor=-1,storedBytes=0,session=0,identity=null,operation=0,loadDepth=0,internalPause=0,internalFrame=0,message='Frame history is off.';
 function fail(text){throw Error('Frame history: '+text);}
 function keys(object,omit){return Object.keys(object).filter(key=>!omit.has(key));}
@@ -81,15 +83,15 @@ function unpackFrame(frame){
  return new Uint8ClampedArray(words.buffer);
 }
 function clear(){history=[];cursor=-1;storedBytes=0;}
-function rawStatus(){return Object.freeze({enabled,busy,loaded:!!emu.loaded,supported,oldest:history[0]?.frame??null,current:emu.loaded?emu.frameCount:null,newest:history.at(-1)?.frame??null,storedStates:history.length,storedBytes,maxStates:MAX_STATES,maxBytes:MAX_BYTES,canBack:!!emu.loaded&&enabled&&!busy&&cursor>0,canForward:!!emu.loaded&&!busy,message});}
+function rawStatus(){return Object.freeze({enabled,busy,loaded:!!emu.loaded,supported,oldest:history[0]?.frame??null,current:emu.loaded?emu.frameCount:null,newest:history.at(-1)?.frame??null,storedStates:history.length,storedBytes,maxStates:MAX_STATES,maxBytes:MAX_BYTES,session,checkpointCount:checkpoints.size,checkpointBytes,maxCheckpoints:MAX_CHECKPOINTS,maxCheckpointBytes:MAX_CHECKPOINT_BYTES,canBack:!!emu.loaded&&enabled&&!busy&&cursor>0,canForward:!!emu.loaded&&!busy,message});}
 function notify(){const state=rawStatus();for(const fn of listeners)try{fn(state);}catch(error){/* A presentation subscriber cannot break the emulation boundary. */}}
 function currentIdentity(){return emu.loaded?{rom:emu.lastBuiltRom,prg:emu.prgRom,chr:emu.chrRom,mapper:emu.mapper,size:emu.prgSize}:null;}
 function sameIdentity(a,b){return a===b||!!a&&!!b&&a.rom===b.rom&&a.prg===b.prg&&a.chr===b.chr&&a.mapper===b.mapper&&a.size===b.size;}
 function blockNavigation(value){navigationBlocked=value;services.EmulatorInput?.setBlocked('frame-navigation',value);}
-function cancel(reason='Navigation canceled.'){operation++;const wasBusy=busy;busy=false;if(navigationBlocked)blockNavigation(false);if(wasBusy){message=reason;notify();}return true;}
-function clearSession(reason,seed=false){cancel(reason);session++;clear();identity=currentIdentity();supported=true;message=reason;if(seed&&enabled&&emu.loaded)record();notify();}
+function cancel(reason='Navigation canceled.'){operation++;scriptMask=null;const wasBusy=busy;busy=false;if(navigationBlocked)blockNavigation(false);if(wasBusy){message=reason;notify();}return true;}
+function clearSession(reason,seed=false){cancel(reason);session++;clear();checkpoints.clear();checkpointBytes=0;identity=currentIdentity();supported=true;message=reason;if(seed&&enabled&&emu.loaded)record();notify();}
 function syncSession(){const now=currentIdentity();if(!sameIdentity(identity,now))clearSession(now?'ROM changed; frame history restarted.':'ROM unloaded; frame history cleared.',!!now);}
-function failClosed(error){cancel('Frame history stopped.');clear();enabled=false;supported=false;message=String(error?.message||error);notify();}
+function failClosed(error){cancel('Frame history stopped.');clear();checkpoints.clear();checkpointBytes=0;enabled=false;supported=false;message=String(error?.message||error);notify();}
 function record(){
  if(!enabled||!emu.loaded||loadDepth)return false;
  try{
@@ -158,6 +160,81 @@ async function seekRelative(delta){
  }catch(error){failClosed(error);return false;}
  finally{if(token===operation){busy=false;blockNavigation(false);notify();}}
 }
+
+// Named checkpoints use the same validated physical codec as frame history.
+// They are local, bounded, session-owned state; no imported snapshot is trusted.
+function checkpointName(value){if(typeof value!=='string'||!value.trim()||value.trim().length>64)fail('Checkpoint name must contain 1–64 characters.');return value.trim();}
+function requirePausedOperation(){syncSession();if(!emu.loaded)fail('Load a supported ROM in the emulator first.');if(busy)fail('Wait for the current navigation or script to finish.');}
+function captureEntry(){
+ const graph=encodeGraph({emu:physical(emu,excluded),apu:physical(apuCore,callbacks)}),video=packFrame(emu.frameBuffer),background=packFrame(emu.bgFrameBuffer);
+ const size=graph.byteLength+video.data.byteLength+background.data.byteLength+32;
+ if(size>MAX_CHECKPOINT_BYTES)fail('One physical checkpoint exceeds the 32 MiB checkpoint budget.');
+ return {session,frame:emu.frameCount,graph,video,background,size};
+}
+function checkpointInfo(entry){return Object.freeze({id:entry.id,name:entry.name,session:entry.session,frame:entry.frame,storedBytes:entry.size,owned:!!entry.owner});}
+function listCheckpoints(){syncSession();return Array.from(checkpoints.values(),checkpointInfo);}
+function createCheckpoint(name,owner){
+ name=checkpointName(name);requirePausedOperation();if(checkpoints.size>=MAX_CHECKPOINTS)fail('Delete a checkpoint before saving more than '+MAX_CHECKPOINTS+'.');
+ // Validate and account for the whole snapshot before pausing or storing it.
+ const entry=captureEntry();if(checkpointBytes+entry.size>MAX_CHECKPOINT_BYTES)fail('Checkpoint storage would exceed 32 MiB. Delete an existing checkpoint.');
+ pauseForNavigation();entry.id='checkpoint-'+session+'-'+nextCheckpoint++;entry.name=name;entry.owner=owner;checkpoints.set(entry.id,entry);checkpointBytes+=entry.size;message='Saved checkpoint “'+name+'” at frame '+entry.frame+'.';notify();return checkpointInfo(entry);
+}
+function saveCheckpoint(name){return createCheckpoint(name,null);}
+// Active reversible operations retain an unforgeable release capability. A
+// caller can inspect or restore their checkpoint, but ordinary deletion cannot
+// remove the only rollback state behind an active operation.
+function saveOwnedCheckpoint(name){const owner={},info=createCheckpoint(name,owner);return Object.freeze({...info,restore:()=>restoreCheckpoint(info.id),release:()=>deleteCheckpointOwned(info.id,owner)});}
+function deleteCheckpointOwned(id,owner){syncSession();const entry=checkpoints.get(id);if(!entry)return false;if(entry.owner&&entry.owner!==owner)fail('This checkpoint belongs to an active reversible operation. Restore or keep that operation first.');if(busy)fail('Wait for navigation or replay before deleting a checkpoint.');checkpoints.delete(id);checkpointBytes-=entry.size;notify();return true;}
+function deleteCheckpoint(id){return deleteCheckpointOwned(id,null);}
+function applyPrepared(state){const withVideo=new Set([...excluded]);withVideo.delete('frameBuffer');withVideo.delete('bgFrameBuffer');assignState(emu,state.emu,withVideo);assignState(apuCore,state.apu,callbacks);apuSilence();}
+function restoreCheckpoint(id){
+ requirePausedOperation();const entry=checkpoints.get(id);if(!entry)fail('Checkpoint is not available in this ROM session.');const state=prepare(entry);
+ const token=++operation;busy=true;blockNavigation(true);notify();pauseForNavigation();
+ try{applyPrepared(state);clear();if(enabled)record();present();message='Restored checkpoint “'+entry.name+'”; emulator remains paused.';return checkpointInfo(entry);}
+ finally{if(token===operation){busy=false;blockNavigation(false);notify();}}
+}
+function ramLocation(address){
+ if(!Number.isSafeInteger(address)||address<0||address>65535)fail('RAM address must be an integer from 0 through 65535.');
+ if(address<0x2000)return {address:address&0x7ff,region:'ram',index:address&0x7ff,array:emu.ram};
+ if(address>=0x6000&&address<0x8000&&emu.sram instanceof Uint8Array&&address-0x6000<emu.sram.length)return {address,region:'sram',index:address-0x6000,array:emu.sram};
+ fail('Experiments support internal RAM ($0000–$1FFF) and available cartridge RAM ($6000–$7FFF), not I/O, ROM or mapper registers.');
+}
+function readRAM(address){requirePausedOperation();const cell=ramLocation(address);return {address:cell.address,region:cell.region,value:cell.array[cell.index]};}
+function patchRAM(changes){
+ requirePausedOperation();if(!Array.isArray(changes)||!changes.length||changes.length>256)fail('An experiment needs 1–256 RAM changes.');const seen=new Set(),prepared=changes.map(change=>{
+  if(!change||typeof change!=='object')fail('Each RAM change must be an object.');const cell=ramLocation(change.address);
+  if(!Number.isInteger(change.value)||change.value<0||change.value>255)fail('RAM values must be integers from 0 through 255.');
+  if(change.expected!==undefined&&(!Number.isInteger(change.expected)||change.expected<0||change.expected>255||cell.array[cell.index]!==change.expected))fail('RAM no longer matches the expected value.');
+  if(seen.has(cell.address))fail('An experiment cannot write the same RAM byte twice, including mirrored addresses.');seen.add(cell.address);
+  return {...cell,before:cell.array[cell.index],after:change.value};
+ });
+ const token=++operation;busy=true;blockNavigation(true);notify();pauseForNavigation();
+ try{for(const cell of prepared)cell.array[cell.index]=cell.after;clear();if(enabled)record();present();message='Applied '+prepared.length+' RAM changes; emulator remains paused.';return prepared.map(({address,region,before,after})=>({address,region,before,after}));}
+ finally{if(token===operation){busy=false;blockNavigation(false);notify();}}
+}
+const scriptButtons=['A','B','Select','Start','Up','Down','Left','Right'];
+function validateScript(steps){
+ if(!Array.isArray(steps)||!steps.length||steps.length>256)fail('A script needs 1–256 steps.');let total=0;
+ const parsed=steps.map(step=>{if(!step||typeof step!=='object'||!Number.isInteger(step.frames)||step.frames<1||step.frames>600||!Array.isArray(step.buttons))fail('Each script step needs 1–600 frames and a buttons array.');let mask=0;for(const button of step.buttons){const index=scriptButtons.indexOf(button);if(index<0)fail('Unknown script button: '+button+'.');if(mask&(1<<index))fail('Script buttons cannot repeat.');mask|=1<<index;}if((mask&48)===48||(mask&192)===192)fail('Opposite directions cannot be held together.');total+=step.frames;return {frames:step.frames,buttons:step.buttons.slice(),mask};});
+ if(total>1800)fail('A script may execute at most 1800 frames.');return {steps:parsed,total};
+}
+async function runScript(steps,options={}){
+ const parsed=validateScript(steps);if(!options||typeof options!=='object'||Array.isArray(options))fail('Script options must be an object.');requirePausedOperation();
+ if(options.checkpointId!==undefined)restoreCheckpoint(options.checkpointId);
+ const token=++operation,origin=session,startFrame=emu.frameCount;let executed=0;busy=true;blockNavigation(true);message='Running bounded input script…';notify();pauseForNavigation();if(enabled&&cursor<history.length-1)truncateFuture();
+ try{
+  for(const step of parsed.steps)for(let i=0;i<step.frames;i++){
+   if(token!==operation||origin!==session||!emu.loaded)return {completed:false,executedFrames:executed,totalFrames:parsed.total,startFrame,endFrame:emu.loaded?emu.frameCount:null};
+   scriptMask=step.mask;internalFrame++;try{emuRunFrame();}finally{internalFrame--;scriptMask=null;}executed++;
+   if(executed<parsed.total){present();notify();await new Promise(resolve=>setTimeout(resolve,0));}
+  }
+  present();message='Input script completed '+executed+' frames; emulator remains paused.';return {completed:true,executedFrames:executed,totalFrames:parsed.total,startFrame,endFrame:emu.frameCount};
+ }catch(error){message='Input script stopped: '+String(error?.message||error);throw error;}
+ finally{if(token===operation){scriptMask=null;busy=false;apuSilence();clearEmuKeys();blockNavigation(false);notify();}}
+}
+const oldReadJoy=emuReadJoyState;
+emuReadJoyState=function(...args){return busy&&internalFrame&&scriptMask!==null?scriptMask:oldReadJoy.apply(this,args);};
+
 const oldFrame=emuRunFrame;
 emuRunFrame=function(...args){
  if(loadDepth)return oldFrame.apply(this,args);
@@ -181,5 +258,5 @@ services.ProjectStore.commit=function(...args){const result=oldCommit.apply(this
 const oldReplace=Forge166.project.replaceProject;
 Forge166.project.replaceProject=function(...args){const result=oldReplace.apply(this,args);syncSession();return result;};
 identity=currentIdentity();
-services.EmulatorTimeline=Object.freeze({setEnabled,enableHistory:setEnabled,back:(count=1)=>seekRelative(-count),forward:(count=1)=>seekRelative(count),seekRelative,cancel,status(){syncSession();return rawStatus();},subscribe(fn){if(typeof fn!=='function')return ()=>{};listeners.add(fn);fn(rawStatus());return ()=>listeners.delete(fn);}});
+services.EmulatorTimeline=Object.freeze({saveCheckpoint,saveOwnedCheckpoint,restoreCheckpoint,deleteCheckpoint,listCheckpoints,readRAM,patchRAM,validateScript,runScript,setEnabled,enableHistory:setEnabled,back:(count=1)=>seekRelative(-count),forward:(count=1)=>seekRelative(count),seekRelative,cancel,status(){syncSession();return rawStatus();},subscribe(fn){if(typeof fn!=='function')return ()=>{};listeners.add(fn);fn(rawStatus());return ()=>listeners.delete(fn);}});
 })();

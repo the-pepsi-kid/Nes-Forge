@@ -6,6 +6,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {loadForge}=require('./harness.cjs');
 const {referenceSource,verifyRuntimeReference}=require('./source-preservation200.cjs');
+const {roadmapReferenceManifest}=require('./roadmap-preservation.cjs');
 const root=path.resolve(__dirname,'..'),html=path.resolve(process.argv[2]||path.join(root,JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))).output));
 const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const tests=[],test=(name,fn)=>tests.push({name,fn});
@@ -22,7 +23,7 @@ function snapshot(h){
 
 test('Every protected navigation baseline source survives the exact audio correction, release and recovery-label edits',()=>{
  verifyRuntimeReference();
- const baseline=JSON.parse(fs.readFileSync(path.join(root,'baseline/re-navigation-1-build-inputs.json'))),manifest=JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json')));
+ const baseline=JSON.parse(fs.readFileSync(path.join(root,'baseline/re-navigation-1-build-inputs.json'))),manifest=roadmapReferenceManifest(JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))));
  for(const input of baseline.inputs){let source=referenceSource(input.path);if(input.path==='src/services/release-info.js'){const revised="candidate:'re-runtime-1'";assert.equal(source.split(revised).length,2,'Exactly one updated candidate identity');source=source.replace(revised,"candidate:'re-navigation-1'");}if(input.path==='src/re/re-ui.js'){const revised="'Preview editable recovery'";assert.equal(source.split(revised).length,2,'Exactly one renamed recovery command');source=source.replace(revised,"'Analyze ROM'");}assert.equal(hash(source),input.sha256,input.path);}
  const previous=baseline.inputs.map(input=>input.path);assert.deepEqual(manifest.parts.filter(part=>!previous.includes(part)),['src/audio/audio-adaptive-ui.js','src/re/re-analysis.js','src/re/re-analysis-ui.js','src/re/re-runtime.js','src/re/re-runtime-ui.js']);assert.deepEqual(manifest.parts.filter(part=>previous.includes(part)),previous);
 });

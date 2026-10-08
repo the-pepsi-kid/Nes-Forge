@@ -1,18 +1,21 @@
-# NES Forge 2.0.0-alpha.5 — Audio Adaptive Editing
+# NES Forge 2.0.0-alpha.6 — Roadmap Workbench
 
-Candidate **audio-adaptive-1**, schema **12**, based on alpha.4. Open `mainline/NES_Forge_2.0.0-alpha.5.html`. Direct native tracker keyboard entry remains unchanged. The Audio workspace adapts to narrow screens and keyboard/viewport resizing; touch and pen paint the original volume/arpeggio canvases with one undo step per changed stroke. Desktop mouse painting retains its original path.
+Candidate `roadmap-1`, schema 12. Open `mainline/NES_Forge_2.0.0-alpha.6.html`.
 
-Start with `docs/AUDIO_ADAPTIVE_GUIDE.md` and `docs/AUDIO_ADAPTIVE_CHECKLIST.txt`. A device-width viewport declaration also enables the existing narrow layouts across other tabs; cross-tab phone review is required. No core audio, compiler, import, emulation, capture, persistence or schema changes are included.
+This is an implementation checkpoint in the complete roadmap, not completion of the whole roadmap or a promoted release. The previous alpha.5 is preserved under baseline. The owner authorized the full roadmap and requested that items be completed and verified one at a time.
 
-All **964 retained alpha.4 cases across 44 suites** plus **26 Audio adaptive cases** are required, for **45 suites**. Measured outcomes belong to `test-results/candidate/Summary.json`; verified clean-extraction evidence belongs to `checkpoints/audio-adaptive-1-clean-extraction/Reproduction.json`. Four browser runners report executed checks or blocked launches with zero checks. No blocked browser run counts as a pass.
+Start with `docs/ROADMAP_REVIEW_GUIDE.md`. New supported workflows:
 
-Alpha.4 basic keyboard entry was owner-reported successful. This candidate has its own pending phone/layout/listening/performance acceptance. It is not promoted. The standalone HTML is the application; the ZIP includes source, tests, evidence, inherited examples and review instructions. The manual/workshop still needs a full current-controls review and any printable PDF must be rendered and visually checked.
+- AUDIO: MIDI/MusicXML score export and channel/timing-aware reimport, with explicit conversion limits. Built-in editable Audio workshop examples are in the Audio sidebar.
+- RE / DISASM: generic physical CHR recovery into editable tile sheets, persisted source evidence and raw edited CHR export. This does not infer maps, collisions or music.
+- RE runtime: named full-machine checkpoints, scripted controller input and reversible RAM experiments. This does not discover game-specific stage or combat meanings.
+- Gameplay Core: a graph editor over the existing canonical Behavior/state/transition records, with diagnostics and reference navigation.
+- CODE: a separate multi-file source workspace, literal includes/binary inserts, preserved originals, a declared assembler dialect, independent NROM builds and source exports.
+- `hosted/`: a separately runnable local ordinary-item server draft and two-client demo. It is not connected to cartridge execution and is not a completed Hosted Worlds milestone.
 
-## Preserved functionality
+All 990 retained cases across 45 suites remain mandatory, plus every suite in `roadmap-suites.json`. Exact measured outcomes are in `test-results/candidate/Summary.json`. That gate includes the explicitly separate hosted profile. Browser runners record either executed checks or a blocked launch with zero checks; viewport simulation and VM tests are not physical-device, speaker or controller acceptance.
 
-RE / DISASM supports engine-independent binary inspection separately from editable recovery; unknown engines remain inspectable. Native scene/collision/gameplay/audio recovery is bounded by supported formats. Emulator history offers retained-state Back and frame execution Forward, not automatic stage advancement. NES / 8-bit / 6502 remains the executable target.
-
-The five templates, schema 12, 12 actors, 64 persistent bytes and Door Option B remain protected. The documented partial single-room editable recovery and one-way active synchronization limits remain. Alpha.3 forms are withdrawn; their source history stays preserved. Original baseline documents and measured results retain their own identities under docs/history and checkpoints.
+Schema 12, the existing five templates, 12-actor runtime profile, 64 persistent-byte limit and Door Option B remain unchanged. Original CPU/PPU/APU algorithms, captures, Save As and historical golden ROMs remain protected. The source delta reverses to the exact immutable alpha.5 HTML before applying earlier guards.
 
 ## Reproduction
 
@@ -21,6 +24,6 @@ python3 tools/bundle.py --check
 node tests/run_candidate.cjs
 ```
 
-Use a disposable extraction: these commands produce new test reports. Final packaging checks exact source/test/report hashes, every retained suite count, browser evidence and clean-extraction proof. Native keyboard presentation, Safari, hardware controllers and audible quality require separate checks.
+Use a disposable extraction. The full gate takes several minutes and produces fresh reports. To make a staging package, use `python3 tools/package_release.py --stage --output /absolute/path/roadmap-staging.zip`. Final packaging requires verified clean-extraction proof and five fresh browser reports tied to the current HTML.
 
-After review complete the Audio author/import/edit/build/listen/save/reopen workshop, then native audio-driver recovery. Hosted worlds, wallets and physical deck roles remain later roadmap phases. No public publication or promotion is implied.
+Read `docs/ROADMAP_IMPLEMENTATION_STATUS.md` for implemented subsets and remaining work. No public deployment, wallet connection, asset mint, real-value combat, hardware certification, universal native-ROM recovery, or full manual/PDF completion is claimed by this candidate.
