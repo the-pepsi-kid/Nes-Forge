@@ -1,3 +1,25 @@
+# Current implementation update — Native Audio Score Import
+
+October 8, 2026 UTC. Candidate **2.0.0-alpha.8 / native-audio-import-1**, schema 12, not promoted. The complete roadmap remains in progress under the owner's full implementation authorization and one-item-at-a-time direction.
+
+The next Audio item adds **editable score transcription** of a supported finite FamiTone2 NTSC music excerpt into canonical AUDIO. The user chooses a native subsong and excerpt length, previews source evidence and conversion differences, then confirms import. Patterns/instruments are appended; the current music order and tempo/speed are replaced; existing patterns/instruments/SFX and runtime settings remain. The result participates in ordinary Undo/Redo, project save/reopen and the existing Forge Audio compiler. The source ROM and emulator remain unchanged.
+
+This is not lossless native-engine conversion. Source tuning, pulse retrigger, triangle controls, frame envelopes and timing require explicit differences or refusal. The excerpt does not recreate original song loops, native SFX, DPCM or gameplay triggers. Original-engine ROM-copy editing remains a separate retained path. Additional driver profiles, broader fidelity, audible/device comparison and the complete Alpha A3 acceptance gate remain open.
+
+See `docs/NATIVE_AUDIO_IMPORT.md`, `docs/NATIVE_AUDIO_IMPORT_CHECKLIST.txt` and the complete `docs/ROADMAP_IMPLEMENTATION_STATUS.md` ledger. The current Summary and clean-extraction proof establish measured results. All **55 predecessor suites / 1,191 cases** remain required; no planned or previous result certifies the changed build. Browser launches may be blocked, and physical/listening tests and the full manual/PDF update remain open.
+
+Continue the remaining dependencies without renewed coding permission. Partial Audio implementation, logical APU evidence and a local hosted draft do not establish completion of later integrated multiplayer, wallet or deck systems.
+
+The transcription uses global tempo 150 and speed 1. Existing SFX definitions and bindings are preserved, but their playback timing can change with those global settings. Review existing SFX after import; Undo restores the previous music settings.
+
+**Download transcription evidence** saves the last successful preview/import report, including source identities, options and conversion evidence. It is a historical snapshot, not an importable project, native edit session or proof that the current workspace still matches it. Save Project As is the editable-score backup; the evidence report does not embed the full ROM or project. A new preview clears/replaces the previous report.
+
+## Preserved alpha.7 roadmap and complete prior history
+
+The following saved alpha.7 roadmap is retained verbatim. Its status and evidence belong to that candidate; the current update above supersedes only present implementation status.
+
+---
+
 # Current implementation update — Native Audio Investigation
 
 October 8, 2026 UTC. Candidate **2.0.0-alpha.7 / native-audio-1**, schema 12, not promoted. The complete roadmap remains in progress.

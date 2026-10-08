@@ -1,5 +1,55 @@
 # NES Forge — 2.0 Alpha Development Plan
 
+**Current revision:** October 8, 2026 UTC — Native Audio Score Import.
+**Active candidate:** **2.0.0-alpha.8 / native-audio-import-1**, schema **12**, **not promoted**.
+**Measured alpha.8 gate:** **1,263/1,263 cases across 58 suites, zero failures**, from a verified clean extraction, 2026-10-08T18:46:11.681Z to 2026-10-08T19:00:50.684Z. All 55 alpha.7 suites / 1,191 cases retained.
+**Frozen HTML SHA-256:** `cbd2547b2a641760045658a16f610c0197490a8493985af4e2ac9deb897423ba` (1,489,496 bytes).
+**Candidate ZIP:** `NES_Forge_2.0.0-alpha.8_Native_Audio_Import_Candidate.zip`; SHA-256 `09f2b42d89ff992e3acde1348ae917aa1664a2ace6cc9f47fd9279aea8d9e981`; 31286523 bytes; 2256 files / 2255 payload checksums.
+**Browser evidence:** seven blocked runners, zero browser checks. Listening/mobile/controllers/hardware remain unverified.
+**Next coding dependency:** A0 shared recovery-profile discovery and dispatch, aligning the existing physical CHR and FamiTone2 tools under declared inspect/decode, native-edit and canonical-conversion operations. Follow with the roadmap’s cross-engine native graphics/maps/collision slice; general debugger or gameplay expansion is not a new prerequisite.
+**Current identity/evidence:** use `CANDIDATE.json`, application `build-inputs.json`, `test-results/candidate/Summary.json` and `checkpoints/native-audio-import-1-clean-extraction/Reproduction.json`; these records must agree. The retained alpha.7 result is **1,191/1,191 across 55 suites**; that historical pass is not an alpha.8 result.
+
+## Authority and current position
+
+The owner requested full roadmap implementation, directed work one item at a time, and instructed “Ok continue” after being told that alpha.7 was an intermediate checkpoint. Implementation authorization continues without repeated coding permission. This alpha.8 update advances the next Audio dependency; the **complete roadmap remains unfinished**. Promotion, physical acceptance and public or real-value deployment remain distinct from software implementation.
+
+## Implemented scope and explicit fidelity limits
+
+After opening and analyzing a supported ROM in **RE / DISASM → General ROM Analysis**, select **Native subsong**, choose **Native rows in excerpt (1–1024)** and use **Preview import to AUDIO**. The preview reports source identity, conversion evidence, warnings, limits and refusals. **Transcribe music into AUDIO** explicitly confirms replacement of the current music order. It appends canonical patterns/instruments, replaces order/tempo/speed in one ordinary Undo action, and retains existing patterns, instruments, SFX and runtime settings. Save Project As/reopen preserves the editable score. The original ROM and emulator stay unchanged; compilation remains the existing explicit Audio Runtime build workflow.
+
+This is **editable score transcription**, not a lossless native sound-engine replacement. Native timer tuning, pulse retrigger/phase, triangle controls, envelope clocks and timing need declared conversion behavior or refusal. The finite NTSC excerpt does not recover the native song loop, SFX, DPCM, gameplay triggers or the entire game's audio behavior. The retained alpha.7 workflow still edits validated native command bytes on an isolated ROM copy using the original external driver; those native edits have their own Undo/Redo and ROM/evidence exports. Save Project As preserves canonical transcription, not that separate native edit session.
+
+Recognition remains a declared structural FamiTone2 instruction/data profile with validated mapping and initialization evidence. HonkeyPong is the independent permitted source control, not a filename/hash allowlist. Unknown engines still open for binary inspection; unsupported transcription is an explicit nonmutating outcome. More drivers, native resource domains and complete Alpha A3 acceptance remain open.
+
+## Evidence, review and next work
+
+Retain all 55 alpha.7 suites and 1,191 cases, then add the three declared import suites. Freeze inputs and run the full gate from a verified clean extraction; actual fresh Summary counts and reports establish new results. Require canonical edit/Undo/save/reopen/rebuild and actual generated-ROM evidence, with independent conversion fixtures and stale/cancel/noninterference checks. Do not transfer a previous candidate's pass to new bytes or treat a planned test count as a result.
+
+Follow `app/docs/NATIVE_AUDIO_IMPORT.md` and `app/docs/NATIVE_AUDIO_IMPORT_CHECKLIST.txt`. Browser rendering/interaction, native file dialogs, listening, same-device Cricket Dream 5G / Chrome A/V comparison, USB-C/Bluetooth controllers and physical NES/deck tests remain separate evidence. An unavailable Chromium launch records zero checks, not success. Alpha.5 owner A1–A5 feedback and deferred A6 remain attached to that earlier build. The full manual/PDF has not been comprehensively updated; these new documents supplement it.
+
+Continue the remaining Audio fidelity/profile and acceptance work, broader native map/collision recovery, gameplay/linker/debugger/raster/LiveLink/migration dependencies, and then integrated Hosted Worlds/wallet/deck requirements. The complete existing ledger below remains requirements history; no unrelated later area becomes complete through this bounded Audio item.
+
+## Capability change relative to alpha.7
+
+| Area | Alpha.8 checkpoint | Still open |
+| --- | --- | --- |
+| Alpha A3 canonical Audio editing | Explicit finite native score transcription into editable canonical music, with project Undo/persistence and existing compiler path | Lossless native-engine equivalence, original loops/SFX/DPCM, broader profiles and listening/device acceptance |
+| Native ROM-copy editor | Retained independent session and original-driver edits | No full-game source or universal audio recovery claim |
+| Earlier alpha.6/alpha.7 workflows | Preserved by the mandatory current gate | Their prior missing browser/device/manual acceptance remains missing |
+| Rest of roadmap | Existing implementations/drafts and unimplemented areas retain their individual states | Complete roadmap remains unfinished |
+
+---
+
+The transcription uses global tempo 150 and speed 1. Existing SFX definitions and bindings are preserved, but their playback timing can change with those global settings. Review existing SFX after import; Undo restores the previous music settings.
+
+**Download transcription evidence** saves the last successful preview/import report, including source identities, options and conversion evidence. It is a historical snapshot, not an importable project, native edit session or proof that the current workspace still matches it. Save Project As is the editable-score backup; the evidence report does not embed the full ROM or project. A new preview clears/replaces the previous report.
+
+## Preserved alpha.7 revision and complete prior history
+
+The following saved alpha.7 revision is retained verbatim. Its identities, results and then-current next-work descriptions belong to alpha.7; the current update above controls alpha.8 status. No previous evidence is relabeled as an alpha.8 pass.
+
+# NES Forge — 2.0 Alpha Development Plan
+
 **Current revision:** October 8, 2026 UTC — independent native Audio investigation.
 **Candidate:** **2.0.0-alpha.7 / native-audio-1**, schema **12**, **not promoted**.
 **Frozen HTML SHA-256:** `ca801e999fa94e5bc124637cd43d14d595fb1e8eebe5a1a4c453356d8de8ba19` (1,457,965 bytes).

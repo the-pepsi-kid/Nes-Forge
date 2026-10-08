@@ -1,0 +1,26 @@
+{
+  "candidate": "native-audio-import-1",
+  "status": "passed",
+  "release": "2.0.0-alpha.8",
+  "htmlSha256": "cbd2547b2a641760045658a16f610c0197490a8493985af4e2ac9deb897423ba",
+  "summarySha256": "f081e2f0c02bd64f128322a361e1c4ec71386a022364b6f066914be1e7801c27",
+  "passed": 1263,
+  "total": 1263,
+  "suiteCount": 58,
+  "stagingVerifiedPayloads": 2130,
+  "stagingArchiveSha256": "d7a4e046dbbbfe4ecc46accea3c435ef6d4cfea9696455812fd47591c975f32e",
+  "stagingArchive": "native-audio-import-staging.zip",
+  "startedAt": "2026-10-08T18:46:11.681Z",
+  "finishedAt": "2026-10-08T19:00:50.684Z",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "node tests/run_candidate.cjs"
+  ],
+  "unchangedCandidate": true,
+  "browserWalkthrough": "All seven runners blocked before checks by missing Chromium; zero browser checks, no visual/listening/device/hardware acceptance claimed."
+}

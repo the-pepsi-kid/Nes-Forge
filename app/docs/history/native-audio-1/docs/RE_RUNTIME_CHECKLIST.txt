@@ -1,0 +1,139 @@
+NES FORGE — INTEGRATED ROM INVESTIGATION OWNER CHECKLIST
+Candidate: 1.9.0 Alpha / re-runtime-1 / schema 12. Not promoted.
+
+These actions happen inside Forge. Each result starts NOT TESTED for this
+candidate. Prior T1–T6 passes belong to re-analysis-1a; they are not erased or
+silently reused for changed code. Use PASS, FAIL, BLOCKED or NOT TESTED.
+
+Preparation
+- Extract into a fresh folder. Open:
+  NES_Forge_1.9.0/mainline/NES_Forge_1.9.0_Gameplay_Core.html
+- Save your authoring project first; a saved JSON is sufficient.
+- Record browser/version and candidate HTML hash from build-inputs.json.
+- Pepsi fixture: tests/fixtures/re-runtime/pepsi_vending_v9e.nes
+  24,592 bytes; SHA-256:
+  8fb961353e9f626bcc62b85896550ec0108addff1fb82eaf7df7aafbf9b6462a
+- Audio fixture: examples/RE_Bridge_Room/Bridge_Room.nes
+- Use ordinary Run/Pause and controller inputs during a trace. Back/Forward,
+  batch frame navigation, CPU Trace and normal Reset clear observations.
+- New Start trace clears previous results AND memory A/B. Save/export useful
+  evidence first; start a trace before saving memory A.
+
+R1 — One loaded ROM, shared analysis identity
+Actions:
+1. Open your saved project JSON. Note the Scene and one distinctive tile.
+2. In EMULATOR, Load ROM -> pepsi_vending_v9e.nes. Run to the title, then Pause.
+3. Open RE / DISASM -> RUNTIME INVESTIGATION.
+4. Choose Use emulator ROM for analysis, then Show runtime investigation.
+Expected:
+- No second file chooser and no game reset.
+- Analysis identity matches the Pepsi filename, 24,592 bytes and hash above.
+- Runtime tracing is initially off. Static bytes/CHR remain inspectable.
+- Return to SCENE: the imported JSON project and artwork remain present.
+Record R1: ____
+
+R2 — Observe the actual background initialization
+Actions:
+1. In RUNTIME INVESTIGATION, choose Trace from reset (resets game).
+2. Return to EMULATOR, Run until the title/background appears, then Pause.
+3. Return to RE. Choose Stop trace, then Refresh results.
+4. In Graphics, audio and watched RAM writes, choose Event type -> PPU writes.
+5. Select a PPU event and click View originating code.
+Expected:
+- The explicitly labeled reset action restarts the game.
+- Executed code and PPU writes are nonempty; events show addresses/values and
+  originating CPU/file positions for this mapper-0 ROM.
+- General analysis opens the selected originating instruction from the same
+  ROM. The source instruction may construct a value; it is not necessarily
+  a pointer to a native scene table.
+- Observed PPU resources reports known bytes. Unobserved bytes remain unknown.
+- APU writes may be empty: Pepsi has no observed sound writes in the known
+  normal-play paths. No automatic collision/song/scene project appears.
+Record R2: ____
+
+R3 — Find a real gameplay-state change by comparing RAM
+Actions:
+1. Leave Pepsi paused at the title from R2.
+2. In RE choose Start trace, then Save memory A.
+3. Return to EMULATOR, Run, press and release Start once, then Pause after
+   product selection appears. Use the NES Start control (desktop Enter).
+4. Return to RE, Save memory B, Stop trace.
+5. Set RAM region -> Internal RAM; Comparison -> Changed; Compare memory.
+Expected:
+- The results include RAM $0000 changing from 0 to 1.
+- Other changed bytes may appear; timers/controller state can also change.
+- Forge presents addresses and values. It does not invent the label "stage"
+  or imply that title/selection are separate levels.
+If $0000 differs, report the actual values and the visible game screen.
+Record R3: ____
+
+R4 — Watch credits and follow the code that changes them
+Actions:
+1. With Pepsi still in product selection and paused, return to RE.
+2. Enter Watch address $0001; Your label "credits candidate"; Add watch.
+3. Choose Start trace, then Save memory A.
+4. Return to EMULATOR. Run; press and release NES A once; Pause. Use the
+   visible A button or your mapped NES A key. Do not press Start here.
+5. Return to RE. Save memory B; Stop trace; Refresh results.
+6. Compare Internal RAM / Changed. Choose Event type -> Watched RAM writes.
+7. Select the credit write and View originating code.
+Expected:
+- $0001 increases by one (normally 3 -> 4 after R3).
+- A watched write includes $0001, the new value, your label and source PC/
+  file offset. The code link goes to that ROM's originating instruction.
+- Adding a label/watch does not change game memory or the credit display.
+- Your label remains an analyst interpretation, not an automatically
+  recovered source symbol.
+Record R4: ____
+
+R5 — Prove positive audio observation on a ROM with sound
+Actions:
+1. Export any Pepsi results you want to retain before replacing its ROM.
+2. In EMULATOR load examples/RE_Bridge_Room/Bridge_Room.nes.
+3. In RE choose Use emulator ROM for analysis, then Trace from reset
+   (resets game).
+4. Run briefly in EMULATOR, then Pause. Return to RE; Stop trace;
+   Refresh results; Event type -> APU writes.
+Expected:
+- ROM identity changes. Old Pepsi snapshots/trace and watches are cleared.
+- The APU list is nonempty, with register addresses, values and source code.
+- This proves observed audio activity, not automatic recovery of a tracker
+  song. Audible output is a separate check; record whether you heard sound.
+- Bridge Room's separate editable-recovery action retains its old scope.
+Record R5: ____   Heard sound: Yes / No / Not tested
+
+R6 — Export evidence and invalidate stale observations
+Actions:
+1. Export runtime evidence and Export observed PPU resources.
+2. Save both downloads. Open as text if desired, not through Open Project.
+3. Use normal EMULATOR Reset. Return to RE and Refresh results.
+4. Return to SCENE and compare your original project.
+Expected:
+- Both JSON exports say format NESForgeREInspection, version 2, and carry
+  the current ROM hash. Evidence kind is runtime-observation; resource kind
+  is observed-ppu-resources. Resource sourceEvent links have matching PPU
+  event rows in the export.
+- Resource known masks distinguish observed bytes from unobserved placeholders.
+- Normal Reset stops trace and clears trace/snapshot results. Old A/B cannot
+  be compared as if they describe the reset game.
+- The Scene project is unchanged. No original ROM bytes were patched.
+Record R6: ____
+
+If a trace reaches its instruction/event/code-record limit, it stops and
+reports the reason. That is a bounded observation, not a failed recovery.
+Starting another trace begins a fresh interval. Full details: RE_RUNTIME.md.
+
+Still outside this build
+Automatic stage selection, health/enemy edits, breakpoints, live ROM/RAM
+patches and general native scene/collision/music reconstruction. An empty or
+partial trace cannot prove those game systems are absent. This candidate
+provides the integrated evidence tools needed to investigate them.
+
+Send back
+R1 __  R2 __  R3 __  R4 __  R5 __  R6 __
+Browser/version: ____
+First unexpected action/result: ____
+Exact status/error text and screenshot if applicable: ____
+For R3/R4 include the observed address and before/after values. Runtime
+exports are useful for diagnosis; they are not a substitute for your project
+JSON backup or evidence of editable recovery.

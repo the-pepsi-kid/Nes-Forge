@@ -1,3 +1,15 @@
+# Test policy — 2.0.0-alpha.8 Native Audio Score Import
+
+Retain every **1,191 alpha.7 case across 55 suites**, with exact per-suite counts, and add the three declared native score-import suites in the current suite manifest. No filters, skips, substituted production modules, regenerated historical oracles or stale outcome records. Actual new totals and outcomes belong to the fresh current Summary.
+
+Test independent source-backed native transcription, bounded malformed/ambiguous inputs, representability refusals, source identity, timing/pitch/envelope conversion evidence and finite-excerpt limits. Check actual canonical notes/instruments/order, append offsets, one-step Undo/Redo, save/reopen, stale project/ROM/subsong/option invalidation, cancellation and original-ROM/emulator noninterference. Require actual Forge compiler/rebuilt-ROM execution evidence for supported imported and subsequently edited music. Do not describe equal schedules or observed register values as lossless native-engine reproduction: tuning, pulse phase/retrigger and triangle controls differ. Native SFX/DPCM/gameplay events and original loop topology remain outside the import.
+
+Freeze source, docs, examples and tests before creating staging inputs. Verify every staged payload checksum, clean-extract and run the complete gate on one unchanged HTML. Record `checkpoints/native-audio-import-1-clean-extraction/Reproduction.json`. Exact normalization must reconstruct pinned alpha.7 before the preserved source chain. Final packaging validates inputs, counts, reports and identities; no provenance input may change after the run.
+
+Browser reports must identify the current HTML and either actual measured checks or an explicit blocked launch with zero checks. The current environment has no available Chromium executable; do not convert that condition into a pass. Physical keyboard/layout, audible comparison, phone A/V latency, USB-C/Bluetooth controllers and NES hardware require their own evidence. Preserve the owner's deferred A6 and earlier results on their original builds.
+
+## Preserved alpha.7 policy and complete earlier history
+
 # Test policy — 2.0.0-alpha.7 Native Audio Investigation
 
 Retain all **1,126 alpha.6 cases across 53 suites**, with identical per-suite counts, and add the native Audio suites explicitly named in the current suite manifest. No filtering, skipped cases, injected production modules or regenerated historical oracles. The fresh Summary measures current totals and records one unchanged HTML hash throughout the run.

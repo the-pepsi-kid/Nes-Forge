@@ -1,0 +1,371 @@
+{
+  "suite": "re-runtime-integration",
+  "html": "NES_Forge_2.0.0-alpha.7.html",
+  "htmlSha256": "ca801e999fa94e5bc124637cd43d14d595fb1e8eebe5a1a4c453356d8de8ba19",
+  "scope": "Independent original user ROM and Bridge Room CPU/PPU/APU execution; exact runtime trace on/off parity, RAM discovery, native PPU-write reconstruction, MMC3 physical provenance and project/history isolation. VM harness, not browser, audible-output or physical-hardware acceptance.",
+  "passed": 11,
+  "failed": 0,
+  "total": 11,
+  "metrics": {
+    "pepsiRomSha256": "8fb961353e9f626bcc62b85896550ec0108addff1fb82eaf7df7aafbf9b6462a",
+    "bridgeRomSha256": "03e4038e323931b5028298682e0ec0c464101ebf542175e25351a4c02eb334e6",
+    "Pepsi vending": {
+      "frames": 18,
+      "instructions": 173148,
+      "eventCount": 1467,
+      "framebufferSha256": "5a2ad5ce344058b3e0d32f17c1eb3a2abccb8648678bbc9b9c864031adcda9b1",
+      "pcmSamples": 14376,
+      "pcmSha256": "691520ceaee09a2599e7c49ad7f856e5ed077a8e2121dc7eac882c351cc60903"
+    },
+    "Bridge Room music and movement": {
+      "frames": 18,
+      "instructions": 171761,
+      "eventCount": 1066,
+      "framebufferSha256": "8d6cb334660920223a07e3b53d50d8fd9459729fc8655d3973219d16ae5530ce",
+      "pcmSamples": 14376,
+      "pcmSha256": "6bc73f0d1227d497899a8ab495b4d1858af8cb3a1907f4a8340bb38b0bf85d55"
+    },
+    "pepsiBoot": {
+      "programPoint": 49370,
+      "backgroundBytes": 1024,
+      "paletteBytes": 32,
+      "backgroundSha256": "b3ebe2b8a197f98bbb0a243db0bfa90b1438cf4533c91b87e70f9f5c2e267723",
+      "paletteSha256": "35fee7394c5c3885dbb909df7befb3fb7d0e900375760a1ded854c5de0477180",
+      "ppuWrites": 1348,
+      "apuWrites": 0
+    },
+    "pepsiGameplay": {
+      "modeWrite": {
+        "id": 21,
+        "pc": 55033,
+        "fileOffset": 5897,
+        "opcode": 133,
+        "sourceLength": 3,
+        "bytes": [
+          133,
+          0,
+          169
+        ],
+        "frame": 8,
+        "cycles": 266884,
+        "kind": "watch",
+        "address": 0,
+        "busAddress": 0,
+        "value": 1,
+        "before": 0,
+        "region": "ram",
+        "label": "Owner-observed mode"
+      },
+      "creditWrite": {
+        "id": 35,
+        "pc": 55065,
+        "fileOffset": 5929,
+        "opcode": 230,
+        "sourceLength": 3,
+        "bytes": [
+          230,
+          1,
+          165
+        ],
+        "frame": 12,
+        "cycles": 385814,
+        "kind": "watch",
+        "address": 1,
+        "busAddress": 1,
+        "value": 4,
+        "before": 3,
+        "region": "ram",
+        "label": "Owner-observed credits"
+      },
+      "increased": [
+        {
+          "region": "ram",
+          "address": 1,
+          "before": 3,
+          "after": 4
+        },
+        {
+          "region": "ram",
+          "address": 5,
+          "before": 10,
+          "after": 14
+        }
+      ]
+    },
+    "bridgeMusic": {
+      "apuWrites": 22,
+      "firstWrites": [
+        {
+          "id": 0,
+          "pc": 32772,
+          "fileOffset": 20,
+          "opcode": 142,
+          "sourceLength": 3,
+          "bytes": [
+            142,
+            23,
+            64
+          ],
+          "frame": 0,
+          "cycles": 6,
+          "kind": "apu",
+          "address": 16407,
+          "value": 64
+        },
+        {
+          "id": 1,
+          "pc": 32785,
+          "fileOffset": 33,
+          "opcode": 142,
+          "sourceLength": 3,
+          "bytes": [
+            142,
+            16,
+            64
+          ],
+          "frame": 0,
+          "cycles": 24,
+          "kind": "apu",
+          "address": 16400,
+          "value": 0
+        },
+        {
+          "id": 2,
+          "pc": 32788,
+          "fileOffset": 36,
+          "opcode": 142,
+          "sourceLength": 3,
+          "bytes": [
+            142,
+            21,
+            64
+          ],
+          "frame": 0,
+          "cycles": 28,
+          "kind": "apu",
+          "address": 16405,
+          "value": 0
+        },
+        {
+          "id": 1059,
+          "pc": 32912,
+          "fileOffset": 160,
+          "opcode": 141,
+          "sourceLength": 3,
+          "bytes": [
+            141,
+            21,
+            64
+          ],
+          "frame": 2,
+          "cycles": 72100,
+          "kind": "apu",
+          "address": 16405,
+          "value": 1
+        },
+        {
+          "id": 1060,
+          "pc": 32918,
+          "fileOffset": 166,
+          "opcode": 141,
+          "sourceLength": 3,
+          "bytes": [
+            141,
+            0,
+            64
+          ],
+          "frame": 2,
+          "cycles": 72108,
+          "kind": "apu",
+          "address": 16384,
+          "value": 188
+        },
+        {
+          "id": 1061,
+          "pc": 32924,
+          "fileOffset": 172,
+          "opcode": 141,
+          "sourceLength": 3,
+          "bytes": [
+            141,
+            1,
+            64
+          ],
+          "frame": 2,
+          "cycles": 72116,
+          "kind": "apu",
+          "address": 16385,
+          "value": 8
+        },
+        {
+          "id": 1062,
+          "pc": 33145,
+          "fileOffset": 393,
+          "opcode": 141,
+          "sourceLength": 3,
+          "bytes": [
+            141,
+            2,
+            64
+          ],
+          "frame": 2,
+          "cycles": 72137,
+          "kind": "apu",
+          "address": 16386,
+          "value": 171
+        },
+        {
+          "id": 1063,
+          "pc": 33154,
+          "fileOffset": 402,
+          "opcode": 141,
+          "sourceLength": 3,
+          "bytes": [
+            141,
+            3,
+            64
+          ],
+          "frame": 2,
+          "cycles": 72149,
+          "kind": "apu",
+          "address": 16387,
+          "value": 9
+        }
+      ],
+      "collisionStopX": 188
+    },
+    "mmc3": {
+      "bankedCoverage": [
+        {
+          "pc": 32768,
+          "fileOffset": 16,
+          "opcode": 169,
+          "sourceLength": 3,
+          "bytes": [
+            169,
+            48,
+            133
+          ],
+          "count": 1,
+          "firstFrame": 0,
+          "lastFrame": 0
+        },
+        {
+          "pc": 32768,
+          "fileOffset": 24592,
+          "opcode": 169,
+          "sourceLength": 3,
+          "bytes": [
+            169,
+            51,
+            133
+          ],
+          "count": 1,
+          "firstFrame": 0,
+          "lastFrame": 0
+        }
+      ],
+      "writes": [
+        {
+          "id": 0,
+          "pc": 32770,
+          "fileOffset": 18,
+          "opcode": 133,
+          "sourceLength": 3,
+          "bytes": [
+            133,
+            16,
+            76
+          ],
+          "frame": 0,
+          "cycles": 2,
+          "kind": "watch",
+          "address": 16,
+          "busAddress": 16,
+          "value": 48,
+          "before": 0,
+          "region": "ram",
+          "label": "Bank marker"
+        },
+        {
+          "id": 1,
+          "pc": 32770,
+          "fileOffset": 24594,
+          "opcode": 133,
+          "sourceLength": 3,
+          "bytes": [
+            133,
+            16,
+            76
+          ],
+          "frame": 0,
+          "cycles": 7,
+          "kind": "watch",
+          "address": 16,
+          "busAddress": 16,
+          "value": 51,
+          "before": 48,
+          "region": "ram",
+          "label": "Bank marker"
+        }
+      ]
+    }
+  },
+  "results": [
+    {
+      "name": "All prior picker candidate source bytes survive only the exact audio correction, release tag and two runtime modules",
+      "passed": true,
+      "milliseconds": 89
+    },
+    {
+      "name": "The supplied Pepsi ROM is pinned by exact bytes and runtime identity",
+      "passed": true,
+      "milliseconds": 388
+    },
+    {
+      "name": "Pepsi vending trace on/off preserves actual CPU, RAM, mapper, video, APU and PCM execution",
+      "passed": true,
+      "milliseconds": 2400
+    },
+    {
+      "name": "Bridge Room music and movement trace on/off preserves actual CPU, RAM, mapper, video, APU and PCM execution",
+      "passed": true,
+      "milliseconds": 2403
+    },
+    {
+      "name": "Pepsi boot PPU-write reconstruction matches all 1024 native background bytes and all 32 palette bytes",
+      "passed": true,
+      "milliseconds": 771
+    },
+    {
+      "name": "Pepsi Start and A inputs are discoverable as actual state and credit RAM differences with write origins",
+      "passed": true,
+      "milliseconds": 1135
+    },
+    {
+      "name": "Bridge Room produces genuine APU commands and collision-constrained movement while tracing",
+      "passed": true,
+      "milliseconds": 5951
+    },
+    {
+      "name": "MMC3 instruction provenance follows real 8 KiB bank pages at a shared CPU address",
+      "passed": true,
+      "milliseconds": 333
+    },
+    {
+      "name": "Timeline backward and retained forward restoration invalidate observations and RAM snapshot lineage",
+      "passed": true,
+      "milliseconds": 1387
+    },
+    {
+      "name": "Static inspection and runtime evidence never replace the active authored project or undo history",
+      "passed": true,
+      "milliseconds": 1000
+    },
+    {
+      "name": "Yielding frame navigation refuses RAM snapshots until a stable paused state is reached",
+      "passed": true,
+      "milliseconds": 753
+    }
+  ]
+}

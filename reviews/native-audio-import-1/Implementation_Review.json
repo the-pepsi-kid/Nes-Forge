@@ -1,0 +1,47 @@
+{
+  "format": "NESForgeImportImplementationReview",
+  "candidate": "native-audio-import-1",
+  "htmlSha256": "cbd2547b2a641760045658a16f610c0197490a8493985af4e2ac9deb897423ba",
+  "reviews": {
+    "coreContractCases": 37,
+    "uiCases": 19,
+    "independentAPUCases": 16
+  },
+  "resolvedFindings": [
+    {
+      "id": "UI-001",
+      "issue": "A tracker cleanup exception after import could leave changed data marked clean.",
+      "resolution": "Dirty notification runs independently before fallible playback cleanup; regression verifies imported data and dirty=true."
+    }
+  ],
+  "scope": "Finite NTSC native music transcription for the declared FamiTone2 profile; canonical Audio data rather than original-engine equivalence.",
+  "independentEvidence": [
+    "Two HonkeyPong subsongs: original 6502 driver compared with actual emitted Forge Audio routines for row timing, gates, pulse volume/duty and quantified nearest timer values.",
+    "Native derivative with nonconstant looping volume/arpeggio validates negative-arpeggio carry.",
+    "Native derivative validates global speed precedence across channels and loop iterations.",
+    "Ordinary tracker note edit changes rebuilt ROM and expected APU pitch.",
+    "The exact I1-I4 review project imports, saves/reopens and builds through actual registered UI handlers."
+  ],
+  "remainingEvidence": [
+    "Real browser rendering/interaction",
+    "Listening and independent emulator comparison",
+    "Physical mobile performance and keyboard",
+    "USB-C/Bluetooth controllers",
+    "NES hardware"
+  ],
+  "nextCodingDependency": {
+    "item": "A0 shared recovery-profile discovery and dispatch",
+    "reason": "Existing CHR and FamiTone2 tools currently use different method dispatch paths; unify operation/evidence declarations before cross-engine map/collision work.",
+    "boundary": "Preserve existing native decoder, transcription and CHR behavior; separate inspect/decode, native editing and canonical conversion. Discovery must not mutate project/emulator."
+  },
+  "cleanExtractionGate": {
+    "status": "passed",
+    "passed": 1263,
+    "total": 1263,
+    "failed": 0,
+    "suiteCount": 58,
+    "startedAt": "2026-10-08T18:46:11.681Z",
+    "finishedAt": "2026-10-08T19:00:50.684Z",
+    "sha256": "cbd2547b2a641760045658a16f610c0197490a8493985af4e2ac9deb897423ba"
+  }
+}

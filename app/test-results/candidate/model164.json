@@ -1,6 +1,6 @@
 {
   "suite": "model164",
-  "html": "NES_Forge_2.0.0-alpha.7.html",
+  "html": "NES_Forge_2.0.0-alpha.8.html",
   "scope": "1.6.4 complete-script model contracts, migration, mutation/history, preview timing and recorded drawing math. Mock DOM; no browser visual or native download QA.",
   "passed": 71,
   "failed": 0,
@@ -9,357 +9,357 @@
     {
       "name": "v7 model APIs and canonical project version are available",
       "passed": true,
-      "milliseconds": 543
+      "milliseconds": 494
     },
     {
       "name": "Legacy project migration supplies independent frame arrays and stable IDs",
       "passed": true,
-      "milliseconds": 641
+      "milliseconds": 528
     },
     {
       "name": "Ensure preserves authored values and existing animation/entity identities",
       "passed": true,
-      "milliseconds": 480
+      "milliseconds": 432
     },
     {
       "name": "Lookup helpers return live selected entity and explicit misses",
       "passed": true,
-      "milliseconds": 452
+      "milliseconds": 416
     },
     {
       "name": "UID generation remains unique across repeated requests",
       "passed": true,
-      "milliseconds": 466
+      "milliseconds": 422
     },
     {
       "name": "Duplicating a scene regenerates global entity IDs and preserves animation assignments",
       "passed": true,
-      "milliseconds": 884
+      "milliseconds": 817
     },
     {
       "name": "The legacy animation creation command supplies a stable new ID and normalized frame arrays",
       "passed": true,
-      "milliseconds": 704
+      "milliseconds": 683
     },
     {
       "name": "A new state retains live entity identity, resolves animation and supports undo/redo",
       "passed": true,
-      "milliseconds": 751
+      "milliseconds": 683
     },
     {
       "name": "Reassigning an existing state updates one mapping without duplicate names",
       "passed": true,
-      "milliseconds": 506
+      "milliseconds": 458
     },
     {
       "name": "Setting default state/facing updates preview resolution and undo restores binding",
       "passed": true,
-      "milliseconds": 684
+      "milliseconds": 619
     },
     {
       "name": "Removing a default mapping leaves a valid default and removing all leaves an empty binding",
       "passed": true,
-      "milliseconds": 603
+      "milliseconds": 511
     },
     {
       "name": "Missing animation references are preserved for repair and explicitly reported",
       "passed": true,
-      "milliseconds": 524
+      "milliseconds": 449
     },
     {
       "name": "Unbound entity and unknown state return visible errors instead of a silent fallback",
       "passed": true,
-      "milliseconds": 478
+      "milliseconds": 452
     },
     {
       "name": "State assignment rejects invalid state name \"Walk\" atomically",
       "passed": true,
-      "milliseconds": 507
+      "milliseconds": 468
     },
     {
       "name": "State assignment rejects invalid state name \"9walk\" atomically",
       "passed": true,
-      "milliseconds": 489
+      "milliseconds": 461
     },
     {
       "name": "State assignment rejects invalid state name \"two words\" atomically",
       "passed": true,
-      "milliseconds": 508
+      "milliseconds": 438
     },
     {
       "name": "State assignment rejects invalid state name \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" atomically",
       "passed": true,
-      "milliseconds": 494
+      "milliseconds": 435
     },
     {
       "name": "State assignment rejects invalid state name \"\" atomically",
       "passed": true,
-      "milliseconds": 480
+      "milliseconds": 426
     },
     {
       "name": "Binding edit rejects defaultState=\"unknown\" atomically",
       "passed": true,
-      "milliseconds": 496
+      "milliseconds": 422
     },
     {
       "name": "Binding edit rejects facing=\"up\" atomically",
       "passed": true,
-      "milliseconds": 521
+      "milliseconds": 430
     },
     {
       "name": "Binding edit rejects defaultState=9 atomically",
       "passed": true,
-      "milliseconds": 503
+      "milliseconds": 438
     },
     {
       "name": "Binding edit rejects unknown=\"right\" atomically",
       "passed": true,
-      "milliseconds": 516
+      "milliseconds": 512
     },
     {
       "name": "Validation rejects duplicate animation IDs",
       "passed": true,
-      "milliseconds": 496
+      "milliseconds": 577
     },
     {
       "name": "Validation rejects entity IDs duplicated across scenes",
       "passed": true,
-      "milliseconds": 488
+      "milliseconds": 468
     },
     {
       "name": "Validation rejects duplicate binding state names",
       "passed": true,
-      "milliseconds": 501
+      "milliseconds": 457
     },
     {
       "name": "Validation rejects more than sixteen binding states",
       "passed": true,
-      "milliseconds": 539
+      "milliseconds": 442
     },
     {
       "name": "Hitbox and hurtbox edits preserve independent kinds and live frame/box identity",
       "passed": true,
-      "milliseconds": 550
+      "milliseconds": 546
     },
     {
       "name": "Box add/update/remove are separate undoable edits with full geometry restoration",
       "passed": true,
-      "milliseconds": 1051
+      "milliseconds": 1066
     },
     {
       "name": "Invalid box x=-2049 is atomic",
       "passed": true,
-      "milliseconds": 481
+      "milliseconds": 472
     },
     {
       "name": "Invalid box x=2048 is atomic",
       "passed": true,
-      "milliseconds": 492
+      "milliseconds": 778
     },
     {
       "name": "Invalid box x=1.25 is atomic",
       "passed": true,
-      "milliseconds": 492
+      "milliseconds": 560
     },
     {
       "name": "Invalid box y=-2049 is atomic",
       "passed": true,
-      "milliseconds": 536
+      "milliseconds": 561
     },
     {
       "name": "Invalid box y=2048 is atomic",
       "passed": true,
-      "milliseconds": 538
+      "milliseconds": 884
     },
     {
       "name": "Invalid box w=0 is atomic",
       "passed": true,
-      "milliseconds": 526
+      "milliseconds": 718
     },
     {
       "name": "Invalid box w=2049 is atomic",
       "passed": true,
-      "milliseconds": 493
+      "milliseconds": 691
     },
     {
       "name": "Invalid box h=-1 is atomic",
       "passed": true,
-      "milliseconds": 491
+      "milliseconds": 642
     },
     {
       "name": "Invalid box h=2049 is atomic",
       "passed": true,
-      "milliseconds": 516
+      "milliseconds": 737
     },
     {
       "name": "Invalid box name=界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界 is atomic",
       "passed": true,
-      "milliseconds": 549
+      "milliseconds": 458
     },
     {
       "name": "Box geometry accepts documented signed coordinate and dimension endpoints",
       "passed": true,
-      "milliseconds": 536
+      "milliseconds": 790
     },
     {
       "name": "Adding a seventeenth box of either kind rejects without changing frame or history",
       "passed": true,
-      "milliseconds": 1561
+      "milliseconds": 1544
     },
     {
       "name": "Invalid animation/frame/kind cannot create boxes or history entries",
       "passed": true,
-      "milliseconds": 614
+      "milliseconds": 498
     },
     {
       "name": "Box IDs must be unique across hitboxes and hurtboxes in the same frame",
       "passed": true,
-      "milliseconds": 583
+      "milliseconds": 619
     },
     {
       "name": "Malformed box arrays fail validation without normalization",
       "passed": true,
-      "milliseconds": 517
+      "milliseconds": 778
     },
     {
       "name": "Non-string box IDs fail validation",
       "passed": true,
-      "milliseconds": 532
+      "milliseconds": 452
     },
     {
       "name": "Event creation, update, ordering and removal preserve ordered data with undo/redo",
       "passed": true,
-      "milliseconds": 877
+      "milliseconds": 773
     },
     {
       "name": "Documented event type attack_start is accepted and retained",
       "passed": true,
-      "milliseconds": 553
+      "milliseconds": 458
     },
     {
       "name": "Documented event type attack_end is accepted and retained",
       "passed": true,
-      "milliseconds": 613
+      "milliseconds": 454
     },
     {
       "name": "Documented event type footstep is accepted and retained",
       "passed": true,
-      "milliseconds": 605
+      "milliseconds": 456
     },
     {
       "name": "Documented event type sound is accepted and retained",
       "passed": true,
-      "milliseconds": 505
+      "milliseconds": 459
     },
     {
       "name": "Documented event type custom is accepted and retained",
       "passed": true,
-      "milliseconds": 513
+      "milliseconds": 463
     },
     {
       "name": "Invalid event type=execute is atomic",
       "passed": true,
-      "milliseconds": 533
+      "milliseconds": 477
     },
     {
       "name": "Invalid event type=null is atomic",
       "passed": true,
-      "milliseconds": 603
+      "milliseconds": 520
     },
     {
       "name": "Invalid event name=界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界 is atomic",
       "passed": true,
-      "milliseconds": 526
+      "milliseconds": 465
     },
     {
       "name": "Invalid event value=界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界 is atomic",
       "passed": true,
-      "milliseconds": 563
+      "milliseconds": 516
     },
     {
       "name": "Invalid event value=4 is atomic",
       "passed": true,
-      "milliseconds": 566
+      "milliseconds": 514
     },
     {
       "name": "UTF-8 event text accepts 255 bytes and rejects the next byte",
       "passed": true,
-      "milliseconds": 510
+      "milliseconds": 471
     },
     {
       "name": "A seventeenth frame event rejects without changing frame or history",
       "passed": true,
-      "milliseconds": 979
+      "milliseconds": 903
     },
     {
       "name": "Duplicate event IDs in one frame fail validation",
       "passed": true,
-      "milliseconds": 521
+      "milliseconds": 438
     },
     {
       "name": "Malformed event arrays fail validation",
       "passed": true,
-      "milliseconds": 479
+      "milliseconds": 433
     },
     {
       "name": "Oversized UTF-8 event identities fail validation",
       "passed": true,
-      "milliseconds": 477
+      "milliseconds": 457
     },
     {
       "name": "Duplicating an animation frame deep-copies boxes/events and regenerates their IDs",
       "passed": true,
-      "milliseconds": 592
+      "milliseconds": 507
     },
     {
       "name": "Duplicate frame undo/redo preserves the newly generated identities",
       "passed": true,
-      "milliseconds": 740
+      "milliseconds": 665
     },
     {
       "name": "Frame duration boundaries select the correct frame and local tick",
       "passed": true,
-      "milliseconds": 456
+      "milliseconds": 417
     },
     {
       "name": "Nonlooping playback ends at total duration and clamps the final frame",
       "passed": true,
-      "milliseconds": 461
+      "milliseconds": 421
     },
     {
       "name": "Frame entry includes initial tick, excludes from boundary and preserves same-frame event order",
       "passed": true,
-      "milliseconds": 514
+      "milliseconds": 431
     },
     {
       "name": "Looping event boundaries include each frame once per cycle without duplicates at wrap",
       "passed": true,
-      "milliseconds": 479
+      "milliseconds": 432
     },
     {
       "name": "Nonlooping event delivery does not emit another initial event or replay the final frame",
       "passed": true,
-      "milliseconds": 445
+      "milliseconds": 431
     },
     {
       "name": "Timing calculations do not mutate animation/event records or invoke authored event values",
       "passed": true,
-      "milliseconds": 500
+      "milliseconds": 423
     },
     {
       "name": "Origin-relative union bounds include both hit/hurt boxes only when requested",
       "passed": true,
-      "milliseconds": 531
+      "milliseconds": 484
     },
     {
       "name": "Facing left reflects legacy tile pixels and authored boxes around the same anchor",
       "passed": true,
-      "milliseconds": 473
+      "milliseconds": 432
     },
     {
       "name": "Facing reflection preserves metasprite origin, per-piece flips, palette and geometry",
       "passed": true,
-      "milliseconds": 483
+      "milliseconds": 417
     }
   ]
 }

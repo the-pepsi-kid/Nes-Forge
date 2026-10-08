@@ -1,7 +1,7 @@
 {
   "suite": "world-runtime170",
-  "html": "NES_Forge_2.0.0-alpha.7.html",
-  "htmlSha256": "ca801e999fa94e5bc124637cd43d14d595fb1e8eebe5a1a4c453356d8de8ba19",
+  "html": "NES_Forge_2.0.0-alpha.8.html",
+  "htmlSha256": "cbd2547b2a641760045658a16f610c0197490a8493985af4e2ac9deb897423ba",
   "filtered": false,
   "scope": "World configuration/compiler/ROM compatibility contracts plus actual generated 6502 execution in the bundled emulator. External original Scout authoring fixture; no JS physics substitute. Mock DOM; native browser acceptance and hardware-perfect PPU timing not implied.",
   "passed": 47,
@@ -29,232 +29,232 @@
     {
       "name": "Legacy project migration leaves World runtime disabled and startup remains empty",
       "passed": true,
-      "milliseconds": 587
+      "milliseconds": 530
     },
     {
       "name": "World runtime configuration persists through JSON, undo and redo",
       "passed": true,
-      "milliseconds": 1026
+      "milliseconds": 868
     },
     {
       "name": "Invalid World configuration fields reject atomically without growing undo history",
       "passed": true,
-      "milliseconds": 698
+      "milliseconds": 598
     },
     {
       "name": "World-only metatiles close graphics and collision dependencies without rewriting source authoring",
       "passed": true,
-      "milliseconds": 683
+      "milliseconds": 557
     },
     {
       "name": "World builds follow reachable World references independently of legacy scene inclusion",
       "passed": true,
-      "milliseconds": 1225
+      "milliseconds": 1093
     },
     {
       "name": "One World build creates one authoritative artifact and clears stale success after failure",
       "passed": true,
-      "milliseconds": 574
+      "milliseconds": 564
     },
     {
       "name": "Compiler rejects missing selected world without mutating source",
       "passed": true,
-      "milliseconds": 461
+      "milliseconds": 443
     },
     {
       "name": "Compiler rejects missing spawn without mutating source",
       "passed": true,
-      "milliseconds": 485
+      "milliseconds": 435
     },
     {
       "name": "Compiler rejects missing selected player without mutating source",
       "passed": true,
-      "milliseconds": 465
+      "milliseconds": 445
     },
     {
       "name": "Compiler rejects missing World tileset without mutating source",
       "passed": true,
-      "milliseconds": 461
+      "milliseconds": 444
     },
     {
       "name": "Compiler rejects missing World metatile without mutating source",
       "passed": true,
-      "milliseconds": 473
+      "milliseconds": 438
     },
     {
       "name": "Compiler rejects unsupported World collision without mutating source",
       "passed": true,
-      "milliseconds": 468
+      "milliseconds": 451
     },
     {
       "name": "Compiler rejects partial destination link without mutating source",
       "passed": true,
-      "milliseconds": 480
+      "milliseconds": 452
     },
     {
       "name": "Compiler rejects missing destination marker without mutating source",
       "passed": true,
-      "milliseconds": 480
+      "milliseconds": 449
     },
     {
       "name": "Compiler rejects exit as destination spawn without mutating source",
       "passed": true,
-      "milliseconds": 478
+      "milliseconds": 443
     },
     {
       "name": "Compiler rejects unreachable solid-overlapping spawn without mutating source",
       "passed": true,
-      "milliseconds": 529
+      "milliseconds": 450
     },
     {
       "name": "Compiler rejects two action markers in one cell without mutating source",
       "passed": true,
-      "milliseconds": 507
+      "milliseconds": 443
     },
     {
       "name": "Compiler rejects unaligned room without mutating source",
       "passed": true,
-      "milliseconds": 542
+      "milliseconds": 451
     },
     {
       "name": "Compiler rejects overlapping rooms without mutating source",
       "passed": true,
-      "milliseconds": 529
+      "milliseconds": 444
     },
     {
       "name": "Compiler rejects unaligned camera without mutating source",
       "passed": true,
-      "milliseconds": 541
+      "milliseconds": 445
     },
     {
       "name": "Compiler rejects overlapping cameras without mutating source",
       "passed": true,
-      "milliseconds": 508
+      "milliseconds": 450
     },
     {
       "name": "Compiler rejects custom assembly conflict without mutating source",
       "passed": true,
-      "milliseconds": 497
+      "milliseconds": 446
     },
     {
       "name": "Compiler rejects unsupported mapper without mutating source",
       "passed": true,
-      "milliseconds": 471
+      "milliseconds": 454
     },
     {
       "name": "All four authored camera modes compile their distinct screen origin and axis rules",
       "passed": true,
-      "milliseconds": 500
+      "milliseconds": 468
     },
     {
       "name": "Oversized reachable worlds fail explicitly before ROM commit",
       "passed": true,
-      "milliseconds": 477
+      "milliseconds": 449
     },
     {
       "name": "Measured screen data overflow fails below the 64-screen profile ceiling",
       "passed": true,
-      "milliseconds": 507
+      "milliseconds": 447
     },
     {
       "name": "World ROM boots at authored marker feet with selected actor and balanced 6502 stack",
       "passed": true,
-      "milliseconds": 1360
+      "milliseconds": 1197
     },
     {
       "name": "Walking crosses the 255 boundary into the adjacent World screen without byte wrap or source-room art",
       "passed": true,
-      "milliseconds": 6229
+      "milliseconds": 5226
     },
     {
       "name": "Locked camera holds its authored screen while off-camera physics advances without sprite wrapping",
       "passed": true,
-      "milliseconds": 6152
+      "milliseconds": 5128
     },
     {
       "name": "Adjacent screen wall blocks the full straddling body before its center crosses",
       "passed": true,
-      "milliseconds": 1365
+      "milliseconds": 1180
     },
     {
       "name": "World outer edges clamp a two-pixel body without wrapping to another screen or world",
       "passed": true,
-      "milliseconds": 8312
+      "milliseconds": 6752
     },
     {
       "name": "Jump crosses a screen boundary, lands on neighboring collision and requires a fresh A edge",
       "passed": true,
-      "milliseconds": 2474
+      "milliseconds": 2101
     },
     {
       "name": "Vertical traversal falls to the next screen and jumps back with correct collision and camera state",
       "passed": true,
-      "milliseconds": 2303
+      "milliseconds": 2411
     },
     {
       "name": "Opposed directions hold facing; directional movement follows authored walk frame timing",
       "passed": true,
-      "milliseconds": 2614
+      "milliseconds": 2090
     },
     {
       "name": "Facing mirrors actual hardware sprite positions and pixels around the feet origin",
       "passed": true,
-      "milliseconds": 1181
+      "milliseconds": 971
     },
     {
       "name": "Bound attack follows authored frame duration and a held B button does not retrigger",
       "passed": true,
-      "milliseconds": 2403
+      "milliseconds": 2155
     },
     {
       "name": "Up edge resolves exact destination and held Up cannot bounce through a reciprocal exit",
       "passed": true,
-      "milliseconds": 9413
+      "milliseconds": 8139
     },
     {
       "name": "Up uses the lower body pixel in the marker cell above a full-metatile floor",
       "passed": true,
-      "milliseconds": 975
+      "milliseconds": 876
     },
     {
       "name": "Start resets World, screen, position and motion to configured initial spawn",
       "passed": true,
-      "milliseconds": 9106
+      "milliseconds": 7766
     },
     {
       "name": "Ordinary World updates stay within an NTSC frame across maximum-physics body alignments",
       "passed": true,
-      "milliseconds": 1455
+      "milliseconds": 1291
     },
     {
       "name": "Maximum body corner queries and 24 visible pieces complete within one NTSC frame",
       "passed": true,
-      "milliseconds": 906
+      "milliseconds": 798
     },
     {
       "name": "Dense marker lookup is bounded with maximum physics and guards the zero-Y table boundary",
       "passed": true,
-      "milliseconds": 943
+      "milliseconds": 851
     },
     {
       "name": "Runtime PPU writes occur during forced blank or vblank, with no missed opcodes across transitions",
       "passed": true,
-      "milliseconds": 9188
+      "milliseconds": 8452
     },
     {
       "name": "World layout4 ROM preserves full source through inspect and Open Forge ROM",
       "passed": true,
-      "milliseconds": 1503
+      "milliseconds": 1390
     },
     {
       "name": "World ROM payload, header, code, CHR, version and truncation errors reject before project/runtime mutation",
       "passed": true,
-      "milliseconds": 1325
+      "milliseconds": 1222
     },
     {
       "name": "Actual frozen 1.6.7 rejects schema10 and layout4 atomically",
       "passed": true,
-      "milliseconds": 751
+      "milliseconds": 671
     }
   ]
 }

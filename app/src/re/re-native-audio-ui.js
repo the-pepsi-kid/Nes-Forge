@@ -111,6 +111,13 @@ async function download(kind){
  }catch(error){message(error.message||String(error),true);return false;}
 }
 function getState(){return Object.freeze({busy,status:resultStatus,hasSession:!!current(),sourceSha256:original?.sha256||null,currentSha256:current()?.evidence.source.sha256||null,historyLength:history.length,cursor,sourceCurrent:matchesSource(),songIndex,channelIndex,eventIndex,page});}
+// Detached source for the separate, explicit tracker-transcription preview.
+// The consumer must revalidate this token before changing the editor project.
+function getImportSource(){
+ if(busy)throw Error('Wait for the native operation to finish.');
+ const item=requireSession();
+ return Object.freeze({bytes:item.bytes.slice(),sourceSha256:original.sha256,currentSha256:item.sha256,token:[generation,editRevision,cursor,songIndex,sourceGeneration].join(':'),songIndex,name:original.name});
+}
 function mount(){
  if(c)return c.panel;const host=document.getElementById('reAnalysisWorkspace');if(!host)return null;
  const style=make('style');style.textContent='#reNativeAudioPanel{border-top:1px solid #58627e;padding-top:10px;margin-top:14px}#reNativeAudioPanel button,#reNativeAudioPanel input,#reNativeAudioPanel select{min-height:44px;font:inherit;max-width:100%;box-sizing:border-box}#reNativeAudioPanel [hidden]{display:none!important}#reNativeAudioPanel pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto}#reNativeAudioPanel label{min-width:0}#reNativeAudioPanel .native-audio-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}#reNativeAudioPanel select,#reNativeAudioPanel input{width:100%}';document.head.appendChild(style);
@@ -132,5 +139,5 @@ function mount(){
  song.addEventListener('change',()=>{songIndex=Number(song.value);channelIndex=page=0;eventIndex=-1;editRevision++;renderSong();});channel.addEventListener('change',()=>{channelIndex=Number(channel.value);page=0;eventIndex=-1;editRevision++;renderChannel();});command.addEventListener('change',()=>{editRevision++;selectEvent(command.value);});for(const el of [c.note,c.instrument])el.addEventListener('input',()=>{editRevision++;});
  for(const type of ['keydown','keyup'])panel.addEventListener(type,event=>event.stopPropagation?.());host.appendChild(panel);enable();message('Open a ROM for general analysis, then choose Analyze current ROM.');return panel;
 }
-services.RENativeAudioUI=Object.freeze({mount,analyze,applyEdit,undo:()=>moveHistory(-1),redo:()=>moveHistory(1),downloadRom:()=>download('rom'),downloadReport:()=>download('report'),getState});mount();
+services.RENativeAudioUI=Object.freeze({mount,analyze,applyEdit,undo:()=>moveHistory(-1),redo:()=>moveHistory(1),downloadRom:()=>download('rom'),downloadReport:()=>download('report'),getState,getImportSource});mount();
 })();

@@ -1,0 +1,62 @@
+{
+  "format": "NESForgeIndependentUITransactionReview",
+  "version": 1,
+  "candidate": "native-audio-import-1",
+  "reviewedAt": "2026-10-08T18:44:08.079399+00:00",
+  "application": {
+    "path": "app/mainline/NES_Forge_2.0.0-alpha.8.html",
+    "sha256": "cbd2547b2a641760045658a16f610c0197490a8493985af4e2ac9deb897423ba",
+    "bytes": 1489496,
+    "matchesManifestConcatenation": true
+  },
+  "reviewer": "native_import_safety_review",
+  "scope": [
+    "full canonical project serialization and lifecycle epoch guards",
+    "native detached byte-copy source identity and selection revisions",
+    "preview/cancel/import transaction and one Undo",
+    "normalization preservation and canonical index rebasing",
+    "save/reload preservation",
+    "post-commit dirty state under tracker cleanup failure",
+    "bounded preview data and editable input ownership",
+    "historical evidence export and protected Save As outcomes/races"
+  ],
+  "verification": {
+    "independentSuite": {
+      "name": "re-native-audio-import-ui",
+      "passed": 18,
+      "total": 18,
+      "failed": 0,
+      "execution": "Read-only in-memory concatenation of the application source manifest through the existing full-application harness; no source or test edits by reviewer."
+    },
+    "additionalFaultInjection": {
+      "method": "Set Forge15.dirty=false and make aud_stop throw after a ready preview, then confirm import.",
+      "beforeFix": {
+        "patternsAfter": 8,
+        "undoEntries": 1,
+        "dirty": false
+      },
+      "afterFix": {
+        "patternsAfter": 8,
+        "undoEntries": 1,
+        "dirty": true,
+        "warning": "tracker playback cleanup: Audio cleanup unavailable"
+      }
+    },
+    "actualBundleSuite": "UI owner/root reported 18/18 on the actual bundle; independent review verified the current actual bundle byte-for-byte against manifest concatenation, but did not independently rerun a second physical-file suite."
+  },
+  "findings": [
+    {
+      "id": "UI-001",
+      "status": "resolved",
+      "severity": "medium",
+      "summary": "Playback cleanup failure skipped dirty notification after canonical data committed.",
+      "resolution": "Notification executes independently before isolated fallible tracker cleanup and presentation; notification failure also sets dirty. Regression added by UI owner."
+    }
+  ],
+  "conclusion": "No remaining confirmed transaction, source-identity, normalization, history, save, resource-bound, or evidence-export blocker identified in this review.",
+  "limitations": [
+    "Harness checks do not establish browser layout, physical mobile keyboard behavior, audio fidelity, controller behavior, or hardware acceptance.",
+    "Historical evidence is explicitly labeled and does not claim current-project identity after later edits or Undo.",
+    "This receipt reviews the implemented bounded import feature, not completion of the overall roadmap."
+  ]
+}
