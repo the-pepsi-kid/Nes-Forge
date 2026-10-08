@@ -1,0 +1,78 @@
+NES FORGE — ALPHA.7 NATIVE AUDIO PROGRESS
+October 8, 2026 UTC | 2.0.0-alpha.7 / native-audio-1 | schema 12
+
+This advances the next Audio item under full-roadmap authorization and the
+owner's instruction to proceed one item at a time. It is useful partial Alpha
+A3 work. The complete roadmap is unfinished, and this candidate is not promoted.
+
+MEASURED VERIFICATION RECORD
+HTML SHA-256: ca801e999fa94e5bc124637cd43d14d595fb1e8eebe5a1a4c453356d8de8ba19
+HTML size: 1,457,965 bytes.
+Final candidate ZIP: NES_Forge_2.0.0-alpha.7_Native_Audio_Investigation_Candidate.zip
+ZIP SHA-256: 80f262895881229a681e0e3528578086a9c09ee1494f26e71dc17ea488ef41b3
+ZIP size: 29,148,136 bytes; 1,815 files / 1,814 verified payload hashes.
+Clean gate interval: 2026-10-08T06:04:27.617Z to 2026-10-08T06:20:29.113Z.
+The complete fresh clean-extraction gate passed 1191/1191 cases across 55 suites,
+with zero failures and unchanged candidate bytes. All 1126 alpha.6 cases in 53
+suites remain included; 52 native profile/runtime cases and 13 native UI cases
+are new. All six browser runners were blocked with zero checks run.
+
+A bounded logical comparison ran 180 natural frames for each ROM, observing
+2,462 APU writes each. The edited ROM changes one source byte and keeps the
+native driver intact. Nineteen Pulse 1 timer-low writes changed as expected
+(timer 569 to 537), at the same frames. Every other APU value/frame in that
+tested window was identical. Edited control ROM SHA-256:
+4f47f0c0192490d18f0e17a502f4f9abcdae5c5f7c52d468d33298c6e7d3db33
+This is executable/register evidence, not listening, whole-game compatibility,
+phone performance or physical hardware acceptance.
+
+WHAT THIS SLICE DOES
+- Recognizes one linked FamiTone2 v1.11 profile from validated instruction/data
+  structure and mapped pointers, without a filename or whole-ROM hash allowlist.
+- Decodes bounded native music structure, commands, referenced instruments and
+  envelopes, timing/timer evidence and statically established SFX data.
+- Edits supported one-byte note/cut and existing-instrument commands on an
+  isolated same-layout ROM copy. Native Undo/Redo and ROM/evidence exports keep
+  the original source intact and report shared byte uses.
+- Leaves the active Forge project and loaded emulator unchanged. Playback of
+  an exported copy is an explicit, separate load in an emulator.
+
+WHAT IT DOES NOT DO
+Canonical AUDIO tracker import is unimplemented. These are native-driver data
+and native ROM edits, not Forge patterns or full editable project recovery.
+Native session history is not saved by Save Project As. Export the ROM/evidence
+before starting another native analysis or closing the page.
+
+This profile does not cover every FamiTone build, other audio drivers, banked
+mappers, control-flow/stream-size changes, DPCM recovery/edits, SFX byte editing
+or complete dynamic SFX inventory. Unknown or ambiguous inputs remain
+inspectable with explicit limits.
+
+INDEPENDENT INPUT
+Use examples/RE_Native_Audio/HonkeyPong-reproduced.nes.
+ROM SHA-256:
+cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b
+
+This is the existing MIT-licensed HonkeyPong game with retained source/license
+and reproducible input provenance, using the public-domain FamiTone driver.
+It supplies independent native music/SFX evidence. Its existence alone does not
+prove every driver variant, canonical conversion or audible fidelity.
+
+REVIEW AND NEXT AUDIO STEP
+Follow NES_Forge_Alpha7_Review_Checklist.txt for analysis, native command edit,
+Undo/Redo, export and independent-emulator listening. Finish the outstanding
+Audio workshop/interchange listening and phone checks as well.
+
+Then continue the same item with a faithful canonical AUDIO conversion subset,
+explicit native timing/envelope/SFX refusals, ordinary project persistence,
+edit/rebuild proof and human listening. The earlier alpha.6 workflows remain
+available; they do not close their unfinished manual or device acceptance.
+
+Browser rendering/native pickers, speaker quality, Cricket Dream 5G / Chrome
+latency, USB-C/Bluetooth controllers, physical NES behavior and a complete
+alpha.7 manual/PDF update require separate evidence. Later gameplay, linker,
+raster/LiveLink, migration, integrated Hosted Worlds/wallet and deck work remains
+tracked in the preserved full roadmap.
+
+Source branch: implementation/native-audio-2026-10-08
+Preserved alpha.6 parent commit: bcd97d740faaf206ec1e6265c5719d18e64e4ff7

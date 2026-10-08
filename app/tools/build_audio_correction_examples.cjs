@@ -28,5 +28,5 @@ for(const [name,p,expected] of [['Dense_128',dense,'128 authored rows loop; B tr
  fs.writeFileSync(project,JSON.stringify(saved,null,2)+'\n');fs.writeFileSync(rom,Buffer.from(artifact.rom));
  examples.push({name,expected,backend:artifact.backend,project:path.relative(root,project),projectSha256:sha(fs.readFileSync(project)),rom:path.relative(root,rom),romSha256:sha(fs.readFileSync(rom)),romBytes:artifact.rom.length});
 }
-const report={release:manifest.release,candidate:'roadmap-1',html:manifest.output,htmlSha256:sha(fs.readFileSync(html)),scope:'Reproducibly compiled review examples; no browser/speaker/device acceptance claimed.',examples};
+const report={release:manifest.release,candidate:'native-audio-1',html:manifest.output,htmlSha256:sha(fs.readFileSync(html)),scope:'Reproducibly compiled review examples; no browser/speaker/device acceptance claimed.',examples};
 fs.writeFileSync(path.join(out,'Manifest.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));

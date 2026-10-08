@@ -1,30 +1,30 @@
 {
   "format": "NESForgeCandidateHandoff",
   "version": 1,
-  "release": "2.0.0-alpha.6",
-  "candidate": "roadmap-1",
+  "release": "2.0.0-alpha.7",
+  "candidate": "native-audio-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/roadmap-2026-10-08",
-  "html": "mainline/NES_Forge_2.0.0-alpha.6.html",
-  "htmlSha256": "ea16ded043216063572f5ba708e4efeea2f1f84d6a594b0393a8a5e1711783f9",
-  "archive": "NES_Forge_2.0.0-alpha.6_Roadmap_Workbench_Candidate.zip",
-  "archiveSha256": "9ca9df396e5b4b35254e29566f9976cb95b095f28a6c6937370c0fb104724d37",
-  "payloadChecksums": 1601,
-  "packageFiles": 1602,
+  "branch": "implementation/native-audio-2026-10-08",
+  "html": "mainline/NES_Forge_2.0.0-alpha.7.html",
+  "htmlSha256": "ca801e999fa94e5bc124637cd43d14d595fb1e8eebe5a1a4c453356d8de8ba19",
+  "archive": "NES_Forge_2.0.0-alpha.7_Native_Audio_Investigation_Candidate.zip",
+  "archiveSha256": "80f262895881229a681e0e3528578086a9c09ee1494f26e71dc17ea488ef41b3",
+  "payloadChecksums": 1814,
+  "packageFiles": 1815,
   "automatedResult": {
     "status": "passed",
-    "passed": 1126,
+    "passed": 1191,
     "failed": 0,
-    "total": 1126,
-    "suiteCount": 53,
-    "startedAt": "2026-10-08T05:18:37.404Z",
-    "finishedAt": "2026-10-08T05:33:53.530Z"
+    "total": 1191,
+    "suiteCount": 55,
+    "startedAt": "2026-10-08T06:04:27.617Z",
+    "finishedAt": "2026-10-08T06:20:29.113Z"
   },
-  "retainedCases": 990,
-  "retainedSuites": 45,
+  "retainedCases": 1126,
+  "retainedSuites": 53,
   "automatedSummary": "app/test-results/candidate/Summary.json",
-  "cleanExtractionProof": "app/checkpoints/roadmap-1-clean-extraction/Reproduction.json",
+  "cleanExtractionProof": "app/checkpoints/native-audio-1-clean-extraction/Reproduction.json",
   "browserEvidence": [
     {
       "name": "browser-mobile",
@@ -50,14 +50,29 @@
       "name": "browser-roadmap",
       "status": "blocked",
       "checks": 0
+    },
+    {
+      "name": "browser-native-audio",
+      "status": "blocked",
+      "checks": 0
     }
   ],
-  "ownerAcceptance": "pending for alpha.6; alpha.5 A1\u2013A5 owner reported passed and A6 deferred",
-  "physicalPhoneKeyboard": "alpha.4 basic entry owner-reported passed; alpha.6 untested",
+  "nativeAudio": {
+    "profile": "famitone2-native-nrom-1",
+    "mode": "native evidence and same-layout command-byte edits on an isolated ROM copy",
+    "canonicalAudioImport": false,
+    "universalEngineRecovery": false,
+    "sourceROM": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+    "editedROM": "4f47f0c0192490d18f0e17a502f4f9abcdae5c5f7c52d468d33298c6e7d3db33",
+    "apuComparison": "180 natural frames each; one ROM-byte edit, 19 pulse timer-low changes and otherwise identical frame/value write sequences",
+    "listening": "pending"
+  },
+  "ownerAcceptance": "pending for alpha.7; alpha.5 A1\u2013A5 owner reported passed and A6 deferred",
+  "physicalPhoneKeyboard": "alpha.4 basic entry owner-reported passed; alpha.7 native fields untested on phone",
   "mobilePerformance": "pending same-device comparison",
   "hardwareControllers": "not physically tested",
   "promotion": "not promoted",
-  "roadmap": "in progress; full roadmap is not implemented",
-  "parentCommit": "9cc5171449b112078ac911b8062bde2aea6b16d0",
+  "roadmap": "in progress; complete roadmap is not implemented",
+  "parentCommit": "bcd97d740faaf206ec1e6265c5719d18e64e4ff7",
   "license": "UNDECIDED"
 }

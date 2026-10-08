@@ -1,0 +1,110 @@
+NES FORGE ALPHA.7 — NATIVE AUDIO REVIEW CHECKLIST
+October 8, 2026 UTC | 2.0.0-alpha.7 / native-audio-1 | schema 12
+HTML: mainline/NES_Forge_2.0.0-alpha.7.html
+HTML SHA-256: ca801e999fa94e5bc124637cd43d14d595fb1e8eebe5a1a4c453356d8de8ba19
+Full gate: 1191/1191 cases, 55 suites, zero failures, fresh clean extraction.
+Retained alpha.6: all 1126 cases / 53 suites; new native profile/runtime 52
+and native UI 13 cases. All six browser runners blocked with zero checks.
+Automated results do not establish browser, listening, phone or hardware passes.
+Candidate ZIP: NES_Forge_2.0.0-alpha.7_Native_Audio_Investigation_Candidate.zip
+ZIP SHA-256: 80f262895881229a681e0e3528578086a9c09ee1494f26e71dc17ea488ef41b3
+Archive: 29,148,136 bytes; 1,815 files / 1,814 verified payload hashes.
+
+This is partial Alpha A3 native Audio investigation. The full roadmap remains
+unfinished and this candidate is not promoted. Review Audio one item at a time.
+Read docs/NATIVE_AUDIO_INVESTIGATION.md for the exact native profile and limits.
+
+Mark each check PASS, FAIL or NOT TESTED. Record OS/browser/version, input hash,
+expected/actual result and a screenshot or exported output. Save your ordinary
+project before reviewing. Native ROM edits are saved separately from that project.
+
+N1. OPEN AND ANALYZE THE INDEPENDENT INPUT
+[ ] RE / DISASM → General ROM Analysis: choose
+    examples/RE_Native_Audio/HonkeyPong-reproduced.nes → Open for analysis.
+    In the central workspace, Native audio · FamiTone2 profile → Analyze
+    current ROM. Loading a ROM in EMULATOR alone does not run this analysis.
+[ ] Expect Decoded, one linked FamiTone2 v1.11 variant, two header subsongs,
+    referenced instruments and only statically established SFX IDs. Expand
+    Profile limits and diagnostics. Original source SHA-256 must be:
+    cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b
+    Expect the active project, tracker, project Undo and emulator to stay as
+    they were. No canonical AUDIO patterns should appear from this operation.
+
+N2. INSPECT NATIVE EVIDENCE
+[ ] Choose Native subsong, Channel and Editable native command. Read its
+    logical row, CPU address, physical offset and current byte. Use command
+    paging when needed. Inspect Referenced instrument evidence and Known
+    SFX evidence · partial inventory.
+    Expect native timing and explicit partial/unknown information. Logical
+    rows are not fixed video frames; native codes are not MIDI note numbers.
+    No complete dynamic SFX inventory, decoded game scenes or collision is
+    promised. DPCM recovery and SFX byte editing are unavailable here.
+
+N3. EDIT, UNDO AND REDO ON THE NATIVE COPY
+[ ] Select a Pulse 1 note command. Enter a different supported whole-number
+    native code → Apply native edit. Pulse/triangle allow 0–60, noise 0–16;
+    zero cuts. Prefer changing a nonzero code by one within its valid range.
+    Expect current-copy SHA-256 to change, original-source SHA-256 to stay
+    fixed, and the result to identify edited bytes and shared song/channel
+    uses. A shared command changes all reported uses. Data layout stays fixed.
+[ ] Undo native edit: expect the previous copy/hash. Redo native edit: expect
+    the changed copy/hash. Edit after Undo: expect the old redo branch to be
+    replaced. This history is separate from ordinary project Undo.
+    Existing instrument commands can select only already decoded instruments.
+    HonkeyPong has one compacted instrument, so choosing it again is a no-op.
+
+N4. EXPORT, REOPEN AND LISTEN
+[ ] Download native ROM copy and Download native evidence. Finish Save As.
+    Expect the evidence to list actual net changed bytes, unchanged original
+    identity and a current hash matching the downloaded ROM. Cancel one save:
+    expect the session to remain. A busy Save As message is not a saved export.
+[ ] Explicitly load original and edited ROMs in EMULATOR or an independent
+    emulator and compare the affected passage. Expect the supported edit to
+    affect that native music command while the native engine remains present.
+    Record audible differences, failures, music/SFX behavior and phone lag.
+    Do not substitute logical APU tests for this listening check.
+[ ] To continue editing, open the exported ROM in General ROM Analysis and
+    analyze it again. It becomes a new session source. Expect its changed
+    command to be decoded. Export before another analysis or closing the page:
+    Save Project As does NOT preserve native ROM edits/history. Evidence JSON
+    is a report, not an importable project or restorable native edit session.
+
+N5. INVALID, UNKNOWN AND STALE INPUTS
+[ ] On a tonal note command, try 61, a negative number or non-integer text.
+    Expect refusal and the current valid copy/hash unchanged. Unsupported
+    instrument IDs, DPCM and control-flow edits must not be applied.
+[ ] After exporting work, select a different file in General ROM Analysis and
+    try to edit/export the old native session. Expect a stale-source refusal;
+    explicitly analyze the intended source again to start a new session.
+[ ] Analyze Pepsi or another input outside this specific native profile.
+    Expect Unknown or an appropriate diagnostic, with general inspection
+    available. Ambiguous/invalid structures must not become an editable copy
+    automatically. A refusal is not a claim that the ROM contains no audio.
+
+N6. INPUT OWNERSHIP AND RETAINED AUDIO WORKFLOW
+[ ] On mobile, focus Native note code and enter a value with the normal
+    keyboard. Check normal text selection/deletion and Apply. On desktop,
+    check keyboard access and focus. Emulator controls must not consume input
+    while a native field is focused; controller confirmation needs hardware.
+[ ] Repeat the outstanding Audio workshop/interchange and A6 listening checks
+    using the ordinary AUDIO editor: author/import/edit/export/reimport, native
+    project save/reopen, Compile Audio Runtime and independent-emulator play.
+    These are distinct from native ROM editing. See docs/ROADMAP_REVIEW_GUIDE.md
+    and docs/AUDIO_INTERCHANGE.md. The six earlier alpha.6 workflows remain
+    available but their changed-build acceptance must be recorded separately.
+
+RETURN RECORD
+Check: __________  Result: PASS / FAIL / NOT TESTED
+Application SHA-256: ____________________________________________________
+Device / OS / browser / version: _________________________________________
+Input filename / SHA-256: _______________________________________________
+Expected / actual / steps: ______________________________________________
+Evidence file or recording: _____________________________________________
+
+STILL OPEN
+Canonical AUDIO import/conversion and ordinary project persistence of decoded
+native songs; additional driver variants; human sound fidelity; real browser
+rendering/downloads; Cricket Dream 5G / Chrome A/V comparison; USB-C/Bluetooth
+controllers; physical NES testing; complete alpha.7 manual/PDF revision.
+Later gameplay, linker/raster/LiveLink, migration, integrated Hosted Worlds,
+wallet/mint/loss settlement and physical deck milestones remain unfinished.

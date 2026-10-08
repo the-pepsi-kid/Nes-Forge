@@ -1,0 +1,49 @@
+PASS External example preserves Scout bindings and uses metatiles absent from the source scene map
+PASS Legacy project migration leaves World runtime disabled and startup remains empty
+PASS World runtime configuration persists through JSON, undo and redo
+PASS Invalid World configuration fields reject atomically without growing undo history
+PASS World-only metatiles close graphics and collision dependencies without rewriting source authoring
+PASS World builds follow reachable World references independently of legacy scene inclusion
+PASS One World build creates one authoritative artifact and clears stale success after failure
+PASS Compiler rejects missing selected world without mutating source
+PASS Compiler rejects missing spawn without mutating source
+PASS Compiler rejects missing selected player without mutating source
+PASS Compiler rejects missing World tileset without mutating source
+PASS Compiler rejects missing World metatile without mutating source
+PASS Compiler rejects unsupported World collision without mutating source
+PASS Compiler rejects partial destination link without mutating source
+PASS Compiler rejects missing destination marker without mutating source
+PASS Compiler rejects exit as destination spawn without mutating source
+PASS Compiler rejects unreachable solid-overlapping spawn without mutating source
+PASS Compiler rejects two action markers in one cell without mutating source
+PASS Compiler rejects unaligned room without mutating source
+PASS Compiler rejects overlapping rooms without mutating source
+PASS Compiler rejects unaligned camera without mutating source
+PASS Compiler rejects overlapping cameras without mutating source
+PASS Compiler rejects custom assembly conflict without mutating source
+PASS Compiler rejects unsupported mapper without mutating source
+PASS All four authored camera modes compile their distinct screen origin and axis rules
+PASS Oversized reachable worlds fail explicitly before ROM commit
+PASS Measured screen data overflow fails below the 64-screen profile ceiling
+PASS World ROM boots at authored marker feet with selected actor and balanced 6502 stack
+PASS Walking crosses the 255 boundary into the adjacent World screen without byte wrap or source-room art
+PASS Locked camera holds its authored screen while off-camera physics advances without sprite wrapping
+PASS Adjacent screen wall blocks the full straddling body before its center crosses
+PASS World outer edges clamp a two-pixel body without wrapping to another screen or world
+PASS Jump crosses a screen boundary, lands on neighboring collision and requires a fresh A edge
+PASS Vertical traversal falls to the next screen and jumps back with correct collision and camera state
+PASS Opposed directions hold facing; directional movement follows authored walk frame timing
+PASS Facing mirrors actual hardware sprite positions and pixels around the feet origin
+PASS Bound attack follows authored frame duration and a held B button does not retrigger
+PASS Up edge resolves exact destination and held Up cannot bounce through a reciprocal exit
+PASS Up uses the lower body pixel in the marker cell above a full-metatile floor
+PASS Start resets World, screen, position and motion to configured initial spawn
+PASS Ordinary World updates stay within an NTSC frame across maximum-physics body alignments
+PASS Maximum body corner queries and 24 visible pieces complete within one NTSC frame
+PASS Dense marker lookup is bounded with maximum physics and guards the zero-Y table boundary
+PASS Runtime PPU writes occur during forced blank or vblank, with no missed opcodes across transitions
+PASS World layout4 ROM preserves full source through inspect and Open Forge ROM
+PASS World ROM payload, header, code, CHR, version and truncation errors reject before project/runtime mutation
+PASS Actual frozen 1.6.7 rejects schema10 and layout4 atomically
+
+47/47 passed

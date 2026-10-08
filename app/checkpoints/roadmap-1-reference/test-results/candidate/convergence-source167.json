@@ -1,0 +1,24 @@
+{
+  "suite": "convergence-source167",
+  "scope": "Release reproduction, fail-closed bundling and external fixture provenance.",
+  "passed": 4,
+  "total": 4,
+  "results": [
+    {
+      "name": "The supplied manifest and source hashes reproduce the exact tested standalone HTML",
+      "passed": true
+    },
+    {
+      "name": "Bundling rejects missing source without replacing an existing release",
+      "passed": true
+    },
+    {
+      "name": "Bundling rejects duplicate source without replacing an existing release",
+      "passed": true
+    },
+    {
+      "name": "The extracted Scout fixture matches the frozen starter and is absent from production sources",
+      "passed": true
+    }
+  ]
+}

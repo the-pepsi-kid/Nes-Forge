@@ -1,5 +1,68 @@
 # NES Forge — Authoritative Roadmap
 
+**Current revision:** October 8, 2026 UTC — independent native Audio investigation.
+**Candidate:** **2.0.0-alpha.7 / native-audio-1**, schema **12**, **not promoted**.
+**Frozen HTML SHA-256:** `ca801e999fa94e5bc124637cd43d14d595fb1e8eebe5a1a4c453356d8de8ba19` (1,457,965 bytes).
+**Measured full gate:** **1191/1191 cases, 55 suites, zero failures.**
+**Browser results:** **six blocked runners, zero browser checks run.**
+**Final candidate ZIP:** `NES_Forge_2.0.0-alpha.7_Native_Audio_Investigation_Candidate.zip`; SHA-256 `80f262895881229a681e0e3528578086a9c09ee1494f26e71dc17ea488ef41b3`; 29,148,136 bytes; 1,815 files / 1,814 verified payload hashes.
+**Clean gate interval:** October 8, 2026 UTC, `06:04:27.617Z`–`06:20:29.113Z`.
+
+## Implementation authority and position
+
+The owner authorized the complete roadmap and subsequently directed implementation **one item at a time**. That authority continues. This candidate stays within the next native Audio item; the whole roadmap remains unfinished. The preserved alpha.6 candidate, its measured results and its six earlier workflows are not retroactively changed by this work. Release promotion, hardware acceptance, external publication or a real-value launch are not implied.
+
+Audio interchange/workshop and deferred A6 listening remain open acceptance work. The separate independent HonkeyPong/FamiTone2 input checkpoint has now supplied a source-backed driver profile for a bounded native investigation implementation. The scope is useful **partial Alpha A3**, not completion of general audio recovery or faithful canonical conversion.
+
+## Current native profile and editing boundary
+
+The candidate adds one linked **FamiTone2 v1.11 profile** for statically mapped iNES NROM with 16/32 KiB PRG, CHR RAM or one 8 KiB CHR ROM bank, and an optional trainer (41,488-byte maximum). Recognition validates instruction/data structure and pointer mapping; source SHA-256 is evidence identity, not a game allowlist. Renamed and appropriately relocated supported inputs must remain supported, while unmatched or ambiguous structures remain explicit outcomes with general inspection available.
+
+The implementation decodes bounded native music headers and streams, referenced instruments/envelopes, source ranges and the statically established subset of SFX IDs/streams. A known SFX subset is not an assertion of the engine's complete dynamically selected inventory. Native timer codes, accumulator timing, frame envelopes, shared byte uses and conversion limits remain visible evidence.
+
+The editable result is an **isolated copy of the original ROM**. Supported one-byte native music note/cut and existing-instrument commands can be changed without relocating data. Each edit is redecoded, supports native-session Undo/Redo, and can be exported as a native ROM copy with a source/changes/evidence report. This is not reconstruction or recompilation of the game's entire source. It is not an external source-workspace build or an automatic emulator change. Starting another native analysis clears the native edit session, so export first.
+
+**Canonical AUDIO import is unimplemented.** Native analysis does not create Forge tracker patterns, replace the active project or modify the loaded emulator. Native ROM exports are the durable edited artifact; ordinary Save Project As does not save this isolated edit history, and an evidence report is not an importable Forge project. DPCM recovery/edits, SFX byte editing, native control-flow/stream-length changes, arbitrary driver variants and automatic game-wide scene/collision recovery are outside this profile.
+
+## Independent source input
+
+The independent control is the MIT-licensed third-party **HonkeyPong**, upstream commit `f9ab7ad450ffebabec15623aa811a7564f079168`, with the retained public-domain FamiTone driver notice and source-backed reproduction record. The 24,592-byte mapper 0 ROM SHA-256 is `cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b`.
+
+Its upstream game, driver and score remain the reference. Separately identified host-converter compatibility changes belong to the reproduced-input checkpoint. Original-ROM music/SFX calls and logical APU observations established this input before the decoder. Recognition must not depend on this filename, whole-ROM hash or fixed code/data addresses.
+
+## Verification and manual acceptance
+
+The complete fresh clean-extraction gate passed **1191/1191 cases across 55 suites**, with **zero failures**, for the unchanged frozen HTML above. It retains **1126/1126 alpha.6 cases across all 53 prior suites** and adds **52 native profile/runtime cases plus 13 native UI cases**. Focused development runs are not used as a substitute for this complete result.
+
+All **six browser runners were blocked before any checks ran**: mobile play, general RE analysis, RE runtime, Audio adaptive UI, the retained roadmap workflows and native Audio. These are six explicit blocked records, not browser passes. The full gate, source provenance and browser records belong to this candidate's packaged evidence.
+
+The logical native-ROM comparison exercised **180 natural gameplay/title frames per ROM**, with **2,462 APU writes each**. A supported native music edit changed **one ROM byte** while keeping the driver intact. **Nineteen Pulse 1 timer-low writes changed as expected (timer 569 → 537), at the same frames; every other APU value and frame in the tested window stayed identical.** The modified control ROM SHA-256 is `4f47f0c0192490d18f0e17a502f4f9abcdae5c5f7c52d468d33298c6e7d3db33`. This is bounded executable/register evidence; it does not establish listening quality, every in-game path, physical hardware behavior or canonical tracker conversion.
+
+The source branch is `implementation/native-audio-2026-10-08`, based on preserved alpha.6 commit `bcd97d740faaf206ec1e6265c5719d18e64e4ff7`. Prior candidate identities and evidence remain attached to their own history.
+
+
+Human review must verify the visible analysis/edit/export path; native note change and Undo/Redo; unchanged project and emulator; exported ROM reload and sound behavior; unknown/refused inputs; mobile keyboard/focus and cancellation. Automated logical APU output does not establish speaker quality or phone latency. USB-C/Bluetooth controllers, physical NES behavior, the Cricket Dream 5G / Chrome performance comparison and complete alpha.7 manual/PDF coverage remain separately open.
+
+## Next same-item Audio work
+
+Complete owner listening and device review, then define and implement a faithful canonical AUDIO conversion subset. Preserve explicit unknown/refusal outcomes where native fixed-point timing, frame-based envelopes, pitch/noise semantics, DPCM or multi-channel native SFX cannot be represented. Conversion needs canonical edit/Undo/save/reopen/rebuild and independent audible evidence; native ROM patching alone does not meet that acceptance gate. Broader driver coverage and the remaining roadmap follow their declared dependencies.
+
+## Current capability changes relative to alpha.6
+
+| Area | Alpha.7 native investigation scope | Still open |
+| --- | --- | --- |
+| Alpha A3 independent native Audio | Structural decoder, original-byte evidence, same-layout native music command edits, native Undo/Redo and ROM/evidence export | Canonical tracker conversion/persistence, listening, additional drivers and complete A3 acceptance |
+| Alpha A0 / 2.2 method/evidence foundations | A declared independent driver profile with validated mapping and unsupported/ambiguous outcomes | General method breadth and every unknown engine remain open |
+| Earlier alpha.6 workflows | Retained, subject to the new full gate | Prior browser/listening/hardware/manual acceptance is not transferred automatically |
+| Later gameplay, linker/raster/LiveLink, migration, Hosted Worlds/wallet and deck areas | No completion claim added by this native Audio slice | The detailed alpha.6 ledger and full roadmap requirements below remain in force |
+
+---
+
+## Preserved alpha.6 checkpoint and complete prior history
+
+The following saved alpha.6 revision is retained verbatim. Its identities and measured results belong to alpha.6. The native Audio scope above has its own measured evidence; nothing below is relabeled as an alpha.7 pass.
+
+
 **Current revision:** October 8, 2026 UTC — Roadmap Workbench implementation checkpoint.
 **Active candidate:** **2.0.0-alpha.6 / roadmap-1**, schema **12**, **not promoted**.
 **Frozen HTML SHA-256:** `ea16ded043216063572f5ba708e4efeea2f1f84d6a594b0393a8a5e1711783f9`.

@@ -1,29 +1,19 @@
-# NES Forge 2.0.0-alpha.6 — Roadmap Workbench
+# NES Forge — Native Audio Investigation
 
-Candidate `roadmap-1`, schema 12. Open `mainline/NES_Forge_2.0.0-alpha.6.html`.
+Open `mainline/NES_Forge_2.0.0-alpha.7.html`. This is **2.0.0-alpha.7 / native-audio-1**, schema 12, a review candidate under the authorized item-by-item roadmap implementation. The complete roadmap is not done and this candidate is not promoted.
 
-This is an implementation checkpoint in the complete roadmap, not completion of the whole roadmap or a promoted release. The previous alpha.5 is preserved under baseline. The owner authorized the full roadmap and requested that items be completed and verified one at a time.
+## Native Audio workflow
 
-Start with `docs/ROADMAP_REVIEW_GUIDE.md`. New supported workflows:
+In **RE / DISASM → General ROM Analysis**, open a ROM and use the native Audio panel to analyze it explicitly. For the declared FamiTone2 instruction profile, Forge decodes source-backed music commands, instruments/envelopes and statically identified SFX streams. Native note/instrument edits produce a copied ROM with its original external sound driver intact. The panel has its own undo history and exports native ROM/evidence; it does not import a song into the canonical AUDIO tracker or change the active project/emulator. Follow `docs/NATIVE_AUDIO_INVESTIGATION.md`.
 
-- AUDIO: MIDI/MusicXML score export and channel/timing-aware reimport, with explicit conversion limits. Built-in editable Audio workshop examples are in the Audio sidebar.
-- RE / DISASM: generic physical CHR recovery into editable tile sheets, persisted source evidence and raw edited CHR export. This does not infer maps, collisions or music.
-- RE runtime: named full-machine checkpoints, scripted controller input and reversible RAM experiments. This does not discover game-specific stage or combat meanings.
-- Gameplay Core: a graph editor over the existing canonical Behavior/state/transition records, with diagnostics and reference navigation.
-- CODE: a separate multi-file source workspace, literal includes/binary inserts, preserved originals, a declared assembler dialect, independent NROM builds and source exports.
-- `hosted/`: a separately runnable local ordinary-item server draft and two-client demo. It is not connected to cartridge execution and is not a completed Hosted Worlds milestone.
+The first supported profile is one linked FamiTone2 variant in an iNES NROM image. Recognition validates relocatable instruction/data structure and reachable initialization evidence, not a game filename or whole-ROM allowlist. Unsupported or ambiguous engines remain available in ordinary binary analysis. SFX inventory is explicitly incomplete when only static calls are known. Native timing, envelope clocks, tuning and channel arbitration differ from Forge Audio; faithful canonical conversion remains work to do. Physical listening is separate from logical register evidence.
 
-All 990 retained cases across 45 suites remain mandatory, plus every suite in `roadmap-suites.json`. Exact measured outcomes are in `test-results/candidate/Summary.json`. That gate includes the explicitly separate hosted profile. Browser runners record either executed checks or a blocked launch with zero checks; viewport simulation and VM tests are not physical-device, speaker or controller acceptance.
+## Preserved alpha.6 workflows
 
-Schema 12, the existing five templates, 12-actor runtime profile, 64 persistent-byte limit and Door Option B remain unchanged. Original CPU/PPU/APU algorithms, captures, Save As and historical golden ROMs remain protected. The source delta reverses to the exact immutable alpha.5 HTML before applying earlier guards.
+MIDI/MusicXML score export/reimport and built-in Audio workshop examples; generic physical CHR ROM import/edit/export; named machine checkpoints, input replay and reversible RAM; the canonical Gameplay Core graph; and a separate multi-file Forge-6502/NROM source workspace remain available. See `docs/ROADMAP_REVIEW_GUIDE.md` and `docs/ROADMAP_IMPLEMENTATION_STATUS.md`. The `hosted/` ordinary-item server remains a separate local reference draft, without a cartridge bridge, wallet or public deployment.
 
-## Reproduction
+## Evidence and reproduction
 
-```sh
-python3 tools/bundle.py --check
-node tests/run_candidate.cjs
-```
+`build-inputs.json` identifies the exact bundled HTML. `test-results/candidate/Summary.json` and `checkpoints/native-audio-1-clean-extraction/Reproduction.json` must match that hash. The complete gate retains all 1,126 alpha.6 cases across 53 suites and adds the declared native Audio suites. Only actual fresh reports establish outcomes. Browser runners, phone audio/performance, controllers and hardware results remain separate; blocked runners mean zero checks.
 
-Use a disposable extraction. The full gate takes several minutes and produces fresh reports. To make a staging package, use `python3 tools/package_release.py --stage --output /absolute/path/roadmap-staging.zip`. Final packaging requires verified clean-extraction proof and five fresh browser reports tied to the current HTML.
-
-Read `docs/ROADMAP_IMPLEMENTATION_STATUS.md` for implemented subsets and remaining work. No public deployment, wallet connection, asset mint, real-value combat, hardware certification, universal native-ROM recovery, or full manual/PDF completion is claimed by this candidate.
+Run `python3 tools/bundle.py --check` and `node tests/run_candidate.cjs` from an extracted disposable copy. The source manifest preserves module order. Previous applications, reports, source deltas and golden oracles remain historical references. Project schema 12, five templates, actor/persistence budgets, Door Option B, emulator/capture/Save As/CHR behavior and legacy builds remain protected.

@@ -1,0 +1,61 @@
+{
+  "suite": "emulator-timeline-ui",
+  "htmlSha256": "ea16ded043216063572f5ba708e4efeea2f1f84d6a594b0393a8a5e1711783f9",
+  "passed": 13,
+  "total": 13,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Playback tools starts collapsed and recording is opt-in without startup state allocation",
+      "passed": true
+    },
+    {
+      "name": "Forward controls work with history off, remain paused, and backward controls stay disabled",
+      "passed": true
+    },
+    {
+      "name": "Actual record/back/forward buttons restore state and keep displayed history bounds accurate",
+      "passed": true
+    },
+    {
+      "name": "±60 controls navigate actual frames, clamp to recorded oldest, and allocate no history while off",
+      "passed": true
+    },
+    {
+      "name": "New timeline commands release held NES input while the protected Frame command retains its keyboard contract",
+      "passed": true
+    },
+    {
+      "name": "Every enabled playback tool remains inside the fullscreen keyboard focus boundary",
+      "passed": true
+    },
+    {
+      "name": "Transport keyboard activation does not press NES Start and Ctrl/Cmd Save still reaches Save As",
+      "passed": true
+    },
+    {
+      "name": "Busy navigation offers Cancel and disables overlapping transport commands",
+      "passed": true
+    },
+    {
+      "name": "Closing tools, settings, tab exit, Play exit, blur and hidden documents cancel pending frame batches",
+      "passed": true
+    },
+    {
+      "name": "Save As cancels pending navigation without later batches stealing focus or advancing the ROM",
+      "passed": true
+    },
+    {
+      "name": "Programmatic transport clicks from another tab or controller settings cannot execute frames",
+      "passed": true
+    },
+    {
+      "name": "Reset and new ROM controls clear prior history bounds in the visible strip",
+      "passed": true
+    },
+    {
+      "name": "Turning history off clears stored states and leaves forward navigation available",
+      "passed": true
+    }
+  ]
+}

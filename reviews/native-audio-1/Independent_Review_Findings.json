@@ -1,0 +1,67 @@
+{
+  "candidate": "native-audio-1",
+  "htmlSha256": "ca801e999fa94e5bc124637cd43d14d595fb1e8eebe5a1a4c453356d8de8ba19",
+  "focusedCoreCases": 52,
+  "focusedUICases": 13,
+  "fullGate": {
+    "status": "passed",
+    "passed": 1191,
+    "total": 1191,
+    "suiteCount": 55,
+    "sha256": "ca801e999fa94e5bc124637cd43d14d595fb1e8eebe5a1a4c453356d8de8ba19",
+    "startedAt": "2026-10-08T06:04:27.617Z",
+    "finishedAt": "2026-10-08T06:20:29.113Z"
+  },
+  "findings": [
+    {
+      "area": "Alternate-entry initialization proof",
+      "resolution": "Incoming branch/jump/function entries cut backwards constant proof; bypass regression added.",
+      "status": "fixed before gate freeze"
+    },
+    {
+      "area": "Shared native command aliases",
+      "resolution": "All affected aliases are checked; DPCM aliases and out-of-range noise edits are refused.",
+      "status": "fixed before gate freeze"
+    },
+    {
+      "area": "Global decoding budget",
+      "resolution": "A 16384-event budget spans all channels, envelopes and SFX in addition to per-stream limits.",
+      "status": "fixed before gate freeze"
+    },
+    {
+      "area": "Envelope loop inherited value",
+      "resolution": "Cycle detection includes held value; loop-into-hold regression verifies changed inherited value.",
+      "status": "fixed before gate freeze"
+    },
+    {
+      "area": "Leading envelope hold",
+      "resolution": "Unknown inherited initial values are refused explicitly.",
+      "status": "fixed before gate freeze"
+    },
+    {
+      "area": "Native history memory",
+      "resolution": "Historical states keep ROM bytes and hashes; only the current decoded tree is retained.",
+      "status": "fixed before gate freeze"
+    },
+    {
+      "area": "Save As outcome reporting",
+      "resolution": "Busy, cancelled, error, saved and download-requested states have distinct messages.",
+      "status": "fixed before gate freeze"
+    },
+    {
+      "area": "Command byte wording",
+      "resolution": "Details identify the current byte, preserving separate original source identity.",
+      "status": "fixed before gate freeze"
+    },
+    {
+      "area": "Gate helper provenance",
+      "resolution": "Actual APU comparison helper is explicitly included among immutable gate inputs.",
+      "status": "fixed before gate freeze"
+    }
+  ],
+  "limitations": [
+    "No real browser checks ran.",
+    "Logical APU comparison is not listening or hardware acceptance.",
+    "Native ROM edits are not canonical AUDIO import."
+  ]
+}

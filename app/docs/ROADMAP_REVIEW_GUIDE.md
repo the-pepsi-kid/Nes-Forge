@@ -1,6 +1,8 @@
-# Roadmap Workbench review guide
+# Preserved Roadmap Workbench workflows in alpha.7
 
-Use the application in `mainline/NES_Forge_2.0.0-alpha.6.html`. Preserve a portable project backup before reviewing. Each workflow below identifies a visible control, expected result and its boundary. This guide supplements the manual; it does not claim that the full manual or PDF editions have been updated.
+For the new native Audio investigation workflow, first read `NATIVE_AUDIO_INVESTIGATION.md`. The following workflows were introduced in alpha.6 and remain available.
+
+Use the application in `mainline/NES_Forge_2.0.0-alpha.7.html`. Preserve a portable project backup before reviewing. Each workflow below identifies a visible control, expected result and its boundary. This guide supplements the manual; it does not claim that the full manual or PDF editions have been updated.
 
 ## 1. Audio interchange and built-in workshop
 
@@ -42,4 +44,4 @@ Read hosted/README.md. From the extracted application directory run `node hosted
 
 ## Acceptance record
 
-For each workflow record application SHA-256, OS/browser/version, exact input file/hash, actions, expected/actual result and screenshot or exported output. Mark not-run checks as not run. Report regression, usability and unsupported-feature findings separately. The packaged full-gate Summary is automated evidence; blocked browser records and earlier alpha.5 owner feedback do not certify alpha.6 rendering, listening or hardware behavior.
+For each workflow record application SHA-256, OS/browser/version, exact input file/hash, actions, expected/actual result and screenshot or exported output. Mark not-run checks as not run. Report regression, usability and unsupported-feature findings separately. The packaged full-gate Summary is automated evidence; blocked browser records and earlier alpha.5 owner feedback do not certify alpha.7 rendering, listening or hardware behavior.

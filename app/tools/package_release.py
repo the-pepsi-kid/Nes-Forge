@@ -1,4 +1,4 @@
-"""Package the unchanged, clean-tested alpha.6 candidate; preserve alpha.5 gates."""
+"""Package the unchanged, clean-tested alpha.7 candidate; preserve all alpha.6 gates."""
 from pathlib import Path
 import argparse, hashlib, json, os, subprocess, zipfile
 root=Path(__file__).resolve().parents[1]
@@ -6,16 +6,25 @@ parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path);parse
 assert not args.stage or args.output and 'staging' in args.output.name.lower()
 digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 subprocess.run(['python3',str(root/'tools/bundle.py'),'--check'],cwd=root,check=True)
-manifest=json.loads((root/'source-manifest.json').read_text());release=manifest['release'];candidate='roadmap-1';html=root/manifest['output']
-assert release=='2.0.0-alpha.6' and manifest['output']=='mainline/NES_Forge_2.0.0-alpha.6.html'
-extra=json.loads((root/'roadmap-suites.json').read_text());counts=json.loads((root/'tests/retained-suite-counts.json').read_text())
-assert len(counts)==45 and sum(counts.values())==990
+manifest=json.loads((root/'source-manifest.json').read_text());release=manifest['release'];candidate='native-audio-1';html=root/manifest['output']
+assert release=='2.0.0-alpha.7' and manifest['output']=='mainline/NES_Forge_2.0.0-alpha.7.html'
+extra=json.loads((root/'native-audio-suites.json').read_text());counts=json.loads((root/'tests/retained-alpha6-suite-counts.json').read_text())
+reference=json.loads((root/'checkpoints/roadmap-1-reference/test-results/candidate/Summary.json').read_text())
+assert reference['status']=='passed' and reference['sha256']=='ea16ded043216063572f5ba708e4efeea2f1f84d6a594b0393a8a5e1711783f9'
+assert reference['passed']==reference['total']==1126 and reference['suiteCount']==53
+assert counts=={item['name']:item['total'] for item in reference['suites']}
+assert len(counts)==53 and sum(counts.values())==1126
+declared_browser=json.loads((root/'browser-suites.json').read_text())
+assert [item[0]for item in declared_browser]==['browser-mobile','browser-re-analysis','browser-re-runtime','browser-audio-adaptive','browser-roadmap','browser-native-audio']
+assert len({item[1]for item in declared_browser})==len(declared_browser)
+for name,script in declared_browser:assert (root/script).is_file(),script
+assert extra and len({item[0]for item in extra})==len(extra) and not (set(counts)&{item[0]for item in extra})
 summary=None;browser=[]
 if not args.stage:
  summary=json.loads((root/'test-results/candidate/Summary.json').read_text())
  assert summary['status']=='passed' and summary['failed']==0 and summary['release']==release
  assert summary['unchangedCandidate'] is True and summary['html']==manifest['output'] and summary['sha256']==digest(html)
- suites=summary['suites'];assert len(suites)==45+len(extra)==summary['suiteCount']
+ suites=summary['suites'];assert len(suites)==53+len(extra)==summary['suiteCount']
  assert len({s['name']for s in suites})==len(suites)
  assert {s['name']for s in suites}==set(counts)|{s[0]for s in extra}
  for s in suites:
@@ -27,21 +36,23 @@ if not args.stage:
   assert len(cases)==s['total'] and all(c.get('passed') is True for c in cases)
  assert summary['passed']==summary['total']==sum(s['total']for s in suites)
  for item in summary['provenance']:assert digest(root/item['path'])==item['sha256'],'Changed gate input: '+item['path']
- proof=json.loads((root/'checkpoints/roadmap-1-clean-extraction/Reproduction.json').read_text())
+ proof=json.loads((root/'checkpoints/native-audio-1-clean-extraction/Reproduction.json').read_text())
  assert proof['candidate']==candidate and proof['status']=='passed'
  assert proof['htmlSha256']==digest(html) and proof['summarySha256']==digest(root/'test-results/candidate/Summary.json')
  assert all(proof[k]==summary[k]for k in ['passed','total','suiteCount'])
  assert proof['stagingVerifiedPayloads']>0 and len(proof['stagingArchiveSha256'])==64
- for name in ['browser-mobile','browser-re-analysis','browser-re-runtime','browser-audio-adaptive','browser-roadmap']:
+ for name,script in declared_browser:
   record=json.loads((root/'test-results'/name/'Report.json').read_text())
   assert record['sha256']==digest(html) and record['status'] in {'passed','blocked'},name+' failed or stale'
   if record['status']=='blocked':assert record['passed']==0 and record['failed']==0 and record['checks']==[]
-  else:assert record['passed']>0 and record['failed']==0
+  else:
+   assert record['passed']>0 and record['failed']==0
+   assert record['passed']==len(record['checks']) and all(check['status']=='passed'for check in record['checks'])
   browser.append({'suite':name,'status':record['status'],'passed':record['passed']})
-names=['README.md','PROJECT_CHARTER.md','ARCHITECTURE_CONTRACT.md','DECISION_LOG.md','ROADMAP.md','CURRENT_BASELINE.md','TEST_POLICY.md','HANDOFF.md','package.json','source-manifest.json','build-inputs.json','roadmap-modules.json','roadmap-suites.json',manifest['output']]
+names=['README.md','PROJECT_CHARTER.md','ARCHITECTURE_CONTRACT.md','DECISION_LOG.md','ROADMAP.md','CURRENT_BASELINE.md','TEST_POLICY.md','HANDOFF.md','package.json','source-manifest.json','build-inputs.json','roadmap-modules.json','roadmap-suites.json','native-audio-modules.json','native-audio-suites.json','browser-suites.json',manifest['output']]
 files={root/n for n in names}
 directories=['src','tools','tests','stabilization','baseline','examples','docs','checkpoints','hosted']
-if not args.stage:directories+=['test-results/candidate','test-results/browser-mobile','test-results/browser-re-analysis','test-results/browser-re-runtime','test-results/browser-audio-adaptive','test-results/browser-roadmap']
+if not args.stage:directories+=['test-results/candidate']+['test-results/'+name for name,script in declared_browser]
 for name in directories:
  folder=root/name;assert folder.is_dir(),name
  for p in folder.rglob('*'):
@@ -49,7 +60,7 @@ for name in directories:
 for p in files:assert p.is_file() and p.resolve().is_relative_to(root),p
 files=sorted(files,key=lambda p:p.relative_to(root).as_posix());checksums=root/'SHA256SUMS.txt'
 checksums.write_text(''.join(digest(p)+'  '+p.relative_to(root).as_posix()+'\n'for p in files))
-target=(args.output or root.parent/'NES_Forge_2.0.0-alpha.6_Roadmap_Workbench_Candidate.zip').resolve();assert not target.is_relative_to(root)
+target=(args.output or root.parent/'NES_Forge_2.0.0-alpha.7_Native_Audio_Investigation_Candidate.zip').resolve();assert not target.is_relative_to(root)
 target.parent.mkdir(parents=True,exist_ok=True);temporary=target.with_suffix(target.suffix+'.tmp');prefix='NES_Forge_'+release+'/'
 with zipfile.ZipFile(temporary,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9)as archive:
  for p in files+[checksums]:

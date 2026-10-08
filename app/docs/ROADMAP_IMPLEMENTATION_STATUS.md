@@ -1,4 +1,4 @@
-# Implementation status — roadmap-1
+# Implementation status — native-audio-1
 
 This is a progress checkpoint under full roadmap implementation authorization. It is not a declaration that the complete roadmap is done. Items are reviewed in dependency order, beginning with Audio; independently prepared later work is not a substitute for missing earlier acceptance. The comprehensive roadmap remains the requirements source.
 
@@ -15,7 +15,7 @@ This is a progress checkpoint under full roadmap implementation authorization. I
 | 2.0.5 incremental build/LiveLink | Unimplemented | Dependency invalidation, stable resource address mappings and safe replacement |
 | General arbitrary-ROM inspection | Existing bounded independent intake retained | Execution still depends on emulator/mapper support; raw analysis does not imply semantic recovery |
 | Alpha A0 / 2.2 recovery contracts and methods | Physical-source method registry and provenance implemented | More drivers/domains, signatures, decoders, encoders and independent validation |
-| Alpha A3 native Audio recovery | Unimplemented beyond existing Native Room control | Independent permitted music/SFX driver inputs, format identification, native recovery and audible edit/rebuild proof |
+| Alpha A3 native Audio recovery | Independent FamiTone2 profile: bounded native structures and same-layout native note/instrument editing | Canonical Audio conversion, authored-project persistence, additional driver variants and actual listening acceptance; native ROM editing is not tracker import |
 | Alpha A1 graphics recovery | Generic physical CHR ROM import/edit/export implemented | Independent-engine end-to-end evidence; source palette/bank-use/compressed/CHR-RAM semantics remain unknown |
 | Alpha A2 scenes/maps/collision | Existing Native Room control only | Reusable native formats, independent source/behavior proof; no screenshot-derived semantic guesses |
 | 2.1/2.3 runtime investigation | Existing traces plus named full checkpoints and scripted input implemented | Breakpoints/read watches, broader code/data/xrefs/structures/profiling and verified game-specific actions |
@@ -43,4 +43,4 @@ This is a progress checkpoint under full roadmap implementation authorization. I
 
 The new source APIs contain actual working implementations, not placeholder completion flags. The explicit unimplemented rows remain work to do. A pure code change cannot establish phone audio latency, hardware controller compatibility, independent engine recovery, cryptocurrency settlement correctness in a deployed environment, or a physical deck build.
 
-Next dependency: finish supported Audio acceptance and identify a verified independent native music/SFX input, then implement and validate that driver through the shared recovery contracts. Existing Pepsi and Bridge Room evidence cannot be stretched into a claim of native music recovery from arbitrary ROMs.
+Next dependency: finish supported Audio listening and faithful canonical conversion for a declared native subset. The independent HonkeyPong/FamiTone2 input is verified; this profile supplies native evidence and controlled ROM edits, with conversion still pending. Existing Pepsi/Bridge Room evidence and one FamiTone2 variant cannot be stretched into a claim of universal music recovery.

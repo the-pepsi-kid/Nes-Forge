@@ -1,3 +1,13 @@
+# Test policy — 2.0.0-alpha.7 Native Audio Investigation
+
+Retain all **1,126 alpha.6 cases across 53 suites**, with identical per-suite counts, and add the native Audio suites explicitly named in the current suite manifest. No filtering, skipped cases, injected production modules or regenerated historical oracles. The fresh Summary measures current totals and records one unchanged HTML hash throughout the run.
+
+New evidence must exercise structural recognition on an independent permitted game, renamed/edited/relocated inputs, bounded malformed and ambiguous cases, original-byte spans, native channel/envelope/SFX semantics and safe same-layout edits. Confirm all affected aliases, control-flow argument proof, global work budgets, source identity and revalidation. Integrate visible UI actions and protected Save As; test stale-source/async safety, undo/redo, input isolation and active-project/emulator noninterference. Compare actual native engine execution/APU behavior after a note edit. Register evidence is not listening acceptance or canonical Audio conversion.
+
+Freeze source, docs, examples and tests, stage an archive, verify every checksum, clean-extract and run the entire gate. Final packaging must verify all input/report hashes and the current native-audio clean-extraction proof. Exact new source normalization reconstructs pinned alpha.6 before its original preservation chain. Browser runners must have current hashes and measured checks or explicit blocked/zero-check reports. Browser/mobile/hardware/listening checks remain independently pending unless actually performed.
+
+## Preserved predecessor policy
+
 # Test and release policy — alpha.6 / roadmap-1
 
 Preserve every one of the 45 alpha.5 suites and their 990 cases, individually checked by `tests/retained-suite-counts.json`. Add all suites in `roadmap-suites.json`; a standalone hosted profile remains explicitly identified separately from cartridge execution. The mandatory runner executes all cases on an unchanged bundled application, with no skips, missing-module injection, filters or historical oracle regeneration.

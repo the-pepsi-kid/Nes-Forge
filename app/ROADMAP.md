@@ -1,3 +1,15 @@
+# Current implementation update — Native Audio Investigation
+
+October 8, 2026 UTC. Candidate **2.0.0-alpha.7 / native-audio-1**, schema 12, not promoted. The complete roadmap remains in progress.
+
+The next sequential Audio item now implements a declared FamiTone2 native structural decoder and same-layout native note/instrument editing within General ROM Analysis. The independent permitted HonkeyPong input is available. Decoded source evidence, safe native edits and original-driver rebuilds are useful A3 progress; canonical AUDIO tracker conversion, authored-project persistence of recovered native audio and human listening acceptance remain unfinished. Unsupported/ambiguous engines remain inspectable without inferred songs.
+
+The current Summary and clean-extraction record establish measured results; the policy retains all 53 predecessor suites / 1,126 cases. Alpha.6 prepared features remain unchanged. Do not mark a larger milestone complete from this bounded profile, from a blocked browser run or from logical APU observations.
+
+See `docs/NATIVE_AUDIO_INVESTIGATION.md` for the current workflow and `docs/ROADMAP_IMPLEMENTATION_STATUS.md` for the complete capability ledger. Continue the finite Audio/RE acceptance gate before integration of later Hosted Worlds/wallet/deck milestones. Full implementation authorization persists; missing physical/external acceptance is not a coding permission requirement.
+
+## Preserved alpha.6 roadmap and full requirements
+
 # October 7 implementation update (America/Denver) — alpha.6 / roadmap-1
 
 The owner authorized the complete roadmap and then requested item-by-item implementation and verification. This supersedes historical implementation-authorization limits below. It does not mark any missing runtime, device, independent-input, launch or hardware evidence complete.
