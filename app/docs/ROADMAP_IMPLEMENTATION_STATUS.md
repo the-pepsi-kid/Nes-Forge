@@ -1,6 +1,10 @@
-# Implementation status — native-audio-import-1
+# Implementation status — recovery-methods-1
 
 This is a progress checkpoint under full roadmap implementation authorization. It is not a declaration that the complete roadmap is done. Items are reviewed in dependency order, beginning with Audio; independently prepared later work is not a substitute for missing earlier acceptance. The comprehensive roadmap remains the requirements source.
+
+Current change: **Available recovery methods → Discover recovery methods** connects existing bounded graphics and Audio tools. It reports source identity, status, supported operations, evidence and limits; routes do not import content or load/run the emulator. Method discovery, selected-excerpt preview, confirmed canonical import and native ROM-copy editing remain distinct actions. Unknown engines remain open for general inspection.
+
+The alpha.8 parent passed 1,263/1,263 cases in 58 suites. All are required again on alpha.9, with the new declared suites. Read the current Summary and clean-extraction proof for measured outcomes. Browser/device acceptance and whole-roadmap completion are not inferred from registry integration.
 
 | Roadmap area | Status in this candidate | Remaining work / evidence |
 |---|---|---|
@@ -14,7 +18,7 @@ This is a progress checkpoint under full roadmap implementation authorization. I
 | 2.0.4 raster contracts | Existing captured evidence only | Canonical represented/compilable raster events and profile support |
 | 2.0.5 incremental build/LiveLink | Unimplemented | Dependency invalidation, stable resource address mappings and safe replacement |
 | General arbitrary-ROM inspection | Existing bounded independent intake retained | Execution still depends on emulator/mapper support; raw analysis does not imply semantic recovery |
-| Alpha A0 / 2.2 recovery contracts and methods | Physical-source method registry and provenance implemented | More drivers/domains, signatures, decoders, encoders and independent validation |
+| Alpha A0 / 2.2 recovery contracts and methods | Shared versioned discovery/dispatch connects physical CHR and structural FamiTone2 inspection, native encoding/patching and canonical conversion; UI reports applicability and routes to existing tools | Broader methods/domains, independent validation and complete A0 acceptance; driver recognition alone does not certify conversion of a selected excerpt |
 | Alpha A3 native Audio recovery | Independent FamiTone2 evidence/native ROM-copy edits plus explicit finite NTSC score transcription into canonical AUDIO, ordinary Undo/Redo and project persistence | Lossless native-engine equivalence is not supported; broader profile/format coverage, original loops/SFX/DPCM, audible comparison and complete A3 acceptance remain open |
 | Alpha A1 graphics recovery | Generic physical CHR ROM import/edit/export implemented | Independent-engine end-to-end evidence; source palette/bank-use/compressed/CHR-RAM semantics remain unknown |
 | Alpha A2 scenes/maps/collision | Existing Native Room control only | Reusable native formats, independent source/behavior proof; no screenshot-derived semantic guesses |
@@ -45,7 +49,7 @@ The new source APIs contain actual working implementations, not placeholder comp
 
 Current Audio workflow: analyze a supported ROM, select a native subsong, preview a finite NTSC excerpt, inspect conversion differences, then confirm Transcribe music into AUDIO. This appends patterns/instruments and replaces the music order and tempo/speed while preserving existing assets/SFX/runtime settings. The converted score uses ordinary Undo/Redo, Save Project As/reopen and the existing compiler. Native ROM-copy editing remains a separate retained workflow. Tuning, pulse retrigger, triangle controls and other declared differences prevent a lossless sound-engine claim; native SFX, DPCM, gameplay triggers and original song loops are not imported.
 
-Next dependencies include broader Audio fidelity/profile support, the missing listening/device evidence and the remaining native map/collision and runtime/tooling work in the complete roadmap. The original A6 review remains deferred, and the full manual/PDF is not comprehensively current. The new guide/checklist cover this bounded workflow. Existing Pepsi/Bridge Room evidence and one FamiTone2 variant cannot establish universal resource recovery.
+Next implementation dependency is cross-engine native graphics/maps/collision, building on shared discovery/dispatch. Additional supported Audio fidelity/profile work, source migration/gameplay and later runtime/tooling dependencies remain; broad debugger expansion is not a new prerequisite. Listening/device evidence remains independently open. The original A6 review remains deferred, and the full manual/PDF is not comprehensively current. The new guide/checklist cover this bounded workflow. Existing Pepsi/Bridge Room evidence and one FamiTone2 variant cannot establish universal resource recovery.
 
 The transcription uses global tempo 150 and speed 1. Existing SFX definitions and bindings are preserved, but their playback timing can change with those global settings. Review existing SFX after import; Undo restores the previous music settings.
 

@@ -1,5 +1,40 @@
 # NES Forge — Authoritative Roadmap
 
+**Current revision:** October 8, 2026 UTC — Recovery Methods.
+**Active candidate:** **2.0.0-alpha.9 / recovery-methods-1**, schema **12**, **not promoted**.
+**Measured alpha.9 gate:** **1,330/1,330 cases across 61 suites, zero failures**, from a verified clean extraction, 2026-10-08T20:56:41.436Z to 2026-10-08T21:11:50.540Z. All 58 alpha.8 suites / 1,263 cases retained.
+**Frozen HTML SHA-256:** `b61825396f375e1e6a4ad13822e9db163f59584d545d158ee96af731c0e74f50` (1,528,428 bytes).
+**Candidate ZIP:** `NES_Forge_2.0.0-alpha.9_Recovery_Methods_Candidate.zip`; SHA-256 `7ca14b4f5c660469039e857292e691d31d862bfb148dd5cb8405f46a0c772b09`; 33730319 bytes; 2838 files / 2837 payload checksums.
+**Browser evidence:** eight blocked current-hash runners, zero browser checks. Listening/mobile/controllers/hardware remain unverified.
+**Current identity/evidence:** `CANDIDATE.json`, application `build-inputs.json`, current candidate Summary and clean-extraction proof agree.
+**Preserved parent:** alpha.8 / native-audio-import-1; HTML SHA-256 `cbd2547b2a641760045658a16f610c0197490a8493985af4e2ac9deb897423ba`; verified **1,263/1,263 cases across 58 suites**. Seven alpha.8 browser runners were blocked with zero checks. These are historical results, not alpha.9 certification.
+
+## Authority and current dependency
+
+The owner's full roadmap implementation authorization and one-item-at-a-time direction continue. This alpha.9 checkpoint addresses the next A0 dependency: shared recovery-method discovery and dispatch. The complete roadmap remains unfinished. Promotion, browser/device acceptance and public or real-value deployment remain distinct from authorized software implementation.
+
+The existing physical CHR and structural FamiTone2 methods now share explicit operation declarations for inspection/decoding, native encoding/patching and canonical conversion. General ROM Analysis gains **Available recovery methods → Discover recovery methods**, showing source identity, applicability, operations, evidence and limits with routes to existing controls. Discovery and routing do not import assets, change the active project or load/run the emulator. Driver recognition does not establish readiness of a particular finite score transcription; the retained preview performs that check.
+
+A shared contract does not recover undeclared scene/collision/audio formats. Physical CHR retains its generated grayscale/layout aids and unknown source palette/map semantics. FamiTone2 native edits retain original-driver ROM copies; finite canonical Audio transcription retains tuning/retrigger/triangle/timing differences, exclusions and explicit confirmation. Lossy conversion does not advertise a native inverse or a round-trip claim. Unknown engines remain available for general inspection.
+
+## Evidence and review
+
+Preserve all 58 alpha.8 suites / 1,263 cases and add the current recovery-method suites. Freeze inputs, verify staged payloads and run the complete gate from clean extraction. Require source-backed fixture and renamed/relocated/malformed/unsupported cases, real shared-operation dispatch, valid bounded evidence, source-generation safety, input isolation and project/emulator/native-session noninterference. Only fresh current reports establish alpha.9 results.
+
+Follow `app/docs/RECOVERY_METHODS.md` and `app/docs/RECOVERY_METHODS_CHECKLIST.txt`. The full manual/PDF is not comprehensively updated; these documents supplement it. Browser layout/interaction, native dialogs, audible comparison, same-device Cricket Dream 5G / Chrome performance, USB-C/Bluetooth controllers and NES/deck hardware remain separately unverified unless actually measured. Deferred A6 and earlier user tutorial/alpha.5 results retain their original scope.
+
+## Remaining sequence
+
+Next comes the roadmap's cross-engine native graphics/maps/collision slice. Further supported Audio coverage/fidelity, source migration/gameplay and linker/runtime/raster/LiveLink/debugging dependencies remain; a broad debugger rewrite is not an added prerequisite. Complete the finite Audio/RE and runtime requirements before integrated Hosted Worlds/networking/wallet/mint/loot and portable physical-deck milestones. Existing local hosted drafts do not establish those integrations. Consult the complete requirements history below and the current application capability ledger; no other area becomes complete through this A0 foundation.
+
+## Preserved alpha.8 revision and complete prior history
+
+The following saved alpha.8 revision is retained verbatim, including its complete prior history. Its identities, measured results and then-current next-work descriptions remain historical; the update above controls alpha.9 status.
+
+---
+
+# NES Forge — Authoritative Roadmap
+
 **Current revision:** October 8, 2026 UTC — Native Audio Score Import.
 **Active candidate:** **2.0.0-alpha.8 / native-audio-import-1**, schema **12**, **not promoted**.
 **Measured alpha.8 gate:** **1,263/1,263 cases across 58 suites, zero failures**, from a verified clean extraction, 2026-10-08T18:46:11.681Z to 2026-10-08T19:00:50.684Z. All 55 alpha.7 suites / 1,191 cases retained.

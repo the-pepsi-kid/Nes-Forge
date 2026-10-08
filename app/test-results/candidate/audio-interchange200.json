@@ -1,7 +1,7 @@
 {
   "suite": "audio-interchange200",
-  "html": "NES_Forge_2.0.0-alpha.8.html",
-  "htmlSha256": "cbd2547b2a641760045658a16f610c0197490a8493985af4e2ac9deb897423ba",
+  "html": "NES_Forge_2.0.0-alpha.9.html",
+  "htmlSha256": "b61825396f375e1e6a4ad13822e9db163f59584d545d158ee96af731c0e74f50",
   "scope": "Full application, independent MIDI framing checks and bounded native tracker round trips; no external player, notation engraving or audible fidelity claim.",
   "passed": 28,
   "failed": 0,
@@ -10,142 +10,142 @@
     {
       "name": "Export service and both actual Audio buttons are present",
       "passed": true,
-      "milliseconds": 509
+      "milliseconds": 517
     },
     {
       "name": "MIDI is format 1 with conductor and four bounded standard tracks",
       "passed": true,
-      "milliseconds": 450
+      "milliseconds": 426
     },
     {
       "name": "MIDI channels distinguish crossed pulse pitches, triangle and percussion",
       "passed": true,
-      "milliseconds": 451
+      "milliseconds": 455
     },
     {
       "name": "MIDI row timing, explicit cuts and note-off before retrigger are exact",
       "passed": true,
-      "milliseconds": 513
+      "milliseconds": 431
     },
     {
       "name": "MIDI reimport preserves flattened ordered notes, four channels, cuts, volume and speed",
       "passed": true,
-      "milliseconds": 489
+      "milliseconds": 431
     },
     {
       "name": "MusicXML is uncompressed score-partwise with escaped title and four parts",
       "passed": true,
-      "milliseconds": 408
+      "milliseconds": 450
     },
     {
       "name": "MusicXML reimport preserves ordered notes, noise values, channels, cuts, volume and speed",
       "passed": true,
-      "milliseconds": 416
+      "milliseconds": 413
     },
     {
       "name": "All supported speeds round trip exact row boundaries in both formats",
       "passed": true,
-      "milliseconds": 12499
+      "milliseconds": 12677
     },
     {
       "name": "Dense XML notes through the final row accept floating timing noise at speeds 5, 10 and 13",
       "passed": true,
-      "milliseconds": 1241
+      "milliseconds": 1303
     },
     {
       "name": "Sparse channels keep their identities and trailing silent orders survive",
       "passed": true,
-      "milliseconds": 833
+      "milliseconds": 851
     },
     {
       "name": "Sustained notes across order boundaries are preserved through one pass",
       "passed": true,
-      "milliseconds": 841
+      "milliseconds": 875
     },
     {
       "name": "A 16-row score imported into 64-row patterns cuts at row 16 and warns about silent padding",
       "passed": true,
-      "milliseconds": 2215
+      "milliseconds": 2217
     },
     {
       "name": "A 64-row score regrouped into 16-row patterns retains its end without extra padding",
       "passed": true,
-      "milliseconds": 832
+      "milliseconds": 824
     },
     {
       "name": "Score export never edits project, undo history, or runtime enable state",
       "passed": true,
-      "milliseconds": 435
+      "milliseconds": 425
     },
     {
       "name": "Export leaves generated ROM bytes unchanged",
       "passed": true,
-      "milliseconds": 497
+      "milliseconds": 504
     },
     {
       "name": "Reimport is an ordinary undoable tracker edit that saves, reopens and builds",
       "passed": true,
-      "milliseconds": 815
+      "milliseconds": 807
     },
     {
       "name": "Loss warnings explicitly identify SFX, envelopes, timbre and one-pass boundaries",
       "passed": true,
-      "milliseconds": 415
+      "milliseconds": 414
     },
     {
       "name": "Used tracker effects refuse export atomically",
       "passed": true,
-      "milliseconds": 422
+      "milliseconds": 416
     },
     {
       "name": "DPCM data refuses export instead of disappearing",
       "passed": true,
-      "milliseconds": 425
+      "milliseconds": 422
     },
     {
       "name": "Mid-note volume changes and zero-volume note-ons refuse explicitly",
       "passed": true,
-      "milliseconds": 828
+      "milliseconds": 824
     },
     {
       "name": "Missing patterns, instruments and empty music refuse export",
       "passed": true,
-      "milliseconds": 1251
+      "milliseconds": 1241
     },
     {
       "name": "Legal whitespace around XML profile and dynamics attributes preserves channel, speed and volume",
       "passed": true,
-      "milliseconds": 854
+      "milliseconds": 826
     },
     {
       "name": "Malformed score profiles and edited tempo fail without project changes",
       "passed": true,
-      "milliseconds": 440
+      "milliseconds": 430
     },
     {
       "name": "Profile channel overlap and off-grid imported edits are rejected",
       "passed": true,
-      "milliseconds": 420
+      "milliseconds": 410
     },
     {
       "name": "Generic MusicXML without the Forge profile retains legacy six-tick allocation",
       "passed": true,
-      "milliseconds": 473
+      "milliseconds": 409
     },
     {
       "name": "Cancelling the actual export button creates no download and changes no project",
       "passed": true,
-      "milliseconds": 435
+      "milliseconds": 421
     },
     {
       "name": "Actual export buttons invoke downloads with clear format status",
       "passed": true,
-      "milliseconds": 442
+      "milliseconds": 434
     },
     {
       "name": "Cancelling the protected Save As dialog is never reported as a completed export",
       "passed": true,
-      "milliseconds": 426
+      "milliseconds": 421
     }
   ]
 }

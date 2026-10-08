@@ -1,0 +1,29 @@
+{
+  "suite": "independent-recovery-provenance-review",
+  "htmlSha256": "e19db12fb77e916f7bd12c95a3693a6d2624ce099e4ec3873de5b8f449032452",
+  "scope": "Independent complete-HTML VM adversarial review; source and span substitutions plus positive ordinary edit. Not a clean extraction gate or browser/physical acceptance.",
+  "passed": 1,
+  "total": 4,
+  "failed": 3,
+  "results": [
+    {
+      "name": "Decoded tiles cannot be relabeled as a different physical source by shared encoding",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: Cross-source encoding must fail instead of manufacturing source-B evidence.\n+ actual - expected\n\n+ 'supported'\n- 'invalid'\n\n    at /workspace/scratch/eed3f92a7165/recovery-methods-2026-10-08/work/reviews/recovery-methods-1/Independent_Provenance_Review.cjs:12:342\n    at async /workspace/scratch/eed3f92a7165/recovery-methods-2026-10-08/work/reviews/recovery-methods-1/Independent_Provenance_Review.cjs:16:62"
+    },
+    {
+      "name": "A source-bound tile span cannot be replaced by a one-byte iNES header range",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: A16-byte tile must not cite an unrelated one-byte header.\n+ actual - expected\n\n+ 'supported'\n- 'invalid'\n\n    at /workspace/scratch/eed3f92a7165/recovery-methods-2026-10-08/work/reviews/recovery-methods-1/Independent_Provenance_Review.cjs:13:259\n    at async /workspace/scratch/eed3f92a7165/recovery-methods-2026-10-08/work/reviews/recovery-methods-1/Independent_Provenance_Review.cjs:16:62"
+    },
+    {
+      "name": "A same-length but unrelated span cannot replace the decoded physical tile selection",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: Caller must not relocate source evidence from selected CHR to PRG.\n+ actual - expected\n\n+ 'supported'\n- 'invalid'\n\n    at /workspace/scratch/eed3f92a7165/recovery-methods-2026-10-08/work/reviews/recovery-methods-1/Independent_Provenance_Review.cjs:14:269\n    at async /workspace/scratch/eed3f92a7165/recovery-methods-2026-10-08/work/reviews/recovery-methods-1/Independent_Provenance_Review.cjs:16:62"
+    },
+    {
+      "name": "Ordinary same-source tile edits still export a separate16-byte copy",
+      "passed": true
+    }
+  ]
+}

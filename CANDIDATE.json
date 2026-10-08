@@ -1,30 +1,30 @@
 {
   "format": "NESForgeCandidateHandoff",
   "version": 1,
-  "release": "2.0.0-alpha.8",
-  "candidate": "native-audio-import-1",
+  "release": "2.0.0-alpha.9",
+  "candidate": "recovery-methods-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/native-audio-import-2026-10-08",
-  "html": "mainline/NES_Forge_2.0.0-alpha.8.html",
-  "htmlSha256": "cbd2547b2a641760045658a16f610c0197490a8493985af4e2ac9deb897423ba",
-  "archive": "NES_Forge_2.0.0-alpha.8_Native_Audio_Import_Candidate.zip",
-  "archiveSha256": "09f2b42d89ff992e3acde1348ae917aa1664a2ace6cc9f47fd9279aea8d9e981",
-  "payloadChecksums": 2255,
-  "packageFiles": 2256,
+  "branch": "implementation/recovery-methods-2026-10-08",
+  "html": "mainline/NES_Forge_2.0.0-alpha.9.html",
+  "htmlSha256": "b61825396f375e1e6a4ad13822e9db163f59584d545d158ee96af731c0e74f50",
+  "archive": "NES_Forge_2.0.0-alpha.9_Recovery_Methods_Candidate.zip",
+  "archiveSha256": "7ca14b4f5c660469039e857292e691d31d862bfb148dd5cb8405f46a0c772b09",
+  "payloadChecksums": 2837,
+  "packageFiles": 2838,
   "automatedResult": {
     "status": "passed",
-    "passed": 1263,
+    "passed": 1330,
     "failed": 0,
-    "total": 1263,
-    "suiteCount": 58,
-    "startedAt": "2026-10-08T18:46:11.681Z",
-    "finishedAt": "2026-10-08T19:00:50.684Z"
+    "total": 1330,
+    "suiteCount": 61,
+    "startedAt": "2026-10-08T20:56:41.436Z",
+    "finishedAt": "2026-10-08T21:11:50.540Z"
   },
-  "retainedCases": 1191,
-  "retainedSuites": 55,
+  "retainedCases": 1263,
+  "retainedSuites": 58,
   "automatedSummary": "app/test-results/candidate/Summary.json",
-  "cleanExtractionProof": "app/checkpoints/native-audio-import-1-clean-extraction/Reproduction.json",
+  "cleanExtractionProof": "app/checkpoints/recovery-methods-1-clean-extraction/Reproduction.json",
   "browserEvidence": [
     {
       "name": "browser-mobile",
@@ -60,6 +60,11 @@
       "name": "browser-native-audio-import",
       "status": "blocked",
       "checks": 0
+    },
+    {
+      "name": "browser-recovery-methods",
+      "status": "blocked",
+      "checks": 0
     }
   ],
   "nativeAudio": {
@@ -73,12 +78,23 @@
     "nativeEngineEquivalence": false,
     "listening": "pending"
   },
-  "ownerAcceptance": "pending for alpha.8; earlier owner reports retain their original artifact scope",
+  "ownerAcceptance": "pending for alpha.9; earlier owner reports retain their original artifact scope",
   "mobilePerformance": "pending same-device comparison",
   "hardwareControllers": "not physically tested",
   "promotion": "not promoted",
   "roadmap": "in progress; complete roadmap is not implemented",
-  "parentCommit": "f39b6ba6fdc62789e7a300f7bb3b17a3a6f76474",
-  "nextCodingDependency": "A0 shared recovery-profile discovery and dispatch; then cross-engine native graphics/maps/collision recovery",
-  "license": "UNDECIDED"
+  "parentCommit": "811f3117d5f1a3d965f219df483f55fc45c88238",
+  "nextCodingDependency": "A1 shared native-background recovery and editable import on independent Pepsi and source-backed HonkeyPong inputs; then A2 on a suitable independent native map/collision input",
+  "license": "UNDECIDED",
+  "recoveryMethods": {
+    "contractVersion": 2,
+    "methods": [
+      "nes.physical-chr.v1",
+      "nes.famitone2-native.v1"
+    ],
+    "discovery": "Explicit original-source recognition and route-only UI; no project/emulator/native-session changes",
+    "dispatch": "Separate physical CHR decode/encode and native Audio inspect/copied-ROM patch/canonical transcription preview operations with source/span checks",
+    "universalEngineRecovery": false,
+    "nativeSceneCollisionRecovery": false
+  }
 }

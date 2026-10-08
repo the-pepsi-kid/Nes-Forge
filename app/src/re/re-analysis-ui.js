@@ -3,7 +3,7 @@
 (()=>{
 'use strict';
 const F=window.Forge=window.Forge||{};F.services=F.services||{};
-const state={file:null,generation:0,busy:false,analysis:null,selection:null,page:0,chrFirst:0,mappings:[],annotations:[],matches:[],searchGeneration:0,searching:false};
+const state={file:null,generation:0,openedGeneration:null,busy:false,analysis:null,selection:null,page:0,chrFirst:0,mappings:[],annotations:[],matches:[],searchGeneration:0,searching:false};
 const PAGE=512,MAX_NOTES=256,MAX_MAPPINGS=128;
 let panel=null,workspace=null,c=null;
 const make=(tag,id,text)=>{const el=document.createElement(tag);if(id)el.id=id;if(text!==undefined)el.textContent=text;return el;};
@@ -14,7 +14,8 @@ function available(){return !!state.analysis&&!state.busy;}
 function enable(){if(!c)return;c.open.disabled=!state.file||state.busy;for(const el of [c.view,c.saveMapping,c.search,c.saveNote])el.disabled=!available()||!state.analysis?.report.identity.byteLength;c.export.disabled=!available();c.cancel.disabled=!state.searching;c.goMapping.disabled=!available()||!state.mappings.length;c.goResult.disabled=!available()||!state.matches.length;c.previous.disabled=!available()||state.page===0;c.next.disabled=!available()||state.page+PAGE>=(state.selection?.length||0);c.chrPrevious.disabled=!available()||!state.chrFirst;c.chrNext.disabled=!available()||state.chrFirst+256>=(state.analysis?.report.chr.tileCount||0);}
 function showWorkspace(show=true){if(!workspace)return;const host=document.getElementById('disasmView');host?.classList.toggle('re-analysis-active',show);workspace.hidden=!show;c.show.textContent=show?'Show emulator disassembly':'Show general analysis';}
 function cancelSearch(message=true){state.searchGeneration++;const was=state.searching;state.searching=false;enable();if(was&&message)status('Search cancelled. Results already found remain available.');return was;}
-function selectFile(file){state.generation++;cancelSearch(false);state.file=file||null;state.busy=false;enable();status(file?'Selected '+String(file.name||'binary')+'. Open for analysis. Existing inspection stays available until this file opens.':'Choose a ROM or binary.');}
+function sourceChanged(){if(typeof window.dispatchEvent==='function'&&typeof window.CustomEvent==='function')window.dispatchEvent(new window.CustomEvent('forge:re-analysis-source-change'));}
+function selectFile(file){state.generation++;cancelSearch(false);state.file=file||null;state.busy=false;enable();status(file?'Selected '+String(file.name||'binary')+'. Open for analysis. Existing inspection stays available until this file opens.':'Choose a ROM or binary.');sourceChanged();}
 function populateMappings(){c.mappings.replaceChildren();for(let i=0;i<state.mappings.length;i++){const m=state.mappings[i],o=make('option',null,(m.bankLabel||'Mapping '+(i+1))+' · file $'+hx(m.fileOffset)+' → CPU $'+hx(m.cpuAddress,4));o.value=String(i);c.mappings.appendChild(o);}c.mappings.value=state.mappings.length?'0':'';enable();}
 function populateNotes(){c.notes.replaceChildren();for(const a of state.annotations){const li=make('li',null,'$'+hx(a.fileOffset)+' · '+(a.label||'Note')+' [user]'+(a.comment?' — '+a.comment:''));c.notes.appendChild(li);}}
 function setFields(){const s=state.selection;if(!s)return;c.offset.value='0x'+hx(s.fileOffset);c.length.value=String(s.length);c.origin.value=s.cpuAddress===null?'':'0x'+hx(s.cpuAddress,4);c.bank.value=s.bankLabel||'';c.variant.value=s.variant||'6502';c.noteOffset.value='0x'+hx(s.fileOffset+state.page);}
@@ -57,13 +58,13 @@ function goMapping(index=Number(c.mappings.value)){const mapping=state.mappings[
 function capabilities(report){const header=report.header||{},caps=report.capabilities||{},mapping=report.cpuMapping||{};return 'Container: '+(header.status==='valid'?header.format+(Number.isInteger(header.mapper)?' · mapper '+header.mapper+(header.submapper?' / submapper '+header.submapper:''):''):'raw binary; platform unknown')+'\nAddress mapping: '+(caps.addressMapping?.status||mapping.status||'user-required')+'\nEmulation: '+(caps.emulation?.status||'not evaluated')+' — file inspection does not run it.'+'\nEditable recovery: '+(caps.recovery?.status||'not checked')+' — separate profile check below.';}
 async function openFile(file){
   if(file!==undefined)selectFile(file);if(!state.file){status('Choose a ROM or binary first.',true);return false;}
-  const chosen=state.file,token=++state.generation;cancelSearch(false);state.busy=true;enable();status('Reading file for independent analysis…');
+  const chosen=state.file,token=++state.generation;cancelSearch(false);state.busy=true;enable();status('Reading file for independent analysis…');sourceChanged();
   try{
     if(chosen.size>64*1024*1024)throw Error('File exceeds the 64 MiB analysis limit.');
     const bytes=new Uint8Array(await chosen.arrayBuffer());if(token!==state.generation)return false;
     const analysis=await F.services.REAnalysis.open(bytes,{name:String(chosen.name||'binary')});if(token!==state.generation)return false;
     const report=analysis.report,window=report.cpuMapping?.windows?.[0],span=report.layout?.prg;
-    state.analysis=analysis;state.mappings=[];state.annotations=[];state.matches=[];state.page=0;state.chrFirst=0;
+    state.analysis=analysis;state.openedGeneration=token;state.mappings=[];state.annotations=[];state.matches=[];state.page=0;state.chrFirst=0;
     state.selection={fileOffset:window?.file?.start??span?.start??0,length:window?.file?.length??span?.length??report.identity.byteLength,cpuAddress:window?.cpu?.start??null,bankLabel:window?.bankLabel||'',variant:report.header?.status==='valid'?'2a03':'6502'};
     // Header-derived mappings retain their evidence; user maps are explicit.
     for(const w of report.cpuMapping?.windows||[])state.mappings.push({fileOffset:w.file.start,length:w.file.length,cpuAddress:w.cpu.start,bankLabel:w.bankLabel||'',evidence:w.evidence||'header-derived-static-map',variant:'2a03'});
@@ -71,7 +72,7 @@ async function openFile(file){
     c.capabilities.textContent=capabilities(report);c.warnings.textContent=(report.warnings||[]).join('\n');c.results.replaceChildren();c.searchStatus.textContent='Search the original file bytes.';c.noteLabel.value='';c.noteComment.value='';c.searchStart.value='0';
     populateMappings();populateNotes();setFields();render();renderChr();showWorkspace();status('File opened for analysis. The active project and emulator are unchanged.');return true;
   }catch(error){if(token===state.generation)status((error.message||String(error))+(state.analysis?' Previous inspection is still available.':''),true);return false;}
-  finally{if(token===state.generation){state.busy=false;enable();}}
+  finally{if(token===state.generation){state.busy=false;enable();sourceChanged();}}
 }
 function parsePattern(text){const parts=String(text).trim().split(/\s+/);if(!parts.length||parts.length>256||parts.some(p=>! /^(?:0x)?[0-9a-f]{2}$/i.test(p)))throw Error('Enter 1–256 hexadecimal bytes separated by spaces, for example A9 01 8D.');return parts.map(p=>parseInt(p.replace(/^0x/i,''),16));}
 function populateResults(){c.results.replaceChildren();for(let i=0;i<state.matches.length;i++){const option=make('option',null,'File $'+hx(state.matches[i].fileOffset));option.value=String(i);c.results.appendChild(option);}c.results.value=state.matches.length?'0':'';enable();}
@@ -134,6 +135,6 @@ function mount(){
   for(const hostEl of [panel,workspace])for(const type of ['keydown','keyup'])hostEl.addEventListener(type,event=>event.stopPropagation?.());
   enable();status('Choose a ROM or binary. General inspection needs no engine profile.');return panel;
 }
-F.services.REAnalysisUI=Object.freeze({mount,selectFile,openFile,viewRange,pageBy,chrPageBy,saveMapping,goMapping,searchBytes,cancelSearch,goResult,annotate,downloadReport,exportData,showWorkspace,currentAnalysis:()=>state.busy?null:state.analysis,getState:()=>Object.freeze({busy:state.busy,opened:!!state.analysis,generation:state.generation,searching:state.searching,selection:state.selection?Object.freeze({...state.selection}):null,page:state.page,chrFirst:state.chrFirst,mappings:state.mappings.length,annotations:state.annotations.length,matches:state.matches.length})});
+F.services.REAnalysisUI=Object.freeze({mount,selectFile,openFile,viewRange,pageBy,chrPageBy,saveMapping,goMapping,searchBytes,cancelSearch,goResult,annotate,downloadReport,exportData,showWorkspace,currentAnalysis:()=>state.busy?null:state.analysis,getState:()=>Object.freeze({busy:state.busy,opened:!!state.analysis,generation:state.generation,pendingSelection:!!state.analysis&&state.openedGeneration!==state.generation,searching:state.searching,selection:state.selection?Object.freeze({...state.selection}):null,page:state.page,chrFirst:state.chrFirst,mappings:state.mappings.length,annotations:state.annotations.length,matches:state.matches.length})});
 mount();
 })();

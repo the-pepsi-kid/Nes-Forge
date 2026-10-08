@@ -1,0 +1,27 @@
+{
+  "candidate": "recovery-methods-1",
+  "status": "passed",
+  "release": "2.0.0-alpha.9",
+  "htmlSha256": "b61825396f375e1e6a4ad13822e9db163f59584d545d158ee96af731c0e74f50",
+  "summarySha256": "ec231168997d609eab135989ccd54795a9b978226c9be81d109739b75399aa81",
+  "passed": 1330,
+  "total": 1330,
+  "suiteCount": 61,
+  "stagingVerifiedPayloads": 2705,
+  "stagingArchiveSha256": "a109c719991781daee5992dcbfabd9a867b9a3ca0f2853d497e3117edbf103d7",
+  "stagingArchive": "recovery-methods-staging.zip",
+  "startedAt": "2026-10-08T20:56:41.436Z",
+  "finishedAt": "2026-10-08T21:11:50.540Z",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "commands": [
+    "python3 tools/package_release.py --stage --output recovery-methods-staging.zip",
+    "Validate ZIP CRC, paths, exact inventory and every SHA256SUMS payload; extract to a fresh directory",
+    "node tests/run_candidate.cjs"
+  ],
+  "unchangedCandidate": true,
+  "browserWalkthrough": "Eight current-hash runners blocked by missing Chromium; zero browser checks. No listening, phone, controller or hardware pass claimed."
+}

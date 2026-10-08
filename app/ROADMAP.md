@@ -1,3 +1,21 @@
+# Current implementation update — Recovery Methods
+
+October 8, 2026 UTC. Candidate **2.0.0-alpha.9 / recovery-methods-1**, schema 12, not promoted. Full roadmap implementation authorization and the owner's one-item-at-a-time direction continue.
+
+This checkpoint implements the next A0 dependency: shared discovery and dispatch for existing physical CHR and structural FamiTone2 methods. Separate operation declarations describe inspection/decoding, native encoding/patching and canonical conversion. General ROM Analysis displays each method's applicability, source evidence and limits, with routes to existing controls. Discovery does not import assets, change the project or load/run the emulator. Driver recognition is separate from whether a specific finite Audio excerpt can be converted.
+
+The shared contract does not supply missing native resource formats. Physical tile pixels are not recovered source palettes/maps/collision; supported FamiTone2 score transcription is not lossless native-engine recovery. Existing native edits and canonical import retain their bounds, source identities, confirmations and separate histories. Unknown engines remain inspectable. No universal game, engine or mapper claim is added.
+
+See `docs/RECOVERY_METHODS.md`, `docs/RECOVERY_METHODS_CHECKLIST.txt` and `docs/ROADMAP_IMPLEMENTATION_STATUS.md`. Retain all **58 alpha.8 suites / 1,263 cases** and add the declared recovery-method suites. Current `Summary.json` and `checkpoints/recovery-methods-1-clean-extraction/Reproduction.json` establish measured outcomes; old or planned results are not passes for changed bytes. Browser, listening/mobile/controller/hardware and full manual/PDF acceptance remain separate.
+
+Next: the roadmap's cross-engine native graphics/maps/collision slice, additional supported Audio profiles/fidelity and remaining source-migration/gameplay requirements. Continue linker/runtime/raster/LiveLink and debugging dependencies where required, then integrated Hosted Worlds/networking/wallet/deck work. Do not replace this sequence with a new broad debugger prerequisite or claim later local drafts complete integrated milestones. The complete roadmap remains unfinished.
+
+## Preserved alpha.8 roadmap and complete prior history
+
+The following saved alpha.8 roadmap is retained verbatim. Its evidence belongs to its original candidate; this current update controls alpha.9 status.
+
+---
+
 # Current implementation update — Native Audio Score Import
 
 October 8, 2026 UTC. Candidate **2.0.0-alpha.8 / native-audio-import-1**, schema 12, not promoted. The complete roadmap remains in progress under the owner's full implementation authorization and one-item-at-a-time direction.

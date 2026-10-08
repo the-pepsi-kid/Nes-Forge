@@ -1,0 +1,26 @@
+{
+  "suite": "independent-recovery-provenance-review",
+  "htmlSha256": "b61825396f375e1e6a4ad13822e9db163f59584d545d158ee96af731c0e74f50",
+  "scope": "Independent complete-HTML VM adversarial review; source and span substitutions plus positive ordinary edit. Not a clean extraction gate or browser/physical acceptance.",
+  "passed": 4,
+  "total": 4,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Decoded tiles cannot be relabeled as a different physical source by shared encoding",
+      "passed": true
+    },
+    {
+      "name": "A source-bound tile span cannot be replaced by a one-byte iNES header range",
+      "passed": true
+    },
+    {
+      "name": "A same-length but unrelated span cannot replace the decoded physical tile selection",
+      "passed": true
+    },
+    {
+      "name": "Ordinary same-source tile edits still export a separate16-byte copy",
+      "passed": true
+    }
+  ]
+}

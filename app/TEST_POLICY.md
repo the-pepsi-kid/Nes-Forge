@@ -1,3 +1,17 @@
+# Test policy — 2.0.0-alpha.9 Recovery Methods
+
+Retain every **1,263 alpha.8 case across 58 suites**, with exact per-suite counts, and add the declared recovery-method suites. No filters, skipped cases, substituted production modules, regenerated historical oracles or stale result records. The fresh current Summary establishes actual totals and outcomes.
+
+Require backward compatibility of existing physical CHR registration, probe/decode/encode and round-trip behavior. Test versioned operation declarations and shared discovery/dispatch for physical CHR and structural FamiTone2 native decode/patch/canonical conversion. Unsupported, ambiguous and invalid outcomes must remain distinct. A lossy conversion must not acquire an inverse encoder or round-trip claim merely because it is registered. Validate source identities and bounded physical evidence ranges; retain operation-specific byte/event/capacity budgets and atomic refusals.
+
+Use source-backed independent inputs, renamed and relocated derivatives, malformed containers, absent physical CHR and unsupported emulator mappings. No filename/hash allowlist may masquerade as generic recognition. Prove actual existing native patch and canonical conversion calls through the shared contract, without duplicating driver behavior. Recognition is not a claim that every selected excerpt is convertible. Confirm discovery/UI source-generation invalidation, async/cancel paths, input ownership, routes to existing tools and project/emulator/native-session noninterference. Import/build/listening remain separate explicit workflows and evidence.
+
+Freeze source, docs, examples and tests before staging. Verify every payload checksum, clean-extract and run the complete gate on one unchanged HTML. Record `checkpoints/recovery-methods-1-clean-extraction/Reproduction.json`. Exact source normalization must reconstruct pinned alpha.8 before the preserved source chain. Final packaging validates input provenance, reports, counts and identities; no provenance input may change after the run.
+
+Browser reports must identify the current HTML and contain actual measured checks or an explicit blocked launch with zero checks. Unavailable Chromium is not a pass. Actual layout/pickers, speakers, phone A/V latency, USB-C/Bluetooth controllers and NES/deck hardware remain separate evidence. Preserve deferred A6 and earlier owner results on their original builds. The full manual/PDF is not comprehensively current.
+
+## Preserved alpha.8 policy and complete prior history
+
 # Test policy — 2.0.0-alpha.8 Native Audio Score Import
 
 Retain every **1,191 alpha.7 case across 55 suites**, with exact per-suite counts, and add the three declared native score-import suites in the current suite manifest. No filters, skips, substituted production modules, regenerated historical oracles or stale outcome records. Actual new totals and outcomes belong to the fresh current Summary.

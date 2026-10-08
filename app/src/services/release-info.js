@@ -11,7 +11,7 @@
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.8',name:'Native Audio Import',maturity:'alpha',candidate:'native-audio-import-1',schema:12,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.9',name:'Recovery Methods',maturity:'alpha',candidate:'recovery-methods-1',schema:12,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;

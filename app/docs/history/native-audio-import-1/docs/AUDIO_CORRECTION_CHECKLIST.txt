@@ -1,0 +1,76 @@
+NES Forge 2.0.0-alpha.1 / audio-correction-1 — audio review
+Schema 12. Review candidate; acceptance pending.
+
+START
+1. Extract the ZIP. Open mainline/NES_Forge_2.0.0-alpha.1.html.
+2. Confirm the header shows 2.0.0-alpha.1 AUDIO CORRECTION.
+3. Save any current project first. Use Open Project to load the supplied
+   .nesforge.json projects. These are editable native projects; do not use
+   Recover Editable Project to open them.
+4. Record browser/version, device/OS and output route (speaker/headphones).
+   Audio may require a user gesture. Use the ordinary audio/mute controls.
+
+A1 — Dense music does not hang
+Open examples/Audio_Correction_2.0.0-alpha.1/Dense_128.nesforge.json.
+The project already enables Audio Runtime and playable single-room gameplay.
+Choose Build & Run. Let the music play for at least 20 seconds; move the player.
+Expected: the 128-row phrase continues/repeats and player controls remain
+responsive. Crossing the event boundary must not freeze the generated game.
+Result: PASS / FAIL / BLOCKED
+What happened:
+
+A2 — Long SFX finishes and returns to music
+While playing Dense_128, press NES B (attack). Press once, then release.
+Expected: the higher SFX takes Pulse 1 for roughly 4.3 seconds, completes and
+returns the channel to music. Wait for completion before another press; the
+existing contract ignores another SFX request while one is active.
+Try several completed attacks. Movement and playback should remain responsive.
+Result: PASS / FAIL / BLOCKED
+What happened:
+
+A3 — Triangle pitch matches the authored note
+Open Pulse_Triangle.nesforge.json in the same example folder; Build & Run.
+Expected repeating sequence:
+  Pulse A4 -> Triangle A4 -> Pulse A5 -> Triangle A5.
+Each segment lasts about 1.6 seconds. Within each pair the perceived pitch
+should match, although pulse and triangle sound different. A5 is an octave
+above A4. Triangle should not drop an octave when switching from pulse.
+Runtime timer rounding is expected; low-note hardware limits are documented.
+Result: PASS / FAIL / BLOCKED
+What happened:
+
+A4 — Independent emulator comparison
+Load the matching supplied Dense_128.nes and Pulse_Triangle.nes files into an
+independent emulator you already use. Repeat A1–A3. Record emulator/version.
+These prebuilt ROMs come from the exact supplied projects and candidate;
+Manifest.json records their hashes. No physical-console claim is implied.
+Result: PASS / FAIL / BLOCKED
+Emulator/version and observations:
+
+A5 — Simple edit and persistence
+In Pulse_Triangle, use AUDIO to change the A4 entries to another matching pair
+of supported notes in both channels. Build & Run and listen for the change.
+Save the project using the normal native project action, reopen that saved
+project, and rebuild. Expected: your matching pair persists and is audible.
+This is a narrow smoke check; the complete import/audio workshop comes next.
+Result: PASS / FAIL / BLOCKED
+Notes changed / saved filename / observations:
+
+OPTIONAL DEVICE OBSERVATION
+Repeat A1–A3 on the mobile browser where lag was reported. Record whether the
+whole game slows, input lags, sound crackles/drifts, or sound alone is delayed.
+This candidate does not claim a mobile-lag fix. Record any connected hardware
+controller separately, including OS/browser recognition and button behavior.
+
+SEND BACK
+Candidate:
+Device / OS / browser:
+Audio route:
+A1:
+A2:
+A3:
+A4 + emulator/version:
+A5:
+Any errors / freezes / unexpected pitch / mobile observations:
+
+No need to repeat the entire earlier nine-step general tutorial for this review.

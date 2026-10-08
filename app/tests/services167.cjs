@@ -66,15 +66,15 @@ test('Failed compile clears published artifacts and does not run/export a stale 
 });
 
 test('ReleaseInfo owns current version/schema and production has no embedded Scout starter',()=>{
-  const h=fresh();assert.equal(h.context.Forge.release.version,'2.0.0-alpha.8');assert.equal(h.context.Forge.release.schema,12);
-  assert.match(h.context.document.title,/2\.0\.0-alpha\.8.*Native Audio Import/);assert.equal(h.context.Forge.release.candidate,'native-audio-import-1');
-  assert.equal(h.run('projectData().version'),12);assert.equal(h.run('projectData().foundation'),'2.0.0-alpha.8');
+  const h=fresh();assert.equal(h.context.Forge.release.version,'2.0.0-alpha.9');assert.equal(h.context.Forge.release.schema,12);
+  assert.match(h.context.document.title,/2\.0\.0-alpha\.9.*Recovery Methods/);assert.equal(h.context.Forge.release.candidate,'recovery-methods-1');
+  assert.equal(h.run('projectData().version'),12);assert.equal(h.run('projectData().foundation'),'2.0.0-alpha.9');
   assert.doesNotMatch(h.html,/const\s+STARTER\s*=/);assert.doesNotMatch(h.html,/const\s+SCOUT_STARTER\s*=/);
 });
 test('Current Tech Docs render through one owner without accumulating historical sections',()=>{
   const h=fresh(),docs=h.context.Forge.services.Documentation;assert.equal(h.run('renderDocs'),docs.render);
   h.run('renderDocs()');const first=h.get('sideDocs').innerHTML;h.run('renderDocs();renderDocs()');assert.equal(h.get('sideDocs').innerHTML,first);
-  assert.match(first,/2\.0\.0-alpha\.8/);assert.match(first,/Native Audio Import/);assert.match(first,/Gameplay Core/);assert.match(first,/Audio Runtime/);assert.match(first,/World Runtime/);
+  assert.match(first,/2\.0\.0-alpha\.9/);assert.match(first,/Recovery Methods/);assert.match(first,/Gameplay Core/);assert.match(first,/Audio Runtime/);assert.match(first,/World Runtime/);
   assert.doesNotMatch(first,/<h[1-6][^>]*>\s*(?:NES Forge\s+)?1\.[0-5][^<]*<\/h/i);
   for(const term of ['World','Audio','Live','Save','Capture','Source workspace','Checkpoints','BEHAVIOR GRAPH','Export MIDI'])assert.match(first,new RegExp(term,'i'),'Current reference documents '+term);
 });
