@@ -1,7 +1,7 @@
 {
   "suite": "native-audio-import-apu200",
-  "html": "NES_Forge_2.0.0-alpha.10.html",
-  "htmlSha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375",
+  "html": "NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
   "scope": "Two subsongs of independently permitted HonkeyPong and directed looping-envelope/global-speed derivatives: original linked FamiTone2 and generated canonical World Audio routines executed by the actual candidate 6502 emulator, one controlled subroutine call per logical video frame. Exact supported row/gate/volume/duty observations, actual negative-arpeggio ADC carry, quantified nearest-pitch transcription, deliberate end cuts, and ordinary tracker-note rebuild evidence. Controlled calls isolate music; no SFX arbitration, full-game timing, identical synthesis, listening, browser, or hardware acceptance.",
   "passed": 16,
   "failed": 0,
@@ -706,14 +706,14 @@
       "before": 43,
       "after": 44,
       "changedSoundingFrames": 18,
-      "rebuiltRomSha256": "bf15ff03b20dd2cb21c3e586c73733dbcda8dfd0fa67fc59c4ad77d93f67e18d"
+      "rebuiltRomSha256": "a67780bbc563c38bb41fc1328a4dea1232e5b4fa62e441979d2324644e578bfc"
     }
   },
   "results": [
     {
       "name": "Independent subsong 0 produces a canonical score for explicit transcription",
       "passed": true,
-      "milliseconds": 0
+      "milliseconds": 1
     },
     {
       "name": "Subsongs 0: original and generated 6502 routines execute without missed opcodes",
@@ -728,12 +728,12 @@
     {
       "name": "Subsong 0: pulse volume/duty and four channel gates match every source frame",
       "passed": true,
-      "milliseconds": 1
+      "milliseconds": 0
     },
     {
       "name": "Subsong 0: sounding pitch maps to the nearest canonical period with measured error",
       "passed": true,
-      "milliseconds": 5
+      "milliseconds": 2
     },
     {
       "name": "Subsong 0: canonical excerpt cuts all channels at the declared end",
@@ -743,7 +743,7 @@
     {
       "name": "Independent subsong 1 produces a canonical score for explicit transcription",
       "passed": true,
-      "milliseconds": 1
+      "milliseconds": 0
     },
     {
       "name": "Subsongs 1: original and generated 6502 routines execute without missed opcodes",
@@ -778,17 +778,17 @@
     {
       "name": "External-driver derivative preserves looping volume/arpeggio frames and negative-arpeggio ADC carry",
       "passed": true,
-      "milliseconds": 1018
+      "milliseconds": 1110
     },
     {
       "name": "External-driver derivative confirms global speed precedence through repeated channel loops",
       "passed": true,
-      "milliseconds": 1071
+      "milliseconds": 1188
     },
     {
       "name": "Editing an imported ordinary tracker note changes the rebuilt ROM and real APU pitch",
       "passed": true,
-      "milliseconds": 764
+      "milliseconds": 825
     }
   ]
 }

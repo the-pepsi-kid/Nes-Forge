@@ -1,3 +1,23 @@
+# Current documentation index — 2.0.0-alpha.11 / movement-rules-1
+
+Begin with `MOVEMENT_RULES.md` and `MOVEMENT_RULES_CHECKLIST.txt` for **SCENE → Movement rules**. D062 records this bounded continuation of the exaggerated-mechanics discussion. Read `../CURRENT_BASELINE.md`, `../HANDOFF.md` and `ROADMAP_IMPLEMENTATION_STATUS.md` for scope, evidence authority and remaining dependencies. The complete manual/PDF has not been comprehensively updated; these documents are supplements.
+
+| Document | Purpose |
+|---|---|
+| `MOVEMENT_RULES.md` | Current source, backend/preset/seed/intensity/lock workflow, exact previews, Apply/Undo and recipes |
+| `MOVEMENT_RULES_CHECKLIST.txt` | R1–R8 owner review of both generated backends, persistence/build, safety and mobile input |
+| `SEEDED_MASHUP.md` / `SEEDED_MASHUP_CHECKLIST.txt` | Retained asset-mixing workflow; apply it before capturing the result for Movement rules |
+| `RECOVERY_METHODS.md` / `RECOVERY_METHODS_CHECKLIST.txt` | Retained shared recovery discovery and explicit routes |
+| `NATIVE_AUDIO_IMPORT.md` / `NATIVE_AUDIO_IMPORT_CHECKLIST.txt` | Retained finite score transcription into canonical AUDIO |
+| `NATIVE_AUDIO_INVESTIGATION.md` | Retained isolated original-driver ROM-copy editing |
+| `ROADMAP_IMPLEMENTATION_STATUS.md` | Current capability ledger and complete remaining sequence |
+
+## Preserved alpha.10 documentation index
+
+Earlier entries retain their historical context. This index and current identity/report files take precedence for alpha.11.
+
+---
+
 # Current documentation index — 2.0.0-alpha.10 / seeded-mashup-1
 
 Begin with `SEEDED_MASHUP.md` and `SEEDED_MASHUP_CHECKLIST.txt` for **SCENE → Seeded mashup**. D061 records the owner's explicit request to add reproducible canonical asset mashups at this point. Read `../CURRENT_BASELINE.md`, `../HANDOFF.md` and `ROADMAP_IMPLEMENTATION_STATUS.md` for exact scope, evidence authority and remaining work. The complete manual/PDF has not been comprehensively updated; these guides supplement it.

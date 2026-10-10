@@ -1,3 +1,19 @@
+# Current Alpha plan — 2.0.0-alpha.11 / movement-rules-1
+
+Following the owner's “continue” after the exaggerated-mechanics discussion, D062 adds bounded movement authoring before the next A1 native-recovery item. **SCENE → Movement rules** captures the current generated World or generated single-room project; presets, intensity 1–3, a seed and four locks choose only existing move/jump/gravity/fall settings. Detached exact preview, guarded confirmed Apply with one Undo, candidate JSON and source-bound recipe replay support review and persistence.
+
+Preserve all other project values, runtime mode flags, the inactive backend, existing emitters and mashup-v1 modules/recipes. Viewer/custom-ASM projects are refused. Friction, knockback, death/timer mechanics, new actor templates and raw-ROM semantic recovery are outside this item. A valid ROM is not a level-solvability guarantee.
+
+Keep all **1,430 alpha.10 cases across 65 suites**, plus declared current suites. The fresh Summary and movement-rules clean-extraction proof establish measured outcomes and identity. Browser/mobile/listening/controller/hardware acceptance remain separate. Follow `MOVEMENT_RULES.md` and `MOVEMENT_RULES_CHECKLIST.txt`; these supplement the unfinished comprehensive manual/PDF.
+
+Resume A1 shared native-background recovery/import on independent inputs, then A2 suitable native map/collision recovery, with remaining Audio/migration/gameplay/runtime work before integrated Hosted/networking/wallet/deck requirements. Full roadmap implementation authorization continues; the whole roadmap remains unfinished.
+
+## Preserved alpha.10 packaged plan and historical requirements
+
+The following earlier packaged plan is retained verbatim. This preface controls current status; its remaining requirements still apply.
+
+---
+
 # Current Alpha plan — 2.0.0-alpha.10 / seeded-mashup-1
 
 The owner explicitly requested seeded random mashups now. D061 adds a bounded canonical authoring checkpoint before the next A1 native-recovery item: compatible editable assets from the captured current project and Forge JSON donors, deterministic seed/domain choices/locks, preview/build validation and confirmed one-Undo application. Follow `SEEDED_MASHUP.md` and `SEEDED_MASHUP_CHECKLIST.txt`; consult `ROADMAP_IMPLEMENTATION_STATUS.md` for the complete capability ledger.

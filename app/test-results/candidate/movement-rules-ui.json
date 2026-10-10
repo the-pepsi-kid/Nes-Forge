@@ -1,0 +1,114 @@
+{
+  "suite": "movement-rules-ui",
+  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
+  "scope": "Actual bundled Movement rules controls, isolated previews, explicit four-field Apply, Undo/Redo and exact Save/reopen, bounded recipe input, locks, native input, stale races and protected Save As. No browser or hardware acceptance claim.",
+  "passed": 26,
+  "total": 26,
+  "failed": 0,
+  "results": [
+    {
+      "name": "SCENE panel mounts once, separate from mashup, with visible native file/seed and Keep current default",
+      "passed": true
+    },
+    {
+      "name": "Preview requires explicit capture and disabled generated modes are never enabled by capture",
+      "passed": true
+    },
+    {
+      "name": "Default Keep current preview has no effect and cannot Apply",
+      "passed": true
+    },
+    {
+      "name": "Preview displays all before/after values, units and backend without mutating project/history/emulator",
+      "passed": true
+    },
+    {
+      "name": "Same seed/settings reproduce exact candidate and movement recipe downloads",
+      "passed": true
+    },
+    {
+      "name": "All four locks preserve the last preview while Shuffle unlocked advances seed and selects Seeded mix",
+      "passed": true
+    },
+    {
+      "name": "Locks require an established preview and recapture clears old lock checkboxes and recipe",
+      "passed": true
+    },
+    {
+      "name": "Failed capture preserves established source, preview and lock UI",
+      "passed": true
+    },
+    {
+      "name": "Cancelling Apply confirms exact values and retains preview and entire history",
+      "passed": true
+    },
+    {
+      "name": "World Apply owns only four physics numbers; exact Undo/Redo and Save/reopen retain every other field",
+      "passed": true
+    },
+    {
+      "name": "Single-room Apply changes its gameplay settings and preserves disabled World configuration",
+      "passed": true
+    },
+    {
+      "name": "Edited native ROM audio and live tracker state survive preview and Apply untouched",
+      "passed": true
+    },
+    {
+      "name": "Ordinary edits, replaced identical projects and edits in confirmation reject stale Apply",
+      "passed": true
+    },
+    {
+      "name": "Delayed preview and replay reject project and option races before publishing or applying",
+      "passed": true
+    },
+    {
+      "name": "Blank, whitespace, oversized seeds and invalid intensity/preset fail without edits",
+      "passed": true
+    },
+    {
+      "name": "Paused history refuses Apply both before replay and after confirmation",
+      "passed": true
+    },
+    {
+      "name": "A failed snapshot restores complete history before any candidate assignment",
+      "passed": true
+    },
+    {
+      "name": "Notify and refresh faults retain dirty, Undoable committed data",
+      "passed": true
+    },
+    {
+      "name": "Unexpected model changes outside movement fields are rejected before preview/Apply",
+      "passed": true
+    },
+    {
+      "name": "Candidate/recipe downloads use protected Save As and do not Apply",
+      "passed": true
+    },
+    {
+      "name": "Movement recipe round trip restores settings and locks as a detached preview",
+      "passed": true
+    },
+    {
+      "name": "Wrong, tampered or mismatched recipes and oversized reads cannot replace a valid preview",
+      "passed": true
+    },
+    {
+      "name": "Delayed recipe read and replay reject changed options or projects",
+      "passed": true
+    },
+    {
+      "name": "Save As busy/cancellation/failure and stale completion report accurate outcomes",
+      "passed": true
+    },
+    {
+      "name": "After Apply a new preview requires recapture and an old recipe requires its original base",
+      "passed": true
+    },
+    {
+      "name": "Seed input keeps native keyboard defaults while releasing held emulator/gamepad input",
+      "passed": true
+    }
+  ]
+}

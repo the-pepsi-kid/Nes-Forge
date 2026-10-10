@@ -1,3 +1,25 @@
+# Implementation status — movement-rules-1
+
+This authoring checkpoint follows the owner's “continue” after the exaggerated traditional-mechanics discussion. The full roadmap remains in progress. Current candidate **alpha.11 / movement-rules-1**, schema 12, adds **SCENE → Movement rules** alongside the retained Seeded mashup panel.
+
+| Area | Current implementation | Remaining scope / evidence |
+|---|---|---|
+| Bounded movement variation | Existing generated World or single-room move/jump/gravity/fall settings, six presets including Keep/Seeded mix, intensity 1–3, four locks, exact detached preview, source-bound recipe replay, confirmed one-Undo application and candidate JSON | Browser/mobile acceptance, actual playability and physical-device review; presets can make existing routes impossible |
+| Exaggerated mechanics beyond those four settings | Not implemented by this checkpoint | Friction, knockback, health/death, timed escape/survival and new gameplay operations require their own runtime contracts; health zero does not establish player death |
+| Seeded asset mashups | Retained alpha.10 version-1 workflow and recipes; may be applied before capturing a Movement Rules source | Existing donor/format/placement and aesthetic/solvability limits remain |
+| Alpha A1/A2 native recovery | Existing generic physical CHR remains; movement introduces no raw-ROM decoder | Next A1: shared native-background recovery/import on independent Pepsi and source-backed HonkeyPong. Then A2: suitable independent native map/collision data |
+| Remaining full roadmap | Previous capability ledger and requirements preserved below | Additional Audio, source migration/gameplay, linker/runtime/raster/LiveLink/debugging, then integrated Hosted/networking/wallet/deck work |
+
+Only four existing fields of the active generated backend change: move 1–4, jump 1–12, gravity 1–3 and maximum fall 1–8. Mode flags, inactive configuration, body/spawn, art/layout/collision, Audio and actors stay unchanged. Viewer/custom-ASM sources are refused. Preview/cancel/refusal do not mutate the active project or emulator. Existing runtime emitters are preserved.
+
+All **65 alpha.10 suites / 1,430 cases** remain mandatory, plus declared current suites. Actual alpha.11 evidence belongs to its fresh Summary and movement-rules clean-extraction proof; the parent's pass does not certify changed bytes. Browser/mobile, listening, controller/hardware acceptance and full manual/PDF review remain separate. Guides supplement the manual. No promotion is recorded.
+
+## Preserved alpha.10 capability ledger and complete prior history
+
+The following earlier ledger is retained verbatim. The current preface controls this candidate's identity and additions; unchanged remaining requirements continue to apply.
+
+---
+
 # Implementation status — seeded-mashup-1
 
 This is a progress checkpoint under full roadmap implementation authorization. It is not a declaration that the complete roadmap is done. Items are reviewed in dependency order, beginning with Audio; independently prepared later work is not a substitute for missing earlier acceptance. The comprehensive roadmap remains the requirements source.

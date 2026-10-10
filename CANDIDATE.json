@@ -1,30 +1,30 @@
 {
   "format": "NESForgeCandidateHandoff",
   "version": 1,
-  "release": "2.0.0-alpha.10",
-  "candidate": "seeded-mashup-1",
+  "release": "2.0.0-alpha.11",
+  "candidate": "movement-rules-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/seeded-mashup-2026-10-08",
-  "html": "mainline/NES_Forge_2.0.0-alpha.10.html",
-  "htmlSha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375",
-  "archive": "NES_Forge_2.0.0-alpha.10_Seeded_Mashup_Candidate.zip",
-  "archiveSha256": "696732dcfa3d06b20aa2ba415998e269f46e05b47e302a768497efa41eea1ced",
-  "payloadChecksums": 3332,
-  "packageFiles": 3333,
+  "branch": "implementation/gameplay-rules-2026-10-10",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
+  "archive": "NES_Forge_2.0.0-alpha.11_Movement_Rules_Candidate.zip",
+  "archiveSha256": "26258b95f46f2712b72deea2367daaccd643743d09454b943367c5b45d094018",
+  "payloadChecksums": 3866,
+  "packageFiles": 3867,
   "automatedResult": {
     "status": "passed",
-    "passed": 1430,
+    "passed": 1504,
     "failed": 0,
-    "total": 1430,
-    "suiteCount": 65,
-    "startedAt": "2026-10-08T21:50:30.607Z",
-    "finishedAt": "2026-10-08T22:07:11.237Z"
+    "total": 1504,
+    "suiteCount": 68,
+    "startedAt": "2026-10-10T04:58:25.497Z",
+    "finishedAt": "2026-10-10T05:19:47.055Z"
   },
-  "retainedCases": 1330,
-  "retainedSuites": 61,
+  "retainedCases": 1430,
+  "retainedSuites": 65,
   "automatedSummary": "app/test-results/candidate/Summary.json",
-  "cleanExtractionProof": "app/checkpoints/seeded-mashup-1-clean-extraction/Reproduction.json",
+  "cleanExtractionProof": "app/checkpoints/movement-rules-1-clean-extraction/Reproduction.json",
   "browserEvidence": [
     {
       "name": "browser-mobile",
@@ -70,6 +70,11 @@
       "name": "browser-seeded-mashup",
       "status": "blocked",
       "checks": 0
+    },
+    {
+      "name": "browser-movement-rules",
+      "status": "blocked",
+      "checks": 0
     }
   ],
   "nativeAudio": {
@@ -83,13 +88,13 @@
     "nativeEngineEquivalence": false,
     "listening": "pending"
   },
-  "ownerAcceptance": "pending for alpha.10; earlier owner reports retain their original artifact scope",
+  "ownerAcceptance": "pending for alpha.11; earlier owner reports retain their original artifact scope",
   "mobilePerformance": "pending same-device comparison",
   "hardwareControllers": "not physically tested",
   "promotion": "not promoted",
   "roadmap": "in progress; complete roadmap is not implemented",
-  "parentCommit": "f8b4fbf1cb00471810ede38635d9f234f85590ec",
-  "nextCodingDependency": "A1 shared native-background recovery and editable import on independent Pepsi and source-backed HonkeyPong inputs; then A2 on a suitable independent native map/collision input",
+  "parentCommit": "25cfb9ed0b461ad2a6da636b39e381b818f5c498",
+  "nextCodingDependency": "Address explicit cross-release recipe migration before the next release bump; then resume A1 shared native-background recovery/import on Pepsi and source-backed HonkeyPong, followed by A2 on a suitable independent map/collision input.",
   "license": "UNDECIDED",
   "recoveryMethods": {
     "contractVersion": 2,
@@ -120,5 +125,54 @@
     "arbitraryEngineCodeFusion": false,
     "wholeRoomComposition": false,
     "solvabilityGuaranteed": false
+  },
+  "movementRules": {
+    "version": 1,
+    "ui": "SCENE > Movement rules",
+    "recipe": "NESForgeMovementRecipe v1",
+    "presets": [
+      "keep",
+      "sprint",
+      "high-jump",
+      "slow-fall",
+      "heavy-fall",
+      "seeded-mix"
+    ],
+    "intensity": [
+      1,
+      2,
+      3
+    ],
+    "bounds": {
+      "moveSpeed": [
+        1,
+        4
+      ],
+      "jumpSpeed": [
+        1,
+        12
+      ],
+      "gravity": [
+        1,
+        3
+      ],
+      "maxFallSpeed": [
+        1,
+        8
+      ]
+    },
+    "scope": "Four scalar physics values in the already configured active generated World or single-room runtime; independent locks and deterministic origins; one guarded Undoable Apply",
+    "preservation": "Existing mashup v1 code/recipes, body dimensions, starts, maps, actors, audio and inactive backend remain unchanged",
+    "newRuntimeOrSchema": false,
+    "deathSlidingKnockbackOrTimersAdded": false,
+    "solvabilityGuaranteed": false
+  },
+  "crossReleaseRecipeUI": {
+    "status": "known-limitation",
+    "alpha10RecipeDirectlyInAlpha11": false,
+    "reason": "Ordinary project opening updates foundation metadata and changes the captured canonical source SHA.",
+    "workaround": "Replay/apply with included alpha.10 app and original sources, then open the saved result in alpha.11.",
+    "next": "Implement explicit version-aware recipe migration before a later release bump.",
+    "evidence": "app/checkpoints/movement-rules-1-clean-extraction/Compatibility_Notes.md"
   }
 }

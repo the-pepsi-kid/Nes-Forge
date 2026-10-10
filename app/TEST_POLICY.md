@@ -1,3 +1,19 @@
+# Test policy — 2.0.0-alpha.11 Movement Rules
+
+Retain every **1,430 alpha.10 case across 65 suites**, with exact per-suite counts, then add the declared Movement Rules suites. No filters, skipped cases, substituted production modules, regenerated historical oracles or stale outcomes. The fresh current Summary establishes measured totals and results.
+
+Require exact source identity and deterministic preset/intensity/seed decisions; four field locks retain the last verified preview's values. Cover all legal bounds and malformed/unsupported sources, options and recipes. Only the active generated backend's four declared physics values may differ. Body/spawn, art/layout/collision, Audio, actors, inactive configuration and mode flags must remain unchanged. Viewer and custom-ASM sources must refuse without mutation. Existing mashup-v1 modules, recipes and retained tests remain exact.
+
+Exercise actual bundled UI capture, selectors, locks, preview, changed/stale options/project, confirmation/cancel, one-step Undo/Redo, native-input ownership and protected candidate/recipe downloads. Replay must require exact original source content and compare the regenerated result. Preview and any refusal/cancellation preserve the project, emulator and unrelated native sessions. Save/reopen must preserve the canonical result and exact generated ROM where claimed.
+
+Require generated World and single-room ROM execution evidence showing selected movement/jump/gravity/fall values affect the real existing 6502 routines. Compare original and changed motion with controlled inputs and collision circumstances; inspecting a stored setting or emitted byte alone is insufficient. Preserve existing runtime emitters rather than forking physics for the feature. No test or documentation may infer friction, knockback, death/timer mechanics or general level solvability from these settings.
+
+Freeze source, docs, examples and tests before staging. Verify all payload checksums, clean-extract and run the full gate on one unchanged HTML. Record `checkpoints/movement-rules-1-clean-extraction/Reproduction.json`. Exact normalization reconstructs pinned alpha.10 before its preserved source chain. Packaging validates provenance, counts, reports and identities; no provenance input changes after the run.
+
+Browser reports identify the current HTML with actual measured checks, or an explicit blocked launch with zero checks. Browser/mobile layouts, native keyboard/file dialogs, audible comparison, same-device phone A/V performance, USB-C/Bluetooth controllers and NES/deck hardware remain separate evidence. Keep deferred A6 and earlier owner results attached to their original candidate. The full manual/PDF remains incomplete.
+
+## Preserved alpha.10 policy and complete prior history
+
 # Test policy — 2.0.0-alpha.10 Seeded Mashup
 
 Retain every **1,330 alpha.9 case across 61 suites**, with exact per-suite counts, then add the declared mashup suites. No filters, skipped cases, substituted production modules, regenerated historical oracles or stale outcome records. The fresh current Summary establishes measured totals and outcomes.

@@ -1,0 +1,81 @@
+{
+  "format": "NESForgeRecipeVersionBoundaryEvidence",
+  "version": 1,
+  "status": "known-limitation-reproduced-with-workaround",
+  "generatedAt": "2026-10-10T05:07:37.689Z",
+  "classification": "Existing source identity includes foundation release; raw-model old recipe replay remains intact, but normal UI project opening updates foundation and prevents direct cross-version recipe replay. This is not a cross-version UI compatibility pass.",
+  "scope": "Actual archived/current bundled UI handlers in the mock-DOM harness, no real-browser/native Save As or hardware acceptance. Workaround transfers the exact captured editable project object between application harnesses; it does not claim a native file-dialog walkthrough.",
+  "applications": {
+    "current": {
+      "path": "mainline/NES_Forge_2.0.0-alpha.11.html",
+      "sha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1"
+    },
+    "archived": {
+      "path": "baseline/NES_Forge_2.0.0-alpha.10_Seeded_Mashup.html",
+      "sha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375"
+    }
+  },
+  "sources": [
+    {
+      "filename": "Scout_Base.nesforge.json",
+      "fileSha256": "2bcad770ca14c57719fb497d65cf1a94ee4a456516bcdf68bc0da71ba1476659"
+    },
+    {
+      "filename": "Copper_Orchard_Donor.nesforge.json",
+      "fileSha256": "73808e19beddf60df4f99630ba4e37d6fd61b38200732c96926c105bf1239ec6"
+    },
+    {
+      "filename": "Moonlit_Circuit_Donor.nesforge.json",
+      "fileSha256": "993a13660e5e594d223247e8b237a3187f4d00cca6de163d18afd329723839fd"
+    }
+  ],
+  "recipe": {
+    "filename": "Mashup_FORGE-001.recipe.json",
+    "fileSha256": "31907c56d9e5155ec802e1174e7623e5127e24720a16f8eba851badffc5e960d",
+    "baseSourceId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b",
+    "resultSha256": "1f7539c7f625040216916e3ab069f3b0c000520035b55e7f1ea2a5848f82bdc2"
+  },
+  "refusal": {
+    "captureCurrent": true,
+    "loadOriginalDonors": true,
+    "originalFoundation": "2.0.0-alpha.10",
+    "currentFoundation": "2.0.0-alpha.11",
+    "capturedBaseSourceId": "8e712d9fd8dab3ca69646d6c9c4cfd9e2e1934696977aaba885686298bd21cc7",
+    "loadOriginalRecipe": false,
+    "message": "This recipe requires its exact original base project. Open that project and choose Use current project first.",
+    "projectUnchanged": true,
+    "historyUnchanged": true,
+    "emulatorUnchanged": true,
+    "undoEntries": 0
+  },
+  "workaround": {
+    "archivedCapture": true,
+    "archivedLoadDonors": true,
+    "archivedLoadRecipe": true,
+    "archivedApply": true,
+    "archivedAppliedProjectSha256": "1f7539c7f625040216916e3ab069f3b0c000520035b55e7f1ea2a5848f82bdc2",
+    "exactOriginalRecipeResult": true,
+    "currentOpenChanges": [
+      {
+        "field": "foundation",
+        "before": "2.0.0-alpha.10",
+        "after": "2.0.0-alpha.11"
+      }
+    ],
+    "rebuiltBackend": "world",
+    "rebuiltRomBytes": 40976,
+    "rebuiltRomSha256": "204895318323b074bbd1a1007664c405370bb8f4380efa025dd232805ff94445",
+    "errors": []
+  },
+  "operatorPath": [
+    "Open matching archived alpha.10 application.",
+    "Open the unchanged original base, capture it, and add the original donors.",
+    "Open its alpha.10 recipe, then Apply.",
+    "Save the complete editable project and open that project in alpha.11. Existing generated project files can be opened directly."
+  ],
+  "reproduction": {
+    "command": "node reviews/movement-rules-1/recipe-version-boundary.cjs",
+    "scriptSha256": "139b7d38162363dcbdb21465dfac895e7057558ac0ef6fd965e01b16d892010f",
+    "appFilesChanged": false
+  }
+}

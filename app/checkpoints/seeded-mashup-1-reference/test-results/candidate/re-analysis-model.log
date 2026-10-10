@@ -1,0 +1,25 @@
+PASS Unknown engine and mapper open for inspection without changing project, undo or emulator
+PASS Raw non-NES binary and empty file retain exact physical identity without invented platform
+PASS Truncated, extended and invalid NES headers fall back to raw bytes rather than reject analysis
+PASS NROM 16KiB mirror mapping and vectors use real physical offsets
+PASS Trainer, distinct NROM32 banks and trailing bytes retain exact spans and hash
+PASS NES2 mapper high bits, submapper and linear ROM size are decoded without runtime claims
+PASS NES2 exponent-multiplier sizes and unsafe declarations are handled without allocations from headers
+PASS NES2 linear size upper nibble is measured in PRG and CHR units
+PASS Input bytes are copied synchronously before asynchronous digest resolves
+PASS Caller ArrayBuffer views and returned objects cannot mutate retained bytes or evidence
+PASS Shared memory, unsupported input and unavailable hash are rejected clearly
+PASS Input and all public output bounds reject negatives, overflow, fractional values and oversized requests
+PASS Explicit CPU mappings preserve overlapping banks and reject crossing physical or CPU limits
+PASS Every documented addressing form uses correct little-endian operands and instruction lengths
+PASS Relative branches use signed offsets and wrap targets only with an explicit CPU origin
+PASS Disassembly is independent from static NROM mapping and absolute jumps expose encoded targets only
+PASS Unknown opcodes and truncated operands retain exact bytes with uncertainty instead of fabricated instructions
+PASS NMOS and 2A03 document exactly 151 encodings and reject accidental CMOS decoding
+PASS Chunked search retains every match crossing scan boundaries without duplicate offsets
+PASS Result-limited search resumes overlapping repeated matches without skipping
+PASS Search validates pattern and scan progress, and reads at most its explicit bound
+PASS Physical CHR bitplanes and source evidence decode independently of an unsupported mapper
+PASS CHR RAM and raw layouts never invent graphics from unrelated bytes
+
+23/23 passed

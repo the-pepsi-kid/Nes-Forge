@@ -1,0 +1,98 @@
+NES FORGE 2.0.0-alpha.10 — SEEDED MASHUP REVIEW
+Candidate: seeded-mashup-1; schema 12
+
+This checklist reviews the bounded canonical asset mixer. It does not certify new arbitrary-ROM recovery, automatic merging of original game code, full-room composition, complete roadmap delivery or physical-device compatibility. Record pass/fail/not tested for each item. The static background preview does not run gameplay or audio.
+
+Before starting
+- Open mainline/NES_Forge_2.0.0-alpha.10.html. Record its SHA-256 from build-inputs.json, device, OS and browser/version. Current measured results belong to test-results/candidate/Summary.json and checkpoints/seeded-mashup-1-clean-extraction/Reproduction.json.
+- Save any current work with Save Project As. Keep a separate unchanged copy of the original base and each donor: recipe replay requires their exact source identities, rather than the already-applied mashup as its base.
+- Use examples/Seeded_Mashup_2.0.0-alpha.10/Scout_Base.nesforge.json as the original Base. Add Copper_Orchard_Donor.nesforge.json and Moonlit_Circuit_Donor.nesforge.json from the same folder only through the mashup panel. These are editable canonical Forge projects, not raw ROMs. Copper supplies orange/brown graphics/music; Moonlit supplies blue graphics and a different melody.
+- The supplied folder also contains generated Mashup_FORGE-001 and Mashup_FORGE-002 project/recipe/ROM examples. Use their Manifest.json for file identities. These are workshop controls, not evidence of unrelated-engine ROM recovery.
+- Optional isolation check: keep an unrelated ROM paused in EMULATOR and note its frame/state. Only an explicit later Build & Run should replace it.
+- Controls live in SCENE -> Seeded mashup. Existing scenes, World/collision structure and five gameplay templates remain the base. Whole graphic banks keep existing tile indices, so a valid result can still look mismatched.
+
+M1 — Capture the base and add donors without changing the project
+1. Open the Base review project with the ordinary Open Project action, then open SCENE -> Seeded mashup.
+2. Choose Use current project. Expand Source identities and record the base name and SHA-256.
+3. Use Add donor Forge project JSON files (up to eight) to select both named Donor review projects. Check that their separate identities and assets appear in the source/choice controls.
+4. Select the review scene under Target scene. Leave gameplay options off for M1–M6.
+Expected: capture/intake leaves the active scene, Audio data, Undo history and emulator unchanged. The frozen base and donor files form the source pool; adding donors does not open one as the active project. Each source is limited to 8 MiB, the pool to nine sources including the base and 32 MiB total.
+Result M1: ______ Notes: _______________________________________________
+
+M2 — Same seed, same inputs, same preview
+1. Set Seed to review-1. Leave Background tiles, Sprite tiles, Palettes and Music at Random source (preview checks fit), with their Lock boxes off.
+2. Choose Preview mashup. Record the selected sources/assets, recipe identity if shown, warnings, validation and static background. Do not apply.
+3. Choose Preview mashup again without changing any source, option or project data.
+4. Inspect the ordinary editor and optional paused emulator state.
+Expected: identical source pool, seed, target and choices reproduce the same candidate. Preview does not mutate the active project, add Undo history, play Audio or load/run/reset the emulator. The preview shows a background, not a running game; inspect sprite/music choices in the result and later test them after applying. A random choice may select current assets; No effective changes is a valid result and disables Apply while still permitting downloads.
+Result M2: ______ Notes: _______________________________________________
+
+M3 — Keep choices and shuffle unlocked domains
+1. Explicitly select a donor Background tiles choice and preview. Enable Lock background tiles after that successful preview.
+2. Choose Shuffle unlocked several times. Confirm the displayed seed changes, unlocked dropdowns return to Random, and the locked background asset remains the same.
+3. Set Music to Keep current with its lock off, then preview and compare the choice. Unlock background and choose its Keep current option if you want to restore it.
+4. Select a desired explicit donor again and preview for M4.
+Expected: locks retain the prior successful preview's choice. A changed dropdown does not replace a locked prior choice until it is unlocked. An initial random lock establishes its choice on the first successful preview. Keep current preserves that domain's base content when unlocked. Different seeds may choose the same asset; a finite pool cannot promise a different result every time. Gameplay remains off.
+Result M3: ______ Notes: _______________________________________________
+
+M4 — Cancel, apply, Undo and Redo
+1. Choose Copper Orchard for Background tiles and Palettes, and Moonlit Circuit for Sprite tiles and Music, with locks off. Preview and read the findings. This combines two donors in one base without relying on a particular random draw.
+2. Choose Apply mashup, then cancel the confirmation once.
+3. Confirm the active project is unchanged. Choose Apply mashup again and accept.
+4. Inspect the target scene, its sprite graphics and AUDIO. Use one ordinary project Undo, then Redo.
+Expected: cancelling preserves project/emulator state. Confirmed Apply creates one Undoable project change; Undo restores the entire prior project content and Redo restores the mashup. Existing scenes/World/collision references, player/switch/door identities and bindings remain. Music appends/rebases compatible patterns/instruments and replaces music order/tempo/speed while preserving existing definitions. Read the warning: global tempo/speed can change existing SFX timing. Applying does not automatically play Audio or run a ROM.
+Result M4: ______ Notes: _______________________________________________
+
+M5 — Edit, save, reopen and build a changed ROM
+1. After applying, make an ordinary small edit to a visible tile or a selected music note using Forge's existing editors.
+2. Save Project As to a new filename. Reopen that project and confirm the mashup plus your edit remain.
+3. Use the existing Build .NES ROM or Build & Run workflow. If Audio runtime compilation or autoplay is disabled in your chosen base, enable it explicitly under AUDIO -> NES Runtime before building; the mashup preserves those runtime settings.
+4. Play the rebuilt result and, where possible, open the exported ROM in an independent emulator. Compare graphics/sprites/music with the original Base review ROM or build.
+Expected: ordinary canonical editing, persistence and compilation work. The selected content reaches the generated ROM, subject to the base's runtime settings. Observe gameplay, collision, music and SFX timing; a successful detached preflight or generated ROM does not establish solvability, visual/music quality, listening quality or hardware performance. Record external-emulator and actual listening separately.
+Result M5: ______ Notes: _______________________________________________
+
+M6 — Download a candidate and reproduce a saved recipe
+1. Reopen the unchanged original Base review project, choose Use current project, and restore the same two-Donor pool and desired preview choices.
+2. Choose Download candidate project and Download recipe. If a location dialog is offered, cancel one attempt and check that no fallback download is created; then save successfully.
+3. Open the downloaded candidate through ordinary Open Project and confirm its editable content matches the preview. This alone does not recreate the mashup source-pool session.
+4. Reopen the unchanged original Base again. Choose Use current project and add both exact original Donor files. Use Open saved mashup recipe (exact original sources required) to select the saved recipe.
+5. Check the replayed preview and compare choices with the exported candidate. Do not apply unless desired.
+6. Clear donors and try opening that recipe again; restore the missing exact sources afterward.
+Expected: the candidate JSON contains editable canonical project data. The recipe is a bounded record of choices and source identities, with no embedded donor projects or ROM bytes. Replay verifies exact original sources before presenting a detached result, then requires explicit Apply. Missing/changed sources are refused without mutating the project. A download is a snapshot; it does not imply that the current project has been applied or that the native ROM editor session was saved.
+Result M6: ______ Notes: _______________________________________________
+
+M7 — Optional existing-entity gameplay variation
+1. Start from the unchanged Base review project and capture it again. Its workshop actors include two patrols and two pickups. Set asset domains to Keep current with locks off.
+2. Enable Vary patrol speed (1–4, within authored bounds), preview and inspect which eligible existing patrol entities change.
+3. Enable Shuffle compatible existing enemy/pickup slots, then preview and inspect the reported slot choices. Use Lock gameplay choices from the previous preview, then Shuffle unlocked to confirm those choices remain fixed.
+4. Apply a changed result and build/play it. Undo once to restore the prior gameplay choices.
+Expected: the feature varies supported canonical patrol instance speeds inside authored bounds and permutes only eligible existing slots. It does not add enemies, change health/damage/item values or introduce mechanics. Slots must share compatible owner/screen/role/collider/patrol bounds, stay inside the relevant map/room and have known-clear collision. Player, switch and door positions and identities remain. Unsafe, raster/unknown collision or absent eligible slots produce explicit unavailable/refusal findings; they are not silently guessed. Reachability and difficulty still need playtesting.
+Result M7: ______ Notes: _______________________________________________
+
+M8 — Invalid sources, changed inputs and stale preview safety
+1. Cancel a donor file chooser once; confirm existing sources remain usable. Try an invalid JSON file or an existing analysis/evidence JSON as a donor. Try selecting a raw .nes file where the picker allows it.
+2. Preview a valid candidate, then change its seed/domain option. Confirm Apply cannot silently use the old preview; preview again.
+3. After a valid preview, edit the active project through its ordinary editor or open another project, then try to apply the old preview.
+4. Choose Use current project again and make a fresh preview to continue. To test a malformed/incompatible donor, keep a copy of the good pool and check that rejection preserves it.
+Expected: only supported Forge project JSON enters the pool. ROMs, ZIPs, recipes and inspection reports do not become donor projects. Invalid/unsupported shapes, unresolved references, pattern-length/capacity conflicts and custom-ASM base projects are refused explicitly. Donor code is never run. Changed project/source/options invalidate the old candidate and require fresh capture/preview. A failed or cancelled operation never partly imports assets or replaces the emulator ROM.
+Result M8: ______ Notes: _______________________________________________
+
+M9 — Mobile controls and input ownership
+1. On the phone, repeat capture, donor loading, seed entry, preview and explicit Apply/Undo with the review projects.
+2. Type a seed using the native keyboard, change selectors/locks, scroll through source identities and findings, then rotate the device and return to the field.
+3. Try candidate/recipe download and a Save Project As/reopen cycle. Note native file picker behavior.
+4. With a paused emulator ROM loaded, confirm typing in mashup inputs does not press gameplay buttons or run/reset it. Leave the panel and check that no keys/controls remain held.
+Expected: controls, warnings and results remain reachable; text input belongs to the selected field. Desktop/VM tests do not establish native mobile keyboard, browser picker or layout acceptance. Record actual device/browser/keyboard and observed clipping/focus problems. Cricket Dream 5G / Chrome A/V performance, speaker comparison, USB-C/Bluetooth controllers and physical NES/deck testing remain separate unless actually performed.
+Result M9: ______ Notes: _______________________________________________
+
+Send back
+Candidate/hash:
+Device / OS / browser / keyboard:
+M1: ___ M2: ___ M3: ___ M4: ___ M5: ___ M6: ___ M7: ___ M8: ___ M9: ___
+Base/donor filenames and Source identities hashes:
+Seed / target scene / locked domains:
+First unexpected action and exact message:
+Did preview, cancel or refusal change the project/emulator?
+Saved candidate/recipe or screenshot/recording, if available:
+
+Retained recovery, native Audio and import checklists, earlier deferred A6, listening and device/hardware reviews remain separate. This checklist supplements the manual; it is not a completed full manual/PDF update.

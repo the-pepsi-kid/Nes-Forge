@@ -1,6 +1,6 @@
 {
   "suite": "mashup-integration200",
-  "htmlSha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375",
+  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
   "scope": "Three explicitly Scout-derived canonical source projects; actual bundled preview/apply/Undo/Redo and Save Project As with a mocked OS writable handle; deterministic recipe replay, real generated World and single-room 6502 execution, CHR framebuffer and APU register changes. No browser visuals, listening, mobile/controller/hardware or arbitrary-engine recovery acceptance.",
   "passed": 12,
   "failed": 0,
@@ -9,17 +9,17 @@
     "sourceProjects": [
       {
         "name": "Mashup Workshop — Scout Base",
-        "sha256": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b",
+        "sha256": "8e712d9fd8dab3ca69646d6c9c4cfd9e2e1934696977aaba885686298bd21cc7",
         "byteLength": 205353
       },
       {
         "name": "Mashup Workshop — Copper Orchard",
-        "sha256": "547fdfa7292846353ffdc88b4acad3bc99cf497a78618fd91c4eae5e2aad1705",
+        "sha256": "f474cc2b639f21244f31ab8f58055471bdc7b5b3a9c2bd4714eed92484db6090",
         "byteLength": 190323
       },
       {
         "name": "Mashup Workshop — Moonlit Circuit",
-        "sha256": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84",
+        "sha256": "207c2207e6630a6e798b6d3cf8fd47f180aa6663c128e27e1464cad4ab820b91",
         "byteLength": 190326
       }
     ],
@@ -29,26 +29,26 @@
       "algorithm": "sha256-mulberry32-domains-1",
       "sources": [
         {
-          "sha256": "547fdfa7292846353ffdc88b4acad3bc99cf497a78618fd91c4eae5e2aad1705",
-          "byteLength": 190323
-        },
-        {
-          "sha256": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84",
+          "sha256": "207c2207e6630a6e798b6d3cf8fd47f180aa6663c128e27e1464cad4ab820b91",
           "byteLength": 190326
         },
         {
-          "sha256": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b",
+          "sha256": "8e712d9fd8dab3ca69646d6c9c4cfd9e2e1934696977aaba885686298bd21cc7",
           "byteLength": 205353
+        },
+        {
+          "sha256": "f474cc2b639f21244f31ab8f58055471bdc7b5b3a9c2bd4714eed92484db6090",
+          "byteLength": 190323
         }
       ],
-      "baseSourceId": "dc5d24e14e90fd8efec01aad8f46b66e907219af6ca15885bd459a5c2174c50b",
+      "baseSourceId": "8e712d9fd8dab3ca69646d6c9c4cfd9e2e1934696977aaba885686298bd21cc7",
       "targetSceneId": "scout-source",
       "seed": "FORGE-001",
       "choices": {
-        "background": "547fdfa7292846353ffdc88b4acad3bc99cf497a78618fd91c4eae5e2aad1705:scene:scout-source",
-        "sprites": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84:scene:scout-source",
-        "palettes": "547fdfa7292846353ffdc88b4acad3bc99cf497a78618fd91c4eae5e2aad1705:scene:scout-source",
-        "music": "b0e0583198fc781696a08bb118de7fff4f6f579ba0f820d4afd95524c7fa9d84"
+        "background": "f474cc2b639f21244f31ab8f58055471bdc7b5b3a9c2bd4714eed92484db6090:scene:scout-source",
+        "sprites": "207c2207e6630a6e798b6d3cf8fd47f180aa6663c128e27e1464cad4ab820b91:scene:scout-source",
+        "palettes": "f474cc2b639f21244f31ab8f58055471bdc7b5b3a9c2bd4714eed92484db6090:scene:scout-source",
+        "music": "207c2207e6630a6e798b6d3cf8fd47f180aa6663c128e27e1464cad4ab820b91"
       },
       "locks": {
         "background": false,
@@ -139,11 +139,11 @@
           }
         ]
       },
-      "resultSha256": "03fe0ed4ce917327624ca5be58e96f1c69c08935e84d2192a36e4a6be3cda051"
+      "resultSha256": "053b390e6686c8bc211a1f23e2dfdf73b405a0bf94ab3079af475085efa99545"
     },
-    "deterministicRomSha256": "ea40f6fb2e73b7efe5124f2ad223300aea0aaa3b74bbd49a9284d208bf56bac6",
+    "deterministicRomSha256": "43d4166ff86d6e1ae8f370d49e02d16f5801afe3577786d527a6095fbfbd654c",
     "runtime": {
-      "romSha256": "ea40f6fb2e73b7efe5124f2ad223300aea0aaa3b74bbd49a9284d208bf56bac6",
+      "romSha256": "43d4166ff86d6e1ae8f370d49e02d16f5801afe3577786d527a6095fbfbd654c",
       "frames": 14,
       "apuWrites": 125,
       "screenHash": "2d074f3549d3792f067d8765a233166eb5f749b96c8b73fe66e2c5d1433ecebb",
@@ -151,7 +151,7 @@
       "missedOpcodes": 0
     },
     "alternate": {
-      "romSha256": "b723813ea9cbf7e77097871753821b45af0d008e5d0874d1ecafe416fad9be07",
+      "romSha256": "229b7c51f3bed851c2410132e4c2402fbe8da2a05fc7bcec726561e6cf5310ec",
       "screenHash": "b3d5baef679bf9e796bfb52088324f8dc1b2ca340ccf53c2ab9dfed6967ed08f",
       "apuWrites": 103
     },
@@ -161,62 +161,62 @@
     {
       "name": "Three authored source projects compile independently and have distinct immutable source identities",
       "passed": true,
-      "milliseconds": 2531
+      "milliseconds": 2919
     },
     {
       "name": "A single candidate combines two donor graphics sources, donor music and bounded existing gameplay",
       "passed": true,
-      "milliseconds": 1193
+      "milliseconds": 1327
     },
     {
       "name": "Exact sources and seed replay byte-identical candidate data independently of donor pool ordering",
       "passed": true,
-      "milliseconds": 2617
+      "milliseconds": 2890
     },
     {
       "name": "Different seeds explore asset and patrol choices; complete locks retain the previous result",
       "passed": true,
-      "milliseconds": 3613
+      "milliseconds": 4072
     },
     {
       "name": "Actual UI preview is read-only and Apply performs the exact staged result in one Undo",
       "passed": true,
-      "milliseconds": 3731
+      "milliseconds": 4355
     },
     {
       "name": "Actual Save Project As writes the applied canonical candidate and reopening rebuilds the exact ROM",
       "passed": true,
-      "milliseconds": 3465
+      "milliseconds": 4026
     },
     {
       "name": "Generated World ROM boots, advances real frames and runs the varied patrol and music",
       "passed": true,
-      "milliseconds": 2251
+      "milliseconds": 2588
     },
     {
       "name": "Selecting the other song and graphic donors changes generated pixels and APU notes in real execution",
       "passed": true,
-      "milliseconds": 3456
+      "milliseconds": 3830
     },
     {
       "name": "The same donor workflow supports an existing generated single-room project and actual ROM build",
       "passed": true,
-      "milliseconds": 3329
+      "milliseconds": 3852
     },
     {
       "name": "Ordinary post-mashup CHR and tracker edits survive saving and alter the rebuilt ROM",
       "passed": true,
-      "milliseconds": 3033
+      "milliseconds": 3393
     },
     {
       "name": "Shipped workshop manifest binds exact canonical inputs, recipes and compiled outputs",
       "passed": true,
-      "milliseconds": 2613
+      "milliseconds": 2904
     },
     {
       "name": "A shipped recipe reopens through the actual UI using its exact original sources",
       "passed": true,
-      "milliseconds": 2506
+      "milliseconds": 2993
     }
   ]
 }

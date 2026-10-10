@@ -1,0 +1,45 @@
+{
+  "release": "2.0.0-alpha.11",
+  "candidate": "movement-rules-1",
+  "parentCommit": "25cfb9ed0b461ad2a6da636b39e381b818f5c498",
+  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
+  "reviewedAt": "2026-10-10T04:57:53.101Z",
+  "scope": "Independent source and historical test provenance review of the frozen final actual bundle. This is not a full regression run, browser walkthrough, listening or hardware acceptance.",
+  "passed": 4,
+  "total": 4,
+  "failed": 0,
+  "results": [
+    {
+      "name": "The final alpha11 standalone bundle has the announced hash and exactly matches its ordered source inputs",
+      "passed": true,
+      "sha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
+      "sourceCount": 85
+    },
+    {
+      "name": "Every historical restoration guard passes through the deepest reviewed runtime baseline",
+      "passed": true,
+      "deepestReference": "1.9.0 RE Runtime",
+      "deepestSha256": "e868b5b13a565049df35972c677498c5764f87ecdead9b732989f37dcec61e5d"
+    },
+    {
+      "name": "Independent parent comparison finds only two release identity changes and the two declared additive production modules",
+      "passed": true,
+      "changed": [
+        "app/src/services/release-info.js",
+        "app/src/shell-prefix.html"
+      ],
+      "added": [
+        "app/src/gameplay/movement-rules-ui.js",
+        "app/src/gameplay/movement-rules.js"
+      ],
+      "unchangedInheritedSources": 81
+    },
+    {
+      "name": "All 65 inherited suite assertions and all 477 archived files retain exact provenance",
+      "passed": true,
+      "suites": 65,
+      "retainedCases": 1430,
+      "archivedFiles": 477
+    }
+  ]
+}

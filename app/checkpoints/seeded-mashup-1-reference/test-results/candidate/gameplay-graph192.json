@@ -1,0 +1,71 @@
+{
+  "suite": "gameplay-graph192",
+  "html": "NES_Forge_2.0.0-alpha.10.html",
+  "htmlSha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375",
+  "scope": "Canonical state graph controls, undo/redo, native persistence, reference navigation, diagnostics, priority order, template Behavior duplication and emitted 6502 input transition. Mock DOM evidence; browser and physical-device checks remain separate.",
+  "passed": 12,
+  "failed": 0,
+  "total": 12,
+  "results": [
+    {
+      "name": "Graph is reachable within Gameplay Core and selections never mutate canonical source or history",
+      "passed": true,
+      "milliseconds": 577
+    },
+    {
+      "name": "Actual graph controls add a state and typed transition into the existing canonical tables, with single-edit undo and redo",
+      "passed": true,
+      "milliseconds": 957
+    },
+    {
+      "name": "The graph refreshes when table authoring and project Undo change the same source",
+      "passed": true,
+      "milliseconds": 615
+    },
+    {
+      "name": "Invalid transition edits are rejected atomically; connected and initial states cannot be silently removed",
+      "passed": true,
+      "milliseconds": 855
+    },
+    {
+      "name": "Deleting a transition then an unreferenced state is explicit and undo restores their exact records",
+      "passed": true,
+      "milliseconds": 1001
+    },
+    {
+      "name": "Ordered action controls edit typed operands, reorder the actual table, and preserve precise compiler diagnostics",
+      "passed": true,
+      "milliseconds": 763
+    },
+    {
+      "name": "Priority ties use actual transition table order and diagnostics identify unconditional shadowing",
+      "passed": true,
+      "milliseconds": 613
+    },
+    {
+      "name": "Structural reachability is a warning with exact navigable source, and graph references navigate endpoints",
+      "passed": true,
+      "milliseconds": 740
+    },
+    {
+      "name": "Duplicating a template Behavior changes only the selected Actor Definition and is one undoable canonical edit",
+      "passed": true,
+      "milliseconds": 621
+    },
+    {
+      "name": "Player compatibility and disabled Behavior are explicitly diagnosed instead of promising graph execution",
+      "passed": true,
+      "milliseconds": 508
+    },
+    {
+      "name": "Graph-created canonical data survives native project save and reload with byte-identical ROM output",
+      "passed": true,
+      "milliseconds": 1276
+    },
+    {
+      "name": "A graph-authored input transition executes in the emitted 6502 runtime",
+      "passed": true,
+      "milliseconds": 1066
+    }
+  ]
+}

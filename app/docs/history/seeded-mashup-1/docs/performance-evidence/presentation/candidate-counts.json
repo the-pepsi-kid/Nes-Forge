@@ -1,0 +1,85 @@
+{
+  "sourceRoot": "/workspace/scratch/eed3f92a7165/mobile-stabilization-2026-09-30/NES_Forge_1.9.0",
+  "html": "/workspace/scratch/eed3f92a7165/mobile-stabilization-2026-09-30/NES_Forge_1.9.0/mainline/NES_Forge_1.9.0_Gameplay_Core.html",
+  "sha256": "4fc607a6cbdbdfed027db10df138c64f8bfe5fa95fc7a46063041313cb63ad62",
+  "probeSha256": "cab282cea7671dee3ef24dae97774b7449fb6df7c6950e444a6d91f8e2b81e7f",
+  "scope": "Actual bundled app with mock DOM; call counts only. No layout/performance/audio measurement or physical hardware validation.",
+  "intervalsRequestedAtStartup": [
+    30000,
+    30000,
+    200
+  ],
+  "results": [
+    {
+      "name": "stable input poll; no physical controller",
+      "invocations": 60,
+      "counts": {
+        "getElementById": 1080,
+        "getGamepads": 60
+      }
+    },
+    {
+      "name": "existing controller latch input snapshot",
+      "invocations": 60,
+      "counts": {
+        "getElementById": 360
+      }
+    },
+    {
+      "name": "expanded UI tick; playing",
+      "invocations": 5,
+      "counts": {
+        "getElementById": 180,
+        "getGamepads": 5
+      }
+    },
+    {
+      "name": "expanded UI tick; paused",
+      "invocations": 5,
+      "counts": {
+        "getElementById": 180,
+        "getGamepads": 5
+      }
+    },
+    {
+      "name": "inherited canvas and sidebar presentation; expanded play",
+      "invocations": 60,
+      "counts": {
+        "getElementById": 540,
+        "canvasUploads": 60,
+        "textContentWrites": 480
+      }
+    },
+    {
+      "name": "held direction pointermove at unchanged coordinates",
+      "invocations": 60,
+      "counts": {
+        "dpadLayoutReads": 60,
+        "getElementById": 1080
+      }
+    },
+    {
+      "name": "return from expanded play",
+      "invocations": 1,
+      "counts": {
+        "getElementById": 63,
+        "textContentWrites": 10,
+        "paletteRebuilds": 1,
+        "paletteSpanRequests": 32
+      }
+    },
+    {
+      "name": "repeated exit after return",
+      "invocations": 1,
+      "counts": {}
+    },
+    {
+      "name": "UI ticks outside emulator",
+      "invocations": 5,
+      "counts": {
+        "getElementById": 30
+      }
+    }
+  ],
+  "errors": []
+}

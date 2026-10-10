@@ -1,0 +1,37 @@
+{
+  "candidate": "movement-rules-1",
+  "status": "passed",
+  "release": "2.0.0-alpha.11",
+  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
+  "summarySha256": "c8546a241dd15a7c936417bd9e093cb41b9d44e520641a814de1a194d498a945",
+  "passed": 1504,
+  "total": 1504,
+  "suiteCount": 68,
+  "stagingVerifiedPayloads": 3716,
+  "stagingArchiveSha256": "efd07070f186e417b5773b246a2e278da70f5fcb604ae2df4c2430582cb451ea",
+  "stagingArchive": "movement-rules-staging.zip",
+  "startedAt": "2026-10-10T04:58:25.497Z",
+  "finishedAt": "2026-10-10T05:19:47.055Z",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "commands": [
+    "python3 tools/package_release.py --stage --output movement-rules-staging.zip",
+    "Validate ZIP CRC, paths, exact inventory and every SHA256SUMS payload; extract into an initially absent directory",
+    "node tests/run_candidate.cjs"
+  ],
+  "unchangedCandidate": true,
+  "browserWalkthrough": "Ten current-hash runners blocked by missing Chromium; zero browser checks. No listening, phone, controller or hardware pass claimed.",
+  "knownCompatibilityLimitations": [
+    {
+      "topic": "cross-release mashup recipe UI replay",
+      "status": "known-limitation",
+      "note": "checkpoints/movement-rules-1-clean-extraction/Compatibility_Notes.md",
+      "noteSha256": "34666fc18e2255a3fec3b4cf6e2f1390065876771eccfb2fbfe8da87a1f64648",
+      "workaround": "Replay in included alpha.10 application, then save and open the resulting canonical project in alpha.11.",
+      "receiptSha256": "4cd08dc9be6acd48634078bd87f661a5742b53856764147a02a1e3e6f228e8f8"
+    }
+  ]
+}

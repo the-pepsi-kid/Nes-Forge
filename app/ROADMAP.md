@@ -1,3 +1,23 @@
+# Current implementation update — Movement Rules
+
+October 10, 2026 UTC (October 9 in America/Denver). Candidate **2.0.0-alpha.11 / movement-rules-1**, schema 12, not promoted. The owner said “continue” after discussing exaggerated traditional NES mechanics. This advances a bounded extension of existing generated movement settings; the broader roadmap authorization remains in effect.
+
+**SCENE → Movement rules** is separate from the preserved Seeded mashup workflow. It captures the current canonical project, targets active generated World or otherwise generated single-room gameplay, and offers Keep, Sprint, High jump, Slow fall, Heavy fall and Seeded mix presets, intensity 1–3 and four field locks. Preview displays exact before/after move/jump/gravity/fall settings and detached validation. Apply requires confirmation/current-state validation and records one ordinary project Undo. Candidate JSON and source-bound recipes are explicit downloads; a recipe requires its exact original source project.
+
+Only four existing fields change within move 1–4, jump 1–12, gravity 1–3 and maximum fall 1–8. Preserve the inactive backend configuration, all other body/spawn settings, scene/World/collision topology, art, Audio and actors. Refuse viewer/custom-ASM projects and never enable a mode. Existing runtime emitters and mashup-v1 behavior/recipes remain unchanged. A mashup may be applied first, then its resulting current project captured for movement changes.
+
+This implements bounded movement variation, not the broader proposed friction, knockback, one-hit death, timed escape or survival rules. Health reaching zero is not a demonstrated player-death mechanism. No raw-ROM format/profile is added. A valid ROM can still contain an impossible jump or route; human playtesting remains necessary.
+
+See `docs/MOVEMENT_RULES.md`, `docs/MOVEMENT_RULES_CHECKLIST.txt` and the current implementation-status ledger. Keep all **65 alpha.10 suites / 1,430 cases**, plus the declared movement suites. Current Summary and `checkpoints/movement-rules-1-clean-extraction/Reproduction.json` establish measured outcomes. Browser/mobile/listening/controller/hardware and full manual/PDF acceptance remain separate.
+
+After this authoring item, resume A1 shared native-background recovery/import using independent Pepsi and source-backed HonkeyPong inputs, then A2 on suitable independent native map/collision data. Remaining Audio, migration/gameplay and runtime/linker/raster/LiveLink/debugging dependencies precede integrated Hosted/networking/wallet/deck work. The complete roadmap remains unfinished.
+
+## Preserved alpha.10 roadmap and complete prior history
+
+The following alpha.10 roadmap is retained verbatim. Its evidence belongs to its original candidate; this preface controls alpha.11 status.
+
+---
+
 # Current implementation update — Seeded Mashup
 
 October 8, 2026 UTC. Candidate **2.0.0-alpha.10 / seeded-mashup-1**, schema 12, not promoted. The owner explicitly asked to implement random mashups now. This bounded canonical authoring checkpoint precedes the next native-recovery dependency; the existing complete-roadmap authorization continues.

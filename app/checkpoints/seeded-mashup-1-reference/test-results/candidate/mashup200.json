@@ -1,0 +1,156 @@
+{
+  "passed": 37,
+  "total": 37,
+  "failed": 0,
+  "htmlSha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375",
+  "results": [
+    {
+      "name": "Multi-project preview draws background, sprite, palettes and canonical music from one donor",
+      "passed": true
+    },
+    {
+      "name": "Canonical SHA-256 is independently verified and label/key order do not change identity",
+      "passed": true
+    },
+    {
+      "name": "Sources are detached deeply frozen snapshots and caller edits cannot alter the pool",
+      "passed": true
+    },
+    {
+      "name": "Base scene layout, collision, object references and full topology remain exact",
+      "passed": true
+    },
+    {
+      "name": "Active root graphics mirrors follow changed target graphics only",
+      "passed": true
+    },
+    {
+      "name": "Donated patterns/instruments are appended with every explicit instrument and order rebased",
+      "passed": true
+    },
+    {
+      "name": "Preview audio uses the same canonical serialization order as Save and reopen",
+      "passed": true
+    },
+    {
+      "name": "SFX definitions and runtime settings are preserved with explicit global timing warning",
+      "passed": true
+    },
+    {
+      "name": "A seed and exact source pool reproduce the same full project and recipe",
+      "passed": true
+    },
+    {
+      "name": "Random selection is independent of pool insertion order",
+      "passed": true
+    },
+    {
+      "name": "Domain-separated randomness keeps other selections when one is pinned",
+      "passed": true
+    },
+    {
+      "name": "Locked donor selections persist across new seeds",
+      "passed": true
+    },
+    {
+      "name": "Keep selections retain every base asset and are reported as no change",
+      "passed": true
+    },
+    {
+      "name": "Replay verifies exact identities and exact result SHA-256",
+      "passed": true
+    },
+    {
+      "name": "Edited source content cannot substitute for a recipe source",
+      "passed": true
+    },
+    {
+      "name": "Missing, extra, or duplicate recipe sources refuse without fallback",
+      "passed": true
+    },
+    {
+      "name": "Tampered output identity and unknown recipe version refuse",
+      "passed": true
+    },
+    {
+      "name": "Unsupported source schema refuses rather than normalizing legacy data",
+      "passed": true
+    },
+    {
+      "name": "Missing stable identities and duplicate scene IDs refuse",
+      "passed": true
+    },
+    {
+      "name": "Invalid CHR shape and out-of-range pixel values refuse instead of clamping",
+      "passed": true
+    },
+    {
+      "name": "Invalid palette, nametable and collision references refuse",
+      "passed": true
+    },
+    {
+      "name": "Unresolved animation and World references are rejected",
+      "passed": true
+    },
+    {
+      "name": "Invalid instrument and pattern references cannot be silently clamped",
+      "passed": true
+    },
+    {
+      "name": "Invalid envelope loops and unsupported pitch data refuse",
+      "passed": true
+    },
+    {
+      "name": "Implicit first-note instrument donors are ineligible with an actionable reason",
+      "passed": true
+    },
+    {
+      "name": "Unsupported tracker effects are kept as source data but cannot donate executable music",
+      "passed": true
+    },
+    {
+      "name": "Different audio row counts are an explicit music donor incompatibility",
+      "passed": true
+    },
+    {
+      "name": "Combined pattern/instrument capacity refuses atomically",
+      "passed": true
+    },
+    {
+      "name": "Custom ASM in a donor is never copied or executed and custom ASM base refuses",
+      "passed": true
+    },
+    {
+      "name": "Unknown options, nonboolean locks, unavailable choices and invalid seeds refuse",
+      "passed": true
+    },
+    {
+      "name": "Pool size, source authenticity and per-source byte budget have bounded checks",
+      "passed": true
+    },
+    {
+      "name": "Explicit nonactive target changes only that scene and preserves active editor mirrors",
+      "passed": true
+    },
+    {
+      "name": "Scene/single-room preflight distinguishes structure from unproven full ROM capacity",
+      "passed": true
+    },
+    {
+      "name": "A real named SFX keeps its IDs, pattern and instrument data after donor music is added",
+      "passed": true
+    },
+    {
+      "name": "Unknown recipe fields and extra choice domains are rejected",
+      "passed": true
+    },
+    {
+      "name": "Gameplay opt-in settings and lock replay remain deterministic alongside asset selections",
+      "passed": true
+    },
+    {
+      "name": "Preview and every refused attempt leave live project and emulator byte-exact",
+      "passed": true
+    }
+  ]
+}

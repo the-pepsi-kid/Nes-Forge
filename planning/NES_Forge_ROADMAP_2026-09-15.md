@@ -1,5 +1,44 @@
 # NES Forge — Authoritative Roadmap
 
+**Current revision:** October 10, 2026 UTC (October 9, America/Denver) — Movement Rules.
+**Active candidate:** **2.0.0-alpha.11 / movement-rules-1**, schema **12**, **not promoted**.
+**Measured alpha.11 gate:** **1,504/1,504 cases across 68 suites, zero failures**, from a verified clean extraction, 2026-10-10T04:58:25.497Z to 2026-10-10T05:19:47.055Z. All 65 alpha.10 suites / 1,430 cases retained; 74 new movement-rule cases.
+**Frozen HTML SHA-256:** `cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1` (1,612,418 bytes).
+**Candidate ZIP:** `NES_Forge_2.0.0-alpha.11_Movement_Rules_Candidate.zip`; SHA-256 `26258b95f46f2712b72deea2367daaccd643743d09454b943367c5b45d094018`; 38777773 bytes; 3867 files / 3866 payload checksums.
+**Browser evidence:** ten blocked current-hash runners, zero browser checks. Listening/mobile/controllers/hardware remain unverified.
+**Current identity/evidence:** `CANDIDATE.json`, application `build-inputs.json`, current candidate Summary and clean-extraction proof agree.
+**Preserved parent:** alpha.10 / seeded-mashup-1; HTML SHA-256 `58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375`; verified **1,430/1,430 cases across 65 suites**. Nine parent browser runners were blocked with zero checks. Those historical results do not certify alpha.11.
+
+## Authority and current authoring checkpoint
+
+The owner said “continue” after discussing exaggerated traditional NES mechanics. This continues authoring through a bounded extension of existing movement settings while preserving the separate seeded-mashup workflow. Full roadmap implementation authority and the one-item-at-a-time direction continue; the full roadmap remains unfinished. Promotion, device acceptance and public or real-value deployment remain distinct.
+
+**SCENE → Movement rules** captures the current canonical project and targets active generated World, otherwise generated single-room gameplay. Keep, Sprint, High jump, Slow fall, Heavy fall and Seeded mix presets, intensity 1–3 and four field locks choose only existing move/jump/gravity/fall values. Detached preview shows exact before/after values and validation. Confirmed Apply rechecks current state and creates one project Undo action. Candidate JSON and recipes are separate explicit downloads; exact recipe replay requires the unchanged original source project.
+
+The legal ranges remain move 1–4, jump 1–12, gravity 1–3 and maximum fall 1–8. Preserve all other source values, including inactive runtime configuration, body/spawn, scene/World/collision structure, Audio, actors and mode flags. Refuse viewer/custom-ASM sources; do not automatically enable a runtime. Existing emitters and mashup version-1 modules/recipes remain unchanged. To combine features, apply the mashup first, then capture the resulting project for movement variation; the stages keep separate recipes and Undo actions.
+
+This checkpoint does not implement friction, knockback, automatic death, timed escape/survival, new templates or a raw-ROM recovery profile. Existing health zero is not a demonstrated player-death mechanic. Exaggerated settings can make an existing route impossible, even when the generated ROM is technically valid.
+
+**Known recipe compatibility boundary:** alpha.10 mashup recipes are refused by the alpha.11 UI because ordinary opening changes foundation metadata and therefore the canonical base hash. Replay with the included alpha.10 application and original sources, save the resulting project, then open that result in alpha.11. Already-saved result projects open normally. The raw v1 algorithm remains reproducible; this is not cross-release UI recipe compatibility. Add explicit recipe migration before a later release bump.
+
+## Evidence and review
+
+Retain every **65 alpha.10 suites / 1,430 cases**, plus declared Movement Rules suites. Require exact source/result preservation, seed/lock/recipe behavior, malformed/stale/cancel/refusal cases, bundled UI application/Undo, save/reopen and controlled actual 6502 motion evidence for both generated backends. Freeze inputs, verify staged payloads and run the full gate on one unchanged clean extraction. Only fresh reports establish alpha.11 outcomes.
+
+Follow `app/docs/MOVEMENT_RULES.md` and `app/docs/MOVEMENT_RULES_CHECKLIST.txt`. Browser interaction/layout/native dialogs, same-device Cricket Dream 5G / Chrome A/V comparison, listening, USB-C/Bluetooth controllers and NES/deck hardware remain separately unverified unless actually measured. Blocked browser launches record zero checks. Earlier feedback and deferred A6 retain their historical scope. The full manual/PDF is not comprehensively current; supplied guides supplement it.
+
+## Remaining sequence
+
+Before a later release bump, resolve explicit cross-release recipe migration. Then resume A1 shared native-background recovery and editable import on independent Pepsi and source-backed HonkeyPong inputs; then A2 on suitable independent native map/collision data. Additional supported Audio coverage/fidelity, source migration/gameplay and linker/runtime/raster/LiveLink/debugging dependencies remain. Complete finite Audio/RE/runtime requirements before integrated Hosted Worlds/networking/wallet/mint/loot and portable physical-deck milestones. Existing local hosted drafts do not establish those integrations. The complete requirements history below remains in force.
+
+## Preserved alpha.10 planning and complete prior history
+
+The following prior document is retained verbatim. Its measured evidence belongs to alpha.10; this preface controls current candidate status and additional scope.
+
+---
+
+# NES Forge — Authoritative Roadmap
+
 **Current revision:** October 8, 2026 UTC — Seeded Mashup.
 **Active candidate:** **2.0.0-alpha.10 / seeded-mashup-1**, schema **12**, **not promoted**.
 **Measured alpha.10 gate:** **1,430/1,430 cases across 65 suites, zero failures**, from a verified clean extraction, 2026-10-08T21:50:30.607Z to 2026-10-08T22:07:11.237Z. All 61 alpha.9 suites / 1,330 cases retained; 100 new mashup cases.

@@ -1,0 +1,98 @@
+{
+  "suite": "persistence165",
+  "scope": "v8 settings/ZIP and GP16 actual build/import preservation, identity mapping, corruption rejection and atomic failure; mock DOM.",
+  "passed": 18,
+  "total": 18,
+  "results": [
+    {
+      "name": "v8 portable ZIP preserves complete gameplay configuration and manifest",
+      "passed": true,
+      "milliseconds": 746
+    },
+    {
+      "name": "Malformed v8 null settings rejects before live/history mutation",
+      "passed": true,
+      "milliseconds": 492
+    },
+    {
+      "name": "Malformed v8 odd body width rejects before live/history mutation",
+      "passed": true,
+      "milliseconds": 456
+    },
+    {
+      "name": "Malformed v8 invalid mode rejects before live/history mutation",
+      "passed": true,
+      "milliseconds": 512
+    },
+    {
+      "name": "Malformed v8 unknown setting rejects before live/history mutation",
+      "passed": true,
+      "milliseconds": 451
+    },
+    {
+      "name": "Malformed v8 invalid target ID type rejects before live/history mutation",
+      "passed": true,
+      "milliseconds": 446
+    },
+    {
+      "name": "Ordinary 32 KB NROM with non-UTF8 bytes at the probe address still imports",
+      "passed": true,
+      "milliseconds": 896
+    },
+    {
+      "name": "Gameplay ROM re-import remaps selected room, player and target and preserves physics",
+      "passed": true,
+      "milliseconds": 2055
+    },
+    {
+      "name": "Gameplay ROM without a target restores an empty optional target",
+      "passed": true,
+      "milliseconds": 1718
+    },
+    {
+      "name": "GP16 checksum corruption rejects atomically",
+      "passed": true,
+      "milliseconds": 500
+    },
+    {
+      "name": "Unknown GP16 version rejects atomically",
+      "passed": true,
+      "milliseconds": 501
+    },
+    {
+      "name": "GP16 length outside reserved region rejects atomically",
+      "passed": true,
+      "milliseconds": 510
+    },
+    {
+      "name": "Rechecksummed GP16 missing room rejects before import mutation",
+      "passed": true,
+      "milliseconds": 511
+    },
+    {
+      "name": "Rechecksummed GP16 nonplayer selection rejects before import mutation",
+      "passed": true,
+      "milliseconds": 522
+    },
+    {
+      "name": "Rechecksummed GP16 missing target rejects before import mutation",
+      "passed": true,
+      "milliseconds": 507
+    },
+    {
+      "name": "Rechecksummed GP16 invalid physics rejects before import mutation",
+      "passed": true,
+      "milliseconds": 497
+    },
+    {
+      "name": "Reordered included scenes preserve gameplay indices and remap to the correct imported room",
+      "passed": true,
+      "milliseconds": 1872
+    },
+    {
+      "name": "Gameplay compilation failure clears the previous built ROM without downloading",
+      "passed": true,
+      "milliseconds": 490
+    }
+  ]
+}

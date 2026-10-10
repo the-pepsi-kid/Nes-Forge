@@ -1,7 +1,7 @@
 {
   "suite": "emulator-input-mobile",
-  "html": "NES_Forge_2.0.0-alpha.10.html",
-  "htmlSha256": "58e53633207e9d5c259b4cea52f1da09f113877d34a3078c5f7c3c624f98e375",
+  "html": "NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
   "scope": "Bundled candidate input adapter with simulated gamepads and mock DOM; actual NES CPU joypad latch, pause/reset/load/tab/focus lifecycle. Physical controllers and real mobile browsers require separate acceptance.",
   "passed": 26,
   "failed": 0,
@@ -10,37 +10,37 @@
     {
       "name": "Only enumerated mobile, RE and exact audio correction changes affect the corrected baseline sources",
       "passed": true,
-      "milliseconds": 196
+      "milliseconds": 213
     },
     {
       "name": "Keyboard aliases and intentional paused keyboard frame stepping remain functional",
       "passed": true,
-      "milliseconds": 417
+      "milliseconds": 449
     },
     {
       "name": "The actual Frame command preserves held keyboard keys while ordinary Pause releases them",
       "passed": true,
-      "milliseconds": 360
+      "milliseconds": 359
     },
     {
       "name": "Multitouch combines independent pointers and preserves another finger on release or slide",
       "passed": true,
-      "milliseconds": 341
+      "milliseconds": 342
     },
     {
       "name": "Opposite directions cancel after keyboard, touch and gamepad are merged",
       "passed": true,
-      "milliseconds": 321
+      "milliseconds": 322
     },
     {
       "name": "Standard gamepad buttons and left stick feed NES port one after initial neutral sample",
       "passed": true,
-      "milliseconds": 318
+      "milliseconds": 340
     },
     {
       "name": "Initially held controller cannot take over until all mapped inputs are neutral",
       "passed": true,
-      "milliseconds": 320
+      "milliseconds": 334
     },
     {
       "name": "Button and axis remapping covers all eight actions; unknown pads are never guessed",
@@ -50,92 +50,92 @@
     {
       "name": "Remapping a standard direction removes only that direction’s default axis supplement",
       "passed": true,
-      "milliseconds": 323
+      "milliseconds": 342
     },
     {
       "name": "Only the selected pad drives port one; deselection and session profiles are explicit",
       "passed": true,
-      "milliseconds": 326
+      "milliseconds": 338
     },
     {
       "name": "Disconnect drops only gamepad input and does not silently select another held pad",
       "passed": true,
-      "milliseconds": 322
+      "milliseconds": 331
     },
     {
       "name": "Reusing a gamepad index for another device cannot inherit the prior input or assignment",
       "passed": true,
-      "milliseconds": 331
+      "milliseconds": 326
     },
     {
       "name": "Disconnect event catches same-model same-index reconnection and requires selection plus neutral",
       "passed": true,
-      "milliseconds": 331
+      "milliseconds": 355
     },
     {
       "name": "Unavailable or policy-denied Gamepad API leaves keyboard and touch usable",
       "passed": true,
-      "milliseconds": 1007
+      "milliseconds": 1146
     },
     {
       "name": "Pause clears every source and paused discovery cannot pre-arm held controller input",
       "passed": true,
-      "milliseconds": 323
+      "milliseconds": 349
     },
     {
       "name": "Focus loss suppresses all inputs until focus returns and controller is neutral",
       "passed": true,
-      "milliseconds": 320
+      "milliseconds": 329
     },
     {
       "name": "Hidden documents cannot receive gamepad or touch; returning requires neutral",
       "passed": true,
-      "milliseconds": 320
+      "milliseconds": 389
     },
     {
       "name": "Nested settings and focus blockers do not reactivate input until every blocker closes",
       "passed": true,
-      "milliseconds": 323
+      "milliseconds": 334
     },
     {
       "name": "Save, project and palette dialogs suspend inputs for their entire lifetime",
       "passed": true,
-      "milliseconds": 965
+      "milliseconds": 998
     },
     {
       "name": "Editable focus clears source state and only rearms after field exit plus controller neutral",
       "passed": true,
-      "milliseconds": 320
+      "milliseconds": 326
     },
     {
       "name": "Tab exit clears touch and keyboard and forces controller neutral on return",
       "passed": true,
-      "milliseconds": 345
+      "milliseconds": 353
     },
     {
       "name": "Actual reset and ROM replacement clear controls and keep emulator paused",
       "passed": true,
-      "milliseconds": 358
+      "milliseconds": 372
     },
     {
       "name": "Existing frame loop performs one gamepad sample per frame and never changes port two",
       "passed": true,
-      "milliseconds": 340
+      "milliseconds": 356
     },
     {
       "name": "NES strobe and serial latch retain captured bits while live input changes",
       "passed": true,
-      "milliseconds": 317
+      "milliseconds": 347
     },
     {
       "name": "Lifecycle releases expose a generation so held browser pointers cannot resurrect input",
       "passed": true,
-      "milliseconds": 312
+      "milliseconds": 343
     },
     {
       "name": "Status snapshots cannot mutate adapter state and subscriptions can unsubscribe",
       "passed": true,
-      "milliseconds": 318
+      "milliseconds": 342
     }
   ]
 }
