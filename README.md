@@ -1,17 +1,15 @@
-# NES Forge — Compatibility Stabilization candidate
+# NES Forge — Native Background Recovery candidate
 
-**2.0.0-alpha.11 / compatibility-stabilization-1**, schema 12. Open `app/mainline/NES_Forge_2.0.0-alpha.11.html`.
+**2.0.0-alpha.11 / native-background-1**, schema 12. Open `app/mainline/NES_Forge_2.0.0-alpha.11.html`.
 
-The owner requested compatibility safeguards, then authorized “update roadmap and continue”. The roadmap now places D063/C1–C5 stabilization before more mechanics and A1 feature expansion.
+The owner's “continue” resumes bounded A1 after compatibility stabilization. Two unrelated native constructions—Pepsi immediate PPU fills and source-backed HonkeyPong pointer-page records—use one recovery registry and shared canonical scene workflow. ProjectStore owns scene append and Undo; the existing compiler builds the independent static viewer. No runtime emitter, recipe algorithm or project schema changed.
 
-This candidate adds exact-source-verified alpha.10/alpha.11 recipe metadata migration, shared configuration-owned physics validation, a ProjectStore-owned settings transaction, and complete detached World/single-room movement preview compilation. Raw recipe v1, runtime emitters, project schema and the existing five-template scope remain unchanged.
+Fresh clean-extraction gate: **1617/1617 cases across 78 suites**, retaining all 1,541 parent cases / 72 suites. Every one of 4,710 staging payload hashes was verified. Original CPU/PPU execution independently checks the native constructions; generated-ROM checks prove useful edits reach the static viewer. All seven existing current example ROMs remain byte-identical.
 
-Fresh clean-extraction gate: **1541/1541 automated cases across 72 suites**, retaining all 1,504 predecessor cases across 68 suites. All 4,117 staging payload checksums were verified. `CANDIDATE.json`, the current Summary and compatibility clean-extraction proof contain exact identities and provenance.
+**12 browser runners are blocked with zero checks** because Chromium is unavailable. VM and CPU/PPU results do not establish actual browser layout/native dialogs, listening, independent-emulator, phone/controller or NES hardware acceptance. The candidate is not promoted or published.
 
-**11 browser runners blocked with zero checks** because Chromium is unavailable. Its attempted download did not produce a usable archive. Automated VM/ROM/handler results do not establish browser rendering, native dialogs, listening, phone A/V performance, controller or NES hardware acceptance. The candidate is not promoted or published.
+Read `app/docs/NATIVE_BACKGROUND_RECOVERY.md`, its checklist and `app/examples/RE_Native_Background/`. The pointer loop's final attribute byte remains explicitly unknown and uses a disclosed zero default. Mask/clipping, sprites, collision, later updates, Audio and original gameplay are outside the conversion. Import appends an excluded editable scene; the separate project download builds the adapted static background.
 
-Read `app/docs/COMPATIBILITY_STABILIZATION.md` and its checklist. Historical recipes require the exact original base and donor content; the adapter changes only reviewed foundation metadata after full original-source/result verification. New or altered content still refuses. The original alpha.11 application, historical source/tests/results and prior Git refs remain preserved.
+The source-backed two-format subset is ready for review; it is not universal ROM recovery or completion of the full A1 acceptance gate. Next: A2 only with suitable independent native map/collision data, while remaining Audio/fidelity/listening, migration/runtime and comprehensive manual requirements stay open before integrated Hosted/network/wallet/deck work. License: UNDECIDED; included independent input retains its original license.
 
-Next feature dependency: A1 shared native-background recovery/import using independent Pepsi and source-backed HonkeyPong inputs, then A2 on suitable map/collision evidence, followed by the retained roadmap sequence. The complete roadmap and comprehensive manual remain unfinished. License: UNDECIDED.
-
-Run `python3 tools/verify_reference.py` for delivered-app checksum verification; `--full-gate` reproduces in a disposable copy. `tools/package_source.py` packages a clean committed tree with portable Git history.
+Run `python3 tools/verify_reference.py` for delivered-app verification, or `--full-gate` for a disposable reproduction. `tools/package_source.py` packages the clean committed source with portable Git history and retained refs. Exact identities and outcomes are in CANDIDATE.json and the clean-extraction proof.

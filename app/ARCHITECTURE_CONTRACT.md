@@ -1,3 +1,18 @@
+# Current contract — Native Background Recovery
+
+Candidate `native-background-1`, release alpha.11, schema 12. Preserve all D063 compatibility guarantees and existing runtime algorithms.
+
+- REMethods remains the single installed-method registry. `RENativeBackground.registerAdapter` registers trusted format code directly into it; it is not a second registry or user-loaded plugin system.
+- Bounded native adapters return CHR bytes, constructed nametable/attribute bytes, final palette RAM values, coverage markers and physical evidence. They never execute ROM code or modify authoring/emulator state. Missing semantics remain explicit.
+- Shared conversion uses `makeScene` and existing `captureMeta.recovery`; no global recovery asset store or schema bump. Original native palette writes remain source evidence while canonical rows use one backdrop color.
+- `ProjectStore.appendScene` installs only one normalized new scene through the same private guarded history transaction used by settings edits. Existing project collections and inactive runtime settings retain their owners. UI refresh failures report committed warnings.
+- `BuildGraph.planDetached(project,{allowViewer:true})` and the corresponding compiler call add explicit generated mapper-0 viewer support through unchanged codecs/emitter. Custom ASM remains live-only. Default detached behavior is unchanged.
+- Imports are excluded from an existing build. The separate background project is a static viewer adaptation; it neither enables the user's gameplay mode nor replaces original ROM behavior.
+
+## Preserved previous record
+
+---
+
 # D063 — Compatibility stabilization boundaries
 
 Current checkpoint: alpha.11 / compatibility-stabilization-1. Existing ownership below remains in force. RecipeIdentity owns an explicit versioned metadata migration bridge, not a second project schema or weakened v1 hash. It verifies exact original identity, deterministic legacy output and foundation-only equivalence before current recipe reissue. Known-version migration is separate from exact raw recipe replay.

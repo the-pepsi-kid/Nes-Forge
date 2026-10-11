@@ -1,3 +1,15 @@
+# D064 — Bounded A1 with compatibility ownership preserved
+
+October 11, 2026 UTC. Authority: the owner said “continue” after delivery of the D063 compatibility checkpoint. Implement shared native-background recovery/import on independent Pepsi and source-backed HonkeyPong, with source interpretation, canonical editing, persistence and a rebuilt static viewer. Retain release alpha.11, schema 12, existing templates and emitter algorithms; distinguish the changed artifact as `native-background-1`.
+
+Use two bounded construction profiles through REMethods, one canonical conversion service, a ProjectStore-owned scene append and the existing compiler. The private transaction helper is shared by settings and scene edits, never exposed as an arbitrary mutation callback. Extend detached compilation to the existing generated mapper-0 viewer only with explicit `allowViewer:true`; its previous default behavior remains.
+
+Keep General Analysis's strict header decision. The pointer profile independently validates its declared NROM layout including a documented legacy reserved-byte variant. Palette mirrors, pointer-loop quirks, unknown prior-state attributes and source rendering-mask differences are explicit. No native patch/encoding, collision or original-game recovery claim follows. Preserve all 1,541 parent cases / 72 suites and exact historical sources/goldens. Browser and owner acceptance remain separate.
+
+## Preserved previous record
+
+---
+
 # D063 — Compatibility stabilization before feature expansion
 
 October 10, 2026 America/Denver (October 11 UTC). Authority: the owner requested “advise”, reviewed the four-priority stabilization recommendation, then directed “update roadmap and continue”. Implement C1 recipe identity migration, C2 shared validation, C3 project-owned settings transactions and C4 complete preview build validation, with C5 retained regression/browser evidence, before new mechanics or A1 feature expansion.

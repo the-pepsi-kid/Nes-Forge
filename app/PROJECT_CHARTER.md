@@ -1,3 +1,11 @@
+# Current continuation — D064 Native Background Recovery
+
+The owner's “continue” resumes A1 after compatibility stabilization. Keep the existing framework boundaries while delivering a finite, useful graphics workflow across two unrelated native constructions. Candidate alpha.11 / native-background-1 preserves schema 12, templates, platform identity and historical behavior. Explicit limitations and measured evidence remain part of the deliverable; neither implementation nor a passing automated gate promotes the release or completes the roadmap.
+
+## Preserved previous record
+
+---
+
 # Current continuation — D063 Compatibility Stabilization
 
 The owner directed “update roadmap and continue” on October 10, 2026 America/Denver. Prioritize the bounded C1–C5 stabilization checkpoint in ROADMAP.md before further feature growth. Existing NES platform identity, schema 12, five-template scope, canonical ownership and evidence-based acceptance remain requirements. Continue within established authorization; implementation does not equal release promotion.

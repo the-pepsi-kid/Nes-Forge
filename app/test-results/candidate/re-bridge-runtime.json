@@ -1,7 +1,7 @@
 {
   "suite": "re-bridge-runtime",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "b3d9b852782b1b7ebd56637bb94e4dbcb09379614b7c8577e007046db45c8e02",
+  "htmlSha256": "4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11",
   "scope": "Independent authored source ROM versus recovered canonical project and rebuilt actual 6502 CPU/PPU/APU execution; collision, CHR and tracker edits; ProjectStore JSON round trip. Mock DOM, not browser or hardware acceptance.",
   "passed": 9,
   "failed": 0,
@@ -304,47 +304,47 @@
     {
       "name": "Independent source ROM is metadata-free and executes its native collision and pulse music",
       "passed": true,
-      "milliseconds": 5938
+      "milliseconds": 5967
     },
     {
       "name": "ROM recovery materializes every authored collision cell, graphic tile, palette and music row",
       "passed": true,
-      "milliseconds": 680
+      "milliseconds": 658
     },
     {
       "name": "Imported project rebuilds and its displayed scene pixels equal the original completed frame",
       "passed": true,
-      "milliseconds": 755
+      "milliseconds": 747
     },
     {
       "name": "Rebuilt 6502 engine honors recovered wall, floor and matching left/right movement",
       "passed": true,
-      "milliseconds": 6378
+      "milliseconds": 5938
     },
     {
       "name": "Original and rebuilt programs emit the complete authored pulse-note sequence through the APU",
       "passed": true,
-      "milliseconds": 16502
+      "milliseconds": 15997
     },
     {
       "name": "Canonical wall-collision edit changes emitted collision and lets actual 6502 player cross the wall",
       "passed": true,
-      "milliseconds": 5261
+      "milliseconds": 4942
     },
     {
       "name": "Canonical CHR pixel edit reaches rebuilt pattern bytes and the displayed 6502 framebuffer",
       "passed": true,
-      "milliseconds": 818
+      "milliseconds": 781
     },
     {
       "name": "Canonical tracker-note edit changes the actual APU timer from C4 to C5",
       "passed": true,
-      "milliseconds": 783
+      "milliseconds": 774
     },
     {
       "name": "Authoritative ProjectStore JSON save/reload preserves canonical recovery and deterministic rebuilt bytes",
       "passed": true,
-      "milliseconds": 702
+      "milliseconds": 626
     }
   ]
 }

@@ -1,0 +1,63 @@
+{
+  "suite": "re-native-audio-ui",
+  "htmlSha256": "b3d9b852782b1b7ebd56637bb94e4dbcb09379614b7c8577e007046db45c8e02",
+  "fixtureSha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+  "scope": "Bundled native editing UI with independent FamiTone2 fixture; byte edits, isolated history, source races, Save As states and input ownership. No browser layout, listening or canonical Audio conversion claim.",
+  "passed": 13,
+  "total": 13,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Native controls mount once inside general analysis with labels and native keyboard fields",
+      "passed": true
+    },
+    {
+      "name": "Explicit analysis identifies native songs, instruments and partial SFX without project changes",
+      "passed": true
+    },
+    {
+      "name": "Unknown, invalid and oversized ROMs show profile status and never enable editing",
+      "passed": true
+    },
+    {
+      "name": "Native note edit changes only a copied command byte and exports both ROM and evidence",
+      "passed": true
+    },
+    {
+      "name": "Native Undo and Redo re-decode target bytes without using project history",
+      "passed": true
+    },
+    {
+      "name": "No-op, invalid, noise and DPCM selections preserve the current native copy",
+      "passed": true
+    },
+    {
+      "name": "A new inspected source refuses native edit, history and exports from the old session",
+      "passed": true
+    },
+    {
+      "name": "Delayed native analysis cannot publish a result for a changed source",
+      "passed": true
+    },
+    {
+      "name": "Delayed native patch rejects intervening selection edits and preserves prior copy",
+      "passed": true
+    },
+    {
+      "name": "Delayed history restore cannot replace a copy after the inspected source changes",
+      "passed": true
+    },
+    {
+      "name": "Actual pending Save As returns busy honestly and leaves the session available",
+      "passed": true
+    },
+    {
+      "name": "Native fields block emulator keyboard, touch and controller input while retaining text defaults",
+      "passed": true
+    },
+    {
+      "name": "Native history is bounded and a new edit after Undo discards only its redo branch",
+      "passed": true
+    }
+  ]
+}

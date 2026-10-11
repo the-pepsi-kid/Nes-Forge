@@ -1,3 +1,18 @@
+# Native Background Recovery handoff
+
+Continue the authorized roadmap without renewed coding permission. This bounded **alpha.11 / native-background-1** candidate follows compatibility-stabilization-1. Preserve schema 12 and all prior framework guarantees.
+
+1. Validate current build identity, fresh Summary and native-background-1 clean-extraction proof together. The parent is 1,541 cases / 72 suites; retain them all and append declared suites.
+2. Follow `docs/NATIVE_BACKGROUND_RECOVERY.md` and `docs/NATIVE_BACKGROUND_RECOVERY_CHECKLIST.txt`. In General ROM Analysis use Native background recovery (or discovery routes), choose the relevant method, preview, review limitations, acknowledge conversion and import. Import appends one excluded scene. A separate background-project download opens/builds as an ordinary static Forge viewer.
+3. Shared REMethods discovery supports immediate PPU construction (Pepsi) and pointer-page nametable loading (HonkeyPong). Neither method uses filename/hash recognition. Do not relax generic header trust or infer missing collision/gameplay.
+4. Preserve exact pointer page ordering, palette alias writes and final-attribute unknown. The independent viewer's mask and absent sprites/logic are explicit adaptations. Evidence records remain tied to the original import after edits; they do not authenticate hand-edited project JSON.
+5. Examples in `examples/RE_Native_Background/` contain editable projects, built viewers and evidence; original corpus remains under its existing paths. Current HTML/ROM hashes and generator provenance are in their Manifest.
+6. After the bounded A1 coding/gate, continue A2 only with suitable independent native map/collision evidence. Browser/owner acceptance, Audio/fidelity/listening, remaining migration/runtime dependencies and the full manual remain open. Do not claim complete 2.0, hosted integration or promotion.
+
+## Preserved previous record
+
+---
+
 # Compatibility stabilization handoff
 
 The owner authorized the bounded compatibility repairs and roadmap update on October 10, 2026 America/Denver. Continue under that authority; the immediate checkpoint is **alpha.11 / compatibility-stabilization-1**, schema 12. Preserve all prior roadmap requirements and source history.

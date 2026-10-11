@@ -1,3 +1,15 @@
+# NES Forge — Native Background Recovery candidate
+
+**2.0.0-alpha.11 / native-background-1**, schema 12. Open `mainline/NES_Forge_2.0.0-alpha.11.html`. This adds shared recovery of two declared native background constructions through General ROM Analysis, editable scene import and separate static viewer projects. It preserves the compatibility checkpoint and existing runtime behavior.
+
+Start with `docs/NATIVE_BACKGROUND_RECOVERY.md`, its checklist and `examples/RE_Native_Background/`. Pepsi and source-backed HonkeyPong exercise different native representations through one workflow. Review the displayed adaptations: graphics recovery does not recreate sprites, collision or original game logic, and the pointer loader's final attribute remains explicitly unknown.
+
+Current Summary, `build-inputs.json` and `checkpoints/native-background-1-clean-extraction/Reproduction.json` establish actual identity/results. The parent passed 1,541 cases across 72 suites; retain all. Browser/device and owner acceptance remain separate; the full roadmap and manual remain unfinished.
+
+## Preserved previous README
+
+---
+
 # NES Forge — Compatibility Stabilization
 
 Open `mainline/NES_Forge_2.0.0-alpha.11.html`. Current candidate: **2.0.0-alpha.11 / compatibility-stabilization-1**, schema 12. This checkpoint repairs compatibility and shared-service integration before further feature expansion. It is not a promoted release.

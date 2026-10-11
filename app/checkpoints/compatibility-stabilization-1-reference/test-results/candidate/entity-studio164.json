@@ -1,0 +1,104 @@
+{
+  "suite": "entity-studio164",
+  "source": "NES_Forge_2.0.0-alpha.11.html",
+  "sha256": "b3d9b852782b1b7ebd56637bb94e4dbcb09379614b7c8577e007046db45c8e02",
+  "environment": "Node.js full application VM with shared DOM stub",
+  "limitations": "Not browser visual-layout, native input, focus, or animation scheduling QA.",
+  "total": 23,
+  "passed": 23,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Legacy unbound entity opens without adding an animation binding",
+      "passed": true
+    },
+    {
+      "name": "Studio placement uses scene entity defaults and selected live identity",
+      "passed": true
+    },
+    {
+      "name": "Named state assignments and defaults update the selected entity",
+      "passed": true
+    },
+    {
+      "name": "Removing the default state chooses the remaining valid state",
+      "passed": true
+    },
+    {
+      "name": "Initial play logs ordered entry markers once and honors frame durations",
+      "passed": true
+    },
+    {
+      "name": "Pause and resume do not replay an entered frame marker",
+      "passed": true
+    },
+    {
+      "name": "Loop boundary re-enters frame zero at the complete animation duration",
+      "passed": true
+    },
+    {
+      "name": "Nonloop preview holds its final pose and stops at the exact end",
+      "passed": true
+    },
+    {
+      "name": "Restart preserves active playback and re-enters the initial frame",
+      "passed": true
+    },
+    {
+      "name": "Scrubbing is silent and stepping advances one 60 Hz tick",
+      "passed": true
+    },
+    {
+      "name": "Animation duration edits cancel playback and restart the preview safely",
+      "passed": true
+    },
+    {
+      "name": "Deleting an animation cancels playback and exposes a repairable reference",
+      "passed": true
+    },
+    {
+      "name": "Deleting the selected entity stops playback and clears the selected identity",
+      "passed": true
+    },
+    {
+      "name": "Missing artwork prevents playback while preserving the assigned state",
+      "passed": true
+    },
+    {
+      "name": "Missing artwork reached during playback keeps its frame selected for repair",
+      "passed": true
+    },
+    {
+      "name": "Changing tabs cancels playback and preserves every authored binding",
+      "passed": true
+    },
+    {
+      "name": "Browser visibility state prevents hidden preview playback",
+      "passed": true
+    },
+    {
+      "name": "Opening another scene entity switches scene and selection by stable IDs",
+      "passed": true
+    },
+    {
+      "name": "Preview facing mirrors actual draw calls for both tile art and contact boxes without editing defaults",
+      "passed": true
+    },
+    {
+      "name": "Animation preview callbacks convert elapsed milliseconds to 60 Hz ticks",
+      "passed": true
+    },
+    {
+      "name": "Scene entity properties expose the entry point to Entity Studio",
+      "passed": true
+    },
+    {
+      "name": "Studio entry-event preview never invokes audio or gameplay callbacks",
+      "passed": true
+    },
+    {
+      "name": "Integrated Entity Studio handlers report no unexpected application errors",
+      "passed": true
+    }
+  ]
+}

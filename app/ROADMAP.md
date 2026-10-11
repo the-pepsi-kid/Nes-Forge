@@ -1,3 +1,26 @@
+# Current priority — Native Background Recovery
+
+October 11, 2026 UTC (October 10 America/Denver). The owner said “continue” after the compatibility stabilization delivery. **2.0.0-alpha.11 / native-background-1**, schema 12, is the next bounded A1 implementation candidate. Compatibility Stabilization remains the preserved behavioral parent: HTML `b3d9b852782b1b7ebd56637bb94e4dbcb09379614b7c8577e007046db45c8e02`, 1,541 passing cases across 72 suites. Its blocked browser checks remain open.
+
+| Order | Work | Required evidence |
+|---|---|---|
+| A1.1 | Two documented native background constructions, independent Pepsi and source-backed HonkeyPong | Physical source ranges; structural recognition; original CPU/PPU execution comparisons; changed valid data, relocation where supported, false positives and unknown fallback |
+| A1.2 | Shared discovery, preview and canonical conversion | Both format adapters use REMethods and the same background service; declared palette/bank/loading semantics and unknowns; no filename or whole-ROM-hash recognition |
+| A1.3 | Editable import and independent static viewer | ProjectStore appends one scene with one Undo; existing project/runtime preserved; useful CHR/layout edits, save/reopen, actual compiler and rebuilt ROM checks |
+| A1.4 | Preservation and review | All 1,541 predecessor cases retained, exact source reconstruction and historical goldens; fresh full clean-extraction gate; actual browser results separately measured or blocked |
+
+Keep recovery inside existing owners: format modules decode source data; REMethods owns discovery/evidence; one shared background service converts to canonical scenes; ProjectStore owns scene edits; RuntimeCompiler builds the explicit independent viewer. The private project transaction supports both settings edits and scene append. Do not add game-specific UI, a second project model, a new runtime emitter, a second Undo engine or a permissive header workaround in General Analysis.
+
+The supported result is a static background, not original gameplay. Pepsi's literal/fill instructions construct its initialized layout. HonkeyPong's pointer loader writes 1,023 bytes with a page-boundary quirk and leaves the final attribute byte dependent on prior state; the conversion marks that unknown and explicitly fills zero. Background palettes and selected physical CHR banks are decoded, while sprites, collision, scrolling, later updates, Audio and game logic remain outside this slice. Native PPUMASK clipping is disclosed as a viewer adaptation. Imports are excluded from the current build; the explicit background-project download is a separate buildable static viewer.
+
+Current measured status belongs to `test-results/candidate/Summary.json` and `checkpoints/native-background-1-clean-extraction/Reproduction.json`. Implementation and automated verification do not establish owner acceptance, browser/device behavior or universal recovery. Follow `docs/NATIVE_BACKGROUND_RECOVERY.md` and its checklist.
+
+Next dependency: **A2 native map/collision recovery on a suitable independent source-backed input**. Neither this graphics pair nor a picture establishes native collision records. Remaining supported Audio/fidelity/listening, source migration/gameplay, linker/runtime/raster/LiveLink/debugging, and the comprehensive manual remain open before integrated Hosted/network/wallet/deck work. The full roadmap remains unfinished.
+
+## Preserved previous record
+
+---
+
 # Current priority — Compatibility stabilization
 
 October 10, 2026 America/Denver (October 11 UTC). The owner directed “update roadmap and continue” after reviewing compatibility concerns. **2.0.0-alpha.11 / compatibility-stabilization-1**, schema 12, supersedes movement-rules-1 as the active implementation checkpoint. It is not a promoted release.

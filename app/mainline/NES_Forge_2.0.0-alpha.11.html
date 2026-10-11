@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NES Forge 2.0.0-alpha.11 — Compatibility Stabilization</title>
+<title>NES Forge 2.0.0-alpha.11 — Native Background Recovery</title>
 <style>
 :root{--bg:#0c0c10;--bg2:#101018;--bg3:#16161e;--bdr:#252530;--bdr2:#3a3a4a;--txt:#b8b8c8;--dim:#667;--acc:#5ad4ff;--acc2:#3a9abf;--grn:#8df57a;--red:#f57a7a;--ylw:#f5d07a;--orn:#f5a07a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -8705,7 +8705,7 @@ F.project={create,openRom,classifyRom,replaceProject};
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Compatibility Stabilization',maturity:'alpha',candidate:'compatibility-stabilization-1',schema:12,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Native Background Recovery',maturity:'alpha',candidate:'native-background-1',schema:12,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;
@@ -8909,7 +8909,7 @@ const state={epoch:0,recoveryPhase:'checking',recoveryToken:0,lastIntent:'startu
 const preparedLoads=new WeakSet();
 const portableCompletions=new WeakSet();
 let recoveryWrite=Promise.resolve(),checkPromise=null;
-let settingsEditActive=false;
+let projectEditActive=false;
 const fail=message=>{throw Error(message);};
 function status(message){
   if(Forge.release?.updateStatus)return Forge.release.updateStatus(message);
@@ -9059,62 +9059,89 @@ function commit(prepared,options={}){
   refresh();return true;
 }
 function load(input,options={}){return Store.commit(Store.prepareLoad(input),options);}
-// Small canonical configuration edits are not project replacement. Loading a
-// whole prepared project would normalize unrelated authored records and reset
-// tracker/scene caches. Keep that lifecycle in commit; own edit/history here.
-function applySettingsEdit(changes,options={}){
-  if(settingsEditActive)fail('A project settings transaction is already in progress.');
-  settingsEditActive=true;
+// Bounded canonical edits are not project replacement. Only private preparers
+// below may declare assignments/appends; callers never supply mutation code.
+// Unrelated prepared data stays detached so authoring caches are not reloaded.
+function runEdit(kind,options,prepare){
+  if(projectEditActive)fail('A project '+kind+' transaction is already in progress.');
+  projectEditActive=true;
   try{
     const expected=options.expected;
-    if(!expected||!Number.isInteger(expected.epoch)||typeof expected.snapshot!=='string')fail('A project settings edit requires its captured project guard.');
-    const check=()=>{if(undoPaused)fail('Wait for the current history operation to finish before editing project settings.');if(!currentRead(expected))fail('The current project changed. Capture it and preview again.');};
+    if(!expected||!Number.isInteger(expected.epoch)||typeof expected.snapshot!=='string')fail('A project '+kind+' edit requires its captured project guard.');
+    const check=()=>{if(undoPaused)fail('Wait for the current history operation to finish before editing project '+kind+'.');if(!currentRead(expected))fail('The current project changed. Capture it and preview again.');};
     check();
+    const edit=prepare(JSON.parse(expected.snapshot)),keys=Object.keys(edit.values),originals={};
+    for(const key of keys){const descriptor=Object.getOwnPropertyDescriptor(S,key);if(!descriptor||!Object.hasOwn(descriptor,'value')||!descriptor.writable)fail('Project '+kind+' '+key+' cannot be edited in the current state.');originals[key]=descriptor;}
+    const append=edit.append;
+    if(append&&(!Array.isArray(append.list)||!Object.isExtensible(append.list)||!Object.getOwnPropertyDescriptor(append.list,'length')?.writable))fail('Project scene collection cannot be edited in the current state.');
+    check();
+    if(!edit.effective)return {applied:false,warnings:[]};
+    const history={undo:undoStack.slice(),redo:redoStack.slice(),bytes:undoBytes,disabled:$('undoBtn').disabled,dirty:Forge15.dirty};
+    const expectedUndo=history.undo.concat(expected.snapshot);let expectedBytes=history.bytes+expected.snapshot.length;
+    while(expectedUndo.length>MAX_UNDO||(expectedBytes>24*1024*1024&&expectedUndo.length>1))expectedBytes-=expectedUndo.shift().length;
+    let installing=false;
+    try{
+      const accepted=snapshot();
+      if(accepted===false||undoPaused||undoBytes!==expectedBytes||redoStack.length||undoStack.length!==expectedUndo.length||undoStack.some((entry,i)=>entry!==expectedUndo[i]))fail('The history snapshot did not accept exactly one project '+kind+' edit.');
+      check();installing=true;
+      if(append)Array.prototype.push.call(append.list,append.scene);
+      for(const key of keys)S[key]=edit.values[key];
+      Forge15.dirty=true;
+    }catch(error){
+      if(installing){for(const key of keys)Object.defineProperty(S,key,originals[key]);if(append)append.list.length=append.index;}
+      undoStack.splice(0,undoStack.length,...history.undo);redoStack.splice(0,redoStack.length,...history.redo);undoBytes=history.bytes;$('undoBtn').disabled=history.disabled;Forge15.dirty=history.dirty;
+      throw error;
+    }
+    // Canonical data is complete before presentation runs. Its failures remain
+    // explicit committed warnings, never an apparent rollback or second Undo.
+    const warnings=[];
+    try{notify(options.intent||edit.intent);}catch(error){warnings.push('change notification: '+(error.message||String(error)));}
+    for(const refreshUI of edit.refresh||[])try{refreshUI();}catch(error){warnings.push('display refresh: '+(error.message||String(error)));}
+    return {applied:true,...edit.result,warnings};
+  }finally{projectEditActive=false;}
+}
+function applySettingsEdit(changes,options={}){
+  return runEdit('settings',options,candidate=>{
     if(!changes||typeof changes!=='object'||Array.isArray(changes))fail('Project settings changes must be an object.');
-    const keys=Object.keys(changes),candidate=JSON.parse(expected.snapshot),replacements={},originals={};
-    let effective=false;
+    const keys=Object.keys(changes),values={};let effective=false;
     for(const key of keys){
       if(!['gameplay','worldRuntime'].includes(key))fail('Unsupported project settings owner: '+key);
-      const patch=changes[key],base=candidate[key],descriptor=Object.getOwnPropertyDescriptor(S,key);
+      const patch=changes[key],base=candidate[key];
       if(!patch||typeof patch!=='object'||Array.isArray(patch))fail('Project settings changes for '+key+' must be an object.');
-      if(!descriptor||!Object.hasOwn(descriptor,'value')||!descriptor.writable)fail('Project settings '+key+' cannot be edited in the current state.');
-      originals[key]=descriptor;
       for(const field of Object.keys(patch)){
         const value=patch[field];
         if(!Object.hasOwn(base,field)||!['number','string','boolean'].includes(typeof value)||typeof value!==typeof base[field]||(typeof value==='number'&&!Number.isFinite(value)))fail('Unsupported project setting: '+key+'.'+field);
         if(base[field]!==value)effective=true;
         base[field]=value;
       }
-      replacements[key]=cp(base);
+      values[key]=cp(base);
     }
-    // The canonical owners validate the detached candidate. Only their exact
-    // configuration values can be installed; prepared unrelated data is unused.
     const prepared=Store.prepareLoad(candidate);
     for(const key of keys)if(JSON.stringify(prepared[key])!==JSON.stringify(candidate[key]))fail('Project settings changed during normalization: '+key);
-    check();
-    if(!effective)return {applied:false,warnings:[]};
-    const history={undo:undoStack.slice(),redo:redoStack.slice(),bytes:undoBytes,disabled:$('undoBtn').disabled,dirty:Forge15.dirty};
-    const expectedUndo=history.undo.concat(expected.snapshot);let expectedBytes=history.bytes+expected.snapshot.length;
-    while(expectedUndo.length>MAX_UNDO||(expectedBytes>24*1024*1024&&expectedUndo.length>1))expectedBytes-=expectedUndo.shift().length;
-    const installed=[];
-    try{
-      const accepted=snapshot();
-      if(accepted===false||undoPaused||undoBytes!==expectedBytes||redoStack.length||undoStack.length!==expectedUndo.length||undoStack.some((entry,i)=>entry!==expectedUndo[i]))fail('The history snapshot did not accept exactly one project settings edit.');
-      check();
-      for(const key of keys){S[key]=replacements[key];installed.push(key);}
-      Forge15.dirty=true;
-    }catch(error){
-      for(const key of installed)Object.defineProperty(S,key,originals[key]);
-      undoStack.splice(0,undoStack.length,...history.undo);redoStack.splice(0,redoStack.length,...history.redo);undoBytes=history.bytes;$('undoBtn').disabled=history.disabled;Forge15.dirty=history.dirty;
-      throw error;
+    return {effective,values,intent:'projectSettings',refresh:[()=>Forge.services.WorldUI?.refresh(true),()=>Forge165.ui?.refresh(true),()=>Forge.services.GameplayUI?.refresh(true)]};
+  });
+}
+function appendScene(input,options={}){
+  return runEdit('scene',options,candidate=>{
+    if(!input||typeof input!=='object'||Array.isArray(input)||typeof input.id!=='string'||!input.id.trim())fail('An appended scene requires a nonempty explicit scene ID.');
+    if(options.select!==undefined&&typeof options.select!=='boolean')fail('Scene selection must be true or false.');
+    if(candidate.scenes.length>=64)fail('The project already has 64 scenes.');
+    if(candidate.scenes.some(scene=>scene.id===input.id))fail('A scene with this ID is already in the project.');
+    const index=candidate.scenes.length,selected=options.select!==false;
+    candidate.scenes.push(cp(input));
+    // Validate with the canonical project/scene owners, then install only a
+    // detached copy of the appended normalized scene. Existing records retain
+    // their live references and exact values; prepared audio/worlds are unused.
+    const prepared=Store.prepareLoad(candidate),scene=cp(prepared.scenes[index]),values={};
+    if(selected){
+      for(const key of ['nt','attr','pal','sprPal','oam','chr','sprChr','tileProps'])values[key]=cp(scene[key]);
+      Object.assign(values,{activeScene:index,selSprite:scene.oam.length?0:-1,selEntity:-1,entPlaceTool:null,chrBank:'bg',selTile:0,editTile:0});
     }
-    // Presentation/notification faults cannot turn a committed, Undoable edit
-    // into an apparent rollback. The caller reports these explicit warnings.
-    const warnings=[];
-    try{notify(options.intent||'projectSettings');}catch(error){warnings.push('change notification: '+(error.message||String(error)));}
-    for(const refreshUI of [()=>Forge.services.WorldUI?.refresh(true),()=>Forge165.ui?.refresh(true),()=>Forge.services.GameplayUI?.refresh(true)])try{refreshUI();}catch(error){warnings.push('display refresh: '+(error.message||String(error)));}
-    return {applied:true,warnings};
-  }finally{settingsEditActive=false;}
+    return {effective:true,values,append:{list:S.scenes,index,scene},intent:'sceneAppend',result:{sceneId:scene.id,sceneIndex:index,selected},
+      // Live mirrors were installed above before any UI-capable loader runs.
+      // Its ordinary selection/cache work can now fail without a partial model.
+      refresh:[...(selected?[()=>loadSceneData(index)]:[]),()=>rebuildAllUI(),()=>Forge166.ui?.refresh()]};
+  });
 }
 function initializeBlank(){
   const sc=makeScene({name:'Untitled Scene',chr:normalizeTiles(),sprChr:normalizeTiles(),tileProps:Array(256).fill(0),entities:[],oam:[],buildInclude:true,buildOrder:0,scrollDir:'none'});
@@ -9236,7 +9263,7 @@ async function dismissRecovery(){
     recoveryPhase('ready');status();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,appendScene,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};
@@ -10369,12 +10396,14 @@ function plan(options={}){
   if(!services.ProjectStore?.prepareSnapshot)throw Error('ProjectStore preparation is required before building.');
   return planSource(services.ProjectStore.prepareSnapshot({intent:'build'}),options);
 }
-function planDetached(project){
+function planDetached(project,options={}){
   if(!services.ProjectStore?.prepareLoad)throw Error('ProjectStore validation is required before detached building.');
   const source=services.ProjectStore.prepareLoad(project).data;
   if(source.version!==services.ProjectStore.schema)throw Error('Detached builds require the current project schema.');
   if(typeof source.asmSource!=='string'||source.asmSource.trim())throw Error('Detached builds require generated Forge code; custom assembly remains live-only.');
-  if(!['world','single-room'].includes(backendFor(source)))throw Error('Detached builds require a generated World or single-room runtime.');
+  const backend=backendFor(source);
+  if(!['world','single-room'].includes(backend)&&!(options.allowViewer===true&&backend==='packed'))throw Error('Detached builds require a generated World or single-room runtime; a static scene viewer requires explicit allowViewer.');
+  if(backend==='packed'&&source.mapper!==0)throw Error('The detached generated scene viewer requires mapper 0 (NROM).');
   const result=planSource(source,{});result.detached=true;return result;
 }
 function planSource(source,options){
@@ -10545,7 +10574,7 @@ function build(options){
 }
 const BuildGraph=services.BuildGraph={profile,phaseOrder,selectedSceneEntries,plan,planDetached,preflight,lastDiagnostics:[],
   ownership:'Live capture or detached validation prepares the source. Generated plans pass copied sources to existing codecs once; custom assembly is live-only.'};
-const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world']),compile,compileDetached:project=>compile(planDetached(project)),commit,build,lastArtifact:null};
+const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world']),compile,compileDetached:(project,options)=>compile(planDetached(project,options)),commit,build,lastArtifact:null};
 // These assignments replace active routes; no previous planner/builder is called.
 buildNesRom=build;
 window.forge15_preflight=preflight;
@@ -13381,6 +13410,417 @@ methods.registerProfile({id:ID,version:1,contractVersion:2,name:'FamiTone2 nativ
 },handlers:{inspect,patch,convert}});
 services.RERecoveryProfiles=Object.freeze({version:1,nativeAudioId:ID,physicalChrId:'nes.physical-chr.v1',limits:Object.freeze({nativeSourceBytes:MAX_SOURCE,resultBytes:2*1024*1024,commandPage:100})});
 })();
+/* Shared native-background conversion. Format modules interpret source bytes;
+ * REMethods owns discovery/dispatch, ProjectStore owns edits, and the ordinary
+ * compiler owns the independent static-viewer output. No ROM code is executed. */
+(()=>{
+'use strict';
+const services=window.Forge.services,methods=services.REMethods,stages=new WeakSet();
+const copy=value=>JSON.parse(JSON.stringify(value));
+function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
+const fail=message=>{throw Error('Native background: '+message);};
+const commonLimits=Object.freeze([
+  'One static background and its physical CHR bank only. Sprites, scrolling, animation, collision, actors, audio and game logic are not recovered.',
+  'Import adds an editable scene excluded from the current build. Download background project creates a separate Forge static viewer; it does not recreate the original program.',
+  'The source ROM is unchanged. There is no native ROM patch, inverse encoder or whole-game reconstruction claim.',
+  'Forge displays the underlying 256 × 240 background with its own rendering mask. Original clipping, sprite overlays and later runtime writes are not reproduced.'
+]);
+function bytes(value,length,label,max=255){if(!Array.isArray(value)||value.length!==length||value.some(v=>!Number.isInteger(v)||v<0||v>max))fail(label+' must contain '+length+' bounded bytes.');return value;}
+function textList(value,label){if(!Array.isArray(value)||value.length>64||value.some(v=>typeof v!=='string'||!v.trim()||v.length>2000))fail('Invalid '+label+'.');return value;}
+function parseNrom(input,options={}){
+  const b=input instanceof Uint8Array?input:Uint8Array.from(input||[]),reject=message=>{const e=Error(message);e.code='UNSUPPORTED_NROM';throw e;};
+  if(b.length<16||b[0]!==78||b[1]!==69||b[2]!==83||b[3]!==26)reject('An iNES NROM container is required.');
+  if(![1,2].includes(b[4])||b[5]!==1||(b[6]&0xfe)||b[7]||b[8]||b[9]||b[11]||b[12]||b[13]||b[14]||b[15])reject('This background method requires NTSC mapper 0 without a trainer, 16/32 KiB PRG and 8 KiB physical CHR.');
+  if(b[10]!==0&&!(options.reservedByte10===0x10&&b[10]===0x10))reject('The reserved header fields are outside this method’s declared layout.');
+  const prgStart=16,prgSize=b[4]*16384,chrStart=16+prgSize,chrSize=8192;
+  if(b.length!==chrStart+chrSize)reject('The NROM container length does not match its declared banks.');
+  function cpuToFile(address,length=1){if(!Number.isInteger(address)||!Number.isInteger(length)||length<0||address<0x8000||address+length>0x10000)reject('CPU span is outside NROM PRG.');const offset=(address-0x8000)%prgSize;if(offset+length>prgSize)reject('CPU span crosses the physical PRG mirror.');return prgStart+offset;}
+  function fileToCpu(offset){if(!Number.isInteger(offset)||offset<prgStart||offset>=chrStart)reject('File address is outside NROM PRG.');return (prgSize===16384?0xc000:0x8000)+offset-prgStart;}
+  return Object.freeze({prgStart,prgSize,chrStart,chrSize,cpuToFile,fileToCpu,mirroring:b[6]&1?'v':'h',reservedByte10:b[10]});
+}
+function validateBackground(value,source){
+  if(!value||typeof value!=='object'||Array.isArray(value))fail('The decoder returned no background record.');
+  const b=copy(value);if(typeof b.key!=='string'||!/^[a-z0-9][a-z0-9.-]{0,79}$/.test(b.key)||typeof b.label!=='string'||!b.label.trim()||b.label.length>160)fail('A bounded resource key and label are required.');
+  bytes(b.chrBytes,4096,'Background CHR');bytes(b.nametable,1024,'Nametable');bytes(b.palette,32,'Palette',63);
+  if(!Array.isArray(b.knownNametable)||b.knownNametable.length!==1024||b.knownNametable.some(v=>typeof v!=='boolean'))fail('Every nametable byte requires a known/unknown marker.');
+  if(b.knownNametable.slice(0,960).some(v=>!v))fail('Unknown tile placement is not convertible by this background subset.');
+  if(![0,1].includes(b.backgroundPatternTable))fail('The source background pattern bank must be proven.');
+  if(b.ppuMask!==undefined&&(!Number.isInteger(b.ppuMask)||b.ppuMask<0||b.ppuMask>255||(b.ppuMask&0xe1)))fail('Greyscale/emphasis or invalid PPU masks require a separate conversion.');
+  textList(b.unknown,'unknowns');textList(b.limitations,'decoder limitations');
+  if(!Array.isArray(b.evidence)||!b.evidence.length||b.evidence.length>64)fail('The background requires bounded physical evidence.');
+  b.evidence=b.evidence.map(item=>methods.evidence(item,source));
+  const encoded=JSON.stringify(b.construction);if(!encoded||encoded.length>180000)fail('Construction evidence exceeds its bounded record.');
+  for(let i=960;i<1024;i++)if(!b.knownNametable[i])b.nametable[i]=0;
+  return freeze(b);
+}
+function decodeTiles(data){return Array.from({length:256},(_,tile)=>Array.from({length:8},(_,y)=>Array.from({length:8},(_,x)=>((data[tile*16+y]>>(7-x))&1)|(((data[tile*16+y+8]>>(7-x))&1)<<1))));}
+function convert(background,source,method){
+  const b=validateBackground(background,source),sceneId='re-bg-'+source.sha256+'-'+method.id+'-'+b.key;
+  const missing=b.knownNametable.map((known,i)=>known?null:i).filter(i=>i!==null);
+  const adaptations=[...commonLimits,...b.limitations];
+  if(missing.length)adaptations.push('The native loader leaves '+missing.length+' attribute byte(s) dependent on prior PPU state (nametable indices '+missing.join(', ')+'). The Forge conversion explicitly fills them with zero; these values are authored defaults, not recovered source data.');
+  if(b.palette.slice(0,16).some((v,i)=>i%4===0&&v!==b.palette[0]))adaptations.push('Unused background palette slots at indices 4, 8 and 12 normalize to the universal background color. The raw native palette remains in this evidence record.');
+  const evidence=[...b.evidence,methods.evidence({status:'converted',claim:'Decoded static CHR, placement, attributes and palette become a canonical Forge scene. Listed unknown attributes use disclosed zero defaults; the generated viewer replaces the original program and rendering mask.',ranges:b.evidence.flatMap(e=>e.ranges).slice(0,128)},source)];
+  const report=freeze({format:'NESForgeNativeBackgroundRecovery',version:1,method:copy(method),source:copy(source),sceneId,key:b.key,label:b.label,backgroundPatternTable:b.backgroundPatternTable,nativePalette:b.palette,knownNametable:b.knownNametable,unknownAttributeIndices:missing,sourcePpuMask:b.ppuMask??null,construction:b.construction,evidence,unknown:b.unknown,limitations:adaptations});
+  const pal=Array.from({length:4},(_,i)=>[b.palette[0],...b.palette.slice(i*4+1,i*4+4)]),chr=decodeTiles(b.chrBytes);
+  const scene=makeScene({id:sceneId,name:b.label,chr,sprChr:normalizeTiles(),nt:b.nametable.slice(0,960),attr:b.nametable.slice(960),pal,sprPal:pal,bgColor:b.palette[0],tileProps:Array(256).fill(0),entities:[],oam:[],links:[],sceneType:'static',scrollDir:'none',buildInclude:false,buildOrder:0,captureMeta:{mode:'native-background',note:'Static native background converted to Forge; original game behavior is not recovered.',recovery:copy(report)}});
+  return {scene,report};
+}
+function registerAdapter(spec){
+  if(!spec||typeof spec.decode!=='function')fail('A trusted format decoder is required.');
+  const descriptor={id:spec.id,version:1,name:spec.name};
+  async function decoded(analysis,context){
+    if(context.source.byteLength>40976)return {status:'unsupported',reason:'This static NROM method is bounded to 16/32 KiB PRG and 8 KiB CHR.',evidence:[]};
+    const value=Uint8Array.from(context.read(0,context.source.byteLength).bytes);context.consume(value.length*4);context.throwIfAborted();
+    const result=spec.decode(value);context.throwIfAborted();
+    if(result?.status!=='supported')return {status:result?.status||'invalid',reason:result?.reason||'No supported native background was decoded.',evidence:[]};
+    const background=validateBackground(result.background,context.source);
+    return {status:'supported',reason:result.reason,evidence:background.evidence,data:background};
+  }
+  function options(input,source){if(Object.keys(input).some(key=>key!=='expectedSourceSha256'))fail('Unsupported background recovery option.');if(input.expectedSourceSha256!==undefined&&input.expectedSourceSha256!==source.sha256)fail('The selected source identity changed.');}
+  return methods.registerProfile({id:spec.id,version:1,contractVersion:2,name:spec.name,domains:['graphics'],limitations:[...commonLimits,...spec.limitations],limits:{maxSourceBytes:40976,maxWork:1048576},operations:{decode:{label:'Decode native background records',effect:'read-only'},convert:{label:'Preview editable background',effect:'preview',fidelity:'subset'}},probe:decoded,handlers:{decode:async(analysis,input,context)=>{options(input,context.source);return decoded(analysis,context);},convert:async(analysis,input,context)=>{options(input,context.source);const result=await decoded(analysis,context);if(result.status!=='supported')return result;const data=convert(result.data,context.source,descriptor);return {status:'supported',reason:'The declared static background can be converted to an editable Forge scene, with the listed runtime differences.',evidence:data.report.evidence,data};}}});
+}
+function standalone(scene,source){
+  const sc=copy(scene);sc.buildInclude=true;sc.buildOrder=0;
+  return {format:'NESForge',version:services.ProjectStore.schema,foundation:window.Forge.release.version,romLayout:3,worldAuthoring:3,metatileExtension:1,metaspriteExtension:2,entityAnimationExtension:1,projectName:(source.name+' — background').slice(0,120),scenes:[sc],activeScene:0,chr:sc.chr,sprChr:sc.sprChr,nt:sc.nt,attr:sc.attr,pal:sc.pal,sprPal:sc.sprPal,oam:[],tileProps:sc.tileProps,worlds:[],gameplay:Forge165.config.defaults(),worldRuntime:services.WorldConfig.defaults(),audioRuntime:services.AudioConfig.defaults(),gameplayCore:services.GameplayModel.defaults(),metasprites:[],animations:[],instruments:[],patterns:[{rows:Array.from({length:64},()=>Array.from({length:5},()=>({note:-1,inst:-1,vol:-1,fx:0,fxp:0})))}],orderList:[[0,0,0,0,0]],audRows:64,tempo:150,speed:6,sfx:[],asmSource:'',mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,selTile:0,editTile:0,selSprite:-1,selEntity:-1,chrBank:'bg',_selAnim:0,_animFrame:0};
+}
+function checkSignal(signal){if(signal?.aborted){const error=Error('Background recovery cancelled.');error.name='AbortError';throw error;}}
+async function stage(analysis,methodId,options={},controls={}){
+  const store=services.ProjectStore,guard=Object.freeze({epoch:store.state.epoch,snapshot:store.serialize()});
+  const result=await methods.dispatch(methodId,'convert',analysis,options,controls);checkSignal(controls.signal);
+  if(result.status!=='supported')fail(result.reason);
+  const data=result.data;if(!data?.scene||data.report?.format!=='NESForgeNativeBackgroundRecovery')fail('This method does not produce a native background scene.');
+  validateRecovery(data.report);
+  if(data.report.method.id!==methodId||data.scene.id!==data.report.sceneId||JSON.stringify(data.scene.captureMeta?.recovery)!==JSON.stringify(data.report))fail('Background scene and method evidence differ.');
+  if(data.report.source.sha256!==analysis.report.identity.sha256||data.report.source.byteLength!==analysis.report.identity.byteLength)fail('Background preview refers to another source.');
+  const project=standalone(data.scene,result.source);store.prepareLoad(project);
+  const artifact=services.RuntimeCompiler.compileDetached(project,{allowViewer:true});checkSignal(controls.signal);
+  if(!window.crypto?.subtle?.digest)fail('SHA-256 is unavailable in this context.');
+  const digest=await window.crypto.subtle.digest('SHA-256',artifact.rom);checkSignal(controls.signal);
+  if(store.state.epoch!==guard.epoch||store.serialize()!==guard.snapshot)fail('The project changed during preview. Preview again.');
+  const resultStage=freeze({report:data.report,scene:data.scene,project,guard,previewBuild:{backend:artifact.backend,byteLength:artifact.rom.length,sha256:Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('')}});stages.add(resultStage);return resultStage;
+}
+function importStaged(value){
+  if(!stages.has(value))fail('Preview this background in the current editor before importing.');
+  const result=services.ProjectStore.appendScene(value.scene,{expected:value.guard,intent:'nativeBackgroundImport',select:true});
+  return Object.freeze({...result,sceneId:value.scene.id});
+}
+function validateRecovery(value){
+  const encoded=JSON.stringify(value);if(!encoded||encoded.length>262144)fail('Recovery evidence exceeds 256 KiB.');
+  const r=copy(value);if(r?.format!=='NESForgeNativeBackgroundRecovery'||r.version!==1||r.method?.version!==1||typeof r.method.id!=='string'||!/^nes\.[a-z0-9.-]+\.v1$/.test(r.method.id))fail('Unsupported background evidence format.');
+  if(!/^[0-9a-f]{64}$/.test(r.source?.sha256)||!Number.isInteger(r.source.byteLength)||r.source.byteLength<16||r.source.byteLength>40976||typeof r.source.name!=='string'||r.source.name.length>512)fail('Invalid background source identity.');
+  if(typeof r.key!=='string'||!/^[a-z0-9][a-z0-9.-]{0,79}$/.test(r.key)||r.sceneId!=='re-bg-'+r.source.sha256+'-'+r.method.id+'-'+r.key)fail('The background scene identity differs from its source.');
+  if(typeof r.label!=='string'||!r.label.trim()||r.label.length>160||typeof r.method.name!=='string'||!r.method.name.trim()||r.method.name.length>160)fail('Invalid background evidence labels.');
+  if(![0,1].includes(r.backgroundPatternTable)||r.sourcePpuMask!==null&&(!Number.isInteger(r.sourcePpuMask)||r.sourcePpuMask<0||r.sourcePpuMask>255||(r.sourcePpuMask&0xe1)))fail('Invalid background pattern bank or PPU mask evidence.');
+  if(!r.construction||typeof r.construction!=='object'||Array.isArray(r.construction)||JSON.stringify(r.construction).length>180000)fail('Invalid bounded background construction evidence.');
+  bytes(r.nativePalette,32,'Persisted native palette',63);
+  if(!Array.isArray(r.knownNametable)||r.knownNametable.length!==1024||r.knownNametable.some(v=>typeof v!=='boolean')||r.knownNametable.slice(0,960).some(v=>!v))fail('Invalid persisted nametable coverage.');
+  const unknown=r.knownNametable.map((v,i)=>v?null:i).filter(v=>v!==null);if(JSON.stringify(unknown)!==JSON.stringify(r.unknownAttributeIndices))fail('Unknown attribute evidence differs from its coverage.');
+  textList(r.unknown,'persisted unknowns');textList(r.limitations,'persisted limitations');
+  if(!Array.isArray(r.evidence)||!r.evidence.length||r.evidence.length>65)fail('Invalid persisted physical evidence.');r.evidence.forEach(e=>{if(e.sourceSha256!==r.source.sha256)fail('Persisted evidence refers to a different source.');methods.evidence(e,r.source);});
+  return freeze(r);
+}
+services.RENativeBackground=Object.freeze({version:1,parseNrom,registerAdapter,stage,importStaged,validateRecovery});
+})();
+/* Bounded native PPU-immediate construction decoder. This recognizes data and
+ * control structure, never a filename/hash and never executes supplied code. */
+(()=>{
+'use strict';
+const services=window.Forge.services,shared=services.RENativeBackground;
+const ID='nes.immediate-ppu-background.v1',LIMITS=Object.freeze({bytes:40976,prefixBytes:512,tokens:4096,writes:4096});
+const limitations=Object.freeze([
+ 'One reset-linked, forced-blank initialization with immediate PPU palette writes and a literal/counted-fill nametable subroutine is supported. Arbitrary 6502 code, indirect pointers and other compression are not interpreted.',
+ 'This is the initialized background only. Later text, sprites, input, game logic, raster effects, collisions and audio are not recovered.',
+ 'Canonical conversion builds a separate Forge static scene. There is no native encoder, source-ROM patch, inverse or byte-round-trip claim.',
+ 'Only a proven static NROM background pattern bank, nametable zero, zero scroll and unemphasized nongrayscale background rendering are supported.'
+]);
+function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
+function decode(bytes){
+ if(!(bytes instanceof Uint8Array)||bytes.length>LIMITS.bytes)return {status:'unsupported',reason:'Immediate PPU construction requires a bounded NROM file of at most '+LIMITS.bytes+' bytes.'};
+ let map;try{map=shared.parseNrom(bytes);}catch(error){return {status:'unsupported',reason:error.message};}
+ const end=map.prgStart+map.prgSize,match=(at,pattern)=>at>=map.prgStart&&at+pattern.length<=end&&pattern.every((value,i)=>value===null||bytes[at+i]===value);
+ const word=at=>bytes[at]|bytes[at+1]<<8,fail=message=>{throw Error(message);};
+ const file=address=>{const offset=map.cpuToFile(address);if(!Number.isSafeInteger(offset)||offset<map.prgStart||offset>=end)fail('A construction address lies outside the mapped PRG source.');return offset;};
+ const resetAddress=word(end-4);let start;try{start=file(resetAddress);}catch(error){return {status:'unknown',reason:'No mapped reset entry for this immediate PPU construction profile.'};}
+ let p=start,a=null,x=null,initialControl=null,initialMask=null,recognized=false,tokens=0,writes=0;
+ const charge=()=>{if(++tokens>LIMITS.tokens)fail('Construction exceeds the bounded token budget.');};
+ function address(at){
+  if(!match(at,[0xad,2,0x20,0xa9,null,0x8d,6,0x20]))return null;
+  if(match(at+8,[0xa9,null,0x8d,6,0x20]))return {value:bytes[at+4]<<8|bytes[at+9],end:at+13,start:at};
+  if(match(at+8,[0x8d,6,0x20]))return {value:bytes[at+4]*257,end:at+11,start:at};
+  return null;
+ }
+ function writeToken(at){
+  if(match(at,[0xa9,null,0x8d,7,0x20]))return {start:at,end:at+5,value:bytes[at+1],count:1,valueFileOffset:at+1,storeFileOffset:at+2,kind:'literal'};
+  if(match(at,[0xa9,null,0xa2,null,0x8d,7,0x20,0xca,0xd0,0xfa]))return {start:at,end:at+10,value:bytes[at+1],count:bytes[at+3]||256,valueFileOffset:at+1,countFileOffset:at+3,storeFileOffset:at+4,kind:'counted-fill'};
+  return null;
+ }
+ function countWrite(){if(++writes>LIMITS.writes)fail('Construction exceeds the bounded PPU-write budget.');}
+ try{
+  // Bounded reset preamble. Poll and RAM-clear loops are recognized as complete
+  // macros and skipped; their iteration bodies are never run by this decoder.
+  let paletteSetup=null;
+  while(p-start<=LIMITS.prefixBytes){
+   charge();paletteSetup=address(p);if(paletteSetup?.value===0x3f00)break;
+   if(match(p,[0xad,2,0x20,0x10,0xfb])){a=null;p+=5;continue;}
+   if(match(p,[0xa9,null,0xa2,null,0x95,null,0xe8,0xd0,0xfb])){a=bytes[p+1];x=0;p+=9;continue;}
+   if(match(p,[0xa9,null,0xa2,null,0x9d,0,null,0xe8,0xd0,0xfa])&&bytes[p+6]>=2&&bytes[p+6]<=7){a=bytes[p+1];x=0;p+=10;continue;}
+   if(match(p,[0xa9,null])){a=bytes[p+1];p+=2;continue;}
+   if(match(p,[0xa2,null])){x=bytes[p+1];p+=2;continue;}
+   if(match(p,[0x8d,0,0x20])&&a!==null){if(a&0x80)return {status:'unknown',reason:'Initialization enables NMI before its background construction is complete.'};initialControl=a;p+=3;continue;}
+   if(match(p,[0x8d,1,0x20])&&a!==null){initialMask=a;p+=3;continue;}
+   if(match(p,[0x9a])&&x!==null||match(p,[0x78])||match(p,[0xd8])||match(p,[0xea])){p++;continue;}
+   return {status:'unknown',reason:'Reset initialization is outside the supported immediate PPU construction grammar.'};
+  }
+  if(!paletteSetup||paletteSetup.value!==0x3f00)return {status:'unknown',reason:'No bounded reset-linked palette initialization was found.'};
+  if(initialControl===null||initialMask===null||(initialControl&0x84)||(initialMask&0x18))return {status:'unknown',reason:'Initialization does not prove forced blank, NMI off and single-byte PPU increments.'};
+  recognized=true;
+  const palette=Array(32).fill(0),paletteLastWriters=Array(32).fill(null),paletteWrites=[];p=paletteSetup.end;let paletteCount=0;
+  while(paletteCount<32){
+   charge();const token=writeToken(p);if(!token||paletteCount+token.count>32)fail('The recognized palette must contain exactly 32 immediate PPU writes.');
+   if(token.value>63)fail('Palette values outside the six-bit NES color domain are unsupported.');
+   for(let i=0;i<token.count;i++){
+    countWrite();const originalIndex=paletteCount++,index=(originalIndex&0x13)===0x10?originalIndex-16:originalIndex;
+    palette[index]=token.value;paletteLastWriters[index]=token.valueFileOffset;
+    if((index&3)===0){palette[index+16]=token.value;paletteLastWriters[index+16]=token.valueFileOffset;}
+    paletteWrites.push({ppuAddress:0x3f00+originalIndex,value:token.value,valueFileOffset:token.valueFileOffset,storeFileOffset:token.storeFileOffset});
+   }
+   p=token.end;
+  }
+  const paletteEnd=p;if(!match(p,[0x20,null,null]))fail('The recognized initialization must call its background constructor directly.');
+  const callFileOffset=p,routineAddress=word(p+1),routineStart=file(routineAddress),returnFileOffset=p+3;
+  if(routineStart>=start&&routineStart<=returnFileOffset)fail('The background call overlaps reset initialization.');
+  p=routineStart;const nametable=Array(1024).fill(0),knownNametable=Array(1024).fill(false),lastWriters=Array(1024).fill(null),segments=[],constructionTokens=[];let target=null,currentSegment=null,routineEnd=null,scrollWrites=0;
+  while(p<end){
+   charge();const setup=address(p);
+   if(setup){
+    if(setup.value!==0&&(setup.value<0x2000||setup.value>0x23ff))fail('Construction addresses leave the one supported nametable.');
+    target=setup.value;currentSegment={ppuAddress:target,setupFileOffset:p,setupLength:setup.end-p,writeCount:0};segments.push(currentSegment);p=setup.end;continue;
+   }
+   const token=writeToken(p);
+   if(token){
+    if(target===null||target<0x2000||target+token.count>0x2400)fail('A constructed write leaves the bounded nametable.');
+    // Indexed rows avoid repeating a full source record for every destination.
+    // The exact literal/fill operand layout below determines every byte source;
+    // a destination's repeat index is its PPU address minus the token address.
+    const tokenId=constructionTokens.length;
+    constructionTokens.push([token.start,target,token.count,token.value,token.kind==='counted-fill'?1:0]);
+    for(let i=0;i<token.count;i++){
+     countWrite();const index=target++-0x2000;nametable[index]=token.value;knownNametable[index]=true;lastWriters[index]=tokenId;currentSegment.writeCount++;
+    }
+    p=token.end;continue;
+   }
+   if(match(p,[0xa9,0,0x8d,5,0x20])){scrollWrites++;p+=5;continue;}
+   if(match(p,[0x60])){routineEnd=p+1;break;}
+   fail('A recognized constructor contains an unsupported or malformed instruction sequence.');
+  }
+  if(routineEnd===null)fail('The background constructor has no bounded return.');
+  if(knownNametable.some(value=>!value))fail('The constructor does not establish all 960 tiles and 64 attribute bytes.');
+  if(scrollWrites!==2)fail('The constructor must finish with two explicit zero-scroll writes.');
+  // Prove the background bank and display setup following the direct call.
+  // Both address and scroll latches are reset explicitly; no inferred state.
+  p=returnFileOffset;const tailAddress=address(p);if(!tailAddress||tailAddress.value!==0)fail('Initialization lacks its explicit zero address reset.');p=tailAddress.end;
+  if(!match(p,[0xa9,0,0x8d,5,0x20,0xa9,0,0x8d,5,0x20]))fail('Initialization lacks two explicit zero-scroll writes.');p+=10;
+  const controlWrites={};for(let i=0;i<2;i++){
+   if(!match(p,[0xa9,null,0x8d,null,0x20])||![0,1].includes(bytes[p+3])||Object.hasOwn(controlWrites,bytes[p+3]))fail('Initialization does not prove final PPU control and mask values.');
+   if(i===0&&bytes[p+3]===0&&(bytes[p+1]&0x80))fail('An NMI-enabling control write must be the final initialization store.');
+   controlWrites[bytes[p+3]]={value:bytes[p+1],fileOffset:p+1};p+=5;
+  }
+  const control=controlWrites[0].value,ppuMask=controlWrites[1].value,backgroundPatternTable=(control>>4)&1;
+  if(control&3)fail('Final PPU control selects an unsupported nametable.');
+  if(!(ppuMask&8)||ppuMask&0xe1)fail('Background disabled, grayscale or color-emphasis display modes are unsupported.');
+  const chrStart=map.chrStart+backgroundPatternTable*4096;
+  const background={key:'reset-background-'+routineStart.toString(16),label:'Initialized native background',chrBytes:Array.from(bytes.slice(chrStart,chrStart+4096)),nametable,palette,knownNametable,backgroundPatternTable,ppuMask,
+   evidence:[{status:'decoded',claim:'A reset-linked initialization establishes 32 palette writes, a bounded immediate/counted-fill constructor covering every nametable byte, and explicit final background bank/mask/zero-scroll settings.',ranges:[{start,length:p-start},{start:routineStart,length:routineEnd-routineStart}]},{status:'decoded',claim:'The selected background pattern bank follows the proven final PPUCTRL bit 4 in the static NROM CHR mapping.',ranges:[{start:chrStart,length:4096},{start:controlWrites[0].fileOffset,length:1}]}],
+   construction:{format:'NESForgeImmediatePPUConstruction',version:1,resetAddress,resetFileOffset:start,callFileOffset,routineAddress,routineFileOffset:routineStart,routineByteLength:routineEnd-routineStart,paletteFileOffset:paletteSetup.start,paletteByteLength:paletteEnd-paletteSetup.start,initialControl,initialMask,finalControl:control,finalControlFileOffset:controlWrites[0].fileOffset,finalMaskFileOffset:controlWrites[1].fileOffset,ppuIncrement:1,nametableWriteCount:segments.reduce((n,s)=>n+s.writeCount,0),tokenFields:['fileOffset','ppuAddress','count','value','kind'],tokenKinds:[{kind:'literal',byteLength:5,valueOffset:1,storeOffset:2},{kind:'counted-fill',byteLength:10,valueOffset:1,countOffset:3,storeOffset:4}],tokens:constructionTokens,segments,nametableLastWriterTokens:lastWriters,paletteWrites,paletteLastWriters,knownCoverage:1024,sourceChrRange:{start:chrStart,length:4096}},
+   unknown:['later-background-updates','sprites','collision','gameplay','audio','runtime-timing'],limitations:[...limitations]};
+  return freeze({status:'supported',reason:'A structurally validated reset initializer constructs one complete native background with known physical sources.',background});
+ }catch(error){return {status:recognized?'invalid':'unknown',reason:error.message};}
+}
+services.REImmediatePPUBackground=Object.freeze({id:ID,limits:LIMITS,decode,limitations});
+shared.registerAdapter({id:ID,name:'Immediate PPU background construction',limitations,decode});
+})();
+/* Source-backed pointer-page PPU loader profile. No ROM-name/hash matching,
+ * execution, authoring mutation, collision inference or native ROM patching. */
+(()=>{
+'use strict';
+const services=window.Forge.services,owner=services.RENativeBackground,ID='nes.pointer-nametable.v1';
+const limitations=Object.freeze([
+ 'Recognizes the declared vector-linked four-state dispatch and pointer-page nametable/palette loader routines, not arbitrary NES engines or compressed maps.',
+ 'Recovers the matched upload phase: 1023 nametable/attribute writes. The last attribute byte retains unknown prior PPU state and is marked unknown; zero is an explicit conversion placeholder.',
+ 'The native loader uses Y=$FF as its page stop without resetting Y. Source bytes at page boundaries are reordered; the exact source-index write sequence is preserved.',
+ 'Native PPUMASK=$18 clips the leftmost eight background pixels; an editable map can show the underlying tiles. No complete runtime frame or original gameplay behavior is promised.',
+ 'Sprites, collision, animation, dynamic score/text writes and subsequent runtime changes are not recovered. Original ROM bytes remain unchanged.'
+]);
+const NMI=[0xa9,0,0x8d,3,0x20,0xa9,2,0x8d,0x14,0x40,0x20,null,null,0x20,null,null,0x20,null,null,...Array.from({length:4},()=>[0xa5,null,0xc9,null,0xd0,3,0x20,null,null]).flat(),0x20,null,null,0x20,null,null,0x40];
+const ENTRY=[0xa5,null,0xc9,1,0xf0,0x4d,0xa9,1,0x85,null,0xa9,0,0x85,null,0x85,null,0x85,null,0x20,null,null,0x20,null,null,0xad,2,0x20,0xa9,0x3f,0x8d,6,0x20,0xa9,0,0x8d,6,0x20,0xa2,0,0xbd,null,null,0x8d,7,0x20,0xe8,0xe0,0x20,0xd0,0xf5,0x20,null,null,0x20,null,null,0xa9,null,0x8d,0,0x20,0x20,null,null,0x20,null,null,0xa9,1,0x85,null,0xa9,0,0x85,null,0x85,null,0x85,null,0x85,null,0x85,null,0xa5,null,0x29,0x10,0xf0,4,0xa9,null,0x85,null,0x60];
+const LOADER=[0xa0,0,0xa2,4,0xa9,null,0x85,null,0xa9,null,0x85,null,0xad,2,0x20,0xa9,0x20,0x8d,6,0x20,0xa9,0,0x8d,6,0x20,0xb1,null,0x8d,7,0x20,0xc8,0xc0,0xff,0xd0,0xf6,0xe6,null,0xca,0xe0,0,0xd0,0xef,0x60];
+const WAIT=[0x2c,2,0x20,0x10,0xfb,0x60],DISABLE=[0xa9,0,0x8d,0,0x20,0x8d,1,0x20,0x60],ENABLE=[0xa9,0x18,0x8d,1,0x20,0x20,null,null,0x60],SCROLL=[0xa9,0,0x8d,5,0x20,0x8d,5,0x20,0x60],CLEAR_SPRITES=[0xa9,0xfe,0x9d,0,2,0xe8,0xe0,0xff,0xd0,0xf8,0x60];
+function freeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
+const word=(bytes,at)=>bytes[at]|bytes[at+1]<<8;
+function matches(bytes,start,pattern){return Number.isSafeInteger(start)&&start>=0&&start+pattern.length<=bytes.length&&pattern.every((value,index)=>value===null||bytes[start+index]===value);}
+function decode(input){
+ if(!(input instanceof Uint8Array))return{status:'invalid',reason:'The pointer-page profile requires a bounded Uint8Array ROM snapshot.'};
+ const bytes=input;let map;
+ try{map=owner.parseNrom(bytes,{reservedByte10:0x10});}catch(error){return{status:'unsupported',reason:String(error.message||error)};}
+ try{
+  const at=(address,length)=>map.cpuToFile(address,length),nmiVector=at(0xfffa,2),nmiAddress=word(bytes,nmiVector),nmi=at(nmiAddress,NMI.length);
+  if(!matches(bytes,nmi,NMI))return{status:'unknown',reason:'The declared vector-linked PPU dispatch structure was not found.'};
+  const state=bytes[nmi+20],dispatches=Array.from({length:4},(_,index)=>({offset:nmi+19+index*9,state:bytes[nmi+22+index*9],target:word(bytes,nmi+26+index*9)}));
+  if(dispatches.some(item=>bytes[item.offset+1]!==state)||new Set(dispatches.map(item=>item.state)).size!==4)return{status:'unknown',reason:'The PPU dispatch state references do not match the declared routine.'};
+  const found=[];
+  for(const dispatch of dispatches){
+   const entry=at(dispatch.target,ENTRY.length);if(!matches(bytes,entry,ENTRY))continue;
+   if(bytes[entry+1]!==bytes[entry+9]||bytes[entry+92]!==state||!dispatches.some(item=>item.state===bytes[entry+90]))continue;
+   const disable=at(word(bytes,entry+19),DISABLE.length),sprites=at(word(bytes,entry+22),CLEAR_SPRITES.length),loaderAddress=word(bytes,entry+51),loader=at(loaderAddress,LOADER.length),wait=at(word(bytes,entry+54),WAIT.length),enable=at(word(bytes,entry+62),ENABLE.length);
+   if(!matches(bytes,disable,DISABLE)||!matches(bytes,sprites,CLEAR_SPRITES)||!matches(bytes,loader,LOADER)||!matches(bytes,wait,WAIT)||!matches(bytes,enable,ENABLE))continue;
+   const scroll=at(word(bytes,enable+6),SCROLL.length);if(!matches(bytes,scroll,SCROLL))continue;
+   const zp=bytes[loader+7];if(zp>=255||bytes[loader+11]!==zp+1||bytes[loader+26]!==zp||bytes[loader+36]!==zp+1)continue;
+   const ppuCtrl=bytes[entry+57];if(ppuCtrl!==0x80&&ppuCtrl!==0x90)continue;
+   const nametableAddress=bytes[loader+5]|bytes[loader+9]<<8,nametableOffset=at(nametableAddress,1024),paletteAddress=word(bytes,entry+40),paletteOffset=at(paletteAddress,32),backgroundPatternTable=(ppuCtrl>>4)&1,chrOffset=map.chrStart+backgroundPatternTable*4096;
+   if(chrOffset<map.chrStart||chrOffset+4096>map.chrStart+map.chrSize)throw Error('Selected background CHR bank is outside the declared physical source.');
+   const rawPalette=Array.from(bytes.slice(paletteOffset,paletteOffset+32));if(rawPalette.some(value=>value>63))throw Error('Palette values outside the declared six-bit color representation are unsupported.');
+   // Sequential $3F00..$3F1F writes: sprite universal slots alias the
+   // corresponding background slots. Preserve both transfer bytes and final RAM.
+   const palette=Array(32).fill(0);for(let index=0;index<32;index++)palette[index>=16&&index%4===0?index-16:index]=rawPalette[index];for(let index=16;index<32;index+=4)palette[index]=palette[index-16];
+   const raw=Array.from(bytes.slice(nametableOffset,nametableOffset+1024)),nametable=Array(1024).fill(0),knownNametable=Array(1024).fill(false),sourceIndices=[];let y=0;
+   for(let page=0;page<4;page++){do{sourceIndices.push(page*256+y);y=(y+1)&255;}while(y!==255);}
+   sourceIndices.forEach((source,index)=>{nametable[index]=raw[source];knownNametable[index]=true;});
+   const ranges=[{start:nmiVector,length:2},{start:nmi,length:NMI.length},{start:entry,length:ENTRY.length},{start:disable,length:DISABLE.length},{start:sprites,length:CLEAR_SPRITES.length},{start:loader,length:LOADER.length},{start:wait,length:WAIT.length},{start:enable,length:ENABLE.length},{start:scroll,length:SCROLL.length}];
+   found.push({key:'pointer-page-'+loader.toString(16)+'-'+nametableOffset.toString(16),label:'Pointer-page background upload',chrBytes:Array.from(bytes.slice(chrOffset,chrOffset+4096)),nametable,palette,knownNametable,backgroundPatternTable,ppuMask:0x18,
+    evidence:[{status:'decoded',claim:'Vector-linked dispatch, coherent pointer-page upload, palette transfer, PPU control and scroll routine structures identify the declared background construction.',ranges},{status:'decoded',claim:'These source bytes provide the 1024-byte native nametable record, 32-byte palette transfer and selected 4 KiB CHR bitplanes.',ranges:[{start:nametableOffset,length:1024},{start:paletteOffset,length:32},{start:chrOffset,length:4096}]},{status:'unknown',claim:'The loader leaves PPU $23FF unchanged. Its prior runtime value is not established by this profile.',ranges:[]}],
+    construction:{format:'NESPointerPageBackgroundConstruction',version:1,phase:'after-matched-loader-upload',dispatch:{nmiAddress,stateVariable:state,stateValue:dispatch.state,entryAddress:dispatch.target},loader:{cpuAddress:loaderAddress,fileOffset:loader,length:LOADER.length,zeroPagePointer:zp,sourceCpuAddress:nametableAddress,sourceFileOffset:nametableOffset,sourceLength:1024,pages:4,yStop:255,resetsYBetweenPages:false},transfer:{ppuStart:0x2000,writeCount:sourceIndices.length,sourceIndices,retainedPpuAddresses:[0x23ff],unknownCanonicalPlaceholder:0},palette:{cpuAddress:paletteAddress,fileOffset:paletteOffset,length:32,ppuStart:0x3f00,rawBytes:rawPalette,mirroredSpriteUniversalWrites:[16,20,24,28]},control:{ppuCtrl,ppuMask:0x18,scrollX:0,scrollY:0,leftBackgroundPixelsClipped:8}},
+    unknown:['nametable-byte-1023-prior-state','sprites','collision','gameplay','animation','later-runtime-writes'],limitations:Array.from(limitations)});
+  }
+  if(found.length>1)return{status:'ambiguous',reason:'Several vector-linked pointer-page background constructions match; no source was selected.'};
+  if(!found.length)return{status:'unknown',reason:'No dispatch target passed the declared pointer-page, palette and PPU-control structure checks.'};
+  return freeze({status:'supported',reason:'Native background records and 1023 exact PPU writes were decoded; one retained attribute byte remains unknown.',background:found[0]});
+ }catch(error){return{status:'invalid',reason:('Pointer-page background: '+String(error.message||error)).slice(0,1900)};}
+}
+services.REPointerNametable=Object.freeze({version:1,id:ID,decode});
+owner.registerAdapter({id:ID,name:'Vector-linked pointer-page nametable loader',limitations:Array.from(limitations),decode});
+})();
+/* Native background conversion remains detached until an acknowledged import.
+ * Source generations, project guards and cancellation protect the preview. */
+(()=>{
+'use strict';
+const services=window.Forge.services,copy=value=>JSON.parse(JSON.stringify(value));
+let c=null,busy=false,operation=0,signal=null,staged=null,imported=false;
+const make=(tag,id,text)=>{const el=document.createElement(tag);if(id)el.id=id;if(text!==undefined)el.textContent=text;return el;};
+const methods=()=>services.REMethods?.profiles().filter(method=>method.domains?.includes('graphics')&&method.operations?.convert)||[];
+function message(text,error=false){if(c){c.status.textContent=text;c.status.style.color=error?'var(--err, #ff9898)':'var(--dim)';}}
+function source(){
+ const api=services.REAnalysisUI,state=api?.getState(),analysis=api?.currentAnalysis();
+ if(state?.busy)throw Error('Wait for the selected source to finish opening.');
+ if(state?.pendingSelection)throw Error('The source selection changed. Choose Open for analysis before previewing its background.');
+ if(!analysis)throw Error('Open a ROM for general analysis first.');
+ return {analysis,generation:state.generation,identity:analysis.report.identity};
+}
+function current(item){try{const now=source();return !!item&&now.analysis===item.source.analysis&&now.generation===item.source.generation&&item.methodId===c.method.value;}catch(_){return false;}}
+function projectGuard(){const store=services.ProjectStore;return {epoch:store.state.epoch,snapshot:store.serialize()};}
+function check(item,project=true){
+ if(!current(item))throw Error('The inspected source or recovery method changed. Preview again.');
+ if(project){const now=projectGuard();if(item.project.epoch!==now.epoch||item.project.snapshot!==now.snapshot)throw Error('The project changed after preview. Preview again before importing.');}
+}
+function enable(){
+ if(!c)return;c.method.disabled=busy;c.preview.disabled=busy||!c.method.value;c.cancel.disabled=!busy;
+ c.acknowledge.disabled=busy||!staged||imported;c.import.disabled=busy||!staged||imported||!c.acknowledge.checked;
+ c.project.disabled=busy||!staged;c.evidence.disabled=busy||!staged;
+}
+function clear(){staged=null;imported=false;if(c){c.acknowledge.checked=false;c.summary.textContent='';c.detail.textContent='';c.canvas.replaceChildren();c.canvas.hidden=true;}enable();}
+function cancel(announce=true){
+ const was=busy;operation++;if(signal)signal.aborted=true;signal=null;busy=false;clear();
+ if(announce)message(was?'Background preview cancelled. No scene was imported.':'Background preview cleared.');return was;
+}
+function sourceChanged(){cancel(false);message('The selected source changed. Open it for analysis, then preview its background again.');}
+function selectMethod(methodId){
+ try{if(!methods().some(method=>method.id===methodId))throw Error('This background recovery method is unavailable.');if(c.method.value===methodId)return true;cancel(false);c.method.value=methodId;enable();message('Recovery method selected. Choose Preview background to inspect its conversion; nothing has been imported.');return true;}
+ catch(error){message(error.message||String(error),true);return false;}
+}
+function lines(values){return (Array.isArray(values)?values:values===undefined?[]:[values]).map(value=>typeof value==='string'?value:JSON.stringify(value));}
+function describe(result){
+ const report=result.report,build=result.previewBuild;
+ c.summary.textContent=[String(report.source.name||'ROM'),'Original file SHA-256 '+report.source.sha256,report.source.byteLength+' source bytes',
+ 'Method: '+(report.method.name||report.method.id)+' · '+report.method.id+' · version '+report.method.version,
+ 'Recovered scene: '+report.sceneId,'Limitations:',...lines(report.limitations),'Unknown or omitted:',...lines(report.unknown),
+ 'Construction:',...lines(report.construction),
+ 'Independent static viewer build: '+build.backend+' · '+build.byteLength+' bytes · SHA-256 '+build.sha256,
+ 'This is a static background adaptation. It does not restore original gameplay, scrolling, collision, sprites, audio or the original engine. Import adds an excluded editable scene; the separate downloaded project includes this background in a static viewer build.'].join('\n');
+ c.detail.textContent=JSON.stringify(report,null,2);c.canvas.replaceChildren();
+ const thumbnail=renderSceneThumb(result.scene,256,240);thumbnail.setAttribute('aria-label','Detached recovered static background preview');thumbnail.style.cssText='width:100%;max-width:256px;height:auto;image-rendering:pixelated';c.canvas.appendChild(thumbnail);c.canvas.hidden=false;
+}
+async function preview(){
+ if(busy)return false;clear();const id=++operation,ownSignal={aborted:false};signal=ownSignal;busy=true;enable();
+ try{
+  const api=services.RENativeBackground;if(!api?.stage)throw Error('Native background recovery is unavailable in this build.');
+  const methodId=c.method.value;if(!methods().some(method=>method.id===methodId))throw Error('Choose an available background recovery method.');
+  const item={source:source(),project:projectGuard(),methodId};message('Decoding the selected native background and compiling an independent static viewer…');
+  const result=await api.stage(item.source.analysis,methodId,{}, {signal:ownSignal});
+  if(id!==operation||ownSignal.aborted)return false;check(item);
+  if(!result?.report||!result.scene||!result.project)throw Error('Recovery did not return an editable background and independent project.');
+  const report=api.validateRecovery(result.report);
+  if(report.source.sha256!==item.source.identity.sha256||report.source.byteLength!==item.source.identity.byteLength||report.method.id!==methodId)throw Error('Background recovery returned a different source or method identity.');
+  const build=result.previewBuild;if(build?.backend!=='packed'||!Number.isSafeInteger(build.byteLength)||build.byteLength<1||!/^[a-f0-9]{64}$/.test(build.sha256||''))throw Error('The background has not passed an independent static viewer build.');
+  describe(result);staged={...item,result};enable();message('Preview ready. Review the source evidence, construction and unknowns below. Acknowledge the static conversion before adding this background as a new scene. The current project and emulator are unchanged.');return true;
+ }catch(error){if(id===operation){clear();message(error.name==='AbortError'?'Background preview cancelled. No scene was imported.':error.message||String(error),error.name!=='AbortError');}return false;}
+ finally{if(id===operation){busy=false;signal=null;enable();}}
+}
+async function importScene(){
+ if(busy)return false;
+ const item=staged;
+ try{
+  if(!item||imported){message('Preview a supported background before importing.',true);return false;}
+  if(!c.acknowledge.checked){message('Acknowledge that this is a static background conversion before importing.',true);return false;}
+  check(item);busy=true;enable();
+  // The model owns staged-record ownership, allocation, the single Undo entry
+  // and the append-only transaction. Do not load its independent viewer project.
+  const result=services.RENativeBackground.importStaged(item.result);
+  imported=true;c.acknowledge.checked=false;
+  const warnings=lines(result.warnings);
+  message('Added the background as a new editable scene, excluded from ROM builds. Existing scenes and runtime settings are preserved. One Undo removes this import.'+(warnings.length?' '+warnings.join('; '):''),!!warnings.length);
+  return result;
+ }catch(error){if(item&&staged===item){staged=null;imported=false;c.acknowledge.checked=false;}message(error.message||String(error),true);return false;}
+ finally{busy=false;enable();}
+}
+async function download(kind){
+ let item;
+ try{
+  if(busy)throw Error('Wait for the background operation to finish.');
+  item=staged;if(!item)throw Error('Preview a supported background before downloading.');check(item,false);
+  const report=services.RENativeBackground.validateRecovery(item.result.report),base=String(report.source.name||'ROM').replace(/\.[^.]*$/,'').replace(/[^a-z0-9._-]/gi,'_').slice(0,70)||'ROM',name=base+'-background'+(kind==='project'?'.nesforge.json':'-evidence.json');
+  const value=kind==='project'?item.result.project:report,saved=await forgeSave.request(new TextEncoder().encode(JSON.stringify(value,null,2)),name,'application/json');
+  if(staged===item&&current(item)){
+   const label=kind==='project'?'independent static background project':'background recovery evidence';
+   if(saved?.status==='saved')message('Saved '+label+': '+name);
+   else if(saved?.status==='download-requested')message('Download requested for '+label+': '+name);
+   else if(saved?.status==='cancelled')message('Save cancelled. The background preview and current project are unchanged.');
+   else if(saved?.status==='busy')message('Another Save As request is open. Finish it, then download again.',true);
+   else message('Save was not completed: '+(saved?.error?.message||saved?.message||saved?.status||'unknown save result')+'. The background preview remains available.',true);
+  }
+  return saved;
+ }catch(error){if(!item||staged===item)message(error.message||String(error),true);return false;}
+}
+function mount(){
+ if(c)return c.panel;const host=document.getElementById('reAnalysisWorkspace');if(!host)return null;
+ const panel=make('section','reNativeBackgroundPanel');panel.setAttribute('aria-label','Native background recovery');panel.appendChild(make('h3',null,'Native background recovery'));
+ panel.appendChild(make('p',null,'Decode a supported native background, review the static adaptation, and choose whether to add an editable scene or download an independent Forge viewer project. The original ROM engine is not recovered or played.'));
+ const label=make('label',null,'Background recovery method'),method=make('select','reNativeBackgroundMethod');label.htmlFor=method.id;label.appendChild(method);panel.appendChild(label);
+ const available=methods();for(const profile of available){const option=make('option',null,profile.name);option.value=profile.id;method.appendChild(option);}method.value=available[0]?.id||'';
+ const actions=make('div');actions.className='re-analysis-actions';panel.appendChild(actions);
+ const button=(id,text,fn,parent=actions)=>{const el=make('button',id,text);el.type='button';el.addEventListener('click',()=>{void fn();});parent.appendChild(el);return el;};
+ const previewButton=button('reNativeBackgroundPreview','Preview background',preview),cancelButton=button('reNativeBackgroundCancel','Cancel preview',cancel);
+ const acknowledgeLabel=make('label',null,'I understand this is a static background conversion with the limitations and unknowns shown below.'),acknowledge=make('input','reNativeBackgroundAcknowledge');acknowledge.type='checkbox';acknowledgeLabel.htmlFor=acknowledge.id;acknowledgeLabel.prepend(acknowledge);panel.appendChild(acknowledgeLabel);
+ const importActions=make('div');importActions.className='re-analysis-actions';panel.appendChild(importActions);
+ const importButton=button('reNativeBackgroundImport','Import as new scene',importScene,importActions),projectButton=button('reNativeBackgroundProject','Download background project',()=>download('project'),importActions),evidenceButton=button('reNativeBackgroundEvidence','Download background evidence',()=>download('evidence'),importActions);
+ const summary=make('pre','reNativeBackgroundSummary'),canvas=make('div','reNativeBackgroundCanvas'),details=make('details'),detail=make('pre','reNativeBackgroundDetail'),status=make('p','reNativeBackgroundStatus');details.appendChild(make('summary',null,'Full source evidence and construction'));details.appendChild(detail);status.setAttribute('role','status');status.setAttribute('aria-live','polite');canvas.hidden=true;panel.append(summary,canvas,details,status);
+ const style=make('style');style.textContent='#reNativeBackgroundPanel{border:1px solid #58627e;border-radius:4px;padding:10px;margin:10px 0;overflow-wrap:anywhere}#reNativeBackgroundPanel button,#reNativeBackgroundPanel select,#reNativeBackgroundPanel label{min-height:44px;box-sizing:border-box}#reNativeBackgroundPanel label{display:block;margin:6px 0}#reNativeBackgroundPanel select{display:block;width:100%;font-size:14px}#reNativeBackgroundPanel input[type=checkbox]{width:20px;height:20px;vertical-align:middle;margin-right:8px}#reNativeBackgroundPanel pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto}';panel.appendChild(style);
+ c={panel,method,preview:previewButton,cancel:cancelButton,acknowledge,import:importButton,project:projectButton,evidence:evidenceButton,summary,canvas,detail,status};
+ method.addEventListener('change',()=>{cancel(false);message('Recovery method changed. Preview its background before importing or downloading.');});acknowledge.addEventListener('change',enable);
+ for(const type of ['keydown','keyup'])panel.addEventListener(type,event=>event.stopPropagation?.());
+ host.appendChild(panel);window.addEventListener('forge:re-analysis-source-change',sourceChanged);enable();message(available.length?'Open a source for general analysis, choose its background method, then preview.':'No native background conversion methods are available in this build.');return panel;
+}
+services.RENativeBackgroundUI=Object.freeze({mount,selectMethod,preview,cancel,importScene,downloadProject:()=>download('project'),downloadEvidence:()=>download('evidence'),getState:()=>Object.freeze({busy,staged:!!staged,imported,sourceCurrent:!!staged&&current(staged),sourceSha256:staged?.source.identity.sha256||null,sourceGeneration:staged?.source.generation??null,sceneId:staged?.result.report.sceneId||null,methodId:c?.method.value||null,report:staged?copy(staged.result.report):null,previewBuild:staged?copy(staged.result.previewBuild):null})});mount();
+})();
 /* Recovery discovery only inspects the currently opened physical file. Routes
  * reveal existing tools; they never import assets, reset native edits, or run a ROM. */
 (()=>{
@@ -13389,6 +13829,8 @@ const services=window.Forge.services;
 let c=null,operation=0,busy=false,signal=null,staged=null;
 const routes=Object.freeze({
  'nes.physical-chr.v1':[{id:'chr',label:'Open tile recovery tools',target:'reNativeAssetsPanel',focus:'reNativeAssetsPreview',details:'reAnalysisChrDetails'}],
+ 'nes.pointer-nametable.v1':[{id:'pointer-background',label:'Open native background recovery',target:'reNativeBackgroundPanel',focus:'reNativeBackgroundPreview',methodId:'nes.pointer-nametable.v1'}],
+ 'nes.immediate-ppu-background.v1':[{id:'immediate-background',label:'Open native background recovery',target:'reNativeBackgroundPanel',focus:'reNativeBackgroundPreview',methodId:'nes.immediate-ppu-background.v1'}],
  'nes.famitone2-native.v1':[
   {id:'audio',label:'Open native Audio tools',target:'reNativeAudioPanel',focus:'reNativeAudioPanel'},
   {id:'transcription',label:'Open AUDIO transcription tools',target:'reNativeAudioImportPanel',focus:'reNativeAudioImportPanel'}
@@ -13462,10 +13904,11 @@ function route(methodId,routeId){
   const found=staged.result.results.find(item=>item.method.id===methodId),path=routes[methodId]?.find(item=>item.id===routeId);
   if(found?.status!=='supported'||!path)throw Error('This recovery route is not supported by the current discovery result.');
   const target=document.getElementById(path.target),focus=document.getElementById(path.focus);if(!target||!focus)throw Error('The recovery tools are unavailable in this build.');
+  if(path.methodId&&!services.RENativeBackgroundUI?.selectMethod(path.methodId))throw Error('The background recovery method is unavailable in this build.');
   services.REAnalysisUI.showWorkspace(true);if(path.details){const details=document.getElementById(path.details);if(!details)throw Error('The recovery tools are unavailable in this build.');details.open=true;}
   target.tabIndex=-1;target.scrollIntoView?.({block:'start',behavior:'auto'});focus.focus?.();nativeNotice();
   const native=services.RENativeAudioUI?.getState();
-  message(path.id==='chr'?'Tile recovery tools opened. Choose Preview native tile import, inspect the result, then explicitly import it.':path.id==='transcription'?(native?.hasSession&&native.sourceCurrent?'Transcription tools opened for the existing native ROM copy. Choose its subsong above, then Preview import to AUDIO; conversion may still be refused.':'Transcription tools opened. First use Analyze current ROM in Native Audio and choose a subsong, then Preview import to AUDIO. Discovery has not checked conversion readiness.'):'Native Audio tools opened. An existing edited copy is preserved. Analyze current ROM starts a new native session from the original opened file; export any edits you want to keep first.');
+  message(path.methodId?'Native background recovery opened. Choose Preview background and review its evidence, construction and unknowns before explicitly importing a static scene. Discovery has not converted or imported it.':path.id==='chr'?'Tile recovery tools opened. Choose Preview native tile import, inspect the result, then explicitly import it.':path.id==='transcription'?(native?.hasSession&&native.sourceCurrent?'Transcription tools opened for the existing native ROM copy. Choose its subsong above, then Preview import to AUDIO; conversion may still be refused.':'Transcription tools opened. First use Analyze current ROM in Native Audio and choose a subsong, then Preview import to AUDIO. Discovery has not checked conversion readiness.'):'Native Audio tools opened. An existing edited copy is preserved. Analyze current ROM starts a new native session from the original opened file; export any edits you want to keep first.');
   return true;
  }catch(error){message(error.message||String(error),true);return false;}
 }

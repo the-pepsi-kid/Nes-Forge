@@ -1,3 +1,15 @@
+# Current review candidate — Native Background Recovery
+
+Release **2.0.0-alpha.11**, candidate **native-background-1**, schema **12**. Application: `mainline/NES_Forge_2.0.0-alpha.11.html`.
+
+Behavioral parent: compatibility-stabilization-1 at source commit `de77c105bc451f3ab7a90c00fe1c4162675ccd52`; HTML SHA-256 `b3d9b852782b1b7ebd56637bb94e4dbcb09379614b7c8577e007046db45c8e02`; 1,541/1,541 cases across 72 suites. Preserve `baseline/NES_Forge_2.0.0-alpha.11_Compatibility_Stabilization.html` and `checkpoints/compatibility-stabilization-1-reference/`.
+
+Scope: two bounded native background decoders, shared canonical preview/import, one-scene project transaction, independent generated viewer and focused workflow evidence. Existing runtime emitters, schema, recipes and template scope remain unchanged. Actual current identity and results require agreement between `build-inputs.json`, current Summary and `checkpoints/native-background-1-clean-extraction/Reproduction.json`; previous results do not certify changed bytes. Real browser/device and owner acceptance remain separate.
+
+## Preserved previous record
+
+---
+
 # Current review candidate — Compatibility Stabilization
 
 Release **2.0.0-alpha.11**, candidate **compatibility-stabilization-1**, schema **12**. Open `mainline/NES_Forge_2.0.0-alpha.11.html`. Candidate identity distinguishes this checkpoint from the earlier movement-rules-1 build without a release bump.

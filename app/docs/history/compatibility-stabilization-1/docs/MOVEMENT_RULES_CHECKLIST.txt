@@ -1,0 +1,90 @@
+NES FORGE 2.0.0-alpha.11 — MOVEMENT RULES REVIEW
+Candidate: movement-rules-1; schema 12
+
+Record pass / fail / not tested for R1–R8. This checklist reviews four existing generated movement settings. It does not establish friction, knockback, death/timer mechanics, guaranteed level solvability, new raw-ROM recovery or complete roadmap delivery.
+
+Before starting
+- Open mainline/NES_Forge_2.0.0-alpha.11.html. Record the HTML SHA-256 from build-inputs.json, device, OS and browser/version. Measured automated outcomes belong to test-results/candidate/Summary.json and checkpoints/movement-rules-1-clean-extraction/Reproduction.json.
+- Save current work with Save Project As. Keep the supplied unchanged bases: examples/Movement_Rules_2.0.0-alpha.11/World_Base.nesforge.json and Single_Room_Base.nesforge.json. Recipe replay requires the original project content, not the result after applying it.
+- That folder also contains World_High_Jump, World_Seeded_Mix, Single_Room_High_Jump and Single_Room_Seeded_Mix project/recipe/ROM examples, with Manifest.json identities. These are original Scout-derived/synthetic workshop controls, not independently recovered game engines.
+- Controls live in SCENE -> Movement rules. This panel is separate from Seeded mashup. If using both, apply the mashup first, then choose Use current project in Movement rules. Each stage keeps its own recipe and Undo action.
+- Optional isolation check: load an unrelated ROM in EMULATOR, pause it and record its state. Movement capture/preview/Apply must not replace or run it. A later explicit Build & Run intentionally changes the emulator.
+
+R1 — Capture each supported backend; inspect a harmless preview
+1. Open World_Base.nesforge.json through ordinary Open Project. Expand SCENE -> Movement rules and choose Use current project.
+2. Record the source identity and displayed backend. Choose Keep current, intensity 1 Mild, no locks, and seed review-move-1. Choose Preview rules.
+3. Inspect Run speed, Jump speed, Gravity and Maximum fall speed in the Before/After table.
+4. Repeat with Single_Room_Base.nesforge.json through ordinary Open Project and fresh Use current project.
+Expected: the first source targets generated World and the second generated single-room. Keep current with no locks shows unchanged values and no applicable movement change. Capture/preview adds no Undo, enables no runtime mode and leaves scene, Audio, actors and paused emulator unchanged. Source SHA-256 identifies canonical project content, not the raw JSON file's formatting or filename. Viewing a result does not play it.
+Result R1: ______ Notes: _______________________________________________
+
+R2 — Inspect bounded presets and exact before/after values
+1. Start again from either unchanged Base and choose Use current project. Leave all four locks off.
+2. Select Sprint and preview each intensity 1, 2 and 3. Run speed should be 2, 3 and 4 respectively; the other fields keep their captured values.
+3. Select High jump and repeat. Jump speed should be 10, 11 and 12, with Gravity 1; Run speed and Maximum fall speed keep their captured values.
+4. Select Slow fall and repeat. Maximum fall speed should be 4, 2 and 1, with Gravity 1; the other fields keep their captured values.
+5. Select Heavy fall and repeat. (Gravity, Maximum fall speed) should be (2, 6), (2, 7) and (3, 8); the other fields keep their captured values.
+Expected: previews show the exact values above, with Before always from the captured base. Values remain within Run speed 1–4, Jump speed 1–12, Gravity 1–3 and Maximum fall speed 1–8. Only these four settings are eligible. No body size, spawn, graphics, collision, Audio, actors, runtime mode or inactive backend configuration changes. No preview applies itself. A preset matching existing values can correctly report no effective change.
+Result R2: ______ Notes: _______________________________________________
+
+R3 — Repeatable seeds and retained field locks
+1. With a freshly captured unchanged Base, choose Seeded mix, intensity 3 Full supported range, no locks, seed review-move-2. Preview twice and record all four After values.
+2. Enable Lock jump speed and Lock gravity after that successful preview. Choose Shuffle unlocked several times.
+3. Confirm each shuffle changes the seed while locked Jump speed and Gravity retain the previous verified values. Try changing preset/intensity and preview with those locks still enabled.
+4. Unlock those fields, choose Keep current and preview again. For Seeded mix, also inspect intensity 1 and 2 results against the original Before values.
+Expected: identical source, seed, options and lock history reproduce the same result. Locks hold prior verified field values across seed/preset/intensity changes until unlocked. With no locks, Keep current restores source values. Seeded mix intensity 1 chooses within source ±1, intensity 2 within source ±2, and intensity 3 within the full legal range; all are clipped to existing supported bounds. Different seeds can produce the same value or result because the choice space is finite.
+Result R3: ______ Notes: _______________________________________________
+
+R4 — Cancel, apply, Undo and Redo
+1. Reopen an unchanged Base and choose Use current project. Select High jump, intensity 3, no locks, then Preview rules. Confirm there is an effective change.
+2. Choose Apply rules and cancel once. Inspect ordinary project settings and the optional paused emulator.
+3. Choose Apply rules again and confirm. Inspect the changed movement settings and unchanged scene/Audio/actor data.
+4. Use one ordinary project Undo, then Redo.
+Expected: cancel leaves project/history/emulator untouched. Confirmed Apply changes only the active backend's declared fields in one Undo action. One Undo restores the full prior project; Redo restores the movement result. Apply itself does not run or replace a ROM. Body/spawn and inactive backend configuration remain unchanged. A fresh capture is needed before making another source-based variation after applying or editing.
+Result R4: ______ Notes: _______________________________________________
+
+R5 — Save, reopen and play both generated ROMs
+1. For World_Base, build and play the original through the existing Build & Run controls. Note travel speed and jump/fall behavior; use the NES A button to jump and Left/Right to move.
+2. Apply High jump intensity 3, save with Save Project As under a new name, and reopen that saved project. Confirm the exact movement values remain.
+3. Build/run or export the changed ROM. Compare the same movement and jumping actions. If available, open the exported ROM in an independent emulator.
+4. Repeat with Single_Room_Base. Also try one Sprint or Heavy fall result in either backend to compare horizontal travel or descent.
+Expected: the changed canonical settings persist and reach the generated ROM's actual movement. Existing graphics, Audio, collision data and gameplay content remain authored. Observe collisions at edges and ceilings as well as open space. Larger jumps/faster falls may change which routes can be completed; successful compilation does not guarantee playability. Record desktop, external emulator, actual listening and physical hardware outcomes separately. Opening a JSON project is the complete editable persistence path; do not assume that reopening a single-room ROM reconstructs every authoring field.
+Result R5: ______ Notes: _______________________________________________
+
+R6 — Candidate downloads and exact recipe replay
+1. Reopen an unchanged Base, choose Use current project, and preview an effective result. Choose Download candidate project and Download recipe. If a save-location dialog is offered, cancel one attempt and confirm it creates no fallback download, then save successfully.
+2. Open the downloaded candidate through normal Open Project and verify the previewed values. It is an editable result; it is not the recipe's original source.
+3. Reopen the exact unchanged Base and choose Use current project. Use Open saved movement recipe (exact original project required) to choose the downloaded recipe.
+4. Compare the replayed preview with the candidate. Apply only if desired; replay itself must not mutate the project.
+5. For a supplied example, open the matching World_Base or Single_Room_Base, capture it, then open its High_Jump or Seeded_Mix recipe. Compare with the matching supplied project/ROM.
+Expected: candidate JSON contains the editable result. A recipe contains source identity and decisions without embedding source assets. The exact source recreates the candidate with the recorded values and locks. Mismatched or changed source content is refused; different filenames/JSON whitespace alone do not change canonical identity. Existing source project, emulator and native ROM session remain unchanged by download/replay/refusal.
+Result R6: ______ Notes: _______________________________________________
+
+R7 — Stale choices, unsupported modes and invalid recipes
+1. Preview a valid candidate, then change the seed, preset, intensity or a lock. Try Apply without a new preview; the old result must not silently apply.
+2. Preview again, then make an ordinary project edit or open another project. Try applying the old preview. Capture the current project again before continuing.
+3. Try opening a copied recipe after changing an expected recorded value, or select non-recipe JSON. Keep the original recipe intact.
+4. In a separate saved test project, select viewer-only mode or use custom ASM, then try Use current project/Preview rules. Do not enable another mode merely to get around the refusal.
+Expected: changed source/project/options invalidate stale work. Malformed, tampered or mismatched recipes are refused atomically. Viewer/custom-ASM projects receive a clear unsupported-mode refusal; Movement rules does not enable a runtime. No refusal/cancel partly edits movement, adds Undo, loads a ROM or replaces a native session. Raw ROMs and donor files are not movement-source inputs: use normal Open Project for supported canonical projects.
+Result R7: ______ Notes: _______________________________________________
+
+R8 — Mobile controls, native input and focus
+1. On the phone, repeat R1 and a High jump preview/Apply/Undo with a supplied Base.
+2. Tap Seed, enter text with the native keyboard, change preset/intensity, toggle locks and scroll through the full before/after table and findings. Rotate the phone and return to the field.
+3. Try candidate/recipe download, source project reopen and saved recipe replay using the phone's native file pickers.
+4. With a paused emulator loaded, type in Seed and use form controls. Confirm those interactions do not send gameplay buttons or run/reset the ROM. Leave the panel and confirm no input remains held.
+Expected: all labels/actions/results remain reachable without clipping or focus traps. Text belongs to the focused field. Browser/VM automation does not establish actual mobile keyboard/picker/layout acceptance. Record device/browser/keyboard details. Cricket Dream 5G / Chrome A/V lag comparison, speakers, USB-C/Bluetooth controllers and NES/deck hardware remain separate unless actually tested.
+Result R8: ______ Notes: _______________________________________________
+
+Send back
+Candidate / HTML SHA-256:
+Device / OS / browser / keyboard:
+R1: ___ R2: ___ R3: ___ R4: ___ R5: ___ R6: ___ R7: ___ R8: ___
+Base filename / canonical source identity / backend:
+Preset / intensity / seed / locked fields:
+Before values -> After values:
+First unexpected action and exact message:
+Did capture, preview, cancel, replay or refusal change the project/emulator?
+Saved project/recipe or screenshot/recording, if available:
+
+Retained mashup/recovery/native Audio checklists, earlier deferred A6, listening and device/hardware reviews remain separate. This is a manual supplement, not a completed comprehensive manual/PDF update. No one-hit-death behavior is asserted: current player health reaching zero does not establish death.

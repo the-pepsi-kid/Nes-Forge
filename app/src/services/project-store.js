@@ -13,7 +13,7 @@ const state={epoch:0,recoveryPhase:'checking',recoveryToken:0,lastIntent:'startu
 const preparedLoads=new WeakSet();
 const portableCompletions=new WeakSet();
 let recoveryWrite=Promise.resolve(),checkPromise=null;
-let settingsEditActive=false;
+let projectEditActive=false;
 const fail=message=>{throw Error(message);};
 function status(message){
   if(Forge.release?.updateStatus)return Forge.release.updateStatus(message);
@@ -163,62 +163,89 @@ function commit(prepared,options={}){
   refresh();return true;
 }
 function load(input,options={}){return Store.commit(Store.prepareLoad(input),options);}
-// Small canonical configuration edits are not project replacement. Loading a
-// whole prepared project would normalize unrelated authored records and reset
-// tracker/scene caches. Keep that lifecycle in commit; own edit/history here.
-function applySettingsEdit(changes,options={}){
-  if(settingsEditActive)fail('A project settings transaction is already in progress.');
-  settingsEditActive=true;
+// Bounded canonical edits are not project replacement. Only private preparers
+// below may declare assignments/appends; callers never supply mutation code.
+// Unrelated prepared data stays detached so authoring caches are not reloaded.
+function runEdit(kind,options,prepare){
+  if(projectEditActive)fail('A project '+kind+' transaction is already in progress.');
+  projectEditActive=true;
   try{
     const expected=options.expected;
-    if(!expected||!Number.isInteger(expected.epoch)||typeof expected.snapshot!=='string')fail('A project settings edit requires its captured project guard.');
-    const check=()=>{if(undoPaused)fail('Wait for the current history operation to finish before editing project settings.');if(!currentRead(expected))fail('The current project changed. Capture it and preview again.');};
+    if(!expected||!Number.isInteger(expected.epoch)||typeof expected.snapshot!=='string')fail('A project '+kind+' edit requires its captured project guard.');
+    const check=()=>{if(undoPaused)fail('Wait for the current history operation to finish before editing project '+kind+'.');if(!currentRead(expected))fail('The current project changed. Capture it and preview again.');};
     check();
+    const edit=prepare(JSON.parse(expected.snapshot)),keys=Object.keys(edit.values),originals={};
+    for(const key of keys){const descriptor=Object.getOwnPropertyDescriptor(S,key);if(!descriptor||!Object.hasOwn(descriptor,'value')||!descriptor.writable)fail('Project '+kind+' '+key+' cannot be edited in the current state.');originals[key]=descriptor;}
+    const append=edit.append;
+    if(append&&(!Array.isArray(append.list)||!Object.isExtensible(append.list)||!Object.getOwnPropertyDescriptor(append.list,'length')?.writable))fail('Project scene collection cannot be edited in the current state.');
+    check();
+    if(!edit.effective)return {applied:false,warnings:[]};
+    const history={undo:undoStack.slice(),redo:redoStack.slice(),bytes:undoBytes,disabled:$('undoBtn').disabled,dirty:Forge15.dirty};
+    const expectedUndo=history.undo.concat(expected.snapshot);let expectedBytes=history.bytes+expected.snapshot.length;
+    while(expectedUndo.length>MAX_UNDO||(expectedBytes>24*1024*1024&&expectedUndo.length>1))expectedBytes-=expectedUndo.shift().length;
+    let installing=false;
+    try{
+      const accepted=snapshot();
+      if(accepted===false||undoPaused||undoBytes!==expectedBytes||redoStack.length||undoStack.length!==expectedUndo.length||undoStack.some((entry,i)=>entry!==expectedUndo[i]))fail('The history snapshot did not accept exactly one project '+kind+' edit.');
+      check();installing=true;
+      if(append)Array.prototype.push.call(append.list,append.scene);
+      for(const key of keys)S[key]=edit.values[key];
+      Forge15.dirty=true;
+    }catch(error){
+      if(installing){for(const key of keys)Object.defineProperty(S,key,originals[key]);if(append)append.list.length=append.index;}
+      undoStack.splice(0,undoStack.length,...history.undo);redoStack.splice(0,redoStack.length,...history.redo);undoBytes=history.bytes;$('undoBtn').disabled=history.disabled;Forge15.dirty=history.dirty;
+      throw error;
+    }
+    // Canonical data is complete before presentation runs. Its failures remain
+    // explicit committed warnings, never an apparent rollback or second Undo.
+    const warnings=[];
+    try{notify(options.intent||edit.intent);}catch(error){warnings.push('change notification: '+(error.message||String(error)));}
+    for(const refreshUI of edit.refresh||[])try{refreshUI();}catch(error){warnings.push('display refresh: '+(error.message||String(error)));}
+    return {applied:true,...edit.result,warnings};
+  }finally{projectEditActive=false;}
+}
+function applySettingsEdit(changes,options={}){
+  return runEdit('settings',options,candidate=>{
     if(!changes||typeof changes!=='object'||Array.isArray(changes))fail('Project settings changes must be an object.');
-    const keys=Object.keys(changes),candidate=JSON.parse(expected.snapshot),replacements={},originals={};
-    let effective=false;
+    const keys=Object.keys(changes),values={};let effective=false;
     for(const key of keys){
       if(!['gameplay','worldRuntime'].includes(key))fail('Unsupported project settings owner: '+key);
-      const patch=changes[key],base=candidate[key],descriptor=Object.getOwnPropertyDescriptor(S,key);
+      const patch=changes[key],base=candidate[key];
       if(!patch||typeof patch!=='object'||Array.isArray(patch))fail('Project settings changes for '+key+' must be an object.');
-      if(!descriptor||!Object.hasOwn(descriptor,'value')||!descriptor.writable)fail('Project settings '+key+' cannot be edited in the current state.');
-      originals[key]=descriptor;
       for(const field of Object.keys(patch)){
         const value=patch[field];
         if(!Object.hasOwn(base,field)||!['number','string','boolean'].includes(typeof value)||typeof value!==typeof base[field]||(typeof value==='number'&&!Number.isFinite(value)))fail('Unsupported project setting: '+key+'.'+field);
         if(base[field]!==value)effective=true;
         base[field]=value;
       }
-      replacements[key]=cp(base);
+      values[key]=cp(base);
     }
-    // The canonical owners validate the detached candidate. Only their exact
-    // configuration values can be installed; prepared unrelated data is unused.
     const prepared=Store.prepareLoad(candidate);
     for(const key of keys)if(JSON.stringify(prepared[key])!==JSON.stringify(candidate[key]))fail('Project settings changed during normalization: '+key);
-    check();
-    if(!effective)return {applied:false,warnings:[]};
-    const history={undo:undoStack.slice(),redo:redoStack.slice(),bytes:undoBytes,disabled:$('undoBtn').disabled,dirty:Forge15.dirty};
-    const expectedUndo=history.undo.concat(expected.snapshot);let expectedBytes=history.bytes+expected.snapshot.length;
-    while(expectedUndo.length>MAX_UNDO||(expectedBytes>24*1024*1024&&expectedUndo.length>1))expectedBytes-=expectedUndo.shift().length;
-    const installed=[];
-    try{
-      const accepted=snapshot();
-      if(accepted===false||undoPaused||undoBytes!==expectedBytes||redoStack.length||undoStack.length!==expectedUndo.length||undoStack.some((entry,i)=>entry!==expectedUndo[i]))fail('The history snapshot did not accept exactly one project settings edit.');
-      check();
-      for(const key of keys){S[key]=replacements[key];installed.push(key);}
-      Forge15.dirty=true;
-    }catch(error){
-      for(const key of installed)Object.defineProperty(S,key,originals[key]);
-      undoStack.splice(0,undoStack.length,...history.undo);redoStack.splice(0,redoStack.length,...history.redo);undoBytes=history.bytes;$('undoBtn').disabled=history.disabled;Forge15.dirty=history.dirty;
-      throw error;
+    return {effective,values,intent:'projectSettings',refresh:[()=>Forge.services.WorldUI?.refresh(true),()=>Forge165.ui?.refresh(true),()=>Forge.services.GameplayUI?.refresh(true)]};
+  });
+}
+function appendScene(input,options={}){
+  return runEdit('scene',options,candidate=>{
+    if(!input||typeof input!=='object'||Array.isArray(input)||typeof input.id!=='string'||!input.id.trim())fail('An appended scene requires a nonempty explicit scene ID.');
+    if(options.select!==undefined&&typeof options.select!=='boolean')fail('Scene selection must be true or false.');
+    if(candidate.scenes.length>=64)fail('The project already has 64 scenes.');
+    if(candidate.scenes.some(scene=>scene.id===input.id))fail('A scene with this ID is already in the project.');
+    const index=candidate.scenes.length,selected=options.select!==false;
+    candidate.scenes.push(cp(input));
+    // Validate with the canonical project/scene owners, then install only a
+    // detached copy of the appended normalized scene. Existing records retain
+    // their live references and exact values; prepared audio/worlds are unused.
+    const prepared=Store.prepareLoad(candidate),scene=cp(prepared.scenes[index]),values={};
+    if(selected){
+      for(const key of ['nt','attr','pal','sprPal','oam','chr','sprChr','tileProps'])values[key]=cp(scene[key]);
+      Object.assign(values,{activeScene:index,selSprite:scene.oam.length?0:-1,selEntity:-1,entPlaceTool:null,chrBank:'bg',selTile:0,editTile:0});
     }
-    // Presentation/notification faults cannot turn a committed, Undoable edit
-    // into an apparent rollback. The caller reports these explicit warnings.
-    const warnings=[];
-    try{notify(options.intent||'projectSettings');}catch(error){warnings.push('change notification: '+(error.message||String(error)));}
-    for(const refreshUI of [()=>Forge.services.WorldUI?.refresh(true),()=>Forge165.ui?.refresh(true),()=>Forge.services.GameplayUI?.refresh(true)])try{refreshUI();}catch(error){warnings.push('display refresh: '+(error.message||String(error)));}
-    return {applied:true,warnings};
-  }finally{settingsEditActive=false;}
+    return {effective:true,values,append:{list:S.scenes,index,scene},intent:'sceneAppend',result:{sceneId:scene.id,sceneIndex:index,selected},
+      // Live mirrors were installed above before any UI-capable loader runs.
+      // Its ordinary selection/cache work can now fail without a partial model.
+      refresh:[...(selected?[()=>loadSceneData(index)]:[]),()=>rebuildAllUI(),()=>Forge166.ui?.refresh()]};
+  });
 }
 function initializeBlank(){
   const sc=makeScene({name:'Untitled Scene',chr:normalizeTiles(),sprChr:normalizeTiles(),tileProps:Array(256).fill(0),entities:[],oam:[],buildInclude:true,buildOrder:0,scrollDir:'none'});
@@ -340,7 +367,7 @@ async function dismissRecovery(){
     recoveryPhase('ready');status();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,appendScene,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};

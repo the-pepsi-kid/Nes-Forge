@@ -6,6 +6,8 @@ const services=window.Forge.services;
 let c=null,operation=0,busy=false,signal=null,staged=null;
 const routes=Object.freeze({
  'nes.physical-chr.v1':[{id:'chr',label:'Open tile recovery tools',target:'reNativeAssetsPanel',focus:'reNativeAssetsPreview',details:'reAnalysisChrDetails'}],
+ 'nes.pointer-nametable.v1':[{id:'pointer-background',label:'Open native background recovery',target:'reNativeBackgroundPanel',focus:'reNativeBackgroundPreview',methodId:'nes.pointer-nametable.v1'}],
+ 'nes.immediate-ppu-background.v1':[{id:'immediate-background',label:'Open native background recovery',target:'reNativeBackgroundPanel',focus:'reNativeBackgroundPreview',methodId:'nes.immediate-ppu-background.v1'}],
  'nes.famitone2-native.v1':[
   {id:'audio',label:'Open native Audio tools',target:'reNativeAudioPanel',focus:'reNativeAudioPanel'},
   {id:'transcription',label:'Open AUDIO transcription tools',target:'reNativeAudioImportPanel',focus:'reNativeAudioImportPanel'}
@@ -79,10 +81,11 @@ function route(methodId,routeId){
   const found=staged.result.results.find(item=>item.method.id===methodId),path=routes[methodId]?.find(item=>item.id===routeId);
   if(found?.status!=='supported'||!path)throw Error('This recovery route is not supported by the current discovery result.');
   const target=document.getElementById(path.target),focus=document.getElementById(path.focus);if(!target||!focus)throw Error('The recovery tools are unavailable in this build.');
+  if(path.methodId&&!services.RENativeBackgroundUI?.selectMethod(path.methodId))throw Error('The background recovery method is unavailable in this build.');
   services.REAnalysisUI.showWorkspace(true);if(path.details){const details=document.getElementById(path.details);if(!details)throw Error('The recovery tools are unavailable in this build.');details.open=true;}
   target.tabIndex=-1;target.scrollIntoView?.({block:'start',behavior:'auto'});focus.focus?.();nativeNotice();
   const native=services.RENativeAudioUI?.getState();
-  message(path.id==='chr'?'Tile recovery tools opened. Choose Preview native tile import, inspect the result, then explicitly import it.':path.id==='transcription'?(native?.hasSession&&native.sourceCurrent?'Transcription tools opened for the existing native ROM copy. Choose its subsong above, then Preview import to AUDIO; conversion may still be refused.':'Transcription tools opened. First use Analyze current ROM in Native Audio and choose a subsong, then Preview import to AUDIO. Discovery has not checked conversion readiness.'):'Native Audio tools opened. An existing edited copy is preserved. Analyze current ROM starts a new native session from the original opened file; export any edits you want to keep first.');
+  message(path.methodId?'Native background recovery opened. Choose Preview background and review its evidence, construction and unknowns before explicitly importing a static scene. Discovery has not converted or imported it.':path.id==='chr'?'Tile recovery tools opened. Choose Preview native tile import, inspect the result, then explicitly import it.':path.id==='transcription'?(native?.hasSession&&native.sourceCurrent?'Transcription tools opened for the existing native ROM copy. Choose its subsong above, then Preview import to AUDIO; conversion may still be refused.':'Transcription tools opened. First use Analyze current ROM in Native Audio and choose a subsong, then Preview import to AUDIO. Discovery has not checked conversion readiness.'):'Native Audio tools opened. An existing edited copy is preserved. Analyze current ROM starts a new native session from the original opened file; export any edits you want to keep first.');
   return true;
  }catch(error){message(error.message||String(error),true);return false;}
 }

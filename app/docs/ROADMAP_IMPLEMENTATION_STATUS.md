@@ -1,3 +1,22 @@
+# Current implementation ledger — Native Background Recovery
+
+Candidate **alpha.11 / native-background-1**, schema 12, follows the verified automated compatibility checkpoint. The full roadmap is incomplete.
+
+| Area | Current implementation | Evidence still required or limitation |
+|---|---|---|
+| Compatibility C1–C5 | Retained recipe migration, shared limits, owned settings edits and full generated previews; exact parent source preserved | Prior browser launch blockers remain open; current automated outcomes require fresh Summary |
+| A1 native background formats | Bounded reset-linked immediate/fill construction and vector-linked pointer-page loading; Pepsi and HonkeyPong | Finite static subset; unknown engines remain inspectable; no universal recovery |
+| Shared workflow | REMethods discovery → shared preview → canonical scene append → edit/save/reopen → independent static viewer build | Original gameplay/sprites/collision/later writes are not reproduced; Honkey final attribute defaults0 with explicit unknown |
+| Framework ownership | One ProjectStore transaction helper for settings and scene append; explicit detached viewer opt-in | Preserve all predecessor tests/goldens and fresh clean-extraction provenance |
+| Review | New workflow guide/checklist and generated examples | Browser/device/owner acceptance and comprehensive manual/PDF remain unfinished |
+| Next dependency | A2 native map/collision on an appropriate independent source | No collision semantics inferred from these graphics or from Bridge Room control alone |
+
+Measured current results belong to Summary and the current clean-extraction proof. Earlier dated ledgers below are preserved history, not claims about current acceptance.
+
+## Preserved previous record
+
+---
+
 # Implementation status — compatibility-stabilization-1
 
 Current priority is the owner-authorized alpha.11 compatibility stabilization checkpoint, before new mechanics and A1. The earlier movement-rules-1 candidate is the preserved behavioral parent. Schema 12 and existing runtime/template scope remain unchanged.

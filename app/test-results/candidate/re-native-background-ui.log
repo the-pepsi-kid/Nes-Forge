@@ -1,0 +1,22 @@
+PASS Panel mounts once with graphics conversion profiles and no automatic recovery
+PASS Missing, merely selected and unrecognized sources cannot enable an import
+PASS nes.pointer-nametable.v1: visible Preview decodes real source, shows complete evidence and leaves authoring/runtime untouched
+PASS nes.immediate-ppu-background.v1: visible Preview decodes real source, shows complete evidence and leaves authoring/runtime untouched
+PASS nes.pointer-nametable.v1: acknowledged visible import appends one excluded scene and one Undo while retaining runtime settings
+PASS nes.immediate-ppu-background.v1: acknowledged visible import appends one excluded scene and one Undo while retaining runtime settings
+PASS Background preview preserves an existing edited native Audio copy
+PASS Project changes after preview refuse import without rolling back the newer edit
+PASS Selecting a new source immediately removes stale preview, acknowledgement and export actions
+PASS Busy and failed reads cannot preview a retained prior inspection
+PASS Source change while preview is pending aborts cooperative work and prevents stale publication
+PASS Explicit cancel lets a later preview finish while an older completion stays discarded
+PASS Changing methods invalidates staged output and cannot publish an in-flight former method
+PASS Project changes during conversion reject a stale stage before showing an import
+PASS Mismatched source identity and missing static compile proof are refused
+PASS Project/evidence downloads retain distinct payloads and never load the independent viewer into the editor
+PASS Save As busy, cancellation and failure reports are accurate and preserve the preview
+PASS Late save completion cannot overwrite status for a newly selected source
+PASS nes.pointer-nametable.v1: discovery route selects and focuses background tools without previewing or importing
+PASS nes.immediate-ppu-background.v1: discovery route selects and focuses background tools without previewing or importing
+PASS Recovery controls stop editor/game keyboard propagation without blocking native control defaults
+21/21 passed

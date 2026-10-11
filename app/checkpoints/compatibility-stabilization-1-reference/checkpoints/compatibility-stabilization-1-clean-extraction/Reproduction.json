@@ -1,0 +1,87 @@
+{
+  "candidate": "compatibility-stabilization-1",
+  "status": "passed",
+  "release": "2.0.0-alpha.11",
+  "htmlSha256": "b3d9b852782b1b7ebd56637bb94e4dbcb09379614b7c8577e007046db45c8e02",
+  "summarySha256": "a82660e5d79481f23aa2be73413eb4e3a89940827a692618cc4ed54d6d9c3120",
+  "passed": 1541,
+  "total": 1541,
+  "suiteCount": 72,
+  "startedAt": "2026-10-11T04:27:49.697Z",
+  "finishedAt": "2026-10-11T04:51:03.369Z",
+  "unchangedCandidate": true,
+  "stagingArchiveSha256": "3bedded0799f108fe044b427f8425edd551828a56ae92b53afea34c45d589520",
+  "stagingArchive": "compatibility-stabilization-staging.zip",
+  "stagingVerifiedPayloads": 4117,
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "node tests/run_candidate.cjs",
+    "Every declared browser-suites.json runner"
+  ],
+  "retainedCases": 1504,
+  "retainedSuites": 68,
+  "browserEvidence": [
+    {
+      "name": "browser-mobile",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-re-analysis",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-re-runtime",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-audio-adaptive",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-roadmap",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-native-audio",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-native-audio-import",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-recovery-methods",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-seeded-mashup",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-movement-rules",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-compatibility",
+      "status": "blocked",
+      "checks": 0
+    }
+  ],
+  "browserWalkthrough": "Browser launch outcomes are recorded separately. Blocked launches executed zero checks; no listening, phone, controller or hardware pass is claimed.",
+  "promotion": "not promoted; owner and real-browser acceptance pending"
+}

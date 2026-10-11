@@ -1,3 +1,17 @@
+# Test policy — Native Background Recovery
+
+Retain all **1,541 cases across 72 predecessor suites**, unchanged in count and order, and append the six suites in `native-background-suites.json`. No skipped cases, missing-module injection, regenerated historical oracle or stale outcome record. Intentional retained changes are exact release-label and discovery-count expectations plus outer preservation/gate infrastructure; exact reverse patches reconstruct the complete compatibility predecessor before older guards run.
+
+Both independent inputs must pass actual bundled profiles and the same canonical workflow. Verify native source ranges, palette aliases, selected CHR bank, actual original CPU/PPU construction, modified valid records, malformed structures, near matches, unknown engines, cancellation and bounded work. Specifically preserve the pointer-loop ordering and unknown final attribute instead of comparing only its convenient all-zero original boundaries.
+
+Test one-scene transaction rollback/stale guards and existing settings behavior; one Undo/Redo; useful graphic edits and save/reopen; independent actual viewer compile and runtime graphics. Require explicit detached viewer opt-in and mapper-0 refusal. Preview/import cannot swap live S, publish a ROM or alter the emulator. Source evidence and editable project exports are separate.
+
+Freeze source/docs/tests/examples, refresh only current example build receipts through their generators, stage and verify every payload checksum, then execute the full gate from an unchanged clean extraction. Final packaging requires `checkpoints/native-background-1-clean-extraction/Reproduction.json` and all twelve current browser reports. A blocked Chromium launch records zero checks; VM handlers and CPU/PPU evidence do not establish browser layout/native dialogs, listening or hardware results.
+
+## Preserved previous record
+
+---
+
 # Test policy — alpha.11 Compatibility Stabilization
 
 Retain all **1,504 predecessor cases across 68 suites**, with exact suite counts and immutable original test/source evidence. Add dedicated recipe compatibility, settings transaction and detached compilation/validation suites. Any necessary current expectation changes must correspond to an explicitly documented behavior change; exact deltas reconstruct the original tests before preservation checks. Do not drop cases, regenerate historical goldens, weaken refusals or infer acceptance from old reports.

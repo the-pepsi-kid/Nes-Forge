@@ -37,12 +37,14 @@ function plan(options={}){
   if(!services.ProjectStore?.prepareSnapshot)throw Error('ProjectStore preparation is required before building.');
   return planSource(services.ProjectStore.prepareSnapshot({intent:'build'}),options);
 }
-function planDetached(project){
+function planDetached(project,options={}){
   if(!services.ProjectStore?.prepareLoad)throw Error('ProjectStore validation is required before detached building.');
   const source=services.ProjectStore.prepareLoad(project).data;
   if(source.version!==services.ProjectStore.schema)throw Error('Detached builds require the current project schema.');
   if(typeof source.asmSource!=='string'||source.asmSource.trim())throw Error('Detached builds require generated Forge code; custom assembly remains live-only.');
-  if(!['world','single-room'].includes(backendFor(source)))throw Error('Detached builds require a generated World or single-room runtime.');
+  const backend=backendFor(source);
+  if(!['world','single-room'].includes(backend)&&!(options.allowViewer===true&&backend==='packed'))throw Error('Detached builds require a generated World or single-room runtime; a static scene viewer requires explicit allowViewer.');
+  if(backend==='packed'&&source.mapper!==0)throw Error('The detached generated scene viewer requires mapper 0 (NROM).');
   const result=planSource(source,{});result.detached=true;return result;
 }
 function planSource(source,options){
@@ -213,7 +215,7 @@ function build(options){
 }
 const BuildGraph=services.BuildGraph={profile,phaseOrder,selectedSceneEntries,plan,planDetached,preflight,lastDiagnostics:[],
   ownership:'Live capture or detached validation prepares the source. Generated plans pass copied sources to existing codecs once; custom assembly is live-only.'};
-const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world']),compile,compileDetached:project=>compile(planDetached(project)),commit,build,lastArtifact:null};
+const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world']),compile,compileDetached:(project,options)=>compile(planDetached(project,options)),commit,build,lastArtifact:null};
 // These assignments replace active routes; no previous planner/builder is called.
 buildNesRom=build;
 window.forge15_preflight=preflight;
