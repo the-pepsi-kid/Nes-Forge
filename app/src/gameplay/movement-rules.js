@@ -4,7 +4,7 @@
 'use strict';
 const services=window.Forge.services,FORMAT='NESForgeMovementRecipe',VERSION=1,ALGORITHM='sha256-mulberry32-movement-1';
 const FIELDS=Object.freeze(['moveSpeed','jumpSpeed','gravity','maxFallSpeed']);
-const LIMITS=Object.freeze({moveSpeed:Object.freeze([1,4]),jumpSpeed:Object.freeze([1,12]),gravity:Object.freeze([1,3]),maxFallSpeed:Object.freeze([1,8])});
+const LIMITS=Object.freeze(Object.fromEntries(FIELDS.map(field=>[field,window.Forge165.config.limits[field]])));
 const PRESETS=Object.freeze(['keep','sprint','high-jump','slow-fall','heavy-fall','seeded-mix']);
 const sourcesMade=new WeakSet(),cp=value=>JSON.parse(JSON.stringify(value)),fail=message=>{throw Error('Movement rules: '+message);};
 const model=()=>{if(!services.MashupModel)fail('Canonical source validation is unavailable.');return services.MashupModel;};
@@ -15,13 +15,8 @@ function seedValue(value){if(typeof value!=='string'||!value.trim()||value.lengt
 function origin(value){record(value,['seed','preset','intensity'],'Rule origin');seedValue(value.seed);if(!PRESETS.includes(value.preset))fail('Unknown movement preset.');if(!Number.isInteger(value.intensity)||value.intensity<1||value.intensity>3)fail('Intensity must be 1, 2 or 3.');return{seed:value.seed,preset:value.preset,intensity:value.intensity};}
 function locksValue(value={},exact=false){if(!value||typeof value!=='object'||Array.isArray(value))fail('Locks must be an object.');if(exact)record(value,FIELDS,'Rule locks');for(const key of Object.keys(value)){if(!FIELDS.includes(key))fail('Unknown movement lock '+key+'.');if(typeof value[key]!=='boolean')fail('Movement locks must be true or false.');}return Object.fromEntries(FIELDS.map(key=>[key,value[key]===true]));}
 function configValidation(project,backend){
- services.WorldConfig.validate(project.worldRuntime,{references:backend==='world',project});window.Forge165.config.validate(project.gameplay);
- if(backend==='single-room'){
-  const config=project.gameplay,scene=project.scenes.find(item=>item.id===config.sceneId);
-  if(!scene||scene.buildInclude===false)fail('Choose an included existing playable Scene.');
-  const player=scene.entities.find(item=>item.id===config.playerId);if(!player||player.type!=='player')fail('Choose an existing Player in the playable Scene.');
-  if(config.targetId){const target=scene.entities.find(item=>item.id===config.targetId);if(!target||!['npc','enemy'].includes(target.type)||target===player)fail('Choose a distinct existing NPC or enemy training target.');}
- }
+ services.WorldConfig.validate(project.worldRuntime,{references:backend==='world',project});
+ window.Forge165.config.validate(project.gameplay,{references:backend==='single-room',project});
 }
 function createSource(input,{name}={}){
  // Check JSON values before stringifying, while retaining the source's field
@@ -59,11 +54,10 @@ function verifyRecipe(source,recipe){
  const result=build(source,current,locks,origins);if(stable(result.recipe)!==stable(recipe))fail('Recipe decisions or result identity differ from deterministic regeneration.');return result;
 }
 function complete(source,result){
- const validation=model().validate(result.project);configValidation(result.project,source.backend);services.AudioCompiler.plan(result.project);
- if(source.backend==='world'){const artifact=services.WorldCompiler.compile(services.WorldCompiler.plan(result.project));validation.build='compiled-world';validation.romSha256=window.FamiTone2Native.sha256(artifact.rom);validation.romBytes=artifact.rom.length;validation.notice='Detached World ROM compiled and capacity checked after movement changes. Ordinary Save/build may serialize metadata differently. This is not browser, listening or hardware acceptance.';}
- else{const plan=services.GameplayCompiler.plan(result.project,{backend:'single-room'});services.GameplayCompiler.locateSingleRoom(plan);services.GameplayCompiler.compileSemantics(plan);validation.build='structural-only';validation.notice='Structure, references and Audio/Gameplay plans passed. Complete single-room ROM capacity remains pending the existing Build action.';}
+ const validation=model().validate(result.project);configValidation(result.project,source.backend);
+ const artifact=services.RuntimeCompiler.compileDetached(result.project);
+ validation.build='compiled-'+source.backend;validation.romSha256=window.FamiTone2Native.sha256(artifact.rom);validation.romBytes=artifact.rom.length;validation.notice='Detached '+(source.backend==='world'?'World':'single-room')+' ROM compiled and capacity checked after movement changes. Ordinary Save/build may serialize metadata differently. This is not browser, listening or hardware acceptance.';
  const warnings=['Movement settings apply globally to the active '+(source.backend==='world'?'World runtime':'single-room runtime')+', not just the selected editor Scene.','These are existing bounded NES movement settings; no level-solvability or playability guarantee is made.','Preset targets are absolute values, not multipliers. Locks can override part of a preset; review every resulting value.','Movement/jump/fall speeds are pixels per runtime tick; gravity is pixels per tick squared. Low gravity below 1, sliding, knockback, health/death and new mechanics are not added.'];
- if(validation.build==='structural-only')warnings.push(validation.notice);
  const effective=result.recipe.resultSha256!==source.sha256;if(!effective)warnings.push('These settings produce no effective movement changes.');
  return freeze({status:effective?'ready':'no-change',effective,...result,warnings,validation});
 }

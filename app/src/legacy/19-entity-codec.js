@@ -54,11 +54,12 @@ function reader(data){let pos=0;const take=n=>{if(!Number.isInteger(n)||n<0||pos
   return {take,u8,u16,u32,i16:()=>{const v=u16();return v>32767?v-65536:v;},text:()=>D.decode(take(u8())),done:()=>{if(pos!==data.length)fail('Unexpected trailing MS16 v2 bytes');}};
 }
 function encodeAssets(plan){
-  M.ensure();M.validateProject({version:7,scenes:S.scenes,animations:S.animations,metasprites:S.metasprites},{references:true,build:true});
-  if(!(S.metasprites?.length||S.animations?.length||plan.entries.some(e=>e.sc.entities?.length)))return new Uint8Array();
+  if(!plan.source)M.ensure();
+  const source=plan.source||S;M.validateProject({version:7,scenes:source.scenes,animations:source.animations,metasprites:source.metasprites},{references:true,build:true});
+  if(!(source.metasprites?.length||source.animations?.length||plan.entries.some(e=>e.sc.entities?.length)))return new Uint8Array();
   const base=oldEncode(plan),w=writer(),oldBytes=base.length?base:sign(Uint8Array.from([0,0,0,0]),1);
-  w.u32(oldBytes.length);w.bytes(oldBytes);w.u16(S.animations.length);
-  for(const animation of S.animations){
+  w.u32(oldBytes.length);w.bytes(oldBytes);w.u16(source.animations.length);
+  for(const animation of source.animations){
     w.u16(animation.frames.length);
     for(const frame of animation.frames){
       for(const kind of ['hitboxes','hurtboxes']){const boxes=frame[kind]||[];w.u8(boxes.length);for(const box of boxes){w.text(box.id);w.text(box.name);w.u16(box.x);w.u16(box.y);w.u16(box.w);w.u16(box.h);}}
@@ -66,7 +67,7 @@ function encodeAssets(plan){
     }
   }
   int(plan.entries.length,1,7,'MS16 build scene count');w.u8(plan.entries.length);
-  const animationIndices=new Map(S.animations.map((a,i)=>[a.id,i]));
+  const animationIndices=new Map(source.animations.map((a,i)=>[a.id,i]));
   plan.entries.forEach((entry,buildSceneIndex)=>{
     const entities=entry.sc.entities||[];int(entities.length,0,16,'MS16 entity count');
     if(entities.length!==(plan.atlas.scenes[buildSceneIndex]?.entities?.length||0))fail('Build entity order changed during metadata linking');

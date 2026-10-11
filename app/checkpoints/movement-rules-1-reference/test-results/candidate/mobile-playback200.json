@@ -1,0 +1,281 @@
+{
+  "suite": "mobile-playback200",
+  "html": "NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
+  "baselineHtmlSha256": "4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0",
+  "scope": "Deterministic 30/60 Hz synthetic host scheduler and AudioContext sink (fixed-cost complete frame producer declared); actual PPU/capture rendering and native CPU ROM execution compared with pinned alpha.1. DOM readout semantics only; no browser compositor, physical phone, speaker, thermal or real latency claim.",
+  "passed": 19,
+  "failed": 0,
+  "total": 19,
+  "metrics": {
+    "scheduler30Hz": {
+      "frame": 300,
+      "running": true,
+      "perf": {
+        "fps": 60.00000000000001,
+        "frameMs": 11,
+        "maxFrameMs": 11,
+        "dropped": 0,
+        "backlogMs": 8.219798065851336,
+        "budgetYields": 0,
+        "frames": 46,
+        "since": 4255.333333333333,
+        "lastHUD": 4788.666666666667
+      },
+      "audio": {
+        "scheduled": 300,
+        "underruns": 0,
+        "resyncs": 0,
+        "maxQueueMs": 67.29166666666667,
+        "lastPeak": 0.05000000074505806
+      },
+      "backlog": 8.219798065851336,
+      "queued": 0.061083333333354695,
+      "sources": 4
+    },
+    "scheduler60Hz": {
+      "frame": 180,
+      "running": true,
+      "perf": {
+        "fps": 60,
+        "frameMs": 4,
+        "maxFrameMs": 4,
+        "dropped": 0,
+        "backlogMs": 4.9318788395108015,
+        "budgetYields": 0,
+        "frames": 0,
+        "since": 3004,
+        "lastHUD": 3004
+      },
+      "audio": {
+        "scheduled": 180,
+        "underruns": 0,
+        "resyncs": 0,
+        "maxQueueMs": 61.64583333333333,
+        "lastPeak": 0.05000000074505806
+      },
+      "backlog": 4.9318788395108015,
+      "queued": 0.05791666666667128,
+      "sources": 4
+    },
+    "stall": {
+      "frame": 4,
+      "running": true,
+      "perf": {
+        "fps": 3.9682539682539684,
+        "frameMs": 2,
+        "maxFrameMs": 2,
+        "dropped": 56,
+        "backlogMs": 1.6439596131702672,
+        "budgetYields": 0,
+        "frames": 0,
+        "since": 1008,
+        "lastHUD": 1008
+      },
+      "audio": {
+        "scheduled": 4,
+        "underruns": 0,
+        "resyncs": 0,
+        "maxQueueMs": 105.58333333333292,
+        "lastPeak": 0.05000000074505806
+      },
+      "backlog": 1.6439596131702672,
+      "queued": 0.10558333333333292,
+      "sources": 4
+    },
+    "overload": {
+      "frame": 30,
+      "running": true,
+      "perf": {
+        "fps": 12.765957446808512,
+        "frameMs": 45,
+        "maxFrameMs": 45.00000000000001,
+        "dropped": 105,
+        "backlogMs": 58.69890912963249,
+        "budgetYields": 30,
+        "frames": 14,
+        "since": 1253.3333333333333,
+        "lastHUD": 2193.3333333333326
+      },
+      "audio": {
+        "scheduled": 30,
+        "underruns": 29,
+        "resyncs": 0,
+        "maxQueueMs": 61.6458333333334,
+        "lastPeak": 0.05000000074505806
+      },
+      "backlog": 58.69890912963249,
+      "queued": 0.0616458333333334,
+      "sources": 1,
+      "maxFramesPerCallback": 1
+    },
+    "ordinary scrolled background and sprites": {
+      "framebufferSha256": "ce74f94b341279b6218b16706193e45747eb984b4171b83ca5d560de6adfb9ec",
+      "captureSha256": "ea5e105c61ed358595c6d8f46a34b456f28461dbfef0ef40e5d64d0e22b312b9",
+      "nativeTiles": 63,
+      "paletteSets": 1
+    },
+    "CNROM bank switches during visible rendering": {
+      "framebufferSha256": "789b9e56e66f5099300a978aff7a37f649fe025fa5b35ead51a375fdc2ea4d2b",
+      "captureSha256": "cb3ec2e3a87122ec7be3876424e9f664e482dd6013ad678a40b845128a876ea7",
+      "nativeTiles": 189,
+      "paletteSets": 1
+    },
+    "MMC3 individual pages and bank inversion": {
+      "framebufferSha256": "3abdf7c691635fba4e87464d495b72925ac464c8d541596fd8da81773ed22535",
+      "captureSha256": "7893a21110379bc9301aff4d67404fa598993ceef057d1cc1a8fcdd151b11792",
+      "nativeTiles": 189,
+      "paletteSets": 1
+    },
+    "raster palette mirrors, grayscale and scroll changes": {
+      "framebufferSha256": "f7824b8e3bba6d373bf7e742a73fafd50ae1b238c4dcde0409e6b32d3a145869",
+      "captureSha256": "95853d7753201cfed538ca5c5327681c9b4e6aeecc1ece213424d89a8e3b1b5b",
+      "nativeTiles": 63,
+      "paletteSets": 2
+    },
+    "CHR-RAM writes during the visible frame": {
+      "framebufferSha256": "0c0094601caa88dfc8d6aedf32529bc12875ec09a8f4c13236c38f050f295b4c",
+      "captureSha256": "7c587b1ca7497ac93e7db015768128949475765133a74b6e0b01ecd8c69c41dd",
+      "nativeTiles": 189,
+      "paletteSets": 1
+    },
+    "CHR-ROM in-place mutation does not reuse stale tiles": {
+      "framebufferSha256": "ac0a8a7915c6c5980e636d9388dcfb1c542685b312fa8cc57ad5a23c156217ff",
+      "captureSha256": "4e17cdfdae6a9638561836d47d72e418186211dee2f5344865077cce6f4029ba",
+      "nativeTiles": 126,
+      "paletteSets": 1
+    },
+    "CHR-ROM replacement invalidates source identity": {
+      "framebufferSha256": "a3d85d970c2ac60766fc21cf1ced91953ee511f8616c726e5397845e8cd4e926",
+      "captureSha256": "40b1558f9ec240209b3e8c4845c978e08c77569269fc8e3dac1fa0fcb5ddaf71",
+      "nativeTiles": 126,
+      "paletteSets": 1
+    },
+    "nativeROM": {
+      "framebufferSha256": "bc7b24991c41600b9f0b24e903be005902662380582b93ceb42bc0126c056269",
+      "captureSha256": "883c917b6d95b2565581c3ad909b68f583b1a92d86f38642bef84eb3dd2ab0dc",
+      "nativeTiles": 5,
+      "paletteSets": 1
+    },
+    "nativeTileAllocations": {
+      "baseline": 30724,
+      "candidate": 24,
+      "reduction": 0.9992188517120166
+    },
+    "historyAnchor": {
+      "framebufferSha256": "bc7b24991c41600b9f0b24e903be005902662380582b93ceb42bc0126c056269",
+      "captureSha256": "f3a598da893dc1212545f8e31241a51d1ef000bdeadf232f924601b3aae5322e",
+      "nativeTiles": 5,
+      "paletteSets": 1
+    },
+    "historyRestored": {
+      "framebufferSha256": "bc7b24991c41600b9f0b24e903be005902662380582b93ceb42bc0126c056269",
+      "captureSha256": "f3a598da893dc1212545f8e31241a51d1ef000bdeadf232f924601b3aae5322e",
+      "nativeTiles": 5,
+      "paletteSets": 1
+    },
+    "historyResumed": {
+      "framebufferSha256": "db7febdbb73fc2c99beef26906a0d77534225bd10d5c6267af270f406ab5158b",
+      "captureSha256": "ae5bbcd02d7de38a1f47cc5b5bf09387dbfd63b02f25224e0b765df81376a264",
+      "nativeTiles": 5,
+      "paletteSets": 1
+    }
+  },
+  "results": [
+    {
+      "name": "30 Hz host callbacks with 11 ms complete frames sustain NTSC progress and continuous audio",
+      "passed": true,
+      "milliseconds": 629
+    },
+    {
+      "name": "60 Hz host control remains near real time without extra frames or queue growth",
+      "passed": true,
+      "milliseconds": 488
+    },
+    {
+      "name": "One second stall is bounded and all discarded emulation time is accounted for",
+      "passed": true,
+      "milliseconds": 350
+    },
+    {
+      "name": "Sustained overload yields bounded callbacks, retains debt, and reports lost time",
+      "passed": true,
+      "milliseconds": 390
+    },
+    {
+      "name": "Out-of-order timestamps do not consume debt; invalid timestamps stop safely",
+      "passed": true,
+      "milliseconds": 371
+    },
+    {
+      "name": "Pause/resume rejects stale callback generations and clears queued host audio",
+      "passed": true,
+      "milliseconds": 352
+    },
+    {
+      "name": "Capture parity: ordinary scrolled background and sprites",
+      "passed": true,
+      "milliseconds": 981
+    },
+    {
+      "name": "Capture parity: CNROM bank switches during visible rendering",
+      "passed": true,
+      "milliseconds": 938
+    },
+    {
+      "name": "Capture parity: MMC3 individual pages and bank inversion",
+      "passed": true,
+      "milliseconds": 917
+    },
+    {
+      "name": "Capture parity: raster palette mirrors, grayscale and scroll changes",
+      "passed": true,
+      "milliseconds": 898
+    },
+    {
+      "name": "Capture parity: CHR-RAM writes during the visible frame",
+      "passed": true,
+      "milliseconds": 941
+    },
+    {
+      "name": "Capture parity: CHR-ROM in-place mutation does not reuse stale tiles",
+      "passed": true,
+      "milliseconds": 903
+    },
+    {
+      "name": "Capture parity: CHR-ROM replacement invalidates source identity",
+      "passed": true,
+      "milliseconds": 893
+    },
+    {
+      "name": "Repeated capture is stable and does not advance CPU or mutate authoring data",
+      "passed": true,
+      "milliseconds": 513
+    },
+    {
+      "name": "Unsafe mid-frame sprite geometry still rejects capture atomically",
+      "passed": true,
+      "milliseconds": 392
+    },
+    {
+      "name": "Actual native ROM frames preserve complete captures while reducing 16-byte tile allocations",
+      "passed": true,
+      "milliseconds": 1933
+    },
+    {
+      "name": "History restoration and resumed real CPU execution preserve native capture data",
+      "passed": true,
+      "milliseconds": 4509
+    },
+    {
+      "name": "Play performance readout reflects measured counters without changing emulation or input",
+      "passed": true,
+      "milliseconds": 342
+    },
+    {
+      "name": "Play readout reacts immediately to pause and unload within its normal refresh throttle",
+      "passed": true,
+      "milliseconds": 338
+    }
+  ]
+}

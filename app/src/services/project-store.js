@@ -13,6 +13,7 @@ const state={epoch:0,recoveryPhase:'checking',recoveryToken:0,lastIntent:'startu
 const preparedLoads=new WeakSet();
 const portableCompletions=new WeakSet();
 let recoveryWrite=Promise.resolve(),checkPromise=null;
+let settingsEditActive=false;
 const fail=message=>{throw Error(message);};
 function status(message){
   if(Forge.release?.updateStatus)return Forge.release.updateStatus(message);
@@ -162,6 +163,63 @@ function commit(prepared,options={}){
   refresh();return true;
 }
 function load(input,options={}){return Store.commit(Store.prepareLoad(input),options);}
+// Small canonical configuration edits are not project replacement. Loading a
+// whole prepared project would normalize unrelated authored records and reset
+// tracker/scene caches. Keep that lifecycle in commit; own edit/history here.
+function applySettingsEdit(changes,options={}){
+  if(settingsEditActive)fail('A project settings transaction is already in progress.');
+  settingsEditActive=true;
+  try{
+    const expected=options.expected;
+    if(!expected||!Number.isInteger(expected.epoch)||typeof expected.snapshot!=='string')fail('A project settings edit requires its captured project guard.');
+    const check=()=>{if(undoPaused)fail('Wait for the current history operation to finish before editing project settings.');if(!currentRead(expected))fail('The current project changed. Capture it and preview again.');};
+    check();
+    if(!changes||typeof changes!=='object'||Array.isArray(changes))fail('Project settings changes must be an object.');
+    const keys=Object.keys(changes),candidate=JSON.parse(expected.snapshot),replacements={},originals={};
+    let effective=false;
+    for(const key of keys){
+      if(!['gameplay','worldRuntime'].includes(key))fail('Unsupported project settings owner: '+key);
+      const patch=changes[key],base=candidate[key],descriptor=Object.getOwnPropertyDescriptor(S,key);
+      if(!patch||typeof patch!=='object'||Array.isArray(patch))fail('Project settings changes for '+key+' must be an object.');
+      if(!descriptor||!Object.hasOwn(descriptor,'value')||!descriptor.writable)fail('Project settings '+key+' cannot be edited in the current state.');
+      originals[key]=descriptor;
+      for(const field of Object.keys(patch)){
+        const value=patch[field];
+        if(!Object.hasOwn(base,field)||!['number','string','boolean'].includes(typeof value)||typeof value!==typeof base[field]||(typeof value==='number'&&!Number.isFinite(value)))fail('Unsupported project setting: '+key+'.'+field);
+        if(base[field]!==value)effective=true;
+        base[field]=value;
+      }
+      replacements[key]=cp(base);
+    }
+    // The canonical owners validate the detached candidate. Only their exact
+    // configuration values can be installed; prepared unrelated data is unused.
+    const prepared=Store.prepareLoad(candidate);
+    for(const key of keys)if(JSON.stringify(prepared[key])!==JSON.stringify(candidate[key]))fail('Project settings changed during normalization: '+key);
+    check();
+    if(!effective)return {applied:false,warnings:[]};
+    const history={undo:undoStack.slice(),redo:redoStack.slice(),bytes:undoBytes,disabled:$('undoBtn').disabled,dirty:Forge15.dirty};
+    const expectedUndo=history.undo.concat(expected.snapshot);let expectedBytes=history.bytes+expected.snapshot.length;
+    while(expectedUndo.length>MAX_UNDO||(expectedBytes>24*1024*1024&&expectedUndo.length>1))expectedBytes-=expectedUndo.shift().length;
+    const installed=[];
+    try{
+      const accepted=snapshot();
+      if(accepted===false||undoPaused||undoBytes!==expectedBytes||redoStack.length||undoStack.length!==expectedUndo.length||undoStack.some((entry,i)=>entry!==expectedUndo[i]))fail('The history snapshot did not accept exactly one project settings edit.');
+      check();
+      for(const key of keys){S[key]=replacements[key];installed.push(key);}
+      Forge15.dirty=true;
+    }catch(error){
+      for(const key of installed)Object.defineProperty(S,key,originals[key]);
+      undoStack.splice(0,undoStack.length,...history.undo);redoStack.splice(0,redoStack.length,...history.redo);undoBytes=history.bytes;$('undoBtn').disabled=history.disabled;Forge15.dirty=history.dirty;
+      throw error;
+    }
+    // Presentation/notification faults cannot turn a committed, Undoable edit
+    // into an apparent rollback. The caller reports these explicit warnings.
+    const warnings=[];
+    try{notify(options.intent||'projectSettings');}catch(error){warnings.push('change notification: '+(error.message||String(error)));}
+    for(const refreshUI of [()=>Forge.services.WorldUI?.refresh(true),()=>Forge165.ui?.refresh(true),()=>Forge.services.GameplayUI?.refresh(true)])try{refreshUI();}catch(error){warnings.push('display refresh: '+(error.message||String(error)));}
+    return {applied:true,warnings};
+  }finally{settingsEditActive=false;}
+}
 function initializeBlank(){
   const sc=makeScene({name:'Untitled Scene',chr:normalizeTiles(),sprChr:normalizeTiles(),tileProps:Array(256).fill(0),entities:[],oam:[],buildInclude:true,buildOrder:0,scrollDir:'none'});
   Store.load({format:'NESForge',version:Forge.release.schema,foundation:Forge.release.version,projectName:'Untitled',scenes:[sc],activeScene:0,worlds:[],animations:[],metasprites:[],gameplay:Forge165.config.defaults(),worldRuntime:Forge.services.WorldConfig.defaults(),audioRuntime:Forge.services.AudioConfig.defaults(),gameplayCore:Forge.services.GameplayModel.defaults(),asmSource:'',instruments:[],patterns:[],orderList:[],sfx:[],tempo:150,speed:6,audRows:64,mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,selTile:0,editTile:0,selSprite:-1,selEntity:-1,chrBank:'bg',_selAnim:0,_animFrame:0},{intent:'startup'});
@@ -282,7 +340,7 @@ async function dismissRecovery(){
     recoveryPhase('ready');status();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};

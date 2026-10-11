@@ -1,5 +1,7 @@
 # Movement rules — NES Forge 2.0.0-alpha.11
 
+Current candidate: compatibility-stabilization-1. The versioned recipe adapter can verify and reissue a recipe when the only source difference is reviewed alpha.10/alpha.11 foundation metadata. All other source content remains exact. See `COMPATIBILITY_STABILIZATION.md`.
+
 Movement rules turns the current project's existing player movement settings into repeatable variations. Open **SCENE → Movement rules**. The panel is separate from Seeded mashup and starts at **Keep current**.
 
 This edition supports run speed, initial jump speed, gravity and maximum falling speed in a compatible, enabled generated World or single-room runtime. The selected runtime, player body dimensions, scene layouts, actor definitions, audio, imported ROM and native analysis session stay as authored. Changes become part of a generated NES ROM when you use the ordinary build controls.
@@ -70,7 +72,7 @@ These are two explicit edits with separate Undo entries. One Undo after step 4 r
 
 Try a flat run, jump from rest, jump while running, ceiling contact, wall contact, landing on a thin platform and a room or World transition. Check whether previously reachable paths still work. Large changes can make a room frustrating or impossible even when its ROM compiles successfully.
 
-World previews perform a detached compile for the generated World candidate. Single-room previews provide structural/reference validation; use the normal final build to check emitted capacity and the complete ROM. A valid preview or compile does not certify solvability, audio/video timing, browser layout or physical hardware behavior.
+Both World and single-room previews compile a complete detached generated ROM, including emitted capacity checks. Preview reports the compiled ROM identity and size; it does not publish or play that ROM. Use the ordinary Build action after Apply to produce the active project ROM. A valid preview or compile does not certify solvability, audio/video timing, browser layout or physical hardware behavior.
 
 This edition uses the existing runtime's movement parameters. It does not add friction or ice physics, knockback, one-hit rules, timed escape, survival mode, larger actor limits, arbitrary original-engine code mixing or automatic recovery of gameplay mechanics from unknown ROMs. Source migration and further native asset recovery remain separate roadmap work.
 

@@ -1,0 +1,72 @@
+NES Forge 2.0.0-alpha.2 / mobile-playback-1 — mobile review
+Target reported by owner: Cricket Dream 5G + Chrome
+
+SETUP
+Extract the ZIP. Open mainline/NES_Forge_2.0.0-alpha.2.html.
+Confirm the header says 2.0.0-alpha.2 MOBILE PLAYBACK.
+The old comparison app is baseline/NES_Forge_2.0.0-alpha.1_Audio_Correction.html.
+Save your editor project before switching files. Use the SAME unchanged ROM
+in each app, loaded through EMULATOR -> Load ROM. Do not rebuild between the
+old/new comparison: that would change the test input.
+
+Use the ROM from your recording. If needed, both apps can also load the
+provided examples/Audio_Correction_2.0.0-alpha.1/Pulse_Triangle.nes or Dense_128.nes.
+Keep audio output route, volume, orientation and route through the game alike.
+Turn Record history off and leave explicit RE tracing off for the first test.
+Try the comparison without screen recording first; record a clip afterward.
+
+M1 — Same-ROM mobile gameplay and sound
+Choose EMULATOR -> Play view -> Run.
+Run the same section for 30–60 seconds in old and new app. Note whether game
+speed, control response and sound continuity improve, remain alike or worsen.
+In the new Play view, record FPS, frame ms, audio gaps/resyncs and timing
+discards near the start and end. Queued ms is not speaker latency. A small
+fractional backlog is normal; steadily rising gaps/discards matter more.
+Expected: new scheduling can recover ordinary callback delays without lasting
+half-speed play. A device that remains genuinely overloaded may still be slow.
+Result: IMPROVED / SAME / WORSE / BLOCKED
+
+M2 — Portrait, landscape, pause and resume
+Check the performance text, canvas and touch controls in both orientations.
+Pause/resume several times, switch away/back and exit/reenter Play. Confirm
+no stuck direction/button, stale audio burst, hidden controls or persistent
+catch-up rush. Press Run explicitly if an interruption leaves playback paused.
+Result: PASS / FAIL / BLOCKED
+
+M3 — Desktop preservation
+Load the same ROM in the new app on the computer where it ran normally.
+Play the same section; check sound, keyboard controls and pause/resume.
+Expected: normal desktop behavior remains intact.
+Result: PASS / FAIL / BLOCKED
+
+M4 — Exact capture and recorded-frame review
+Pause on a useful frame, choose Exit play, then Capture Runtime Scene
+on the Emulator toolbar.
+Expected: it captures the displayed completed frame without advancing the game;
+the capture reports zero background/composite pixel differences for a supported
+frame. Unsupported capture content must still give an explicit reason.
+Optionally enable Record history, play briefly, go back a recorded frame, and
+capture there. Resume afterward; check normal sound and neutral released input.
+History can cost time/memory; assess that separately from M1.
+Result: PASS / FAIL / BLOCKED
+
+SEND BACK
+Phone model: Cricket Dream 5G
+Android version:
+Chrome version:
+Forge filename/header:
+ROM filename (and hash if available):
+Sound output: speaker / wired / Bluetooth
+M1 old experience:
+M1 new experience:
+New FPS/frame ms:
+New gaps start -> end:
+New timing discards start -> end:
+M2:
+M3:
+M4:
+Any error message / screenshot / clip:
+
+You do not need to repeat the original nine-step game-authoring tutorial.
+This checks host playback; the broader Audio author/import/edit/build/listen/
+save/reopen workshop and hardware-controller acceptance remain separate.

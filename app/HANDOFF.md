@@ -1,3 +1,17 @@
+# Compatibility stabilization handoff
+
+The owner authorized the bounded compatibility repairs and roadmap update on October 10, 2026 America/Denver. Continue under that authority; the immediate checkpoint is **alpha.11 / compatibility-stabilization-1**, schema 12. Preserve all prior roadmap requirements and source history.
+
+1. Read the current C1–C5 priorities in `ROADMAP.md` and the API/identity boundaries in `docs/COMPATIBILITY_STABILIZATION.md`.
+2. Validate current bytes against `build-inputs.json`, the candidate Summary and `checkpoints/compatibility-stabilization-1-clean-extraction/Reproduction.json`. Retain 1,504 predecessor cases across 68 suites and every new declared suite. Historical results and blocked browsers are not passes for this build.
+3. Keep raw recipe v1 reproduction exact. The versioned foundation adapter may migrate only verified alpha.10/alpha.11 source metadata. Preserve stale/tampered-source refusals, source and old recipe immutability, and deterministic current recipe replay.
+4. Settings mutation belongs to ProjectStore. Config limits/reference validation belong to configuration services. Generated preview builds use the shared detached compiler path, without temporary replacement of global state or publication to the emulator.
+5. Finish actual browser acceptance before treating stabilization as accepted. Record blocked or unavailable checks candidly. After this checkpoint, resume A1 native-background recovery/import, then A2 and the retained roadmap dependencies; no new friction/knockback/death/timer mechanisms belong here.
+
+## Preserved parent handoff
+
+---
+
 # Movement Rules implementation handoff
 
 Continue the authorized roadmap without repeated coding permission. After the exaggerated traditional-mechanics discussion, the owner said “continue”. This bounded movement extension is **alpha.11 / movement-rules-1**, schema 12, after the separate alpha.10 mashup checkpoint and before the next A1 native-recovery item. The full roadmap remains unfinished.

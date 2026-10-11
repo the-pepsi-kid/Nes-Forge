@@ -1,0 +1,96 @@
+{
+  "suite": "ui165",
+  "source": "NES_Forge_2.0.0-alpha.11.html",
+  "sha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
+  "environment": "Node.js full application VM with shared DOM stub",
+  "limitations": "Not browser visual-layout, native focus/input, emulator execution or native Save As QA.",
+  "total": 21,
+  "passed": 21,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Gameplay panel initializes in the Scene gameplay section with all saved fields",
+      "passed": true
+    },
+    {
+      "name": "Mode selection creates exactly one undo snapshot without replacing actor references",
+      "passed": true
+    },
+    {
+      "name": "A numeric change uses validated configuration and a single undo entry",
+      "passed": true
+    },
+    {
+      "name": "An invalid numeric edit cannot mutate the project or enter history",
+      "passed": true
+    },
+    {
+      "name": "An empty numeric input is rejected instead of becoming zero",
+      "passed": true
+    },
+    {
+      "name": "The panel never assigns a first player or room implicitly",
+      "passed": true
+    },
+    {
+      "name": "Changing rooms preserves actor IDs and shows the old references for repair",
+      "passed": true
+    },
+    {
+      "name": "Deleting a configured room leaves a visible repair option without reassigning it",
+      "passed": true
+    },
+    {
+      "name": "Entity selects filter roles and retain an optional no-target choice",
+      "passed": true
+    },
+    {
+      "name": "Switching editor rooms does not change the configured playable room",
+      "passed": true
+    },
+    {
+      "name": "Repeated refreshes retain the select element and do not duplicate missing options",
+      "passed": true
+    },
+    {
+      "name": "Refresh preserves text being entered into an active numeric field",
+      "passed": true
+    },
+    {
+      "name": "Viewer mode preserves custom assembly and scene packing settings",
+      "passed": true
+    },
+    {
+      "name": "Editing a room navigates by its saved identity without changing gameplay settings",
+      "passed": true
+    },
+    {
+      "name": "Binding shortcut opens the chosen player in Entity Studio",
+      "passed": true
+    },
+    {
+      "name": "Build and Play invokes the existing shared build command exactly once",
+      "passed": true
+    },
+    {
+      "name": "A failed build displays the required next action",
+      "passed": true
+    },
+    {
+      "name": "Invalid references stop the panel build action before the shared builder",
+      "passed": true
+    },
+    {
+      "name": "Undo restores both saved configuration and visible controls",
+      "passed": true
+    },
+    {
+      "name": "Gameplay entry restores current configuration after an external edit",
+      "passed": true
+    },
+    {
+      "name": "Gameplay panel handlers report no unexpected application errors",
+      "passed": true
+    }
+  ]
+}

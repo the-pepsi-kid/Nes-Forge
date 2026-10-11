@@ -1,3 +1,22 @@
+# Implementation status — compatibility-stabilization-1
+
+Current priority is the owner-authorized alpha.11 compatibility stabilization checkpoint, before new mechanics and A1. The earlier movement-rules-1 candidate is the preserved behavioral parent. Schema 12 and existing runtime/template scope remain unchanged.
+
+| Item | Implementation target | Acceptance |
+|---|---|---|
+| C1 Recipe compatibility | Shared versioned foundation-only migration, exact historical verification and current recipe reissue | Fresh recipe/UI suite plus browser walkthrough |
+| C2 Shared validation | Configuration-owned immutable limits and project-aware references | Fresh valid/invalid/live-versus-detached cases |
+| C3 Settings transaction | ProjectStore owns mutation/history and rollback; Movement Rules UI delegates | Fresh one-Undo/Redo, stale/failure/noninterference cases |
+| C4 Preview preflight | Full detached builds for World and single-room using existing shared pipeline | Fresh capacity failures and ordinary-build equivalence |
+| C5 Retained behavior | Original 1,504 cases/68 suites, exact source/test reconstruction and historical goldens | Fresh current Summary and clean-extraction proof; browser evidence separate |
+| Next feature dependency | A1 native-background recovery/import, then A2 and prior roadmap sequence | Not implemented by this stabilization checkpoint |
+
+Implementation and measured acceptance are separate. The current Summary/proof and browser reports provide outcomes for the exact current HTML; missing or blocked records remain open. Manual/listening/mobile/controller/hardware and complete roadmap acceptance remain pending.
+
+## Preserved prior capability ledger
+
+---
+
 # Implementation status — movement-rules-1
 
 This authoring checkpoint follows the owner's “continue” after the exaggerated traditional-mechanics discussion. The full roadmap remains in progress. Current candidate **alpha.11 / movement-rules-1**, schema 12, adds **SCENE → Movement rules** alongside the retained Seeded mashup panel.

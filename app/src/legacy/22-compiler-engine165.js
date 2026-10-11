@@ -6,7 +6,7 @@ const eventBits={attack_start:1,attack_end:2,footstep:4,sound:8,custom:16};
 const propertyNames=['Empty','Solid','Platform','Ladder','Hazard','Water','Slope Left','Slope Right'];
 const fail=message=>{throw Error('First Playable Room: '+message);};
 function integer(value,min,max,label){if(!Number.isInteger(value)||value<min||value>max)fail(label+' must be an integer from '+min+' through '+max);return value;}
-function selectedEntries(){return S.scenes.map((sc,index)=>({sc,index,order:clamp(sc.buildOrder??index,0,9999,index)})).filter(e=>e.sc.buildInclude!==false).sort((a,b)=>a.order-b.order||a.index-b.index);}
+function selectedEntries(scenes=S.scenes){return scenes.map((sc,index)=>({sc,index,order:clamp(sc.buildOrder??index,0,9999,index)})).filter(e=>e.sc.buildInclude!==false).sort((a,b)=>a.order-b.order||a.index-b.index);}
 function validateRoom(room){
   if(room.raster)fail('The selected room is a raster capture. Create a lossless static copy first.');
   if(room.sceneType!=='sideview')fail('The selected room must use the Sideview scene type.');
@@ -61,13 +61,13 @@ function validateSpawn(player,physics,collision){
   if(left<0||right>256||top<0||bottom>240)fail('The player body must start inside the 256×240 room. Its entity X/Y is the center of its feet.');
   for(let y=Math.floor(top/8);y<=Math.floor((bottom-1)/8);y++)for(let x=Math.floor(left/8);x<=Math.floor((right-1)/8);x++)if(collision[y*32+x])fail('The player body starts inside a solid tile at '+x+','+y+'. Move the feet origin above the floor.');
 }
-function compileGameplay(baseRom,config,audioSpec={enabled:false}){
+function compileGameplay(baseRom,config,audioSpec={enabled:false},project){
   if(!config||config.mode!=='single-room')fail('Select First Playable Room mode before compiling gameplay.');
-  F.config?.validate(config,{references:true});
-  if(document.getElementById('codeInput')?.value.trim())fail('Custom assembly is incompatible with First Playable Room mode. Keep it in Scene Viewer / Custom mode or save it separately before clearing it.');
+  F.config?.validate(config,{references:true,project});
+  if((project?project.asmSource:document.getElementById('codeInput')?.value)?.trim())fail('Custom assembly is incompatible with First Playable Room mode. Keep it in Scene Viewer / Custom mode or save it separately before clearing it.');
   const header=parseRomHeader(baseRom);
   if(header.mapper!==0||header.prgSize!==16384||header.chrSize!==8192||header.trainer)fail('Gameplay compilation requires the current packed 16 KB NROM build with 8 KB CHR.');
-  const entries=selectedEntries(),sceneIndex=entries.findIndex(e=>e.sc.id===config.sceneId);
+  const entries=selectedEntries(project?.scenes),sceneIndex=entries.findIndex(e=>e.sc.id===config.sceneId);
   if(sceneIndex<0)fail('Include the selected gameplay room in the Build Scene Set.');
   const room=entries[sceneIndex].sc;validateRoom(room);
   const prg=baseRom.subarray(header.headerSize,header.headerSize+header.prgSize),info=Forge161.build.inspectWorldRom(prg,header.prgSize);

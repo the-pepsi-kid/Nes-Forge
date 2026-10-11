@@ -1,7 +1,7 @@
 {
   "suite": "audio-runtime180",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
+  "htmlSha256": "b3d9b852782b1b7ebd56637bb94e4dbcb09379614b7c8577e007046db45c8e02",
   "scope": "Schema 12 retention of the established Audio Runtime and compatibility; detached tracker/SFX compilation; generated viewer, single-room and World 6502 execution through the bundled APU emulator; sound-event entry, preemption/restore, explicit unsupported-input rejection and Audio Studio handlers. Mock DOM/emulator evidence, not real-browser speaker output or hardware acceptance.",
   "passed": 17,
   "failed": 0,
@@ -32,12 +32,12 @@
     {
       "name": "Schema 12 preserves Audio Runtime and stable SFX references while schema 10 migrates disabled",
       "passed": true,
-      "milliseconds": 792
+      "milliseconds": 753
     },
     {
       "name": "Malformed Audio Runtime input rejects before project, history, identity, or emulator mutation",
       "passed": true,
-      "milliseconds": 472
+      "milliseconds": 487
     },
     {
       "name": "Actual frozen 1.7 rejects schema 11 before changing project or history",
@@ -47,72 +47,72 @@
     {
       "name": "Audio compiler derives deterministic channel records, envelopes, timers, and sound links without source mutation",
       "passed": true,
-      "milliseconds": 437
+      "milliseconds": 432
     },
     {
       "name": "Disabled Audio Runtime preserves unresolved audio sketches as authoring-only data",
       "passed": true,
-      "milliseconds": 443
+      "milliseconds": 452
     },
     {
       "name": "Audio compiler rejects missing/ambiguous SFX, unsupported effects and executable DPCM",
       "passed": true,
-      "milliseconds": 2265
+      "milliseconds": 2251
     },
     {
       "name": "Audio-enabled custom assembly fails explicitly instead of silently omitting playback",
       "passed": true,
-      "milliseconds": 443
+      "milliseconds": 457
     },
     {
       "name": "Generated viewer autoplays pulse, triangle, and noise through hardware APU registers",
       "passed": true,
-      "milliseconds": 764
+      "milliseconds": 775
     },
     {
       "name": "Generated viewer executes authored duty, volume, and arpeggio envelopes over time",
       "passed": true,
-      "milliseconds": 1092
+      "milliseconds": 1130
     },
     {
       "name": "Single-room sound event preempts its music channel once and restores the authored note",
       "passed": true,
-      "milliseconds": 1186
+      "milliseconds": 1164
     },
     {
       "name": "World sound event starts the same SFX representation and finishes within frame budget",
       "passed": true,
-      "milliseconds": 1261
+      "milliseconds": 1234
     },
     {
       "name": "World ROM round trip preserves schema 12 Audio authoring and older 1.7 rejects it atomically",
       "passed": true,
-      "milliseconds": 1225
+      "milliseconds": 1239
     },
     {
       "name": "Audio Studio controls make runtime and SFX edits undoable without inventing a second note model",
       "passed": true,
-      "milliseconds": 651
+      "milliseconds": 653
     },
     {
       "name": "Standard MIDI import maps timing, pitch, velocity, and program into ordinary tracker data",
       "passed": true,
-      "milliseconds": 438
+      "milliseconds": 433
     },
     {
       "name": "MusicXML import maps score timing into the same tracker representation and rejects excess polyphony",
       "passed": true,
-      "milliseconds": 449
+      "milliseconds": 468
     },
     {
       "name": "Audio import appends patterns, preserves SFX references, is undoable, and builds playable music",
       "passed": true,
-      "milliseconds": 951
+      "milliseconds": 924
     },
     {
       "name": "Supplied 1.8 Audio example retains its frozen provenance and reproduces its matching generated World ROM",
       "passed": true,
-      "milliseconds": 1155
+      "milliseconds": 1171
     }
   ]
 }

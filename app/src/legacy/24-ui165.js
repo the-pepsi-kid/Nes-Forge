@@ -24,11 +24,11 @@
   const panel=node('section','gpPanel165');panel.setAttribute('aria-label','Gameplay ROM configuration');
   node('h3',null,'FIRST PLAYABLE ROOM',panel);
   node('p',null,'Choose what the generated ROM runs. These settings travel with your project.',panel);
-  function field(key,title,type,parent=panel,range){
+  function field(key,title,type,parent=panel){
     const row=node('div',null,undefined,parent);row.className='gp-row165';
     const id='gp'+key[0].toUpperCase()+key.slice(1)+'165',label=node('label',null,title,row);label.setAttribute('for',id);
     const input=node(type==='select'?'select':'input',id,undefined,row);fields[key]=input;
-    if(type!=='select'){input.type='number';input.min=String(range[0]);input.max=String(range[1]);input.step=String(range[2]||1);input.inputMode='numeric';}
+    if(type!=='select'){const range=F.config.limits[key];input.type='number';input.min=String(range[0]);input.max=String(range[1]);input.step=key==='bodyWidth'?'2':'1';input.inputMode='numeric';}
     input.onchange=()=>commit(key,type==='select'?input.value:(String(input.value).trim()===''?NaN:Number(input.value)));
     return input;
   }
@@ -37,12 +37,12 @@
   field('playerId','Player','select');
   field('targetId','Training target','select');
   const physics=node('details','gpPhysics165',undefined,panel);node('summary',null,'Movement and collision body',physics);
-  field('moveSpeed','Move speed','number',physics,[1,4]);
-  field('jumpSpeed','Jump speed','number',physics,[1,12]);
-  field('gravity','Gravity','number',physics,[1,3]);
-  field('maxFallSpeed','Maximum fall','number',physics,[1,8]);
-  field('bodyWidth','Body width','number',physics,[2,32,2]);
-  field('bodyHeight','Body height','number',physics,[2,48]);
+  field('moveSpeed','Move speed','number',physics);
+  field('jumpSpeed','Jump speed','number',physics);
+  field('gravity','Gravity','number',physics);
+  field('maxFallSpeed','Maximum fall','number',physics);
+  field('bodyWidth','Body width','number',physics);
+  field('bodyHeight','Body height','number',physics);
   node('p',null,'Speeds are pixels per 60 Hz tick; gravity is pixels per tick². Body dimensions are pixels, with an even width.',physics);
   const explanation=node('p','gpHelp165',undefined,panel);
   explanation.textContent='Player and target X/Y mark the feet and center. Use a sideview room with no scrolling and a fixed 256 × 240 camera. Add the room and every sprite source to Build Scene Set.';

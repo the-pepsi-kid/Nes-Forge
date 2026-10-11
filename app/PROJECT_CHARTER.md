@@ -1,3 +1,9 @@
+# Current continuation — D063 Compatibility Stabilization
+
+The owner directed “update roadmap and continue” on October 10, 2026 America/Denver. Prioritize the bounded C1–C5 stabilization checkpoint in ROADMAP.md before further feature growth. Existing NES platform identity, schema 12, five-template scope, canonical ownership and evidence-based acceptance remain requirements. Continue within established authorization; implementation does not equal release promotion.
+
+## Preserved charter
+
 # NES Forge project charter
 
 **Current continuation, October 6 (D055):** the owner rejected alpha.3's separate Audio forms and requested the mobile keyboard with the same direct entry used on PC. Deliver 2.0.0-alpha.4 / mobile-keyboard-1 from alpha.2: native tracker keyboard focus and committed-text handling, with no separate note/envelope form. Preserve canonical Audio, desktop shortcuts, undo/persistence, original envelope painting and prior playback corrections. D054 remains historical and is superseded for the active interface. Physical phone acceptance and release promotion remain separate.

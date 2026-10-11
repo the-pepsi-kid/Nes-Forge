@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id),E=new TextEncoder(),D=new TextDecoder(),
 const priorBuild161=buildNesRom;
 function u16(a,v){a.push(v&255,(v>>8)&255)}
 function text(a,s){const b=E.encode(String(s||''));if(b.length>255)throw Error('World text exceeds 255 UTF-8 bytes');a.push(b.length,...b)}
-function planWorldPayload(plan){return WorldCodec1621.encode(S.worlds||[],plan)}
+function planWorldPayload(plan){return WorldCodec1621.encode((plan.source||S).worlds||[],plan)}
 function concat(a,b){const o=new Uint8Array(a.length+b.length);o.set(a);o.set(b,a.length);return o}
 function findAddr(length,used){if(!Number.isInteger(length)||length<0)throw Error('Runtime metadata size must be a nonnegative integer');for(let start=0xC200;start+length<=0xCFF0;start+=16){let ok=true;for(let a=start;a<start+length;a++)if(used.has(a)){ok=false;break}if(ok)return start}throw Error('Runtime metadata + metatiles + worlds need '+length+' bytes but no contiguous space remains before $CFF0. Reduce world metadata/strings/scenes or disable scene packing.')}
 function isUnpacked(){return !!$('codeInput')?.value.trim()&&S.packScenes===false}

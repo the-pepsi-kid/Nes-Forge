@@ -1,0 +1,26 @@
+{
+  "name": "nes-forge-release",
+  "version": "2.0.0-alpha.11",
+  "private": true,
+  "description": "NES Forge 2.0.0-alpha.11 \u2014 Movement Rules candidate",
+  "scripts": {
+    "test": "node tests/run_all.cjs",
+    "build": "python3 tools/bundle.py",
+    "check:bundle": "python3 tools/bundle.py --check",
+    "test:browser-mobile": "node tests/browser-mobile-play.cjs",
+    "test:browser-re": "node tests/browser-re-analysis.cjs",
+    "test:browser-runtime": "node tests/browser-re-runtime.cjs",
+    "test:browser-audio": "node tests/browser-audio-adaptive.cjs",
+    "test:browser-roadmap": "node tests/browser-roadmap.cjs",
+    "hosted": "node hosted/server.cjs",
+    "test:hosted": "node hosted/test.cjs",
+    "test:browser-native-audio": "node tests/browser-native-audio.cjs",
+    "test:browser-native-audio-import": "node tests/browser-native-audio-import.cjs",
+    "test:browser-recovery-methods": "node tests/browser-recovery-methods.cjs",
+    "test:browser-seeded-mashup": "node tests/browser-seeded-mashup.cjs",
+    "test:browser-movement-rules": "node tests/browser-movement-rules.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

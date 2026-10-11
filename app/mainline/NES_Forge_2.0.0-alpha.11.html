@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NES Forge 2.0.0-alpha.11 — Movement Rules</title>
+<title>NES Forge 2.0.0-alpha.11 — Compatibility Stabilization</title>
 <style>
 :root{--bg:#0c0c10;--bg2:#101018;--bg3:#16161e;--bdr:#252530;--bdr2:#3a3a4a;--txt:#b8b8c8;--dim:#667;--acc:#5ad4ff;--acc2:#3a9abf;--grn:#8df57a;--red:#f57a7a;--ylw:#f5d07a;--orn:#f5a07a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -6157,7 +6157,7 @@ const $=id=>document.getElementById(id),E=new TextEncoder(),D=new TextDecoder(),
 const priorBuild161=buildNesRom;
 function u16(a,v){a.push(v&255,(v>>8)&255)}
 function text(a,s){const b=E.encode(String(s||''));if(b.length>255)throw Error('World text exceeds 255 UTF-8 bytes');a.push(b.length,...b)}
-function planWorldPayload(plan){return WorldCodec1621.encode(S.worlds||[],plan)}
+function planWorldPayload(plan){return WorldCodec1621.encode((plan.source||S).worlds||[],plan)}
 function concat(a,b){const o=new Uint8Array(a.length+b.length);o.set(a);o.set(b,a.length);return o}
 function findAddr(length,used){if(!Number.isInteger(length)||length<0)throw Error('Runtime metadata size must be a nonnegative integer');for(let start=0xC200;start+length<=0xCFF0;start+=16){let ok=true;for(let a=start;a<start+length;a++)if(used.has(a)){ok=false;break}if(ok)return start}throw Error('Runtime metadata + metatiles + worlds need '+length+' bytes but no contiguous space remains before $CFF0. Reduce world metadata/strings/scenes or disable scene packing.')}
 function isUnpacked(){return !!$('codeInput')?.value.trim()&&S.packScenes===false}
@@ -6755,17 +6755,18 @@ F.exportMetasprites=()=>download(E.encode(JSON.stringify(exportPayload(),null,2)
 const oldZip=buildZip;
 buildZip=function(files){if(Array.isArray(files)&&files.some(f=>f.name==='project.json')&&!files.some(f=>f.name==='metasprites.json'))files=[...files,{name:'metasprites.json',data:E.encode(JSON.stringify(exportPayload()))}];return oldZip(files);};
 
-function tileSource(sceneId){const sc=S.scenes.find(s=>s.id===sceneId);if(!sc)throw Error('Missing metasprite or animation source scene');return sc===S.scenes[S.activeScene]?S.sprChr:sc.sprChr;}
+function tileSource(sceneId,source){const state=source||S,sc=state.scenes.find(s=>s.id===sceneId);if(!sc)throw Error('Missing metasprite or animation source scene');return !source&&sc===S.scenes[S.activeScene]?S.sprChr:sc.sprChr;}
 function linkAssets(plan){
-  validate(S.metasprites||[],S.animations||[],S.scenes,{rom:true});
-  const frames=cp(S.metasprites||[]),animations=cp(S.animations||[]),indices=new Map(plan.entries.map((e,i)=>[e.sc.id,i]));
+  const source=plan.source||S;
+  validate(source.metasprites||[],source.animations||[],source.scenes,{rom:true});
+  const frames=cp(source.metasprites||[]),animations=cp(source.animations||[]),indices=new Map(plan.entries.map((e,i)=>[e.sc.id,i]));
   const used=new Set();
   for(const sc of plan.atlas.scenes){for(const p of sc.oam||[])if(p.active){used.add(p.tile);if(p.height===16)used.add(p.tile2??((p.tile+1)&255));}for(const e of sc.entities||[])if(e.sprTile>=0)used.add(e.sprTile);}
   const cache=new Map();
   function link(sceneId,tile){
     if(!indices.has(sceneId))throw Error('A metasprite or animation uses an excluded source scene. Include it in the Build Scene Set.');
     const key=sceneId+':'+tile;if(cache.has(key))return cache.get(key);
-    const src=tileSource(sceneId)[tile];if(!src)throw Error('Metasprite source tile '+tile+' is unavailable');
+    const src=tileSource(sceneId,plan.source)[tile];if(!src)throw Error('Metasprite source tile '+tile+' is unavailable');
     const signature=tileKeyFromData(src),bank=plan.atlas.sprChr;
     let target;
     if(plan.custom){target=tile;if(tileKeyFromData(bank[tile])!==signature)throw Error('Custom ASM requires metasprite tiles to match its fixed sprite CHR IDs');}
@@ -6780,11 +6781,12 @@ function linkAssets(plan){
     f.buildSceneIndex=indices.get(sid);delete f.sceneId;
     for(const p of f.pieces){p.tile=link(sid,p.tile);p.tile2=f.spriteMode===16?link(sid,p.tile2):p.tile;}
   }
-  for(const a of animations)for(const f of a.frames)if(!f.metaspriteId){const sid=f.sceneId||S.scenes[S.activeScene].id;f.tileIdx=link(sid,f.tileIdx);f.buildSceneIndex=indices.get(sid);delete f.sceneId;}
+  for(const a of animations)for(const f of a.frames)if(!f.metaspriteId){const sid=f.sceneId||source.scenes[source.activeScene].id;f.tileIdx=link(sid,f.tileIdx);f.buildSceneIndex=indices.get(sid);delete f.sceneId;}
   return {frames,animations};
 }
 function encodeAssets(plan){
-  if(!(S.metasprites?.length||S.animations?.length))return new Uint8Array();
+  const source=plan.source||S;
+  if(!(source.metasprites?.length||source.animations?.length))return new Uint8Array();
   const {frames,animations}=linkAssets(plan),out=[];
   const u8=v=>out.push(v&255),u16=v=>out.push(v&255,(v>>8)&255),text=v=>{const b=E.encode(v||'');u16(b.length);out.push(...b);};
   u16(frames.length);
@@ -7738,11 +7740,12 @@ function reader(data){let pos=0;const take=n=>{if(!Number.isInteger(n)||n<0||pos
   return {take,u8,u16,u32,i16:()=>{const v=u16();return v>32767?v-65536:v;},text:()=>D.decode(take(u8())),done:()=>{if(pos!==data.length)fail('Unexpected trailing MS16 v2 bytes');}};
 }
 function encodeAssets(plan){
-  M.ensure();M.validateProject({version:7,scenes:S.scenes,animations:S.animations,metasprites:S.metasprites},{references:true,build:true});
-  if(!(S.metasprites?.length||S.animations?.length||plan.entries.some(e=>e.sc.entities?.length)))return new Uint8Array();
+  if(!plan.source)M.ensure();
+  const source=plan.source||S;M.validateProject({version:7,scenes:source.scenes,animations:source.animations,metasprites:source.metasprites},{references:true,build:true});
+  if(!(source.metasprites?.length||source.animations?.length||plan.entries.some(e=>e.sc.entities?.length)))return new Uint8Array();
   const base=oldEncode(plan),w=writer(),oldBytes=base.length?base:sign(Uint8Array.from([0,0,0,0]),1);
-  w.u32(oldBytes.length);w.bytes(oldBytes);w.u16(S.animations.length);
-  for(const animation of S.animations){
+  w.u32(oldBytes.length);w.bytes(oldBytes);w.u16(source.animations.length);
+  for(const animation of source.animations){
     w.u16(animation.frames.length);
     for(const frame of animation.frames){
       for(const kind of ['hitboxes','hurtboxes']){const boxes=frame[kind]||[];w.u8(boxes.length);for(const box of boxes){w.text(box.id);w.text(box.name);w.u16(box.x);w.u16(box.y);w.u16(box.w);w.u16(box.h);}}
@@ -7750,7 +7753,7 @@ function encodeAssets(plan){
     }
   }
   int(plan.entries.length,1,7,'MS16 build scene count');w.u8(plan.entries.length);
-  const animationIndices=new Map(S.animations.map((a,i)=>[a.id,i]));
+  const animationIndices=new Map(source.animations.map((a,i)=>[a.id,i]));
   plan.entries.forEach((entry,buildSceneIndex)=>{
     const entities=entry.sc.entities||[];int(entities.length,0,16,'MS16 entity count');
     if(entities.length!==(plan.atlas.scenes[buildSceneIndex]?.entities?.length||0))fail('Build entity order changed during metadata linking');
@@ -7885,16 +7888,18 @@ document.querySelector('h1').innerHTML='NES FORGE <small style="color:var(--grn)
 'use strict';
 const F=window.Forge165=window.Forge165||{},cp=v=>JSON.parse(JSON.stringify(v));
 const defaults=()=>({mode:'viewer',sceneId:'',playerId:'',targetId:'',moveSpeed:2,jumpSpeed:9,gravity:1,maxFallSpeed:6,bodyWidth:12,bodyHeight:22});
-const limits={moveSpeed:[1,4],jumpSpeed:[1,12],gravity:[1,3],maxFallSpeed:[1,8],bodyWidth:[2,32],bodyHeight:[2,48]};
-function validate(value,{references=false}={}){
+// Both generated runtimes use this one immutable physical-domain contract.
+const limits=Object.freeze(Object.fromEntries(Object.entries({moveSpeed:[1,4],jumpSpeed:[1,12],gravity:[1,3],maxFallSpeed:[1,8],bodyWidth:[2,32],bodyHeight:[2,48]}).map(([key,range])=>[key,Object.freeze(range)])));
+function validatePhysics(value,prefix=''){for(const [key,[min,max]]of Object.entries(limits))if(!Number.isInteger(value[key])||value[key]<min||value[key]>max)throw Error(prefix+key+' must be a whole number from '+min+' through '+max);}
+function validate(value,{references=false,project}={}){
   if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Gameplay settings must be an object');
   const allowed=Object.keys(defaults());for(const key of Object.keys(value))if(!allowed.includes(key))throw Error('Unknown gameplay setting: '+key);
   if(!['viewer','single-room'].includes(value.mode))throw Error('Select Scene viewer or Playable room build mode');
   for(const key of ['sceneId','playerId','targetId'])if(typeof value[key]!=='string'||new TextEncoder().encode(value[key]).length>255)throw Error('Gameplay '+key+' must be text of at most 255 UTF-8 bytes');
-  for(const [key,[min,max]]of Object.entries(limits))if(!Number.isInteger(value[key])||value[key]<min||value[key]>max)throw Error(key+' must be a whole number from '+min+' through '+max);
+  validatePhysics(value);
   if(value.bodyWidth%2)throw Error('Gameplay body width must be even so the feet origin stays centered');
   if(references&&value.mode==='single-room'){
-    const scene=S.scenes.find(sc=>sc.id===value.sceneId);if(!scene)throw Error('Select an existing room for gameplay');
+    const scene=((project===undefined?S:project)?.scenes||[]).find(sc=>sc.id===value.sceneId);if(!scene)throw Error('Select an existing room for gameplay');
     if(scene.buildInclude===false)throw Error('Include the playable room in the Build Scene Set');
     const player=(scene.entities||[]).find(e=>e.id===value.playerId);if(!player||player.type!=='player')throw Error('Choose a player entity in the playable room');
     if(value.targetId){const target=(scene.entities||[]).find(e=>e.id===value.targetId);if(!target||!['npc','enemy'].includes(target.type)||target===player)throw Error('Choose a distinct NPC or enemy as the training target');}
@@ -7904,7 +7909,7 @@ function validate(value,{references=false}={}){
 function get(){if(S.gameplay===undefined)S.gameplay=defaults();return S.gameplay;}
 function setAll(value){validate(value);if(JSON.stringify(get())===JSON.stringify(value))return false;snapshot();S.gameplay=cp(value);notify('gameplaySettings');F.ui?.refresh();return true;}
 function set(key,value){if(!Object.hasOwn(defaults(),key))throw Error('Unknown gameplay setting: '+key);return setAll({...get(),[key]:value});}
-F.config={schemaVersion:8,defaults,validate,get,set,setAll,limits};
+F.config={schemaVersion:8,defaults,validate,validatePhysics,get,set,setAll,limits};
 get();
 const previousProject=projectData;
 projectData=function(){const out=previousProject();out.version=8;out.foundation='1.6.5';out.gameplay=cp(get());return out;};
@@ -7929,7 +7934,7 @@ const eventBits={attack_start:1,attack_end:2,footstep:4,sound:8,custom:16};
 const propertyNames=['Empty','Solid','Platform','Ladder','Hazard','Water','Slope Left','Slope Right'];
 const fail=message=>{throw Error('First Playable Room: '+message);};
 function integer(value,min,max,label){if(!Number.isInteger(value)||value<min||value>max)fail(label+' must be an integer from '+min+' through '+max);return value;}
-function selectedEntries(){return S.scenes.map((sc,index)=>({sc,index,order:clamp(sc.buildOrder??index,0,9999,index)})).filter(e=>e.sc.buildInclude!==false).sort((a,b)=>a.order-b.order||a.index-b.index);}
+function selectedEntries(scenes=S.scenes){return scenes.map((sc,index)=>({sc,index,order:clamp(sc.buildOrder??index,0,9999,index)})).filter(e=>e.sc.buildInclude!==false).sort((a,b)=>a.order-b.order||a.index-b.index);}
 function validateRoom(room){
   if(room.raster)fail('The selected room is a raster capture. Create a lossless static copy first.');
   if(room.sceneType!=='sideview')fail('The selected room must use the Sideview scene type.');
@@ -7984,13 +7989,13 @@ function validateSpawn(player,physics,collision){
   if(left<0||right>256||top<0||bottom>240)fail('The player body must start inside the 256×240 room. Its entity X/Y is the center of its feet.');
   for(let y=Math.floor(top/8);y<=Math.floor((bottom-1)/8);y++)for(let x=Math.floor(left/8);x<=Math.floor((right-1)/8);x++)if(collision[y*32+x])fail('The player body starts inside a solid tile at '+x+','+y+'. Move the feet origin above the floor.');
 }
-function compileGameplay(baseRom,config,audioSpec={enabled:false}){
+function compileGameplay(baseRom,config,audioSpec={enabled:false},project){
   if(!config||config.mode!=='single-room')fail('Select First Playable Room mode before compiling gameplay.');
-  F.config?.validate(config,{references:true});
-  if(document.getElementById('codeInput')?.value.trim())fail('Custom assembly is incompatible with First Playable Room mode. Keep it in Scene Viewer / Custom mode or save it separately before clearing it.');
+  F.config?.validate(config,{references:true,project});
+  if((project?project.asmSource:document.getElementById('codeInput')?.value)?.trim())fail('Custom assembly is incompatible with First Playable Room mode. Keep it in Scene Viewer / Custom mode or save it separately before clearing it.');
   const header=parseRomHeader(baseRom);
   if(header.mapper!==0||header.prgSize!==16384||header.chrSize!==8192||header.trainer)fail('Gameplay compilation requires the current packed 16 KB NROM build with 8 KB CHR.');
-  const entries=selectedEntries(),sceneIndex=entries.findIndex(e=>e.sc.id===config.sceneId);
+  const entries=selectedEntries(project?.scenes),sceneIndex=entries.findIndex(e=>e.sc.id===config.sceneId);
   if(sceneIndex<0)fail('Include the selected gameplay room in the Build Scene Set.');
   const room=entries[sceneIndex].sc;validateRoom(room);
   const prg=baseRom.subarray(header.headerSize,header.headerSize+header.prgSize),info=Forge161.build.inspectWorldRom(prg,header.prgSize);
@@ -8295,11 +8300,11 @@ F.readGameplayRom=readGameplayRom;F.encodeGameplayRecord=encodeRecord;F.buildGam
   const panel=node('section','gpPanel165');panel.setAttribute('aria-label','Gameplay ROM configuration');
   node('h3',null,'FIRST PLAYABLE ROOM',panel);
   node('p',null,'Choose what the generated ROM runs. These settings travel with your project.',panel);
-  function field(key,title,type,parent=panel,range){
+  function field(key,title,type,parent=panel){
     const row=node('div',null,undefined,parent);row.className='gp-row165';
     const id='gp'+key[0].toUpperCase()+key.slice(1)+'165',label=node('label',null,title,row);label.setAttribute('for',id);
     const input=node(type==='select'?'select':'input',id,undefined,row);fields[key]=input;
-    if(type!=='select'){input.type='number';input.min=String(range[0]);input.max=String(range[1]);input.step=String(range[2]||1);input.inputMode='numeric';}
+    if(type!=='select'){const range=F.config.limits[key];input.type='number';input.min=String(range[0]);input.max=String(range[1]);input.step=key==='bodyWidth'?'2':'1';input.inputMode='numeric';}
     input.onchange=()=>commit(key,type==='select'?input.value:(String(input.value).trim()===''?NaN:Number(input.value)));
     return input;
   }
@@ -8308,12 +8313,12 @@ F.readGameplayRom=readGameplayRom;F.encodeGameplayRecord=encodeRecord;F.buildGam
   field('playerId','Player','select');
   field('targetId','Training target','select');
   const physics=node('details','gpPhysics165',undefined,panel);node('summary',null,'Movement and collision body',physics);
-  field('moveSpeed','Move speed','number',physics,[1,4]);
-  field('jumpSpeed','Jump speed','number',physics,[1,12]);
-  field('gravity','Gravity','number',physics,[1,3]);
-  field('maxFallSpeed','Maximum fall','number',physics,[1,8]);
-  field('bodyWidth','Body width','number',physics,[2,32,2]);
-  field('bodyHeight','Body height','number',physics,[2,48]);
+  field('moveSpeed','Move speed','number',physics);
+  field('jumpSpeed','Jump speed','number',physics);
+  field('gravity','Gravity','number',physics);
+  field('maxFallSpeed','Maximum fall','number',physics);
+  field('bodyWidth','Body width','number',physics);
+  field('bodyHeight','Body height','number',physics);
   node('p',null,'Speeds are pixels per 60 Hz tick; gravity is pixels per tick². Body dimensions are pixels, with an even width.',physics);
   const explanation=node('p','gpHelp165',undefined,panel);
   explanation.textContent='Player and target X/Y mark the feet and center. Use a sideview room with no scrolling and a fixed 256 × 240 camera. Add the room and every sprite source to Build Scene Set.';
@@ -8700,7 +8705,7 @@ F.project={create,openRom,classifyRom,replaceProject};
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Movement Rules',maturity:'alpha',candidate:'movement-rules-1',schema:12,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Compatibility Stabilization',maturity:'alpha',candidate:'compatibility-stabilization-1',schema:12,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;
@@ -8710,7 +8715,7 @@ F.project={create,openRom,classifyRom,replaceProject};
   'use strict';
   const services=window.Forge.services,cp=value=>JSON.parse(JSON.stringify(value));
   const defaults=()=>({enabled:false,worldId:'',spawnId:'',playerSceneId:'',playerId:'',moveSpeed:2,jumpSpeed:9,gravity:1,maxFallSpeed:6,bodyWidth:12,bodyHeight:22});
-  const limits=Object.freeze({moveSpeed:[1,4],jumpSpeed:[1,12],gravity:[1,3],maxFallSpeed:[1,8],bodyWidth:[2,32],bodyHeight:[2,48]});
+  const limits=window.Forge165.config.limits;
   function validate(value,{references=false,project}={}){
     if(!value||typeof value!=='object'||Array.isArray(value))throw Error('World Runtime settings must be an object');
     const allowed=Object.keys(defaults());
@@ -8719,10 +8724,10 @@ F.project={create,openRom,classifyRom,replaceProject};
     for(const key of ['worldId','spawnId','playerSceneId','playerId']){
       if(typeof value[key]!=='string'||new TextEncoder().encode(value[key]).length>255)throw Error('World Runtime '+key+' must be text of at most 255 UTF-8 bytes');
     }
-    for(const [key,[min,max]]of Object.entries(limits))if(!Number.isInteger(value[key])||value[key]<min||value[key]>max)throw Error('World Runtime '+key+' must be a whole number from '+min+' through '+max);
+    window.Forge165.config.validatePhysics(value,'World Runtime ');
     if(value.bodyWidth%2)throw Error('World Runtime body width must be even so the feet origin stays centered');
     if(references&&value.enabled){
-      const source=project||{worlds:S.worlds,scenes:S.scenes},world=(source.worlds||[]).find(w=>w.id===value.worldId);
+      const source=project===undefined?{worlds:S.worlds,scenes:S.scenes}:project,world=(source?.worlds||[]).find(w=>w.id===value.worldId);
       if(!world)throw Error('Choose an existing start world in WORLD');
       const marker=(world.markers||[]).find(m=>m.id===value.spawnId);
       if(!marker||!['spawn','entrance'].includes(marker.kind))throw Error('Choose a Spawn or Entrance marker in the start world');
@@ -8904,6 +8909,7 @@ const state={epoch:0,recoveryPhase:'checking',recoveryToken:0,lastIntent:'startu
 const preparedLoads=new WeakSet();
 const portableCompletions=new WeakSet();
 let recoveryWrite=Promise.resolve(),checkPromise=null;
+let settingsEditActive=false;
 const fail=message=>{throw Error(message);};
 function status(message){
   if(Forge.release?.updateStatus)return Forge.release.updateStatus(message);
@@ -9053,6 +9059,63 @@ function commit(prepared,options={}){
   refresh();return true;
 }
 function load(input,options={}){return Store.commit(Store.prepareLoad(input),options);}
+// Small canonical configuration edits are not project replacement. Loading a
+// whole prepared project would normalize unrelated authored records and reset
+// tracker/scene caches. Keep that lifecycle in commit; own edit/history here.
+function applySettingsEdit(changes,options={}){
+  if(settingsEditActive)fail('A project settings transaction is already in progress.');
+  settingsEditActive=true;
+  try{
+    const expected=options.expected;
+    if(!expected||!Number.isInteger(expected.epoch)||typeof expected.snapshot!=='string')fail('A project settings edit requires its captured project guard.');
+    const check=()=>{if(undoPaused)fail('Wait for the current history operation to finish before editing project settings.');if(!currentRead(expected))fail('The current project changed. Capture it and preview again.');};
+    check();
+    if(!changes||typeof changes!=='object'||Array.isArray(changes))fail('Project settings changes must be an object.');
+    const keys=Object.keys(changes),candidate=JSON.parse(expected.snapshot),replacements={},originals={};
+    let effective=false;
+    for(const key of keys){
+      if(!['gameplay','worldRuntime'].includes(key))fail('Unsupported project settings owner: '+key);
+      const patch=changes[key],base=candidate[key],descriptor=Object.getOwnPropertyDescriptor(S,key);
+      if(!patch||typeof patch!=='object'||Array.isArray(patch))fail('Project settings changes for '+key+' must be an object.');
+      if(!descriptor||!Object.hasOwn(descriptor,'value')||!descriptor.writable)fail('Project settings '+key+' cannot be edited in the current state.');
+      originals[key]=descriptor;
+      for(const field of Object.keys(patch)){
+        const value=patch[field];
+        if(!Object.hasOwn(base,field)||!['number','string','boolean'].includes(typeof value)||typeof value!==typeof base[field]||(typeof value==='number'&&!Number.isFinite(value)))fail('Unsupported project setting: '+key+'.'+field);
+        if(base[field]!==value)effective=true;
+        base[field]=value;
+      }
+      replacements[key]=cp(base);
+    }
+    // The canonical owners validate the detached candidate. Only their exact
+    // configuration values can be installed; prepared unrelated data is unused.
+    const prepared=Store.prepareLoad(candidate);
+    for(const key of keys)if(JSON.stringify(prepared[key])!==JSON.stringify(candidate[key]))fail('Project settings changed during normalization: '+key);
+    check();
+    if(!effective)return {applied:false,warnings:[]};
+    const history={undo:undoStack.slice(),redo:redoStack.slice(),bytes:undoBytes,disabled:$('undoBtn').disabled,dirty:Forge15.dirty};
+    const expectedUndo=history.undo.concat(expected.snapshot);let expectedBytes=history.bytes+expected.snapshot.length;
+    while(expectedUndo.length>MAX_UNDO||(expectedBytes>24*1024*1024&&expectedUndo.length>1))expectedBytes-=expectedUndo.shift().length;
+    const installed=[];
+    try{
+      const accepted=snapshot();
+      if(accepted===false||undoPaused||undoBytes!==expectedBytes||redoStack.length||undoStack.length!==expectedUndo.length||undoStack.some((entry,i)=>entry!==expectedUndo[i]))fail('The history snapshot did not accept exactly one project settings edit.');
+      check();
+      for(const key of keys){S[key]=replacements[key];installed.push(key);}
+      Forge15.dirty=true;
+    }catch(error){
+      for(const key of installed)Object.defineProperty(S,key,originals[key]);
+      undoStack.splice(0,undoStack.length,...history.undo);redoStack.splice(0,redoStack.length,...history.redo);undoBytes=history.bytes;$('undoBtn').disabled=history.disabled;Forge15.dirty=history.dirty;
+      throw error;
+    }
+    // Presentation/notification faults cannot turn a committed, Undoable edit
+    // into an apparent rollback. The caller reports these explicit warnings.
+    const warnings=[];
+    try{notify(options.intent||'projectSettings');}catch(error){warnings.push('change notification: '+(error.message||String(error)));}
+    for(const refreshUI of [()=>Forge.services.WorldUI?.refresh(true),()=>Forge165.ui?.refresh(true),()=>Forge.services.GameplayUI?.refresh(true)])try{refreshUI();}catch(error){warnings.push('display refresh: '+(error.message||String(error)));}
+    return {applied:true,warnings};
+  }finally{settingsEditActive=false;}
+}
 function initializeBlank(){
   const sc=makeScene({name:'Untitled Scene',chr:normalizeTiles(),sprChr:normalizeTiles(),tileProps:Array(256).fill(0),entities:[],oam:[],buildInclude:true,buildOrder:0,scrollDir:'none'});
   Store.load({format:'NESForge',version:Forge.release.schema,foundation:Forge.release.version,projectName:'Untitled',scenes:[sc],activeScene:0,worlds:[],animations:[],metasprites:[],gameplay:Forge165.config.defaults(),worldRuntime:Forge.services.WorldConfig.defaults(),audioRuntime:Forge.services.AudioConfig.defaults(),gameplayCore:Forge.services.GameplayModel.defaults(),asmSource:'',instruments:[],patterns:[],orderList:[],sfx:[],tempo:150,speed:6,audRows:64,mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,selTile:0,editTile:0,selSprite:-1,selEntity:-1,chrBank:'bg',_selAnim:0,_animFrame:0},{intent:'startup'});
@@ -9173,7 +9236,7 @@ async function dismissRecovery(){
     recoveryPhase('ready');status();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};
@@ -10268,12 +10331,10 @@ function compile(p){
 services.WorldCompiler={profile,phaseOrder,plan,compile,lastBuild:null};
 })();
 /* NES Forge 1.6.7 — authoritative build graph and existing-backend dispatch.
- * The codecs, assembler, viewer, gameplay compiler and emulator are unchanged.
- * Preparation commits active editor buffers and normalizes IDs explicitly once.
- * Following preparation, scene/atlas data is detached. Legacy codecs still read
- * S synchronously; MS16's retained ensure() is a no-op after preparation. The
- * assembler intentionally publishes its existing derived diagnostics to S/UI.
- * This is synchronous convergence, not a pure/incremental/offline compiler.
+ * Live preparation commits active editor buffers and normalizes IDs once.
+ * Generated builds pass their copied source explicitly to retained codecs.
+ * Detached preflight uses the same pipeline without capture, commit or UI.
+ * Custom assembly remains live-only and publishes diagnostics to S/UI.
  */
 (()=>{
 'use strict';
@@ -10306,7 +10367,18 @@ function remapBuildScenes(entries,scenes){
 function backendFor(snapshot){return snapshot.worldRuntime?.enabled?'world':snapshot.gameplay?.mode==='single-room'?'single-room':snapshot.asmSource.trim()&&snapshot.packScenes===false?'unpacked-custom':'packed';}
 function plan(options={}){
   if(!services.ProjectStore?.prepareSnapshot)throw Error('ProjectStore preparation is required before building.');
-  const source=services.ProjectStore.prepareSnapshot({intent:'build'}),backend=options.backend||backendFor(source);
+  return planSource(services.ProjectStore.prepareSnapshot({intent:'build'}),options);
+}
+function planDetached(project){
+  if(!services.ProjectStore?.prepareLoad)throw Error('ProjectStore validation is required before detached building.');
+  const source=services.ProjectStore.prepareLoad(project).data;
+  if(source.version!==services.ProjectStore.schema)throw Error('Detached builds require the current project schema.');
+  if(typeof source.asmSource!=='string'||source.asmSource.trim())throw Error('Detached builds require generated Forge code; custom assembly remains live-only.');
+  if(!['world','single-room'].includes(backendFor(source)))throw Error('Detached builds require a generated World or single-room runtime.');
+  const result=planSource(source,{});result.detached=true;return result;
+}
+function planSource(source,options){
+  const backend=options.backend||backendFor(source);
   if(!['packed','unpacked-custom','single-room','world'].includes(backend))throw Error('Unsupported build backend: '+backend);
   const gameplayCore=backend==='world'?null:services.GameplayCompiler.plan(source,{backend});
   if(backend==='world'){const p=services.WorldCompiler.plan(source,gameplayCore);completedPlans.add(p);return p;}
@@ -10314,7 +10386,7 @@ function plan(options={}){
   const audio=services.AudioCompiler.plan(source);if(audio.enabled&&custom)throw Error('Audio Runtime cannot be inserted into custom assembly. Disable Audio Runtime or use a generated viewer, single-room, or World runtime.');
   if(backend==='unpacked-custom'&&!custom)throw Error('Unpacked custom builds require assembly source.');
   if(backend==='single-room'){
-    Forge165.config.validate(source.gameplay,{references:true});
+    Forge165.config.validate(source.gameplay,{references:true,project:source});
     if(custom)throw Error('Playable room uses generated code. Save and clear custom ASM, or select Scene viewer/custom build mode.');
     if(source.mapper!==0)throw Error('First Playable Room currently builds mapper 0 (NROM)');
   }
@@ -10372,6 +10444,7 @@ function preflight(){
   }
 }
 function codeOccupancy(p){
+  if(p.detached&&p.custom)throw Error('Detached builds cannot invoke the live assembler.');
   if(p.custom&&!asm_assemble())throw Error(S.asmErrors.length?'Assembly failed — '+S.asmErrors[0].msg:'No executable code was emitted');
   const min=p.custom?Math.min(...S._asmWrites.map(x=>x[0])):0xC000;
   if(min<0x8000)throw Error('ROM code must live at $8000–$FFFF. Use .rs for RAM variables.');
@@ -10426,7 +10499,7 @@ function emitNrom(p){
 function emitGameplay(p,baseArtifact){
   const baseRom=baseArtifact.rom,config=p.source.gameplay,header=parseRomHeader(baseRom);
   if(header.prgSize!==16384||header.chrSize!==8192)throw Error('Gameplay compiler requires the generated 16 KB scene layout and 8 KB CHR');
-  const spec=Forge165.compileGameplay(baseRom,config,p.audio);spec.gameplayCore=services.GameplayCompiler.locateSingleRoom(p.gameplayCore);services.GameplayCompiler.compileSemantics(spec.gameplayCore);const engine=Forge165.makeGameplayEngine(spec);
+  const spec=Forge165.compileGameplay(baseRom,config,p.audio,p.source);spec.gameplayCore=services.GameplayCompiler.locateSingleRoom(p.gameplayCore);services.GameplayCompiler.compileSemantics(spec.gameplayCore);const engine=Forge165.makeGameplayEngine(spec);
   if(!(engine.bytes instanceof Uint8Array)||engine.bytes.length>profile.gameplayConfig-profile.gameplayBase)throw Error('Gameplay engine overlaps reserved configuration metadata');
   for(const key of ['reset','nmi','irq'])if(!Number.isInteger(engine[key])||engine[key]<profile.gameplayBase||engine[key]>=profile.gameplayConfig)throw Error('Invalid gameplay '+key+' vector');
   const record={format:'NESForgeGameplay',version:1,sceneIndex:spec.sceneIndex,playerIndex:spec.playerIndex,targetIndex:spec.targetIndex};
@@ -10470,9 +10543,9 @@ function build(options){
     BuildGraph.lastDiagnostics=[diagnostic('error','build-failed',error.message,'compile')];log(error.message,'bl-err');reportError(error);return null;
   }
 }
-const BuildGraph=services.BuildGraph={profile,phaseOrder,selectedSceneEntries,plan,preflight,lastDiagnostics:[],
-  ownership:'Snapshot preparation is explicit. Plans own copied scenes/atlases and call existing codecs once; existing codec global reads are synchronous.'};
-const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world']),compile,commit,build,lastArtifact:null};
+const BuildGraph=services.BuildGraph={profile,phaseOrder,selectedSceneEntries,plan,planDetached,preflight,lastDiagnostics:[],
+  ownership:'Live capture or detached validation prepares the source. Generated plans pass copied sources to existing codecs once; custom assembly is live-only.'};
+const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world']),compile,compileDetached:project=>compile(planDetached(project)),commit,build,lastArtifact:null};
 // These assignments replace active routes; no previous planner/builder is called.
 buildNesRom=build;
 window.forge15_preflight=preflight;
@@ -13617,6 +13690,93 @@ function replay(input,recipe){
 }
 services.MashupModel=Object.freeze({version:VERSION,limits:LIMITS,domains:DOMAINS,createSource,createPool,validate,preview,replay,stable,hash});
 })();
+/* Versioned recipe identity migration. Raw v1 algorithms keep their exact
+ * source/result hashes. Only this adapter may bridge reviewed release metadata. */
+(()=>{
+'use strict';
+const services=window.Forge.services,VERSION=1,METHOD='exact-v1-foundation-reissue-1';
+// A schema or behavioral migration is not implied by a new release number.
+// Extend this reviewed list only with canonical source/result equivalence tests.
+const RELEASES=Object.freeze(['2.0.0-alpha.10','2.0.0-alpha.11']);
+const cp=value=>JSON.parse(JSON.stringify(value)),fail=message=>{throw Error('Recipe identity: '+message);};
+const model=()=>services.MashupModel,stable=value=>model().stable(value),hash=value=>model().hash(value);
+function freeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.freeze(value);Object.values(value).forEach(freeze);}return value;}
+function binding(value,bytes=true){
+ const keys=bytes?['sha256','byteLength']:['sha256'];
+ if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length!==keys.length||Object.keys(value).some(key=>!keys.includes(key))||!/^[a-f0-9]{64}$/.test(value.sha256||'')||(bytes&&(!Number.isSafeInteger(value.byteLength)||value.byteLength<1||value.byteLength>model().limits.sourceBytes)))fail('Malformed exact source identity.');
+ return value;
+}
+function sourceBindings(sources){return sources.map(source=>({sha256:source.sha256,byteLength:source.byteLength})).sort((a,b)=>a.sha256<b.sha256?-1:a.sha256>b.sha256?1:0);}
+function sameBinding(source,expected){return source.sha256===expected.sha256&&(expected.byteLength===undefined||source.byteLength===expected.byteLength);}
+function historicalSource(source,expected,createSource){
+ if(sameBinding(source,expected))return source;
+ if(!RELEASES.includes(source.project.foundation))return null;
+ for(const foundation of RELEASES){
+  if(foundation===source.project.foundation)continue;
+  const project=cp(source.project);project.foundation=foundation;
+  // Hash the complete original serialization, not a metadata-stripped digest.
+  const canonical=stable(project),byteLength=new TextEncoder().encode(canonical).length;
+  if(hash(canonical)!==expected.sha256||(expected.byteLength!==undefined&&byteLength!==expected.byteLength))continue;
+  const original=createSource(project,{name:source.name});
+  if(sameBinding(original,expected))return original;
+ }
+ return null;
+}
+function matchSources(sources,expected,createSource){
+ if(!Array.isArray(expected)||expected.length!==sources.length||new Set(expected.map(item=>item.sha256)).size!==expected.length)fail('Recipe source identities differ; provide every exact original editable source project.');
+ const remaining=new Set(sources),pairs=[];
+ // Reserve exact matches before metadata aliases; never let an alias consume
+ // another exact source, or guess between ambiguous source wrappers.
+ for(const wanted of expected){const source=sources.find(item=>sameBinding(item,wanted));if(source){pairs.push({current:source,original:source});remaining.delete(source);}}
+ for(const wanted of expected){
+  if(pairs.some(pair=>pair.original.sha256===wanted.sha256))continue;
+  const matches=[];for(const source of remaining){const original=historicalSource(source,wanted,createSource);if(original)matches.push({current:source,original});}
+  if(matches.length!==1)fail('Recipe source identities differ; provide the exact original project and donors under the reviewed foundation-only migration.');
+  pairs.push(matches[0]);remaining.delete(matches[0].current);
+ }
+ return pairs;
+}
+function migrated(result,originalRecipe,pairs){
+ const migration={format:'NESForgeRecipeIdentityMigration',version:VERSION,method:METHOD,field:'foundation',originalRecipeSha256:hash(originalRecipe),currentRecipeSha256:hash(result.recipe),originalResultSha256:originalRecipe.resultSha256,currentResultSha256:result.recipe.resultSha256,sources:pairs.filter(pair=>pair.current.sha256!==pair.original.sha256).map(pair=>({originalSha256:pair.original.sha256,currentSha256:pair.current.sha256,originalByteLength:pair.original.byteLength,currentByteLength:pair.current.byteLength,fromFoundation:pair.original.project.foundation,toFoundation:pair.current.project.foundation}))};
+ return freeze({...result,migration,warnings:[...result.warnings,'Recipe migrated with '+METHOD+': every original source and the original result passed exact SHA-256 verification. Only the foundation release metadata changed; the current-source v1 recipe was reissued and replayed. Download the recipe to keep that current identity.']});
+}
+function expectedCurrent(verified,pairs,baseSha256){
+ const base=pairs.find(pair=>pair.original.sha256===baseSha256);if(!base)fail('The original base source is unavailable.');
+ const expected=cp(verified.project);expected.foundation=base.current.project.foundation;return expected;
+}
+async function replayMashup(sources,recipe){
+ let mismatch;
+ try{
+  const result=await model().replay(sources,recipe);
+  if(recipe.baseSourceId!==sources[0].id)fail('This recipe requires its exact original base project. Open that project and choose Use current project first.');
+  return result;
+ }catch(error){if(!/^Mashup: Recipe source identities differ;/.test(error.message||''))throw error;mismatch=error;}
+ // Raw replay has already checked source ownership, pool budgets and recipe
+ // schema. Migration validates bindings before considering known releases.
+ if(!Array.isArray(recipe.sources))throw mismatch;
+ recipe.sources.forEach(item=>binding(item));
+ const pairs=matchSources(sources,recipe.sources,(project,options)=>model().createSource(project,options));
+ const base=pairs.find(pair=>pair.original.sha256===recipe.baseSourceId);
+ if(!base||base.current.id!==sources[0].id)fail('This recipe requires its exact original base project. Open that project and choose Use current project first.');
+ const originalSources=sources.map(source=>pairs.find(pair=>pair.current===source).original),verified=await model().replay(originalSources,recipe),expected=expectedCurrent(verified,pairs,recipe.baseSourceId),next=cp(recipe);
+ const remap=id=>{if(id==='keep')return id;for(const pair of pairs){if(id===pair.original.id)return pair.current.id;if(id.startsWith(pair.original.id+':'))return pair.current.id+id.slice(pair.original.id.length);}fail('A recipe asset is not bound to a verified source.');};
+ next.sources=sourceBindings(sources);next.baseSourceId=base.current.id;next.choices=Object.fromEntries(Object.entries(next.choices).map(([domain,id])=>[domain,remap(id)]));next.resultSha256=hash(expected);
+ const result=await model().replay(sources,next);
+ if(stable(result.project)!==stable(expected))fail('Reissued mashup changes more than foundation metadata; migration refused.');
+ return migrated(result,recipe,pairs);
+}
+async function replayMovement(source,recipe){
+ const movement=services.MovementRules;
+ try{return await movement.replay(source,recipe);}catch(error){if(!/^Movement rules: Recipe is stale or belongs to a different original project\/runtime\./.test(error.message||''))throw error;}
+ binding({sha256:recipe.sourceSha256},false);
+ const pairs=matchSources([source],[{sha256:recipe.sourceSha256}],(project,options)=>movement.createSource(project,options)),verified=await movement.replay(pairs[0].original,recipe),expected=expectedCurrent(verified,pairs,recipe.sourceSha256),next=cp(recipe);
+ next.sourceSha256=source.sha256;next.resultSha256=hash(expected);
+ const result=await movement.replay(source,next);
+ if(stable(result.project)!==stable(expected))fail('Reissued movement rules change more than foundation metadata; migration refused.');
+ return migrated(result,recipe,pairs);
+}
+services.RecipeIdentity=Object.freeze({version:VERSION,method:METHOD,supportedFoundations:RELEASES,replayMashup,replayMovement});
+})();
 /* Seeded authoring mashups: isolated sources/preview, explicit one-Undo commit. */
 (()=>{
 'use strict';
@@ -13673,8 +13833,8 @@ async function preview(){
 async function shuffle(){if(busy)return false;if(!shuffleBase)shuffleBase=String(c.seed.value).slice(0,100)||'forge';c.seed.value=shuffleBase+' #'+(++shuffleNumber);for(const domain of domains)if(!c.locks[domain].checked)c.choices[domain].value='random';invalidate();return preview();}
 async function loadRecipe(file){
  if(busy)return false;if(!file){message('No recipe selected. The preview and project are unchanged.');return false;}const id=++operation;busy=true;enable();
- try{const pool=sources();checkProject(captured);const item={project:guard(),revision,sources:pool};if(!Number.isSafeInteger(file.size)||file.size<1||file.size>65536||!/\.json$/i.test(String(file.name||'')))throw Error('Choose a mashup recipe JSON file no larger than 64 KiB.');const text=typeof file.text==='function'?await file.text():new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer());if(new TextEncoder().encode(text).length>65536)throw Error('The recipe read exceeded 64 KiB.');const recipe=JSON.parse(text);if(recipe.baseSourceId!==current.id)throw Error('This recipe requires its exact original base project. Open that project and choose Use current project first.');const result=await model().replay(pool,recipe);if(id!==operation)throw Error('Recipe loading was superseded.');check(item);candidateData(item,result);
- c.seed.value=recipe.seed;c.target.value=recipe.targetSceneId;for(const domain of domains){c.choices[domain].value=recipe.choices[domain];c.locks[domain].checked=!!recipe.locks[domain];}c.enemy.checked=!!recipe.gameplay?.options?.enemyParameters;c.placement.checked=!!recipe.gameplay?.options?.placement;c.lockGameplay.checked=!!recipe.locks.gameplay;shuffleBase='';shuffleNumber=0;describe(result);staged=result.effective===false?null:{...item,result:copy(result)};output=copy(result);previousRecipe=copy(recipe);message(result.effective===false?'Recipe replay verified, with no effective changes to its original base.':'Recipe replay verified against every exact source identity. Review the preview, then apply or download.');return true;
+ try{const pool=sources();checkProject(captured);const item={project:guard(),revision,sources:pool};if(!Number.isSafeInteger(file.size)||file.size<1||file.size>65536||!/\.json$/i.test(String(file.name||'')))throw Error('Choose a mashup recipe JSON file no larger than 64 KiB.');const text=typeof file.text==='function'?await file.text():new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer());if(new TextEncoder().encode(text).length>65536)throw Error('The recipe read exceeded 64 KiB.');const document=JSON.parse(text);const result=await services.RecipeIdentity.replayMashup(pool,document),recipe=result.recipe;if(id!==operation)throw Error('Recipe loading was superseded.');check(item);candidateData(item,result);
+ c.seed.value=recipe.seed;c.target.value=recipe.targetSceneId;for(const domain of domains){c.choices[domain].value=recipe.choices[domain];c.locks[domain].checked=!!recipe.locks[domain];}c.enemy.checked=!!recipe.gameplay?.options?.enemyParameters;c.placement.checked=!!recipe.gameplay?.options?.placement;c.lockGameplay.checked=!!recipe.locks.gameplay;shuffleBase='';shuffleNumber=0;describe(result);staged=result.effective===false?null:{...item,result:copy(result)};output=copy(result);previousRecipe=copy(recipe);message(result.migration?(result.effective===false?'Original recipe verified and migrated, with no effective changes. Download the reissued recipe to retain the current identity.':'Original recipe verified and migrated to the current project identity. Review the preview, then apply or download the reissued recipe.'):result.effective===false?'Recipe replay verified, with no effective changes to its original base.':'Recipe replay verified against every exact source identity. Review the preview, then apply or download.');return true;
  }catch(error){if(id===operation)message(error.message||String(error),true);return false;}finally{if(id===operation){busy=false;c.recipeFile.value='';enable();}}
 }
 
@@ -13734,7 +13894,7 @@ function mount(){
  const summary=make('pre','mashupSummary'),canvas=make('div','mashupCanvas'),status=make('p','mashupStatus');canvas.hidden=true;status.setAttribute('role','status');status.setAttribute('aria-live','polite');panel.append(summary,canvas,status);host.prepend(panel);
  c={panel,capture,files,recipeFile,clear,sources:sourceText,target,seed,choices,locks,enemy,placement,lockGameplay,preview:previewButton,shuffle:shuffleButton,apply:applyButton,download:downloadButton,recipe:recipeButton,summary,canvas,status};files.addEventListener('change',()=>{void loadDonors(files.files);});recipeFile.addEventListener('change',()=>{void loadRecipe(recipeFile.files?.[0]);});for(const el of [target,enemy,placement,lockGameplay,...Object.values(choices),...Object.values(locks)])el.addEventListener('change',()=>invalidate());seed.addEventListener('input',()=>{shuffleBase='';shuffleNumber=0;invalidate();});for(const type of ['keydown','keyup'])panel.addEventListener(type,event=>event.stopPropagation?.());populate();enable();message('Choose Use current project to start. No sources or preview are loaded automatically.');return panel;
 }
-services.MashupUI=Object.freeze({mount,captureCurrent,loadDonors,loadRecipe,clearDonors,preview,shuffle,apply,downloadProject:()=>download('project'),downloadRecipe:()=>download('recipe'),getState:()=>Object.freeze({busy,staged:!!staged,hasOutput:!!output,sourceCount:(current?1:0)+donors.length,donorCount:donors.length,currentSourceId:current?.id||null,seed:staged?.result.recipe.seed||null,sources:copy([...(current?[current]:[]),...donors].map(s=>({id:s.id,name:s.name,assets:s.assets}))),recipe:output?copy(output.recipe):null})});mount();
+services.MashupUI=Object.freeze({mount,captureCurrent,loadDonors,loadRecipe,clearDonors,preview,shuffle,apply,downloadProject:()=>download('project'),downloadRecipe:()=>download('recipe'),getState:()=>Object.freeze({busy,staged:!!staged,hasOutput:!!output,sourceCount:(current?1:0)+donors.length,donorCount:donors.length,currentSourceId:current?.id||null,seed:staged?.result.recipe.seed||null,sources:copy([...(current?[current]:[]),...donors].map(s=>({id:s.id,name:s.name,assets:s.assets}))),recipe:output?copy(output.recipe):null,migration:output?.migration?copy(output.migration):null})});mount();
 })();
 /* Movement rules: detached, seeded edits to existing generated-runtime physics.
  * No emitter, schema, emulator, legacy mashup algorithm or live project changes. */
@@ -13742,7 +13902,7 @@ services.MashupUI=Object.freeze({mount,captureCurrent,loadDonors,loadRecipe,clea
 'use strict';
 const services=window.Forge.services,FORMAT='NESForgeMovementRecipe',VERSION=1,ALGORITHM='sha256-mulberry32-movement-1';
 const FIELDS=Object.freeze(['moveSpeed','jumpSpeed','gravity','maxFallSpeed']);
-const LIMITS=Object.freeze({moveSpeed:Object.freeze([1,4]),jumpSpeed:Object.freeze([1,12]),gravity:Object.freeze([1,3]),maxFallSpeed:Object.freeze([1,8])});
+const LIMITS=Object.freeze(Object.fromEntries(FIELDS.map(field=>[field,window.Forge165.config.limits[field]])));
 const PRESETS=Object.freeze(['keep','sprint','high-jump','slow-fall','heavy-fall','seeded-mix']);
 const sourcesMade=new WeakSet(),cp=value=>JSON.parse(JSON.stringify(value)),fail=message=>{throw Error('Movement rules: '+message);};
 const model=()=>{if(!services.MashupModel)fail('Canonical source validation is unavailable.');return services.MashupModel;};
@@ -13753,13 +13913,8 @@ function seedValue(value){if(typeof value!=='string'||!value.trim()||value.lengt
 function origin(value){record(value,['seed','preset','intensity'],'Rule origin');seedValue(value.seed);if(!PRESETS.includes(value.preset))fail('Unknown movement preset.');if(!Number.isInteger(value.intensity)||value.intensity<1||value.intensity>3)fail('Intensity must be 1, 2 or 3.');return{seed:value.seed,preset:value.preset,intensity:value.intensity};}
 function locksValue(value={},exact=false){if(!value||typeof value!=='object'||Array.isArray(value))fail('Locks must be an object.');if(exact)record(value,FIELDS,'Rule locks');for(const key of Object.keys(value)){if(!FIELDS.includes(key))fail('Unknown movement lock '+key+'.');if(typeof value[key]!=='boolean')fail('Movement locks must be true or false.');}return Object.fromEntries(FIELDS.map(key=>[key,value[key]===true]));}
 function configValidation(project,backend){
- services.WorldConfig.validate(project.worldRuntime,{references:backend==='world',project});window.Forge165.config.validate(project.gameplay);
- if(backend==='single-room'){
-  const config=project.gameplay,scene=project.scenes.find(item=>item.id===config.sceneId);
-  if(!scene||scene.buildInclude===false)fail('Choose an included existing playable Scene.');
-  const player=scene.entities.find(item=>item.id===config.playerId);if(!player||player.type!=='player')fail('Choose an existing Player in the playable Scene.');
-  if(config.targetId){const target=scene.entities.find(item=>item.id===config.targetId);if(!target||!['npc','enemy'].includes(target.type)||target===player)fail('Choose a distinct existing NPC or enemy training target.');}
- }
+ services.WorldConfig.validate(project.worldRuntime,{references:backend==='world',project});
+ window.Forge165.config.validate(project.gameplay,{references:backend==='single-room',project});
 }
 function createSource(input,{name}={}){
  // Check JSON values before stringifying, while retaining the source's field
@@ -13797,11 +13952,10 @@ function verifyRecipe(source,recipe){
  const result=build(source,current,locks,origins);if(stable(result.recipe)!==stable(recipe))fail('Recipe decisions or result identity differ from deterministic regeneration.');return result;
 }
 function complete(source,result){
- const validation=model().validate(result.project);configValidation(result.project,source.backend);services.AudioCompiler.plan(result.project);
- if(source.backend==='world'){const artifact=services.WorldCompiler.compile(services.WorldCompiler.plan(result.project));validation.build='compiled-world';validation.romSha256=window.FamiTone2Native.sha256(artifact.rom);validation.romBytes=artifact.rom.length;validation.notice='Detached World ROM compiled and capacity checked after movement changes. Ordinary Save/build may serialize metadata differently. This is not browser, listening or hardware acceptance.';}
- else{const plan=services.GameplayCompiler.plan(result.project,{backend:'single-room'});services.GameplayCompiler.locateSingleRoom(plan);services.GameplayCompiler.compileSemantics(plan);validation.build='structural-only';validation.notice='Structure, references and Audio/Gameplay plans passed. Complete single-room ROM capacity remains pending the existing Build action.';}
+ const validation=model().validate(result.project);configValidation(result.project,source.backend);
+ const artifact=services.RuntimeCompiler.compileDetached(result.project);
+ validation.build='compiled-'+source.backend;validation.romSha256=window.FamiTone2Native.sha256(artifact.rom);validation.romBytes=artifact.rom.length;validation.notice='Detached '+(source.backend==='world'?'World':'single-room')+' ROM compiled and capacity checked after movement changes. Ordinary Save/build may serialize metadata differently. This is not browser, listening or hardware acceptance.';
  const warnings=['Movement settings apply globally to the active '+(source.backend==='world'?'World runtime':'single-room runtime')+', not just the selected editor Scene.','These are existing bounded NES movement settings; no level-solvability or playability guarantee is made.','Preset targets are absolute values, not multipliers. Locks can override part of a preset; review every resulting value.','Movement/jump/fall speeds are pixels per runtime tick; gravity is pixels per tick squared. Low gravity below 1, sliding, knockback, health/death and new mechanics are not added.'];
- if(validation.build==='structural-only')warnings.push(validation.notice);
  const effective=result.recipe.resultSha256!==source.sha256;if(!effective)warnings.push('These settings produce no effective movement changes.');
  return freeze({status:effective?'ready':'no-change',effective,...result,warnings,validation});
 }
@@ -13854,18 +14008,15 @@ async function preview(){
 async function shuffle(){if(busy)return false;if(!shuffleBase)shuffleBase=String(c.seed.value).slice(0,100)||'forge';c.seed.value=shuffleBase+' #'+(++shuffleNumber);c.preset.value='seeded-mix';invalidate();return preview();}
 async function loadRecipe(file){
  if(busy)return false;if(!file){message('No recipe selected. The project and preview are unchanged.');return false;}const id=++operation;busy=true;enable();
- try{const source=requireSource(),item={project:guard(),revision,source};if(!Number.isSafeInteger(file.size)||file.size<1||file.size>65536||!/\.json$/i.test(String(file.name||'')))throw Error('Choose a movement recipe JSON file no larger than 64 KiB.');const text=typeof file.text==='function'?await file.text():new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer());if(typeof text!=='string'||new TextEncoder().encode(text).length>65536)throw Error('The recipe read exceeded 64 KiB.');const recipe=JSON.parse(text);if(recipe.sourceSha256!==source.sha256)throw Error('This movement recipe requires its exact original project. Open that project and choose Use current project first.');const result=await model().replay(source,recipe);if(id!==operation)throw Error('Recipe loading was superseded.');check(item);const data=candidateData(item,result);
- c.seed.value=recipe.seed;c.preset.value=recipe.preset;c.intensity.value=String(recipe.intensity);for(const field of fields)c.locks[field].checked=!!recipe.locks[field];shuffleBase='';shuffleNumber=0;describe(result,source);staged=data.effective?{...item,result:copy(result)}:null;output=copy(result);previousRecipe=copy(recipe);message(data.effective?'Movement recipe replay verified against its exact original project. Review the values, then apply or download.':'Movement recipe replay verified, with no effective changes to its original project.');return true;
+ try{const source=requireSource(),item={project:guard(),revision,source};if(!Number.isSafeInteger(file.size)||file.size<1||file.size>65536||!/\.json$/i.test(String(file.name||'')))throw Error('Choose a movement recipe JSON file no larger than 64 KiB.');const text=typeof file.text==='function'?await file.text():new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer());if(typeof text!=='string'||new TextEncoder().encode(text).length>65536)throw Error('The recipe read exceeded 64 KiB.');const document=JSON.parse(text),result=await services.RecipeIdentity.replayMovement(source,document),recipe=result.recipe;if(id!==operation)throw Error('Recipe loading was superseded.');check(item);const data=candidateData(item,result);
+ c.seed.value=recipe.seed;c.preset.value=recipe.preset;c.intensity.value=String(recipe.intensity);for(const field of fields)c.locks[field].checked=!!recipe.locks[field];shuffleBase='';shuffleNumber=0;describe(result,source);staged=data.effective?{...item,result:copy(result)}:null;output=copy(result);previousRecipe=copy(recipe);message(data.effective?(result.migration?'Movement recipe migration verified against its exact original project. Review the migrated values, then apply or download.':'Movement recipe replay verified against its exact original project. Review the values, then apply or download.'):'Movement recipe replay verified, with no effective changes to its original project.');return true;
  }catch(error){if(id===operation)message(error.message||String(error),true);return false;}finally{if(id===operation){busy=false;c.recipeFile.value='';enable();}}
 }
 async function apply(){
  if(busy)return false;if(!staged){message('Preview effective movement changes first.',true);return false;}const item=staged,id=++operation;busy=true;enable();
- try{check(item);if(undoPaused)throw Error('Wait for the current history operation to finish before applying movement rules.');const result=await model().replay(item.source,item.result.recipe);check(item);if(id!==operation||staged!==item)throw Error('The preview was superseded.');if(JSON.stringify(result.project)!==JSON.stringify(item.result.project)||JSON.stringify(result.recipe)!==JSON.stringify(item.result.recipe))throw Error('The rules changed during replay validation. Preview again.');const data=candidateData(item,result);if(!data.effective)throw Error('There are no effective movement changes to apply.');
- const listing=fields.map(field=>names[field]+': '+item.source.project[data.key][field]+' → '+data.values[field]+' '+units[field]).join('\n');if(!confirm('Apply the previewed movement rules to the current project?\n\n'+listing+'\n\nOne Undo restores these movement settings. Build and play when ready.')){message('Movement rules cancelled. The preview, project and history are unchanged.');return false;}check(item);if(undoPaused)throw Error('Wait for the current history operation to finish before applying movement rules.');
- const oldUndo=undoStack.slice(),oldRedo=redoStack.slice(),oldBytes=undoBytes,oldDisabled=document.getElementById('undoBtn').disabled;try{snapshot();}catch(error){undoStack.splice(0,undoStack.length,...oldUndo);redoStack.splice(0,redoStack.length,...oldRedo);undoBytes=oldBytes;document.getElementById('undoBtn').disabled=oldDisabled;throw error;}
- for(const field of fields)S[data.key][field]=data.values[field];Forge15.dirty=true;staged=null;const issues=[];
- try{notify('movementRules');}catch(error){issues.push('change notification: '+(error.message||String(error)));}
- try{services.WorldUI?.refresh(true);Forge165.ui?.refresh(true);services.GameplayUI?.refresh(true);}catch(error){issues.push('display refresh: '+(error.message||String(error)));}
+ try{check(item);const result=await model().replay(item.source,item.result.recipe);check(item);if(id!==operation||staged!==item)throw Error('The preview was superseded.');if(JSON.stringify(result.project)!==JSON.stringify(item.result.project)||JSON.stringify(result.recipe)!==JSON.stringify(item.result.recipe))throw Error('The rules changed during replay validation. Preview again.');const data=candidateData(item,result);if(!data.effective)throw Error('There are no effective movement changes to apply.');
+ const listing=fields.map(field=>names[field]+': '+item.source.project[data.key][field]+' → '+data.values[field]+' '+units[field]).join('\n');if(!confirm('Apply the previewed movement rules to the current project?\n\n'+listing+'\n\nOne Undo restores these movement settings. Build and play when ready.')){message('Movement rules cancelled. The preview, project and history are unchanged.');return false;}check(item);
+ const edit=services.ProjectStore.applySettingsEdit({[data.key]:data.values},{expected:item.project,intent:'movementRules'});if(!edit.applied)throw Error('There are no effective movement changes to apply.');staged=null;const issues=edit.warnings;
  message('Movement rules applied in one Undo. Continue editing or Save Project As, then build/play when ready.'+(issues.length?' The data is committed, but '+issues.join('; ')+'. Save the project and reopen it.':''),!!issues.length);return true;
  }catch(error){if(id===operation){staged=null;message(error.message||String(error),true);}return false;}finally{if(id===operation){busy=false;enable();}}
 }
@@ -13888,7 +14039,7 @@ function mount(){
  const values=make('table','movementRulesValues');values.setAttribute('aria-label','Movement settings before and after');const summary=make('pre','movementRulesSummary'),status=make('p','movementRulesStatus');status.setAttribute('role','status');status.setAttribute('aria-live','polite');panel.append(values,summary,status);host.prepend(panel);
  c={panel,capture,recipeFile,source,seed,preset,intensity,locks,preview:previewButton,shuffle:shuffleButton,apply:applyButton,download:downloadButton,recipe:recipeButton,values,summary,status};recipeFile.addEventListener('change',()=>{void loadRecipe(recipeFile.files?.[0]);});for(const el of [preset,intensity,...Object.values(locks)])el.addEventListener('change',()=>invalidate());seed.addEventListener('input',()=>{shuffleBase='';shuffleNumber=0;invalidate();});for(const type of ['keydown','keyup'])panel.addEventListener(type,event=>event.stopPropagation?.());enable();message('Choose Use current project to start. No settings are changed automatically.');return panel;
 }
-services.MovementRulesUI=Object.freeze({mount,captureCurrent,preview,shuffle,apply,loadRecipe,downloadProject:()=>download('project'),downloadRecipe:()=>download('recipe'),getState:()=>Object.freeze({busy,staged:!!staged,hasOutput:!!output,currentSourceId:current?.id||null,backend:current?.backend||null,recipe:output?copy(output.recipe):null})});mount();
+services.MovementRulesUI=Object.freeze({mount,captureCurrent,preview,shuffle,apply,loadRecipe,downloadProject:()=>download('project'),downloadRecipe:()=>download('recipe'),getState:()=>Object.freeze({busy,staged:!!staged,hasOutput:!!output,currentSourceId:current?.id||null,backend:current?.backend||null,recipe:output?copy(output.recipe):null,migration:output?.migration?copy(output.migration):null})});mount();
 })();
 
 /* Single current application bootstrap. */

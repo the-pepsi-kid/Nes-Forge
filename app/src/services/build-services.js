@@ -1,10 +1,8 @@
 /* NES Forge 1.6.7 — authoritative build graph and existing-backend dispatch.
- * The codecs, assembler, viewer, gameplay compiler and emulator are unchanged.
- * Preparation commits active editor buffers and normalizes IDs explicitly once.
- * Following preparation, scene/atlas data is detached. Legacy codecs still read
- * S synchronously; MS16's retained ensure() is a no-op after preparation. The
- * assembler intentionally publishes its existing derived diagnostics to S/UI.
- * This is synchronous convergence, not a pure/incremental/offline compiler.
+ * Live preparation commits active editor buffers and normalizes IDs once.
+ * Generated builds pass their copied source explicitly to retained codecs.
+ * Detached preflight uses the same pipeline without capture, commit or UI.
+ * Custom assembly remains live-only and publishes diagnostics to S/UI.
  */
 (()=>{
 'use strict';
@@ -37,7 +35,18 @@ function remapBuildScenes(entries,scenes){
 function backendFor(snapshot){return snapshot.worldRuntime?.enabled?'world':snapshot.gameplay?.mode==='single-room'?'single-room':snapshot.asmSource.trim()&&snapshot.packScenes===false?'unpacked-custom':'packed';}
 function plan(options={}){
   if(!services.ProjectStore?.prepareSnapshot)throw Error('ProjectStore preparation is required before building.');
-  const source=services.ProjectStore.prepareSnapshot({intent:'build'}),backend=options.backend||backendFor(source);
+  return planSource(services.ProjectStore.prepareSnapshot({intent:'build'}),options);
+}
+function planDetached(project){
+  if(!services.ProjectStore?.prepareLoad)throw Error('ProjectStore validation is required before detached building.');
+  const source=services.ProjectStore.prepareLoad(project).data;
+  if(source.version!==services.ProjectStore.schema)throw Error('Detached builds require the current project schema.');
+  if(typeof source.asmSource!=='string'||source.asmSource.trim())throw Error('Detached builds require generated Forge code; custom assembly remains live-only.');
+  if(!['world','single-room'].includes(backendFor(source)))throw Error('Detached builds require a generated World or single-room runtime.');
+  const result=planSource(source,{});result.detached=true;return result;
+}
+function planSource(source,options){
+  const backend=options.backend||backendFor(source);
   if(!['packed','unpacked-custom','single-room','world'].includes(backend))throw Error('Unsupported build backend: '+backend);
   const gameplayCore=backend==='world'?null:services.GameplayCompiler.plan(source,{backend});
   if(backend==='world'){const p=services.WorldCompiler.plan(source,gameplayCore);completedPlans.add(p);return p;}
@@ -45,7 +54,7 @@ function plan(options={}){
   const audio=services.AudioCompiler.plan(source);if(audio.enabled&&custom)throw Error('Audio Runtime cannot be inserted into custom assembly. Disable Audio Runtime or use a generated viewer, single-room, or World runtime.');
   if(backend==='unpacked-custom'&&!custom)throw Error('Unpacked custom builds require assembly source.');
   if(backend==='single-room'){
-    Forge165.config.validate(source.gameplay,{references:true});
+    Forge165.config.validate(source.gameplay,{references:true,project:source});
     if(custom)throw Error('Playable room uses generated code. Save and clear custom ASM, or select Scene viewer/custom build mode.');
     if(source.mapper!==0)throw Error('First Playable Room currently builds mapper 0 (NROM)');
   }
@@ -103,6 +112,7 @@ function preflight(){
   }
 }
 function codeOccupancy(p){
+  if(p.detached&&p.custom)throw Error('Detached builds cannot invoke the live assembler.');
   if(p.custom&&!asm_assemble())throw Error(S.asmErrors.length?'Assembly failed — '+S.asmErrors[0].msg:'No executable code was emitted');
   const min=p.custom?Math.min(...S._asmWrites.map(x=>x[0])):0xC000;
   if(min<0x8000)throw Error('ROM code must live at $8000–$FFFF. Use .rs for RAM variables.');
@@ -157,7 +167,7 @@ function emitNrom(p){
 function emitGameplay(p,baseArtifact){
   const baseRom=baseArtifact.rom,config=p.source.gameplay,header=parseRomHeader(baseRom);
   if(header.prgSize!==16384||header.chrSize!==8192)throw Error('Gameplay compiler requires the generated 16 KB scene layout and 8 KB CHR');
-  const spec=Forge165.compileGameplay(baseRom,config,p.audio);spec.gameplayCore=services.GameplayCompiler.locateSingleRoom(p.gameplayCore);services.GameplayCompiler.compileSemantics(spec.gameplayCore);const engine=Forge165.makeGameplayEngine(spec);
+  const spec=Forge165.compileGameplay(baseRom,config,p.audio,p.source);spec.gameplayCore=services.GameplayCompiler.locateSingleRoom(p.gameplayCore);services.GameplayCompiler.compileSemantics(spec.gameplayCore);const engine=Forge165.makeGameplayEngine(spec);
   if(!(engine.bytes instanceof Uint8Array)||engine.bytes.length>profile.gameplayConfig-profile.gameplayBase)throw Error('Gameplay engine overlaps reserved configuration metadata');
   for(const key of ['reset','nmi','irq'])if(!Number.isInteger(engine[key])||engine[key]<profile.gameplayBase||engine[key]>=profile.gameplayConfig)throw Error('Invalid gameplay '+key+' vector');
   const record={format:'NESForgeGameplay',version:1,sceneIndex:spec.sceneIndex,playerIndex:spec.playerIndex,targetIndex:spec.targetIndex};
@@ -201,9 +211,9 @@ function build(options){
     BuildGraph.lastDiagnostics=[diagnostic('error','build-failed',error.message,'compile')];log(error.message,'bl-err');reportError(error);return null;
   }
 }
-const BuildGraph=services.BuildGraph={profile,phaseOrder,selectedSceneEntries,plan,preflight,lastDiagnostics:[],
-  ownership:'Snapshot preparation is explicit. Plans own copied scenes/atlases and call existing codecs once; existing codec global reads are synchronous.'};
-const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world']),compile,commit,build,lastArtifact:null};
+const BuildGraph=services.BuildGraph={profile,phaseOrder,selectedSceneEntries,plan,planDetached,preflight,lastDiagnostics:[],
+  ownership:'Live capture or detached validation prepares the source. Generated plans pass copied sources to existing codecs once; custom assembly is live-only.'};
+const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world']),compile,compileDetached:project=>compile(planDetached(project)),commit,build,lastArtifact:null};
 // These assignments replace active routes; no previous planner/builder is called.
 buildNesRom=build;
 window.forge15_preflight=preflight;

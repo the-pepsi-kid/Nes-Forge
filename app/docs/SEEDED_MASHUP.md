@@ -1,6 +1,8 @@
 # NES Forge seeded mashups
 
-**2.0.0-alpha.10 · seeded-mashup-1 · schema 12**
+**Current: 2.0.0-alpha.11 · compatibility-stabilization-1 · schema 12**
+
+The alpha.10 workflow and raw v1 recipes remain. When opening original alpha.10 sources changes only reviewed foundation metadata, the current UI verifies the original recipe exactly and offers a migrated preview plus reissued current-source recipe. Read `COMPATIBILITY_STABILIZATION.md`; changed project content or donors still refuse.
 
 Open **SCENE → Seeded mashup**. This combines editable Forge content into your current project: background tile banks, sprite tile banks, palettes and compatible music. You can also vary supported existing patrol speeds and shuffle compatible existing enemy/pickup slots. A seed and a saved recipe reproduce the same choices from the same original source content.
 

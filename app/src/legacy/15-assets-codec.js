@@ -64,17 +64,18 @@ F.exportMetasprites=()=>download(E.encode(JSON.stringify(exportPayload(),null,2)
 const oldZip=buildZip;
 buildZip=function(files){if(Array.isArray(files)&&files.some(f=>f.name==='project.json')&&!files.some(f=>f.name==='metasprites.json'))files=[...files,{name:'metasprites.json',data:E.encode(JSON.stringify(exportPayload()))}];return oldZip(files);};
 
-function tileSource(sceneId){const sc=S.scenes.find(s=>s.id===sceneId);if(!sc)throw Error('Missing metasprite or animation source scene');return sc===S.scenes[S.activeScene]?S.sprChr:sc.sprChr;}
+function tileSource(sceneId,source){const state=source||S,sc=state.scenes.find(s=>s.id===sceneId);if(!sc)throw Error('Missing metasprite or animation source scene');return !source&&sc===S.scenes[S.activeScene]?S.sprChr:sc.sprChr;}
 function linkAssets(plan){
-  validate(S.metasprites||[],S.animations||[],S.scenes,{rom:true});
-  const frames=cp(S.metasprites||[]),animations=cp(S.animations||[]),indices=new Map(plan.entries.map((e,i)=>[e.sc.id,i]));
+  const source=plan.source||S;
+  validate(source.metasprites||[],source.animations||[],source.scenes,{rom:true});
+  const frames=cp(source.metasprites||[]),animations=cp(source.animations||[]),indices=new Map(plan.entries.map((e,i)=>[e.sc.id,i]));
   const used=new Set();
   for(const sc of plan.atlas.scenes){for(const p of sc.oam||[])if(p.active){used.add(p.tile);if(p.height===16)used.add(p.tile2??((p.tile+1)&255));}for(const e of sc.entities||[])if(e.sprTile>=0)used.add(e.sprTile);}
   const cache=new Map();
   function link(sceneId,tile){
     if(!indices.has(sceneId))throw Error('A metasprite or animation uses an excluded source scene. Include it in the Build Scene Set.');
     const key=sceneId+':'+tile;if(cache.has(key))return cache.get(key);
-    const src=tileSource(sceneId)[tile];if(!src)throw Error('Metasprite source tile '+tile+' is unavailable');
+    const src=tileSource(sceneId,plan.source)[tile];if(!src)throw Error('Metasprite source tile '+tile+' is unavailable');
     const signature=tileKeyFromData(src),bank=plan.atlas.sprChr;
     let target;
     if(plan.custom){target=tile;if(tileKeyFromData(bank[tile])!==signature)throw Error('Custom ASM requires metasprite tiles to match its fixed sprite CHR IDs');}
@@ -89,11 +90,12 @@ function linkAssets(plan){
     f.buildSceneIndex=indices.get(sid);delete f.sceneId;
     for(const p of f.pieces){p.tile=link(sid,p.tile);p.tile2=f.spriteMode===16?link(sid,p.tile2):p.tile;}
   }
-  for(const a of animations)for(const f of a.frames)if(!f.metaspriteId){const sid=f.sceneId||S.scenes[S.activeScene].id;f.tileIdx=link(sid,f.tileIdx);f.buildSceneIndex=indices.get(sid);delete f.sceneId;}
+  for(const a of animations)for(const f of a.frames)if(!f.metaspriteId){const sid=f.sceneId||source.scenes[source.activeScene].id;f.tileIdx=link(sid,f.tileIdx);f.buildSceneIndex=indices.get(sid);delete f.sceneId;}
   return {frames,animations};
 }
 function encodeAssets(plan){
-  if(!(S.metasprites?.length||S.animations?.length))return new Uint8Array();
+  const source=plan.source||S;
+  if(!(source.metasprites?.length||source.animations?.length))return new Uint8Array();
   const {frames,animations}=linkAssets(plan),out=[];
   const u8=v=>out.push(v&255),u16=v=>out.push(v&255,(v>>8)&255),text=v=>{const b=E.encode(v||'');u16(b.length);out.push(...b);};
   u16(frames.length);

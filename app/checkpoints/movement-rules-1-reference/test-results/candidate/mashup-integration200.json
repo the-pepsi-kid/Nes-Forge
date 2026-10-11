@@ -1,0 +1,222 @@
+{
+  "suite": "mashup-integration200",
+  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
+  "scope": "Three explicitly Scout-derived canonical source projects; actual bundled preview/apply/Undo/Redo and Save Project As with a mocked OS writable handle; deterministic recipe replay, real generated World and single-room 6502 execution, CHR framebuffer and APU register changes. No browser visuals, listening, mobile/controller/hardware or arbitrary-engine recovery acceptance.",
+  "passed": 12,
+  "failed": 0,
+  "total": 12,
+  "metrics": {
+    "sourceProjects": [
+      {
+        "name": "Mashup Workshop — Scout Base",
+        "sha256": "8e712d9fd8dab3ca69646d6c9c4cfd9e2e1934696977aaba885686298bd21cc7",
+        "byteLength": 205353
+      },
+      {
+        "name": "Mashup Workshop — Copper Orchard",
+        "sha256": "f474cc2b639f21244f31ab8f58055471bdc7b5b3a9c2bd4714eed92484db6090",
+        "byteLength": 190323
+      },
+      {
+        "name": "Mashup Workshop — Moonlit Circuit",
+        "sha256": "207c2207e6630a6e798b6d3cf8fd47f180aa6663c128e27e1464cad4ab820b91",
+        "byteLength": 190326
+      }
+    ],
+    "explicitRecipe": {
+      "format": "NESForgeMashupRecipe",
+      "version": 1,
+      "algorithm": "sha256-mulberry32-domains-1",
+      "sources": [
+        {
+          "sha256": "207c2207e6630a6e798b6d3cf8fd47f180aa6663c128e27e1464cad4ab820b91",
+          "byteLength": 190326
+        },
+        {
+          "sha256": "8e712d9fd8dab3ca69646d6c9c4cfd9e2e1934696977aaba885686298bd21cc7",
+          "byteLength": 205353
+        },
+        {
+          "sha256": "f474cc2b639f21244f31ab8f58055471bdc7b5b3a9c2bd4714eed92484db6090",
+          "byteLength": 190323
+        }
+      ],
+      "baseSourceId": "8e712d9fd8dab3ca69646d6c9c4cfd9e2e1934696977aaba885686298bd21cc7",
+      "targetSceneId": "scout-source",
+      "seed": "FORGE-001",
+      "choices": {
+        "background": "f474cc2b639f21244f31ab8f58055471bdc7b5b3a9c2bd4714eed92484db6090:scene:scout-source",
+        "sprites": "207c2207e6630a6e798b6d3cf8fd47f180aa6663c128e27e1464cad4ab820b91:scene:scout-source",
+        "palettes": "f474cc2b639f21244f31ab8f58055471bdc7b5b3a9c2bd4714eed92484db6090:scene:scout-source",
+        "music": "207c2207e6630a6e798b6d3cf8fd47f180aa6663c128e27e1464cad4ab820b91"
+      },
+      "locks": {
+        "background": false,
+        "sprites": false,
+        "palettes": false,
+        "music": false,
+        "gameplay": false
+      },
+      "gameplay": {
+        "method": "mashup-gameplay-1",
+        "seed": "FORGE-001",
+        "options": {
+          "enemyParameters": true,
+          "placement": true,
+          "itemValues": false
+        },
+        "sourceFingerprint": "eda3952ad4671c275e1a7bf4b312b804b67d4e87248c934db638b1a42af46a15",
+        "decisions": [
+          {
+            "domain": "enemyParameters",
+            "actorId": "mashup-patrol-a",
+            "parameter": "speed",
+            "before": 1,
+            "after": 3
+          },
+          {
+            "domain": "enemyParameters",
+            "actorId": "mashup-patrol-b",
+            "parameter": "speed",
+            "before": 1,
+            "after": 3
+          },
+          {
+            "domain": "placement",
+            "actorId": "mashup-patrol-a",
+            "role": "patrol",
+            "before": {
+              "x": 104,
+              "y": 176
+            },
+            "after": {
+              "x": 168,
+              "y": 176
+            },
+            "sourceSlotActorId": "mashup-patrol-b"
+          },
+          {
+            "domain": "placement",
+            "actorId": "mashup-patrol-b",
+            "role": "patrol",
+            "before": {
+              "x": 168,
+              "y": 176
+            },
+            "after": {
+              "x": 104,
+              "y": 176
+            },
+            "sourceSlotActorId": "mashup-patrol-a"
+          },
+          {
+            "domain": "placement",
+            "actorId": "mashup-pickup-a",
+            "role": "pickup",
+            "before": {
+              "x": 72,
+              "y": 160
+            },
+            "after": {
+              "x": 208,
+              "y": 160
+            },
+            "sourceSlotActorId": "mashup-pickup-b"
+          },
+          {
+            "domain": "placement",
+            "actorId": "mashup-pickup-b",
+            "role": "pickup",
+            "before": {
+              "x": 208,
+              "y": 160
+            },
+            "after": {
+              "x": 72,
+              "y": 160
+            },
+            "sourceSlotActorId": "mashup-pickup-a"
+          }
+        ]
+      },
+      "resultSha256": "053b390e6686c8bc211a1f23e2dfdf73b405a0bf94ab3079af475085efa99545"
+    },
+    "deterministicRomSha256": "43d4166ff86d6e1ae8f370d49e02d16f5801afe3577786d527a6095fbfbd654c",
+    "runtime": {
+      "romSha256": "43d4166ff86d6e1ae8f370d49e02d16f5801afe3577786d527a6095fbfbd654c",
+      "frames": 14,
+      "apuWrites": 125,
+      "screenHash": "2d074f3549d3792f067d8765a233166eb5f749b96c8b73fe66e2c5d1433ecebb",
+      "patrolSpeed": 3,
+      "missedOpcodes": 0
+    },
+    "alternate": {
+      "romSha256": "229b7c51f3bed851c2410132e4c2402fbe8da2a05fc7bcec726561e6cf5310ec",
+      "screenHash": "b3d5baef679bf9e796bfb52088324f8dc1b2ca340ccf53c2ab9dfed6967ed08f",
+      "apuWrites": 103
+    },
+    "singleRoomRomSha256": "833f3ac12f458afc3e1e0facebb02966a59fe5b82a5b6dd2a659030371d5c81d"
+  },
+  "results": [
+    {
+      "name": "Three authored source projects compile independently and have distinct immutable source identities",
+      "passed": true,
+      "milliseconds": 2919
+    },
+    {
+      "name": "A single candidate combines two donor graphics sources, donor music and bounded existing gameplay",
+      "passed": true,
+      "milliseconds": 1327
+    },
+    {
+      "name": "Exact sources and seed replay byte-identical candidate data independently of donor pool ordering",
+      "passed": true,
+      "milliseconds": 2890
+    },
+    {
+      "name": "Different seeds explore asset and patrol choices; complete locks retain the previous result",
+      "passed": true,
+      "milliseconds": 4072
+    },
+    {
+      "name": "Actual UI preview is read-only and Apply performs the exact staged result in one Undo",
+      "passed": true,
+      "milliseconds": 4355
+    },
+    {
+      "name": "Actual Save Project As writes the applied canonical candidate and reopening rebuilds the exact ROM",
+      "passed": true,
+      "milliseconds": 4026
+    },
+    {
+      "name": "Generated World ROM boots, advances real frames and runs the varied patrol and music",
+      "passed": true,
+      "milliseconds": 2588
+    },
+    {
+      "name": "Selecting the other song and graphic donors changes generated pixels and APU notes in real execution",
+      "passed": true,
+      "milliseconds": 3830
+    },
+    {
+      "name": "The same donor workflow supports an existing generated single-room project and actual ROM build",
+      "passed": true,
+      "milliseconds": 3852
+    },
+    {
+      "name": "Ordinary post-mashup CHR and tracker edits survive saving and alter the rebuilt ROM",
+      "passed": true,
+      "milliseconds": 3393
+    },
+    {
+      "name": "Shipped workshop manifest binds exact canonical inputs, recipes and compiled outputs",
+      "passed": true,
+      "milliseconds": 2904
+    },
+    {
+      "name": "A shipped recipe reopens through the actual UI using its exact original sources",
+      "passed": true,
+      "milliseconds": 2993
+    }
+  ]
+}

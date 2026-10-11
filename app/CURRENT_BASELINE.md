@@ -1,3 +1,17 @@
+# Current review candidate — Compatibility Stabilization
+
+Release **2.0.0-alpha.11**, candidate **compatibility-stabilization-1**, schema **12**. Open `mainline/NES_Forge_2.0.0-alpha.11.html`. Candidate identity distinguishes this checkpoint from the earlier movement-rules-1 build without a release bump.
+
+The behavioral parent is original alpha.11 Movement Rules, SHA-256 `cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1`, with 1,504 passing cases across 68 suites. It is preserved in `baseline/NES_Forge_2.0.0-alpha.11_Movement_Rules.html` and its reference evidence. That historical pass does not certify changed bytes.
+
+Current implementation scope: explicit cross-release recipe metadata migration, shared configuration validation/limits, ProjectStore-owned settings transactions, and complete detached generated-ROM preview compilation. New mechanics, schema/runtime changes and template expansion are outside this checkpoint.
+
+The current `build-inputs.json`, `test-results/candidate/Summary.json` and `checkpoints/compatibility-stabilization-1-clean-extraction/Reproduction.json` establish actual identity/results after verification. Until those current records exist and agree, this is implementation in progress. Browser reports are separate measured or blocked evidence. Owner promotion, listening, mobile performance, controllers and hardware remain pending.
+
+## Preserved parent record
+
+---
+
 # Current review candidate — Movement Rules
 
 Release: **2.0.0-alpha.11 / movement-rules-1**. Schema: **12**.

@@ -1,3 +1,13 @@
+# D063 — Compatibility stabilization before feature expansion
+
+October 10, 2026 America/Denver (October 11 UTC). Authority: the owner requested “advise”, reviewed the four-priority stabilization recommendation, then directed “update roadmap and continue”. Implement C1 recipe identity migration, C2 shared validation, C3 project-owned settings transactions and C4 complete preview build validation, with C5 retained regression/browser evidence, before new mechanics or A1 feature expansion.
+
+Retain release 2.0.0-alpha.11 and schema 12; identify changed bytes as candidate compatibility-stabilization-1. Preserve original movement-rules-1 source/tests/results and exact emitter behavior. New functionality must use canonical services, with explicit format/identity compatibility, one state owner and meaningful old-workflow tests. No approval to weaken historical source/golden checks or silently discard incompatibilities is implied.
+
+The versioned recipe migration adapter is an explicit foundation-only bridge for known alpha.10/alpha.11 sources. It verifies legacy source/result hashes and current equivalence before reissuing current recipes. Raw v1 algorithms remain authoritative. Candidate implementation is not owner promotion or browser/hardware acceptance.
+
+## Preserved decisions
+
 # D056 — Bounded Audio adaptive editing
 
 Date: October 7, 2026 UTC (October 6 America/Denver). Owner: “ok, continue”, after the bounded adaptive UI audit.

@@ -1,3 +1,27 @@
+# Current priority — Compatibility stabilization
+
+October 10, 2026 America/Denver (October 11 UTC). The owner directed “update roadmap and continue” after reviewing compatibility concerns. **2.0.0-alpha.11 / compatibility-stabilization-1**, schema 12, supersedes movement-rules-1 as the active implementation checkpoint. It is not a promoted release.
+
+Complete this bounded stabilization checkpoint before expanding mechanics or resuming A1. Preserve the existing movement behavior, canonical project representation, five gameplay templates, runtime emitters and historical outputs.
+
+| Order | Required work | Exit evidence |
+|---|---|---|
+| C1 | Versioned, explicit recipe identity migration for the known alpha.10/alpha.11 metadata boundary | Actual UI replay of historical recipes; exact original source/result verification; altered project/donor/recipe rejection; deterministic current recipe reissue |
+| C2 | Shared configuration-owned movement limits and detached reference validation | World/single-room UI, preview and compiler use the owner rules; invalid values/references refuse consistently |
+| C3 | ProjectStore-owned settings transaction | Exactly one Undo on Apply; stale/reentrant/invalid edits and snapshot failures preserve project/history; no emulator mutation |
+| C4 | Full detached World and single-room preview compilation | Compiler/capacity failures refuse before Apply; result matches ordinary build; no live workspace or artifact publication |
+| C5 | Regression and browser acceptance | All 1,504 predecessor cases across 68 suites retained, new focused suites, pinned source reconstruction, unchanged historical goldens and clean-extraction provenance; actual browser results recorded separately |
+
+The recipe adapter must preserve raw v1 algorithms and exact hash validation. Explicitly verify a known historical foundation value, reproduce the original output, then reissue an equivalent current-source recipe only when foundation metadata is the sole difference. A changed gameplay/art/audio/donor project must still fail. Recipe v1 stays readable; no blanket hash bypass or arbitrary release guessing.
+
+After the stabilization coding and automated gates, any blocked real-browser acceptance remains explicitly open. Do not infer listening, phone performance, controller or NES hardware acceptance. The next feature dependency remains **A1 shared native-background recovery/import**, using independent Pepsi and source-backed HonkeyPong evidence, followed by A2 native map/collision work on suitable independent inputs. Remaining Audio, migration/gameplay, linker/runtime/raster/LiveLink/debugging precede integrated Hosted/networking/wallet/deck work. The full roadmap and comprehensive manual remain unfinished.
+
+## Preserved previous roadmap
+
+The following material is historical; the current priority above controls the next checkpoint.
+
+---
+
 # Current implementation update — Movement Rules
 
 October 10, 2026 UTC (October 9 in America/Denver). Candidate **2.0.0-alpha.11 / movement-rules-1**, schema 12, not promoted. The owner said “continue” after discussing exaggerated traditional NES mechanics. This advances a bounded extension of existing generated movement settings; the broader roadmap authorization remains in effect.

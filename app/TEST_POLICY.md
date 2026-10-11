@@ -1,3 +1,17 @@
+# Test policy — alpha.11 Compatibility Stabilization
+
+Retain all **1,504 predecessor cases across 68 suites**, with exact suite counts and immutable original test/source evidence. Add dedicated recipe compatibility, settings transaction and detached compilation/validation suites. Any necessary current expectation changes must correspond to an explicitly documented behavior change; exact deltas reconstruct the original tests before preservation checks. Do not drop cases, regenerate historical goldens, weaken refusals or infer acceptance from old reports.
+
+Required new evidence: historical alpha.10 UI recipe replay and deterministic current reissue; wrong-source/donor/tampered/unknown recipe refusals; current raw-v1 fixtures unchanged; shared limits and detached references independent of live state; exactly one Undo/Redo and failure rollback through ProjectStore; full single-room/World capacity preflight; compile parity with ordinary builds; no project/history/emulator/last-artifact mutation during detached preview.
+
+Freeze source, documentation, test fixtures and manifests before staging. Verify every extracted payload checksum, run the full gate against one unchanged standalone HTML, run every browser supplement with current hashes, and record `checkpoints/compatibility-stabilization-1-clean-extraction/Reproduction.json`. Package only matching, unchanged provenance. The new exact source normalization reconstructs the pinned original alpha.11 before the preserved alpha.10 chain.
+
+A blocked Chromium launch records zero checks. Actual browser layout/file workflow, audible playback, same-device phone A/V latency, hardware controllers and NES hardware remain separate evidence. Full roadmap completion and promotion cannot be inferred from this checkpoint.
+
+## Preserved parent policy
+
+---
+
 # Test policy — 2.0.0-alpha.11 Movement Rules
 
 Retain every **1,430 alpha.10 case across 65 suites**, with exact per-suite counts, then add the declared Movement Rules suites. No filters, skipped cases, substituted production modules, regenerated historical oracles or stale outcomes. The fresh current Summary establishes measured totals and results.

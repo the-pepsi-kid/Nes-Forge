@@ -2,29 +2,29 @@
   "format": "NESForgeCandidateHandoff",
   "version": 1,
   "release": "2.0.0-alpha.11",
-  "candidate": "movement-rules-1",
+  "candidate": "compatibility-stabilization-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/gameplay-rules-2026-10-10",
+  "branch": "implementation/compatibility-stabilization-2026-10-11",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
-  "archive": "NES_Forge_2.0.0-alpha.11_Movement_Rules_Candidate.zip",
-  "archiveSha256": "26258b95f46f2712b72deea2367daaccd643743d09454b943367c5b45d094018",
-  "payloadChecksums": 3866,
-  "packageFiles": 3867,
+  "htmlSha256": "b3d9b852782b1b7ebd56637bb94e4dbcb09379614b7c8577e007046db45c8e02",
+  "archive": "NES_Forge_2.0.0-alpha.11_Compatibility_Stabilization_Candidate.zip",
+  "archiveSha256": "92bebf0b16bc561e12feb1f275b853a62ff48775eee4625c60264312c41e91b1",
+  "payloadChecksums": 4274,
+  "packageFiles": 4275,
   "automatedResult": {
     "status": "passed",
-    "passed": 1504,
+    "passed": 1541,
     "failed": 0,
-    "total": 1504,
-    "suiteCount": 68,
-    "startedAt": "2026-10-10T04:58:25.497Z",
-    "finishedAt": "2026-10-10T05:19:47.055Z"
+    "total": 1541,
+    "suiteCount": 72,
+    "startedAt": "2026-10-11T04:27:49.697Z",
+    "finishedAt": "2026-10-11T04:51:03.369Z"
   },
-  "retainedCases": 1430,
-  "retainedSuites": 65,
+  "retainedCases": 1504,
+  "retainedSuites": 68,
   "automatedSummary": "app/test-results/candidate/Summary.json",
-  "cleanExtractionProof": "app/checkpoints/movement-rules-1-clean-extraction/Reproduction.json",
+  "cleanExtractionProof": "app/checkpoints/compatibility-stabilization-1-clean-extraction/Reproduction.json",
   "browserEvidence": [
     {
       "name": "browser-mobile",
@@ -75,6 +75,11 @@
       "name": "browser-movement-rules",
       "status": "blocked",
       "checks": 0
+    },
+    {
+      "name": "browser-compatibility",
+      "status": "blocked",
+      "checks": 0
     }
   ],
   "nativeAudio": {
@@ -88,13 +93,13 @@
     "nativeEngineEquivalence": false,
     "listening": "pending"
   },
-  "ownerAcceptance": "pending for alpha.11; earlier owner reports retain their original artifact scope",
+  "ownerAcceptance": "pending for compatibility-stabilization-1; previous owner results retain original scope",
   "mobilePerformance": "pending same-device comparison",
   "hardwareControllers": "not physically tested",
   "promotion": "not promoted",
   "roadmap": "in progress; complete roadmap is not implemented",
-  "parentCommit": "25cfb9ed0b461ad2a6da636b39e381b818f5c498",
-  "nextCodingDependency": "Address explicit cross-release recipe migration before the next release bump; then resume A1 shared native-background recovery/import on Pepsi and source-backed HonkeyPong, followed by A2 on a suitable independent map/collision input.",
+  "parentCommit": "ac5afe886475dc63a89e044b28eb18fc9ef77cfd",
+  "nextCodingDependency": "After compatibility stabilization review, resume A1 shared native-background recovery/import on Pepsi and source-backed HonkeyPong, followed by A2 on a suitable independent map/collision input.",
   "license": "UNDECIDED",
   "recoveryMethods": {
     "contractVersion": 2,
@@ -162,17 +167,38 @@
       ]
     },
     "scope": "Four scalar physics values in the already configured active generated World or single-room runtime; independent locks and deterministic origins; one guarded Undoable Apply",
-    "preservation": "Existing mashup v1 code/recipes, body dimensions, starts, maps, actors, audio and inactive backend remain unchanged",
+    "preservation": "Raw v1 model/recipe algorithms, existing emitters, body/spawn/maps/actors/audio/inactive backend preserved; UI delegates settings transaction and explicit identity migration.",
     "newRuntimeOrSchema": false,
     "deathSlidingKnockbackOrTimersAdded": false,
     "solvabilityGuaranteed": false
   },
   "crossReleaseRecipeUI": {
-    "status": "known-limitation",
-    "alpha10RecipeDirectlyInAlpha11": false,
-    "reason": "Ordinary project opening updates foundation metadata and changes the captured canonical source SHA.",
-    "workaround": "Replay/apply with included alpha.10 app and original sources, then open the saved result in alpha.11.",
-    "next": "Implement explicit version-aware recipe migration before a later release bump.",
-    "evidence": "app/checkpoints/movement-rules-1-clean-extraction/Compatibility_Notes.md"
+    "status": "implemented-and-automated-handler-verified; real-browser acceptance blocked",
+    "alpha10RecipeDirectlyInAlpha11": true,
+    "contract": "NESForgeRecipeIdentityMigration v1",
+    "method": "exact-v1-foundation-reissue-1",
+    "supportedFoundations": [
+      "2.0.0-alpha.10",
+      "2.0.0-alpha.11"
+    ],
+    "verification": "Full historical source hashes/byte lengths and original result, then deterministic current recipe reissue with foundation-only equivalence; raw v1 unchanged.",
+    "evidence": "app/test-results/candidate/recipe-compatibility.json"
+  },
+  "compatibilityStabilization": {
+    "decision": "D063",
+    "roadmap": "C1-C5 before A1/new mechanics",
+    "sharedConfigurationLimits": true,
+    "explicitDetachedReferenceValidation": true,
+    "projectSettingsTransaction": "ProjectStore.applySettingsEdit",
+    "detachedCompiler": "RuntimeCompiler.compileDetached via BuildGraph.planDetached",
+    "movementPreviewBackends": [
+      "compiled-world",
+      "compiled-single-room"
+    ],
+    "schemaChanged": false,
+    "runtimeEmittersChanged": false,
+    "newMechanicsOrTemplates": false,
+    "guide": "app/docs/COMPATIBILITY_STABILIZATION.md",
+    "checklist": "app/docs/COMPATIBILITY_STABILIZATION_CHECKLIST.txt"
   }
 }

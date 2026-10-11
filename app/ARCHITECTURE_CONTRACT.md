@@ -1,3 +1,15 @@
+# D063 — Compatibility stabilization boundaries
+
+Current checkpoint: alpha.11 / compatibility-stabilization-1. Existing ownership below remains in force. RecipeIdentity owns an explicit versioned metadata migration bridge, not a second project schema or weakened v1 hash. It verifies exact original identity, deterministic legacy output and foundation-only equivalence before current recipe reissue. Known-version migration is separate from exact raw recipe replay.
+
+Forge165.config owns the shared immutable physics limits and accepts an explicit project for reference validation; WorldConfig and movement authoring consume those bounds. ProjectStore owns validated synchronous settings transactions and Undo rollback. UI owns capture/confirmation/stale-option presentation, without reaching into undo stacks or writing the live settings directly.
+
+BuildGraph/RuntimeCompiler provide explicit detached generated-project input; legacy codecs accept that source explicitly where required. The live default paths and runtime emitter algorithms remain unchanged. Detached preflight cannot capture, swap, commit or publish live state; both generated backends compile fully before Movement Rules Apply. Custom assembly is excluded from this detached contract.
+
+Every feature milestone must declare saved-format compatibility, service ownership and retained workflow evidence. Historical contracts below are preserved; D063 supersedes only the named current integration boundaries.
+
+---
+
 # Architecture contract — 2.0 Alpha continuation and preserved boundaries
 
 

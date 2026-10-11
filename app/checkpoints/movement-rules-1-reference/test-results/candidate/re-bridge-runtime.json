@@ -1,0 +1,350 @@
+{
+  "suite": "re-bridge-runtime",
+  "html": "NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "cb216a470954ac8898dcb410eadf1de0eb267287b88c4e757bec3a80284946f1",
+  "scope": "Independent authored source ROM versus recovered canonical project and rebuilt actual 6502 CPU/PPU/APU execution; collision, CHR and tracker edits; ProjectStore JSON round trip. Mock DOM, not browser or hardware acceptance.",
+  "passed": 9,
+  "failed": 0,
+  "total": 9,
+  "metrics": {
+    "sourceRomSha256": "03e4038e323931b5028298682e0ec0c464101ebf542175e25351a4c02eb334e6",
+    "limitations": [
+      "Mock DOM: no browser interaction, native dialogs, audible output, mobile latency or physical hardware acceptance.",
+      "Rebuilt runtime uses Forge sideview physics including jump and attack states. Original engine has horizontal movement only; whole-engine equivalence is not claimed."
+    ],
+    "originalBoot": {
+      "x": 40,
+      "y": 208,
+      "apu": [
+        188,
+        8,
+        171,
+        9
+      ],
+      "missed": 0,
+      "framebufferSha256": "bc7b24991c41600b9f0b24e903be005902662380582b93ceb42bc0126c056269"
+    },
+    "originalMovement": {
+      "start": {
+        "x": 40,
+        "y": 208,
+        "apu": [
+          188,
+          8,
+          171,
+          9
+        ],
+        "missed": 0
+      },
+      "blocked": {
+        "x": 188,
+        "y": 208,
+        "apu": [
+          188,
+          8,
+          171,
+          9
+        ],
+        "missed": 0
+      },
+      "afterLeft": {
+        "x": 148,
+        "y": 208,
+        "apu": [
+          188,
+          8,
+          253,
+          8
+        ],
+        "missed": 0
+      }
+    },
+    "recovery": {
+      "cells": 960,
+      "backgroundTiles": 256,
+      "spriteTiles": 256,
+      "musicRows": 16,
+      "sfxRecovered": 0,
+      "projectSha256": "72fd73b85b2727def5041ddb02d22a16f62c1819f6b3da1644777981746e6379"
+    },
+    "rebuiltBoot": {
+      "x": 40,
+      "y": 208,
+      "apu": [
+        188,
+        0,
+        171,
+        249
+      ],
+      "missed": 0,
+      "framebufferSha256": "bc7b24991c41600b9f0b24e903be005902662380582b93ceb42bc0126c056269",
+      "romSha256": "6dedaddb055e42f2e2cf3d1d77742ffbf19bb6533ef813dd2886d7e365ca069c"
+    },
+    "rebuiltMovement": {
+      "start": {
+        "x": 40,
+        "y": 208,
+        "apu": [
+          188,
+          0,
+          171,
+          249
+        ],
+        "missed": 0
+      },
+      "blocked": {
+        "x": 188,
+        "y": 208,
+        "apu": [
+          188,
+          0,
+          171,
+          249
+        ],
+        "missed": 0
+      },
+      "afterLeft": {
+        "x": 148,
+        "y": 208,
+        "apu": [
+          188,
+          0,
+          28,
+          249
+        ],
+        "missed": 0
+      }
+    },
+    "musicSequences": {
+      "original": [
+        {
+          "frame": 0,
+          "timer": 427
+        },
+        {
+          "frame": 8,
+          "timer": 338
+        },
+        {
+          "frame": 20,
+          "timer": 284
+        },
+        {
+          "frame": 32,
+          "timer": 213
+        },
+        {
+          "frame": 44,
+          "timer": 225
+        },
+        {
+          "frame": 56,
+          "timer": 284
+        },
+        {
+          "frame": 68,
+          "timer": 338
+        },
+        {
+          "frame": 80,
+          "timer": 380
+        },
+        {
+          "frame": 92,
+          "timer": 427
+        },
+        {
+          "frame": 104,
+          "timer": 338
+        },
+        {
+          "frame": 116,
+          "timer": 284
+        },
+        {
+          "frame": 128,
+          "timer": 253
+        },
+        {
+          "frame": 140,
+          "timer": 284
+        },
+        {
+          "frame": 152,
+          "timer": 338
+        },
+        {
+          "frame": 164,
+          "timer": 380
+        },
+        {
+          "frame": 176,
+          "timer": 427
+        }
+      ],
+      "rebuilt": [
+        {
+          "frame": 0,
+          "timer": 427
+        },
+        {
+          "frame": 9,
+          "timer": 338
+        },
+        {
+          "frame": 21,
+          "timer": 284
+        },
+        {
+          "frame": 33,
+          "timer": 213
+        },
+        {
+          "frame": 45,
+          "timer": 225
+        },
+        {
+          "frame": 57,
+          "timer": 284
+        },
+        {
+          "frame": 69,
+          "timer": 338
+        },
+        {
+          "frame": 81,
+          "timer": 380
+        },
+        {
+          "frame": 93,
+          "timer": 427
+        },
+        {
+          "frame": 105,
+          "timer": 338
+        },
+        {
+          "frame": 117,
+          "timer": 284
+        },
+        {
+          "frame": 129,
+          "timer": 253
+        },
+        {
+          "frame": 141,
+          "timer": 284
+        },
+        {
+          "frame": 153,
+          "timer": 338
+        },
+        {
+          "frame": 165,
+          "timer": 380
+        },
+        {
+          "frame": 177,
+          "timer": 427
+        }
+      ]
+    },
+    "collisionEdit": {
+      "x": 240,
+      "y": 208,
+      "apu": [
+        188,
+        0,
+        171,
+        249
+      ],
+      "missed": 0,
+      "romSha256": "09b2959c59fa377b02d502c472779852d51bc9999323f05b04c7f917cd6464e9",
+      "framebufferSha256": "396bf8630830acd95e66c94b16b88d2c3a5dfff4dc664f8563c009253612df2e"
+    },
+    "chrEdit": {
+      "tile": 3,
+      "sourcePixel": {
+        "x": 192,
+        "y": 128
+      },
+      "before": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "after": [
+        212,
+        136,
+        32,
+        255
+      ],
+      "romSha256": "592ce53642c0202c2c9be1be2e70de14235b0c0a0e7a9a821c21700b3a16ff94",
+      "framebufferSha256": "89a693c46e09b55a41bff09bf63ef78ba92d21b64c8a4ed6b6a58215e3408f54"
+    },
+    "musicEdit": {
+      "beforeTimer": 427,
+      "afterTimer": 213,
+      "apu": [
+        188,
+        0,
+        213,
+        248
+      ],
+      "romSha256": "ced59cebeab253b5c75e34c86a50cbf5b555ca0cf39cfa7deeba80517486a5d1"
+    },
+    "projectRoundTrip": {
+      "jsonSha256": "72fd73b85b2727def5041ddb02d22a16f62c1819f6b3da1644777981746e6379",
+      "romSha256": "6dedaddb055e42f2e2cf3d1d77742ffbf19bb6533ef813dd2886d7e365ca069c",
+      "jsonBytes": 217862
+    }
+  },
+  "results": [
+    {
+      "name": "Independent source ROM is metadata-free and executes its native collision and pulse music",
+      "passed": true,
+      "milliseconds": 5673
+    },
+    {
+      "name": "ROM recovery materializes every authored collision cell, graphic tile, palette and music row",
+      "passed": true,
+      "milliseconds": 683
+    },
+    {
+      "name": "Imported project rebuilds and its displayed scene pixels equal the original completed frame",
+      "passed": true,
+      "milliseconds": 881
+    },
+    {
+      "name": "Rebuilt 6502 engine honors recovered wall, floor and matching left/right movement",
+      "passed": true,
+      "milliseconds": 6701
+    },
+    {
+      "name": "Original and rebuilt programs emit the complete authored pulse-note sequence through the APU",
+      "passed": true,
+      "milliseconds": 16525
+    },
+    {
+      "name": "Canonical wall-collision edit changes emitted collision and lets actual 6502 player cross the wall",
+      "passed": true,
+      "milliseconds": 5399
+    },
+    {
+      "name": "Canonical CHR pixel edit reaches rebuilt pattern bytes and the displayed 6502 framebuffer",
+      "passed": true,
+      "milliseconds": 780
+    },
+    {
+      "name": "Canonical tracker-note edit changes the actual APU timer from C4 to C5",
+      "passed": true,
+      "milliseconds": 776
+    },
+    {
+      "name": "Authoritative ProjectStore JSON save/reload preserves canonical recovery and deterministic rebuilt bytes",
+      "passed": true,
+      "milliseconds": 586
+    }
+  ]
+}

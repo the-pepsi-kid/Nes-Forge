@@ -1,3 +1,17 @@
+# NES Forge — Compatibility Stabilization
+
+Open `mainline/NES_Forge_2.0.0-alpha.11.html`. Current candidate: **2.0.0-alpha.11 / compatibility-stabilization-1**, schema 12. This checkpoint repairs compatibility and shared-service integration before further feature expansion. It is not a promoted release.
+
+The movement presets and existing Seeded mashup workflow remain. Historical alpha.10 recipes receive explicit, exact-source-verified foundation migration in the current UI. Movement settings share the existing configuration limits/validators and apply through ProjectStore. Both generated World and single-room movement previews compile the full detached ROM, including capacity validation, before application.
+
+See `docs/COMPATIBILITY_STABILIZATION.md` for the contract and review steps, and `ROADMAP.md` for the reordered milestone. Current evidence belongs to the fresh Summary and compatibility-stabilization clean-extraction proof. Browser/mobile/listening/controller/hardware acceptance remains separate; the full roadmap is unfinished.
+
+## Preserved Movement Rules guide
+
+The following original overview remains a description of the parent; current compatibility behavior and evidence above supersede its limitations.
+
+---
+
 # NES Forge — Movement Rules
 
 Open `mainline/NES_Forge_2.0.0-alpha.11.html`. This is **2.0.0-alpha.11 / movement-rules-1**, schema 12, a review candidate under the owner's continuing implementation direction. The complete roadmap remains unfinished; this candidate is not promoted.
