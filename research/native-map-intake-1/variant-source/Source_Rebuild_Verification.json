@@ -1,0 +1,41 @@
+{
+  "format": "NESForgeIndependentVariantSourceRebuild",
+  "version": 1,
+  "description": "Plainly marked research alteration of original DABG LevelFinal: replace one horizontal solid run with an empty run. Not an original upstream release.",
+  "sourceCommit": "5ecc60b6af3f726851bfeb1c2555388c5953e0c0",
+  "toolchainCommit": "555282497c3ecf8b313d87d5973093af19c35bd5",
+  "sourceModification": {
+    "path": "levels.s",
+    "line": 497,
+    "original": ".byt $e1, LVL_HSOLID+13",
+    "variant": ".byt $e1, LVL_HEMPTY+13",
+    "originalFileSha256": "0762190328c5f6ebd41ba0e421ee3380449247ccc88fa438c783f542bf1ba01e",
+    "variantFileSha256": "d59b12a1d190cf221d6c5be6ae7896f605f8e39edb3c834da2a7fb8d54bf739a",
+    "patch": "DABG_LevelFinal_Empty_Run_Research_Variant.patch",
+    "patchSha256": "b48a743bc00599acb6da2d81f9660566ee9148b6c44056acf8333a72912f4a98",
+    "otherSourceFilesUnchanged": true,
+    "retainedOriginalSource": "source/DABG/"
+  },
+  "commands": [
+    "ca65 dabg.s -o ../build/dabg.o -l ../build/dabg.lst -g",
+    "ld65 -C nrom256.x ../build/dabg.o -o ../build/dabg.nes -m ../build/dabg.map -Ln ../build/dabg.lbl --dbgfile ../build/dabg.dbg"
+  ],
+  "originalRomSha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+  "rebuiltRomSha256": "e0cbdef26a2fee483ac8daf74a66fd6fe4b6fae0907f69b398ef0da4750b09da",
+  "runtimeVariantSha256": "e0cbdef26a2fee483ac8daf74a66fd6fe4b6fae0907f69b398ef0da4750b09da",
+  "romByteLength": 32784,
+  "exactRuntimeVariantMatch": true,
+  "onlyChangedRomBytes": [
+    {
+      "fileOffset": 16372,
+      "fileOffsetHex": "0x3ff4",
+      "originalValue": 45,
+      "variantValue": 61
+    }
+  ],
+  "runtimeEvidence": "runtime/DABG_Native_Map_CPU_Verification.json",
+  "limitations": [
+    "Native upstream source rebuild evidence only; no NES Forge canonical project conversion or rebuild acceptance.",
+    "The original game source and original ROM remain unchanged; the patch and runtime variant are explicitly altered research artifacts."
+  ]
+}

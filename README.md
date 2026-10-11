@@ -1,3 +1,11 @@
+# NES Forge — A2 native map/collision input checkpoint
+
+Current development: a reproducible independent input and original-code evidence for the next map/collision adapter. Read `research/native-map-intake-1/README.md`, `planning/NATIVE_MAP_RECOVERY_CONTRACT.md` and the updated planning roadmap.
+
+The application remains the unchanged Native Background Recovery candidate described below. This checkpoint adds research and planning only; it does not add an editor map importer or claim A2 acceptance. All 4,880 application payload hashes and its exact file inventory have been verified unchanged.
+
+---
+
 # NES Forge — Native Background Recovery candidate
 
 **2.0.0-alpha.11 / native-background-1**, schema 12. Open `app/mainline/NES_Forge_2.0.0-alpha.11.html`.

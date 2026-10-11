@@ -1,0 +1,18 @@
+{
+  "format": "NESForgeResearchReview",
+  "version": 1,
+  "scope": "A2 input/native routine research; production application remains frozen",
+  "result": "passed",
+  "findings": [
+    "Independent source review confirms DecodeLevelMap writes LevelBuf, BlockIsSolid reads MetatileFlags bit 2, and original horizontal movement consults LevelBuf.",
+    "Independent verifier rerun matches map, write, predicate and movement evidence.",
+    "Original format prose discrepancy and native NES2 loader rejection are disclosed.",
+    "Framework contract revised to preserve existing metatile detachment and tile-property fallback, and to require explicit coordinate mapping, known collision coverage and authored adaptation disclosure.",
+    "A separate one-line original-source edit rebuilds the exact runtime research variant; original source and original ROM remain unchanged."
+  ],
+  "limits": [
+    "Direct CPU routine entry uses a controlled initial state; it is not full-game or frontend execution.",
+    "Structural discovery, CHR-RAM graphics recovery, production conversion/import and canonical rebuilt gameplay remain unimplemented.",
+    "No fresh full application gate; exact prior application bytes and reports remain preserved."
+  ]
+}

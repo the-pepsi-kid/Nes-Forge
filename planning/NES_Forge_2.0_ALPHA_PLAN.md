@@ -1,5 +1,30 @@
 # NES Forge — 2.0 Alpha Development Plan
 
+**Current revision: October 11, 2026 — A2 independent map/collision intake.**
+
+The application remains **2.0.0-alpha.11 / native-background-1**, schema **12**, not promoted. Its HTML SHA-256 is `4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11`. The prior measured result remains **1,617/1,617 cases across 78 suites**; it is retained evidence, not a new gate run. All 4,880 application payload hashes and the exact 4,881-file inventory were verified unchanged for this research checkpoint. Twelve browser runners remain blocked with zero checks.
+
+Compatibility stabilization and the bounded A1 two-format background workflow have been implemented since the historical Movement Rules preface below. Explicit recipe migration now exists; the old statement that alpha.10 replay has no migration is historical. A1 browser/owner acceptance and the broader roadmap remain open.
+
+## Current A2 work and sequence
+
+The next dependency is a source-backed collision format, not a graphics-derived guess. HonkeyPong uses immediate arena bounds and paddle comparisons rather than tile collision records. Pepsi does not establish collision semantics, and Bridge Room remains a purpose-built control.
+
+The selected independent input is **Double Action Blaster Guys**, upstream commit `5ecc60b6af3f726851bfeb1c2555388c5953e0c0`. The intake checkpoint preserves original sources and notices, a pinned offline build, the unmodified ROM, and original-machine-code evidence. Its NES 2.0 / CHR-RAM container, compact map commands, rendering transformations and separate full-solid/landing rules require explicit treatment. The actual loader governs interpretation when upstream format prose disagrees.
+
+1. **A2 input checkpoint:** reproduce the original source; document native records and collision behavior; verify a real solid/empty record edit; retain the exact application candidate. See `research/native-map-intake-1/README.md` and measured reports for the completed scope and limits.
+2. **Next A2 implementation:** add bounded structural discovery/decoding and a declared static solid/empty conversion through shared framework owners. Prove CHR-RAM graphics, coordinates and canonical collision before claiming scene import. Follow `planning/NATIVE_MAP_RECOVERY_CONTRACT.md`; no schema, template or collision-runtime expansion is needed for the initial supported subset.
+3. **A2 application gate and acceptance:** verify canonical useful edit, Undo/save/reopen and rebuilt movement; preserve all current cases; run the full gate on a clean extraction; record browser/owner evidence separately. These remain open. A research decoder or original-code check alone does not complete A2.
+4. Continue the retained Audio/fidelity/listening, source migration/gameplay, linker/runtime/raster/LiveLink/debugging and comprehensive manual requirements before integrated Hosted/network/wallet/deck milestones. Broad debugger expansion is not a newly invented prerequisite.
+
+The owner’s full-roadmap authorization and one-bounded-item-at-a-time direction remain in force. The research checkpoint does not add an editor recovery profile or claim universal recovery. Current application documentation describes the frozen last-built candidate; this planning preface controls the next development work.
+
+## Preserved planning history
+
+Earlier revisions below remain verbatim as dated history. Their candidate identities and next-work statements apply to those revisions only.
+
+---
+
 **Current revision:** October 10, 2026 UTC (October 9, America/Denver) — Movement Rules.
 **Active candidate:** **2.0.0-alpha.11 / movement-rules-1**, schema **12**, **not promoted**.
 **Measured alpha.11 gate:** **1,504/1,504 cases across 68 suites, zero failures**, from a verified clean extraction, 2026-10-10T04:58:25.497Z to 2026-10-10T05:19:47.055Z. All 65 alpha.10 suites / 1,430 cases retained; 74 new movement-rule cases.

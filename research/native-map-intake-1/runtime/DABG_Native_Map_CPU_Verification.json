@@ -1,0 +1,815 @@
+{
+  "format": "NESForgeIndependentNativeMapCPUResearch",
+  "version": 1,
+  "status": "passed",
+  "scope": "Research only. Original assembled DABG map decoder, block-solid predicate and isolated horizontal player movement range executed through the existing unmodified Forge CPU/bus. No frontend ROM load, full-game boot, browser, independent emulator, hardware, canonical project import or rebuilding acceptance.",
+  "source": {
+    "title": "Double Action Blaster Guys",
+    "rom": "../build/dabg.nes",
+    "sha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+    "byteLength": 32784,
+    "headerBytes": [
+      78,
+      69,
+      83,
+      26,
+      2,
+      0,
+      0,
+      8,
+      0,
+      0,
+      0,
+      7,
+      0,
+      0,
+      0,
+      0
+    ],
+    "format": "NES 2.0",
+    "mapper": 0,
+    "prgBytes": 32768,
+    "chrRomBytes": 0,
+    "chrRamBytes": 8192
+  },
+  "evidence": {
+    "labelsSha256": "69a73168c9489a733e3a6deebd1eead129022e46210fd2e2dedacc4dbc92ee7c",
+    "listingSha256": "630a854302bb3222d2625d5e513604fc60fcc8d5e9808ef422a41b4e12af3931",
+    "scriptSha256": "4967509ffab56974a176667a19efaf1609d684788d9037e44b63f4cd3267bd84",
+    "sourceFiles": [
+      {
+        "name": "levels.s",
+        "sha256": "0762190328c5f6ebd41ba0e421ee3380449247ccc88fa438c783f542bf1ba01e"
+      },
+      {
+        "name": "meta.s",
+        "sha256": "842c9693f31cd7b4ea308ba368dcc0c7e4e57de17b88a6da5de72a8313a20147"
+      },
+      {
+        "name": "player.s",
+        "sha256": "fda9fe4d78a308ff2f25e4fa44c5aacc75db1473e7040815c150df5104b4cd11"
+      },
+      {
+        "name": "memory.s",
+        "sha256": "28f185480f2dd2ad149d4e57d928ce5cfca8c13c281913d5d18f6b64f38bd242"
+      },
+      {
+        "name": "ns_nes.s",
+        "sha256": "7bb99cec6c524a5fe1aa759cebc520cf8176af96c8dbabd1a64c7380bdbedeff"
+      }
+    ]
+  },
+  "framework": {
+    "htmlSha256": "4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11",
+    "publicHeaderError": "NES 2.0 is not supported by this emulator. Use an iNES 1.0 dump.",
+    "originalHeaderPreserved": true,
+    "emulatorLoaded": false,
+    "opcodeMisses": 0
+  },
+  "harness": {
+    "ramInitialState": "All zero; models the caller GenerateLevel clearing its LevelBuf before invoking DecodeLevelMap.",
+    "prgMapping": "CPU $8000-$FFFF maps the unchanged 32768 PRG bytes after the original 16-byte header.",
+    "stack": "Harness pushes return address $5FFF so original RTS stops at $6000.",
+    "interrupts": "Disabled; no frame loop or PPU boot.",
+    "limitInstructionsPerMap": 50000,
+    "sourceFiles": [
+      "levels.s",
+      "meta.s",
+      "player.s",
+      "memory.s",
+      "ns_nes.s"
+    ],
+    "routines": {
+      "DecodeLevelMap": 49450,
+      "BlockIsSolid": 36969,
+      "movementStart": 34690,
+      "movementStop": 34785
+    }
+  },
+  "findings": {
+    "mapBuffer": {
+      "width": 16,
+      "height": 16,
+      "cellPixels": 16,
+      "address": 1792
+    },
+    "presentation": "The visible screen is 16 by 15 metatiles; native buffer row 15 remains represented as native data.",
+    "repeatLengths": "A low nibble n writes n+1 cells, including horizontal and vertical commands. Rectangle stored width/height nibbles also mean n+1.",
+    "rectangleType": "The subtype selects LevelData_MetaList directly. $D4 is solid and $D0 is empty; levelformat.txt describes this incorrectly.",
+    "collision": "MetatileFlags bit 2 is the full-solid predicate used for horizontal movement. Separate top-landing/platform and interactive-block semantics remain outside this predicate.",
+    "decodingScope": "Static command output before PrettyLevel. GenerateLevel subsequently calls PreLevelScreen, PrettyLevel and RenderLevelBuf. PrettyLevel adds random clouds and alters grass/platform presentation, so raw map IDs are not a final rendered screenshot."
+  },
+  "mapResults": [
+    {
+      "name": "LevelBowl",
+      "cpuAddress": 48741,
+      "fileOffset": 15989,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 29,
+      "commandCount": 13,
+      "writeCount": 132,
+      "decodedSha256": "d5e33dbd61ecd8f950d5de206ca481d0335bd02b992f37d960c66f76e5e938e4",
+      "solidCount": 36,
+      "spawn": {
+        "x": 7,
+        "y": 13
+      },
+      "instructions": 1038,
+      "passed": true
+    },
+    {
+      "name": "LevelSimple1",
+      "cpuAddress": 48770,
+      "fileOffset": 16018,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 27,
+      "commandCount": 12,
+      "writeCount": 36,
+      "decodedSha256": "b759d5ae7d3868b3302450f7d5aa7b08d444c0fe079f12b3047705efdefa8037",
+      "solidCount": 25,
+      "spawn": {
+        "x": 3,
+        "y": 10
+      },
+      "instructions": 622,
+      "passed": true
+    },
+    {
+      "name": "LevelSimple2",
+      "cpuAddress": 48797,
+      "fileOffset": 16045,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 28,
+      "commandCount": 13,
+      "writeCount": 41,
+      "decodedSha256": "43a62f6f175b211135b6002525fce9df826d531cdd569ecc19cb938acd1c56e8",
+      "solidCount": 19,
+      "spawn": {
+        "x": 2,
+        "y": 13
+      },
+      "instructions": 690,
+      "passed": true
+    },
+    {
+      "name": "LevelManyPlatforms1",
+      "cpuAddress": 48825,
+      "fileOffset": 16073,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 40,
+      "commandCount": 19,
+      "writeCount": 50,
+      "decodedSha256": "d7cfd82392e5015d3dc8d1b3f08c7bf8056ce43b1624d9bd2f62fb3b5825646c",
+      "solidCount": 14,
+      "spawn": {
+        "x": 2,
+        "y": 9
+      },
+      "instructions": 889,
+      "passed": true
+    },
+    {
+      "name": "LevelManyPlatforms2",
+      "cpuAddress": 48865,
+      "fileOffset": 16113,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 48,
+      "commandCount": 22,
+      "writeCount": 58,
+      "decodedSha256": "e8f8532ed82258ee3adf75ffccaefa7029ce96103864792717e5c1bbf665813c",
+      "solidCount": 15,
+      "spawn": {
+        "x": 2,
+        "y": 13
+      },
+      "instructions": 1105,
+      "passed": true
+    },
+    {
+      "name": "LevelStairs1",
+      "cpuAddress": 48913,
+      "fileOffset": 16161,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 32,
+      "commandCount": 15,
+      "writeCount": 31,
+      "decodedSha256": "150f8ecb3c266e17fabe981cc4d706dcc4fca996ad72e883599febdb02db527c",
+      "solidCount": 9,
+      "spawn": {
+        "x": 4,
+        "y": 13
+      },
+      "instructions": 669,
+      "passed": true
+    },
+    {
+      "name": "LevelMoney1",
+      "cpuAddress": 48945,
+      "fileOffset": 16193,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 56,
+      "commandCount": 24,
+      "writeCount": 129,
+      "decodedSha256": "5442fb0e827f691bc3948f1d2f5cc1f9103d2d5bf23101d158e3cd93ecb8f2a8",
+      "solidCount": 6,
+      "spawn": {
+        "x": 4,
+        "y": 11
+      },
+      "instructions": 1660,
+      "passed": true
+    },
+    {
+      "name": "LevelDollarSign",
+      "cpuAddress": 49001,
+      "fileOffset": 16249,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 19,
+      "commandCount": 7,
+      "writeCount": 55,
+      "decodedSha256": "c24f1f502958b8dfaa6d053609d2203552d34fdeccb50ead08650aa49dd9c141",
+      "solidCount": 11,
+      "spawn": {
+        "x": 4,
+        "y": 8
+      },
+      "instructions": 700,
+      "passed": true
+    },
+    {
+      "name": "LevelNarrow1",
+      "cpuAddress": 49020,
+      "fileOffset": 16268,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 19,
+      "commandCount": 7,
+      "writeCount": 121,
+      "decodedSha256": "7669f35329e1d68701a3086a986fd54d2fc6e9298118ff3c4514558313cddb47",
+      "solidCount": 113,
+      "spawn": {
+        "x": 4,
+        "y": 12
+      },
+      "instructions": 976,
+      "passed": true
+    },
+    {
+      "name": "LevelSShape",
+      "cpuAddress": 49039,
+      "fileOffset": 16287,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 19,
+      "commandCount": 8,
+      "writeCount": 50,
+      "decodedSha256": "372742644d7a49cf9cef195697b8124eb310b742ccc2047bddcc79976e00f152",
+      "solidCount": 35,
+      "spawn": {
+        "x": 3,
+        "y": 13
+      },
+      "instructions": 601,
+      "passed": true
+    },
+    {
+      "name": "LevelTriangle",
+      "cpuAddress": 49058,
+      "fileOffset": 16306,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 65,
+      "commandCount": 28,
+      "writeCount": 106,
+      "decodedSha256": "4cd01029871a4eac7a9630c6d8a00d099f4cd72562cbf96e30d2b983aee55a9a",
+      "solidCount": 50,
+      "spawn": {
+        "x": 3,
+        "y": 13
+      },
+      "instructions": 1792,
+      "passed": true
+    },
+    {
+      "name": "LevelFinal",
+      "cpuAddress": 49123,
+      "fileOffset": 16371,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 4,
+      "commandCount": 1,
+      "writeCount": 14,
+      "decodedSha256": "61008c47f6fda26c0008a7388999b9e38cacff9ea4331002d2760325e317be2f",
+      "solidCount": 14,
+      "spawn": {
+        "x": 4,
+        "y": 13
+      },
+      "instructions": 117,
+      "passed": true
+    },
+    {
+      "name": "LevelScrolling1",
+      "cpuAddress": 49127,
+      "fileOffset": 16375,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 20,
+      "commandCount": 9,
+      "writeCount": 34,
+      "decodedSha256": "f087b78534c4506974620c0d68de022426019accd0e3977903a6e4dd58b1c92b",
+      "solidCount": 24,
+      "spawn": {
+        "x": 4,
+        "y": 11
+      },
+      "instructions": 469,
+      "passed": true
+    },
+    {
+      "name": "LevelScrolling2",
+      "cpuAddress": 49147,
+      "fileOffset": 16395,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 20,
+      "commandCount": 8,
+      "writeCount": 79,
+      "decodedSha256": "c5ec33c25d75d96f9827d8e2827ca7f097855c31a73e34aa34dc1f1f3afcb8e7",
+      "solidCount": 63,
+      "spawn": {
+        "x": 12,
+        "y": 7
+      },
+      "instructions": 882,
+      "passed": true
+    },
+    {
+      "name": "LevelTPSpikes",
+      "cpuAddress": 49167,
+      "fileOffset": 16415,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 26,
+      "commandCount": 11,
+      "writeCount": 42,
+      "decodedSha256": "8286fdd34cee4393d689249c3635225855d60ebbfe1d284b4f067cceaa01ef69",
+      "solidCount": 24,
+      "spawn": {
+        "x": 8,
+        "y": 10
+      },
+      "instructions": 646,
+      "passed": true
+    },
+    {
+      "name": "LevelX",
+      "cpuAddress": 49193,
+      "fileOffset": 16441,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 26,
+      "commandCount": 8,
+      "writeCount": 72,
+      "decodedSha256": "456d4f5d5b2949c6d8495e99fa894c0dd69d8704bffd9f9440d24869ec904232",
+      "solidCount": 36,
+      "spawn": {
+        "x": 3,
+        "y": 11
+      },
+      "instructions": 911,
+      "passed": true
+    },
+    {
+      "name": "LevelTPIslands",
+      "cpuAddress": 49219,
+      "fileOffset": 16467,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 24,
+      "commandCount": 10,
+      "writeCount": 37,
+      "decodedSha256": "7defa4170d35f9b3a07dac87a0244558334d760ac52f2f56c0cc6dcc5f3ff733",
+      "solidCount": 32,
+      "spawn": {
+        "x": 4,
+        "y": 13
+      },
+      "instructions": 638,
+      "passed": true
+    },
+    {
+      "name": "LevelSpringsCycle",
+      "cpuAddress": 49243,
+      "fileOffset": 16491,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 26,
+      "commandCount": 10,
+      "writeCount": 62,
+      "decodedSha256": "56588d6b8ae86dce40b823a17d9e161c7443a79e980b328cef5b64842b8b9ce0",
+      "solidCount": 32,
+      "spawn": {
+        "x": 3,
+        "y": 11
+      },
+      "instructions": 749,
+      "passed": true
+    },
+    {
+      "name": "LevelZJ",
+      "cpuAddress": 49269,
+      "fileOffset": 16517,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 26,
+      "commandCount": 11,
+      "writeCount": 60,
+      "decodedSha256": "ec299d49f871bb3fc09d568a3fbb1cdf78171276f636ac80b3283a9188335a71",
+      "solidCount": 36,
+      "spawn": {
+        "x": 3,
+        "y": 13
+      },
+      "instructions": 789,
+      "passed": true
+    },
+    {
+      "name": "LevelFlipMirror",
+      "cpuAddress": 49295,
+      "fileOffset": 16543,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 24,
+      "commandCount": 10,
+      "writeCount": 44,
+      "decodedSha256": "86a38573c1e03a45d8619b0673b960d18e2d21e54f939256305e79b75dea1ae1",
+      "solidCount": 13,
+      "spawn": {
+        "x": 4,
+        "y": 13
+      },
+      "instructions": 637,
+      "passed": true
+    },
+    {
+      "name": "LevelExplode",
+      "cpuAddress": 49319,
+      "fileOffset": 16567,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 30,
+      "commandCount": 12,
+      "writeCount": 47,
+      "decodedSha256": "3e62d6ab9f1e4625d67a394ebedca51327711a90fe03d0ed76aa52783aa80e0b",
+      "solidCount": 32,
+      "spawn": {
+        "x": 2,
+        "y": 12
+      },
+      "instructions": 739,
+      "passed": true
+    },
+    {
+      "name": "LevelSimple3",
+      "cpuAddress": 49349,
+      "fileOffset": 16597,
+      "referencedByLevelTable": true,
+      "encodedByteLength": 26,
+      "commandCount": 12,
+      "writeCount": 38,
+      "decodedSha256": "e66ec4a30794bca4cfde80583ef937d2e0f185bc146fabc507465a0c50b7fd0c",
+      "solidCount": 24,
+      "spawn": {
+        "x": 4,
+        "y": 13
+      },
+      "instructions": 670,
+      "passed": true
+    },
+    {
+      "name": "LevelBowlSwitch",
+      "cpuAddress": 49375,
+      "fileOffset": 16623,
+      "referencedByLevelTable": false,
+      "encodedByteLength": 20,
+      "commandCount": 9,
+      "writeCount": 42,
+      "decodedSha256": "28d86d6be02733b0a2b95f7aeae44bdde6240893db63e3db4c3fe78cc82baff1",
+      "solidCount": 28,
+      "spawn": {
+        "x": 4,
+        "y": 13
+      },
+      "instructions": 597,
+      "passed": true
+    },
+    {
+      "name": "LevelTwoHills",
+      "cpuAddress": 49395,
+      "fileOffset": 16643,
+      "referencedByLevelTable": false,
+      "encodedByteLength": 23,
+      "commandCount": 9,
+      "writeCount": 48,
+      "decodedSha256": "dc1c7967549d48a48a03b2249697ab5d5482d4754eb6dae0357b56d87c8fef7e",
+      "solidCount": 33,
+      "spawn": {
+        "x": 4,
+        "y": 13
+      },
+      "instructions": 642,
+      "passed": true
+    },
+    {
+      "name": "LevelManyPlatforms3",
+      "cpuAddress": 49418,
+      "fileOffset": 16666,
+      "referencedByLevelTable": false,
+      "encodedByteLength": 32,
+      "commandCount": 14,
+      "writeCount": 79,
+      "decodedSha256": "f98d8d8fac7eaaf47ed1879d2899c7a48a1b20a799ef6289d1305b0bc00849dc",
+      "solidCount": 10,
+      "spawn": {
+        "x": 8,
+        "y": 12
+      },
+      "instructions": 905,
+      "passed": true
+    }
+  ],
+  "predicateResults": [
+    {
+      "tile": 0,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 1,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 2,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 3,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 4,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 5,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 6,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 7,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 8,
+      "nativeFlags": 1,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 9,
+      "nativeFlags": 1,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 10,
+      "nativeFlags": 2,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 11,
+      "nativeFlags": 2,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 12,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 13,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 14,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 15,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 16,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 17,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 18,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 19,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 20,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 21,
+      "nativeFlags": 4,
+      "solid": true,
+      "passed": true
+    },
+    {
+      "tile": 22,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 23,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 24,
+      "nativeFlags": 0,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 25,
+      "nativeFlags": 4,
+      "solid": true,
+      "passed": true
+    },
+    {
+      "tile": 26,
+      "nativeFlags": 6,
+      "solid": true,
+      "passed": true
+    },
+    {
+      "tile": 27,
+      "nativeFlags": 2,
+      "solid": false,
+      "passed": true
+    },
+    {
+      "tile": 28,
+      "nativeFlags": 5,
+      "solid": true,
+      "passed": true
+    },
+    {
+      "tile": 29,
+      "nativeFlags": 5,
+      "solid": true,
+      "passed": true
+    },
+    {
+      "tile": 30,
+      "nativeFlags": 5,
+      "solid": true,
+      "passed": true
+    },
+    {
+      "tile": 31,
+      "nativeFlags": 5,
+      "solid": true,
+      "passed": true
+    },
+    {
+      "tile": 32,
+      "nativeFlags": 5,
+      "solid": true,
+      "passed": true
+    },
+    {
+      "tile": 33,
+      "nativeFlags": 5,
+      "solid": true,
+      "passed": true
+    },
+    {
+      "tile": 34,
+      "nativeFlags": 5,
+      "solid": true,
+      "passed": true
+    },
+    {
+      "tile": 35,
+      "nativeFlags": 5,
+      "solid": true,
+      "passed": true
+    }
+  ],
+  "nativeEdit": {
+    "originalSha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+    "variant": "DABG_LevelFinal_Empty_Run_Research_Variant.nes",
+    "variantSha256": "e0cbdef26a2fee483ac8daf74a66fd6fe4b6fae0907f69b398ef0da4750b09da",
+    "byteEdits": [
+      {
+        "fileOffset": 16372,
+        "from": 45,
+        "to": 61,
+        "meaning": "Horizontal solid run of 14 cells becomes horizontal empty run of the same length."
+      }
+    ],
+    "changedCells": [
+      225,
+      226,
+      227,
+      228,
+      229,
+      230,
+      231,
+      232,
+      233,
+      234,
+      235,
+      236,
+      237,
+      238
+    ],
+    "spawnBefore": {
+      "x": 4,
+      "y": 13
+    },
+    "spawnAfter": {
+      "x": 4,
+      "y": 13
+    },
+    "originalMovement": {
+      "startingX": 8,
+      "endingX": 8,
+      "y": 216,
+      "probeCell": 225,
+      "probeTile": 21,
+      "solid": true,
+      "instructions": 31
+    },
+    "editedMovement": {
+      "startingX": 8,
+      "endingX": 10,
+      "y": 216,
+      "probeCell": 225,
+      "probeTile": 0,
+      "solid": false,
+      "instructions": 37
+    },
+    "passed": true
+  },
+  "totals": {
+    "originalMaps": 25,
+    "referencedUniqueMaps": 22,
+    "levelConfigurationRecords": 52,
+    "mappedLevelConfigurationRecords": 39,
+    "originalMapCellsCompared": 6400,
+    "originalOrderedWritesCompared": 1507,
+    "metatilePredicates": 36,
+    "editedMaps": 1,
+    "movementCases": 2,
+    "failed": 0
+  }
+}
