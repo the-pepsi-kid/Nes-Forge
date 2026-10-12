@@ -13,6 +13,10 @@ const routes=Object.freeze({
   {id:'transcription',label:'Open AUDIO transcription tools',target:'reNativeAudioImportPanel',focus:'reNativeAudioImportPanel'}
  ]
 });
+function methodRoutes(method){
+ const known=routes[method?.id];if(known)return known;
+ return method?.sceneConversion==='map'&&method.operations?.convert?[{id:'native-map',label:'Open native map and collision recovery',target:'reNativeBackgroundPanel',focus:'reNativeMapFind',methodId:method.id}]:[];
+}
 const make=(tag,id,text)=>{const el=document.createElement(tag);if(id)el.id=id;if(text!==undefined)el.textContent=text;return el;};
 function message(text,error=false){if(c){c.status.textContent=text;c.status.style.color=error?'var(--err, #ff9898)':'var(--dim)';}}
 function capture(){
@@ -52,7 +56,7 @@ function render(item){
   const evidence=found.evidence||[];appendLines(article,'Recognition evidence:',evidence.map(e=>(e.status?e.status+' · ':'')+(e.claim||e.reason||JSON.stringify(e))));
   if(found.status==='supported'){
    const actions=make('div');actions.className='re-analysis-actions';
-   for(const path of routes[method.id]||[]){const button=make('button','recoveryMethodsRoute-'+path.id,path.label);button.type='button';button.addEventListener('click',()=>route(method.id,path.id));actions.appendChild(button);c.routes.push(button);}
+   for(const path of methodRoutes(method)){const button=make('button','recoveryMethodsRoute-'+path.id,path.label);button.type='button';button.addEventListener('click',()=>route(method.id,path.id));actions.appendChild(button);c.routes.push(button);}
    if(actions.children.length)article.appendChild(actions);
   }
   c.results.appendChild(article);
@@ -78,14 +82,14 @@ function route(methodId,routeId){
  try{
   if(busy)throw Error('Wait for discovery to finish.');
   if(!staged||!matches(staged)){cancel(false);throw Error('Discovery results no longer match the selected source. Discover recovery methods again.');}
-  const found=staged.result.results.find(item=>item.method.id===methodId),path=routes[methodId]?.find(item=>item.id===routeId);
+  const found=staged.result.results.find(item=>item.method.id===methodId),path=methodRoutes(found?.method).find(item=>item.id===routeId);
   if(found?.status!=='supported'||!path)throw Error('This recovery route is not supported by the current discovery result.');
   const target=document.getElementById(path.target),focus=document.getElementById(path.focus);if(!target||!focus)throw Error('The recovery tools are unavailable in this build.');
-  if(path.methodId&&!services.RENativeBackgroundUI?.selectMethod(path.methodId))throw Error('The background recovery method is unavailable in this build.');
+  if(path.methodId&&!services.RENativeSceneUI?.selectMethod(path.methodId))throw Error('The scene recovery method is unavailable in this build.');
   services.REAnalysisUI.showWorkspace(true);if(path.details){const details=document.getElementById(path.details);if(!details)throw Error('The recovery tools are unavailable in this build.');details.open=true;}
   target.tabIndex=-1;target.scrollIntoView?.({block:'start',behavior:'auto'});focus.focus?.();nativeNotice();
   const native=services.RENativeAudioUI?.getState();
-  message(path.methodId?'Native background recovery opened. Choose Preview background and review its evidence, construction and unknowns before explicitly importing a static scene. Discovery has not converted or imported it.':path.id==='chr'?'Tile recovery tools opened. Choose Preview native tile import, inspect the result, then explicitly import it.':path.id==='transcription'?(native?.hasSession&&native.sourceCurrent?'Transcription tools opened for the existing native ROM copy. Choose its subsong above, then Preview import to AUDIO; conversion may still be refused.':'Transcription tools opened. First use Analyze current ROM in Native Audio and choose a subsong, then Preview import to AUDIO. Discovery has not checked conversion readiness.'):'Native Audio tools opened. An existing edited copy is preserved. Analyze current ROM starts a new native session from the original opened file; export any edits you want to keep first.');
+  message(path.methodId?(found.method.sceneConversion==='map'?'Native map and collision recovery opened. Choose Find maps, select a supported region, then Preview map and review its evidence and conversion differences. Discovery has not converted or imported it.':'Native background recovery opened. Choose Preview background and review its evidence, construction and unknowns before explicitly importing a static scene. Discovery has not converted or imported it.'):path.id==='chr'?'Tile recovery tools opened. Choose Preview native tile import, inspect the result, then explicitly import it.':path.id==='transcription'?(native?.hasSession&&native.sourceCurrent?'Transcription tools opened for the existing native ROM copy. Choose its subsong above, then Preview import to AUDIO; conversion may still be refused.':'Transcription tools opened. First use Analyze current ROM in Native Audio and choose a subsong, then Preview import to AUDIO. Discovery has not checked conversion readiness.'):'Native Audio tools opened. An existing edited copy is preserved. Analyze current ROM starts a new native session from the original opened file; export any edits you want to keep first.');
   return true;
  }catch(error){message(error.message||String(error),true);return false;}
 }

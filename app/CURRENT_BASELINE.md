@@ -1,3 +1,17 @@
+# Current review candidate — Native Map Recovery
+
+Release **2.0.0-alpha.11**, candidate **native-map-1**, schema **12**. Application: `mainline/NES_Forge_2.0.0-alpha.11.html`. This continuation is being implemented and verified; a planned gate is not a pass.
+
+Behavioral parent: native-background-1 at source commit `6cde192eee757e677376c319045944e17c3395fa`; HTML SHA-256 `4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11`; 1,617/1,617 cases across 78 suites. Preserve `baseline/NES_Forge_2.0.0-alpha.11_Native_Background.html`, `docs/history/native-background-1/` and `checkpoints/native-background-1-reference/`.
+
+Scope: source-backed native command-map and CHR-RAM graphics interpretation; explicit static Empty/Solid conversion; shared native-scene preview/import; separate generated single-room adaptation. The existing project schema, runtime emitters, recipe identities and five-template scope remain unchanged. Native decoration, procedural maps, special tile semantics, actors, music, scrolling and original gameplay are outside this conversion.
+
+Current identity and measured results require agreement between `build-inputs.json`, the fresh `test-results/candidate/Summary.json` and `checkpoints/native-map-1-clean-extraction/Reproduction.json`. All 78 parent suites and six additional declared suites must run against one unchanged clean extraction. Source-intake proof and A1 results do not certify the changed editor. Browser/device/listening and owner acceptance remain separate.
+
+## Preserved previous record
+
+---
+
 # Current review candidate — Native Background Recovery
 
 Release **2.0.0-alpha.11**, candidate **native-background-1**, schema **12**. Application: `mainline/NES_Forge_2.0.0-alpha.11.html`.

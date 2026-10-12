@@ -1,7 +1,7 @@
 {
   "suite": "gameplay-graph192",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11",
+  "htmlSha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
   "scope": "Canonical state graph controls, undo/redo, native persistence, reference navigation, diagnostics, priority order, template Behavior duplication and emitted 6502 input transition. Mock DOM evidence; browser and physical-device checks remain separate.",
   "passed": 12,
   "failed": 0,
@@ -10,62 +10,62 @@
     {
       "name": "Graph is reachable within Gameplay Core and selections never mutate canonical source or history",
       "passed": true,
-      "milliseconds": 614
+      "milliseconds": 611
     },
     {
       "name": "Actual graph controls add a state and typed transition into the existing canonical tables, with single-edit undo and redo",
       "passed": true,
-      "milliseconds": 1094
+      "milliseconds": 1004
     },
     {
       "name": "The graph refreshes when table authoring and project Undo change the same source",
       "passed": true,
-      "milliseconds": 672
+      "milliseconds": 667
     },
     {
       "name": "Invalid transition edits are rejected atomically; connected and initial states cannot be silently removed",
       "passed": true,
-      "milliseconds": 778
+      "milliseconds": 820
     },
     {
       "name": "Deleting a transition then an unreferenced state is explicit and undo restores their exact records",
       "passed": true,
-      "milliseconds": 1111
+      "milliseconds": 1184
     },
     {
       "name": "Ordered action controls edit typed operands, reorder the actual table, and preserve precise compiler diagnostics",
       "passed": true,
-      "milliseconds": 842
+      "milliseconds": 847
     },
     {
       "name": "Priority ties use actual transition table order and diagnostics identify unconditional shadowing",
       "passed": true,
-      "milliseconds": 688
+      "milliseconds": 687
     },
     {
       "name": "Structural reachability is a warning with exact navigable source, and graph references navigate endpoints",
       "passed": true,
-      "milliseconds": 835
+      "milliseconds": 807
     },
     {
       "name": "Duplicating a template Behavior changes only the selected Actor Definition and is one undoable canonical edit",
       "passed": true,
-      "milliseconds": 731
+      "milliseconds": 722
     },
     {
       "name": "Player compatibility and disabled Behavior are explicitly diagnosed instead of promising graph execution",
       "passed": true,
-      "milliseconds": 527
+      "milliseconds": 594
     },
     {
       "name": "Graph-created canonical data survives native project save and reload with byte-identical ROM output",
       "passed": true,
-      "milliseconds": 1373
+      "milliseconds": 1596
     },
     {
       "name": "A graph-authored input transition executes in the emitted 6502 runtime",
       "passed": true,
-      "milliseconds": 1230
+      "milliseconds": 1209
     }
   ]
 }

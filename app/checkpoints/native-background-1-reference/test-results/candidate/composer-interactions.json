@@ -1,0 +1,52 @@
+{
+  "suite": "composer-interactions",
+  "source": "NES_Forge_2.0.0-alpha.11.html",
+  "sha256": "4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11",
+  "environment": "Node.js full application VM with shared DOM stub",
+  "limitations": "Does not establish browser visual layout, real pointer capture, or physical touch behavior.",
+  "total": 10,
+  "passed": 10,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Pointer movement positions the piece in source pixels",
+      "passed": true
+    },
+    {
+      "name": "Multiple pointer moves produce exactly one undo snapshot",
+      "passed": true
+    },
+    {
+      "name": "Undo restores the dragged piece position",
+      "passed": true
+    },
+    {
+      "name": "Source-scene selector commits the selected identity",
+      "passed": true
+    },
+    {
+      "name": "Legacy tab roundtrip preserves the frame library",
+      "passed": true
+    },
+    {
+      "name": "Out-of-range piece duplication makes no edit/history entry",
+      "passed": true
+    },
+    {
+      "name": "Out-of-range reflection makes no edit/history entry",
+      "passed": true
+    },
+    {
+      "name": "Out-of-range feet origin makes no edit/history entry",
+      "passed": true
+    },
+    {
+      "name": "Oversized UTF-8 name makes no edit/history entry",
+      "passed": true
+    },
+    {
+      "name": "Event-handler run reports no application errors",
+      "passed": true
+    }
+  ]
+}

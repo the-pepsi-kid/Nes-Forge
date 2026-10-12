@@ -1,0 +1,160 @@
+{
+  "suite": "movement-rules200",
+  "htmlSha256": "4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11",
+  "scope": "Actual bundled pure MovementRules service; strict source/preset/recipe validation, field-domain deterministic randomization and locks, exact four-field preservation, stale/tamper refusal, detached World and single-room ROM preflight. No browser, hardware or level-solvability acceptance.",
+  "passed": 30,
+  "failed": 0,
+  "total": 30,
+  "results": [
+    {
+      "name": "A schema-12 generated single-room source is detached, deeply frozen and independently identified",
+      "passed": true,
+      "milliseconds": 192
+    },
+    {
+      "name": "Canonical source identity ignores object key order and filename but preserves values",
+      "passed": true,
+      "milliseconds": 273
+    },
+    {
+      "name": "Copied, foreign and forged source wrappers are refused",
+      "passed": true,
+      "milliseconds": 148
+    },
+    {
+      "name": "Viewer mode, nonzero mapper and custom assembly refuse without enabling a backend",
+      "passed": true,
+      "milliseconds": 485
+    },
+    {
+      "name": "Invalid schema, non-JSON values and invalid physics fail instead of normalizing silently",
+      "passed": true,
+      "milliseconds": 290
+    },
+    {
+      "name": "Missing/excluded player scene and invalid training target are refused using detached references",
+      "passed": true,
+      "milliseconds": 635
+    },
+    {
+      "name": "Keep is the default and reports no effective change without rewriting any project field",
+      "passed": true,
+      "milliseconds": 237
+    },
+    {
+      "name": "Sprint targets exactly 2, 3 and 4 pixels per tick at the three intensities",
+      "passed": true,
+      "milliseconds": 686
+    },
+    {
+      "name": "High-jump targets 10, 11 and 12 with gravity 1 and preserves unrelated fields",
+      "passed": true,
+      "milliseconds": 660
+    },
+    {
+      "name": "Slow-fall targets maximum fall 4, 2 and 1 with gravity 1",
+      "passed": true,
+      "milliseconds": 622
+    },
+    {
+      "name": "Heavy-fall uses the specified paired gravity and maximum-fall targets",
+      "passed": true,
+      "milliseconds": 627
+    },
+    {
+      "name": "Only the active backend four scalar settings can change, preserving layout, IDs and inactive physics",
+      "passed": true,
+      "milliseconds": 216
+    },
+    {
+      "name": "Equal seed/source/options repeat exact recipe, project and detached validation",
+      "passed": true,
+      "milliseconds": 868
+    },
+    {
+      "name": "Seeded-mix intensities enforce ±1, ±2 and full legal domains over varied seeds",
+      "passed": true,
+      "milliseconds": 15478
+    },
+    {
+      "name": "Seeded-mix full intensity reaches each supported endpoint deterministically",
+      "passed": true,
+      "milliseconds": 15440
+    },
+    {
+      "name": "Any first-preview lock is refused instead of silently selecting or inventing a value",
+      "passed": true,
+      "milliseconds": 1
+    },
+    {
+      "name": "Four independent locks preserve prior values while unlocked fields use their own new seed domains",
+      "passed": true,
+      "milliseconds": 2380
+    },
+    {
+      "name": "All locks retain exact physics across seed, preset and intensity changes with flat replayable origins",
+      "passed": true,
+      "milliseconds": 3451
+    },
+    {
+      "name": "Unlocking drops the inherited origin and returns to current preset values",
+      "passed": true,
+      "milliseconds": 737
+    },
+    {
+      "name": "Locked field can override a paired preset and the result explicitly warns about that interaction",
+      "passed": true,
+      "milliseconds": 479
+    },
+    {
+      "name": "Changed original source content makes both recipe replay and previous locks stale",
+      "passed": true,
+      "milliseconds": 385
+    },
+    {
+      "name": "Unknown options, presets, intensity values and malformed locks are refused",
+      "passed": true,
+      "milliseconds": 0
+    },
+    {
+      "name": "Blank, non-string and oversized seeds are refused",
+      "passed": true,
+      "milliseconds": 238
+    },
+    {
+      "name": "Recipe strict top-level fields, method/version and source/runtime identities are checked",
+      "passed": true,
+      "milliseconds": 222
+    },
+    {
+      "name": "Recipe decisions cannot be tampered, omitted, widened or substituted with fractional values",
+      "passed": true,
+      "milliseconds": 252
+    },
+    {
+      "name": "Recipe source hash, result hash and unlocked rule origins cannot be silently altered",
+      "passed": true,
+      "milliseconds": 259
+    },
+    {
+      "name": "Locked decisions regenerate from their saved origins instead of trusting numerical fields",
+      "passed": true,
+      "milliseconds": 805
+    },
+    {
+      "name": "Single-room preview reports a detached ROM compilation and checked capacity accurately",
+      "passed": true,
+      "milliseconds": 226
+    },
+    {
+      "name": "World backend takes precedence and compiles the final changed physics into its own preflight artifact",
+      "passed": true,
+      "milliseconds": 1095
+    },
+    {
+      "name": "Movement preview/replay preserve all live project/history/emulator state",
+      "passed": true,
+      "milliseconds": 776
+    }
+  ]
+}

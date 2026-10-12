@@ -1,0 +1,94 @@
+{
+  "candidate": "native-background-1",
+  "status": "passed",
+  "release": "2.0.0-alpha.11",
+  "htmlSha256": "4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11",
+  "summarySha256": "1eb9db48212544a37531a25d3ac0c52e717573d7b9bfbc2e2599bcabda13590f",
+  "passed": 1617,
+  "total": 1617,
+  "suiteCount": 78,
+  "startedAt": "2026-10-11T05:43:39.580Z",
+  "finishedAt": "2026-10-11T06:07:44.764Z",
+  "unchangedCandidate": true,
+  "stagingArchive": "native-background-staging.zip",
+  "stagingArchiveSha256": "0869658b205702f44839e1a26d84a143dd6fc1a32c6edb964c83ef8c3bf6bb3d",
+  "stagingVerifiedPayloads": 4710,
+  "stagingVerifiedAt": "2026-10-11T05:43:25.417010+00:00",
+  "cleanExtraction": "fresh empty directory; every declared payload hash verified",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "node tests/run_candidate.cjs",
+    "Every declared browser-suites.json runner"
+  ],
+  "retainedCases": 1541,
+  "retainedSuites": 72,
+  "browserEvidence": [
+    {
+      "name": "browser-mobile",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-re-analysis",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-re-runtime",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-audio-adaptive",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-roadmap",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-native-audio",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-native-audio-import",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-recovery-methods",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-seeded-mashup",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-movement-rules",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-compatibility",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-native-background",
+      "status": "blocked",
+      "checks": 0
+    }
+  ],
+  "browserWalkthrough": "Blocked launches executed zero checks. VM and original/generated CPU/PPU evidence do not establish browser, independent-emulator, listening, device or hardware acceptance.",
+  "promotion": "not promoted; owner and real-browser acceptance pending"
+}

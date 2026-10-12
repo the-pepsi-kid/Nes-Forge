@@ -1,3 +1,17 @@
+## October 12, 2026 — native map/collision candidate
+
+Current implementation: **2.0.0-alpha.11 / native-map-1**, schema 12. The independent DABG command representation now feeds the existing recovery registry, shared scene preview/import lifecycle and unchanged single-room compiler. Source-backed structural decoding finds 22 referenced native map resources; one fits the initial static Empty/Solid conversion subset. Refusal reasons preserve the distinction between full-solid geometry, one-way landing, interactions, scrolling and procedural maps.
+
+The same native-scene lifecycle now serves A1 background and A2 map conversions. Existing background APIs/outputs, guarded scene transactions, runtime emitters, recipe compatibility and project schema are retained. Exact source reversal and the full retained 1,617-case/78-suite gate remain mandatory; six new suites bring the required inventory to 84. Current measured outcomes are recorded in `app/test-results/candidate/Summary.json` (or `test-results/candidate/Summary.json` inside the application package), with matching clean-extraction and browser reports. Browser/owner acceptance is separate.
+
+Use `app/docs/NATIVE_MAP_RECOVERY.md` and its checklist; application-local paths omit `app/`. The included original input and canonical static-map/floor-edit examples preserve complete source/license provenance. Original NES2 frontend emulation is not enabled. The native raw map image and binary collision are recovered; Forge physics and the validation player are explicitly authored adaptations.
+
+Next: review the finite A2 workflow, then continue remaining native formats/Audio fidelity, source migration/gameplay, linker/runtime/raster/LiveLink/debugging and comprehensive manual requirements before integrated Hosted/network/wallet/deck milestones. The full roadmap remains unfinished. Broad debugger work is not a newly introduced prerequisite.
+
+Earlier dated entries below retain their historical scope.
+
+---
+
 # Current implementation ledger — Native Background Recovery
 
 Candidate **alpha.11 / native-background-1**, schema 12, follows the verified automated compatibility checkpoint. The full roadmap is incomplete.

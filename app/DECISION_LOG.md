@@ -1,3 +1,19 @@
+# D065 — Bounded A2 through shared native-scene ownership
+
+October 12, 2026 UTC. Authority: the owner said “continue” after the independent native-map source-verification checkpoint. Implement the next bounded editor integration while retaining the owner's compatibility requirement. Candidate **alpha.11 / native-map-1** follows native-background-1; schema 12, five templates, 12 actor slots, 64 persistent bytes, Door Option B and existing runtime emitters remain unchanged.
+
+Use the independent source-backed DABG command-map representation, referenced full-solid collision predicate and verified CHR-RAM graphics construction. Keep ordered native records and physical evidence inspectable. Convert only explicitly supported static Empty/Solid geometry. The source's procedural generation, later decoration, special tile rules, scrolling, actors, audio and original gameplay do not become implicit promises.
+
+Extract the common native-scene staging lifecycle once and delegate A1 backgrounds and A2 maps through it. Keep REMethods as the registry, canonical schema-12 scenes as the editable representation, ProjectStore as the mutation/Undo owner and the existing BuildGraph/RuntimeCompiler as the detached build path. Extend the existing recovery panel using declared method metadata; do not add a game-specific panel, second collision model or runtime fork.
+
+Freeze A1's exact 1,617 cases/78 suites and source/test inventory. Add the six declared A2 suites, with only release-label and method-discovery expectations adjusted in retained tests. Exact reverse deltas must reconstruct A1 and every prior protected layer. Fresh complete clean-extraction and browser evidence are required before reporting current outcomes; implementation authorization is not acceptance or promotion.
+
+After this finite A2 conversion, retain owner/browser acceptance and all broader Audio/fidelity/listening, source migration/gameplay, linker/runtime/raster/LiveLink/debugging and manual dependencies. Neither this item nor its future gate completes 2.0 or integrated Hosted/network/wallet/deck work.
+
+## Preserved previous record
+
+---
+
 # D064 — Bounded A1 with compatibility ownership preserved
 
 October 11, 2026 UTC. Authority: the owner said “continue” after delivery of the D063 compatibility checkpoint. Implement shared native-background recovery/import on independent Pepsi and source-backed HonkeyPong, with source interpretation, canonical editing, persistence and a rebuilt static viewer. Retain release alpha.11, schema 12, existing templates and emitter algorithms; distinguish the changed artifact as `native-background-1`.

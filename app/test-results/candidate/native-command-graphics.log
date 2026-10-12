@@ -1,0 +1,12 @@
+PASS Native reset and renderer structures recover complete known CHR-RAM, reset palette and metatile evidence without changing state
+PASS Original native decompressor confirms all 8192 PPU bytes with nonzero initial RAM and source PB53 retained-buffer behavior
+PASS Original reset palette writes independently confirm aliases and explicit override
+PASS Original metatile renderer confirms all referenced raw maps including attributes and post-render IDs
+PASS Valid compressed literal, palette and metatile edits are decoded as data and match original CPU construction
+PASS PB53 plane repeats, inversions, arbitrary solid controls and retained slots follow the original loader
+PASS Coherent relocation of compressed data, upload, unpacker, reset, renderer and visual tables follows references
+PASS Unknown initial PB53 buffer dependencies remain marked and refuse rendering when a visible tile uses them
+PASS Final reset background-bank selection is explicit and does not change the recovered upload
+PASS Incoherent routines, pointers, masks, out-of-range tables and compressed source bounds refuse
+PASS Rendering is bounded, deterministic and isolated from active authoring and emulator state
+11/11 passed

@@ -1,3 +1,19 @@
+# Test policy — Native Map Recovery
+
+Retain all **1,617 cases across 78 predecessor suites**, unchanged in count and order, and append the six suites in `native-map-suites.json`. No skipped cases, injected production modules, renewed historical oracles or stale outcomes. The only retained assertion updates are current release labels and additional registered-method discovery expectations; preservation/gate infrastructure adds exact outer reversal before the original guards.
+
+Test coherent source-backed command construction and collision/graphics references, bounded malformed/near-match inputs, native ordered writes/overwrites, full-solid lookup and native runtime behavior. Keep decoded-map discovery separate from finite static conversion; procedural generation, special tiles, wrap/cross-row writes and unknown hidden semantics require explicit refusal. A picture or a decoded collision array alone is insufficient evidence of gameplay behavior.
+
+Exercise actual canonical edit/save/reopen and unchanged generated-runtime wall traversal, plus an authored-player adaptation with disclosed physics. Shared lifecycle tests must establish A1 project/ROM parity and common staging/import ownership, project/source/method stale guards, cancellation, one Undo/Redo and no preview mutation/publishing. Existing emulator, protected Save As, CHR and original native Audio edit sessions remain intact.
+
+Freeze all source/docs/tests/examples before staging. Regenerate current example receipts with their original generators, verify every staged payload checksum, and run all 84 declared suites against one unchanged clean extraction. Final packaging requires matching `checkpoints/native-map-1-clean-extraction/Reproduction.json` and all 13 current browser reports. Until those records exist, current gate outcomes are pending.
+
+Browser launch blocked by missing Chromium records zero checks. VM handlers, CPU/PPU comparisons and generated-ROM execution do not establish visual browser layout/native dialogs, audible fidelity, mobile performance, controllers or physical hardware acceptance. Full roadmap completion and promotion remain separate.
+
+## Preserved previous record
+
+---
+
 # Test policy — Native Background Recovery
 
 Retain all **1,541 cases across 72 predecessor suites**, unchanged in count and order, and append the six suites in `native-background-suites.json`. No skipped cases, missing-module injection, regenerated historical oracle or stale outcome record. Intentional retained changes are exact release-label and discovery-count expectations plus outer preservation/gate infrastructure; exact reverse patches reconstruct the complete compatibility predecessor before older guards run.

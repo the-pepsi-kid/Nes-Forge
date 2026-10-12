@@ -26,7 +26,7 @@ function wrapStage(h,fn){h.context.Forge.services.RENativeBackground={...h.core,
 
 test('Panel mounts once with graphics conversion profiles and no automatic recovery',()=>{
  const h=fresh(),panel=h.get('reNativeBackgroundPanel');assert.equal(panel.parentNode,h.get('reAnalysisWorkspace'));h.ui.mount();assert.equal(panel.parentNode.children.filter(item=>item===panel).length,1);
- assert.equal(panel['aria-label'],'Native background recovery');assert.deepEqual(h.get('reNativeBackgroundMethod').children.map(item=>item.value).sort(),sources.map(item=>item.id).sort());
+ assert.equal(panel['aria-label'],'Native background recovery');assert.deepEqual(h.get('reNativeBackgroundMethod').children.map(item=>item.value).sort(),[...sources.map(item=>item.id),'nes.command-metatile-map.v1'].sort());
  assert.equal(h.get('reNativeBackgroundImport').disabled,true);assert.equal(h.get('reNativeBackgroundProject').disabled,true);assert.equal(h.get('reNativeBackgroundEvidence').disabled,true);assert.equal(h.get('reNativeBackgroundCancel').disabled,true);assert.equal(h.ui.getState().staged,false);
 });
 

@@ -1,3 +1,19 @@
+# Native Map Recovery handoff
+
+Continue the authorized roadmap without renewed coding permission. Current bounded candidate: **alpha.11 / native-map-1**, schema 12, following native-background-1 and the independent map-input checkpoint. Preserve the architecture and compatibility guarantees below.
+
+1. Check current HTML/build-input identity, fresh complete Summary and `checkpoints/native-map-1-clean-extraction/Reproduction.json` together. Retain A1's 1,617 cases across 78 suites; append all six suites declared in `native-map-suites.json`. Until matching current evidence exists, gate status is pending.
+2. Keep the frozen A1 baseline and its exact source/test/report inventory. Generate only `tests/fixtures/native-map-source-delta.json` with `tools/generate_native_map_delta.py`; never regenerate an older oracle to make a new candidate pass.
+3. Recovery uses coherent source-backed command-map/collision/graphics structures. Inspect native evidence separately from conversion. Static Empty/Solid geometry is the finite conversion scope; unsupported maps remain inspectable with reasons.
+4. Backgrounds and maps share `RENativeScene`, the existing recovery panel and `ProjectStore.appendScene`. Imports are excluded scenes. The separate playable map project uses authored player/physics and the existing single-room runtime; no original-gameplay recovery is implied.
+5. Verify original native collision behavior and changed-wall behavior, canonical collision edits, save/reopen, generated-ROM behavior, one Undo/Redo, stale guards and untouched active project/emulator/native Audio sessions. Preserve byte-identical A1 projects/ROMs for the declared parity inputs.
+6. Before staging, freeze docs/tests/source and regenerate the four current example families plus new map examples. Verify every staged payload, run all 84 declared suites from a clean extraction, then all 13 browser supplements. Browser launch can report blocked only with zero measured checks; no desktop/mobile/native-dialog, listening or hardware pass follows from VM evidence.
+7. After this finite A2 implementation and measured gate, continue the roadmap's remaining Audio/fidelity/listening and source-migration/gameplay/runtime dependencies. Keep owner/browser acceptance and comprehensive manual work open. Do not claim promotion, arbitrary-game reconstruction or integrated Hosted/network/wallet/deck completion.
+
+## Preserved previous record
+
+---
+
 # Native Background Recovery handoff
 
 Continue the authorized roadmap without renewed coding permission. This bounded **alpha.11 / native-background-1** candidate follows compatibility-stabilization-1. Preserve schema 12 and all prior framework guarantees.

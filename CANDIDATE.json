@@ -2,29 +2,29 @@
   "format": "NESForgeCandidateHandoff",
   "version": 1,
   "release": "2.0.0-alpha.11",
-  "candidate": "native-background-1",
+  "candidate": "native-map-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/native-background-2026-10-11",
+  "branch": "implementation/native-map-2026-10-12",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11",
-  "archive": "NES_Forge_2.0.0-alpha.11_Native_Background_Candidate.zip",
-  "archiveSha256": "9dbc5e3594e6b60512b34ccf39fe2981b8b97f582a4a4c4cef465a5f26d48a8e",
-  "payloadChecksums": 4880,
-  "packageFiles": 4881,
+  "htmlSha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
+  "archive": "NES_Forge_2.0.0-alpha.11_Native_Map_Candidate.zip",
+  "archiveSha256": "c85ccf6ed1562d4569b212aed6697f642fb4966395641d6b0f7b5e49c29f0f1e",
+  "payloadChecksums": 5534,
+  "packageFiles": 5535,
   "automatedResult": {
     "status": "passed",
-    "passed": 1617,
+    "passed": 1694,
     "failed": 0,
-    "total": 1617,
-    "suiteCount": 78,
-    "startedAt": "2026-10-11T05:43:39.580Z",
-    "finishedAt": "2026-10-11T06:07:44.764Z"
+    "total": 1694,
+    "suiteCount": 84,
+    "startedAt": "2026-10-12T03:55:43.265Z",
+    "finishedAt": "2026-10-12T04:21:10.153Z"
   },
-  "retainedCases": 1541,
-  "retainedSuites": 72,
+  "retainedCases": 1617,
+  "retainedSuites": 78,
   "automatedSummary": "app/test-results/candidate/Summary.json",
-  "cleanExtractionProof": "app/checkpoints/native-background-1-clean-extraction/Reproduction.json",
+  "cleanExtractionProof": "app/checkpoints/native-map-1-clean-extraction/Reproduction.json",
   "browserEvidence": [
     {
       "name": "browser-mobile",
@@ -85,6 +85,11 @@
       "name": "browser-native-background",
       "status": "blocked",
       "checks": 0
+    },
+    {
+      "name": "browser-native-map",
+      "status": "blocked",
+      "checks": 0
     }
   ],
   "nativeAudio": {
@@ -98,13 +103,13 @@
     "nativeEngineEquivalence": false,
     "listening": "pending"
   },
-  "ownerAcceptance": "pending for native-background-1; earlier owner results retain their original scope",
+  "ownerAcceptance": "pending for native-map-1; earlier owner results retain their original scope",
   "mobilePerformance": "pending same-device comparison",
   "hardwareControllers": "not physically tested",
   "promotion": "not promoted",
   "roadmap": "in progress; complete roadmap is not implemented",
-  "parentCommit": "de77c105bc451f3ab7a90c00fe1c4162675ccd52",
-  "nextCodingDependency": "A2 native map/collision on a suitable independent source-backed input; retain A1 browser/owner acceptance and prior Audio/runtime/manual dependencies.",
+  "parentCommit": "6cde192eee757e677376c319045944e17c3395fa",
+  "nextCodingDependency": "Continue remaining Audio/fidelity/listening and source-migration/gameplay/runtime dependencies; retain A1/A2 browser/owner acceptance and comprehensive manual requirements before integrated Hosted/network/wallet/deck work.",
   "license": "UNDECIDED",
   "recoveryMethods": {
     "contractVersion": 2,
@@ -112,13 +117,15 @@
       "nes.physical-chr.v1",
       "nes.famitone2-native.v1",
       "nes.immediate-ppu-background.v1",
-      "nes.pointer-nametable.v1"
+      "nes.pointer-nametable.v1",
+      "nes.command-metatile-map.v1"
     ],
     "discovery": "Explicit original-source recognition and route-only UI; no project/emulator/native-session changes",
-    "dispatch": "Separate existing CHR/Audio operations and bounded native background decode/subset-convert, with source/span checks and shared canonical preview/import",
+    "dispatch": "Separate existing CHR/Audio operations and bounded native background/map decode/subset-convert, with source/span checks and one shared canonical scene preview/import lifecycle.",
     "universalEngineRecovery": false,
-    "nativeSceneCollisionRecovery": false,
-    "nativeBackgroundRecovery": true
+    "nativeSceneCollisionRecovery": true,
+    "nativeBackgroundRecovery": true,
+    "nativeSceneCollisionScope": "Finite source-backed raw static command maps with fixed Empty/Solid semantics; one eligible resource in the independent input. No universal or original-gameplay recovery."
   },
   "seededMashup": {
     "version": 1,
@@ -228,6 +235,46 @@
     "runtimeEmittersChanged": false,
     "guide": "app/docs/NATIVE_BACKGROUND_RECOVERY.md",
     "checklist": "app/docs/NATIVE_BACKGROUND_RECOVERY_CHECKLIST.txt",
-    "examples": "app/examples/RE_Native_Background/Manifest.json"
+    "examples": "app/examples/RE_Native_Background/Manifest.json",
+    "sharedLifecycle": "RENativeScene.createLifecycle",
+    "compatibility": "Exact A1 staged report/project/build/import/save/Undo/Redo parity verified for both declared sources and valid edits."
+  },
+  "inputCheckpointCommit": "db13bd14c21deff5e20c110894ecbe82ffd97b75",
+  "retainedExamples": {
+    "roms": 9,
+    "projects": 14,
+    "recipes": 6,
+    "byteIdentical": true,
+    "evidence": "app/checkpoints/native-map-1-examples/Regeneration.json"
+  },
+  "nativeMap": {
+    "decision": "D065",
+    "method": "nes.command-metatile-map.v1",
+    "corpus": "examples/RE_Native_Map/DABG-reproduced.nes",
+    "sourceSha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+    "inputCheckpoint": "research/native-map-intake-1/",
+    "configurationRecords": 52,
+    "referencedMaps": 22,
+    "convertibleMaps": 1,
+    "resourceKey": "map-bfe3",
+    "collisionCells": 960,
+    "nativeDecoder": "RENativeCommandMap",
+    "graphicsDecoder": "RENativeCommandGraphics",
+    "canonicalService": "RENativeMap",
+    "registry": "REMethods",
+    "sharedLifecycle": "RENativeScene.createLifecycle",
+    "sharedUI": "RENativeSceneUI (RENativeBackgroundUI compatibility alias)",
+    "import": "ProjectStore.appendScene",
+    "compiler": "RuntimeCompiler.compileDetached(project) using existing single-room runtime",
+    "scope": "One declared command-map representation. Only fixed native Empty/Solid geometry in the visible 16 by 15 metatile region converts, before PrettyLevel decoration. Reset palette and verified PB53 CHR-RAM rendering are recovered; unsupported, procedural, unknown, wrapped, scrolling, one-way, hazardous or stateful semantics refuse conversion.",
+    "playableAdaptation": "Separate project uses an authored validation player and existing Forge physics; import appends an excluded scene without changing runtime settings.",
+    "nativeEncoder": false,
+    "nativeEngineEquivalence": false,
+    "schemaChanged": false,
+    "runtimeEmittersChanged": false,
+    "newMechanicsOrTemplates": false,
+    "guide": "app/docs/NATIVE_MAP_RECOVERY.md",
+    "checklist": "app/docs/NATIVE_MAP_RECOVERY_CHECKLIST.txt",
+    "examples": "app/examples/RE_Native_Map/Manifest.json"
   }
 }

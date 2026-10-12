@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+'use strict';
+// Real Chromium rendering/input supplement. Device viewports do not prove a
+// physical keyboard, speaker output, Safari support or hardware controllers.
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..'),manifest=JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))),html=fs.readFileSync(path.join(root,manifest.output)),output=path.resolve(process.argv[3]||path.join(root,'test-results/browser-audio-adaptive'));
+fs.mkdirSync(output,{recursive:true});
+const report={format:'NESForgeAudioAdaptiveBrowserQA',version:1,html:manifest.output,sha256:crypto.createHash('sha256').update(html).digest('hex'),started:new Date().toISOString(),status:'running',checks:[],screenshots:[],pageErrors:[],limitations:['Chromium viewport emulation is not physical-device acceptance.','Native keyboard presentation, IME layout, audio quality and other browser engines require separate review.','Screenshots require explicit visual review.']};
+let browser,server;
+const save=()=>{report.passed=report.checks.filter(c=>c.status==='passed').length;report.failed=report.checks.filter(c=>c.status==='failed').length;report.finished=new Date().toISOString();fs.writeFileSync(path.join(output,'Report.json'),JSON.stringify(report,null,2)+'\n');};
+async function check(name,fn){try{await fn();report.checks.push({name,status:'passed'});console.log('PASS '+name);}catch(e){report.checks.push({name,status:'failed',error:e.stack});console.error('FAIL '+name+': '+e.message);}}
+(async()=>{
+ let pw;try{try{pw=require('playwright');}catch(e){if(!process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES)throw e;pw=require(path.join(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES,'playwright'));}browser=await pw.chromium.launch({headless:true});}catch(e){report.status='blocked';report.reason=e.message;save();console.log('BLOCKED: Chromium unavailable; zero browser checks executed.');return;}
+ report.browser=browser.version();server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end(html);});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const url='http://127.0.0.1:'+server.address().port;
+ for(const [name,viewport,touch] of [['phone-portrait',{width:390,height:844},true],['phone-landscape',{width:844,height:390},true],['desktop',{width:1280,height:900},false]]){
+  const context=await browser.newContext({viewport,isMobile:touch,hasTouch:touch});const page=await context.newPage();page.on('pageerror',e=>report.pageErrors.push(e.message));await page.goto(url);await page.evaluate(()=>{aud_addInstrument();switchTab('audio');});
+  await check(name+' viewport and Audio controls',async()=>{assert.equal(await page.evaluate(()=>innerWidth),viewport.width);assert.equal(await page.locator('#audTempo').isVisible(),true);assert.equal(await page.locator('#cv').evaluate(c=>c.width),650);assert.equal(await page.locator('#envVol').isVisible(),true);assert.ok(await page.locator('body').evaluate(b=>b.classList.contains('forge-audio-workspace')));});
+  await check(name+' pointer envelope and canonical undo',async()=>{await page.evaluate(()=>{const c=document.getElementById('envVol'),r=c.getBoundingClientRect();c.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerType:'touch',pointerId:7,isPrimary:true,clientX:r.left+1,clientY:r.bottom-1}));c.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerType:'touch',pointerId:7,isPrimary:true,clientX:r.left+1,clientY:r.bottom-1}));});assert.equal(await page.evaluate(()=>S.instruments[0].volEnv[0]),0);await page.evaluate(()=>undo());assert.equal(await page.evaluate(()=>S.instruments[0].volEnv[0]),15);});
+  await check(name+' selected cell visibility',async()=>{await page.evaluate(()=>{aud_currentRow=60;aud_selectedChannel=3;render();Forge.services.AudioAdaptiveUI.ensureSelectionVisible();});const visible=await page.evaluate(()=>{const p=document.getElementById('leftP'),c=document.getElementById('cv'),r=c.getBoundingClientRect(),b=p.getBoundingClientRect(),x=r.left+390,y=r.top+26+60*18;return x>=b.left&&x+130<=b.left+p.clientWidth&&y>=b.top&&y+18<=b.top+p.clientHeight;});assert.equal(visible,true);});
+  await page.screenshot({path:path.join(output,name+'.png'),fullPage:false});report.screenshots.push({file:name+'.png',visualReview:'pending',viewport});
+  await check(name+' cross-tab layout/input release',async()=>{await page.evaluate(()=>switchTab('chr'));assert.equal(await page.locator('body').evaluate(b=>b.classList.contains('forge-audio-workspace')),false);assert.equal(await page.evaluate(()=>emuReadJoyState()),0);assert.equal(await page.locator('#chrEditCanvas').isVisible(),true);});
+  await context.close();
+ }
+ await check('No uncaught application browser errors',()=>assert.deepEqual(report.pageErrors,[]));report.status=report.checks.some(c=>c.status==='failed')?'failed':'passed';save();if(report.status==='failed')process.exitCode=1;
+})().catch(e=>{report.status='failed';report.error=e.stack;save();process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(resolve=>server.close(resolve));});

@@ -1,7 +1,7 @@
 {
   "suite": "re-runtime-integration",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11",
+  "htmlSha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
   "scope": "Independent original user ROM and Bridge Room CPU/PPU/APU execution; exact runtime trace on/off parity, RAM discovery, native PPU-write reconstruction, MMC3 physical provenance and project/history isolation. VM harness, not browser, audible-output or physical-hardware acceptance.",
   "passed": 11,
   "failed": 0,
@@ -315,7 +315,7 @@
     {
       "name": "All prior picker candidate source bytes survive only the exact audio correction, release tag and two runtime modules",
       "passed": true,
-      "milliseconds": 314
+      "milliseconds": 479
     },
     {
       "name": "The supplied Pepsi ROM is pinned by exact bytes and runtime identity",
@@ -325,47 +325,47 @@
     {
       "name": "Pepsi vending trace on/off preserves actual CPU, RAM, mapper, video, APU and PCM execution",
       "passed": true,
-      "milliseconds": 2704
+      "milliseconds": 2566
     },
     {
       "name": "Bridge Room music and movement trace on/off preserves actual CPU, RAM, mapper, video, APU and PCM execution",
       "passed": true,
-      "milliseconds": 2435
+      "milliseconds": 2388
     },
     {
       "name": "Pepsi boot PPU-write reconstruction matches all 1024 native background bytes and all 32 palette bytes",
       "passed": true,
-      "milliseconds": 767
+      "milliseconds": 787
     },
     {
       "name": "Pepsi Start and A inputs are discoverable as actual state and credit RAM differences with write origins",
       "passed": true,
-      "milliseconds": 1129
+      "milliseconds": 1096
     },
     {
       "name": "Bridge Room produces genuine APU commands and collision-constrained movement while tracing",
       "passed": true,
-      "milliseconds": 5913
+      "milliseconds": 5695
     },
     {
       "name": "MMC3 instruction provenance follows real 8 KiB bank pages at a shared CPU address",
       "passed": true,
-      "milliseconds": 336
+      "milliseconds": 326
     },
     {
       "name": "Timeline backward and retained forward restoration invalidate observations and RAM snapshot lineage",
       "passed": true,
-      "milliseconds": 1377
+      "milliseconds": 1295
     },
     {
       "name": "Static inspection and runtime evidence never replace the active authored project or undo history",
       "passed": true,
-      "milliseconds": 995
+      "milliseconds": 988
     },
     {
       "name": "Yielding frame navigation refuses RAM snapshots until a stable paused state is reached",
       "passed": true,
-      "milliseconds": 744
+      "milliseconds": 764
     }
   ]
 }

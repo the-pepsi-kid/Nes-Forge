@@ -1,0 +1,108 @@
+{
+  "candidate": "native-map-1",
+  "status": "passed",
+  "release": "2.0.0-alpha.11",
+  "htmlSha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
+  "summarySha256": "e00f91e622d65456c80695ef950b187bc8b174baf91189fd46ed8300d5b081c1",
+  "passed": 1694,
+  "total": 1694,
+  "suiteCount": 84,
+  "startedAt": "2026-10-12T03:55:43.265Z",
+  "finishedAt": "2026-10-12T04:21:10.153Z",
+  "unchangedCandidate": true,
+  "stagingArchiveSha256": "94cf98e26ccaaa79490c04a929db495984cfb34dcb275fa0d7b46cc0c9c98aed",
+  "stagingVerifiedPayloads": 5351,
+  "stagingArchiveFiles": 5352,
+  "stagingAllPayloadsMatch": true,
+  "stagingSafePaths": true,
+  "extraction": "fresh empty directory; exact inventory and every SHA256SUMS entry verified before execution",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "node tests/run_candidate.cjs",
+    "Every declared browser-suites.json runner"
+  ],
+  "retainedCases": 1617,
+  "retainedSuites": 78,
+  "applicationParentCommit": "6cde192eee757e677376c319045944e17c3395fa",
+  "inputCheckpointCommit": "db13bd14c21deff5e20c110894ecbe82ffd97b75",
+  "retainedExamples": {
+    "roms": 9,
+    "projects": 14,
+    "recipes": 6,
+    "byteIdentical": true
+  },
+  "browserEvidence": [
+    {
+      "name": "browser-mobile",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-re-analysis",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-re-runtime",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-audio-adaptive",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-roadmap",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-native-audio",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-native-audio-import",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-recovery-methods",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-seeded-mashup",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-movement-rules",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-compatibility",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-native-background",
+      "status": "blocked",
+      "checks": 0
+    },
+    {
+      "name": "browser-native-map",
+      "status": "blocked",
+      "checks": 0
+    }
+  ],
+  "browserWalkthrough": "Blocked launches executed zero checks. VM and original/generated CPU/PPU evidence do not establish browser, independent-emulator, listening, device or hardware acceptance.",
+  "promotion": "not promoted; owner and real-browser acceptance pending"
+}

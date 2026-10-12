@@ -1,3 +1,19 @@
+# Current contract — Native Map Recovery
+
+Candidate `native-map-1`, release alpha.11, schema 12. Preserve D063/D064 service ownership and all unchanged runtime/compiler algorithms.
+
+- `REMethods` remains the single installed-method registry. Optional bounded `sceneConversion` metadata selects the existing shared recovery panel; method names and ROM identity do not determine UI behavior.
+- `RENativeScene` owns the common detached staging, cancellation, project/source guards and `ProjectStore.appendScene` call. The retained background service delegates through it. Maps reuse that path without another project lifecycle, registry or transaction implementation.
+- The native command-map and graphics interpreters are bounded trusted format adapters. They identify coherent source instruction/data structures and physical ranges, perform no supplied-code execution and never select a decoder by filename or a whole-ROM hash allowlist.
+- Map evidence retains ordered writes, overwrites, native cells, collision lookup, spawn, configuration links and explicit unknowns. Decoding is separate from conversion: only the declared static Empty/Solid subset can become editable geometry. Random effects, special/stateful tiles, wrapping, hidden rows or unsupported constructions must not silently acquire invented semantics.
+- Canonical conversion uses existing scenes, tile properties, metatiles, map data and `captureMeta.recovery`. It keeps native evidence distinct from the ordinary editable project. No parallel collision store, persisted runtime or schema change is introduced.
+- Preview performs an actual detached build through the unchanged single-room backend. The exported playable project discloses authored controls/player/physics; it is a Forge adaptation of recovered geometry, not recovered original game logic. Import appends one excluded scene and preserves the user's existing gameplay configuration.
+- A1 source-background projects and builds retain byte-for-byte behavior where claimed. Existing unknown-ROM inspection, native Audio edit sessions, Undo/Redo, Save As, CHR editing, emulator capture and historical recipe replay retain their original owners.
+
+## Preserved previous record
+
+---
+
 # Current contract — Native Background Recovery
 
 Candidate `native-background-1`, release alpha.11, schema 12. Preserve all D063 compatibility guarantees and existing runtime algorithms.

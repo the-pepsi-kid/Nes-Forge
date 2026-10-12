@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NES Forge 2.0.0-alpha.11 — Native Background Recovery</title>
+<title>NES Forge 2.0.0-alpha.11 — Native Map Recovery</title>
 <style>
 :root{--bg:#0c0c10;--bg2:#101018;--bg3:#16161e;--bdr:#252530;--bdr2:#3a3a4a;--txt:#b8b8c8;--dim:#667;--acc:#5ad4ff;--acc2:#3a9abf;--grn:#8df57a;--red:#f57a7a;--ylw:#f5d07a;--orn:#f5a07a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -8705,7 +8705,7 @@ F.project={create,openRom,classifyRom,replaceProject};
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Native Background Recovery',maturity:'alpha',candidate:'native-background-1',schema:12,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Native Map Recovery',maturity:'alpha',candidate:'native-map-1',schema:12,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;
@@ -12289,7 +12289,8 @@ function createRegistry(){
     ordinary(method.operations,'Profile operations');ordinary(method.handlers,'Profile handlers');const names=Object.keys(method.operations);if(!names.length||names.length>5)fail('Declare one or more independent operations.');
     const declared={};for(const name of names){const op=method.operations[name];if(!Object.hasOwn(operations,name))fail('Unknown profile operation.');ordinary(op,'Operation');if(op.effect!==operations[name])fail('Operation effect differs from the contract.');if(typeof op.label!=='string'||!op.label.trim()||op.label.length>160)fail('Operation requires a bounded label.');if(op.fidelity!==undefined&&!['exact','native','lossy','subset'].includes(op.fidelity))fail('Unknown operation fidelity.');if(name==='convert'&&!['exact','lossy','subset'].includes(op.fidelity))fail('Canonical conversion must declare its fidelity.');if(op.inverse!==undefined||op.roundTrip!==undefined)fail('An operation descriptor cannot imply an inverse or native round trip.');if(typeof method.handlers[name]!=='function')fail('Every declared operation requires its own trusted handler.');declared[name]={label:op.label,effect:op.effect,...(op.fidelity!==undefined?{fidelity:op.fidelity}:{})};}
     if(Object.keys(method.handlers).some(name=>!Object.hasOwn(declared,name)))fail('Do not register undeclared operation handlers.');if(typeof method.probe!=='function')fail('A profile requires a trusted recognition probe.');
-    const descriptor=freeze({id:method.id,version:method.version,contractVersion:2,name:method.name,domains:copy(method.domains),limitations:copy(method.limitations),limits:{maxSourceBytes:method.limits.maxSourceBytes,maxWork:method.limits.maxWork},operations:declared});
+    if(method.sceneConversion!==undefined&&(!['background','map'].includes(method.sceneConversion)||!declared.convert))fail('Scene conversion must identify background or map and declare convert.');
+    const descriptor=freeze({id:method.id,version:method.version,contractVersion:2,name:method.name,domains:copy(method.domains),limitations:copy(method.limitations),limits:{maxSourceBytes:method.limits.maxSourceBytes,maxWork:method.limits.maxWork},operations:declared,...(method.sceneConversion!==undefined?{sceneConversion:method.sceneConversion}:{})});
     methods.set(method.id,{descriptor,profile:descriptor,legacy:false,probe:method.probe,handlers:Object.fromEntries(names.map(name=>[name,method.handlers[name]]))});return descriptor;
   }
   function controls(configuration={}){
@@ -13410,12 +13411,51 @@ methods.registerProfile({id:ID,version:1,contractVersion:2,name:'FamiTone2 nativ
 },handlers:{inspect,patch,convert}});
 services.RERecoveryProfiles=Object.freeze({version:1,nativeAudioId:ID,physicalChrId:'nes.physical-chr.v1',limits:Object.freeze({nativeSourceBytes:MAX_SOURCE,resultBytes:2*1024*1024,commandPage:100})});
 })();
+/* Mechanical lifecycle shared by native background and map conversion.
+ * Trusted application wrappers own report validation and standalone projects;
+ * REMethods remains the registry, ProjectStore the mutation owner, and the
+ * ordinary detached compiler the only preview build path. */
+(()=>{
+'use strict';
+const services=window.Forge.services;
+function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
+function createLifecycle(spec){
+  if(!spec||typeof spec.label!=='string'||typeof spec.format!=='string'||typeof spec.validateRecovery!=='function'||typeof spec.standalone!=='function'||!['packed','single-room','world'].includes(spec.expectedBackend)||typeof spec.importIntent!=='string')throw Error('Native scene: A trusted scene conversion contract is required.');
+  const {label,format,validateRecovery,standalone,expectedBackend,importIntent}=spec;
+  const compileOptions=Object.freeze({...spec.compileOptions}),messages=Object.freeze({...spec.messages}),stages=new WeakSet();
+  const fail=message=>{throw Error(label+': '+message);};
+  function checkSignal(signal){if(signal?.aborted){const error=Error(messages.cancelled||'Scene recovery cancelled.');error.name='AbortError';throw error;}}
+  async function stage(analysis,methodId,options={},controls={}){
+    const store=services.ProjectStore,guard=Object.freeze({epoch:store.state.epoch,snapshot:store.serialize()});
+    const result=await services.REMethods.dispatch(methodId,'convert',analysis,options,controls);checkSignal(controls.signal);
+    if(result.status!=='supported')fail(result.reason);
+    const data=result.data;if(!data?.scene||data.report?.format!==format)fail(messages.wrongKind||'This method does not produce the requested native scene.');
+    validateRecovery(data.report);
+    if(data.report.method.id!==methodId||data.scene.id!==data.report.sceneId||JSON.stringify(data.scene.captureMeta?.recovery)!==JSON.stringify(data.report))fail(messages.evidenceMismatch||'Scene and method evidence differ.');
+    if(data.report.source.sha256!==analysis.report.identity.sha256||data.report.source.byteLength!==analysis.report.identity.byteLength)fail(messages.wrongSource||'Scene preview refers to another source.');
+    const project=standalone(data.scene,result.source);store.prepareLoad(project);
+    const artifact=services.RuntimeCompiler.compileDetached(project,compileOptions);checkSignal(controls.signal);
+    if(artifact.backend!==expectedBackend)fail(messages.wrongBackend||'The preview build backend differs from the declared scene conversion.');
+    if(!window.crypto?.subtle?.digest)fail('SHA-256 is unavailable in this context.');
+    const digest=await window.crypto.subtle.digest('SHA-256',artifact.rom);checkSignal(controls.signal);
+    if(store.state.epoch!==guard.epoch||store.serialize()!==guard.snapshot)fail('The project changed during preview. Preview again.');
+    const resultStage=freeze({report:data.report,scene:data.scene,project,guard,previewBuild:{backend:artifact.backend,byteLength:artifact.rom.length,sha256:Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('')}});stages.add(resultStage);return resultStage;
+  }
+  function importStaged(value){
+    if(!stages.has(value))fail(messages.unownedStage||'Preview this scene in the current editor before importing.');
+    const result=services.ProjectStore.appendScene(value.scene,{expected:value.guard,intent:importIntent,select:true});
+    return Object.freeze({...result,sceneId:value.scene.id});
+  }
+  return Object.freeze({stage,importStaged});
+}
+services.RENativeScene=Object.freeze({version:1,createLifecycle});
+})();
 /* Shared native-background conversion. Format modules interpret source bytes;
  * REMethods owns discovery/dispatch, ProjectStore owns edits, and the ordinary
  * compiler owns the independent static-viewer output. No ROM code is executed. */
 (()=>{
 'use strict';
-const services=window.Forge.services,methods=services.REMethods,stages=new WeakSet();
+const services=window.Forge.services,methods=services.REMethods;
 const copy=value=>JSON.parse(JSON.stringify(value));
 function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
 const fail=message=>{throw Error('Native background: '+message);};
@@ -13478,32 +13518,11 @@ function registerAdapter(spec){
     return {status:'supported',reason:result.reason,evidence:background.evidence,data:background};
   }
   function options(input,source){if(Object.keys(input).some(key=>key!=='expectedSourceSha256'))fail('Unsupported background recovery option.');if(input.expectedSourceSha256!==undefined&&input.expectedSourceSha256!==source.sha256)fail('The selected source identity changed.');}
-  return methods.registerProfile({id:spec.id,version:1,contractVersion:2,name:spec.name,domains:['graphics'],limitations:[...commonLimits,...spec.limitations],limits:{maxSourceBytes:40976,maxWork:1048576},operations:{decode:{label:'Decode native background records',effect:'read-only'},convert:{label:'Preview editable background',effect:'preview',fidelity:'subset'}},probe:decoded,handlers:{decode:async(analysis,input,context)=>{options(input,context.source);return decoded(analysis,context);},convert:async(analysis,input,context)=>{options(input,context.source);const result=await decoded(analysis,context);if(result.status!=='supported')return result;const data=convert(result.data,context.source,descriptor);return {status:'supported',reason:'The declared static background can be converted to an editable Forge scene, with the listed runtime differences.',evidence:data.report.evidence,data};}}});
+  return methods.registerProfile({id:spec.id,version:1,contractVersion:2,name:spec.name,domains:['graphics'],sceneConversion:'background',limitations:[...commonLimits,...spec.limitations],limits:{maxSourceBytes:40976,maxWork:1048576},operations:{decode:{label:'Decode native background records',effect:'read-only'},convert:{label:'Preview editable background',effect:'preview',fidelity:'subset'}},probe:decoded,handlers:{decode:async(analysis,input,context)=>{options(input,context.source);return decoded(analysis,context);},convert:async(analysis,input,context)=>{options(input,context.source);const result=await decoded(analysis,context);if(result.status!=='supported')return result;const data=convert(result.data,context.source,descriptor);return {status:'supported',reason:'The declared static background can be converted to an editable Forge scene, with the listed runtime differences.',evidence:data.report.evidence,data};}}});
 }
 function standalone(scene,source){
   const sc=copy(scene);sc.buildInclude=true;sc.buildOrder=0;
   return {format:'NESForge',version:services.ProjectStore.schema,foundation:window.Forge.release.version,romLayout:3,worldAuthoring:3,metatileExtension:1,metaspriteExtension:2,entityAnimationExtension:1,projectName:(source.name+' — background').slice(0,120),scenes:[sc],activeScene:0,chr:sc.chr,sprChr:sc.sprChr,nt:sc.nt,attr:sc.attr,pal:sc.pal,sprPal:sc.sprPal,oam:[],tileProps:sc.tileProps,worlds:[],gameplay:Forge165.config.defaults(),worldRuntime:services.WorldConfig.defaults(),audioRuntime:services.AudioConfig.defaults(),gameplayCore:services.GameplayModel.defaults(),metasprites:[],animations:[],instruments:[],patterns:[{rows:Array.from({length:64},()=>Array.from({length:5},()=>({note:-1,inst:-1,vol:-1,fx:0,fxp:0})))}],orderList:[[0,0,0,0,0]],audRows:64,tempo:150,speed:6,sfx:[],asmSource:'',mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,selTile:0,editTile:0,selSprite:-1,selEntity:-1,chrBank:'bg',_selAnim:0,_animFrame:0};
-}
-function checkSignal(signal){if(signal?.aborted){const error=Error('Background recovery cancelled.');error.name='AbortError';throw error;}}
-async function stage(analysis,methodId,options={},controls={}){
-  const store=services.ProjectStore,guard=Object.freeze({epoch:store.state.epoch,snapshot:store.serialize()});
-  const result=await methods.dispatch(methodId,'convert',analysis,options,controls);checkSignal(controls.signal);
-  if(result.status!=='supported')fail(result.reason);
-  const data=result.data;if(!data?.scene||data.report?.format!=='NESForgeNativeBackgroundRecovery')fail('This method does not produce a native background scene.');
-  validateRecovery(data.report);
-  if(data.report.method.id!==methodId||data.scene.id!==data.report.sceneId||JSON.stringify(data.scene.captureMeta?.recovery)!==JSON.stringify(data.report))fail('Background scene and method evidence differ.');
-  if(data.report.source.sha256!==analysis.report.identity.sha256||data.report.source.byteLength!==analysis.report.identity.byteLength)fail('Background preview refers to another source.');
-  const project=standalone(data.scene,result.source);store.prepareLoad(project);
-  const artifact=services.RuntimeCompiler.compileDetached(project,{allowViewer:true});checkSignal(controls.signal);
-  if(!window.crypto?.subtle?.digest)fail('SHA-256 is unavailable in this context.');
-  const digest=await window.crypto.subtle.digest('SHA-256',artifact.rom);checkSignal(controls.signal);
-  if(store.state.epoch!==guard.epoch||store.serialize()!==guard.snapshot)fail('The project changed during preview. Preview again.');
-  const resultStage=freeze({report:data.report,scene:data.scene,project,guard,previewBuild:{backend:artifact.backend,byteLength:artifact.rom.length,sha256:Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('')}});stages.add(resultStage);return resultStage;
-}
-function importStaged(value){
-  if(!stages.has(value))fail('Preview this background in the current editor before importing.');
-  const result=services.ProjectStore.appendScene(value.scene,{expected:value.guard,intent:'nativeBackgroundImport',select:true});
-  return Object.freeze({...result,sceneId:value.scene.id});
 }
 function validateRecovery(value){
   const encoded=JSON.stringify(value);if(!encoded||encoded.length>262144)fail('Recovery evidence exceeds 256 KiB.');
@@ -13520,7 +13539,8 @@ function validateRecovery(value){
   if(!Array.isArray(r.evidence)||!r.evidence.length||r.evidence.length>65)fail('Invalid persisted physical evidence.');r.evidence.forEach(e=>{if(e.sourceSha256!==r.source.sha256)fail('Persisted evidence refers to a different source.');methods.evidence(e,r.source);});
   return freeze(r);
 }
-services.RENativeBackground=Object.freeze({version:1,parseNrom,registerAdapter,stage,importStaged,validateRecovery});
+const lifecycle=services.RENativeScene.createLifecycle({label:'Native background',format:'NESForgeNativeBackgroundRecovery',validateRecovery,standalone,compileOptions:{allowViewer:true},expectedBackend:'packed',importIntent:'nativeBackgroundImport',messages:{cancelled:'Background recovery cancelled.',wrongKind:'This method does not produce a native background scene.',evidenceMismatch:'Background scene and method evidence differ.',wrongSource:'Background preview refers to another source.',unownedStage:'Preview this background in the current editor before importing.'}});
+services.RENativeBackground=Object.freeze({version:1,parseNrom,registerAdapter,stage:lifecycle.stage,importStaged:lifecycle.importStaged,validateRecovery});
 })();
 /* Bounded native PPU-immediate construction decoder. This recognizes data and
  * control structure, never a filename/hash and never executes supplied code. */
@@ -13700,126 +13720,518 @@ function decode(input){
 services.REPointerNametable=Object.freeze({version:1,id:ID,decode});
 owner.registerAdapter({id:ID,name:'Vector-linked pointer-page nametable loader',limitations:Array.from(limitations),decode});
 })();
-/* Native background conversion remains detached until an acknowledged import.
- * Source generations, project guards and cancellation protect the preview. */
+/* Bounded native command-map interpretation. Source-backed opcode structures
+ * describe a representation; names, source hashes and graphics never select it.
+ * No native code execution, project mutation or native ROM patching occurs here. */
+(()=>{
+'use strict';
+const services=window.Forge.services,ID='nes.command-map.v1';
+const pattern=text=>text.split(/\s+/).map(value=>value==='??'?null:parseInt(value,16));
+const PARAM=pattern('ac ?? ?? d0 22 48 a9 00 85 01 68 0a 0a 0a 26 01 18 69 ?? 85 00 a5 01 69 ?? 85 01 a0 00 b1 00 99 ?? ?? c8 c0 08 d0 f6 ad ?? ?? 48 4a 4a 8d ?? ?? ee ?? ?? ad ?? ?? f0 0b ad ?? ?? 0a 18 6d ?? ?? 8d ?? ?? 68 29 03 8d ?? ?? ad ?? ?? 85 00 ad ?? ?? 85 01 ad ?? ?? 85 02 ad ?? ?? 85 03 ad ?? ?? 48 29 07 8d ?? ?? ee ?? ?? 68 a2 00 a0 00 29 08 aa bd ?? ?? 84 04 a8 b9 00 00 a4 04 99 ?? ?? e8 c8 c0 10 d0 ec ad ?? ?? 29 f0 c9 40 d0 04 ee ?? ?? 60 c9 10 d0 04 a9 01 85 ?? c9 20 d0 05 a9 02 85 ?? 60 c9 30 d0 05 a9 03 85 ?? 60 60');
+const LOADER=pattern('ad ?? ?? 85 06 ad ?? ?? 85 07 a9 01 8d ?? ?? a0 00 b1 06 85 00 c8 b1 06 d0 11 a5 00 48 29 0f 8d ?? ?? 68 4a 4a 4a 4a 8d ?? ?? 60 c8 48 29 0f 85 01 aa bd ?? ?? 85 08 68 29 f0 4a 4a 4a 84 02 20 ?? ?? a4 02 4c ?? ?? aa 4a 85 03 bd ?? ?? 48 bd ?? ?? 48 a5 03 a6 00 60');
+const ZERO=pattern('a5 08 9d ?? ?? 60'),ONE=pattern('84 ?? a4 01 b9 ?? ?? a4 ?? 9d ?? ?? 60');
+const HORIZONTAL=pattern('38 e9 02 a8 b9 ?? ?? a4 01 c8 9d ?? ?? e8 88 d0 f9 60');
+const VERTICAL=pattern('38 e9 09 a8 b9 ?? ?? a4 01 c8 9d ?? ?? 48 8a 38 e9 f0 aa 68 88 d0 f3 60');
+const RECTANGLE=pattern('e6 02 b1 06 48 29 0f 85 04 68 4a 4a 4a 4a 85 05 e6 04 e6 05 a4 04 a5 08 86 00 9d ?? ?? e8 88 d0 f9 a5 00 a6 00 38 e9 f0 aa c6 05 d0 e7 60');
+const PREDICATE=pattern('84 ?? a8 b9 ?? ?? a4 ?? 29 04 60');
+const GENERATE=pattern('ad ?? ?? f0 03 4c ?? ?? a9 00 8d ?? ?? aa 9d ?? ?? e8 d0 fa ad ?? ?? f0 03 4c ?? ?? a9 0c 85 00 20 ?? ?? 29 0c f0 37 ee ?? ?? a5 00 c9 01 d0 03 4c ?? ?? 0a 0a 0a 0a 85 02 20 ?? ?? 18 6a 6a 6a 29 0f 05 02 aa a9 04 85 01 a9 17 9d ?? ?? 8a 29 f0 85 02 e8 8a 29 0f 05 02 aa c6 01 d0 eb c6 00 d0 be ad ?? ?? c9 05 b0 03 4c ?? ?? 20 ?? ?? ad ?? ?? f0 03 20 ?? ?? 20 ?? ?? 20 ?? ?? 20 ?? ?? 60');
+const NEWLEVEL=pattern('ad ?? ?? d0 11 ad ?? ?? f0 03 4c ?? ?? a5 ?? c9 ?? d0 03 4c ?? ?? a5 ?? f0 09 a5 ?? c9 03 d0 03 4c ?? ?? 20 ?? ?? 20 ?? ?? 20 ?? ?? a2 00 8a 9d 00 06');
+const CALLER=pattern('a9 00 8d 01 20 a5 ?? 20 ?? ?? 20 ?? ?? ad ?? ?? 0d ?? ??');
+const LIMITATIONS=Object.freeze([
+ 'Only the declared coherent command-loader, configuration, zero-initialization and full-solid lookup structures are recognized. Unknown engines remain unsupported.',
+ 'Native records are expanded before PrettyLevel and RenderLevelBuf. Random clouds, grass/platform transformations and original actors, controls, physics, goals, audio and runtime effects are not recreated.',
+ 'The native command destination is an 8-bit 16 by 16 buffer. Command wrap and row-boundary crossings remain visible in evidence and prevent static conversion.',
+ 'Only fixed native empty and solid cells with verified flag values can enter the first conversion subset. One-way landing, hazards, interactions, moving/cycling cells and level scrolling remain distinct and refuse conversion.',
+ 'The lower native buffer row is outside the 16 by 15 visible region. Nonempty cropped cells prevent conversion. Unreferenced byte sequences are not guessed to be maps.',
+ 'Zero-pointer configurations use procedural generation. A nonzero pointer with a zero low byte also enters procedural generation before decoding and is not a known-empty map.'
+]);
+function freeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
+function parseContainer(bytes){
+ if(!(bytes instanceof Uint8Array))throw Error('A bounded Uint8Array ROM snapshot is required.');
+ if(bytes.length!==32784)throw Error('This command-map profile requires exactly 32 KiB PRG and no physical CHR ROM.');
+ const header=[78,69,83,26,2,0,0,8,0,0,0,7,0,0,0,0];
+ if(!header.every((value,index)=>bytes[index]===value))throw Error('This profile requires the declared NES 2.0 NROM, NTSC, 8 KiB CHR-RAM container without trainer or additional memory.');
+ return Object.freeze({format:'NES 2.0',mapper:0,prgStart:16,prgSize:32768,chrSize:0,chrRamSize:8192,cpuToFile(address,length=1){if(!Number.isSafeInteger(address)||!Number.isSafeInteger(length)||length<1||address<0x8000||address+length>0x10000)throw Error('Native reference is outside the bounded PRG mapping.');return address-0x8000+16;}});
+}
+const word=(bytes,index)=>bytes[index]|bytes[index+1]<<8;
+function matches(bytes,start,shape){return Number.isInteger(start)&&start>=16&&start+shape.length<=bytes.length&&shape.every((value,index)=>value===null||bytes[start+index]===value);}
+function scan(bytes,shape,start=16,end=bytes.length){const out=[];for(let index=start;index+shape.length<=end;index++)if(matches(bytes,index,shape))out.push(index);return out;}
+const cpu=file=>file+0x8000-16;
+function distinctNativeState(regions){
+ // Accept only physical internal RAM addresses. Mirrored RAM and I/O operands
+ // are not silently normalized: they leave this declared memory layout.
+ const used=new Set();
+ for(const [start,length] of regions){
+  if(!Number.isInteger(start)||!Number.isInteger(length)||length<1||start<0||start+length>0x800)return false;
+  for(let address=start;address<start+length;address++){if(used.has(address))return false;used.add(address);}
+ }
+ return true;
+}
+function decode(input){
+ let container;try{container=parseContainer(input);}catch(error){return{status:'unsupported',reason:String(error.message||error)};}
+ const bytes=input,at=container.cpuToFile;
+ try{
+  const candidates=[], roots={loader:scan(bytes,LOADER),parameter:scan(bytes,PARAM),generate:scan(bytes,GENERATE),entry:scan(bytes,NEWLEVEL),predicate:scan(bytes,PREDICATE)}, probeOffsets=scan(bytes,pattern('b9 ?? ?? 20 ?? ??'));
+  if(Object.values(roots).some(list=>list.length>8)||probeOffsets.length>256)return{status:'ambiguous',reason:'The number of possible code structures exceeds this bounded profile.'};
+  for(const loader of roots.loader){
+   const loaderCPU=cpu(loader),mapPointer=word(bytes,loader+1),mappedFlag=word(bytes,loader+13),spawnX=word(bytes,loader+32),spawnY=word(bytes,loader+40),singleAddress=word(bytes,loader+51),tableAddress=word(bytes,loader+80);
+   if(word(bytes,loader+6)!==mapPointer+1||word(bytes,loader+64)!==loaderCPU+71||word(bytes,loader+69)!==loaderCPU+17||word(bytes,loader+76)!==tableAddress+1)continue;
+   const dispatch=at(tableAddress,28),targets=Array.from({length:14},(_,index)=>(word(bytes,dispatch+index*2)+1)&65535),handlers=[ZERO,ONE,HORIZONTAL,VERTICAL,RECTANGLE],addresses=[targets[0],targets[1],targets[2],targets[9],targets[13]];
+   if(targets.slice(2,9).some(value=>value!==addresses[2])||targets.slice(9,13).some(value=>value!==addresses[3])||new Set(addresses).size!==5)continue;
+   const offsets=addresses.map((address,index)=>at(address,handlers[index].length));if(offsets.some((offset,index)=>!matches(bytes,offset,handlers[index])))continue;
+   const [zero,one,horizontal,vertical,rectangle]=offsets,levelBuffer=word(bytes,zero+3),fillAddress=word(bytes,horizontal+5);
+   if(levelBuffer<0x200||levelBuffer>0x700||(levelBuffer&255)||[word(bytes,one+10),word(bytes,horizontal+11),word(bytes,vertical+11),word(bytes,rectangle+27)].some(value=>value!==levelBuffer)||word(bytes,one+5)!==singleAddress+16||bytes[one+1]!==bytes[one+8]||word(bytes,vertical+5)!==fillAddress)continue;
+   const singleOffset=at(singleAddress,22),fillOffset=at(fillAddress,7),single=Array.from(bytes.slice(singleOffset,singleOffset+22)),fill=Array.from(bytes.slice(fillOffset,fillOffset+7));
+   if([...single,...fill].some(value=>value>=36))continue;
+   // Operation names describe the proven dispatch semantics; data values remain
+   // native references, not a filename/hash recognition table.
+   if(fill[0]!==single[4]||fill[1]!==single[0]||fill[2]!==single[8]||fill[3]!==single[9]||fill[4]!==single[6]||fill[5]!==single[10]||fill[6]!==single[11])continue;
+   for(const parameter of roots.parameter){
+    const config=word(bytes,parameter+32),editMode=word(bytes,parameter+1),table=bytes[parameter+18]|bytes[parameter+24]<<8;
+    if(config+6!==mapPointer||word(bytes,parameter+40)!==config||word(bytes,parameter+74)!==config+2||word(bytes,parameter+79)!==config+3||word(bytes,parameter+84)!==config+4||word(bytes,parameter+89)!==config+5||word(bytes,parameter+94)!==config+1||word(bytes,parameter+134)!==config+1)continue;
+    const goalParam=word(bytes,parameter+46),goalType=word(bytes,parameter+71),maxEnemies=word(bytes,parameter+100),enemyPool=word(bytes,parameter+125),noCycle=word(bytes,parameter+143),scrollMode=bytes[parameter+153],distribution=at(word(bytes,parameter+114),32);
+    if([49,57,62,65].some(index=>word(bytes,parameter+index)!==goalParam)||word(bytes,parameter+103)!==maxEnemies||bytes[parameter+161]!==scrollMode||bytes[parameter+170]!==scrollMode||Array.from(bytes.slice(distribution,distribution+32)).some(value=>value>3))continue;
+    for(const generate of roots.generate){
+     const generateCPU=cpu(generate);
+     if(word(bytes,generate+1)!==editMode||word(bytes,generate+6)!==generateCPU+119||word(bytes,generate+15)!==levelBuffer||word(bytes,generate+21)!==mapPointer||word(bytes,generate+26)!==generateCPU+111||word(bytes,generate+76)!==levelBuffer||word(bytes,generate+40)!==word(bytes,generate+11)||word(bytes,generate+99)!==word(bytes,generate+11)||word(bytes,generate+106)!==generateCPU||word(bytes,generate+112)!==mapPointer+1||word(bytes,generate+117)!==loaderCPU)continue;
+     for(const entry of roots.entry){
+      const levelVariable=bytes[entry+14],recordCount=bytes[entry+16];if(bytes[entry+27]!==levelVariable||recordCount<1||recordCount>64||word(bytes,parameter+52)!==word(bytes,entry+6))continue;
+      const callers=scan(bytes,CALLER,entry+NEWLEVEL.length,Math.min(bytes.length,entry+512)).filter(caller=>bytes[caller+6]===levelVariable&&word(bytes,caller+8)===cpu(parameter)&&word(bytes,caller+11)===generateCPU&&word(bytes,caller+14)===editMode&&word(bytes,caller+17)===mappedFlag);
+      if(callers.length!==1)continue;
+      // The predicate must also be referenced by a native collision probe that
+      // loads a cell from this same buffer, rather than merely existing as bytes.
+      for(const predicate of roots.predicate){
+       if(bytes[predicate+1]!==bytes[predicate+7])continue;
+       // GenerateLevel clears all LevelBuf bytes before reading the map pointer;
+       // aliased config/state would therefore change the native construction.
+       // The loader owns scratch $00..$08, uses the CPU stack page, and writes mapped/spawn state.
+       if(!distinctNativeState([[0,9],[0x100,0x100],[config,8],[levelBuffer,256],[editMode,1],[mappedFlag,1],[spawnX,1],[spawnY,1],[word(bytes,generate+11),1],[bytes[one+1],1],[bytes[predicate+1],1],[levelVariable,1],[word(bytes,entry+1),1],[word(bytes,entry+6),1],[goalParam,1],[goalType,1],[maxEnemies,1],[enemyPool,16],[noCycle,1],[scrollMode,1]]))continue;
+       const predicateCPU=cpu(predicate);
+       const probes=probeOffsets.filter(offset=>word(bytes,offset+1)===levelBuffer&&word(bytes,offset+4)===predicateCPU);
+       if(!probes.length)continue;
+       const flagsAddress=word(bytes,predicate+4),flagsOffset=at(flagsAddress,36),flags=Array.from(bytes.slice(flagsOffset,flagsOffset+36));
+       if(flags.some(value=>value>7))continue;
+       const tableOffset=at(table,recordCount*8),ranges=[{start:loader,length:LOADER.length},{start:dispatch,length:28},...offsets.map((offset,index)=>({start:offset,length:handlers[index].length})),{start:parameter,length:PARAM.length},{start:distribution,length:32},{start:generate,length:GENERATE.length},{start:entry,length:NEWLEVEL.length},{start:callers[0],length:CALLER.length},{start:predicate,length:PREDICATE.length},...probes.map(start=>({start,length:6})),{start:singleOffset,length:22},{start:fillOffset,length:7},{start:flagsOffset,length:36},{start:tableOffset,length:recordCount*8}];
+       candidates.push({structure:{decodeLevelMap:loaderCPU,loadLevelParams:cpu(parameter),generateLevel:generateCPU,newLevel:cpu(entry),blockIsSolid:predicateCPU,levelTable:table,levelTableOffset:tableOffset,levelCount:recordCount,levelBuffer,mapPointer,spawnX,spawnY,metatileFlags:flagsAddress,preLevelScreen:word(bytes,generate+120),prettyLevel:word(bytes,generate+123),renderLevelBuf:word(bytes,generate+126),singleTable:singleAddress,fillTable:fillAddress},tables:{single,fill,flags},ranges});
+      }
+     }
+    }
+   }
+  }
+  if(!candidates.length)return{status:'unknown',reason:'No coherent configuration, command-loader, zero-initialization and full-solid collision structures were found.'};
+  if(candidates.length!==1)return{status:'ambiguous',reason:'Several coherent native command-map structures match; no interpretation was selected.'};
+  const match=candidates[0],{structure,tables}=match,configurations=[],mapByAddress=new Map();let totalWrites=0;
+  for(let index=0;index<structure.levelCount;index++){
+   const offset=structure.levelTableOffset+index*8,raw=Array.from(bytes.slice(offset,offset+8)),address=word(bytes,offset+6),effect=raw[1]>>>4;
+   const config={index,key:'configuration-'+index,fileOffset:offset,raw,mapAddress:address||null,mapKey:address?'map-'+address.toString(16):null,effect,procedural:!address||(address&255)===0};configurations.push(config);
+   if(address&&!mapByAddress.has(address)){const expanded=expand(address,tables,at,bytes);totalWrites+=expanded.orderedWrites.length;if(totalWrites>32768)throw Error('All native maps exceed the aggregate expansion budget.');mapByAddress.set(address,expanded);}
+  }
+  const maps=Array.from(mapByAddress.values());
+  for(const map of maps){
+   map.configurationIndices=configurations.filter(config=>config.mapAddress===map.cpuAddress).map(config=>config.index);
+   const knownBase=map.configurationIndices.some(index=>!configurations[index].procedural);
+   map.initialization=knownBase?'native-zero-fill':'unknown-procedural-base';
+   if(!knownBase){map.knownCells=map.lastWriterCommands.map(index=>index>=0);map.solid=map.solid.map((value,index)=>map.knownCells[index]?value:null);}
+   map.staticConfigurationIndices=map.configurationIndices.filter(index=>!configurations[index].procedural&&(configurations[index].effect===0||configurations[index].effect===4));
+   if(!map.staticConfigurationIndices.length)map.conversionRefusals.push('No referenced configuration has a known-empty initial map and a supported non-scrolling effect.');
+   map.staticConvertible=map.conversionRefusals.length===0;map.unsupported=map.conversionRefusals;map.configurations=map.configurationIndices;
+  }
+  const result={status:'supported',reason:'Native configuration pointers, ordered map commands and full-solid predicates are decoded independently of conversion.',id:ID,container:{format:container.format,mapper:0,prgStart:16,prgSize:32768,chrSize:0,chrRamSize:8192},structure,tables,configurations,maps,evidence:[{status:'decoded',claim:'Linked configuration bounds, pointer copy, dispatch handlers, zero-filled native map buffer and referenced full-solid predicate identify this command representation.',ranges:match.ranges}],limitations:Array.from(LIMITATIONS)};
+  if(JSON.stringify(result).length>2*1024*1024)throw Error('Native map evidence exceeds the declared two-MiB result budget.');
+  return freeze(result);
+ }catch(error){return{status:'invalid',reason:('Native command map: '+String(error.message||error)).slice(0,1900)};}
+}
+function expand(address,tables,at,bytes){
+ const fileOffset=at(address,2),cells=Array(256).fill(0),commands=[],orderedWrites=[],lastWriterCommands=Array(256).fill(-1),conversionRefusals=[],semanticIds=new Set();let cursor=0,wrap=false,crossesRow=false;
+ const next=()=>{if(cursor>=256)throw Error('Native command stream has no terminator before its 8-bit source index wraps.');return bytes[at(address+cursor++,1)];};
+ let spawn=null;
+ while(cursor<256){
+  const start=cursor,position=next(),type=next(),kind=type>>>4,param=type&15;
+  if(type===0){spawn={x:position&15,y:position>>>4};break;}
+  if(kind>13||kind===1&&param>=6)throw Error('Native command dispatch or metatile sub-index is outside the declared tables.');
+  let tile=kind===1?tables.single[16+param]:kind===0||kind===13?tables.single[param]:kind<=8?tables.fill[kind-2]:tables.fill[kind-9],width=1,height=1,dimensions=null;
+  if(kind>=2&&kind<=8)width=param+1;else if(kind>=9&&kind<=12)height=param+1;else if(kind===13){dimensions=next();width=(dimensions&15)+1;height=(dimensions>>>4)+1;}
+  if((position&15)+width>16)crossesRow=true;if((position>>>4)+height>16)wrap=true;
+  const command={fileOffset:fileOffset+start,byteLength:cursor-start,position,type,kind,param,tile,width,height,dimensions,firstWrite:orderedWrites.length};
+  for(let row=0;row<height;row++)for(let column=0;column<width;column++){const rawIndex=position+row*16+column,index=rawIndex&255;if(rawIndex>255)wrap=true;cells[index]=tile;lastWriterCommands[index]=commands.length;orderedWrites.push([index,tile]);}
+  command.writeCount=orderedWrites.length-command.firstWrite;commands.push(command);semanticIds.add(tile);
+  if(orderedWrites.length>8192)throw Error('Native command expansion exceeds the declared write budget.');
+ }
+ if(!spawn)throw Error('Native command stream has no bounded terminator.');
+ const unsupportedCells=[];for(let index=0;index<256;index++)if(cells[index]!==0&&cells[index]!==21)unsupportedCells.push(index);
+ if(tables.single[0]!==0||tables.single[4]!==21||tables.flags[0]!==0||tables.flags[21]!==4)conversionRefusals.push('The proven fixed empty/solid identities or their native flag values changed.');
+ if(unsupportedCells.length)conversionRefusals.push('Native cells include one-way, interactive, hazardous, moving or cycling semantics outside fixed empty/solid conversion.');
+ // Overwritten stateful commands may be harmless in this loader but retaining
+ // their presence avoids implying recovery of interactions beyond this subset.
+ if(Array.from(semanticIds).some(tile=>tile!==0&&tile!==21))conversionRefusals.push('The command history includes metatile semantics outside the static subset.');
+ if(wrap||crossesRow)conversionRefusals.push('Native command writes wrap the buffer or cross a row boundary.');
+ if(cells.slice(240).some(Boolean))conversionRefusals.push('The native row outside the 16 by 15 visible region contains nonempty cells.');
+ return{key:'map-'+address.toString(16),label:'Native map $'+address.toString(16).toUpperCase(),cpuAddress:address,fileOffset,byteLength:cursor,width:16,height:16,visibleWidth:16,visibleHeight:15,cellPixels:16,cells,knownCells:Array(256).fill(true),solid:cells.map(tile=>(tables.flags[tile]&4)!==0),commands,orderedWrites,lastWriterCommands,spawn,wrapsBuffer:wrap,crossesRow,unsupportedCells,conversionRefusals,evidence:[{status:'decoded',claim:'Ordered native map commands, including overwrites and terminal spawn, expand into the declared zero-filled 256-cell buffer.',ranges:[{start:fileOffset,length:cursor}]}]};
+}
+services.RENativeCommandMap=Object.freeze({version:1,id:ID,parseContainer,decode});
+})();
+/* Bounded source-backed PB53 upload and raw command-map rendering.
+ * Instruction grammars establish pointers; ROM code is never executed here.
+ * PB53 buffer behavior follows the linked native loader, including prior-state
+ * dependencies. PrettyLevel and the running game are outside this conversion.
+ */
+(()=>{
+'use strict';
+const services=window.Forge.services;
+const freeze=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
+const word=(bytes,offset)=>bytes[offset]|bytes[offset+1]<<8;
+const pattern=text=>text.split(/\s+/).map(value=>value==='??'?null:parseInt(value,16));
+const matches=(bytes,offset,shape)=>Number.isSafeInteger(offset)&&offset>=16&&offset+shape.length<=bytes.length&&shape.every((value,index)=>value===null||value===bytes[offset+index]);
+const RESET=pattern('a9 00 8d 00 20 8d 01 20 78 a2 ff 9a ad 02 20 10 fb ad 02 20 10 fb a9 00 8d 15 40 a9 3f 8d 06 20 a9 00 8d 06 20 a2 00 a9 ?? 8d 07 20 a9 ?? 8d 07 20 bd ?? ?? 8d 07 20 a9 ?? 8d 07 20 e8 e0 08 d0 e6 a9 3f 8d 06 20 a9 07 8d 06 20 a9 ?? 8d 07 20 20 ?? ?? a2 00 8a 95 00 9d 00 01 9d 00 03 9d 00 04 9d 00 05 9d 00 06 9d 00 07 e8 d0 e9 a2 01 8e 16 40 ca 8e 16 40 20 ?? ?? 20 ?? ?? 20 ?? ?? a5 16 c9 10 d0 08 a5 17 c9 20 d0 02 e6 12 a9 21 85 e4 a9 69 85 10 a9 5a 85 1c a9 a5 85 1d a9 53 85 1e a9 76 85 1f a9 ?? 8d 00 20 4c ?? ??');
+const UPLOAD=pattern('a9 40 85 0f a9 00 8d 06 20 8d 06 20 a9 ?? 85 f5 a9 ?? 85 f6 a9 00 85 f9 a9 80 85 fa 20 ?? ?? a2 00 bd 00 02 8d 07 20 e8 e0 80 d0 f5 c6 0f d0 ec 60');
+const JOY=pattern('a9 01 8d 17 00 ad 16 40 29 03 c9 01 2e 16 00 ad 17 40 29 03 c9 01 2e 17 00 90 ea 60');
+const PB53=pattern('a6 f9 a0 00 b1 f5 e6 f5 d0 02 e6 f6 c9 82 90 3a f0 1e c9 84 b0 28 8a 38 e5 f9 a8 a9 10 85 01 b9 00 02 9d 00 02 e8 c8 c6 01 d0 f4 e4 fa 90 d3 60 8a c5 f9 d0 02 a5 fa 38 e9 10 a8 4c ?? ?? 48 20 ?? ?? 68 4a 20 ?? ?? 4c ?? ?? 20 ?? ?? a0 00 b1 f5 e6 f5 d0 02 e6 f6 c9 82 b0 06 20 ?? ?? 4c ?? ?? a0 08 29 01 f0 02 a9 ff 85 00 bd f8 01 45 00 9d 00 02 e8 88 d0 f4 4c ?? ?? 09 00 10 10 a0 08 29 01 f0 02 a9 ff 9d 00 02 e8 88 d0 f9 60 38 2a 85 00 a9 00 b0 03 b1 f5 c8 9d 00 02 e8 06 00 d0 f3 18 98 65 f5 85 f5 90 02 e6 f6 60');
+const RENDER=pattern('a9 00 8d 05 20 8d 05 20 aa 9d 80 06 e8 e0 40 d0 f8 a9 20 8d 06 20 a9 00 8d 06 20 aa a9 10 85 00 bd 00 07 0a 0a a8 b9 ?? ?? 8d 07 20 b9 ?? ?? 8d 07 20 e8 c6 00 d0 e9 8a 38 e9 10 aa a9 10 85 00 8a bd 00 07 48 48 a8 b9 ?? ?? 9d 00 07 68 0a 0a a8 b9 ?? ?? 8d 07 20 b9 ?? ?? 8d 07 20 68 a8 b9 ?? ?? 48 8a a8 68 29 03 f0 05 09 80 20 ?? ?? e8 c6 00 d0 cc e0 f0 d0 a4 a2 00 bd 80 06 8d 07 20 e8 e0 40 d0 f5 a9 00 8d 05 20 8d 05 20 60');
+const COLOR=pattern('86 07 85 06 29 03 aa bd ?? ?? 85 05 a2 00 98 4a 90 01 e8 98 29 10 f0 02 e8 e8 a5 05 3d ?? ?? 85 05 98 29 e0 4a 4a 85 04 98 29 0e 4a 05 04 a8 b9 80 06 3d ?? ?? 05 05 99 80 06 85 05 a6 07 24 06 10 01 60');
+const limitations=Object.freeze([
+ 'Static command-map rendering uses the original metatile tile and palette-index tables before PrettyLevel. Random clouds, grass/platform substitutions, gameplay actors and later visual changes are omitted.',
+ 'The recovered palette is the reset upload, including native universal-color aliases and the explicit slot-seven write. Level-specific background changes and animated sprite colors are not recovered.',
+ 'PB53 is interpreted with this verified loader\'s 128-byte persistent buffer. Tile control $83 copies its existing buffer slot; it does not mean a previous 4 KiB bank in this loader configuration.',
+ 'Unknown initial decompression-buffer bytes remain marked unknown; a static map using such a tile cannot be converted. Native row fifteen is data outside the visible 16 by 15 metatile screen.',
+ 'The source resets with rendering disabled. Its final reset control selects the recovered background bank; the editor viewer supplies its own rendering state.'
+]);
+
+function decompress(bytes,start){
+ const buffer=Array(128).fill(0),knownBuffer=Array(128).fill(false),chrRamBytes=[],knownChrRam=[],tokens=[];let cursor=start;
+ const read=()=>{if(cursor>=bytes.length)throw Error('PB53 stream leaves the bounded PRG bytes.');return bytes[cursor++];};
+ const plane=(control,index)=>{
+  if(control>=0x80){for(let row=0;row<8;row++){buffer[index+row]=(control&1)?255:0;knownBuffer[index+row]=true;}return;}
+  let value=0;for(let row=0;row<8;row++){if(row===0||!(control&(1<<(7-row))))value=read();buffer[index+row]=value;knownBuffer[index+row]=true;}
+ };
+ for(let tile=0;tile<512;tile++){
+  const begin=cursor,control=read(),index=(tile%8)*16;let kind;
+  if(control===0x82||control===0x83){
+   kind=control===0x82?'previous-buffer-tile':'retained-buffer-slot';
+   const source=control===0x83?index:(index===0?112:index-16);
+   for(let i=0;i<16;i++){buffer[index+i]=buffer[source+i];knownBuffer[index+i]=knownBuffer[source+i];}
+  }else if(control>=0x84){kind='solid-tile';plane(0x80|(control&1),index);plane(0x80|((control>>>1)&1),index+8);}
+  else{
+   kind='two-planes';plane(control,index);const second=read();
+   if(second>=0x82){const invert=(second&1)?255:0;for(let i=0;i<8;i++){buffer[index+8+i]=buffer[index+i]^invert;knownBuffer[index+8+i]=knownBuffer[index+i];}}
+   else plane(second,index+8);
+  }
+  tokens.push({fileOffset:begin,length:cursor-begin,tile,control,kind});
+  // Native code uploads only after all eight tiles in each buffer are ready.
+  if(tile%8===7){chrRamBytes.push(...buffer);knownChrRam.push(...knownBuffer);}
+ }
+ return{chrRamBytes,knownChrRam,tokens,byteLength:cursor-start};
+}
+
+function decode(input,mapDecoded){
+ if(!(input instanceof Uint8Array))return{status:'invalid',reason:'Command graphics requires a bounded Uint8Array source snapshot.'};
+ try{
+  const owner=services.RENativeCommandMap;if(!owner)throw Error('Native command-map service is unavailable.');
+  const container=owner.parseContainer(input),bytes=input,at=(address,length)=>container.cpuToFile(address,length);
+  // Revalidate the source through the map owner; supplied metadata is a hint,
+  // never authority to turn an unrelated instruction sequence into a renderer.
+  const decoded=owner.decode(bytes);
+  if(decoded.status!=='supported')return{status:decoded.status,reason:'Command graphics needs a verified native map structure: '+decoded.reason};
+  if(mapDecoded&&(!mapDecoded.structure||mapDecoded.structure.renderLevelBuf!==decoded.structure.renderLevelBuf||mapDecoded.structure.metatileFlags!==decoded.structure.metatileFlags))throw Error('Map structure does not match the supplied source.');
+  const resetAddress=word(bytes,at(0xfffc,2)),reset=at(resetAddress,RESET.length);
+  if(!matches(bytes,reset,RESET))return{status:'unknown',reason:'The vector-linked palette and CHR upload reset grammar was not found.'};
+  const ppuCtrl=bytes[reset+166];if(ppuCtrl!==0x88&&ppuCtrl!==0x98)throw Error('Reset background selection is outside the declared control variants.');
+  if(word(bytes,reset+119)!==word(bytes,reset+122)||word(bytes,reset+119)!==word(bytes,reset+125))throw Error('Reset controller calls are not coherent.');
+  const joy=at(word(bytes,reset+119),JOY.length);if(!matches(bytes,joy,JOY))throw Error('The reset controller helper before final PPU control does not match the verified port-only grammar.');
+  const uploadAddress=word(bytes,reset+81),upload=at(uploadAddress,UPLOAD.length);
+  if(!matches(bytes,upload,UPLOAD))throw Error('The reset CHR upload does not use the declared 64 by 128-byte construction.');
+  const pbAddress=word(bytes,upload+29),pb=at(pbAddress,PB53.length);
+  if(!matches(bytes,pb,PB53))throw Error('The linked PB53 unpacker is outside the verified instruction grammar.');
+  for(const [operand,relative] of [[60,27],[64,126],[69,126],[72,43],[75,122],[92,122],[95,43],[120,43]])if(word(bytes,pb+operand)!==pbAddress+relative)throw Error('The PB53 internal targets do not match the linked routine.');
+  const streamAddress=bytes[upload+13]|bytes[upload+17]<<8,stream=at(streamAddress,1),unpacked=decompress(bytes,stream);
+  const colorsAddress=word(bytes,reset+50),colorsOffset=at(colorsAddress,8),colors=Array.from(bytes.slice(colorsOffset,colorsOffset+8));
+  const base=bytes[reset+40],dark=bytes[reset+45],light=bytes[reset+56],override=bytes[reset+76];
+  if([...colors,base,dark,light,override].some(value=>value>63))throw Error('Palette values outside the six-bit native color range are unsupported.');
+  const rawPalette=[];for(const color of colors)rawPalette.push(base,dark,color,light);
+  const palette=Array(32).fill(0);for(let index=0;index<32;index++)palette[index>=16&&index%4===0?index-16:index]=rawPalette[index];palette[7]=override;for(let index=16;index<32;index+=4)palette[index]=palette[index-16];
+  if(decoded.structure.levelBuffer!==0x700)throw Error('The verified map and graphics renderer do not share the same native cell buffer.');
+  const rendererAddress=decoded.structure.renderLevelBuf,renderer=at(rendererAddress,RENDER.length);
+  if(!matches(bytes,renderer,RENDER))throw Error('The map renderer is outside the verified row-wise metatile grammar.');
+  const tilesAddress=word(bytes,renderer+39),becomesAddress=word(bytes,renderer+72),flagsAddress=word(bytes,renderer+96),colorAddress=word(bytes,renderer+109),color=at(colorAddress,COLOR.length);
+  if(word(bytes,renderer+45)!==tilesAddress+1||word(bytes,renderer+82)!==tilesAddress+2||word(bytes,renderer+88)!==tilesAddress+3||flagsAddress!==decoded.structure.metatileFlags)throw Error('Metatile pointers disagree across renderer and native collision evidence.');
+  if(!matches(bytes,color,COLOR))throw Error('Metatile attribute construction is outside the verified grammar.');
+  const colorTables=[];
+  for(const [operand,expected] of [[8,[0,85,170,255]],[29,[3,12,48,192]],[51,[252,243,207,63]]]){
+   const address=word(bytes,color+operand),offset=at(address,4);if(!expected.every((value,index)=>bytes[offset+index]===value))throw Error('Native attribute masks differ from the supported quadrant construction.');colorTables.push({start:offset,length:4});
+  }
+  const tilesOffset=at(tilesAddress,144),becomesOffset=at(becomesAddress,36),flagsOffset=at(flagsAddress,36),metatileTiles=Array.from(bytes.slice(tilesOffset,tilesOffset+144)),metatileBecomes=Array.from(bytes.slice(becomesOffset,becomesOffset+36)),metatileFlags=Array.from(bytes.slice(flagsOffset,flagsOffset+36));
+  if(metatileBecomes.some(value=>value>=36))throw Error('Metatile post-render IDs leave the bounded native table.');
+  const backgroundPatternTable=(ppuCtrl>>>4)&1,bankStart=backgroundPatternTable*4096;
+  const construction={format:'NESCommandMapPB53Graphics',version:1,phase:'raw-command-map-before-PrettyLevel',reset:{cpuAddress:resetAddress,fileOffset:reset,length:RESET.length},upload:{cpuAddress:uploadAddress,fileOffset:upload,length:UPLOAD.length,chunks:64,chunkBytes:128,ppuStart:0,writeCount:8192},unpacker:{cpuAddress:pbAddress,fileOffset:pb,length:PB53.length},stream:{cpuAddress:streamAddress,fileOffset:stream,length:unpacked.byteLength,tokens:unpacked.tokens},palette:{cpuAddress:colorsAddress,fileOffset:colorsOffset,length:8,rawBytes:rawPalette,override:{ppuAddress:0x3f07,value:override}},renderer:{cpuAddress:rendererAddress,fileOffset:renderer,length:RENDER.length,colorRoutineAddress:colorAddress},tables:{tiles:{cpuAddress:tilesAddress,fileOffset:tilesOffset,length:144},becomes:{cpuAddress:becomesAddress,fileOffset:becomesOffset,length:36},flags:{cpuAddress:flagsAddress,fileOffset:flagsOffset,length:36}},control:{ppuCtrl,ppuMaskDuringUpload:0,backgroundPatternTable,scrollX:0,scrollY:0}};
+  return freeze({status:'supported',reason:'Verified PB53 upload bytes and raw native metatile rendering tables recovered.',graphics:{chrBytes:unpacked.chrRamBytes.slice(bankStart,bankStart+4096),knownChr:unpacked.knownChrRam.slice(bankStart,bankStart+4096),chrRamBytes:unpacked.chrRamBytes,knownChrRam:unpacked.knownChrRam,palette,metatileTiles,metatileBecomes,metatileFlags,backgroundPatternTable,ppuMask:0,construction,evidence:[{status:'decoded',claim:'Reset vector, linked PB53 unpacker and fixed-size uploader establish the exact native graphics construction without executing input code.',ranges:[{start:at(0xfffc,2),length:2},{start:reset,length:RESET.length},{start:joy,length:JOY.length},{start:upload,length:UPLOAD.length},{start:pb,length:PB53.length},{start:stream,length:unpacked.byteLength},{start:colorsOffset,length:8}]},{status:'decoded',claim:'Map-linked renderer and attribute helper establish visible metatile quadrants and palette indices before PrettyLevel.',ranges:[{start:renderer,length:RENDER.length},{start:color,length:COLOR.length},...colorTables,{start:tilesOffset,length:144},{start:becomesOffset,length:36},{start:flagsOffset,length:36}]}],limitations:Array.from(limitations)}});
+ }catch(error){return{status:'invalid',reason:('Native command graphics: '+String(error.message||error)).slice(0,1900)};}
+}
+
+function render(graphics,cells){
+ if(!graphics||!Array.isArray(graphics.metatileTiles)||graphics.metatileTiles.length!==144||!Array.isArray(graphics.metatileFlags)||graphics.metatileFlags.length!==36||!Array.isArray(graphics.knownChr)||graphics.knownChr.length!==4096||!cells||cells.length!==256)throw Error('Raw native rendering requires verified graphics and exactly 256 cells.');
+ if(Array.from(cells).some(value=>!Number.isInteger(value)||value<0||value>=36))throw Error('Raw map IDs leave the bounded metatile table.');
+ const nametable=Array(1024).fill(0),knownNametable=Array(1024).fill(true),postRenderCells=Array.from(cells);
+ for(let y=0;y<15;y++)for(let x=0;x<16;x++){
+  const cell=y*16+x,id=cells[cell],tileBase=id*4,ntBase=y*64+x*2;
+  for(let quadrant=0;quadrant<4;quadrant++){
+   const tile=graphics.metatileTiles[tileBase+quadrant];if(!Number.isInteger(tile)||tile<0||tile>255)throw Error('Native tile index is outside one pattern table.');
+   if(!graphics.knownChr.slice(tile*16,tile*16+16).every(Boolean))throw Error('A visible metatile uses CHR bytes that depend on unknown initial decompression-buffer state.');
+   nametable[ntBase+(quadrant&1)+(quadrant>=2?32:0)]=tile;
+  }
+  nametable[960+(y>>>1)*8+(x>>>1)]|=(graphics.metatileFlags[id]&3)<<((x&1)*2+(y&1)*4);
+  postRenderCells[cell]=graphics.metatileBecomes[id];
+ }
+ return freeze({nametable,knownNametable,postRenderCells,phase:'raw-command-map-before-PrettyLevel'});
+}
+services.RENativeCommandGraphics=Object.freeze({version:1,decode,render,limitations});
+})();
+/* Native command maps convert to existing canonical scenes and binary collision.
+ * The format decoders own source meaning. Shared native-scene staging,
+ * ProjectStore and RuntimeCompiler own preview, edits and generated behavior. */
+(()=>{
+'use strict';
+const services=window.Forge.services,methods=services.REMethods,ID='nes.command-metatile-map.v1';
+const copy=value=>JSON.parse(JSON.stringify(value));
+const fail=message=>{throw Error('Native map: '+message);};
+function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
+const limits=Object.freeze([
+ 'Static command-map geometry before native decoration only. Random maps, clouds, grass/platform decoration, scrolling, wrapping, cycling blocks, hazards, one-way platforms, actors, audio and original game logic are not reconstructed.',
+ 'Only declared native Empty and fixed Solid cells convert. Unknown or unsupported collision never defaults to Empty. The visible 16 × 15 metatile region maps exactly to 32 × 30 Forge tiles; a nonempty hidden native row prevents conversion.',
+ 'Import appends an excluded editable scene through one Undo transaction. Download map project creates a separate Forge single-room adaptation with an authored test player and default Forge movement; it does not recreate native physics or gameplay.',
+ 'Graphics use the proven reset palette and raw command-map metatiles, before PrettyLevel decoration and later palette updates. Source sprites, clipping and later runtime writes are not reproduced.',
+ 'Uniform tile collision uses existing tile properties. Ambiguous reuse uses linked metatile overrides. Raw visual edits can detach links and fall back to tile properties under the existing editor rules.',
+ 'The original ROM is unchanged. This method does not supply a native encoder, ROM patch or whole-game reconstruction.'
+]);
+function byteArray(value,length,label,max=255){if(!Array.isArray(value)||value.length!==length||value.some(v=>!Number.isInteger(v)||v<0||v>max))fail('Invalid '+label+'.');return value;}
+function textList(value,label){if(!Array.isArray(value)||value.length>64||value.some(v=>typeof v!=='string'||!v.trim()||v.length>2000))fail('Invalid '+label+'.');}
+function options(input,source,convert=false){if(Object.keys(input).some(k=>!['expectedSourceSha256',...(convert?['resourceKey']:[])].includes(k)))fail('Unsupported recovery option.');if(input.expectedSourceSha256!==undefined&&input.expectedSourceSha256!==source.sha256)fail('The selected source identity changed.');if(convert&&(typeof input.resourceKey!=='string'||!input.resourceKey||input.resourceKey.length>160))fail('Select a native map resource before previewing.');}
+function decodeSource(context,graphics=false){
+ const bytes=Uint8Array.from(context.read(0,context.source.byteLength).bytes);context.consume(bytes.length*12);context.throwIfAborted();
+ const native=services.RENativeCommandMap.decode(bytes);context.throwIfAborted();
+ if(native.status!=='supported')return native;
+ if(graphics){const graphicsResult=services.RENativeCommandGraphics.decode(bytes,native);context.throwIfAborted();return {...native,graphicsResult};}
+ return native;
+}
+function resourceKey(map){return map.key||'map-'+map.cpuAddress.toString(16).padStart(4,'0');}
+function resourceLabel(map){return map.label||'Native map at $'+map.cpuAddress.toString(16).toUpperCase().padStart(4,'0');}
+function unsupported(map){return map.unsupported||map.limitations||[];}
+function convertible(map){return map.staticConvertible===true;}
+function canonicalCollision(scene){
+ const definitions=new Map(scene.metatiles.map(m=>[m.id,m]));return scene.nt.map((tile,index)=>{const x=index%32,y=Math.floor(index/32),id=scene.metaMap[(y>>1)*16+(x>>1)];return id>=0?definitions.get(id).collision[(y&1)*2+(x&1)]:scene.tileProps[tile];});
+}
+function materialize(nt,attr,collision){
+ const seen=new Map(),tileProps=Array(256).fill(0),metatiles=[],metaMap=[],keys=new Map();
+ nt.forEach((tile,i)=>{if(!seen.has(tile))seen.set(tile,collision[i]);else if(seen.get(tile)!==collision[i])seen.set(tile,-1);});
+ for(const [tile,value] of seen)if(value>=0)tileProps[tile]=value;
+ for(let cell=0;cell<240;cell++){
+  const x=(cell%16)*2,y=Math.floor(cell/16)*2,positions=[y*32+x,y*32+x+1,(y+1)*32+x,(y+1)*32+x+1],tiles=positions.map(i=>nt[i]),solid=positions.map(i=>collision[i]),pal=(attr[(y>>2)*8+(x>>2)]>>((((y>>1)&1)*2+((x>>1)&1))*2))&3;
+  if(!tiles.some(tile=>seen.get(tile)===-1)){metaMap.push(-1);continue;}
+  const key=tiles.join(',')+'|'+pal+'|'+solid.join(',');if(!keys.has(key)){const id=metatiles.length;keys.set(key,id);metatiles.push({id,name:'Native collision block '+id,category:'Recovered static map',tiles,pal,collision:solid,flags:0});}metaMap.push(keys.get(key));
+ }
+ return {tileProps,metatiles,metaMap};
+}
+function tiles(data){return Array.from({length:256},(_,tile)=>Array.from({length:8},(_,y)=>Array.from({length:8},(_,x)=>((data[tile*16+y]>>(7-x))&1)|(((data[tile*16+y+8]>>(7-x))&1)<<1))));}
+function convert(native,map,source){
+ if(!convertible(map))fail(unsupported(map).join(' ')||'This map contains unsupported native semantics.');
+ byteArray(map.cells,256,'native map cells');if(map.cells.some(v=>v!==0&&v!==21)||map.cells.slice(240).some(v=>v!==0))fail('Only Empty/Solid in the declared visible region can convert.');
+ const gr=native.graphicsResult;if(gr?.status!=='supported')fail(gr?.reason||'Native graphics construction is unsupported.');const g=gr.graphics;
+ if(!Array.isArray(g.knownChr)||g.knownChr.length!==4096||g.knownChr.some(value=>value!==true))fail('The imported CHR bank depends on unknown initial decompression state.');
+ if(g.metatileBecomes?.[0]!==0||g.metatileBecomes?.[21]!==21)fail('The native renderer changes fixed Empty/Solid collision identities.');
+ const rendered=services.RENativeCommandGraphics.render(g,map.cells),nametable=Array.isArray(rendered)?rendered:rendered.nametable;
+ byteArray(nametable,1024,'rendered nametable');byteArray(g.chrBytes,4096,'background CHR');byteArray(g.palette,32,'reset palette',63);
+ const collision=Array.from({length:960},(_,i)=>map.cells[(Math.floor(i/32)>>1)*16+((i%32)>>1)]===21?1:0);
+ const key=resourceKey(map),label=resourceLabel(map),sceneId='re-map-'+source.sha256+'-'+key;
+ const evidence=[...(native.evidence||[]),...(g.evidence||gr.evidence||[])].map(e=>methods.evidence(e,source));
+ evidence.push(methods.evidence({status:'converted',claim:'The selected raw static map, decoded metatile graphics and native full-solid cell meaning become a canonical Forge scene. The separate generated project uses authored test-player assets and Forge physics.',ranges:[{start:map.fileOffset,length:map.byteLength}]},source));
+ const adaptedSpawn={x:map.spawn.x*16+8,y:map.spawn.y*16+16,width:8,height:8};
+ const report={format:'NESForgeNativeMapRecovery',version:1,method:{id:ID,version:1,name:'NES command metatile maps'},source:copy(source),sceneId,resourceKey:key,label,
+  region:{nativeWidth:16,nativeHeight:16,visibleWidth:16,visibleHeight:15,nativeCellPixels:16,originX:0,originY:0,forgeWidth:32,forgeHeight:30,omittedRow:15,omittedRowEmpty:true},
+  nativeCells:copy(map.cells),nativeSpawn:copy(map.spawn),nativePalette:copy(g.palette),
+  collision:{knownCells:960,solidCells:collision.reduce((s,v)=>s+v,0),emptyCells:collision.filter(v=>v===0).length,values:collision,meaning:'Native fixed Solid becomes four Forge Solid cells; native Empty becomes four Forge Empty cells.'},
+  adaptation:{backend:'single-room',authoredPlayer:true,player:adaptedSpawn,physics:{moveSpeed:2,jumpSpeed:4,gravity:1,maxFallSpeed:4},sourceStage:'raw command output before PrettyLevel',graphics:'reset palette and source metatile tiles; random and later visual transformations omitted'},
+  construction:{map:{cpuAddress:map.cpuAddress,fileOffset:map.fileOffset,byteLength:map.byteLength,configurationIndices:copy(map.configurationIndices||[]),staticConfigurationIndices:copy(map.staticConfigurationIndices||[]),commands:copy(map.commands||[]),orderedWrites:copy(map.orderedWrites||[])},graphics:copy(g.construction||{}),sourceStructure:copy(native.structure||{})},
+  evidence,unknown:['original actor behavior','original movement physics','audio','random decoration','later palette changes','full-game topology'],limitations:[...limits,...(g.limitations||gr.limitations||[])]};
+ validateRecovery(report);freeze(report);
+ const pal=Array.from({length:4},(_,i)=>[g.palette[0],...g.palette.slice(i*4+1,i*4+4)]),chr=tiles(g.chrBytes),nt=nametable.slice(0,960),attr=nametable.slice(960),properties=materialize(nt,attr,collision);
+ const scene=makeScene({id:sceneId,name:label,chr,sprChr:normalizeTiles(),nt,attr,pal,sprPal:pal,bgColor:g.palette[0],...properties,entities:[],oam:[],links:[],sceneType:'sideview',scrollDir:'none',view:{x:0,y:0,w:256,h:240,followEnt:-1,hBorder:32,vBorder:24},buildInclude:false,buildOrder:0,captureMeta:{mode:'native-map',note:'Native raw static map and fixed binary collision; separate playable project uses authored controls and player.',recovery:copy(report)}});
+ if(JSON.stringify(canonicalCollision(scene))!==JSON.stringify(collision))fail('Canonical normalization changed decoded collision.');
+ return {scene,report};
+}
+function standalone(scene,source){
+ const sc=copy(scene),r=sc.captureMeta.recovery,p=r.adaptation.player,playerId='native-map-test-player',frameId='native-map-test-frame',states=['idle','walk','attack'];sc.buildInclude=true;sc.buildOrder=0;
+ // Authored validation glyph lives only in the separate playable project.
+ sc.sprChr=normalizeTiles();sc.sprChr[0]=Array.from({length:8},(_,y)=>Array.from({length:8},(_,x)=>x===0||x===7||y===0||y===7?2:3));
+ sc.entities=[{id:playerId,name:'Authored collision test player',type:'player',x:p.x,y:p.y,w:8,h:8,sprTile:0,animationBinding:{defaultState:'idle',facing:'right',states:states.map(state=>({state,animationId:'native-map-test-'+state}))}}];
+ const gameplay={...Forge165.config.defaults(),mode:'single-room',sceneId:sc.id,playerId,targetId:'',...r.adaptation.physics,bodyWidth:8,bodyHeight:8};
+ return {format:'NESForge',version:services.ProjectStore.schema,foundation:window.Forge.release.version,romLayout:3,worldAuthoring:3,metatileExtension:1,metaspriteExtension:2,entityAnimationExtension:1,projectName:(source.name+' — static map').slice(0,120),scenes:[sc],activeScene:0,chr:sc.chr,sprChr:sc.sprChr,nt:sc.nt,attr:sc.attr,pal:sc.pal,sprPal:sc.sprPal,oam:[],tileProps:sc.tileProps,worlds:[],gameplay,worldRuntime:services.WorldConfig.defaults(),audioRuntime:services.AudioConfig.defaults(),gameplayCore:services.GameplayModel.defaults(),metasprites:[{id:frameId,name:'Authored collision test glyph',sceneId:sc.id,spriteMode:8,originX:4,originY:8,pieces:[{id:'native-map-test-piece',tile:0,tile2:0,x:0,y:0,pal:0,flipH:false,flipV:false,behind:false}]}],animations:states.map(state=>({id:'native-map-test-'+state,name:'Authored '+state,state,loop:state!=='attack',frames:[{sceneId:sc.id,tileIdx:0,metaspriteId:frameId,duration:8,hitboxes:[],hurtboxes:[],events:[]}]})),instruments:[],patterns:[{rows:Array.from({length:64},()=>Array.from({length:5},()=>({note:-1,inst:-1,vol:-1,fx:0,fxp:0})))}],orderList:[[0,0,0,0,0]],audRows:64,tempo:150,speed:6,sfx:[],asmSource:'',mapper:0,mirroring:'h',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,selTile:0,editTile:0,selSprite:-1,selEntity:-1,chrBank:'bg',_selAnim:0,_animFrame:0};
+}
+function validateRecovery(value){
+ const encoded=JSON.stringify(value);if(!encoded||encoded.length>262144)fail('Recovery evidence exceeds 256 KiB.');const r=copy(value);
+ if(r.format!=='NESForgeNativeMapRecovery'||r.version!==1||r.method?.id!==ID||r.method?.version!==1)fail('Unsupported map evidence format.');
+ if(typeof r.source?.name!=='string'||r.source.name.length>512||!/^[a-f0-9]{64}$/.test(r.source.sha256)||r.source.byteLength!==32784)fail('Invalid map source identity.');
+ if(typeof r.resourceKey!=='string'||!/^[a-z0-9][a-z0-9.-]{0,159}$/.test(r.resourceKey)||r.sceneId!=='re-map-'+r.source.sha256+'-'+r.resourceKey||typeof r.label!=='string'||!r.label||r.label.length>200)fail('Invalid map resource identity.');
+ if(JSON.stringify(r.region)!==JSON.stringify({nativeWidth:16,nativeHeight:16,visibleWidth:16,visibleHeight:15,nativeCellPixels:16,originX:0,originY:0,forgeWidth:32,forgeHeight:30,omittedRow:15,omittedRowEmpty:true}))fail('Unsupported map region.');
+ byteArray(r.nativeCells,256,'persisted native cells');if(r.nativeCells.some(v=>v!==0&&v!==21)||r.nativeCells.slice(240).some(v=>v))fail('Unsupported persisted native cell meaning.');byteArray(r.nativePalette,32,'persisted palette',63);
+ const spawn=r.nativeSpawn;if(!spawn||!Number.isInteger(spawn.x)||spawn.x<0||spawn.x>15||!Number.isInteger(spawn.y)||spawn.y<0||spawn.y>14)fail('Invalid native spawn.');
+ const collision=byteArray(r.collision?.values,960,'persisted binary collision',1),expected=Array.from({length:960},(_,i)=>r.nativeCells[(Math.floor(i/32)>>1)*16+((i%32)>>1)]===21?1:0),solid=expected.reduce((s,v)=>s+v,0);
+ if(JSON.stringify(collision)!==JSON.stringify(expected)||r.collision.knownCells!==960||r.collision.solidCells!==solid||r.collision.emptyCells!==960-solid)fail('Persisted collision coverage differs from native records.');
+ if(r.adaptation?.backend!=='single-room'||r.adaptation.authoredPlayer!==true||JSON.stringify(r.adaptation.player)!==JSON.stringify({x:spawn.x*16+8,y:spawn.y*16+16,width:8,height:8})||JSON.stringify(r.adaptation.physics)!==JSON.stringify({moveSpeed:2,jumpSpeed:4,gravity:1,maxFallSpeed:4}))fail('Invalid declared playable adaptation.');
+ const c=r.construction;if(!c||typeof c!=='object'||Array.isArray(c)||JSON.stringify(c).length>180000||!Number.isInteger(c.map?.fileOffset)||!Number.isInteger(c.map.byteLength)||c.map.fileOffset<16||c.map.byteLength<2||c.map.fileOffset+c.map.byteLength>r.source.byteLength)fail('Invalid map construction evidence.');
+ if(!Array.isArray(r.evidence)||!r.evidence.length||r.evidence.length>128)fail('Invalid map evidence.');r.evidence.forEach(e=>{if(e.sourceSha256!==r.source.sha256)fail('Map evidence refers to another source.');methods.evidence(e,r.source);});textList(r.unknown,'unknowns');textList(r.limitations,'limitations');return freeze(r);
+}
+methods.registerProfile({id:ID,version:1,contractVersion:2,name:'NES command metatile maps',domains:['graphics','maps','collision'],sceneConversion:'map',limitations:limits,limits:{maxSourceBytes:32784,maxWork:4194304},operations:{decode:{label:'Decode native map records',effect:'read-only'},convert:{label:'Preview static map and collision',effect:'preview',fidelity:'subset'}},
+ probe:async(analysis,context)=>{const result=decodeSource(context);return{status:result.status,reason:result.reason||'Source-linked command maps and collision records decoded.',evidence:result.evidence||[]};},
+ handlers:{decode:async(analysis,input,context)=>{options(input,context.source);const result=decodeSource(context,true);return{status:result.status,reason:result.reason||'Native map records decoded; each resource declares conversion limits.',evidence:result.evidence||[],data:result};},convert:async(analysis,input,context)=>{options(input,context.source,true);const result=decodeSource(context,true);if(result.status!=='supported')return{status:result.status,reason:result.reason,evidence:result.evidence||[]};const map=result.maps.find(m=>resourceKey(m)===input.resourceKey);if(!map)fail('The selected map does not belong to this source.');const data=convert(result,map,context.source);return{status:'supported',reason:'The declared static map can be adapted to existing Forge binary collision and gameplay.',evidence:data.report.evidence,data};}}});
+async function listResources(analysis,methodId,controls={}){
+ if(methodId!==ID)fail('This method does not produce native command maps.');const result=await methods.dispatch(methodId,'decode',analysis,{},controls);if(result.status!=='supported')fail(result.reason);
+ const native=result.data,graphics=native.graphicsResult;return freeze(native.maps.map(map=>({key:resourceKey(map),label:resourceLabel(map),supported:convertible(map)&&graphics?.status==='supported',reason:convertible(map)?(graphics?.status==='supported'?'Static Empty/Solid geometry; preview validates the playable adaptation.':graphics?.reason||'Graphics construction unsupported.'):(unsupported(map).join(' ')||'Unsupported native map semantics.')})));
+}
+const lifecycle=services.RENativeScene.createLifecycle({label:'Native map',format:'NESForgeNativeMapRecovery',validateRecovery,standalone,expectedBackend:'single-room',importIntent:'nativeMapImport'});
+services.RENativeMap=Object.freeze({version:1,methodId:ID,listResources,stage:lifecycle.stage,importStaged:lifecycle.importStaged,validateRecovery});
+})();
+/* One scene-conversion panel shares source/project guards, cancellation,
+ * evidence, import and Save As. Background element IDs and API stay stable. */
 (()=>{
 'use strict';
 const services=window.Forge.services,copy=value=>JSON.parse(JSON.stringify(value));
-let c=null,busy=false,operation=0,signal=null,staged=null,imported=false;
+let c=null,busy=false,operation=0,signal=null,staged=null,imported=false,listed=null;
 const make=(tag,id,text)=>{const el=document.createElement(tag);if(id)el.id=id;if(text!==undefined)el.textContent=text;return el;};
-const methods=()=>services.REMethods?.profiles().filter(method=>method.domains?.includes('graphics')&&method.operations?.convert)||[];
+const methods=()=>services.REMethods?.profiles().filter(method=>['background','map'].includes(method.sceneConversion)&&method.operations?.convert)||[];
+function presentation(methodId=c?.method.value){
+ const map=methods().find(method=>method.id===methodId)?.sceneConversion==='map';
+ return map?{kind:'map',api:services.RENativeMap,noun:'map',title:'Native map and collision recovery',backend:'single-room',preview:'Preview map',project:'playable map project',summary:'This is a static solid/empty map adaptation. Native commands and collision are recovered for the declared region; the separate playable project uses an authored validation player and Forge movement. It does not recreate the original actors, physics, scrolling, audio or game engine. Import adds an excluded editable scene.',acknowledge:'I understand this map conversion uses only the declared solid/empty subset, with an authored validation player in the separate project and the limitations shown below.',build:'Independent playable map build'}:
+ {kind:'background',api:services.RENativeBackground,noun:'background',title:'Native background recovery',backend:'packed',preview:'Preview background',project:'independent static background project',summary:'This is a static background adaptation. It does not restore original gameplay, scrolling, collision, sprites, audio or the original engine. Import adds an excluded editable scene; the separate downloaded project includes this background in a static viewer build.',acknowledge:'I understand this is a static background conversion with the limitations and unknowns shown below.',build:'Independent static viewer build'};
+}
 function message(text,error=false){if(c){c.status.textContent=text;c.status.style.color=error?'var(--err, #ff9898)':'var(--dim)';}}
 function source(){
  const api=services.REAnalysisUI,state=api?.getState(),analysis=api?.currentAnalysis();
  if(state?.busy)throw Error('Wait for the selected source to finish opening.');
- if(state?.pendingSelection)throw Error('The source selection changed. Choose Open for analysis before previewing its background.');
+ if(state?.pendingSelection)throw Error('The source selection changed. Choose Open for analysis before previewing its scene.');
  if(!analysis)throw Error('Open a ROM for general analysis first.');
  return {analysis,generation:state.generation,identity:analysis.report.identity};
 }
-function current(item){try{const now=source();return !!item&&now.analysis===item.source.analysis&&now.generation===item.source.generation&&item.methodId===c.method.value;}catch(_){return false;}}
+function current(item){try{const now=source();return !!item&&now.analysis===item.source.analysis&&now.generation===item.source.generation&&item.methodId===c.method.value&&(!Object.hasOwn(item,'resourceKey')||item.resourceKey===c.resource.value);}catch(_){return false;}}
 function projectGuard(){const store=services.ProjectStore;return {epoch:store.state.epoch,snapshot:store.serialize()};}
 function check(item,project=true){
- if(!current(item))throw Error('The inspected source or recovery method changed. Preview again.');
+ if(!current(item))throw Error('The inspected source, recovery method or selected map changed. Preview again.');
  if(project){const now=projectGuard();if(item.project.epoch!==now.epoch||item.project.snapshot!==now.snapshot)throw Error('The project changed after preview. Preview again before importing.');}
 }
+function selectedResource(){return listed&&current(listed)?listed.resources.find(item=>item.key===c.resource.value):null;}
+function refreshPresentation(){
+ if(!c)return;const p=presentation();c.panel.setAttribute('aria-label',p.title);c.title.textContent=p.title;c.preview.textContent=p.preview;
+ c.introduction.textContent=p.kind==='map'?'Decode native maps, choose a supported solid/empty region, and review its source records and collision before adding a scene or downloading a separate playable Forge project.':'Decode a supported native background, review the static adaptation, and choose whether to add an editable scene or download an independent Forge viewer project. The original ROM engine is not recovered or played.';
+ c.methodText.textContent=p.kind==='map'?'Scene recovery method':'Background recovery method';c.acknowledgeText.textContent=p.acknowledge;
+ c.project.textContent='Download '+p.noun+' project';c.evidence.textContent='Download '+p.noun+' evidence';c.resources.hidden=p.kind!=='map';
+}
 function enable(){
- if(!c)return;c.method.disabled=busy;c.preview.disabled=busy||!c.method.value;c.cancel.disabled=!busy;
+ if(!c)return;const p=presentation(),resource=selectedResource();c.method.disabled=busy;c.preview.disabled=busy||!c.method.value||(p.kind==='map'&&!resource?.supported);c.cancel.disabled=!busy;
+ c.find.disabled=busy;c.resource.disabled=busy||!listed;c.resourceReason.textContent=resource?.reason||'';
  c.acknowledge.disabled=busy||!staged||imported;c.import.disabled=busy||!staged||imported||!c.acknowledge.checked;
  c.project.disabled=busy||!staged;c.evidence.disabled=busy||!staged;
 }
 function clear(){staged=null;imported=false;if(c){c.acknowledge.checked=false;c.summary.textContent='';c.detail.textContent='';c.canvas.replaceChildren();c.canvas.hidden=true;}enable();}
+function clearResources(){listed=null;if(c){c.resource.replaceChildren();c.resource.value='';c.resourceReason.textContent='';}enable();}
 function cancel(announce=true){
  const was=busy;operation++;if(signal)signal.aborted=true;signal=null;busy=false;clear();
- if(announce)message(was?'Background preview cancelled. No scene was imported.':'Background preview cleared.');return was;
+ if(announce)message(was?'Scene preview cancelled. No scene was imported.':'Scene preview cleared.');return was;
 }
-function sourceChanged(){cancel(false);message('The selected source changed. Open it for analysis, then preview its background again.');}
+function sourceChanged(){cancel(false);clearResources();message('The selected source changed. Open it for analysis, then preview its scene again.');}
 function selectMethod(methodId){
- try{if(!methods().some(method=>method.id===methodId))throw Error('This background recovery method is unavailable.');if(c.method.value===methodId)return true;cancel(false);c.method.value=methodId;enable();message('Recovery method selected. Choose Preview background to inspect its conversion; nothing has been imported.');return true;}
+ try{if(!methods().some(method=>method.id===methodId))throw Error('This scene recovery method is unavailable.');if(c.method.value===methodId)return true;cancel(false);clearResources();c.method.value=methodId;refreshPresentation();enable();message('Recovery method selected. '+(presentation().kind==='map'?'Choose Find maps, select a supported region, then Preview map.':'Choose Preview background to inspect its conversion; nothing has been imported.'));return true;}
  catch(error){message(error.message||String(error),true);return false;}
 }
+async function findResources(){
+ if(busy)return false;cancel(false);clearResources();const id=++operation,ownSignal={aborted:false};signal=ownSignal;busy=true;enable();
+ try{
+  const p=presentation(),methodId=c.method.value;if(p.kind!=='map'||!p.api?.listResources)throw Error('Native map inspection is unavailable in this build.');
+  const item={source:source(),methodId};message('Decoding native map records and checking the supported collision subset…');
+  const resources=await p.api.listResources(item.source.analysis,methodId,{signal:ownSignal});if(id!==operation||ownSignal.aborted)return false;check(item,false);
+  if(!Array.isArray(resources)||resources.length>256||new Set(resources.map(value=>value?.key)).size!==resources.length||resources.some(value=>!value||typeof value.key!=='string'||!value.key||value.key.length>160||typeof value.label!=='string'||value.label.length>200||typeof value.supported!=='boolean'||typeof value.reason!=='string'||value.reason.length>2000))throw Error('Map inspection returned an invalid bounded resource list.');
+  listed={...item,resources:copy(resources)};for(const resource of resources){const option=make('option',null,resource.label+(resource.supported?'':' — unsupported conversion'));option.value=resource.key;c.resource.appendChild(option);}c.resource.value=(resources.find(value=>value.supported)||resources[0])?.key||'';
+  enable();message(resources.length?'Found '+resources.length+' native maps. Choose a region and review its conversion limits, then Preview map. Maps with unsupported native semantics remain listed with their refusal reasons.':'No native maps were found.');return true;
+ }catch(error){if(id===operation){clearResources();message(error.name==='AbortError'?'Map inspection cancelled. No scene was imported.':error.message||String(error),error.name!=='AbortError');}return false;}
+ finally{if(id===operation){busy=false;signal=null;enable();}}
+}
 function lines(values){return (Array.isArray(values)?values:values===undefined?[]:[values]).map(value=>typeof value==='string'?value:JSON.stringify(value));}
-function describe(result){
+function describe(result,p){
  const report=result.report,build=result.previewBuild;
  c.summary.textContent=[String(report.source.name||'ROM'),'Original file SHA-256 '+report.source.sha256,report.source.byteLength+' source bytes',
  'Method: '+(report.method.name||report.method.id)+' · '+report.method.id+' · version '+report.method.version,
- 'Recovered scene: '+report.sceneId,'Limitations:',...lines(report.limitations),'Unknown or omitted:',...lines(report.unknown),
- 'Construction:',...lines(report.construction),
- 'Independent static viewer build: '+build.backend+' · '+build.byteLength+' bytes · SHA-256 '+build.sha256,
- 'This is a static background adaptation. It does not restore original gameplay, scrolling, collision, sprites, audio or the original engine. Import adds an excluded editable scene; the separate downloaded project includes this background in a static viewer build.'].join('\n');
+ 'Recovered scene: '+report.sceneId,...(p.kind==='map'?['Native region and collision:',...lines(report.region),...lines(report.collision),...lines(report.adaptation)]:[]),'Limitations:',...lines(report.limitations),'Unknown or omitted:',...lines(report.unknown),
+ 'Construction:',...lines(report.construction),p.build+': '+build.backend+' · '+build.byteLength+' bytes · SHA-256 '+build.sha256,p.summary].join('\n');
  c.detail.textContent=JSON.stringify(report,null,2);c.canvas.replaceChildren();
- const thumbnail=renderSceneThumb(result.scene,256,240);thumbnail.setAttribute('aria-label','Detached recovered static background preview');thumbnail.style.cssText='width:100%;max-width:256px;height:auto;image-rendering:pixelated';c.canvas.appendChild(thumbnail);c.canvas.hidden=false;
+ const thumbnail=renderSceneThumb(result.scene,256,240);thumbnail.setAttribute('aria-label',p.kind==='map'?'Detached recovered map preview':'Detached recovered static background preview');thumbnail.style.cssText='width:100%;max-width:256px;height:auto;image-rendering:pixelated';c.canvas.appendChild(thumbnail);c.canvas.hidden=false;
 }
 async function preview(){
  if(busy)return false;clear();const id=++operation,ownSignal={aborted:false};signal=ownSignal;busy=true;enable();
  try{
-  const api=services.RENativeBackground;if(!api?.stage)throw Error('Native background recovery is unavailable in this build.');
-  const methodId=c.method.value;if(!methods().some(method=>method.id===methodId))throw Error('Choose an available background recovery method.');
-  const item={source:source(),project:projectGuard(),methodId};message('Decoding the selected native background and compiling an independent static viewer…');
-  const result=await api.stage(item.source.analysis,methodId,{}, {signal:ownSignal});
+  const methodId=c.method.value,p=presentation(methodId),api=p.api;if(!api?.stage)throw Error('Native '+p.noun+' recovery is unavailable in this build.');
+  if(!methods().some(method=>method.id===methodId))throw Error('Choose an available scene recovery method.');
+  const item={source:source(),project:projectGuard(),methodId,kind:p.kind};let options={};
+  if(p.kind==='map'){const resource=selectedResource();if(!resource)throw Error('Choose Find maps and select a native map before previewing.');if(!resource.supported)throw Error('This map cannot be converted: '+resource.reason);item.resourceKey=resource.key;options={resourceKey:resource.key,expectedSourceSha256:item.source.identity.sha256};}
+  message('Decoding the selected native '+p.noun+' and compiling an independent '+(p.kind==='map'?'playable map':'static viewer')+'…');
+  const result=await api.stage(item.source.analysis,methodId,options,{signal:ownSignal});
   if(id!==operation||ownSignal.aborted)return false;check(item);
-  if(!result?.report||!result.scene||!result.project)throw Error('Recovery did not return an editable background and independent project.');
+  if(!result?.report||!result.scene||!result.project)throw Error('Recovery did not return an editable scene and independent project.');
   const report=api.validateRecovery(result.report);
-  if(report.source.sha256!==item.source.identity.sha256||report.source.byteLength!==item.source.identity.byteLength||report.method.id!==methodId)throw Error('Background recovery returned a different source or method identity.');
-  const build=result.previewBuild;if(build?.backend!=='packed'||!Number.isSafeInteger(build.byteLength)||build.byteLength<1||!/^[a-f0-9]{64}$/.test(build.sha256||''))throw Error('The background has not passed an independent static viewer build.');
-  describe(result);staged={...item,result};enable();message('Preview ready. Review the source evidence, construction and unknowns below. Acknowledge the static conversion before adding this background as a new scene. The current project and emulator are unchanged.');return true;
- }catch(error){if(id===operation){clear();message(error.name==='AbortError'?'Background preview cancelled. No scene was imported.':error.message||String(error),error.name!=='AbortError');}return false;}
+  if(report.source.sha256!==item.source.identity.sha256||report.source.byteLength!==item.source.identity.byteLength||report.method.id!==methodId)throw Error('Scene recovery returned a different source or method identity.');
+  if(p.kind==='map'&&report.resourceKey!==item.resourceKey)throw Error('Map recovery returned a different selected native resource.');
+  const build=result.previewBuild;if(build?.backend!==p.backend||!Number.isSafeInteger(build.byteLength)||build.byteLength<1||!/^[a-f0-9]{64}$/.test(build.sha256||''))throw Error('The '+p.noun+' has not passed an independent '+(p.kind==='map'?'playable map':'static viewer')+' build.');
+  describe(result,p);staged={...item,result};enable();message('Preview ready. Review the source evidence, construction and unknowns below. Acknowledge the '+(p.kind==='map'?'map adaptation':'static conversion')+' before adding this '+p.noun+' as a new scene. The current project and emulator are unchanged.');return true;
+ }catch(error){if(id===operation){clear();message(error.name==='AbortError'?'Scene preview cancelled. No scene was imported.':error.message||String(error),error.name!=='AbortError');}return false;}
  finally{if(id===operation){busy=false;signal=null;enable();}}
 }
 async function importScene(){
- if(busy)return false;
- const item=staged;
+ if(busy)return false;const item=staged,p=presentation();
  try{
-  if(!item||imported){message('Preview a supported background before importing.',true);return false;}
-  if(!c.acknowledge.checked){message('Acknowledge that this is a static background conversion before importing.',true);return false;}
+  if(!item||imported){message('Preview a supported '+p.noun+' before importing.',true);return false;}
+  if(!c.acknowledge.checked){message('Acknowledge that this is a '+(p.kind==='map'?'map adaptation':'static background conversion')+' before importing.',true);return false;}
   check(item);busy=true;enable();
-  // The model owns staged-record ownership, allocation, the single Undo entry
-  // and the append-only transaction. Do not load its independent viewer project.
-  const result=services.RENativeBackground.importStaged(item.result);
-  imported=true;c.acknowledge.checked=false;
-  const warnings=lines(result.warnings);
-  message('Added the background as a new editable scene, excluded from ROM builds. Existing scenes and runtime settings are preserved. One Undo removes this import.'+(warnings.length?' '+warnings.join('; '):''),!!warnings.length);
-  return result;
+  // The shared model owns stage identity, allocation, one Undo entry and append.
+  // Never load the independent playable/viewer project into the active editor.
+  const result=p.api.importStaged(item.result);imported=true;c.acknowledge.checked=false;const warnings=lines(result.warnings);
+  message('Added the '+p.noun+' as a new editable scene, excluded from ROM builds. Existing scenes and runtime settings are preserved. One Undo removes this import.'+(warnings.length?' '+warnings.join('; '):''),!!warnings.length);return result;
  }catch(error){if(item&&staged===item){staged=null;imported=false;c.acknowledge.checked=false;}message(error.message||String(error),true);return false;}
  finally{busy=false;enable();}
 }
 async function download(kind){
  let item;
  try{
-  if(busy)throw Error('Wait for the background operation to finish.');
-  item=staged;if(!item)throw Error('Preview a supported background before downloading.');check(item,false);
-  const report=services.RENativeBackground.validateRecovery(item.result.report),base=String(report.source.name||'ROM').replace(/\.[^.]*$/,'').replace(/[^a-z0-9._-]/gi,'_').slice(0,70)||'ROM',name=base+'-background'+(kind==='project'?'.nesforge.json':'-evidence.json');
+  const p=presentation();if(busy)throw Error('Wait for the scene operation to finish.');item=staged;if(!item)throw Error('Preview a supported '+p.noun+' before downloading.');check(item,false);
+  const report=p.api.validateRecovery(item.result.report),base=String(report.source.name||'ROM').replace(/\.[^.]*$/,'').replace(/[^a-z0-9._-]/gi,'_').slice(0,70)||'ROM',name=base+'-'+p.noun+(kind==='project'?'.nesforge.json':'-evidence.json');
   const value=kind==='project'?item.result.project:report,saved=await forgeSave.request(new TextEncoder().encode(JSON.stringify(value,null,2)),name,'application/json');
   if(staged===item&&current(item)){
-   const label=kind==='project'?'independent static background project':'background recovery evidence';
+   const label=kind==='project'?p.project:p.noun+' recovery evidence';
    if(saved?.status==='saved')message('Saved '+label+': '+name);
    else if(saved?.status==='download-requested')message('Download requested for '+label+': '+name);
-   else if(saved?.status==='cancelled')message('Save cancelled. The background preview and current project are unchanged.');
+   else if(saved?.status==='cancelled')message('Save cancelled. The '+p.noun+' preview and current project are unchanged.');
    else if(saved?.status==='busy')message('Another Save As request is open. Finish it, then download again.',true);
-   else message('Save was not completed: '+(saved?.error?.message||saved?.message||saved?.status||'unknown save result')+'. The background preview remains available.',true);
+   else message('Save was not completed: '+(saved?.error?.message||saved?.message||saved?.status||'unknown save result')+'. The '+p.noun+' preview remains available.',true);
   }
   return saved;
  }catch(error){if(!item||staged===item)message(error.message||String(error),true);return false;}
 }
 function mount(){
  if(c)return c.panel;const host=document.getElementById('reAnalysisWorkspace');if(!host)return null;
- const panel=make('section','reNativeBackgroundPanel');panel.setAttribute('aria-label','Native background recovery');panel.appendChild(make('h3',null,'Native background recovery'));
- panel.appendChild(make('p',null,'Decode a supported native background, review the static adaptation, and choose whether to add an editable scene or download an independent Forge viewer project. The original ROM engine is not recovered or played.'));
- const label=make('label',null,'Background recovery method'),method=make('select','reNativeBackgroundMethod');label.htmlFor=method.id;label.appendChild(method);panel.appendChild(label);
+ const panel=make('section','reNativeBackgroundPanel'),title=make('h3'),introduction=make('p');panel.append(title,introduction);
+ const label=make('label'),methodText=make('span'),method=make('select','reNativeBackgroundMethod');label.htmlFor=method.id;label.append(methodText,method);panel.appendChild(label);
  const available=methods();for(const profile of available){const option=make('option',null,profile.name);option.value=profile.id;method.appendChild(option);}method.value=available[0]?.id||'';
- const actions=make('div');actions.className='re-analysis-actions';panel.appendChild(actions);
+ const actions=make('div');actions.className='re-analysis-actions';
  const button=(id,text,fn,parent=actions)=>{const el=make('button',id,text);el.type='button';el.addEventListener('click',()=>{void fn();});parent.appendChild(el);return el;};
+ const resources=make('div','reNativeMapResources'),find=button('reNativeMapFind','Find maps',findResources,resources),resourceLabel=make('label',null,'Native map / region'),resource=make('select','reNativeMapResource'),resourceReason=make('p','reNativeMapResourceReason');resourceLabel.htmlFor=resource.id;resourceLabel.appendChild(resource);resources.append(resourceLabel,resourceReason);resources.hidden=true;panel.append(resources,actions);
  const previewButton=button('reNativeBackgroundPreview','Preview background',preview),cancelButton=button('reNativeBackgroundCancel','Cancel preview',cancel);
- const acknowledgeLabel=make('label',null,'I understand this is a static background conversion with the limitations and unknowns shown below.'),acknowledge=make('input','reNativeBackgroundAcknowledge');acknowledge.type='checkbox';acknowledgeLabel.htmlFor=acknowledge.id;acknowledgeLabel.prepend(acknowledge);panel.appendChild(acknowledgeLabel);
+ const acknowledgeLabel=make('label'),acknowledge=make('input','reNativeBackgroundAcknowledge'),acknowledgeText=make('span');acknowledge.type='checkbox';acknowledgeLabel.htmlFor=acknowledge.id;acknowledgeLabel.append(acknowledge,acknowledgeText);panel.appendChild(acknowledgeLabel);
  const importActions=make('div');importActions.className='re-analysis-actions';panel.appendChild(importActions);
  const importButton=button('reNativeBackgroundImport','Import as new scene',importScene,importActions),projectButton=button('reNativeBackgroundProject','Download background project',()=>download('project'),importActions),evidenceButton=button('reNativeBackgroundEvidence','Download background evidence',()=>download('evidence'),importActions);
  const summary=make('pre','reNativeBackgroundSummary'),canvas=make('div','reNativeBackgroundCanvas'),details=make('details'),detail=make('pre','reNativeBackgroundDetail'),status=make('p','reNativeBackgroundStatus');details.appendChild(make('summary',null,'Full source evidence and construction'));details.appendChild(detail);status.setAttribute('role','status');status.setAttribute('aria-live','polite');canvas.hidden=true;panel.append(summary,canvas,details,status);
  const style=make('style');style.textContent='#reNativeBackgroundPanel{border:1px solid #58627e;border-radius:4px;padding:10px;margin:10px 0;overflow-wrap:anywhere}#reNativeBackgroundPanel button,#reNativeBackgroundPanel select,#reNativeBackgroundPanel label{min-height:44px;box-sizing:border-box}#reNativeBackgroundPanel label{display:block;margin:6px 0}#reNativeBackgroundPanel select{display:block;width:100%;font-size:14px}#reNativeBackgroundPanel input[type=checkbox]{width:20px;height:20px;vertical-align:middle;margin-right:8px}#reNativeBackgroundPanel pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto}';panel.appendChild(style);
- c={panel,method,preview:previewButton,cancel:cancelButton,acknowledge,import:importButton,project:projectButton,evidence:evidenceButton,summary,canvas,detail,status};
- method.addEventListener('change',()=>{cancel(false);message('Recovery method changed. Preview its background before importing or downloading.');});acknowledge.addEventListener('change',enable);
+ c={panel,title,introduction,methodText,method,resources,find,resource,resourceReason,preview:previewButton,cancel:cancelButton,acknowledge,acknowledgeText,import:importButton,project:projectButton,evidence:evidenceButton,summary,canvas,detail,status};
+ method.addEventListener('change',()=>{cancel(false);clearResources();refreshPresentation();enable();message('Recovery method changed. '+(presentation().kind==='map'?'Find maps and preview a supported region before importing or downloading.':'Preview its background before importing or downloading.'));});
+ resource.addEventListener('change',()=>{cancel(false);enable();message('Selected map changed. Review its conversion limits and preview again.');});acknowledge.addEventListener('change',enable);
  for(const type of ['keydown','keyup'])panel.addEventListener(type,event=>event.stopPropagation?.());
- host.appendChild(panel);window.addEventListener('forge:re-analysis-source-change',sourceChanged);enable();message(available.length?'Open a source for general analysis, choose its background method, then preview.':'No native background conversion methods are available in this build.');return panel;
+ host.appendChild(panel);window.addEventListener('forge:re-analysis-source-change',sourceChanged);refreshPresentation();enable();message(available.length?'Open a source for general analysis, choose its scene recovery method, then preview.':'No native scene conversion methods are available in this build.');return panel;
 }
-services.RENativeBackgroundUI=Object.freeze({mount,selectMethod,preview,cancel,importScene,downloadProject:()=>download('project'),downloadEvidence:()=>download('evidence'),getState:()=>Object.freeze({busy,staged:!!staged,imported,sourceCurrent:!!staged&&current(staged),sourceSha256:staged?.source.identity.sha256||null,sourceGeneration:staged?.source.generation??null,sceneId:staged?.result.report.sceneId||null,methodId:c?.method.value||null,report:staged?copy(staged.result.report):null,previewBuild:staged?copy(staged.result.previewBuild):null})});mount();
+const api=Object.freeze({mount,selectMethod,findResources,preview,cancel,importScene,downloadProject:()=>download('project'),downloadEvidence:()=>download('evidence'),getState:()=>Object.freeze({busy,staged:!!staged,imported,sourceCurrent:!!staged&&current(staged),sourceSha256:staged?.source.identity.sha256||null,sourceGeneration:staged?.source.generation??null,sceneId:staged?.result.report.sceneId||null,methodId:c?.method.value||null,conversionKind:presentation().kind,resourceKey:presentation().kind==='map'?c?.resource.value||null:null,resources:listed?copy(listed.resources):[],report:staged?copy(staged.result.report):null,previewBuild:staged?copy(staged.result.previewBuild):null})});
+services.RENativeSceneUI=api;services.RENativeBackgroundUI=api;mount();
 })();
 /* Recovery discovery only inspects the currently opened physical file. Routes
  * reveal existing tools; they never import assets, reset native edits, or run a ROM. */
@@ -13836,6 +14248,10 @@ const routes=Object.freeze({
   {id:'transcription',label:'Open AUDIO transcription tools',target:'reNativeAudioImportPanel',focus:'reNativeAudioImportPanel'}
  ]
 });
+function methodRoutes(method){
+ const known=routes[method?.id];if(known)return known;
+ return method?.sceneConversion==='map'&&method.operations?.convert?[{id:'native-map',label:'Open native map and collision recovery',target:'reNativeBackgroundPanel',focus:'reNativeMapFind',methodId:method.id}]:[];
+}
 const make=(tag,id,text)=>{const el=document.createElement(tag);if(id)el.id=id;if(text!==undefined)el.textContent=text;return el;};
 function message(text,error=false){if(c){c.status.textContent=text;c.status.style.color=error?'var(--err, #ff9898)':'var(--dim)';}}
 function capture(){
@@ -13875,7 +14291,7 @@ function render(item){
   const evidence=found.evidence||[];appendLines(article,'Recognition evidence:',evidence.map(e=>(e.status?e.status+' · ':'')+(e.claim||e.reason||JSON.stringify(e))));
   if(found.status==='supported'){
    const actions=make('div');actions.className='re-analysis-actions';
-   for(const path of routes[method.id]||[]){const button=make('button','recoveryMethodsRoute-'+path.id,path.label);button.type='button';button.addEventListener('click',()=>route(method.id,path.id));actions.appendChild(button);c.routes.push(button);}
+   for(const path of methodRoutes(method)){const button=make('button','recoveryMethodsRoute-'+path.id,path.label);button.type='button';button.addEventListener('click',()=>route(method.id,path.id));actions.appendChild(button);c.routes.push(button);}
    if(actions.children.length)article.appendChild(actions);
   }
   c.results.appendChild(article);
@@ -13901,14 +14317,14 @@ function route(methodId,routeId){
  try{
   if(busy)throw Error('Wait for discovery to finish.');
   if(!staged||!matches(staged)){cancel(false);throw Error('Discovery results no longer match the selected source. Discover recovery methods again.');}
-  const found=staged.result.results.find(item=>item.method.id===methodId),path=routes[methodId]?.find(item=>item.id===routeId);
+  const found=staged.result.results.find(item=>item.method.id===methodId),path=methodRoutes(found?.method).find(item=>item.id===routeId);
   if(found?.status!=='supported'||!path)throw Error('This recovery route is not supported by the current discovery result.');
   const target=document.getElementById(path.target),focus=document.getElementById(path.focus);if(!target||!focus)throw Error('The recovery tools are unavailable in this build.');
-  if(path.methodId&&!services.RENativeBackgroundUI?.selectMethod(path.methodId))throw Error('The background recovery method is unavailable in this build.');
+  if(path.methodId&&!services.RENativeSceneUI?.selectMethod(path.methodId))throw Error('The scene recovery method is unavailable in this build.');
   services.REAnalysisUI.showWorkspace(true);if(path.details){const details=document.getElementById(path.details);if(!details)throw Error('The recovery tools are unavailable in this build.');details.open=true;}
   target.tabIndex=-1;target.scrollIntoView?.({block:'start',behavior:'auto'});focus.focus?.();nativeNotice();
   const native=services.RENativeAudioUI?.getState();
-  message(path.methodId?'Native background recovery opened. Choose Preview background and review its evidence, construction and unknowns before explicitly importing a static scene. Discovery has not converted or imported it.':path.id==='chr'?'Tile recovery tools opened. Choose Preview native tile import, inspect the result, then explicitly import it.':path.id==='transcription'?(native?.hasSession&&native.sourceCurrent?'Transcription tools opened for the existing native ROM copy. Choose its subsong above, then Preview import to AUDIO; conversion may still be refused.':'Transcription tools opened. First use Analyze current ROM in Native Audio and choose a subsong, then Preview import to AUDIO. Discovery has not checked conversion readiness.'):'Native Audio tools opened. An existing edited copy is preserved. Analyze current ROM starts a new native session from the original opened file; export any edits you want to keep first.');
+  message(path.methodId?(found.method.sceneConversion==='map'?'Native map and collision recovery opened. Choose Find maps, select a supported region, then Preview map and review its evidence and conversion differences. Discovery has not converted or imported it.':'Native background recovery opened. Choose Preview background and review its evidence, construction and unknowns before explicitly importing a static scene. Discovery has not converted or imported it.'):path.id==='chr'?'Tile recovery tools opened. Choose Preview native tile import, inspect the result, then explicitly import it.':path.id==='transcription'?(native?.hasSession&&native.sourceCurrent?'Transcription tools opened for the existing native ROM copy. Choose its subsong above, then Preview import to AUDIO; conversion may still be refused.':'Transcription tools opened. First use Analyze current ROM in Native Audio and choose a subsong, then Preview import to AUDIO. Discovery has not checked conversion readiness.'):'Native Audio tools opened. An existing edited copy is preserved. Analyze current ROM starts a new native session from the original opened file; export any edits you want to keep first.');
   return true;
  }catch(error){message(error.message||String(error),true);return false;}
 }

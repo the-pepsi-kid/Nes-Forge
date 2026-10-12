@@ -1,0 +1,22 @@
+{
+  "format": "NESForgeMovementRulesBrowserQA",
+  "version": 1,
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "sha256": "4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11",
+  "started": "2026-10-11T05:43:52.625Z",
+  "status": "blocked",
+  "browser": null,
+  "checks": [],
+  "screenshots": [],
+  "pageErrors": [],
+  "limitations": [
+    "Desktop and phone viewports are Chromium automation, not physical mobile, keyboard, touchscreen or controller acceptance.",
+    "This runner does not establish audible playback, movement feel, performance, real NES behavior or level solvability.",
+    "Recipe reopening uses the native file input with browser automation; operating-system Save As dialogs remain a separate check.",
+    "Screenshots require separate visual review."
+  ],
+  "reason": "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+  "passed": 0,
+  "failed": 0,
+  "finished": "2026-10-11T05:43:52.863Z"
+}

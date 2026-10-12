@@ -1,3 +1,5 @@
+Native map/collision guide: `NATIVE_MAP_RECOVERY.md`; owner/browser checks: `NATIVE_MAP_RECOVERY_CHECKLIST.txt`. The source-backed finite subset reuses existing framework owners.
+
 # Current documentation index — 2.0.0-alpha.11 / movement-rules-1
 
 Begin with `MOVEMENT_RULES.md` and `MOVEMENT_RULES_CHECKLIST.txt` for **SCENE → Movement rules**. D062 records this bounded continuation of the exaggerated-mechanics discussion. Read `../CURRENT_BASELINE.md`, `../HANDOFF.md` and `ROADMAP_IMPLEMENTATION_STATUS.md` for scope, evidence authority and remaining dependencies. The complete manual/PDF has not been comprehensively updated; these documents are supplements.

@@ -1,0 +1,65 @@
+{
+  "suite": "project-settings-transaction",
+  "scope": "Actual production bundle in the existing VM/DOM harness: bounded canonical settings transaction, history rollback/refusal/reentrancy, cache and playback preservation, committed warnings, and Movement UI routing. Not browser acceptance.",
+  "passed": 14,
+  "total": 14,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Detached settings edit records one snapshot and preserves unrelated canonical values, typed buffers, caches and playback",
+      "passed": true
+    },
+    {
+      "name": "One transaction can change both settings owners and Undo/Redo exactly restores the canonical project",
+      "passed": true
+    },
+    {
+      "name": "Unchanged settings and empty patches are true no-ops",
+      "passed": true
+    },
+    {
+      "name": "Unknown owners, nested/prototype fields, wrong primitive types and out-of-range settings reject atomically",
+      "passed": true
+    },
+    {
+      "name": "Missing or stale project guards reject edits, including replacement by identical data",
+      "passed": true
+    },
+    {
+      "name": "Paused history and unwritable settings refuse before history or state mutation",
+      "passed": true
+    },
+    {
+      "name": "Detached validation failure leaves project, dirty flag, history, playback and live settings references intact",
+      "passed": true
+    },
+    {
+      "name": "A validator cannot reenter the settings transaction, and failure releases the lock",
+      "passed": true
+    },
+    {
+      "name": "Snapshot refusal, silence, double recording and post-record exceptions restore complete Undo/Redo state",
+      "passed": true
+    },
+    {
+      "name": "History eviction remains owned by the retained snapshot engine and failed recording restores evicted entries",
+      "passed": true
+    },
+    {
+      "name": "Settings edits never invoke whole-project commit or mutate a detached validation result",
+      "passed": true
+    },
+    {
+      "name": "Notification and refresh failures are explicit committed warnings with dirty, Undoable data",
+      "passed": true
+    },
+    {
+      "name": "Movement UI routes Apply through one shared transaction and retains the four-field boundary",
+      "passed": true
+    },
+    {
+      "name": "Movement cancellation and replay rejection never enter the shared settings transaction",
+      "passed": true
+    }
+  ]
+}

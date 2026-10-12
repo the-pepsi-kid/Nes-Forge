@@ -1,0 +1,73 @@
+NES FORGE 2.0.0-alpha.8 — NATIVE AUDIO SCORE IMPORT REVIEW
+Candidate: native-audio-import-1; schema 12
+
+These steps review one supported FamiTone2 profile and its finite NTSC score transcription. They do not certify every ROM, native-driver sound equivalence, the complete Alpha A3 milestone or the whole roadmap. Record pass/fail/not tested for each item; do not mark a browser or listening check passed from the automated report.
+
+Before starting
+- Open mainline/NES_Forge_2.0.0-alpha.8.html. Save your current work with Save Project As.
+- Record the candidate HTML SHA-256 from build-inputs.json plus your actual device, OS, browser/version and audio output.
+- For a reproducible review, use Open Project to open examples/Audio_Correction_2.0.0-alpha.7/Pulse_Triangle.nesforge.json. This preserved example starts with 64 rows, tempo 150, speed 6 and Audio Runtime/music enabled. It is editable project data, not a ROM; its older filename is intentional.
+- Native source: examples/RE_Native_Audio/HonkeyPong-reproduced.nes (SHA-256 cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b). This is a permitted source-backed reproduction of an independent game.
+- Current application evidence is test-results/candidate/Summary.json and checkpoints/native-audio-import-1-clean-extraction/Reproduction.json. Old passes do not validate a changed HTML.
+
+I1 — Find the supported source and preview without importing
+1. Open RE / DISASM -> General ROM Analysis; select the HonkeyPong ROM and choose Open for analysis.
+2. In Native audio, choose Analyze current ROM. Choose Native subsong 0.
+3. In Transcribe native music into AUDIO, leave Native rows in excerpt at 64 and choose Preview import to AUDIO.
+Expected: a ready preview identifies the ROM, subsong, finite NTSC excerpt, new pattern/instrument counts and conversion warnings. On the 64-row example, this source's first 64 native rows span 413 video frames; the 7-pattern score adds 35 cut/silent padding frames to fit 64-row patterns. Read the current preview as authoritative if the source/options differ. No music has been imported, no emulator ROM changed and no playback started.
+Result I1: ______ Notes: _______________________________________________
+
+I2 — Read differences and verify cancellation
+1. Read the preview's warnings and source/conversion evidence. The destination uses tempo 150 / speed 1: one tracker row per NTSC video frame.
+2. Choose Download transcription evidence to save the full preview report. If a location dialog is offered, also try cancelling it and confirm that cancellation does not start a fallback download.
+3. Choose Transcribe music into AUDIO, read the confirmation, then Cancel.
+Expected: the project and ordinary Undo history remain unchanged. The evidence JSON is a historical preview snapshot with source identity and conversion details, not an editable Forge project or saved native edit session. It does not contain the complete ROM/project. After a later source/project change, that historical report can remain available until the next preview; its existence does not certify the new workspace. This is editable score transcription. Tuning, native pulse retrigger/phase and triangle controls can differ. Native SFX, DPCM, game triggers and original loop topology are not imported. Existing SFX definitions/bindings stay, but the new global music timing can change their playback timing. No lossless audio claim is shown.
+Result I2: ______ Notes: _______________________________________________
+
+I3 — Import and check canonical Undo/Redo
+1. Preview again if requested, choose Transcribe music into AUDIO and confirm.
+2. Open AUDIO. Inspect the new order/patterns/instruments and global tempo/speed. Existing original patterns/instruments must still be available.
+3. Use ordinary project Undo once, then Redo once. Do not use the native ROM editor's separate Undo controls.
+4. Optionally download transcription evidence again: a committed import is labeled as imported, while it remains a historical report.
+Expected: one Undo restores the previous music order and tempo/speed and removes the imported additions; Redo restores the transcription. Import does not switch tabs, start playback, load the emulator or enable runtime settings automatically. The 64-row review project receives 7 new patterns and 1 new instrument for this source/subsong/excerpt. The original ROM and native edit session remain independent.
+Result I3: ______ Notes: _______________________________________________
+
+I4 — Edit, save, reopen and build
+1. In AUDIO, select a note in a newly transcribed pattern and change it with the ordinary tracker controls. Check Undo/Redo for this edit.
+2. Save Project As to a new .nesforge.json. Reopen that file with Open Project.
+3. Confirm the changed note, imported order/instruments, tempo 150 / speed 1 and existing assets remain.
+4. In AUDIO -> NES Runtime, enable Compile Audio Runtime and Autoplay tracker order as music if they are not already enabled. Use Build .NES ROM or Build & Run.
+Expected: the supported review project builds with the edited canonical music. In a different project, explicit capacity or invalid SFX-reference diagnostics require correction; the importer does not erase unrelated project errors. The saved project contains editable transcription. Native ROM-copy edits are still a separate artifact and must be exported with Download native ROM copy.
+Result I4: ______ Notes: _______________________________________________
+
+I5 — Listen to both playback paths and record limits
+1. Use AUDIO Play/Stop to hear the transcribed score.
+2. Load the newly built Forge ROM in an independent emulator and listen; compare the changed note with the unedited transcription when useful.
+3. Separately load the original HonkeyPong ROM to hear the external driver's original music. Stop the other player so they do not overlap.
+Expected: the intended notes/edit can be heard in the Forge build. The finite transcribed order repeats as a Forge order after its final cut/padding; it does not reconstruct the original native loop. Report tuning/timbre/retrigger/rhythm differences rather than calling them identical by assumption. Score preview, rebuilt-ROM playback and original-engine playback are separate paths. Speaker quality and mobile latency remain actual listening observations.
+Result I5: ______ Notes: _______________________________________________
+
+I6 — Stale preview, unknown source and invalid options
+1. Make a ready preview, then change Native subsong or the excerpt length before attempting import.
+2. Make another preview, change the project (for example, edit a tracker note), return and attempt import.
+3. Enter 0 or nonnumeric excerpt text and preview. Then optionally analyze a ROM that does not match the supported profile.
+Expected: changed/stale selections require a fresh preview and cannot apply old data. Invalid rows refuse; unknown/unsupported native formats do not invent music or mutate the project. Ordinary General ROM Analysis still remains available for supported file inspection even when native transcription is unavailable. Do not expect native recovery from every ROM.
+Result I6: ______ Notes: _______________________________________________
+
+I7 — Mobile input and isolation
+1. On the phone, find the new section and edit the excerpt count with the native keyboard; scroll through its preview and use Cancel.
+2. Change a transcribed tracker note through the existing mobile keyboard workflow; scroll away/back, rotate if useful, save/reopen and restore your ordinary view.
+3. With a ROM loaded in the emulator, confirm typing/selecting in the RE fields does not press game controls; leaving input/play views must not leave buttons held.
+Expected: controls and warnings remain reachable, keyboard focus stays in the selected field and unrelated site/game commands do not fire. Record exact phone/browser/keyboard versions. Desktop success does not certify the phone. The Cricket Dream 5G / Chrome audio/video performance comparison, USB-C/Bluetooth controller tests and physical NES checks remain distinct.
+Result I7: ______ Notes: _______________________________________________
+
+Send back
+Candidate/hash:
+Device / OS / browser / keyboard:
+I1: ___ I2: ___ I3: ___ I4: ___ I5: ___ I6: ___ I7: ___
+Original source/subsong/excerpt:
+First unexpected action and exact message:
+Audio comparison and lag observations:
+Saved project / built ROM / screenshot or recording (if available):
+
+Earlier alpha.7 N1–N6 native ROM-edit checks and deferred alpha.5 A6 remain separate review items. This checklist supplements the manual; it is not a completed full manual/PDF update.

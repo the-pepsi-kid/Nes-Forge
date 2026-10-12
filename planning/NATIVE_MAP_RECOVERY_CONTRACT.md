@@ -1,3 +1,5 @@
+Implementation update, October 12, 2026: the bounded command-map/CHR-RAM adapters, shared scene lifecycle and canonical map conversion are implemented in the native-map-1 candidate. Exact current gate/browser outcomes are packaged with the application. The contract below remains the design basis; its original intake-only status is historical. Broader formats and owner acceptance remain open.
+
 # A2 native map/collision recovery contract
 
 Status: input and behavior investigation, October 11, 2026. This contract scopes the next adapter; it is not a claim that the editor already imports these maps.

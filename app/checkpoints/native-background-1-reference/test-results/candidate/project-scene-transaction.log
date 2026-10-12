@@ -1,0 +1,12 @@
+PASS Append selects one normalized canonical scene while retaining existing stores, caches, playback and tracker state
+PASS Append without selection leaves all current scene mirrors and unrelated settings intact
+PASS Scene normalization is authoritative only for the appended scene and never reloads unrelated authored records
+PASS Append Undo/Redo and save/reopen reproduce exactly the committed canonical project and original metadata
+PASS Scene identity, duplicate, capacity, selection and malformed scene validation failures are atomic
+PASS Stale and missing guards, paused history and unwritable state refuse scene import without mutation
+PASS Snapshot refusal or post-record failure restores history, dirty flag and references without appending
+PASS Failure after appending and partial mirror assignment rolls back canonical scene, descriptors and exact history
+PASS Scene and settings edits share the same reentrancy guard and release it after failure
+PASS A project edit during detached preparation is retained while stale append is rejected
+PASS Notification, selection-cache and refresh faults report committed warnings with complete editable scene mirrors
+11/11 passed

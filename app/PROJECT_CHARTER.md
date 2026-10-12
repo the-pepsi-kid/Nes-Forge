@@ -1,3 +1,15 @@
+# Current continuation — D065 Native Map Recovery
+
+The owner's “continue” authorizes the next finite A2 editor integration after source verification. Deliver editable native static map/collision geometry through the existing framework while preserving compatibility. Candidate alpha.11 / native-map-1 retains schema 12, the five-template limit and existing runtime behavior.
+
+The shared canonical representation and established service owners remain requirements. Native source interpretation, evidence, conversion limitations and rebuilt behavior must be reviewable. A separate playable adaptation may author player controls/physics only when explicitly disclosed; it must not claim original engine or complete game recovery. Broader native semantics remain unknown or unsupported rather than being silently flattened.
+
+Implementation is in progress until its current clean-extraction evidence agrees. Retain all 1,617 predecessor cases across 78 suites and add bounded map, graphics, shared-lifecycle, integration, UI and preservation evidence. A successful automated gate is separate from owner/browser/listening/hardware acceptance and does not complete the roadmap.
+
+## Preserved previous record
+
+---
+
 # Current continuation — D064 Native Background Recovery
 
 The owner's “continue” resumes A1 after compatibility stabilization. Keep the existing framework boundaries while delivering a finite, useful graphics workflow across two unrelated native constructions. Candidate alpha.11 / native-background-1 preserves schema 12, templates, platform identity and historical behavior. Explicit limitations and measured evidence remain part of the deliverable; neither implementation nor a passing automated gate promotes the release or completes the roadmap.

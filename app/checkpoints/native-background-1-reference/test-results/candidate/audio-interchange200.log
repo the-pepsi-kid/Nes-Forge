@@ -1,0 +1,29 @@
+PASS Export service and both actual Audio buttons are present
+PASS MIDI is format 1 with conductor and four bounded standard tracks
+PASS MIDI channels distinguish crossed pulse pitches, triangle and percussion
+PASS MIDI row timing, explicit cuts and note-off before retrigger are exact
+PASS MIDI reimport preserves flattened ordered notes, four channels, cuts, volume and speed
+PASS MusicXML is uncompressed score-partwise with escaped title and four parts
+PASS MusicXML reimport preserves ordered notes, noise values, channels, cuts, volume and speed
+PASS All supported speeds round trip exact row boundaries in both formats
+PASS Dense XML notes through the final row accept floating timing noise at speeds 5, 10 and 13
+PASS Sparse channels keep their identities and trailing silent orders survive
+PASS Sustained notes across order boundaries are preserved through one pass
+PASS A 16-row score imported into 64-row patterns cuts at row 16 and warns about silent padding
+PASS A 64-row score regrouped into 16-row patterns retains its end without extra padding
+PASS Score export never edits project, undo history, or runtime enable state
+PASS Export leaves generated ROM bytes unchanged
+PASS Reimport is an ordinary undoable tracker edit that saves, reopens and builds
+PASS Loss warnings explicitly identify SFX, envelopes, timbre and one-pass boundaries
+PASS Used tracker effects refuse export atomically
+PASS DPCM data refuses export instead of disappearing
+PASS Mid-note volume changes and zero-volume note-ons refuse explicitly
+PASS Missing patterns, instruments and empty music refuse export
+PASS Legal whitespace around XML profile and dynamics attributes preserves channel, speed and volume
+PASS Malformed score profiles and edited tempo fail without project changes
+PASS Profile channel overlap and off-grid imported edits are rejected
+PASS Generic MusicXML without the Forge profile retains legacy six-tick allocation
+PASS Cancelling the actual export button creates no download and changes no project
+PASS Actual export buttons invoke downloads with clear format status
+PASS Cancelling the protected Save As dialog is never reported as a completed export
+28/28 passed

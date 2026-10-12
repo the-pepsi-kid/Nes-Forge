@@ -3,7 +3,7 @@
  * compiler owns the independent static-viewer output. No ROM code is executed. */
 (()=>{
 'use strict';
-const services=window.Forge.services,methods=services.REMethods,stages=new WeakSet();
+const services=window.Forge.services,methods=services.REMethods;
 const copy=value=>JSON.parse(JSON.stringify(value));
 function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
 const fail=message=>{throw Error('Native background: '+message);};
@@ -66,32 +66,11 @@ function registerAdapter(spec){
     return {status:'supported',reason:result.reason,evidence:background.evidence,data:background};
   }
   function options(input,source){if(Object.keys(input).some(key=>key!=='expectedSourceSha256'))fail('Unsupported background recovery option.');if(input.expectedSourceSha256!==undefined&&input.expectedSourceSha256!==source.sha256)fail('The selected source identity changed.');}
-  return methods.registerProfile({id:spec.id,version:1,contractVersion:2,name:spec.name,domains:['graphics'],limitations:[...commonLimits,...spec.limitations],limits:{maxSourceBytes:40976,maxWork:1048576},operations:{decode:{label:'Decode native background records',effect:'read-only'},convert:{label:'Preview editable background',effect:'preview',fidelity:'subset'}},probe:decoded,handlers:{decode:async(analysis,input,context)=>{options(input,context.source);return decoded(analysis,context);},convert:async(analysis,input,context)=>{options(input,context.source);const result=await decoded(analysis,context);if(result.status!=='supported')return result;const data=convert(result.data,context.source,descriptor);return {status:'supported',reason:'The declared static background can be converted to an editable Forge scene, with the listed runtime differences.',evidence:data.report.evidence,data};}}});
+  return methods.registerProfile({id:spec.id,version:1,contractVersion:2,name:spec.name,domains:['graphics'],sceneConversion:'background',limitations:[...commonLimits,...spec.limitations],limits:{maxSourceBytes:40976,maxWork:1048576},operations:{decode:{label:'Decode native background records',effect:'read-only'},convert:{label:'Preview editable background',effect:'preview',fidelity:'subset'}},probe:decoded,handlers:{decode:async(analysis,input,context)=>{options(input,context.source);return decoded(analysis,context);},convert:async(analysis,input,context)=>{options(input,context.source);const result=await decoded(analysis,context);if(result.status!=='supported')return result;const data=convert(result.data,context.source,descriptor);return {status:'supported',reason:'The declared static background can be converted to an editable Forge scene, with the listed runtime differences.',evidence:data.report.evidence,data};}}});
 }
 function standalone(scene,source){
   const sc=copy(scene);sc.buildInclude=true;sc.buildOrder=0;
   return {format:'NESForge',version:services.ProjectStore.schema,foundation:window.Forge.release.version,romLayout:3,worldAuthoring:3,metatileExtension:1,metaspriteExtension:2,entityAnimationExtension:1,projectName:(source.name+' — background').slice(0,120),scenes:[sc],activeScene:0,chr:sc.chr,sprChr:sc.sprChr,nt:sc.nt,attr:sc.attr,pal:sc.pal,sprPal:sc.sprPal,oam:[],tileProps:sc.tileProps,worlds:[],gameplay:Forge165.config.defaults(),worldRuntime:services.WorldConfig.defaults(),audioRuntime:services.AudioConfig.defaults(),gameplayCore:services.GameplayModel.defaults(),metasprites:[],animations:[],instruments:[],patterns:[{rows:Array.from({length:64},()=>Array.from({length:5},()=>({note:-1,inst:-1,vol:-1,fx:0,fxp:0})))}],orderList:[[0,0,0,0,0]],audRows:64,tempo:150,speed:6,sfx:[],asmSource:'',mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,selTile:0,editTile:0,selSprite:-1,selEntity:-1,chrBank:'bg',_selAnim:0,_animFrame:0};
-}
-function checkSignal(signal){if(signal?.aborted){const error=Error('Background recovery cancelled.');error.name='AbortError';throw error;}}
-async function stage(analysis,methodId,options={},controls={}){
-  const store=services.ProjectStore,guard=Object.freeze({epoch:store.state.epoch,snapshot:store.serialize()});
-  const result=await methods.dispatch(methodId,'convert',analysis,options,controls);checkSignal(controls.signal);
-  if(result.status!=='supported')fail(result.reason);
-  const data=result.data;if(!data?.scene||data.report?.format!=='NESForgeNativeBackgroundRecovery')fail('This method does not produce a native background scene.');
-  validateRecovery(data.report);
-  if(data.report.method.id!==methodId||data.scene.id!==data.report.sceneId||JSON.stringify(data.scene.captureMeta?.recovery)!==JSON.stringify(data.report))fail('Background scene and method evidence differ.');
-  if(data.report.source.sha256!==analysis.report.identity.sha256||data.report.source.byteLength!==analysis.report.identity.byteLength)fail('Background preview refers to another source.');
-  const project=standalone(data.scene,result.source);store.prepareLoad(project);
-  const artifact=services.RuntimeCompiler.compileDetached(project,{allowViewer:true});checkSignal(controls.signal);
-  if(!window.crypto?.subtle?.digest)fail('SHA-256 is unavailable in this context.');
-  const digest=await window.crypto.subtle.digest('SHA-256',artifact.rom);checkSignal(controls.signal);
-  if(store.state.epoch!==guard.epoch||store.serialize()!==guard.snapshot)fail('The project changed during preview. Preview again.');
-  const resultStage=freeze({report:data.report,scene:data.scene,project,guard,previewBuild:{backend:artifact.backend,byteLength:artifact.rom.length,sha256:Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('')}});stages.add(resultStage);return resultStage;
-}
-function importStaged(value){
-  if(!stages.has(value))fail('Preview this background in the current editor before importing.');
-  const result=services.ProjectStore.appendScene(value.scene,{expected:value.guard,intent:'nativeBackgroundImport',select:true});
-  return Object.freeze({...result,sceneId:value.scene.id});
 }
 function validateRecovery(value){
   const encoded=JSON.stringify(value);if(!encoded||encoded.length>262144)fail('Recovery evidence exceeds 256 KiB.');
@@ -108,5 +87,6 @@ function validateRecovery(value){
   if(!Array.isArray(r.evidence)||!r.evidence.length||r.evidence.length>65)fail('Invalid persisted physical evidence.');r.evidence.forEach(e=>{if(e.sourceSha256!==r.source.sha256)fail('Persisted evidence refers to a different source.');methods.evidence(e,r.source);});
   return freeze(r);
 }
-services.RENativeBackground=Object.freeze({version:1,parseNrom,registerAdapter,stage,importStaged,validateRecovery});
+const lifecycle=services.RENativeScene.createLifecycle({label:'Native background',format:'NESForgeNativeBackgroundRecovery',validateRecovery,standalone,compileOptions:{allowViewer:true},expectedBackend:'packed',importIntent:'nativeBackgroundImport',messages:{cancelled:'Background recovery cancelled.',wrongKind:'This method does not produce a native background scene.',evidenceMismatch:'Background scene and method evidence differ.',wrongSource:'Background preview refers to another source.',unownedStage:'Preview this background in the current editor before importing.'}});
+services.RENativeBackground=Object.freeze({version:1,parseNrom,registerAdapter,stage:lifecycle.stage,importStaged:lifecycle.importStaged,validateRecovery});
 })();
