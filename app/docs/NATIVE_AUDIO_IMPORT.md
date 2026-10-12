@@ -1,5 +1,7 @@
 # Native music transcription into AUDIO
 
+Native sound-effect transcription is a separate selection in the same Audio workflow. See `NATIVE_SFX_IMPORT.md` for its single-pulse scope and timing requirements. The music procedure below retains its established behavior and does not import SFX automatically.
+
 This feature turns a supported FamiTone2 music excerpt into ordinary editable Forge patterns and instruments. It uses the currently analyzed native ROM copy, including any native note edits you have applied. The original ROM and the emulator remain unchanged.
 
 This is **score transcription**, not lossless replay of the original engine. The source driver and Forge differ in timer tuning, pulse retrigger behavior and triangle control. Native SFX, gameplay sound triggers and song switching are not imported. Review the preview before confirming.

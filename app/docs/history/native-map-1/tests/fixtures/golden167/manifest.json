@@ -1,0 +1,65 @@
+{
+  "format": "NESForgeGoldenBytes",
+  "version": 1,
+  "referenceVersion": "1.6.6",
+  "referenceSha256": "d9e3c44d0349e50cca1be800a630486bba1ad9584623c99a81f84bf058df33cb",
+  "captureRoute": "Complete HTML initialization -> db_deserializeState(frozen JSON) -> buildNesRom; each case repeated in a separate fresh application context",
+  "expectation": "Exact whole-ROM bytes and parsed metadata; no timestamp, identity or schema masks",
+  "cases": [
+    {
+      "id": "packed-viewer",
+      "description": "Generated 16 KB scene viewer, packed NFEX/MT16, CHR, palette, OAM and collision",
+      "projectFile": "packed-viewer.project.json",
+      "projectSha256": "d46fb91ea5a931c4b4e794d427c66b98b24f5467ca968f19a960b5db1f33d0f1",
+      "romFile": "packed-viewer.nes",
+      "bytes": 24592,
+      "sha256": "ebc946452a74ebed9d1eb796d78ae7349d1b3d4014a00bd6aacb9c53a4f6abc9",
+      "metadataFile": "packed-viewer.metadata.json",
+      "metadataSha256": "5347c94dda1997beadd420218fecdccc6c7647d7c352d2a674413fd6b78e4694"
+    },
+    {
+      "id": "packed-custom-asm",
+      "description": "Packed custom 6502 ASM, occupied metadata start relocates extension",
+      "projectFile": "packed-custom-asm.project.json",
+      "projectSha256": "9689475f2b0acb3cdab4e9f7300712e775ac1b2c95e1f575a355fb73aeefd916",
+      "romFile": "packed-custom-asm.nes",
+      "bytes": 24592,
+      "sha256": "3a75b9031674e9e3c5b66af6a8c23783c830044680d045b9d91c1189c8ee34ca",
+      "metadataFile": "packed-custom-asm.metadata.json",
+      "metadataSha256": "4938f0247e57c06e48d3df04683aac66b0f2f197e52d1be349dc0b409b75c932"
+    },
+    {
+      "id": "unpacked-custom-asm",
+      "description": "Unpacked custom 6502 ASM and raw CHR bank output",
+      "projectFile": "unpacked-custom-asm.project.json",
+      "projectSha256": "acb24133590c5dc42eb6450f2259c6f8b1af6b853c5df698187d21747d36f098",
+      "romFile": "unpacked-custom-asm.nes",
+      "bytes": 24592,
+      "sha256": "8989fdf01b6758974cab030dbf50795969de1949f15ec25b9689d1a406463c9a",
+      "metadataFile": "unpacked-custom-asm.metadata.json",
+      "metadataSha256": "b25f6b1b8fbe6169ecd44945b27aedc34e96c02dd6c0075540e362f5889c41b0"
+    },
+    {
+      "id": "packed-world-assets-reordered",
+      "description": "Reordered scenes, remapped links, WR16 v3 cross-world destinations, MS16 v2 poses and contacts/events",
+      "projectFile": "packed-world-assets-reordered.project.json",
+      "projectSha256": "78ef61820f2bfc230af3d5c0b3dd65afbcdd095ffac4e4737df0f0be9022fa77",
+      "romFile": "packed-world-assets-reordered.nes",
+      "bytes": 24592,
+      "sha256": "1b3e4cfcd9aad31a63dde23f056774941ad643a2fa993b699389ca607cc0b68d",
+      "metadataFile": "packed-world-assets-reordered.metadata.json",
+      "metadataSha256": "60da25f30600a3e70fc338ecc1e2fe626f6f9a2154bd7633e2805884d4db885b"
+    },
+    {
+      "id": "single-room-poc",
+      "description": "Existing authored Scout 32 KB single-room proof of concept; no runtime extension",
+      "projectFile": "single-room-poc.project.json",
+      "projectSha256": "675c4a9df46c817616c7ee1e0e72b1cb65c842d223703f03b8b1a33f9146b41a",
+      "romFile": "single-room-poc.nes",
+      "bytes": 40976,
+      "sha256": "c4931acd68384f5d6c3c85648202854c766217d93afc26862a536c0f57923ded",
+      "metadataFile": "single-room-poc.metadata.json",
+      "metadataSha256": "17d9e13eb45064ddef1e0491d5491ba77a97ba18c4c1b0aeb14c4427d54a49a4"
+    }
+  ]
+}

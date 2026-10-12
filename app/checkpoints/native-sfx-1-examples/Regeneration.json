@@ -1,0 +1,393 @@
+{
+  "format": "NESForgeExampleRegeneration",
+  "version": 1,
+  "candidate": "native-sfx-1",
+  "release": "2.0.0-alpha.11",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847",
+  "referenceCommit": "5de81d48e67a0f076ce067fbf8ca3f1c3a89baf3",
+  "scope": "Actual production generator executions; all five existing current example families compared with committed native-map parent. Only five receipt htmlSha256 fields change. Native SFX examples generated separately through shipped converter, shared Audio service, canonical note edits and ordinary build/save/reopen. ROM file count includes one retained native source input.",
+  "generatorRuns": [
+    {
+      "command": [
+        "node",
+        "tools/build_gameplay_example.cjs"
+      ],
+      "toolSha256": "4afb3bc67f9ef501e4babf5228b49e8bf8a9dc3f6f18bece5c5992c9f8cdeaf1",
+      "exitCode": 0,
+      "milliseconds": 1021,
+      "log": "checkpoints/native-sfx-1-examples/build_gameplay_example.log"
+    },
+    {
+      "command": [
+        "node",
+        "tools/build_mashup_examples.cjs"
+      ],
+      "toolSha256": "c8254204ef3e27e0ae76c0e77a5e6a347c8e089da8d86f4061ac3959026d4500",
+      "exitCode": 0,
+      "milliseconds": 7849,
+      "log": "checkpoints/native-sfx-1-examples/build_mashup_examples.log"
+    },
+    {
+      "command": [
+        "node",
+        "tools/build_movement_examples.cjs"
+      ],
+      "toolSha256": "4d6c1ab64fd48e900d9b91936d5b60e85eddc904ca1916f22fd3950bc598989f",
+      "exitCode": 0,
+      "milliseconds": 8529,
+      "log": "checkpoints/native-sfx-1-examples/build_movement_examples.log"
+    },
+    {
+      "command": [
+        "node",
+        "tools/build_native_background_examples.cjs"
+      ],
+      "toolSha256": "af4d02e4de9daec80f62444072567a9de1da38ff5b3a4fdcc825ed9bb4c3d486",
+      "exitCode": 0,
+      "milliseconds": 1960,
+      "log": "checkpoints/native-sfx-1-examples/build_native_background_examples.log"
+    },
+    {
+      "command": [
+        "node",
+        "tools/build_native_map_examples.cjs"
+      ],
+      "toolSha256": "1c1423dae72b3511963128da8a458f1c31fba25e05af4dfa761d6395769ab8a6",
+      "exitCode": 0,
+      "milliseconds": 2018,
+      "log": "checkpoints/native-sfx-1-examples/build_native_map_examples.log"
+    },
+    {
+      "command": [
+        "node",
+        "tools/build_native_sfx_examples.cjs"
+      ],
+      "toolSha256": "c88cc3e601df6d6b44a75d341026d60580a1e132d0260da13bec7b928ac38589",
+      "exitCode": 0,
+      "milliseconds": 3438,
+      "log": "checkpoints/native-sfx-1-examples/build_native_sfx_examples.log"
+    }
+  ],
+  "totalFiles": 48,
+  "byteIdenticalFiles": 43,
+  "changedReceiptFiles": 5,
+  "identicalRomFiles": 12,
+  "identicalProjectFiles": 16,
+  "identicalRecipeFiles": 6,
+  "comparisons": [
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/Manifest.json",
+      "originalSha256": "d5e1bd646f59e8b05b5fec127e1f900dc5b153c723afd44d47c8b7f33904d7f8",
+      "currentSha256": "30f0a767b6472206a47604593dda3642636d39277c7007a6630e6963cb90337a",
+      "byteIdentical": false,
+      "changedJsonFields": [
+        "htmlSha256"
+      ],
+      "originalHtmlSha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
+      "currentHtmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847"
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/README.txt",
+      "originalSha256": "9508d23e9abf93c334ec684e7b820d6e379104703c3a2bb4d428ad4035e983ef",
+      "currentSha256": "9508d23e9abf93c334ec684e7b820d6e379104703c3a2bb4d428ad4035e983ef",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/Single_Room_Base.nesforge.json",
+      "originalSha256": "f42188fb0a1536b6b6080c400bc0ac1829d269171e54fd51f0dff9e6dead4c37",
+      "currentSha256": "f42188fb0a1536b6b6080c400bc0ac1829d269171e54fd51f0dff9e6dead4c37",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/Single_Room_High_Jump.nes",
+      "originalSha256": "65a63d7bc29b36b070a014d7122871c5b9e9441834c16fce2f713a20d8987acc",
+      "currentSha256": "65a63d7bc29b36b070a014d7122871c5b9e9441834c16fce2f713a20d8987acc",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/Single_Room_High_Jump.nesforge.json",
+      "originalSha256": "05bf4ba431cadb730b923feaf1cc2d279400b568894aff4cf6f280f4a2119fb7",
+      "currentSha256": "05bf4ba431cadb730b923feaf1cc2d279400b568894aff4cf6f280f4a2119fb7",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/Single_Room_High_Jump.recipe.json",
+      "originalSha256": "4962d46b9dacbaa4110f40e2a75306805fe18b76bff5a4c6342d080c0e880d44",
+      "currentSha256": "4962d46b9dacbaa4110f40e2a75306805fe18b76bff5a4c6342d080c0e880d44",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/Single_Room_Seeded_Mix.nes",
+      "originalSha256": "64fc07f24fd239266023da26808e044248d6f2365566e67e7757a6273ef5b4fc",
+      "currentSha256": "64fc07f24fd239266023da26808e044248d6f2365566e67e7757a6273ef5b4fc",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/Single_Room_Seeded_Mix.nesforge.json",
+      "originalSha256": "698d1aada7e92c9ae018e70fc9a6bd1d3d411b0402d631d5daab4fefaf05212c",
+      "currentSha256": "698d1aada7e92c9ae018e70fc9a6bd1d3d411b0402d631d5daab4fefaf05212c",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/Single_Room_Seeded_Mix.recipe.json",
+      "originalSha256": "514720e359d5fefe054e3c3397aa33221a5d44499e5e9a368e1ca1d932004fd8",
+      "currentSha256": "514720e359d5fefe054e3c3397aa33221a5d44499e5e9a368e1ca1d932004fd8",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/World_Base.nesforge.json",
+      "originalSha256": "c2c89c0ec953c03cc84af75b0d0fae699cc041011e240a8b72d0298bd67b3316",
+      "currentSha256": "c2c89c0ec953c03cc84af75b0d0fae699cc041011e240a8b72d0298bd67b3316",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/World_High_Jump.nes",
+      "originalSha256": "c05f9e6fa801385dd01ef0ec9d7f57fb8db8c6cf9eef47078a4fb549f0f838f7",
+      "currentSha256": "c05f9e6fa801385dd01ef0ec9d7f57fb8db8c6cf9eef47078a4fb549f0f838f7",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/World_High_Jump.nesforge.json",
+      "originalSha256": "7a5c63f8e2352908e120eeaca0a495861a7c09553f3169cd4ab802ddc064095a",
+      "currentSha256": "7a5c63f8e2352908e120eeaca0a495861a7c09553f3169cd4ab802ddc064095a",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/World_High_Jump.recipe.json",
+      "originalSha256": "7e66b1669f6e9311f90c369d736f91c11ff0d61aaaa2e26a33016d49c10ce6d5",
+      "currentSha256": "7e66b1669f6e9311f90c369d736f91c11ff0d61aaaa2e26a33016d49c10ce6d5",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/World_Seeded_Mix.nes",
+      "originalSha256": "43f38ce3f64cf95776cad8afe91f17f08fd5596e9e471fa14482bd1c0f5b6713",
+      "currentSha256": "43f38ce3f64cf95776cad8afe91f17f08fd5596e9e471fa14482bd1c0f5b6713",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/World_Seeded_Mix.nesforge.json",
+      "originalSha256": "43d8388b56355efb1ab41ba88bd777d1940ceeedc3d25e0f8ee38621e6f75b62",
+      "currentSha256": "43d8388b56355efb1ab41ba88bd777d1940ceeedc3d25e0f8ee38621e6f75b62",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Movement_Rules_2.0.0-alpha.11/World_Seeded_Mix.recipe.json",
+      "originalSha256": "e09cf242713e2060bdbada8841cf3dae23ccf315ad8e09ad51be51ff42ef5830",
+      "currentSha256": "e09cf242713e2060bdbada8841cf3dae23ccf315ad8e09ad51be51ff42ef5830",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Background/HonkeyPong_Static_Background.nes",
+      "originalSha256": "7550ab6d9ebc4bb5a555901ac84285537f00e51adf80389d1fbc1e9a7fcd5512",
+      "currentSha256": "7550ab6d9ebc4bb5a555901ac84285537f00e51adf80389d1fbc1e9a7fcd5512",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Background/HonkeyPong_Static_Background.nesforge.json",
+      "originalSha256": "291f8efca9c56fb2f96bbbbc359c3aff958874a02c98efaa5246147c8ff4106e",
+      "currentSha256": "291f8efca9c56fb2f96bbbbc359c3aff958874a02c98efaa5246147c8ff4106e",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Background/HonkeyPong_Static_Background.recovery.json",
+      "originalSha256": "e41dbee2f31bc709ca14181b036b76c176e8f5000cd1afa6bcb51a191d3a53f5",
+      "currentSha256": "e41dbee2f31bc709ca14181b036b76c176e8f5000cd1afa6bcb51a191d3a53f5",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Background/Manifest.json",
+      "originalSha256": "cfb7a56e23023377adf091edbb8403520154dae9811a2c05001321b0055aac08",
+      "currentSha256": "52a7dd087077eb70ae85357d4da5ab18136b5e27547e5619b9cc7a05c86ae521",
+      "byteIdentical": false,
+      "changedJsonFields": [
+        "htmlSha256"
+      ],
+      "originalHtmlSha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
+      "currentHtmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847"
+    },
+    {
+      "path": "examples/RE_Native_Background/Pepsi_Static_Background.nes",
+      "originalSha256": "896198b64a350135235e3d0586859dd5b9dfc8e3e7ab54ff650067f3e3ce5a56",
+      "currentSha256": "896198b64a350135235e3d0586859dd5b9dfc8e3e7ab54ff650067f3e3ce5a56",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Background/Pepsi_Static_Background.nesforge.json",
+      "originalSha256": "d8ee1550006b093228350a75e872164b26a698ad6a48afe902590dd2f0448e24",
+      "currentSha256": "d8ee1550006b093228350a75e872164b26a698ad6a48afe902590dd2f0448e24",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Background/Pepsi_Static_Background.recovery.json",
+      "originalSha256": "6fb7e93a3b5c4417b507fa07985b4fca16033175ef346b2de7b72f7d7fa46159",
+      "currentSha256": "6fb7e93a3b5c4417b507fa07985b4fca16033175ef346b2de7b72f7d7fa46159",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Background/README.txt",
+      "originalSha256": "1e13048e19008b0907b7f8458cbd7fe9cb781c6b46edfb2f432d44521219050e",
+      "currentSha256": "1e13048e19008b0907b7f8458cbd7fe9cb781c6b46edfb2f432d44521219050e",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Map/DABG-reproduced.nes",
+      "originalSha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+      "currentSha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Map/DABG_Static_Map.nes",
+      "originalSha256": "70ecd62fb067c40042c8749103bef832ad70d1483c0ed630396a465d5f59e63a",
+      "currentSha256": "70ecd62fb067c40042c8749103bef832ad70d1483c0ed630396a465d5f59e63a",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Map/DABG_Static_Map.nesforge.json",
+      "originalSha256": "e781a72b61a1c803e3ccd7c4907e0a1feca49d69afea3cf0bf4385f2540bf745",
+      "currentSha256": "e781a72b61a1c803e3ccd7c4907e0a1feca49d69afea3cf0bf4385f2540bf745",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Map/DABG_Static_Map.recovery.json",
+      "originalSha256": "df2ef3912ff8cbd2bc281a1dc77a391ff34057f7ffc794b7ad9be2bb990d09a4",
+      "currentSha256": "df2ef3912ff8cbd2bc281a1dc77a391ff34057f7ffc794b7ad9be2bb990d09a4",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Map/DABG_Static_Map_Floor_Opened.nes",
+      "originalSha256": "dd2a82f4e02f529cf48ea0757354f7cbea875b4bfc3f27f5411fbde157e644cb",
+      "currentSha256": "dd2a82f4e02f529cf48ea0757354f7cbea875b4bfc3f27f5411fbde157e644cb",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Map/DABG_Static_Map_Floor_Opened.nesforge.json",
+      "originalSha256": "fe1203b5a4376e792df0d61ffdb7553433cf56392830e1dc329e00fd59f2b214",
+      "currentSha256": "fe1203b5a4376e792df0d61ffdb7553433cf56392830e1dc329e00fd59f2b214",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Map/Input_Provenance.json",
+      "originalSha256": "bb9e5a0877333cfbb3692da2c9933cf0ae4b8b7193a76d6b6da56a401cb25b46",
+      "currentSha256": "bb9e5a0877333cfbb3692da2c9933cf0ae4b8b7193a76d6b6da56a401cb25b46",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Map/Manifest.json",
+      "originalSha256": "8e6c9d95587ccec3a6dd0ce9e3b2ad22ca37f11d4403e824b747c55b843c0cc9",
+      "currentSha256": "b6c42de1e9834220cc2e85fe74508586eee84f94e87203506337cf0f6f860cb6",
+      "byteIdentical": false,
+      "changedJsonFields": [
+        "htmlSha256"
+      ],
+      "originalHtmlSha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
+      "currentHtmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847"
+    },
+    {
+      "path": "examples/RE_Native_Map/NES_Forge_A2_Native_Map_Input_Checkpoint.zip",
+      "originalSha256": "6dc4c6cadaa5774ef347b8dca22041fc9221c0d268e92fa258b25dc38075ac68",
+      "currentSha256": "6dc4c6cadaa5774ef347b8dca22041fc9221c0d268e92fa258b25dc38075ac68",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/RE_Native_Map/README.txt",
+      "originalSha256": "06a667494dc96af08ec356adbb80070b1b96c42acc747ac1ec040df29bc48b20",
+      "currentSha256": "06a667494dc96af08ec356adbb80070b1b96c42acc747ac1ec040df29bc48b20",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Scout_Gameplay_Core_2.0.0-alpha.11.build.json",
+      "originalSha256": "362ee9d88c43eae3b60d0b63cfa9d9a6f5f5f60f48ac80190de576614d423034",
+      "currentSha256": "7e03871a176b9bf0b576b7592db066a101a5518f96f987fdafa09bace22f96a1",
+      "byteIdentical": false,
+      "changedJsonFields": [
+        "htmlSha256"
+      ],
+      "originalHtmlSha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
+      "currentHtmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847"
+    },
+    {
+      "path": "examples/Scout_Gameplay_Core_2.0.0-alpha.11.nes",
+      "originalSha256": "7814bf08504653d3f23964d7c0a654a936b051bf5aadbbf92c4a2eeaf726f4a2",
+      "currentSha256": "7814bf08504653d3f23964d7c0a654a936b051bf5aadbbf92c4a2eeaf726f4a2",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Scout_Gameplay_Core_2.0.0-alpha.11.nesforge.json",
+      "originalSha256": "f1e6703d9b23f9e716f421f98dd51c6a14faf0021f7bc5eba0d851b1e5db241b",
+      "currentSha256": "f1e6703d9b23f9e716f421f98dd51c6a14faf0021f7bc5eba0d851b1e5db241b",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Seeded_Mashup_2.0.0-alpha.11/Copper_Orchard_Donor.nesforge.json",
+      "originalSha256": "89007b8821f769ceaf69a789f72cc8b94ab0d8385e0046af46c6ce3eec416055",
+      "currentSha256": "89007b8821f769ceaf69a789f72cc8b94ab0d8385e0046af46c6ce3eec416055",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Seeded_Mashup_2.0.0-alpha.11/Manifest.json",
+      "originalSha256": "bbfa6f7c495be73b47b72c07af83f23ec9bc531695c9a242a936dc7769223794",
+      "currentSha256": "b70fcab57b6760c266db24ad58094032e5fb962b76840f49cf9047496bd46732",
+      "byteIdentical": false,
+      "changedJsonFields": [
+        "htmlSha256"
+      ],
+      "originalHtmlSha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
+      "currentHtmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847"
+    },
+    {
+      "path": "examples/Seeded_Mashup_2.0.0-alpha.11/Mashup_FORGE-001.nes",
+      "originalSha256": "ca5f4eab66600a37a58835dbcf56b336b761e96189d21074bea77af556c6360d",
+      "currentSha256": "ca5f4eab66600a37a58835dbcf56b336b761e96189d21074bea77af556c6360d",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Seeded_Mashup_2.0.0-alpha.11/Mashup_FORGE-001.nesforge.json",
+      "originalSha256": "e4f349196a233ed9107aa8383603502eb8d5602770ca76af3d3db61211a652c4",
+      "currentSha256": "e4f349196a233ed9107aa8383603502eb8d5602770ca76af3d3db61211a652c4",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Seeded_Mashup_2.0.0-alpha.11/Mashup_FORGE-001.recipe.json",
+      "originalSha256": "41210c5ae88896907057fd07728dcafee3502e9adb9b21e1d416386b6e80f6ce",
+      "currentSha256": "41210c5ae88896907057fd07728dcafee3502e9adb9b21e1d416386b6e80f6ce",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Seeded_Mashup_2.0.0-alpha.11/Mashup_FORGE-002.nes",
+      "originalSha256": "f0fe676bfe4257cdef27c69c3c8d39cb5cae9d23d532d389d8cec3052bf9d0b5",
+      "currentSha256": "f0fe676bfe4257cdef27c69c3c8d39cb5cae9d23d532d389d8cec3052bf9d0b5",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Seeded_Mashup_2.0.0-alpha.11/Mashup_FORGE-002.nesforge.json",
+      "originalSha256": "6107d707dc0e6b887e65d9015fb67c3fbd1267ac4413f0e2167412b070800784",
+      "currentSha256": "6107d707dc0e6b887e65d9015fb67c3fbd1267ac4413f0e2167412b070800784",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Seeded_Mashup_2.0.0-alpha.11/Mashup_FORGE-002.recipe.json",
+      "originalSha256": "e4c5232f3e97fd0f5d3ca3cd4e0354bf736786c6352b89d32b543f8b0b91419e",
+      "currentSha256": "e4c5232f3e97fd0f5d3ca3cd4e0354bf736786c6352b89d32b543f8b0b91419e",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Seeded_Mashup_2.0.0-alpha.11/Moonlit_Circuit_Donor.nesforge.json",
+      "originalSha256": "aac7e9c2465a2ef15b7cbee76b637476a9ecc0673f0f6bfda9dc8dcc20dcf3b6",
+      "currentSha256": "aac7e9c2465a2ef15b7cbee76b637476a9ecc0673f0f6bfda9dc8dcc20dcf3b6",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Seeded_Mashup_2.0.0-alpha.11/README.txt",
+      "originalSha256": "e343b987bb7c19230c6a373601faa09826e0cd4e95b931345ef5713c2a8ad38c",
+      "currentSha256": "e343b987bb7c19230c6a373601faa09826e0cd4e95b931345ef5713c2a8ad38c",
+      "byteIdentical": true
+    },
+    {
+      "path": "examples/Seeded_Mashup_2.0.0-alpha.11/Scout_Base.nesforge.json",
+      "originalSha256": "99d42d4691b5d29db4d06a6e169fc52ee817488ecd4749fe14710ffe6696fc82",
+      "currentSha256": "99d42d4691b5d29db4d06a6e169fc52ee817488ecd4749fe14710ffe6696fc82",
+      "byteIdentical": true
+    }
+  ]
+}

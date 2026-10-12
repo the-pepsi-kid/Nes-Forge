@@ -1,3 +1,5 @@
+Native SFX guide: `NATIVE_SFX_IMPORT.md`; owner review: `NATIVE_SFX_IMPORT_CHECKLIST.txt`.
+
 Native map/collision guide: `NATIVE_MAP_RECOVERY.md`; owner/browser checks: `NATIVE_MAP_RECOVERY_CHECKLIST.txt`. The source-backed finite subset reuses existing framework owners.
 
 # Current documentation index — 2.0.0-alpha.11 / movement-rules-1
@@ -83,4 +85,4 @@ Current mobile authoring review: **MOBILE_KEYBOARD.md** and **MOBILE_KEYBOARD_CH
 | `history/1.6.7-current/` | Unmodified 1.6.7 documentation with archive hashes |
 | `history/1.6.6/` | Earlier historical documents |
 
-Current root documents describe `mobile-keyboard-1` and its inherited RE/audio capabilities. Historical capability/stop statements and totals apply to their own artifacts. Current identity and measured automated evidence are linked from `../CURRENT_BASELINE.md`; missing or stale reports cannot validate the delivered build. Physical device/controller, audible output and owner acceptance remain separate. Expanded manual PDF editions and the revised Alpha Review Kit were completed September 30 as separate documentation deliverables; these current guides also cover the subsequent RE, audio and mobile corrections.
+Current root documents describe `native-sfx-1` and its inherited RE/audio capabilities. Historical capability/stop statements and totals apply to their own artifacts. Current identity and measured automated evidence are linked from `../CURRENT_BASELINE.md`; missing or stale reports cannot validate the delivered build. Physical device/controller, audible output and owner acceptance remain separate. Expanded manual PDF editions and the revised Alpha Review Kit were completed September 30 as separate documentation deliverables; these current guides also cover the subsequent RE, audio and mobile corrections.

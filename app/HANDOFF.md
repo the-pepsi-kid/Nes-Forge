@@ -1,3 +1,19 @@
+# Native SFX Recovery handoff
+
+Continue the authorized roadmap without renewed coding permission. Current bounded candidate: **alpha.11 / native-sfx-1**, schema 12, following native-map-1. Preserve the architecture and compatibility guarantees below.
+
+1. Verify current HTML/build identity, complete fresh Summary and `checkpoints/native-sfx-1-clean-extraction/Reproduction.json` together. Retain 1,694 cases across 84 suites and append every suite in `native-sfx-suites.json`; 89 suites are mandatory. Until matching current records exist, gate status is pending.
+2. Preserve the exact map baseline and source/test/report inventory. Generate only the new `tests/fixtures/native-sfx-source-delta.json` with `tools/generate_native_sfx_delta.py`; historical oracles remain frozen.
+3. The FamiTone2 profile adds explicit SFX conversion while its default music path remains compatible. One supported pulse stream becomes canonical per-frame notes, deduplicated duty/volume instruments and a terminal cut. Inspect cents error and phase/retrigger/arbitration limitations. Other channels, multichannel effects and unknown/unsupported semantics refuse.
+4. Native music and SFX use `RENativeAudioImport`; ProjectStore owns atomic append/history. SFX import requires existing tempo 150/speed 1, preserves order/runtime/bindings and adds one Undo. Separate authored Scout projects may explicitly bind B/attack; import never does so.
+5. Verify retained music parity, append offsets/references, one Undo/Redo, stale/cancel/refusal/failure rollback, edits/save/reopen, actual generated APU behavior and untouched project/emulator/native sessions. Keep original-driver evidence, canonical timing and audible/native synthesis claims distinct.
+6. Freeze source/docs/tests/examples before staging. Regenerate all five current example families and new SFX examples through their generators; verify every staged payload, run all 89 suites from one unchanged clean extraction, then all 14 browser supplements. Browser launch blocked by unavailable Chromium records zero checks.
+7. After this finite item and measured gate, continue the retained roadmap dependencies. Owner/browser/listening/device acceptance and comprehensive manual work remain open; do not claim arbitrary-engine recovery, promotion or integrated Hosted/network/wallet/deck completion.
+
+## Preserved previous record
+
+---
+
 # Native Map Recovery handoff
 
 Continue the authorized roadmap without renewed coding permission. Current bounded candidate: **alpha.11 / native-map-1**, schema 12, following native-background-1 and the independent map-input checkpoint. Preserve the architecture and compatibility guarantees below.

@@ -4,7 +4,6 @@
 'use strict';
 const services=window.Forge.services,copy=value=>JSON.parse(JSON.stringify(value));
 let c=null,staged=null,busy=false,revision=0,operation=0,evidenceReport=null;
-const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
 const make=(tag,id,text)=>{const el=document.createElement(tag);if(id)el.id=id;if(text!==undefined)el.textContent=text;return el;};
 function message(text,error=false){if(c){c.status.textContent=text;c.status.style.color=error?'var(--err, #ff9898)':'var(--dim)';}}
 function enable(){if(!c)return;c.preview.disabled=busy;c.apply.disabled=busy||!staged;c.export.disabled=busy||!evidenceReport;}
@@ -29,44 +28,24 @@ function describe(result,item){
 async function preview(){
  if(busy)return false;staged=null;evidenceReport=null;const id=++operation;busy=true;enable();c.summary.textContent='';c.evidence.textContent='';
  try{const native=source(),options=settings(native),item={source:native,sourceKey:sourceKey(native),project:projectGuard(),options,revision};message('Previewing the selected native music excerpt…');
- const api=window.FamiTone2AudioImport;if(!api?.preview)throw Error('The native transcription model is unavailable in this build.');
- const result=await api.preview(native.bytes,options);checkGuard(item);if(id!==operation)throw Error('Preview was superseded. Preview again.');
+ const api=services.RENativeAudioImport;if(!api?.stage)throw Error('The native transcription model is unavailable in this build.');
+ const stage=await api.stage(native,{kind:'music',...options}),result=stage.result;checkGuard(item);if(id!==operation)throw Error('Preview was superseded. Preview again.');
  if(result.sourceSha256!==native.currentSha256)throw Error('Transcription source identity does not match the native ROM copy.');
  describe(result,item);if(result.status!=='ready'||!result.imported){message('This excerpt is not supported for transcription. Read the diagnostics; the project is unchanged.',true);return false;}
- const validated=validateImport(item,result);c.summary.textContent+='\nAudio Runtime data estimate: '+validated.estimatedBytes+' bytes. This does not prove that the complete ROM fits; the build also includes your scenes, gameplay and other data.';staged={...item,result:copy(result)};evidenceReport=reportFor(staged,'preview');message('Preview ready. Read the conversion differences, then choose Transcribe music into AUDIO. Existing patterns, instruments and SFX definitions remain; tempo/speed and the current music order will be replaced. Existing SFX playback timing uses that new tempo/speed.');return true;
+ const validated=stage.data;c.summary.textContent+='\nAudio Runtime data estimate: '+validated.estimatedBytes+' bytes. This does not prove that the complete ROM fits; the build also includes your scenes, gameplay and other data.';staged={...item,stage,result:stage.result};evidenceReport=reportFor(staged,'preview');message('Preview ready. Read the conversion differences, then choose Transcribe music into AUDIO. Existing patterns, instruments and SFX definitions remain; tempo/speed and the current music order will be replaced. Existing SFX playback timing uses that new tempo/speed.');return true;
  }catch(error){staged=null;message(error.message||String(error),true);return false;}finally{if(id===operation){busy=false;enable();}}
-}
-function integer(value,min,max,label){if(!Number.isSafeInteger(value)||value<min||value>max)throw Error(label+' must be an integer from '+min+' through '+max+'.');}
-function validateImport(item,result){
- const imported=copy(result.imported),p=JSON.parse(item.project.snapshot),patternOffset=p.patterns.length,instrumentOffset=p.instruments.length;
- if(!Array.isArray(imported.patterns)||!imported.patterns.length||!Array.isArray(imported.instruments)||!Array.isArray(imported.orderList)||!imported.orderList.length)throw Error('Transcription returned incomplete Audio data.');
- if(imported.rows!==p.audRows)throw Error('Transcription pattern size no longer matches the project.');
- integer(imported.rows,16,128,'Pattern rows');integer(imported.tempo,30,300,'Tempo');integer(imported.speed,1,15,'Speed');
- if(patternOffset+imported.patterns.length>256)throw Error('Existing and transcribed patterns exceed 256. Shorten the excerpt or use a project with fewer patterns.');
- if(instrumentOffset+imported.instruments.length>255)throw Error('Existing and transcribed instruments exceed 255.');
- if(imported.orderList.length>255)throw Error('The transcribed music order exceeds 255 entries. Shorten the excerpt.');
- for(const pattern of imported.patterns){if(!Array.isArray(pattern.rows)||pattern.rows.length!==imported.rows)throw Error('Transcription has inconsistent pattern rows.');for(const row of pattern.rows){if(!Array.isArray(row)||row.length!==5)throw Error('Each transcription row requires five canonical channels.');for(const cell of row){integer(cell.note,-2,95,'Note');integer(cell.inst,-1,imported.instruments.length-1,'Instrument reference');integer(cell.vol,-1,15,'Volume');integer(cell.fx,0,255,'Effect');integer(cell.fxp,0,255,'Effect value');if(cell.inst>=0)cell.inst+=instrumentOffset;}}}
- const orderList=imported.orderList.map(row=>{if(!Array.isArray(row)||row.length!==5)throw Error('Transcription order requires five channel references.');return row.map(index=>{integer(index,0,imported.patterns.length-1,'Pattern reference');return index+patternOffset;});});
- const patterns=p.patterns.concat(imported.patterns),instruments=p.instruments.concat(imported.instruments),next={...p,patterns,instruments,orderList,tempo:imported.tempo,speed:imported.speed};
- const prepared=services.ProjectStore.prepareLoad(next);
- if(canonical(prepared.patterns.slice(patternOffset))!==canonical(imported.patterns)||canonical(prepared.instruments.slice(instrumentOffset))!==canonical(imported.instruments))throw Error('The transcription would change during project normalization. Import was refused.');
- const plan=services.AudioCompiler.plan({...next,audioRuntime:{...next.audioRuntime,enabled:true,musicEnabled:true}});
- return {estimatedBytes:plan.estimatedBytes,patterns,instruments,orderList,tempo:imported.tempo,speed:imported.speed,patternOffset,instrumentOffset,patternCount:imported.patterns.length,instrumentCount:imported.instruments.length};
 }
 async function importMusic(){
  if(busy)return false;if(!staged){message('Preview a supported transcription first.',true);return false;}const item=staged,id=++operation;busy=true;enable();
- try{checkGuard(item);const native=source(),api=window.FamiTone2AudioImport,result=await api.preview(native.bytes,item.options);checkGuard(item);
+ try{checkGuard(item);const api=services.RENativeAudioImport,currentSource=()=>{checkGuard(item);if(id!==operation||staged!==item)throw Error('The preview changed. Preview again.');return source();};await api.revalidate(item.stage,currentSource);checkGuard(item);
  if(id!==operation||staged!==item)throw Error('The preview changed. Preview again.');
- if(result.status!=='ready'||JSON.stringify(result)!==JSON.stringify(item.result))throw Error('The transcription changed during revalidation. Preview again before importing.');
- const data=validateImport(item,result);
  if(!confirm('Transcribe subsong '+item.options.songIndex+' into AUDIO and replace the current music order?\n\nThis imports only the selected '+item.options.nativeRows+'-native-row NTSC excerpt. Tuning and native driver behavior can differ; review the displayed conversion evidence. SFX and gameplay triggers are not recovered.\n\nExisting patterns, instruments, SFX definitions and runtime settings remain. Global tempo/speed change to 150/1; this also changes existing SFX playback timing. One Undo restores the previous song. The original ROM and emulator remain unchanged.')){message('Transcription cancelled. The project and history are unchanged.');return false;}
  checkGuard(item); // Dialogs/adapters may allow project or source changes.
- snapshot();S.patterns=data.patterns;S.instruments=data.instruments;S.orderList=data.orderList;S.tempo=data.tempo;S.speed=data.speed;
+ const data=await api.commit(item.stage,currentSource);
  // Playback is not started and the emulator is never touched. Stop any tracker
  // preview only after a successful commit so its row cursor cannot run into the
  // newly replaced order. Presentation failures do not undo a committed import.
- staged=null;evidenceReport=reportFor(item,'imported');const issues=[];
- try{notify('nativeAudioTranscription');}catch(error){Forge15.dirty=true;issues.push('change notification: '+(error.message||String(error)));}
+ staged=null;evidenceReport=reportFor(item,'imported');const issues=[...(data.warnings||[])];
  try{aud_stop();aud_currentOrder=0;aud_currentRow=0;aud_selectedInst=data.instrumentCount?data.instrumentOffset:-1;}catch(error){issues.push('tracker playback cleanup: '+(error.message||String(error)));}
  try{render();services.AudioUI?.refresh();}catch(error){issues.push('display refresh: '+(error.message||String(error)));}
  const warning=issues.length?' Audio data was imported, but '+issues.join('; ')+'. Save the project and reopen it.':'';

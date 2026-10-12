@@ -247,6 +247,30 @@ function appendScene(input,options={}){
       refresh:[...(selected?[()=>loadSceneData(index)]:[]),()=>rebuildAllUI(),()=>Forge166.ui?.refresh()]};
   });
 }
+function applyAudioImport(changes,options={}){
+  return runEdit('audio',options,candidate=>{
+    const kind=options.kind,keys=kind==='music'?['patterns','instruments','orderList','tempo','speed']:kind==='sfx'?['patterns','instruments','sfx']:null;
+    if(!keys||!changes||typeof changes!=='object'||Array.isArray(changes)||Object.keys(changes).length!==keys.length||Object.keys(changes).some(key=>!keys.includes(key)))fail('An Audio import requires only its declared music or SFX fields.');
+    const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
+    const offsets={patterns:candidate.patterns.length,instruments:candidate.instruments.length,sfx:candidate.sfx.length},values={};
+    for(const key of keys)values[key]=cp(changes[key]);
+    for(const key of ['patterns','instruments',...(kind==='sfx'?['sfx']:[])]){
+      if(!Array.isArray(values[key])||values[key].length<offsets[key]||JSON.stringify(values[key].slice(0,offsets[key]))!==JSON.stringify(candidate[key]))fail('An Audio import must preserve existing '+key+' and append new records.');
+      if(values[key].length>(key==='patterns'?256:255))fail('Imported '+key+' exceed the canonical Audio capacity.');
+    }
+    if(values.patterns.length===offsets.patterns||kind==='sfx'&&values.sfx.length===offsets.sfx)fail('An Audio import must append its new records.');
+    if(kind==='sfx'&&(candidate.tempo!==150||candidate.speed!==1))fail('SFX transcription requires project tempo 150 and speed 1; existing music timing cannot be changed by SFX import.');
+    if(kind==='music'){
+      if(!Number.isInteger(values.tempo)||values.tempo<30||values.tempo>300||!Number.isInteger(values.speed)||values.speed<1||values.speed>15)fail('Invalid imported Audio tempo or speed.');
+      if(!Array.isArray(values.orderList)||!values.orderList.length||values.orderList.length>255||values.orderList.some(row=>!Array.isArray(row)||row.length!==5||row.some(index=>!Number.isInteger(index)||index<offsets.patterns||index>=values.patterns.length)))fail('Imported music order requires five references to appended patterns.');
+    }
+    Object.assign(candidate,values);
+    const prepared=Store.prepareLoad(candidate);
+    for(const key of ['patterns','instruments',...(kind==='sfx'?['sfx']:[])])if(canonical(prepared[key].slice(offsets[key]))!==canonical(values[key].slice(offsets[key])))fail('The transcription would change during project normalization. Import was refused.');
+    Forge.services.AudioCompiler.plan({...candidate,audioRuntime:{...candidate.audioRuntime,enabled:true,musicEnabled:kind==='music'?true:candidate.audioRuntime.musicEnabled}});
+    return {effective:true,values,intent:kind==='music'?'nativeAudioTranscription':'nativeSfxTranscription'};
+  });
+}
 function initializeBlank(){
   const sc=makeScene({name:'Untitled Scene',chr:normalizeTiles(),sprChr:normalizeTiles(),tileProps:Array(256).fill(0),entities:[],oam:[],buildInclude:true,buildOrder:0,scrollDir:'none'});
   Store.load({format:'NESForge',version:Forge.release.schema,foundation:Forge.release.version,projectName:'Untitled',scenes:[sc],activeScene:0,worlds:[],animations:[],metasprites:[],gameplay:Forge165.config.defaults(),worldRuntime:Forge.services.WorldConfig.defaults(),audioRuntime:Forge.services.AudioConfig.defaults(),gameplayCore:Forge.services.GameplayModel.defaults(),asmSource:'',instruments:[],patterns:[],orderList:[],sfx:[],tempo:150,speed:6,audRows:64,mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,selTile:0,editTile:0,selSprite:-1,selEntity:-1,chrBank:'bg',_selAnim:0,_animFrame:0},{intent:'startup'});
@@ -367,7 +391,7 @@ async function dismissRecovery(){
     recoveryPhase('ready');status();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,appendScene,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,appendScene,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};

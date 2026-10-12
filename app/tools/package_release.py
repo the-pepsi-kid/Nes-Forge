@@ -1,4 +1,4 @@
-"""Package the unchanged, clean-tested alpha.11 native-map candidate; preserve all 78 native-background gates."""
+"""Package the unchanged, clean-tested alpha.11 native-sfx candidate; preserve all 84 native-map gates."""
 from pathlib import Path
 import argparse, hashlib, json, os, subprocess, zipfile
 root=Path(__file__).resolve().parents[1]
@@ -6,16 +6,16 @@ parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path);parse
 assert not args.stage or args.output and 'staging' in args.output.name.lower()
 digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 subprocess.run(['python3',str(root/'tools/bundle.py'),'--check'],cwd=root,check=True)
-manifest=json.loads((root/'source-manifest.json').read_text());release=manifest['release'];candidate='native-map-1';html=root/manifest['output']
+manifest=json.loads((root/'source-manifest.json').read_text());release=manifest['release'];candidate='native-sfx-1';html=root/manifest['output']
 assert release=='2.0.0-alpha.11' and manifest['output']=='mainline/NES_Forge_2.0.0-alpha.11.html'
-extra=json.loads((root/'native-map-suites.json').read_text());counts=json.loads((root/'tests/retained-native-background-suite-counts.json').read_text())
-reference=json.loads((root/'checkpoints/native-background-1-reference/test-results/candidate/Summary.json').read_text())
-assert reference['status']=='passed' and reference['sha256']=='4dec7048b9fdb77bcfcd46ccde3d293313e53489f4987a7a112eced8cce6fa11'
-assert reference['passed']==reference['total']==1617 and reference['suiteCount']==78
+extra=json.loads((root/'native-sfx-suites.json').read_text());counts=json.loads((root/'tests/retained-native-map-suite-counts.json').read_text())
+reference=json.loads((root/'checkpoints/native-map-1-reference/test-results/candidate/Summary.json').read_text())
+assert reference['status']=='passed' and reference['sha256']=='d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be'
+assert reference['passed']==reference['total']==1694 and reference['suiteCount']==84
 assert counts=={item['name']:item['total'] for item in reference['suites']}
-assert len(counts)==78 and sum(counts.values())==1617
+assert len(counts)==84 and sum(counts.values())==1694
 declared_browser=json.loads((root/'browser-suites.json').read_text())
-assert [item[0]for item in declared_browser]==['browser-mobile','browser-re-analysis','browser-re-runtime','browser-audio-adaptive','browser-roadmap','browser-native-audio','browser-native-audio-import','browser-recovery-methods','browser-seeded-mashup','browser-movement-rules','browser-compatibility','browser-native-background','browser-native-map']
+assert [item[0]for item in declared_browser]==['browser-mobile','browser-re-analysis','browser-re-runtime','browser-audio-adaptive','browser-roadmap','browser-native-audio','browser-native-audio-import','browser-recovery-methods','browser-seeded-mashup','browser-movement-rules','browser-compatibility','browser-native-background','browser-native-map','browser-native-sfx']
 assert len({item[1]for item in declared_browser})==len(declared_browser)
 for name,script in declared_browser:assert (root/script).is_file(),script
 assert extra and len({item[0]for item in extra})==len(extra) and not (set(counts)&{item[0]for item in extra})
@@ -24,7 +24,7 @@ if not args.stage:
  summary=json.loads((root/'test-results/candidate/Summary.json').read_text())
  assert summary['status']=='passed' and summary['failed']==0 and summary['release']==release
  assert summary['unchangedCandidate'] is True and summary['html']==manifest['output'] and summary['sha256']==digest(html)
- suites=summary['suites'];assert len(suites)==78+len(extra)==summary['suiteCount']
+ suites=summary['suites'];assert len(suites)==84+len(extra)==summary['suiteCount']
  assert len({s['name']for s in suites})==len(suites)
  assert {s['name']for s in suites}==set(counts)|{s[0]for s in extra}
  for s in suites:
@@ -36,7 +36,7 @@ if not args.stage:
   assert len(cases)==s['total'] and all(c.get('passed') is True for c in cases)
  assert summary['passed']==summary['total']==sum(s['total']for s in suites)
  for item in summary['provenance']:assert digest(root/item['path'])==item['sha256'],'Changed gate input: '+item['path']
- proof=json.loads((root/'checkpoints/native-map-1-clean-extraction/Reproduction.json').read_text())
+ proof=json.loads((root/'checkpoints/native-sfx-1-clean-extraction/Reproduction.json').read_text())
  assert proof['candidate']==candidate and proof['status']=='passed'
  assert proof['htmlSha256']==digest(html) and proof['summarySha256']==digest(root/'test-results/candidate/Summary.json')
  assert all(proof[k]==summary[k]for k in ['passed','total','suiteCount'])
@@ -49,7 +49,7 @@ if not args.stage:
    assert record['passed']>0 and record['failed']==0
    assert record['passed']==len(record['checks']) and all(check['status']=='passed'for check in record['checks'])
   browser.append({'suite':name,'status':record['status'],'passed':record['passed']})
-names=['README.md','PROJECT_CHARTER.md','ARCHITECTURE_CONTRACT.md','DECISION_LOG.md','ROADMAP.md','CURRENT_BASELINE.md','TEST_POLICY.md','HANDOFF.md','package.json','source-manifest.json','build-inputs.json','roadmap-modules.json','roadmap-suites.json','native-audio-modules.json','native-audio-suites.json','native-audio-import-modules.json','native-audio-import-suites.json','recovery-methods-modules.json','recovery-methods-suites.json','seeded-mashup-modules.json','seeded-mashup-suites.json','movement-rules-modules.json','movement-rules-suites.json','compatibility-stabilization-modules.json','compatibility-stabilization-suites.json','native-background-modules.json','native-background-suites.json','tools/build_native_background_examples.cjs','native-map-modules.json','native-map-suites.json','tools/build_native_map_examples.cjs','browser-suites.json',manifest['output']]
+names=['README.md','PROJECT_CHARTER.md','ARCHITECTURE_CONTRACT.md','DECISION_LOG.md','ROADMAP.md','CURRENT_BASELINE.md','TEST_POLICY.md','HANDOFF.md','package.json','source-manifest.json','build-inputs.json','roadmap-modules.json','roadmap-suites.json','native-audio-modules.json','native-audio-suites.json','native-audio-import-modules.json','native-audio-import-suites.json','recovery-methods-modules.json','recovery-methods-suites.json','seeded-mashup-modules.json','seeded-mashup-suites.json','movement-rules-modules.json','movement-rules-suites.json','compatibility-stabilization-modules.json','compatibility-stabilization-suites.json','native-background-modules.json','native-background-suites.json','tools/build_native_background_examples.cjs','native-map-modules.json','native-map-suites.json','tools/build_native_map_examples.cjs','native-sfx-modules.json','native-sfx-suites.json','tools/build_native_sfx_examples.cjs','browser-suites.json',manifest['output']]
 files={root/n for n in names}
 directories=['src','tools','tests','stabilization','baseline','examples','docs','checkpoints','hosted']
 if (root/'research').is_dir():directories+=['research']
@@ -61,7 +61,7 @@ for name in directories:
 for p in files:assert p.is_file() and p.resolve().is_relative_to(root),p
 files=sorted(files,key=lambda p:p.relative_to(root).as_posix());checksums=root/'SHA256SUMS.txt'
 checksums.write_text(''.join(digest(p)+'  '+p.relative_to(root).as_posix()+'\n'for p in files))
-target=(args.output or root.parent/'NES_Forge_2.0.0-alpha.11_Native_Map_Candidate.zip').resolve();assert not target.is_relative_to(root)
+target=(args.output or root.parent/'NES_Forge_2.0.0-alpha.11_Native_SFX_Candidate.zip').resolve();assert not target.is_relative_to(root)
 target.parent.mkdir(parents=True,exist_ok=True);temporary=target.with_suffix(target.suffix+'.tmp');prefix='NES_Forge_'+release+'/'
 with zipfile.ZipFile(temporary,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9)as archive:
  for p in files+[checksums]:

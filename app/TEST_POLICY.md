@@ -1,3 +1,19 @@
+# Test policy — Native SFX Recovery
+
+Retain all **1,694 cases across 84 predecessor suites**, unchanged in count and order, and append the five suites in `native-sfx-suites.json`. No skipped cases, injected production modules, renewed historical oracles or stale outcomes. Exact outer reversal must reconstruct native-map-1 before the retained preservation chain executes. Any retained expectation adjustment must be explicitly reviewed and limited to the actual declared contract change.
+
+Verify single-pulse FamiTone2 effect transcription from original source-backed streams without an effect-ID/ROM-hash allowlist. Compare native frame zero through the inclusive final frame, canonical timing and terminal cut; verify pulse selection, pitch/cents decisions, duty/volume instrument deduplication and actual generated APU effects. Refuse multichannel/other-channel/PAL, unknown state, unsupported controls/timers/duration and capacity overflow without mutation. Equal event timing is not lossless synthesis or audible acceptance.
+
+Exercise shared native Audio staging/import ownership and retained default music parity. Require source/project guards, cancellation, one Undo/Redo, correct append offsets/references, failure rollback, useful canonical editing and exact save/reopen/rebuild. Existing tempo 150/speed 1 is an SFX import precondition; verify that imports preserve tempo/order/runtime/bindings, unrelated project data, original ROM, emulator and native edit sessions. Explicit Scout example bindings are authored setup, not recovered native behavior.
+
+Freeze source/docs/tests/examples before staging. Regenerate five current example families and the new SFX examples through their generators, verify every staged checksum, then run all 89 declared suites against one unchanged clean extraction. Final packaging requires matching `checkpoints/native-sfx-1-clean-extraction/Reproduction.json` and all 14 current browser reports. Until those records agree, current outcomes remain pending.
+
+A missing Chromium launch records blocked status with zero checks. VM/APU results do not establish browser layout/native dialogs, audible fidelity, independent-emulator playback, mobile performance, controllers or physical NES acceptance. Full-roadmap acceptance and promotion remain separate.
+
+## Preserved previous record
+
+---
+
 # Test policy — Native Map Recovery
 
 Retain all **1,617 cases across 78 predecessor suites**, unchanged in count and order, and append the six suites in `native-map-suites.json`. No skipped cases, injected production modules, renewed historical oracles or stale outcomes. The only retained assertion updates are current release labels and additional registered-method discovery expectations; preservation/gate infrastructure adds exact outer reversal before the original guards.

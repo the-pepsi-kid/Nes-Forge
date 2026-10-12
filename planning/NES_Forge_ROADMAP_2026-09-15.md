@@ -1,3 +1,17 @@
+## October 12, 2026 — native SFX recovery candidate
+
+Current implementation: **2.0.0-alpha.11 / native-sfx-1**, schema 12. The existing structural FamiTone2 profile now offers explicit single-pulse SFX transcription as well as its retained music workflow. The independent HonkeyPong input provides two supported effects and a multichannel refusal case. Conversion follows native register data and preserves the final mixed frame; nearest-pitch, retrigger and mixing differences remain explicit.
+
+Music and SFX imports now share `RENativeAudioImport`; `ProjectStore.applyAudioImport` owns their guarded Audio-only transaction and one Undo. SFX appends patterns, instruments and definitions while preserving existing music, tempo/speed, runtime settings and event bindings. It requires an already compatible 150/1 project. Standalone Scout examples choose that timing and add an authored attack binding separately. No schema, runtime emitter, recipe algorithm or template change is needed.
+
+All **1,694 parent cases / 84 suites** remain mandatory. Five additional suites bring the required inventory to **89**, with 14 declared browser supplements. Actual outcomes belong to the matching current `app/test-results/candidate/Summary.json` and native-sfx-1 clean-extraction proof; application-local paths omit `app/`. Browser/owner/listening/device acceptance is separate. See `app/docs/NATIVE_SFX_IMPORT.md`, its checklist and `app/examples/RE_Native_SFX/`.
+
+Next coding direction: strengthen supplied-source migration with explicit dialect/dependency diagnostics and then a documented, independently tested integration hook. Additional native Audio fidelity/formats remain separate bounded extensions; nonzero pitch envelopes, PAL, DPCM and multichannel SFX are not implied by this checkpoint. Retain linker/runtime/raster/LiveLink/debugging and comprehensive manual requirements before integrated Hosted/network/wallet/deck work. The complete roadmap remains unfinished.
+
+Earlier dated entries below retain their historical scope.
+
+---
+
 ## October 12, 2026 — native map/collision candidate
 
 Current implementation: **2.0.0-alpha.11 / native-map-1**, schema 12. The independent DABG command representation now feeds the existing recovery registry, shared scene preview/import lifecycle and unchanged single-room compiler. Source-backed structural decoding finds 22 referenced native map resources; one fits the initial static Empty/Solid conversion subset. Refusal reasons preserve the distinction between full-solid geometry, one-way landing, interactions, scrolling and procedural maps.

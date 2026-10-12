@@ -1,0 +1,120 @@
+{
+  "suite": "frame-editor164",
+  "source": "NES_Forge_2.0.0-alpha.11.html",
+  "sha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
+  "environment": "Node.js full application VM with shared DOM stub",
+  "limitations": "Checks handlers, coordinates, selection, and state/history transitions; does not establish visual layout, pointer capture, or physical touch behavior.",
+  "total": 27,
+  "passed": 27,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Overlay converts display positions into origin-relative pixels",
+      "passed": true
+    },
+    {
+      "name": "Repeated refresh preserves selected area identity",
+      "passed": true
+    },
+    {
+      "name": "Pointer drag previews without editing live data or adding history",
+      "passed": true
+    },
+    {
+      "name": "Pointer release commits origin-relative movement with one undo entry",
+      "passed": true
+    },
+    {
+      "name": "Clicking an area without movement creates no undo entry",
+      "passed": true
+    },
+    {
+      "name": "Resize handle changes dimensions and creates one undo entry",
+      "passed": true
+    },
+    {
+      "name": "Pointer cancellation drops the preview without history or data edits",
+      "passed": true
+    },
+    {
+      "name": "Escape cancels a draw without creating an area",
+      "passed": true
+    },
+    {
+      "name": "Draw tool creates an inclusive rectangle even dragging up and left",
+      "passed": true
+    },
+    {
+      "name": "Numeric coordinate handler edits the selected area",
+      "passed": true
+    },
+    {
+      "name": "Invalid width handler rejects before history and restores field value",
+      "passed": true
+    },
+    {
+      "name": "Empty numeric field cannot silently become zero",
+      "passed": true
+    },
+    {
+      "name": "Shift-arrow keyboard nudge moves eight pixels",
+      "passed": true
+    },
+    {
+      "name": "Frame changes cancel pending drag and leave previous frame intact",
+      "passed": true
+    },
+    {
+      "name": "New frames start with independent empty contact/event lists",
+      "passed": true
+    },
+    {
+      "name": "Return to edited frame retains its authored areas",
+      "passed": true
+    },
+    {
+      "name": "Area deletion is scoped to the selected kind and identity",
+      "passed": true
+    },
+    {
+      "name": "Add event assigns the requested type and selects its identity",
+      "passed": true
+    },
+    {
+      "name": "Event inspector edits names and payloads without interpretation",
+      "passed": true
+    },
+    {
+      "name": "Event order changes preserve selected event and unrelated values",
+      "passed": true
+    },
+    {
+      "name": "Moving first event earlier is a no-op with no history",
+      "passed": true
+    },
+    {
+      "name": "Event type selector applies a supported marker type",
+      "passed": true
+    },
+    {
+      "name": "Event deletion retains the other ordered marker",
+      "passed": true
+    },
+    {
+      "name": "Drawing clamps dimensions and starting coordinates to schema limits",
+      "passed": true
+    },
+    {
+      "name": "Changing tools stops legacy animation preview",
+      "passed": true
+    },
+    {
+      "name": "Focusing authoring controls stops preview before editing",
+      "passed": true
+    },
+    {
+      "name": "Undo cancels drag when frame identity changes at the same animation ID and index",
+      "passed": true
+    }
+  ]
+}

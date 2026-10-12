@@ -8,7 +8,7 @@ const limitations=Object.freeze([
  'One linked FamiTone2 v1.11 NROM driver configuration is recognized by instruction structure and reachable initialization, without filename or ROM-hash allowlists.',
  'Native recognition does not establish that a selected song is representable by the AUDIO tracker. Conversion performs its own explicit representability check.',
  'Native patching supports existing one-byte note/cut or instrument commands only. It returns a ROM copy and cannot insert data or change the original engine layout.',
- 'Canonical music transcription is a finite NTSC excerpt with declared tuning and playback differences. Native SFX, DPCM, game triggers and lossless inverse conversion are not supported.',
+ 'Canonical music transcription is a finite NTSC excerpt with declared tuning and playback differences. Explicit SFX conversion supports bounded single-pulse effects with separate timing and mixing limits; multichannel SFX, DPCM, game triggers and lossless inverse conversion are not supported.',
  'Inspection, copied-ROM patching and conversion previews do not change the active project, its history, or the emulator. Imports remain explicit authoring actions.',
  'Sources are limited to 41,488 bytes, native decoding to its existing 16,384-event budget, and shared results to 2 MiB. Larger or unsupported sources remain open for general inspection.'
 ]);
@@ -57,7 +57,22 @@ function patch(analysis,options,context){
  const inputSource=clone(analysis.report.identity),outputSource={...inputSource,sha256:rebuilt.rebuiltSha256,byteLength:rebuilt.rom.length};
  return bounded({status:'supported',reason:'A copied ROM contains the validated native command edits; the original inspection, project and emulator are unchanged.',evidence:[...decodedEvidence(result),{status:'decoded',claim:'These original source bytes identify the explicitly requested native command edits. The separate output identity identifies the redecoded ROM copy.',sourceSha256:inputSource.sha256,ranges:ranges(rebuilt.changes.map(c=>({fileOffset:c.fileOffset,length:1})))}],data:{nativeStatus:'decoded',inputSource,outputSource,rom:Array.from(rebuilt.rom),changes:clone(rebuilt.changes),method:rebuilt.method,outputNative:summary(rebuilt.evidence),originalUnchanged:true}});
 }
+function convertSfx(analysis,options,context){
+ optionsObject(options,['resourceKind','effectId','region','rows','mode','expectedSourceSha256']);expected(options,analysis);
+ if(!window.FamiTone2SfxImport?.preview)fail('The canonical SFX transcription model is unavailable.');
+ const value=bytes(analysis,context);context.consume(DECODE_WORK+16384+8192);context.throwIfAborted();
+ const {resourceKind,...conversionOptions}=options;
+ const converted=window.FamiTone2SfxImport.preview(value,{...conversionOptions,expectedSourceSha256:analysis.report.identity.sha256});context.throwIfAborted();
+ if(converted.status!=='ready')return {status:'unsupported',reason:reason(converted),evidence:[],data:{conversion:clone(converted),sourceUnchanged:true}};
+ const p=converted.provenance;
+ return bounded({status:'supported',reason:'The selected single-pulse effect is ready as an editable canonical SFX preview with declared timing, tuning and mixing differences. It has not been imported.',evidence:[{status:'converted',claim:'A finite native register stream was transcribed into an ordinary pattern-backed SFX. Listed ranges identify the driver, effect pointer and stream commands. Native mixing and pulse phase are not reproduced.',sourceSha256:analysis.report.identity.sha256,ranges:ranges([p.driver,p.effectSource,...p.events.map(e=>e.source)])}],data:{conversion:clone(converted),inputSource:clone(analysis.report.identity),sourceUnchanged:true,canonicalCommit:false,inverseSupported:false}});
+}
 function convert(analysis,options,context){
+ if(options?.resourceKind!==undefined){
+  if(options.resourceKind==='sfx')return convertSfx(analysis,options,context);
+  if(options.resourceKind!=='music')fail('Resource kind must be music or sfx.');
+  const {resourceKind,...musicOptions}=options;options=musicOptions;
+ }
  optionsObject(options,['songIndex','region','nativeRows','rows','mode','expectedSourceSha256']);expected(options,analysis);
  if(!window.FamiTone2AudioImport?.preview)fail('The canonical Audio transcription model is unavailable.');
  const value=bytes(analysis,context);context.consume(DECODE_WORK+16384+8192);context.throwIfAborted();

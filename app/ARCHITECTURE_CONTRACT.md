@@ -1,3 +1,19 @@
+# Current contract — Native SFX Recovery
+
+Candidate `native-sfx-1`, release alpha.11, schema 12. Preserve D063–D065 service ownership and existing compiler/runtime algorithms.
+
+- `REMethods` remains the single registry. The existing source-backed FamiTone2 profile adds an explicit `resourceKind:'sfx'`/`effectId` conversion choice; its default music conversion remains compatible. No effect ID or whole-ROM hash allowlist substitutes for stream interpretation.
+- The bounded SFX adapter accepts exactly one supported Pulse 1 or Pulse 2 stream, interprets native frames zero through the final frame inclusively, maps to existing canonical notes/instruments and adds a terminal cut. Deduplicated duty/volume instruments use the established Audio representation.
+- Timer-to-note mapping uses the existing pitch set and records cents error. Native phase/retrigger, synthesis and arbitration differences remain explicit. Multichannel effects, Triangle/Noise, PAL, unknown state and unsupported control/timer/duration/capacity refuse conversion; no new runtime or silent approximation expands those boundaries.
+- `RENativeAudioImport` owns shared native music/SFX staging, detached preview, source/project guards and import routing. The existing native music import UI delegates to it while preserving its established results and behavior. The SFX UI does not own an independent Audio transaction.
+- `ProjectStore.applyAudioImport` owns atomic canonical Audio append and one Undo/Redo. SFX import requires existing tempo 150/speed 1 and changes only appended instruments, patterns and SFX records. It must preserve order, tempo/speed, runtime settings, unrelated data and event bindings.
+- Separate Scout review projects may author an explicit B/attack binding using existing mechanisms. The import itself never binds gameplay events or enables a runtime. Native evidence and edited canonical projects remain distinct.
+- Native map/background models, recipe identities, source workspace, emulator/capture, Save As and CHR editing remain under their established owners. No schema, runtime emitter, template or actor/persistence-budget expansion belongs to this checkpoint.
+
+## Preserved previous record
+
+---
+
 # Current contract — Native Map Recovery
 
 Candidate `native-map-1`, release alpha.11, schema 12. Preserve D063/D064 service ownership and all unchanged runtime/compiler algorithms.

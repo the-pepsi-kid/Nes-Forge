@@ -1,3 +1,21 @@
+# D066 — Bounded native SFX through canonical Audio ownership
+
+October 12, 2026 UTC. Authority: the owner's continuing roadmap direction advances the next finite Audio recovery slice after native-map-1. Candidate **alpha.11 / native-sfx-1** retains schema 12, five templates, 12 actor slots, 64 persistent bytes, Door Option B and existing runtime emitters.
+
+Transcribe only a supported source-backed FamiTone2 effect that uses one Pulse 1 or Pulse 2 stream. Decode behavior structurally; source identity provides provenance and stale guards, not an effect-ID or ROM-hash allowlist. Preserve every native frame through its inclusive end, use existing canonical pitch/duty/volume data and emit a terminal cut. HonkeyPong's first two effects are intended supported examples; its multichannel third effect must refuse.
+
+The finite adaptation records native timer-to-note cents error and phase/retrigger/arbitration limitations. Other channels, multichannel effects, PAL, unknown state and unsupported control/timer/duration/capacity refuse conversion. Browser listening and native synthesis equivalence are separate acceptance questions.
+
+Reuse the existing FamiTone2 method's explicit conversion contract. Extract the shared native Audio staging/import service for both music and SFX, preserving default music results. ProjectStore owns guarded Audio append and history. SFX import requires the existing tempo 150/speed 1 and appends canonical instruments/patterns/SFX only; it does not rewrite orders, enable runtimes or bind events. Separate authored Scout review projects may bind B/attack explicitly.
+
+Freeze native-map-1's exact 1,694 cases across 84 suites, source/test/report inventory and current examples. Add five declared SFX suites plus the fourteenth browser supplement. Exact outer reversal reconstructs the map parent and all historical protections. Matching fresh clean-extraction records establish current outcomes; implementation authority is not acceptance or promotion.
+
+Remaining Audio fidelity/listening, native format coverage, source migration/gameplay, linker/runtime/raster/LiveLink/debugging and comprehensive manual requirements remain open before integrated Hosted/network/wallet/deck work. This finite item does not complete the roadmap.
+
+## Preserved previous record
+
+---
+
 # D065 — Bounded A2 through shared native-scene ownership
 
 October 12, 2026 UTC. Authority: the owner said “continue” after the independent native-map source-verification checkpoint. Implement the next bounded editor integration while retaining the owner's compatibility requirement. Candidate **alpha.11 / native-map-1** follows native-background-1; schema 12, five templates, 12 actor slots, 64 persistent bytes, Door Option B and existing runtime emitters remain unchanged.

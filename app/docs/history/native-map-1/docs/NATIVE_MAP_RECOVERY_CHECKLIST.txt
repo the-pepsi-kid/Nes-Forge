@@ -1,0 +1,21 @@
+NES Forge — Native map/collision review
+
+Automated CPU and VM checks do not replace this browser/owner review.
+
+[ ] Open DABG_Static_Map.nesforge.json normally; Build & Run the authored square on the recovered floor.
+[ ] Open the Floor_Opened project; confirm the drawn floor remains and the player falls.
+[ ] Open DABG-reproduced.nes for General Analysis; generic NES2 playback remains unsupported.
+[ ] Discover methods; select command-metatile maps; Find maps lists 22 referenced resources with explicit refusal reasons.
+[ ] Preview the eligible static resource; inspect map, source identity/ranges, collision summary and raw-map adaptation notes.
+[ ] Cancel a preview and verify project, history, emulator and existing build output remain unchanged.
+[ ] Change source, resource or project after preview; stale import must be refused until a new preview.
+[ ] Acknowledge and import; one new scene is selected, excluded from the build, with existing scenes/runtime settings preserved.
+[ ] Undo removes only that import; Redo restores it; duplicate import is refused.
+[ ] Download map project and evidence separately. Evidence is not a project. Cancel Save As without losing the preview.
+[ ] Edit collision through its canonical tile/metatile owner; Save Project As, reopen, build and verify changed behavior.
+[ ] Check that linked metatile overrides take precedence and raw visual edits disclose the existing detach/fallback behavior.
+[ ] Repeat Pepsi and HonkeyPong background preview/import and normal project save/reopen.
+[ ] Review mobile touch layout, keyboard isolation and native dialogs in an actual browser.
+[ ] Record independent-emulator/controller/hardware checks only if actually performed.
+
+Scope: fixed binary geometry from one declared command format. Native random decoration, one-way platforms, hazards, actors, objectives, audio and original physics are not recovered by this subset. A2 broader support and full-roadmap acceptance remain open.

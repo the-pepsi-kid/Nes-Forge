@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NES Forge 2.0.0-alpha.11 — Native Map Recovery</title>
+<title>NES Forge 2.0.0-alpha.11 — Native SFX Recovery</title>
 <style>
 :root{--bg:#0c0c10;--bg2:#101018;--bg3:#16161e;--bdr:#252530;--bdr2:#3a3a4a;--txt:#b8b8c8;--dim:#667;--acc:#5ad4ff;--acc2:#3a9abf;--grn:#8df57a;--red:#f57a7a;--ylw:#f5d07a;--orn:#f5a07a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -8705,7 +8705,7 @@ F.project={create,openRom,classifyRom,replaceProject};
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Native Map Recovery',maturity:'alpha',candidate:'native-map-1',schema:12,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Native SFX Recovery',maturity:'alpha',candidate:'native-sfx-1',schema:12,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;
@@ -9143,6 +9143,30 @@ function appendScene(input,options={}){
       refresh:[...(selected?[()=>loadSceneData(index)]:[]),()=>rebuildAllUI(),()=>Forge166.ui?.refresh()]};
   });
 }
+function applyAudioImport(changes,options={}){
+  return runEdit('audio',options,candidate=>{
+    const kind=options.kind,keys=kind==='music'?['patterns','instruments','orderList','tempo','speed']:kind==='sfx'?['patterns','instruments','sfx']:null;
+    if(!keys||!changes||typeof changes!=='object'||Array.isArray(changes)||Object.keys(changes).length!==keys.length||Object.keys(changes).some(key=>!keys.includes(key)))fail('An Audio import requires only its declared music or SFX fields.');
+    const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
+    const offsets={patterns:candidate.patterns.length,instruments:candidate.instruments.length,sfx:candidate.sfx.length},values={};
+    for(const key of keys)values[key]=cp(changes[key]);
+    for(const key of ['patterns','instruments',...(kind==='sfx'?['sfx']:[])]){
+      if(!Array.isArray(values[key])||values[key].length<offsets[key]||JSON.stringify(values[key].slice(0,offsets[key]))!==JSON.stringify(candidate[key]))fail('An Audio import must preserve existing '+key+' and append new records.');
+      if(values[key].length>(key==='patterns'?256:255))fail('Imported '+key+' exceed the canonical Audio capacity.');
+    }
+    if(values.patterns.length===offsets.patterns||kind==='sfx'&&values.sfx.length===offsets.sfx)fail('An Audio import must append its new records.');
+    if(kind==='sfx'&&(candidate.tempo!==150||candidate.speed!==1))fail('SFX transcription requires project tempo 150 and speed 1; existing music timing cannot be changed by SFX import.');
+    if(kind==='music'){
+      if(!Number.isInteger(values.tempo)||values.tempo<30||values.tempo>300||!Number.isInteger(values.speed)||values.speed<1||values.speed>15)fail('Invalid imported Audio tempo or speed.');
+      if(!Array.isArray(values.orderList)||!values.orderList.length||values.orderList.length>255||values.orderList.some(row=>!Array.isArray(row)||row.length!==5||row.some(index=>!Number.isInteger(index)||index<offsets.patterns||index>=values.patterns.length)))fail('Imported music order requires five references to appended patterns.');
+    }
+    Object.assign(candidate,values);
+    const prepared=Store.prepareLoad(candidate);
+    for(const key of ['patterns','instruments',...(kind==='sfx'?['sfx']:[])])if(canonical(prepared[key].slice(offsets[key]))!==canonical(values[key].slice(offsets[key])))fail('The transcription would change during project normalization. Import was refused.');
+    Forge.services.AudioCompiler.plan({...candidate,audioRuntime:{...candidate.audioRuntime,enabled:true,musicEnabled:kind==='music'?true:candidate.audioRuntime.musicEnabled}});
+    return {effective:true,values,intent:kind==='music'?'nativeAudioTranscription':'nativeSfxTranscription'};
+  });
+}
 function initializeBlank(){
   const sc=makeScene({name:'Untitled Scene',chr:normalizeTiles(),sprChr:normalizeTiles(),tileProps:Array(256).fill(0),entities:[],oam:[],buildInclude:true,buildOrder:0,scrollDir:'none'});
   Store.load({format:'NESForge',version:Forge.release.schema,foundation:Forge.release.version,projectName:'Untitled',scenes:[sc],activeScene:0,worlds:[],animations:[],metasprites:[],gameplay:Forge165.config.defaults(),worldRuntime:Forge.services.WorldConfig.defaults(),audioRuntime:Forge.services.AudioConfig.defaults(),gameplayCore:Forge.services.GameplayModel.defaults(),asmSource:'',instruments:[],patterns:[],orderList:[],sfx:[],tempo:150,speed:6,audRows:64,mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,selTile:0,editTile:0,selSprite:-1,selEntity:-1,chrBank:'bg',_selAnim:0,_animFrame:0},{intent:'startup'});
@@ -9263,7 +9287,7 @@ async function dismissRecovery(){
     recoveryPhase('ready');status();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,appendScene,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,appendScene,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};
@@ -13241,13 +13265,161 @@ function preview(input,options={}){
 }
 return Object.freeze({method:METHOD,preview,limits:Object.freeze({nativeRows:MAX_NATIVE_ROWS,frames:MAX_FRAMES,instrumentFrames:255,patterns:255,instruments:255}),timer});
 });
+/* Bounded native FamiTone2 pulse SFX transcription. Canonical authoring data
+ * only: no source execution, ROM edits, project writes or mixer replacement. */
+(function(root,factory){
+ const common=typeof module!=='undefined'&&module.exports;
+ const api=factory(common?require('./famitone2-native.js'):root.FamiTone2Native,common?require('./famitone2-audio-import.js'):root.FamiTone2AudioImport);
+ if(common)module.exports=api;
+ else{root.FamiTone2SfxImport=api;const forge=root.Forge=root.Forge||{};(forge.services=forge.services||{}).FamiTone2SfxImport=api;}
+})(typeof globalThis!=='undefined'?globalThis:this,function(NATIVE,AUDIO){
+'use strict';
+const METHOD='famitone2-canonical-sfx-transcription-1',MAX_SOURCE=41488,MAX_RESULT=256*1024;
+const LIMITATIONS=[
+ 'Editable transcription of one statically discovered single-pulse SFX stream, not lossless native-engine replay. The source ROM is unchanged.',
+ 'One canonical row is one NTSC video frame at tempo 150 and speed 1. Import requires that existing project timing; applying preserves project-wide tempo, speed and music order.',
+ 'The final native end command still mixes its retained buffer for that frame. The transcription preserves that frame, then places a cut on the following row. The complete effect and cut must fit one pattern.',
+ 'Only constant-volume, length-halt pulse controls and proven audible 11-bit timer periods are supported. PAL, other channels, multiple channels and unresolved audible register state are refused.',
+ 'The native clear routine initializes pulse control to $30 but retains timer RAM. Unknown timers are retained as unknown while muted and must be initialized before an audible frame.',
+ 'Forge uses its existing nearest-note timer table. Each native and canonical timer difference is reported; strict mode refuses inexact timers.',
+ 'Each audible frame becomes a canonical note and instrument. Canonical per-row retrigger and pulse high-register writes can change phase from native updates, even when timers match.',
+ 'This preserves the isolated audible pulse trajectory, not native SFX/music arbitration, zero-volume register-buffer ties, stream priorities, original gameplay triggers or whole-game output equivalence.'
+];
+function fail(code,message,details){const error=Error(message);error.code=code;error.details=details;throw error;}
+function integer(value,min,max,label){if(!Number.isInteger(value)||value<min||value>max)fail('OPTIONS',label+' must be an integer from '+min+' through '+max);return value;}
+const clone=value=>JSON.parse(JSON.stringify(value)),blank=()=>({note:-1,inst:-1,vol:-1,fx:0,fxp:0});
+function preview(input,options={}){
+ const out={status:'unsupported',method:METHOD,sourceSha256:null,diagnostics:[],warnings:[],limitations:LIMITATIONS.slice(),imported:null,provenance:null};
+ try{
+  if(!options||typeof options!=='object'||Array.isArray(options))fail('OPTIONS','Options must be an object');
+  for(const key of Object.keys(options))if(!['effectId','region','rows','mode','expectedSourceSha256'].includes(key))fail('OPTIONS','Unknown SFX transcription option: '+key);
+  const rows=integer(options.rows??64,16,128,'Canonical pattern rows'),effectId=integer(options.effectId??0,0,63,'Native effect ID'),region=options.region??'NTSC',mode=options.mode??'transcription';
+  if(region!=='NTSC')fail('REGION','Only NTSC SFX transcription is supported by the canonical runtime');
+  if(!['transcription','strict'].includes(mode))fail('OPTIONS','Mode must be transcription or strict');
+  if(input?.byteLength>MAX_SOURCE)fail('SOURCE_BUDGET','Source exceeds the bounded NROM container budget');
+  const evidence=NATIVE.decode(input);out.sourceSha256=evidence.source?.sha256??null;
+  if(options.expectedSourceSha256!==undefined&&options.expectedSourceSha256!==out.sourceSha256)fail('SOURCE_IDENTITY','The current ROM does not match the expected source SHA-256');
+  if(evidence.status!=='decoded')fail('NATIVE_PROFILE','Source must pass the supported native driver and data decode',evidence.diagnostics);
+  const effect=evidence.native.sfx.effects.find(item=>item.id===effectId);if(!effect)fail('EFFECT_ID','The requested SFX ID is not in the statically proven inventory');
+  const stream=effect.NTSC,registers=stream.registers,channels=new Set();
+  for(const register of registers){if([0x4000,0x4002,0x4003].includes(register))channels.add(0);else if([0x4004,0x4006,0x4007].includes(register))channels.add(1);else fail('SFX_CHANNEL','Only pulse register streams can be transcribed',{register});}
+  if(channels.size>1)fail('SFX_MULTICHANNEL','A multi-channel native stream cannot become one canonical single-channel SFX');
+  if(channels.size!==1)fail('NO_NOTES','The selected native SFX has no supported pulse writes');
+  const channel=[...channels][0],base=0x4000+channel*4,durationFrames=stream.endFrame+1;
+  if(!Number.isInteger(durationFrames)||durationFrames<1||durationFrames>=rows)fail('DURATION','The complete native effect and following cut need '+(durationFrames+1)+' rows; choose a larger pattern up to 128 rows',{endFrame:stream.endFrame,durationFrames,rows});
+  const byFrame=new Map();for(const event of stream.events){const list=byFrame.get(event.frame)||[];list.push(event);byFrame.set(event.frame,list);}
+  const pattern={rows:Array.from({length:rows},()=>Array.from({length:5},blank))},instruments=[],instrumentKeys=new Map(),tuning=[],tuningKeys=new Map(),frameStates=[];
+  let control=0x30,low=null,high=null,noteCount=0;
+  function pitch(period){
+   if(tuningKeys.has(period))return tuningKeys.get(period);
+   let note=0,canonicalPeriod=AUDIO.timer(0,channel),best=Infinity;
+   for(let candidateNote=0;candidateNote<96;candidateNote++){const candidate=AUDIO.timer(candidateNote,channel),distance=Math.abs(1200*Math.log2((period+1)/(candidate+1)));if(distance<best){best=distance;note=candidateNote;canonicalPeriod=candidate;}}
+   const cents=1200*Math.log2((period+1)/(canonicalPeriod+1));
+   if(mode==='strict'&&period!==canonicalPeriod)fail('TUNING_MISMATCH','Native pulse period '+period+' has no exact canonical note',{channel,period,note,canonicalPeriod,cents});
+   const value={channel,period,note,canonicalPeriod,cents};tuningKeys.set(period,value);tuning.push(value);return value;
+  }
+  function instrument(volume,duty){const key=volume+':'+duty;if(instrumentKeys.has(key))return instrumentKeys.get(key);const index=instruments.length;if(index>=127)fail('INSTRUMENT_BUDGET','SFX needs more than 127 canonical instruments');instruments.push({name:'Native pulse duty '+duty+' volume '+volume,volEnv:[volume],dutyEnv:[duty],arpEnv:[0],pitchEnv:[0],loopVol:0,loopArp:0});instrumentKeys.set(key,index);return index;}
+  for(let frame=0;frame<durationFrames;frame++){
+   const frameEvents=byFrame.get(frame)||[];
+   for(const event of frameEvents){if(event.kind!=='register')continue;
+    if(event.register===base){if((event.value&0x30)!==0x30)fail('PULSE_CONTROL','Pulse control must retain constant volume and length halt',{frame,value:event.value,source:event.source});control=event.value;}
+    else if(event.register===base+2)low=event.value;
+    else if(event.register===base+3){if(event.value>7)fail('TIMER_CONTROL','Pulse high-byte length-counter bits are outside the declared 11-bit timer representation',{frame,value:event.value,source:event.source});high=event.value;}
+   }
+   const volume=control&15,duty=control>>>6,period=low===null||high===null?null:low+(high<<8),audible=volume>0;
+   let mapped=null,note=-2,inst=-1;
+   if(audible){if(period===null)fail('UNKNOWN_REGISTER','Native timer low and high bytes must both be initialized before an audible frame',{frame,channel,low,high});if(period<8||period>2047)fail('TIMER_RANGE','Audible pulse timer is outside the proven 8 through 2047 range',{frame,period});mapped=pitch(period);note=mapped.note;inst=instrument(volume,duty);noteCount++;}
+   Object.assign(pattern.rows[frame][channel],{note,inst,vol:audible?15:-1});
+   frameStates.push({frame,channel,registers:{control,low,high},known:{control:true,low:low!==null,high:high!==null},volume,duty,period,note,inst,canonicalPeriod:mapped?.canonicalPeriod??null,cents:mapped?.cents??null,audible,endFrame:frame===stream.endFrame,sourceEvents:frameEvents.map(event=>clone(event.source))});
+  }
+  if(!noteCount)fail('NO_NOTES','The selected native effect has no audible frames to transcribe');
+  pattern.rows[durationFrames][channel].note=-2;
+  const paddingFrames=rows-durationFrames,changed=tuning.filter(item=>item.period!==item.canonicalPeriod),maxCents=changed.reduce((max,item)=>Math.max(max,Math.abs(item.cents)),0);
+  out.warnings.push('One canonical row equals one NTSC video frame. Import requires existing tempo 150 and speed 1, and preserves project-wide tempo, speed and music order.');
+  out.warnings.push('The effect retains all '+durationFrames+' native frames, including its end-command frame; row '+durationFrames+' cuts the pulse, followed by silent padding.');
+  if(changed.length)out.warnings.push(changed.length+' native pitch mapping(s) use a nearby canonical timer; maximum absolute difference '+maxCents.toFixed(3)+' cents.');
+  out.warnings.push('This single-channel transcription does not reproduce native SFX/music mixing, gameplay triggers or pulse phase.');
+  const imported={format:'famitone2-sfx-transcription',tempo:150,speed:1,rows,patterns:[pattern],instruments,sfx:[{id:'re-sfx-'+out.sourceSha256+'-'+effectId,name:'Native SFX '+effectId+' Pulse '+(channel+1),channel,pattern:0,startRow:0,endRow:durationFrames}],durationFrames,paddingFrames,noteCount};
+  const provenance={method:METHOD,source:clone(evidence.source),decoderMethod:evidence.method,effectId,region,mode,channel,driver:clone(evidence.recognition.driver.source),effectSource:clone(effect.source),callEvidence:clone(effect.callEvidence),events:clone(stream.events),frameStates,tuning,sourceStream:{address:stream.address,byteLength:stream.byteLength,registers:registers.slice(),endFrame:stream.endFrame},initialState:{control:0x30,low:null,high:null,reason:'The proven native SFX clear routine mutes pulse control; timer buffer bytes retain unknown prior RAM.'},durationFrames,paddingFrames,terminalCut:{frame:durationFrames,channel,note:-2},fidelity:{timing:'one native update per NTSC frame, including retained end-frame buffer',volume:'constant-volume pulse register nibbles retained per frame',duty:'native duty retained per frame',tuning:changed.length?'nearest-canonical-timer':'matching-effective-timers',changedPitchMappings:changed.length,maxAbsoluteCents:maxCents,phase:'canonical per-row retrigger differs from native register writes',mixing:'native SFX/music arbitration not transcribed',ending:'retained native end frame followed by canonical cut',gameplayTriggers:'not recovered'}};
+  if(JSON.stringify({...out,status:'ready',imported,provenance}).length>MAX_RESULT)fail('RESULT_BUDGET','SFX transcription exceeds the bounded result budget');
+  out.imported=imported;out.provenance=provenance;out.status='ready';return out;
+ }catch(error){out.diagnostics.push({code:error.code||'INTERNAL',message:error.message,...(error.details===undefined?{}:{details:error.details})});return out;}
+}
+return Object.freeze({method:METHOD,preview,limits:Object.freeze({sourceBytes:MAX_SOURCE,resultBytes:MAX_RESULT,rowsMin:16,rowsMax:128,frames:127,instruments:127,channels:Object.freeze([0,1])})});
+});
+/* Shared native music/SFX transcription lifecycle. Converters return detached
+ * canonical proposals; ProjectStore alone installs bounded Audio appends. */
+(()=>{
+'use strict';
+const services=window.Forge.services,copy=value=>JSON.parse(JSON.stringify(value)),stages=new WeakSet(),signals=new WeakMap();
+const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
+function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
+function integer(value,min,max,label){if(!Number.isSafeInteger(value)||value<min||value>max)throw Error(label+' must be an integer from '+min+' through '+max+'.');}
+function checkSignal(signal){if(signal?.aborted){const error=Error('Native Audio import cancelled.');error.name='AbortError';throw error;}}
+function sourceKey(value){return JSON.stringify([value.token,value.sourceSha256,value.currentSha256,value.songIndex]);}
+function readSource(input){
+ const value=typeof input==='function'?input():input;
+ if(!value||!(value.bytes instanceof Uint8Array)||typeof value.token!=='string'||value.token.length>512||! /^[0-9a-f]{64}$/.test(value.sourceSha256)||! /^[0-9a-f]{64}$/.test(value.currentSha256)||typeof value.name!=='string'||value.name.length>512||!Number.isSafeInteger(value.songIndex)||value.songIndex<0||value.songIndex>255)throw Error('A current native Audio source and identity are required.');
+ return value;
+}
+function metadata(source){return {token:source.token,sourceSha256:source.sourceSha256,currentSha256:source.currentSha256,songIndex:source.songIndex,name:source.name};}
+function converter(kind){const api=kind==='music'?window.FamiTone2AudioImport:window.FamiTone2SfxImport;if(!api?.preview)throw Error('The native transcription model is unavailable in this build.');return api;}
+function projectGuard(){const store=services.ProjectStore;return {epoch:store.state.epoch,snapshot:store.serialize()};}
+function checkGuard(item,currentSource){
+ if(currentSource&&item.sourceKey!==sourceKey(readSource(currentSource)))throw Error('The native ROM copy or subsong changed. Preview again.');
+ const store=services.ProjectStore;if(item.project.epoch!==store.state.epoch||item.project.snapshot!==store.serialize())throw Error('The project changed after preview. Preview again before importing.');
+}
+function validateImport(item,result){
+ const imported=copy(result.imported),p=JSON.parse(item.project.snapshot),patternOffset=p.patterns.length,instrumentOffset=p.instruments.length,sfxOffset=p.sfx.length,isMusic=item.kind==='music';
+ if(!Array.isArray(imported.patterns)||!imported.patterns.length||!Array.isArray(imported.instruments)||(isMusic?(!Array.isArray(imported.orderList)||!imported.orderList.length):(!Array.isArray(imported.sfx)||!imported.sfx.length)))throw Error('Transcription returned incomplete Audio data.');
+ if(imported.rows!==p.audRows)throw Error('Transcription pattern size no longer matches the project.');
+ integer(imported.rows,16,128,'Pattern rows');integer(imported.tempo,30,300,'Tempo');integer(imported.speed,1,15,'Speed');
+ if(patternOffset+imported.patterns.length>256)throw Error('Existing and transcribed patterns exceed 256. Shorten the excerpt or use a project with fewer patterns.');
+ if(instrumentOffset+imported.instruments.length>255)throw Error('Existing and transcribed instruments exceed 255.');
+ if(isMusic&&imported.orderList.length>255)throw Error('The transcribed music order exceeds 255 entries. Shorten the excerpt.');
+ if(!isMusic&&(p.tempo!==150||p.speed!==1||imported.tempo!==150||imported.speed!==1))throw Error('SFX transcription requires project tempo 150 and speed 1; existing music timing cannot be changed by SFX import.');
+ for(const pattern of imported.patterns){if(!Array.isArray(pattern.rows)||pattern.rows.length!==imported.rows)throw Error('Transcription has inconsistent pattern rows.');for(const row of pattern.rows){if(!Array.isArray(row)||row.length!==5)throw Error('Each transcription row requires five canonical channels.');for(const cell of row){integer(cell.note,-2,95,'Note');integer(cell.inst,-1,imported.instruments.length-1,'Instrument reference');integer(cell.vol,-1,15,'Volume');integer(cell.fx,0,255,'Effect');integer(cell.fxp,0,255,'Effect value');if(cell.inst>=0)cell.inst+=instrumentOffset;}}}
+ const patterns=p.patterns.concat(imported.patterns),instruments=p.instruments.concat(imported.instruments),fields={patterns,instruments};
+ if(isMusic){fields.orderList=imported.orderList.map(row=>{if(!Array.isArray(row)||row.length!==5)throw Error('Transcription order requires five channel references.');return row.map(index=>{integer(index,0,imported.patterns.length-1,'Pattern reference');return index+patternOffset;});});fields.tempo=imported.tempo;fields.speed=imported.speed;}
+ else{
+  if(sfxOffset+imported.sfx.length>255)throw Error('Existing and transcribed SFX exceed 255.');
+  const ids=new Set(p.sfx.map(sfx=>sfx.id));for(const sfx of imported.sfx){if(typeof sfx.id!=='string'||!sfx.id.trim()||sfx.id.length>80||typeof sfx.name!=='string'||!sfx.name.trim()||sfx.name.length>80)throw Error('Transcribed SFX require bounded stable IDs and names.');if(ids.has(sfx.id))throw Error('This native SFX is already in the project: '+sfx.id);ids.add(sfx.id);integer(sfx.channel,0,3,'SFX channel');integer(sfx.pattern,0,imported.patterns.length-1,'SFX pattern');integer(sfx.startRow,0,imported.rows-1,'SFX start row');integer(sfx.endRow,sfx.startRow,imported.rows-1,'SFX end row');sfx.pattern+=patternOffset;}
+  fields.sfx=p.sfx.concat(imported.sfx);
+ }
+ const next={...p,...fields},prepared=services.ProjectStore.prepareLoad(next);
+ if(canonical(prepared.patterns.slice(patternOffset))!==canonical(imported.patterns)||canonical(prepared.instruments.slice(instrumentOffset))!==canonical(imported.instruments)||!isMusic&&canonical(prepared.sfx.slice(sfxOffset))!==canonical(imported.sfx))throw Error('The transcription would change during project normalization. Import was refused.');
+ const plan=services.AudioCompiler.plan({...next,audioRuntime:{...next.audioRuntime,enabled:true,musicEnabled:isMusic?true:next.audioRuntime.musicEnabled}});
+ return {estimatedBytes:plan.estimatedBytes,...fields,patternOffset,instrumentOffset,patternCount:imported.patterns.length,instrumentCount:imported.instruments.length,sfxOffset,sfxCount:isMusic?0:imported.sfx.length};
+}
+async function stage(source,options={},controls={}){
+ if(!options||typeof options!=='object'||Array.isArray(options)||!['music','sfx'].includes(options.kind))throw Error('Choose native music or SFX transcription.');
+ if(controls.signal!==undefined&&(!controls.signal||typeof controls.signal.aborted!=='boolean'))throw Error('Cancellation signal requires a boolean aborted state.');
+ checkSignal(controls.signal);const native=readSource(source),{kind,...settings}=options,item={kind,options:copy(settings),source:metadata(native),sourceKey:sourceKey(native),project:projectGuard()};
+ const result=await converter(kind).preview(native.bytes.slice(),item.options);checkSignal(controls.signal);checkGuard(item,source);
+ if(result.sourceSha256!==item.source.currentSha256)throw Error('Transcription source identity does not match the native ROM copy.');
+ const data=result.status==='ready'&&result.imported?validateImport(item,result):null,value=freeze({...item,result:copy(result),data});
+ if(data){stages.add(value);signals.set(value,controls.signal);}return value;
+}
+async function revalidate(item,currentSource){
+ if(!stages.has(item))throw Error('Preview a supported transcription first.');
+ const signal=signals.get(item);checkSignal(signal);checkGuard(item,currentSource);const native=readSource(currentSource),result=await converter(item.kind).preview(native.bytes.slice(),item.options);checkSignal(signal);checkGuard(item,currentSource);
+ if(result.status!=='ready'||JSON.stringify(result)!==JSON.stringify(item.result))throw Error('The transcription changed during revalidation. Preview again before importing.');
+ return freeze(validateImport(item,result));
+}
+async function commit(item,currentSource){
+ const data=await revalidate(item,currentSource);checkSignal(signals.get(item));checkGuard(item,currentSource);
+ const fields={patterns:data.patterns,instruments:data.instruments};if(item.kind==='music')Object.assign(fields,{orderList:data.orderList,tempo:data.tempo,speed:data.speed});else fields.sfx=data.sfx;
+ const applied=services.ProjectStore.applyAudioImport(fields,{kind:item.kind,expected:item.project,intent:item.kind==='music'?'nativeAudioTranscription':'nativeSfxTranscription'});
+ stages.delete(item);signals.delete(item);return freeze({...data,warnings:applied.warnings});
+}
+services.RENativeAudioImport=Object.freeze({version:1,stage,revalidate,commit});
+})();
 /* Explicit native music transcription into canonical Audio. Preview is isolated;
  * only the confirmed, still-current plan changes authoring data in one Undo. */
 (()=>{
 'use strict';
 const services=window.Forge.services,copy=value=>JSON.parse(JSON.stringify(value));
 let c=null,staged=null,busy=false,revision=0,operation=0,evidenceReport=null;
-const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
 const make=(tag,id,text)=>{const el=document.createElement(tag);if(id)el.id=id;if(text!==undefined)el.textContent=text;return el;};
 function message(text,error=false){if(c){c.status.textContent=text;c.status.style.color=error?'var(--err, #ff9898)':'var(--dim)';}}
 function enable(){if(!c)return;c.preview.disabled=busy;c.apply.disabled=busy||!staged;c.export.disabled=busy||!evidenceReport;}
@@ -13272,44 +13444,24 @@ function describe(result,item){
 async function preview(){
  if(busy)return false;staged=null;evidenceReport=null;const id=++operation;busy=true;enable();c.summary.textContent='';c.evidence.textContent='';
  try{const native=source(),options=settings(native),item={source:native,sourceKey:sourceKey(native),project:projectGuard(),options,revision};message('Previewing the selected native music excerpt…');
- const api=window.FamiTone2AudioImport;if(!api?.preview)throw Error('The native transcription model is unavailable in this build.');
- const result=await api.preview(native.bytes,options);checkGuard(item);if(id!==operation)throw Error('Preview was superseded. Preview again.');
+ const api=services.RENativeAudioImport;if(!api?.stage)throw Error('The native transcription model is unavailable in this build.');
+ const stage=await api.stage(native,{kind:'music',...options}),result=stage.result;checkGuard(item);if(id!==operation)throw Error('Preview was superseded. Preview again.');
  if(result.sourceSha256!==native.currentSha256)throw Error('Transcription source identity does not match the native ROM copy.');
  describe(result,item);if(result.status!=='ready'||!result.imported){message('This excerpt is not supported for transcription. Read the diagnostics; the project is unchanged.',true);return false;}
- const validated=validateImport(item,result);c.summary.textContent+='\nAudio Runtime data estimate: '+validated.estimatedBytes+' bytes. This does not prove that the complete ROM fits; the build also includes your scenes, gameplay and other data.';staged={...item,result:copy(result)};evidenceReport=reportFor(staged,'preview');message('Preview ready. Read the conversion differences, then choose Transcribe music into AUDIO. Existing patterns, instruments and SFX definitions remain; tempo/speed and the current music order will be replaced. Existing SFX playback timing uses that new tempo/speed.');return true;
+ const validated=stage.data;c.summary.textContent+='\nAudio Runtime data estimate: '+validated.estimatedBytes+' bytes. This does not prove that the complete ROM fits; the build also includes your scenes, gameplay and other data.';staged={...item,stage,result:stage.result};evidenceReport=reportFor(staged,'preview');message('Preview ready. Read the conversion differences, then choose Transcribe music into AUDIO. Existing patterns, instruments and SFX definitions remain; tempo/speed and the current music order will be replaced. Existing SFX playback timing uses that new tempo/speed.');return true;
  }catch(error){staged=null;message(error.message||String(error),true);return false;}finally{if(id===operation){busy=false;enable();}}
-}
-function integer(value,min,max,label){if(!Number.isSafeInteger(value)||value<min||value>max)throw Error(label+' must be an integer from '+min+' through '+max+'.');}
-function validateImport(item,result){
- const imported=copy(result.imported),p=JSON.parse(item.project.snapshot),patternOffset=p.patterns.length,instrumentOffset=p.instruments.length;
- if(!Array.isArray(imported.patterns)||!imported.patterns.length||!Array.isArray(imported.instruments)||!Array.isArray(imported.orderList)||!imported.orderList.length)throw Error('Transcription returned incomplete Audio data.');
- if(imported.rows!==p.audRows)throw Error('Transcription pattern size no longer matches the project.');
- integer(imported.rows,16,128,'Pattern rows');integer(imported.tempo,30,300,'Tempo');integer(imported.speed,1,15,'Speed');
- if(patternOffset+imported.patterns.length>256)throw Error('Existing and transcribed patterns exceed 256. Shorten the excerpt or use a project with fewer patterns.');
- if(instrumentOffset+imported.instruments.length>255)throw Error('Existing and transcribed instruments exceed 255.');
- if(imported.orderList.length>255)throw Error('The transcribed music order exceeds 255 entries. Shorten the excerpt.');
- for(const pattern of imported.patterns){if(!Array.isArray(pattern.rows)||pattern.rows.length!==imported.rows)throw Error('Transcription has inconsistent pattern rows.');for(const row of pattern.rows){if(!Array.isArray(row)||row.length!==5)throw Error('Each transcription row requires five canonical channels.');for(const cell of row){integer(cell.note,-2,95,'Note');integer(cell.inst,-1,imported.instruments.length-1,'Instrument reference');integer(cell.vol,-1,15,'Volume');integer(cell.fx,0,255,'Effect');integer(cell.fxp,0,255,'Effect value');if(cell.inst>=0)cell.inst+=instrumentOffset;}}}
- const orderList=imported.orderList.map(row=>{if(!Array.isArray(row)||row.length!==5)throw Error('Transcription order requires five channel references.');return row.map(index=>{integer(index,0,imported.patterns.length-1,'Pattern reference');return index+patternOffset;});});
- const patterns=p.patterns.concat(imported.patterns),instruments=p.instruments.concat(imported.instruments),next={...p,patterns,instruments,orderList,tempo:imported.tempo,speed:imported.speed};
- const prepared=services.ProjectStore.prepareLoad(next);
- if(canonical(prepared.patterns.slice(patternOffset))!==canonical(imported.patterns)||canonical(prepared.instruments.slice(instrumentOffset))!==canonical(imported.instruments))throw Error('The transcription would change during project normalization. Import was refused.');
- const plan=services.AudioCompiler.plan({...next,audioRuntime:{...next.audioRuntime,enabled:true,musicEnabled:true}});
- return {estimatedBytes:plan.estimatedBytes,patterns,instruments,orderList,tempo:imported.tempo,speed:imported.speed,patternOffset,instrumentOffset,patternCount:imported.patterns.length,instrumentCount:imported.instruments.length};
 }
 async function importMusic(){
  if(busy)return false;if(!staged){message('Preview a supported transcription first.',true);return false;}const item=staged,id=++operation;busy=true;enable();
- try{checkGuard(item);const native=source(),api=window.FamiTone2AudioImport,result=await api.preview(native.bytes,item.options);checkGuard(item);
+ try{checkGuard(item);const api=services.RENativeAudioImport,currentSource=()=>{checkGuard(item);if(id!==operation||staged!==item)throw Error('The preview changed. Preview again.');return source();};await api.revalidate(item.stage,currentSource);checkGuard(item);
  if(id!==operation||staged!==item)throw Error('The preview changed. Preview again.');
- if(result.status!=='ready'||JSON.stringify(result)!==JSON.stringify(item.result))throw Error('The transcription changed during revalidation. Preview again before importing.');
- const data=validateImport(item,result);
  if(!confirm('Transcribe subsong '+item.options.songIndex+' into AUDIO and replace the current music order?\n\nThis imports only the selected '+item.options.nativeRows+'-native-row NTSC excerpt. Tuning and native driver behavior can differ; review the displayed conversion evidence. SFX and gameplay triggers are not recovered.\n\nExisting patterns, instruments, SFX definitions and runtime settings remain. Global tempo/speed change to 150/1; this also changes existing SFX playback timing. One Undo restores the previous song. The original ROM and emulator remain unchanged.')){message('Transcription cancelled. The project and history are unchanged.');return false;}
  checkGuard(item); // Dialogs/adapters may allow project or source changes.
- snapshot();S.patterns=data.patterns;S.instruments=data.instruments;S.orderList=data.orderList;S.tempo=data.tempo;S.speed=data.speed;
+ const data=await api.commit(item.stage,currentSource);
  // Playback is not started and the emulator is never touched. Stop any tracker
  // preview only after a successful commit so its row cursor cannot run into the
  // newly replaced order. Presentation failures do not undo a committed import.
- staged=null;evidenceReport=reportFor(item,'imported');const issues=[];
- try{notify('nativeAudioTranscription');}catch(error){Forge15.dirty=true;issues.push('change notification: '+(error.message||String(error)));}
+ staged=null;evidenceReport=reportFor(item,'imported');const issues=[...(data.warnings||[])];
  try{aud_stop();aud_currentOrder=0;aud_currentRow=0;aud_selectedInst=data.instrumentCount?data.instrumentOffset:-1;}catch(error){issues.push('tracker playback cleanup: '+(error.message||String(error)));}
  try{render();services.AudioUI?.refresh();}catch(error){issues.push('display refresh: '+(error.message||String(error)));}
  const warning=issues.length?' Audio data was imported, but '+issues.join('; ')+'. Save the project and reopen it.':'';
@@ -13337,6 +13489,50 @@ function mount(){
 }
 services.RENativeAudioImportUI=Object.freeze({mount,preview,importMusic,downloadEvidence,getState:()=>Object.freeze({busy,staged:!!staged,hasEvidence:!!evidenceReport,evidenceOutcome:evidenceReport?.outcome||null,sourceSha256:staged?.source.currentSha256||null,songIndex:staged?.options.songIndex??null,nativeRows:staged?.options.nativeRows??null})});mount();
 })();
+/* Explicit bounded native SFX transcription in the existing Audio workspace.
+ * Canonical validation, source revalidation and mutation belong to the shared
+ * native-audio import service; this panel owns selection and user consent. */
+(()=>{
+'use strict';
+const services=window.Forge.services,copy=value=>JSON.parse(JSON.stringify(value));
+let c=null,busy=false,operation=0,revision=0,inventory=null,staged=null,evidenceReport=null;
+const make=(tag,id,text)=>{const el=document.createElement(tag);if(id)el.id=id;if(text!==undefined)el.textContent=text;return el;};
+function message(text,error=false){if(c){c.status.textContent=text;c.status.style.color=error?'var(--err, #ff9898)':'var(--dim)';}}
+function source(){const api=services.RENativeAudioUI;if(!api?.getImportSource)throw Error('Native SFX transcription is unavailable in this build.');return api.getImportSource();}
+function sourceKey(value){return JSON.stringify([value.token,value.sourceSha256,value.currentSha256,value.songIndex]);}
+function projectGuard(){const store=services.ProjectStore;return {epoch:store.state.epoch,snapshot:store.serialize()};}
+function checkGuard(item){if(item.revision!==revision)throw Error('The SFX selection changed. Preview again.');if(item.sourceKey!==sourceKey(source()))throw Error('The native ROM copy or subsong changed. Find SFX and preview again.');const store=services.ProjectStore;if(item.project.epoch!==store.state.epoch||item.project.snapshot!==store.serialize())throw Error('The project changed after preview. Preview again before importing.');}
+function enable(){if(!c)return;c.find.disabled=busy;c.effect.disabled=busy||!inventory;c.preview.disabled=busy||!inventory;c.apply.disabled=busy||!staged||!c.ack.checked;c.export.disabled=busy||!evidenceReport;c.cancel.disabled=!busy&&!staged;c.ack.disabled=busy||!staged;}
+function invalidate(){revision++;staged=null;c.ack.checked=false;enable();if(!busy)message('Selection changed. Preview this SFX again before importing.');}
+function cancel(){operation++;busy=false;staged=null;c.ack.checked=false;enable();message('SFX transcription cancelled. The project and history are unchanged.');return true;}
+const diagnostic=value=>typeof value==='string'?value:(value.code?value.code+': ':'')+(value.message||JSON.stringify(value));
+function reason(result){return result.status==='ready'?'supported single-channel transcription':(result.diagnostics||[]).map(diagnostic).join('; ')||'unsupported';}
+function api(){const owner=services.RENativeAudioImport;if(!owner?.stage||!owner?.commit)throw Error('The shared native Audio import service is unavailable.');return owner;}
+async function findEffects(){
+ if(busy)return false;const id=++operation;busy=true;staged=null;inventory=null;evidenceReport=null;c.ack.checked=false;c.effect.replaceChildren();c.summary.textContent='';c.evidence.textContent='';enable();
+ try{const native=source(),item={sourceKey:sourceKey(native),project:projectGuard(),revision};message('Checking statically referenced native SFX…');const decoder=window.FamiTone2Native,converter=window.FamiTone2SfxImport;if(!decoder?.decode||!converter?.preview)throw Error('The native SFX transcription model is unavailable.');const decoded=await decoder.decode(native.bytes);checkGuard(item);if(id!==operation)return false;if(decoded.status!=='decoded'||decoded.source?.sha256!==native.currentSha256)throw Error('The current native ROM copy did not pass supported audio decoding.');const effects=decoded.native?.sfx?.effects;if(!Array.isArray(effects)||!effects.length)throw Error('No statically proven SFX IDs are available in this native source.');if(effects.length>64)throw Error('The native SFX inventory exceeds this bounded preview.');const entries=[];
+ for(const effect of effects){const result=await converter.preview(native.bytes,{effectId:effect.id,region:'NTSC',rows:S.audRows,mode:'transcription'});checkGuard(item);if(id!==operation)return false;if(result.sourceSha256!==native.currentSha256)throw Error('SFX inventory source identity does not match the native ROM copy.');entries.push({id:effect.id,supported:result.status==='ready'&&!!result.imported,reason:reason(result)});}
+ inventory={...item,entries};for(const entry of entries){const option=make('option',null,'SFX '+entry.id+' · '+entry.reason);option.value=String(entry.id);c.effect.appendChild(option);}c.effect.value=String(entries.find(entry=>entry.supported)?.id??entries[0].id);c.summary.textContent=entries.map(entry=>'SFX '+entry.id+' · '+entry.reason).join('\n')+'\nThis is a partial inventory of statically proven calls. Dynamic IDs and gameplay triggers are not recovered.';message('Choose a SFX and preview its conversion. Import requires AUDIO tempo 150 and speed 1; existing music timing is never changed by SFX import.');return true;
+ }catch(error){if(id===operation){inventory=null;message(error.message||String(error),true);}return false;}finally{if(id===operation){busy=false;enable();}}
+}
+function describe(item){const result=item.result,data=result.imported,lines=['Native SFX '+item.options.effectId+' · NTSC · '+result.status,'Current ROM SHA-256 '+item.source.currentSha256];if(data){const effect=data.sfx[0];lines.push(data.patterns.length+' new editable pattern(s) · '+data.instruments.length+' new instrument(s) · '+data.sfx.length+' named SFX definition(s)','Channel: '+['Pulse 1','Pulse 2','Triangle','Noise','DPCM'][effect.channel]+' · '+data.durationFrames+' native video frames, followed by an explicit canonical cut','Required project timing: tempo 150 / speed 1. Existing music order, tempo/speed and runtime settings remain unchanged.');}for(const [title,key]of [['Warnings','warnings'],['Support and refusals','diagnostics'],['Limits','limitations']])if(result[key]?.length)lines.push(title+':',...result[key].map(diagnostic));if(item.data)lines.push('Audio Runtime data estimate: '+item.data.estimatedBytes+' bytes. The complete game build must still fit.');lines.push('Editable SFX transcription only. Native mixing, pulse phase/retrigger behavior and gameplay triggers are not recovered. Review timer and tuning differences before importing.');c.summary.textContent=lines.join('\n');const evidence=JSON.stringify(result.provenance,null,2);c.evidence.textContent=evidence.length>32768?evidence.slice(0,32768)+'\n[Display truncated at 32 KiB. Evidence export retains the complete report.]':evidence;}
+async function preview(){
+ if(busy)return false;const id=++operation;busy=true;staged=null;evidenceReport=null;c.ack.checked=false;c.summary.textContent='';c.evidence.textContent='';enable();
+ try{if(!inventory)throw Error('Find statically proven SFX first.');if(inventory.sourceKey!==sourceKey(source()))throw Error('The native ROM copy or subsong changed. Find SFX again.');const effectId=Number(c.effect.value);if(!inventory.entries.some(entry=>entry.id===effectId))throw Error('Choose a statically proven SFX ID.');const native=source(),item={sourceKey:sourceKey(native),project:projectGuard(),revision};message('Previewing the selected native SFX…');const stage=await api().stage(native,{kind:'sfx',effectId,region:'NTSC',rows:S.audRows,mode:'transcription'});checkGuard(item);if(id!==operation)return false;describe(stage);if(stage.result.status!=='ready'||!stage.data){message('This SFX is not supported for transcription. Read the diagnostics; the project is unchanged.',true);return false;}staged={...item,stage};evidenceReport=reportFor(stage,'preview');message('Preview ready. Read the differences, acknowledge them, then import this SFX into AUDIO. Gameplay triggers must be authored separately.');return true;
+ }catch(error){if(id===operation){staged=null;message(error.message||String(error),true);}return false;}finally{if(id===operation){busy=false;enable();}}
+}
+async function importSfx(){
+ if(busy)return false;if(!staged){message('Preview a supported SFX first.',true);return false;}if(!c.ack.checked){message('Acknowledge the displayed conversion differences before importing.',true);return false;}const item=staged,id=++operation;busy=true;enable();
+ try{checkGuard(item);const owner=api(),currentSource=()=>{checkGuard(item);if(id!==operation||staged!==item)throw Error('The SFX preview changed. Preview again.');return source();};await owner.revalidate(item.stage,currentSource);checkGuard(item);if(id!==operation||staged!==item)throw Error('The SFX preview changed. Preview again.');if(!c.ack.checked)throw Error('Acknowledge the conversion differences again.');if(!confirm('Import native SFX '+item.stage.options.effectId+' into editable AUDIO?\n\nThis appends patterns, instruments and one named SFX definition. Tuning, pulse phase/retrigger behavior and mixing can differ. Gameplay triggers are not recovered.\n\nExisting music order, tempo/speed, runtime settings and the native ROM copy remain unchanged. One Undo restores the previous project.')){message('SFX transcription cancelled. The project and history are unchanged.');return false;}checkGuard(item);if(id!==operation||staged!==item)throw Error('The SFX preview changed. Preview again.');const data=await owner.commit(item.stage,currentSource);staged=null;c.ack.checked=false;evidenceReport=reportFor(item.stage,'imported');const issues=[...(data?.warnings||[])];try{aud_stop();}catch(error){issues.push('tracker playback cleanup: '+(error.message||String(error)));}try{render();services.AudioUI?.refresh();}catch(error){issues.push('display refresh: '+(error.message||String(error)));}const warning=issues.length?' Audio data was imported, but '+issues.join('; ')+'. Save the project and reopen it.':'';message('Imported '+data.sfxCount+' named SFX with '+data.patternCount+' patterns and '+data.instrumentCount+' instruments into AUDIO. Save Project As preserves the editable effect. Assign gameplay triggers separately; enable Compile Audio Runtime when you choose to build.'+warning,!!warning);return {patternOffset:data.patternOffset,instrumentOffset:data.instrumentOffset,patternCount:data.patternCount,instrumentCount:data.instrumentCount,sfxOffset:data.sfxOffset,sfxCount:data.sfxCount};
+ }catch(error){if(id===operation){staged=null;message(error.message||String(error),true);}return false;}finally{if(id===operation){busy=false;enable();}}
+}
+function reportFor(item,outcome){const data=item.result.imported;return copy({format:'NESForgeNativeSfxTranscriptionEvidence',version:1,method:item.result.method,outcome,source:{name:item.source.name,originalSha256:item.source.sourceSha256,currentSha256:item.source.currentSha256},options:item.options,summary:{patterns:data.patterns.length,instruments:data.instruments.length,sfx:data.sfx.length,channel:data.sfx[0].channel,durationFrames:data.durationFrames,tempo:150,speed:1},warnings:item.result.warnings,limitations:item.result.limitations,provenance:item.result.provenance,notice:'Historical conversion snapshot only. This is not a Forge project, native session, complete game recovery, current-project proof, or audible/hardware equivalence evidence. Complete ROM images and project snapshots are not included.'});}
+async function downloadEvidence(){try{if(busy)throw Error('Wait for the SFX operation to finish.');if(!evidenceReport)throw Error('Preview a supported SFX before exporting its evidence.');const report=evidenceReport,base=String(report.source.name||'ROM').replace(/\.[^.]*$/,'').replace(/[^a-z0-9._-]/gi,'_').slice(0,80)||'ROM',name=base+'-sfx-'+report.options.effectId+'-transcription-evidence.json',saved=await forgeSave.request(new TextEncoder().encode(JSON.stringify(report,null,2)),name,'application/json');if(report===evidenceReport){if(saved?.status==='cancelled')message('Evidence save cancelled. The SFX transcription and project are unchanged.');else if(saved?.status==='busy')message('Another Save As request is open. Finish it, then export the evidence again.',true);else if(saved?.status==='saved')message('Saved historical SFX transcription evidence: '+name);else if(saved?.status==='download-requested')message('Download requested for historical SFX transcription evidence: '+name);else message('Evidence export was not completed: '+(saved?.error?.message||saved?.message||saved?.status||'unknown save result')+'. The report remains available.',true);}return saved;}catch(error){message(error.message||String(error),true);return false;}}
+function mount(){
+ if(c)return c.panel;const host=document.getElementById('reNativeAudioPanel');if(!host)return null;const panel=make('section','reNativeSfxPanel');panel.setAttribute('aria-label','Transcribe native SFX into editable Audio');panel.appendChild(make('h3',null,'Transcribe native SFX into AUDIO'));panel.appendChild(make('p',null,'Analyze native audio above, then find statically proven SFX. Preview one finite, supported single-channel NTSC effect. Import adds editable Audio data; connect it to gameplay separately.'));const actions=make('div');actions.className='re-analysis-actions';panel.appendChild(actions);const button=(id,text,fn)=>{const el=make('button',id,text);el.type='button';el.addEventListener('click',()=>{void fn();});actions.appendChild(el);return el;};const find=button('reNativeSfxFind','Find SFX',findEffects),label=make('label',null,'Statically proven native SFX'),effect=make('select','reNativeSfxEffect');label.htmlFor=effect.id;label.appendChild(effect);panel.appendChild(label);panel.insertBefore(find,label);panel.appendChild(actions);const previewButton=button('reNativeSfxPreview','Preview SFX transcription',preview),apply=button('reNativeSfxApply','Import SFX into AUDIO',importSfx),cancelButton=button('reNativeSfxCancel','Cancel SFX transcription',cancel),exportButton=button('reNativeSfxEvidenceExport','Download SFX evidence',downloadEvidence);const ackLabel=make('label'),ack=make('input','reNativeSfxAcknowledge');ack.type='checkbox';ack.style.width='auto';ack.style.minHeight='24px';ack.style.verticalAlign='middle';ack.style.marginRight='8px';ackLabel.htmlFor=ack.id;ackLabel.append(ack,make('span',null,'I reviewed the tuning, phase/retrigger and mixing differences; gameplay triggers are not recovered.'));panel.appendChild(ackLabel);const summary=make('pre','reNativeSfxSummary'),status=make('p','reNativeSfxStatus');status.setAttribute('role','status');status.setAttribute('aria-live','polite');panel.append(summary,status);const details=make('details');details.appendChild(make('summary',null,'SFX conversion evidence'));const evidence=make('pre','reNativeSfxEvidence');details.appendChild(evidence);panel.appendChild(details);host.appendChild(panel);c={panel,find,effect,preview:previewButton,apply,cancel:cancelButton,export:exportButton,ack,summary,status,evidence};effect.addEventListener('change',invalidate);ack.addEventListener('change',enable);for(const type of ['keydown','keyup'])panel.addEventListener(type,event=>event.stopPropagation?.());enable();message('Analyze native audio above, then find SFX.');return panel;
+}
+services.RENativeSfxUI=Object.freeze({mount,findEffects,preview,importSfx,cancel,downloadEvidence,getState:()=>Object.freeze({busy,staged:!!staged,hasInventory:!!inventory,effects:inventory?.entries.map(entry=>({...entry}))||[],hasEvidence:!!evidenceReport,evidenceOutcome:evidenceReport?.outcome||null,effectId:staged?.stage.options.effectId??null,sourceSha256:staged?.stage.source.currentSha256||null})});mount();
+})();
 /* Trusted adapters for the existing recovery implementations. Discovery never
  * imports assets or runs a ROM. Native edits return a separate byte copy. */
 (()=>{
@@ -13347,7 +13543,7 @@ const limitations=Object.freeze([
  'One linked FamiTone2 v1.11 NROM driver configuration is recognized by instruction structure and reachable initialization, without filename or ROM-hash allowlists.',
  'Native recognition does not establish that a selected song is representable by the AUDIO tracker. Conversion performs its own explicit representability check.',
  'Native patching supports existing one-byte note/cut or instrument commands only. It returns a ROM copy and cannot insert data or change the original engine layout.',
- 'Canonical music transcription is a finite NTSC excerpt with declared tuning and playback differences. Native SFX, DPCM, game triggers and lossless inverse conversion are not supported.',
+ 'Canonical music transcription is a finite NTSC excerpt with declared tuning and playback differences. Explicit SFX conversion supports bounded single-pulse effects with separate timing and mixing limits; multichannel SFX, DPCM, game triggers and lossless inverse conversion are not supported.',
  'Inspection, copied-ROM patching and conversion previews do not change the active project, its history, or the emulator. Imports remain explicit authoring actions.',
  'Sources are limited to 41,488 bytes, native decoding to its existing 16,384-event budget, and shared results to 2 MiB. Larger or unsupported sources remain open for general inspection.'
 ]);
@@ -13396,7 +13592,22 @@ function patch(analysis,options,context){
  const inputSource=clone(analysis.report.identity),outputSource={...inputSource,sha256:rebuilt.rebuiltSha256,byteLength:rebuilt.rom.length};
  return bounded({status:'supported',reason:'A copied ROM contains the validated native command edits; the original inspection, project and emulator are unchanged.',evidence:[...decodedEvidence(result),{status:'decoded',claim:'These original source bytes identify the explicitly requested native command edits. The separate output identity identifies the redecoded ROM copy.',sourceSha256:inputSource.sha256,ranges:ranges(rebuilt.changes.map(c=>({fileOffset:c.fileOffset,length:1})))}],data:{nativeStatus:'decoded',inputSource,outputSource,rom:Array.from(rebuilt.rom),changes:clone(rebuilt.changes),method:rebuilt.method,outputNative:summary(rebuilt.evidence),originalUnchanged:true}});
 }
+function convertSfx(analysis,options,context){
+ optionsObject(options,['resourceKind','effectId','region','rows','mode','expectedSourceSha256']);expected(options,analysis);
+ if(!window.FamiTone2SfxImport?.preview)fail('The canonical SFX transcription model is unavailable.');
+ const value=bytes(analysis,context);context.consume(DECODE_WORK+16384+8192);context.throwIfAborted();
+ const {resourceKind,...conversionOptions}=options;
+ const converted=window.FamiTone2SfxImport.preview(value,{...conversionOptions,expectedSourceSha256:analysis.report.identity.sha256});context.throwIfAborted();
+ if(converted.status!=='ready')return {status:'unsupported',reason:reason(converted),evidence:[],data:{conversion:clone(converted),sourceUnchanged:true}};
+ const p=converted.provenance;
+ return bounded({status:'supported',reason:'The selected single-pulse effect is ready as an editable canonical SFX preview with declared timing, tuning and mixing differences. It has not been imported.',evidence:[{status:'converted',claim:'A finite native register stream was transcribed into an ordinary pattern-backed SFX. Listed ranges identify the driver, effect pointer and stream commands. Native mixing and pulse phase are not reproduced.',sourceSha256:analysis.report.identity.sha256,ranges:ranges([p.driver,p.effectSource,...p.events.map(e=>e.source)])}],data:{conversion:clone(converted),inputSource:clone(analysis.report.identity),sourceUnchanged:true,canonicalCommit:false,inverseSupported:false}});
+}
 function convert(analysis,options,context){
+ if(options?.resourceKind!==undefined){
+  if(options.resourceKind==='sfx')return convertSfx(analysis,options,context);
+  if(options.resourceKind!=='music')fail('Resource kind must be music or sfx.');
+  const {resourceKind,...musicOptions}=options;options=musicOptions;
+ }
  optionsObject(options,['songIndex','region','nativeRows','rows','mode','expectedSourceSha256']);expected(options,analysis);
  if(!window.FamiTone2AudioImport?.preview)fail('The canonical Audio transcription model is unavailable.');
  const value=bytes(analysis,context);context.consume(DECODE_WORK+16384+8192);context.throwIfAborted();

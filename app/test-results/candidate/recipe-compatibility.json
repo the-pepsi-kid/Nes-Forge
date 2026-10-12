@@ -1,6 +1,6 @@
 {
   "suite": "recipe-compatibility",
-  "htmlSha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
+  "htmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847",
   "scope": "Exact historical alpha.10 mashup replay through current ProjectStore open and authoring UI; reviewed foundation-only v1 migration, provenance, source/result tamper refusals, current recipe replay, Apply/Undo/Redo/save-reopen, and shared movement recipe migration. Mock DOM; no browser or hardware acceptance.",
   "passed": 9,
   "failed": 0,
@@ -9,47 +9,47 @@
     {
       "name": "Versioned foundation-only contract is bounded and raw alpha.10 source/result hashes remain unchanged",
       "passed": true,
-      "milliseconds": 1679
+      "milliseconds": 1608
     },
     {
       "name": "Every shipped alpha.10 recipe opens through current actual handlers, reissues and preserves original bytes",
       "passed": true,
-      "milliseconds": 13346
+      "milliseconds": 13406
     },
     {
       "name": "Reopened donors also migrate with all exact source identities and result equivalence checked",
       "passed": true,
-      "milliseconds": 2859
+      "milliseconds": 2818
     },
     {
       "name": "Any non-foundation base or donor alteration is refused without weakening exact-source checks",
       "passed": true,
-      "milliseconds": 4375
+      "milliseconds": 4315
     },
     {
       "name": "Tampered historical recipe hashes, bytes, bindings, choices and gameplay decisions are rejected",
       "passed": true,
-      "milliseconds": 2370
+      "milliseconds": 2444
     },
     {
       "name": "Foundation values outside the reviewed release set are not guessed or stripped",
       "passed": true,
-      "milliseconds": 2092
+      "milliseconds": 2116
     },
     {
       "name": "A verified legacy base cannot be silently swapped with a loaded donor",
       "passed": true,
-      "milliseconds": 1195
+      "milliseconds": 1162
     },
     {
       "name": "Movement v1 metadata migration shares the contract, preserves locks and uses current UI Apply/Undo",
       "passed": true,
-      "milliseconds": 3901
+      "milliseconds": 4013
     },
     {
       "name": "Failed historical import retains the established preview and original project/history",
       "passed": true,
-      "milliseconds": 3263
+      "milliseconds": 3360
     }
   ]
 }

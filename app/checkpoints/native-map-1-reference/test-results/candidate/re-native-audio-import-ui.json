@@ -1,0 +1,87 @@
+{
+  "suite": "re-native-audio-import-ui",
+  "htmlSha256": "d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be",
+  "fixtureSha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+  "scope": "Actual bundled native transcription handlers; read-only preview, consent, canonical append/rebase/Undo/persistence, source/project races and input ownership. No browser layout, listening or native-engine equivalence claim.",
+  "passed": 19,
+  "total": 19,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Transcription mounts once with visible native keyboard entry and explicit action",
+      "passed": true
+    },
+    {
+      "name": "Missing native session and malformed excerpt lengths refuse without project mutations",
+      "passed": true
+    },
+    {
+      "name": "Read-only visible preview describes finite transcription and exact source identity",
+      "passed": true
+    },
+    {
+      "name": "Explicit cancellation retains preview and leaves project, history and emulator unchanged",
+      "passed": true
+    },
+    {
+      "name": "Confirmed import appends rebased canonical data and preserves SFX, runtime, scenes and emulator",
+      "passed": true
+    },
+    {
+      "name": "Imported score survives one Undo, Redo and native save/reload without normalization loss",
+      "passed": true
+    },
+    {
+      "name": "New inspected source, native edits, and subsong changes refuse a staged transcription",
+      "passed": true
+    },
+    {
+      "name": "Project edits, replaced identical projects, and edits inside confirm refuse stale imports",
+      "passed": true
+    },
+    {
+      "name": "Delayed preview rejects source, project and option races with no partial import",
+      "passed": true
+    },
+    {
+      "name": "Delayed import revalidation refuses new source or project before confirmation",
+      "passed": true
+    },
+    {
+      "name": "Changed conversion results and malformed canonical data are refused before snapshot",
+      "passed": true
+    },
+    {
+      "name": "Pattern and instrument capacity refusals preserve all authoring and history",
+      "passed": true
+    },
+    {
+      "name": "Native getter returns detached current edits and refuses busy or stale sessions",
+      "passed": true
+    },
+    {
+      "name": "Native transcription fields retain keyboard defaults and block emulator controls",
+      "passed": true
+    },
+    {
+      "name": "Successful import marks dirty even if tracker cleanup fails after commit",
+      "passed": true
+    },
+    {
+      "name": "Preview validates enabled canonical runtime effects and instruments without changing runtime settings",
+      "passed": true
+    },
+    {
+      "name": "Visible evidence export preserves the complete historical preview and imported identity",
+      "passed": true
+    },
+    {
+      "name": "Evidence Save As busy, cancel, error and delayed completion remain honest",
+      "passed": true
+    },
+    {
+      "name": "The exact review-checklist project imports, saves, reopens and builds edited music",
+      "passed": true
+    }
+  ]
+}

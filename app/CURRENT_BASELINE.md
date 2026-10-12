@@ -1,3 +1,19 @@
+# Current review candidate — Native SFX Recovery
+
+Release **2.0.0-alpha.11**, candidate **native-sfx-1**, schema **12**. Application: `mainline/NES_Forge_2.0.0-alpha.11.html`. Current verification status belongs to matching fresh records described below; a planned gate is not a pass.
+
+Behavioral parent: native-map-1 at source commit `5de81d48e67a0f076ce067fbf8ca3f1c3a89baf3`; HTML SHA-256 `d7087da3100ad82ace657ec5010e70bd0e627466df89ad247a84f87775a269be`; 1,694/1,694 cases across 84 suites. Preserve `baseline/NES_Forge_2.0.0-alpha.11_Native_Map.html`, `docs/history/native-map-1/` and `checkpoints/native-map-1-reference/`.
+
+Scope: finite source-backed FamiTone2 single-pulse SFX transcription to canonical Audio, common native music/SFX staging and guarded audio import. Import appends patterns, instruments and a named SFX with one Undo. It requires existing tempo 150 and speed 1; tempo, order, runtime switches and event bindings remain unchanged. Separate authored Scout examples may explicitly bind an effect for review.
+
+The project schema, runtime emitters, native map/background behavior and recipe identities remain unchanged. Native timer-to-note rounding, phase/retrigger and arbitration differences are disclosed; multichannel effects, other channels, PAL, unknown state and unsupported control/timer/duration/capacity refuse conversion. This is a finite adaptation, not lossless native engine recovery.
+
+Actual identity and measured outcomes require agreement between `build-inputs.json`, fresh `test-results/candidate/Summary.json` and `checkpoints/native-sfx-1-clean-extraction/Reproduction.json`. Retain all 84 predecessor suites and append the five declared SFX suites. Browser/device/listening and owner acceptance remain separate.
+
+## Preserved previous record
+
+---
+
 # Current review candidate — Native Map Recovery
 
 Release **2.0.0-alpha.11**, candidate **native-map-1**, schema **12**. Application: `mainline/NES_Forge_2.0.0-alpha.11.html`. This continuation is being implemented and verified; a planned gate is not a pass.

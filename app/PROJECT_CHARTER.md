@@ -1,3 +1,15 @@
+# Current continuation — D066 Native SFX Recovery
+
+The owner's continuing roadmap direction authorizes the next bounded native SFX recovery item after the map candidate. Deliver useful canonical Audio effects through the established framework while preserving compatibility. Candidate alpha.11 / native-sfx-1 retains schema 12, the five-template limit and existing runtime behavior.
+
+A finite source-backed single-pulse FamiTone2 adaptation must expose its timing, pitch and synthesis limits. Canonical patterns, instruments and SFX remain the editable model; shared lifecycle and ProjectStore remain the staging and mutation owners. Preserve native music import and existing map/background behavior. Import must not silently change tempo/orders, enable runtimes or create gameplay bindings.
+
+Retain all 1,694 predecessor cases across 84 suites and add five dedicated SFX/lifecycle/APU/UI/preservation suites. Actual current verification requires matching fresh records from an unchanged clean extraction. A passing automated gate is separate from owner/browser/listening/device acceptance and does not complete the roadmap.
+
+## Preserved previous record
+
+---
+
 # Current continuation — D065 Native Map Recovery
 
 The owner's “continue” authorizes the next finite A2 editor integration after source verification. Deliver editable native static map/collision geometry through the existing framework while preserving compatibility. Candidate alpha.11 / native-map-1 retains schema 12, the five-template limit and existing runtime behavior.

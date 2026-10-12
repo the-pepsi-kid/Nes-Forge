@@ -1,0 +1,49 @@
+NES Forge — Native Background Recovery review
+2.0.0-alpha.11 / native-background-1 / schema12
+
+Record current HTML SHA-256 from build-inputs.json and device/browser version.
+Record each item as PASS, FAIL, BLOCKED or NOT PERFORMED. Previous candidate
+results and VM tests do not certify this browser/device session.
+
+A. Open each independent input in General ROM Analysis:
+   tests/fixtures/re-runtime/pepsi_vending_v9e.nes
+   examples/RE_Native_Audio/HonkeyPong-reproduced.nes
+   Discover recovery methods; select/open the applicable background tool.
+   HonkeyPong's generic header warning remains, even with a supported method.
+
+B. Preview background. Verify displayed filename/hash, thumbnail, coverage,
+   independent viewer build hash, and Full source evidence and construction.
+   HonkeyPong identifies final attribute1023 as unknown and filled0 by conversion.
+   Rendering-mask, sprite, collision and original-game limitations are visible.
+   Project, emulator and any existing native Audio edit remain unchanged.
+
+C. Without acknowledgement, import is unavailable. Acknowledge the static
+   conversion, Import as new scene, and confirm the appended scene is selected
+   and excluded from current ROM builds. Existing scenes/runtime settings remain.
+   Undo once removes the import; Redo restores it with matching evidence.
+
+D. Edit a visible tile or scene cell using ordinary CHR/SCENE controls.
+   Save Project As; reopen and confirm the edit, stable IDs and source evidence.
+   Evidence remains the original-import record; it does not claim edits were
+   present in the source. Do not infer collision from the recovered image.
+
+E. Preview again if necessary. Download background project and background
+   evidence as separate files. Open the project in a separate editor, build/run
+   the static viewer, edit visible graphics, save/reopen and rebuild. Confirm
+   the graphic edit appears. Compare supported background content with original
+   records/emulation, accounting for disclosed clipping/unknown-attribute changes.
+   Original game input/state/sprites/music are intentionally outside this result.
+
+F. Change selected ROM, method or current project after preview; stale import
+   must refuse. Cancel an active preview; no scene/history/emulator change.
+   Reimport an already present identical resource must refuse. Unknown inputs
+   still open for inspection without invented recovery claims.
+
+G. Repeat key controls on a narrow viewport and with keyboard navigation.
+   Native save dialogs/download behavior and touch scrolling require actual
+   browser evidence. Record failures with exact steps and candidate hash.
+
+Automated evidence: current Summary + native-background-1 clean-extraction proof.
+Manual owner acceptance: __________  Device/browser: __________  Date: ________
+Independent-emulator comparison: __________  Hardware: __________
+Full roadmap, Audio/listening, A2 collision and comprehensive manual remain open.

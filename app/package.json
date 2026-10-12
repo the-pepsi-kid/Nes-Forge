@@ -2,7 +2,7 @@
   "name": "nes-forge-release",
   "version": "2.0.0-alpha.11",
   "private": true,
-  "description": "NES Forge 2.0.0-alpha.11 \u2014 Native Map Recovery candidate",
+  "description": "NES Forge 2.0.0-alpha.11 \u2014 Native SFX Recovery candidate",
   "scripts": {
     "test": "node tests/run_all.cjs",
     "build": "python3 tools/bundle.py",
@@ -21,7 +21,8 @@
     "test:browser-movement-rules": "node tests/browser-movement-rules.cjs",
     "test:browser-compatibility": "node tests/browser-compatibility.cjs",
     "test:browser-native-background": "node tests/browser-native-background.cjs",
-    "test:browser-native-map": "node tests/browser-native-map.cjs"
+    "test:browser-native-map": "node tests/browser-native-map.cjs",
+    "test:browser-native-sfx": "node tests/browser-native-sfx.cjs"
   },
   "engines": {
     "node": ">=20"

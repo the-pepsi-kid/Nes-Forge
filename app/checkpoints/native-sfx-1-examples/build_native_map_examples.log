@@ -1,0 +1,98 @@
+{
+  "format": "NESForgeNativeMapExamples",
+  "version": 1,
+  "release": "2.0.0-alpha.11",
+  "candidate": "native-map-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847",
+  "source": {
+    "file": "examples/RE_Native_Map/DABG-reproduced.nes",
+    "sha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+    "byteLength": 32784,
+    "generalAnalysisStatus": "valid"
+  },
+  "method": {
+    "id": "nes.command-metatile-map.v1",
+    "version": 1,
+    "name": "NES command metatile maps"
+  },
+  "resourceKey": "map-bfe3",
+  "referencedResources": 22,
+  "convertibleResources": 1,
+  "region": {
+    "nativeWidth": 16,
+    "nativeHeight": 16,
+    "visibleWidth": 16,
+    "visibleHeight": 15,
+    "nativeCellPixels": 16,
+    "originX": 0,
+    "originY": 0,
+    "forgeWidth": 32,
+    "forgeHeight": 30,
+    "omittedRow": 15,
+    "omittedRowEmpty": true
+  },
+  "solidCells": 56,
+  "previewBuild": {
+    "backend": "single-room",
+    "byteLength": 40976,
+    "sha256": "70ecd62fb067c40042c8749103bef832ad70d1483c0ed630396a465d5f59e63a"
+  },
+  "editedCollisionTileIds": [
+    137,
+    138,
+    139,
+    140
+  ],
+  "outputs": [
+    {
+      "name": "DABG_Static_Map",
+      "description": "Recovered raw static geometry and fixed binary collision; authored 8×8 test player and Forge physics.",
+      "backend": "single-room",
+      "project": {
+        "file": "DABG_Static_Map.nesforge.json",
+        "byteLength": 225877,
+        "sha256": "e781a72b61a1c803e3ccd7c4907e0a1feca49d69afea3cf0bf4385f2540bf745"
+      },
+      "rom": {
+        "file": "DABG_Static_Map.nes",
+        "byteLength": 40976,
+        "sha256": "70ecd62fb067c40042c8749103bef832ad70d1483c0ed630396a465d5f59e63a"
+      }
+    },
+    {
+      "name": "DABG_Static_Map_Floor_Opened",
+      "description": "Canonical Collision-tab edit clears the recovered floor tiles. The test player falls under Forge physics; retained recovery evidence still describes the original source.",
+      "backend": "single-room",
+      "project": {
+        "file": "DABG_Static_Map_Floor_Opened.nesforge.json",
+        "byteLength": 225877,
+        "sha256": "fe1203b5a4376e792df0d61ffdb7553433cf56392830e1dc329e00fd59f2b214"
+      },
+      "rom": {
+        "file": "DABG_Static_Map_Floor_Opened.nes",
+        "byteLength": 40976,
+        "sha256": "dd2a82f4e02f529cf48ea0757354f7cbea875b4bfc3f27f5411fbde157e644cb"
+      }
+    }
+  ],
+  "evidence": {
+    "file": "DABG_Static_Map.recovery.json",
+    "byteLength": 109891,
+    "sha256": "df2ef3912ff8cbd2bc281a1dc77a391ff34057f7ffc794b7ad9be2bb990d09a4"
+  },
+  "limitations": [
+    "Static command-map geometry before native decoration only. Random maps, clouds, grass/platform decoration, scrolling, wrapping, cycling blocks, hazards, one-way platforms, actors, audio and original game logic are not reconstructed.",
+    "Only declared native Empty and fixed Solid cells convert. Unknown or unsupported collision never defaults to Empty. The visible 16 × 15 metatile region maps exactly to 32 × 30 Forge tiles; a nonempty hidden native row prevents conversion.",
+    "Import appends an excluded editable scene through one Undo transaction. Download map project creates a separate Forge single-room adaptation with an authored test player and default Forge movement; it does not recreate native physics or gameplay.",
+    "Graphics use the proven reset palette and raw command-map metatiles, before PrettyLevel decoration and later palette updates. Source sprites, clipping and later runtime writes are not reproduced.",
+    "Uniform tile collision uses existing tile properties. Ambiguous reuse uses linked metatile overrides. Raw visual edits can detach links and fall back to tile properties under the existing editor rules.",
+    "The original ROM is unchanged. This method does not supply a native encoder, ROM patch or whole-game reconstruction.",
+    "Static command-map rendering uses the original metatile tile and palette-index tables before PrettyLevel. Random clouds, grass/platform substitutions, gameplay actors and later visual changes are omitted.",
+    "The recovered palette is the reset upload, including native universal-color aliases and the explicit slot-seven write. Level-specific background changes and animated sprite colors are not recovered.",
+    "PB53 is interpreted with this verified loader's 128-byte persistent buffer. Tile control $83 copies its existing buffer slot; it does not mean a previous 4 KiB bank in this loader configuration.",
+    "Unknown initial decompression-buffer bytes remain marked unknown; a static map using such a tile cannot be converted. Native row fifteen is data outside the visible 16 by 15 metatile screen.",
+    "The source resets with rendering disabled. Its final reset control selects the recovered background bank; the editor viewer supplies its own rendering state."
+  ],
+  "scope": "Generation verifies actual decoder/stage, ordinary build parity, canonical Collision-tab edit and exact save/reopen/rebuild. Native CPU proof and generated movement checks are in the test suites. No original-game reconstruction, browser or hardware acceptance."
+}

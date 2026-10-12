@@ -1,0 +1,179 @@
+{
+  "html": "NES_Forge_1.6.2.1_Stabilized.html",
+  "scope": "Reconstructed regression suite; not a reproduction of the historical 344-check report. Full inline script executed in Node VM with lightweight DOM/canvas/timer mocks.",
+  "passed": 34,
+  "failed": 0,
+  "total": 34,
+  "results": [
+    {
+      "name": "Complete application script initializes without an application error",
+      "passed": true,
+      "milliseconds": 320
+    },
+    {
+      "name": "CHR bitplanes roundtrip every pixel value and preserve bank offsets",
+      "passed": true,
+      "milliseconds": 438
+    },
+    {
+      "name": "Palette normalization shares universal background and clamps NES colors",
+      "passed": true,
+      "milliseconds": 422
+    },
+    {
+      "name": "Portable project roundtrip retains worlds, definitions, links, CHR, and animation",
+      "passed": true,
+      "milliseconds": 696
+    },
+    {
+      "name": "Legacy schema unversioned loads with absent worlds and valid empty metatile defaults",
+      "passed": true,
+      "milliseconds": 354
+    },
+    {
+      "name": "Legacy schema 2 loads with absent worlds and valid empty metatile defaults",
+      "passed": true,
+      "milliseconds": 310
+    },
+    {
+      "name": "Legacy schema 3 loads with absent worlds and valid empty metatile defaults",
+      "passed": true,
+      "milliseconds": 310
+    },
+    {
+      "name": "Legacy schema 4 loads with absent worlds and valid empty metatile defaults",
+      "passed": true,
+      "milliseconds": 348
+    },
+    {
+      "name": "Future schemas and malformed collections fail before replacing current project",
+      "passed": true,
+      "milliseconds": 316
+    },
+    {
+      "name": "Malformed map dimensions and unknown metatile references are rejected",
+      "passed": true,
+      "milliseconds": 296
+    },
+    {
+      "name": "Undo and redo restore project data including world destinations",
+      "passed": true,
+      "milliseconds": 527
+    },
+    {
+      "name": "New edits clear redo while history stays isolated from new project load",
+      "passed": true,
+      "milliseconds": 500
+    },
+    {
+      "name": "Metatile brush writes four nametable quadrants and survives serialization",
+      "passed": true,
+      "milliseconds": 453
+    },
+    {
+      "name": "Raw tile changes detach a mismatching metatile without changing its definition",
+      "passed": true,
+      "milliseconds": 278
+    },
+    {
+      "name": "World resize preserves coordinate positions and fills new area with empty cells",
+      "passed": true,
+      "milliseconds": 293
+    },
+    {
+      "name": "World creation selects an existing metatile scene when the active scene has no library",
+      "passed": true,
+      "milliseconds": 397
+    },
+    {
+      "name": "Assembler emits known 6502 bytes, labels, branches, strings, and vectors",
+      "passed": true,
+      "milliseconds": 290
+    },
+    {
+      "name": "Assembler reports out-of-range branches and undefined symbols",
+      "passed": true,
+      "milliseconds": 286
+    },
+    {
+      "name": "Default generated ROM has a valid NROM header, vectors, and Forge marker",
+      "passed": true,
+      "milliseconds": 360
+    },
+    {
+      "name": "Custom ASM occupying $C200 advances metadata placement and preserves code",
+      "passed": true,
+      "milliseconds": 335
+    },
+    {
+      "name": "Exhausted metadata space fails promptly with a capacity message",
+      "passed": true,
+      "milliseconds": 329
+    },
+    {
+      "name": "Missing interrupt vectors fail custom ROM generation",
+      "passed": true,
+      "milliseconds": 348
+    },
+    {
+      "name": "Build excludes unselected scenes and rejects a world using an excluded tileset",
+      "passed": true,
+      "milliseconds": 379
+    },
+    {
+      "name": "World-only metatiles fail preflight when their definition cannot be included in MT16",
+      "passed": true,
+      "milliseconds": 332
+    },
+    {
+      "name": "ROM re-import restores world coordinates, rooms, camera modes, and valid tileset references",
+      "passed": true,
+      "milliseconds": 2249
+    },
+    {
+      "name": "ROM re-import keeps cross-world and same-world marker destinations resolvable",
+      "passed": true,
+      "milliseconds": 2331
+    },
+    {
+      "name": "Generated scene viewer boots and produces nonempty framebuffer through actual emulator",
+      "passed": true,
+      "milliseconds": 472
+    },
+    {
+      "name": "iNES parser rejects bad signature, unsupported NES 2.0, and truncated image",
+      "passed": true,
+      "milliseconds": 327
+    },
+    {
+      "name": "Save As request and explicit cancellation produce no download",
+      "passed": true,
+      "milliseconds": 303
+    },
+    {
+      "name": "Native picker cancellation never triggers fallback browser download",
+      "passed": true,
+      "milliseconds": 296
+    },
+    {
+      "name": "Native save resolves successfully only after writable stream close completes",
+      "passed": true,
+      "milliseconds": 284
+    },
+    {
+      "name": "Writable close failure aborts stream, leaves Save As retryable, and never downloads",
+      "passed": true,
+      "milliseconds": 281
+    },
+    {
+      "name": "Explicit browser download is reported as requested, with sanitized filename",
+      "passed": true,
+      "milliseconds": 267
+    },
+    {
+      "name": "A concurrent Save As request cannot replace the pending export",
+      "passed": true,
+      "milliseconds": 278
+    }
+  ]
+}

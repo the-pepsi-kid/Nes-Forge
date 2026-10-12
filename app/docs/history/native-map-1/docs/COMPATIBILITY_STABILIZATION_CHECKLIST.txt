@@ -1,0 +1,44 @@
+NES Forge alpha.11 — Compatibility Stabilization review
+Candidate: compatibility-stabilization-1. Record the exact HTML SHA from build-inputs.json.
+
+C1 — Historical recipe migration
+1. Open examples/Seeded_Mashup_2.0.0-alpha.10/Scout_Base.nesforge.json.
+2. SCENE > Seeded mashup > Use current project. Add the original Copper_Orchard_Donor and Moonlit_Circuit_Donor project JSON files from that directory.
+3. Open Mashup_FORGE-001.recipe.json from the same directory.
+Expected: explicit verified migration notice, reviewable candidate, no project or emulator change before Apply.
+4. Apply, Undo, Redo. Save Project As and reopen the resulting project.
+Expected: one Undo restores the base, Redo restores the candidate, saved project is editable and builds normally.
+5. Reopen the original base/donors and load the old recipe again; download its reissued recipe. Reload that recipe using the same captured current sources.
+Expected: deterministic direct current replay. The old recipe remains unchanged.
+6. Change the base name or movement setting, recapture, then try the old recipe. Repeat with a changed or missing donor.
+Expected: refusal, no partial application or new Undo entry.
+
+C2 — Shared validation
+1. Check the normal single-room and World movement controls and Movement Rules before/after table.
+Expected ranges: move 1–4, jump 1–12, gravity 1–3, max fall 1–8. Invalid imported values refuse.
+2. Use a project whose configured scene/player no longer exists.
+Expected: explicit reference refusal; an unrelated active scene must not satisfy it.
+
+C3 — Project-owned application
+1. Preview High jump at intensity 3. Cancel Apply confirmation.
+Expected: project/history/emulator unchanged.
+2. Apply and use Undo/Redo once each.
+Expected: one project edit; only the four permitted movement fields can differ. Audio, map, body/spawn and inactive backend remain intact.
+3. Preview, edit the project, then attempt Apply.
+Expected: stale preview refusal and no extra history entry.
+
+C4 — Complete preview preflight
+1. Open examples/Movement_Rules_2.0.0-alpha.11/Single_Room_Base.nesforge.json and preview High jump intensity 3.
+2. Repeat with World_Base.nesforge.json.
+Expected: both previews report compiled ROM evidence. Neither loads/runs a ROM or changes the current project.
+3. Apply, build and play each candidate normally.
+Expected: jump changes reach the generated game. Build validity is not a guarantee every level remains traversable.
+
+C5 — Physical and browser acceptance
+Record browser/version, desktop or phone, input method, native file-dialog outcome, any console errors and the first unexpected step. Listening, controller and NES hardware results need their own direct checks. A simulated mobile viewport is not a physical-device pass.
+
+Result: PASS / FAIL / NOT RUN
+HTML SHA:
+Browser/device:
+Steps checked:
+First unexpected behavior:
