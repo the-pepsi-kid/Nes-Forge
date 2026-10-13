@@ -1,0 +1,29 @@
+{
+  "release": "2.0.0-alpha.2",
+  "candidate": "mobile-playback-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.2.html",
+  "htmlSha256": "27c436d1b7356fc8d2ce4c22396a0b768c4c2f3e6b2754f1be14e5db00389782",
+  "scope": "Reproducibly compiled review examples; no browser/speaker/device acceptance claimed.",
+  "examples": [
+    {
+      "name": "Dense_128",
+      "expected": "128 authored rows loop; B triggers the 128-row SFX, then music resumes.",
+      "backend": "single-room",
+      "project": "examples/Audio_Correction_2.0.0-alpha.2/Dense_128.nesforge.json",
+      "projectSha256": "09dd66b9db68d421442d99958f17d31cc2eedb842902c98ea2b1ebfe40201ca1",
+      "rom": "examples/Audio_Correction_2.0.0-alpha.2/Dense_128.nes",
+      "romSha256": "84e01af8c42a5080bda7bac9d5214f5dfbe8476cb745fcefd6e049ffe9d9a892",
+      "romBytes": 40976
+    },
+    {
+      "name": "Pulse_Triangle",
+      "expected": "Pulse A4, triangle A4, pulse A5, triangle A5; same pitch within each pair, different timbre.",
+      "backend": "single-room",
+      "project": "examples/Audio_Correction_2.0.0-alpha.2/Pulse_Triangle.nesforge.json",
+      "projectSha256": "cbbe38fda8b52b83cb877e219948046b27bfa94a7dcc900f9a5f8107923859e6",
+      "rom": "examples/Audio_Correction_2.0.0-alpha.2/Pulse_Triangle.nes",
+      "romSha256": "c769083b77abfa71f6c9599baf5a87360773e33db34e1e446d074db7f7e5fe11",
+      "romBytes": 40976
+    }
+  ]
+}

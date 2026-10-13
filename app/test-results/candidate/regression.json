@@ -1,6 +1,6 @@
 {
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "sha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847",
+  "sha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
   "scope": "Reconstructed regression suite; not a reproduction of the historical 344-check report. Full inline script executed in Node VM with lightweight DOM/canvas/timer mocks.",
   "passed": 52,
   "failed": 0,
@@ -9,262 +9,262 @@
     {
       "name": "Emulator, provenance capture, and Save As/CHR blocks retain exact 1.6.2 bytes outside the declared correction delta",
       "passed": true,
-      "milliseconds": 616
+      "milliseconds": 1214
     },
     {
       "name": "Complete application script initializes without an application error",
       "passed": true,
-      "milliseconds": 422
+      "milliseconds": 710
     },
     {
       "name": "CHR bitplanes roundtrip every pixel value and preserve bank offsets",
       "passed": true,
-      "milliseconds": 491
+      "milliseconds": 958
     },
     {
       "name": "Palette normalization shares universal background and clamps NES colors",
       "passed": true,
-      "milliseconds": 465
+      "milliseconds": 809
     },
     {
       "name": "Portable project roundtrip retains worlds, definitions, links, CHR, and animation",
       "passed": true,
-      "milliseconds": 572
+      "milliseconds": 935
     },
     {
       "name": "Legacy schema unversioned loads with absent worlds and valid empty metatile defaults",
       "passed": true,
-      "milliseconds": 501
+      "milliseconds": 792
     },
     {
       "name": "Legacy schema 2 loads with absent worlds and valid empty metatile defaults",
       "passed": true,
-      "milliseconds": 461
+      "milliseconds": 903
     },
     {
       "name": "Legacy schema 3 loads with absent worlds and valid empty metatile defaults",
       "passed": true,
-      "milliseconds": 458
+      "milliseconds": 931
     },
     {
       "name": "Legacy schema 4 loads with absent worlds and valid empty metatile defaults",
       "passed": true,
-      "milliseconds": 458
+      "milliseconds": 707
     },
     {
       "name": "Future schemas and malformed collections fail before replacing current project",
       "passed": true,
-      "milliseconds": 490
+      "milliseconds": 737
     },
     {
       "name": "Malformed map dimensions and unknown metatile references are rejected",
       "passed": true,
-      "milliseconds": 481
+      "milliseconds": 722
     },
     {
       "name": "Undo and redo restore project data including world destinations",
       "passed": true,
-      "milliseconds": 723
+      "milliseconds": 1070
     },
     {
       "name": "New edits clear redo while history stays isolated from new project load",
       "passed": true,
-      "milliseconds": 682
+      "milliseconds": 1033
     },
     {
       "name": "Metatile brush writes four nametable quadrants and survives serialization",
       "passed": true,
-      "milliseconds": 600
+      "milliseconds": 924
     },
     {
       "name": "Raw tile changes detach a mismatching metatile without changing its definition",
       "passed": true,
-      "milliseconds": 489
+      "milliseconds": 749
     },
     {
       "name": "World resize preserves coordinate positions and fills new area with empty cells",
       "passed": true,
-      "milliseconds": 490
+      "milliseconds": 701
     },
     {
       "name": "World creation selects an existing metatile scene when the active scene has no library",
       "passed": true,
-      "milliseconds": 593
+      "milliseconds": 838
     },
     {
       "name": "Assembler emits known 6502 bytes, labels, branches, strings, and vectors",
       "passed": true,
-      "milliseconds": 460
+      "milliseconds": 799
     },
     {
       "name": "Assembler reports out-of-range branches and undefined symbols",
       "passed": true,
-      "milliseconds": 456
+      "milliseconds": 771
     },
     {
       "name": "Default generated ROM has a valid NROM header, vectors, and Forge marker",
       "passed": true,
-      "milliseconds": 551
+      "milliseconds": 849
     },
     {
       "name": "Custom ASM occupying $C200 advances metadata placement and preserves code",
       "passed": true,
-      "milliseconds": 512
+      "milliseconds": 766
     },
     {
       "name": "Exhausted metadata space fails promptly with a capacity message",
       "passed": true,
-      "milliseconds": 536
+      "milliseconds": 767
     },
     {
       "name": "Missing interrupt vectors fail custom ROM generation",
       "passed": true,
-      "milliseconds": 510
+      "milliseconds": 740
     },
     {
       "name": "Build excludes unselected scenes and rejects a world using an excluded tileset",
       "passed": true,
-      "milliseconds": 558
+      "milliseconds": 803
     },
     {
       "name": "World-only metatiles fail preflight when their definition cannot be included in MT16",
       "passed": true,
-      "milliseconds": 517
+      "milliseconds": 762
     },
     {
       "name": "ROM re-import restores world coordinates, rooms, camera modes, and valid tileset references",
       "passed": true,
-      "milliseconds": 1975
+      "milliseconds": 2854
     },
     {
       "name": "ROM re-import keeps cross-world and same-world marker destinations resolvable",
       "passed": true,
-      "milliseconds": 1865
+      "milliseconds": 2522
     },
     {
       "name": "Generated scene viewer boots and produces nonempty framebuffer through actual emulator",
       "passed": true,
-      "milliseconds": 623
+      "milliseconds": 913
     },
     {
       "name": "iNES parser rejects bad signature, unsupported NES 2.0, and truncated image",
       "passed": true,
-      "milliseconds": 507
+      "milliseconds": 780
     },
     {
       "name": "Save As request and explicit cancellation produce no download",
       "passed": true,
-      "milliseconds": 500
+      "milliseconds": 719
     },
     {
       "name": "Native picker cancellation never triggers fallback browser download",
       "passed": true,
-      "milliseconds": 439
+      "milliseconds": 694
     },
     {
       "name": "Native save resolves successfully only after writable stream close completes",
       "passed": true,
-      "milliseconds": 533
+      "milliseconds": 689
     },
     {
       "name": "Writable close failure aborts stream, leaves Save As retryable, and never downloads",
       "passed": true,
-      "milliseconds": 461
+      "milliseconds": 696
     },
     {
       "name": "Explicit browser download is reported as requested, with sanitized filename",
       "passed": true,
-      "milliseconds": 467
+      "milliseconds": 765
     },
     {
       "name": "A concurrent Save As request cannot replace the pending export",
       "passed": true,
-      "milliseconds": 473
+      "milliseconds": 706
     },
     {
       "name": "Composer APIs and schema v6 initialize in the complete release",
       "passed": true,
-      "milliseconds": 471
+      "milliseconds": 712
     },
     {
       "name": "Composed project JSON preserves frame identities, pieces, origins, and animation bindings",
       "passed": true,
-      "milliseconds": 565
+      "milliseconds": 930
     },
     {
       "name": "Composed OAM conversion uses origin, palette, both flips, priority, and explicit lower tile",
       "passed": true,
-      "milliseconds": 455
+      "milliseconds": 717
     },
     {
       "name": "Metasprite pixels continue using their source scene after active scene changes",
       "passed": true,
-      "milliseconds": 498
+      "milliseconds": 812
     },
     {
       "name": "8x16 vertical flip swaps source tiles and reverses pixels around the authored anchor",
       "passed": true,
-      "milliseconds": 470
+      "milliseconds": 711
     },
     {
       "name": "OAM order wins opaque overlaps and transparent pixels leave later sprites visible",
       "passed": true,
-      "milliseconds": 460
+      "milliseconds": 759
     },
     {
       "name": "Hardware preview counts transparent OAM pieces toward eight sprites per scanline",
       "passed": true,
-      "milliseconds": 452
+      "milliseconds": 945
     },
     {
       "name": "Metasprite duplication and mirroring create new identities and reflect around the origin",
       "passed": true,
-      "milliseconds": 779
+      "milliseconds": 1150
     },
     {
       "name": "Mixed-size scene OAM capture expands 8x16 pairs without losing their vertical flip",
       "passed": true,
-      "milliseconds": 523
+      "milliseconds": 766
     },
     {
       "name": "Animation sources switch through the actual commands and preserve legacy tile/duration",
       "passed": true,
-      "milliseconds": 640
+      "milliseconds": 986
     },
     {
       "name": "Animation frame bounds use the explicit origin and fixed union across composed and tile frames",
       "passed": true,
-      "milliseconds": 442
+      "milliseconds": 695
     },
     {
       "name": "Missing animation references survive editing with a visible missing-source result and block build",
       "passed": true,
-      "milliseconds": 604
+      "milliseconds": 911
     },
     {
       "name": "MS16 checksum and declared payload length reject corrupted bytes",
       "passed": true,
-      "milliseconds": 515
+      "milliseconds": 800
     },
     {
       "name": "MS16 links source tiles without mutating authoring IDs or unrelated sprite CHR",
       "passed": true,
-      "milliseconds": 532
+      "milliseconds": 771
     },
     {
       "name": "ROM import restores composed frames with new unique IDs and remapped animation references",
       "passed": true,
-      "milliseconds": 1925
+      "milliseconds": 2964
     },
     {
       "name": "Portable asset export contains complete frames and their sprite sources",
       "passed": true,
-      "milliseconds": 454
+      "milliseconds": 722
     },
     {
       "name": "Out-of-range authored coordinates and duplicate frame identities reject schema v6 load",
       "passed": true,
-      "milliseconds": 501
+      "milliseconds": 696
     }
   ]
 }

@@ -1,0 +1,132 @@
+{
+  "stagingArchiveSha256": "8ee3495366dc981b09dd95ae966f12d5e6a3e3a05d6e5cb1a950066e5318de0d",
+  "stagingVerifiedPayloads": 6034,
+  "stagingArchiveFiles": 6035,
+  "stagingAllPayloadsMatch": true,
+  "stagingSafePaths": true,
+  "candidate": "native-sfx-1",
+  "status": "passed",
+  "release": "2.0.0-alpha.11",
+  "htmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847",
+  "summarySha256": "696151013b0ed1848411c3ad9a3bbdb73996ee26cf5d1908dcafef6496c663fc",
+  "passed": 1769,
+  "total": 1769,
+  "suiteCount": 89,
+  "startedAt": "2026-10-12T06:48:28.890Z",
+  "finishedAt": "2026-10-12T07:15:16.099Z",
+  "unchangedCandidate": true,
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "applicationParentCommit": "5de81d48e67a0f076ce067fbf8ca3f1c3a89baf3",
+  "retainedCases": 1694,
+  "retainedSuites": 84,
+  "commands": [
+    "python3 tools/bundle.py --check",
+    "node tests/run_candidate.cjs",
+    "Every declared browser-suites.json runner"
+  ],
+  "retainedExamples": {
+    "families": 5,
+    "files": 48,
+    "byteIdenticalFiles": 43,
+    "changedReceiptFiles": 5,
+    "roms": 12,
+    "generatedRoms": 11,
+    "sourceRoms": 1,
+    "projects": 16,
+    "recipes": 6,
+    "byteIdentical": true,
+    "evidence": "app/checkpoints/native-sfx-1-examples/Regeneration.json"
+  },
+  "browserEvidence": [
+    {
+      "name": "browser-mobile",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "e65631fc89c99b3848b517673438544da8a4af738735dbfb51ecd2cd5f4d5f87"
+    },
+    {
+      "name": "browser-re-analysis",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "85cc6103fcffb49e475987f38d8f34a7a35521eb72ea36c829b62f6f5f5721d3"
+    },
+    {
+      "name": "browser-re-runtime",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "cdb9bcf8153cdf1dc4dc3ac028161ecccf037c6b2f1400b58f19b64a276860a4"
+    },
+    {
+      "name": "browser-audio-adaptive",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "1b443751eafab16d94f7843adcdf5a0e6cdfc2148a5115d79695e93200c7c8b6"
+    },
+    {
+      "name": "browser-roadmap",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "f4287a1dede43be5b1b7b515855a92fa68e045a77bf88ebc44985560ec94f12d"
+    },
+    {
+      "name": "browser-native-audio",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "7c607a6a1f45fabc11ac0fd4483501224c96ebe4e5a7b0e725df8a9f1b40879e"
+    },
+    {
+      "name": "browser-native-audio-import",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "6ad1fec5dbdd3db813b26687d4d61864947fb597e43ccfaca5988b481121f4b2"
+    },
+    {
+      "name": "browser-recovery-methods",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "82515217de865ffb184a0726cfc2830847a193242ea5a9cf80dd614eb43f0150"
+    },
+    {
+      "name": "browser-seeded-mashup",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "49510df0a1c405667e309c1ac4c4084c1c4292f9c56f4cd099c67e61f362f10a"
+    },
+    {
+      "name": "browser-movement-rules",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "35d50c892278658f9c6d2309af43ad511563460b4430c055b7a4b67a274ae6c3"
+    },
+    {
+      "name": "browser-compatibility",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "ad20e8e4722e034ffa8fef74f5cdd0a1d171ac33b6da40a3c105048ee3e30188"
+    },
+    {
+      "name": "browser-native-background",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "613136d4801362457a92eda72f6204ba379cf999bfba7512770fc6cdee0a14f8"
+    },
+    {
+      "name": "browser-native-map",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "c61eb29407389daaed01b623ea3945ce14c3bd96e79b2e79c9ba261c5654e83c"
+    },
+    {
+      "name": "browser-native-sfx",
+      "status": "blocked",
+      "checks": 0,
+      "reportSha256": "896373eac3dae33955b7ceb0b56d653a6232931ef81a06ec0b45be1fd069c85f"
+    }
+  ],
+  "browserWalkthrough": "Blocked launches executed zero checks. Logical original/generated CPU/APU evidence does not establish browser, audible/native synthesis equivalence, independent-emulator, device or hardware acceptance.",
+  "promotion": "not promoted; owner, real-browser and listening acceptance pending"
+}

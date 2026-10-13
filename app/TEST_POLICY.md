@@ -1,3 +1,19 @@
+# Test policy — Source Intake Diagnostics
+
+Retain all **1,769 cases across 89 predecessor suites**, unchanged in count and order, and append the four suites in `source-intake-suites.json`. No skipped cases, injected production modules, renewed historical oracles or stale outcomes. Exact outer reversal must reconstruct native-sfx-1 before the retained preservation chain executes. Any retained expectation adjustment must be explicitly reviewed and limited to the actual declared contract change.
+
+Verify bounded supplied-source analysis through the shipped SourceWorkspace API against independently asserted dialect/dependency examples. Cover current/original identity, explicit declarations, literal dependency locations, path normalization and unsafe/missing/cyclic targets, unsupported/uncertain syntax, malformed inputs, deterministic reports and truncation/incompleteness. Demonstrate that source text remains inert: no assembler, JavaScript/Lua execution, translation, hidden fetch or canonical project/emulator/session mutation.
+
+Require explicit Analyze/Cancel/export UI behavior, stale-result rejection after workspace/declaration changes, and separate report export. Verify that dialect/engine inputs do not alter Source Workspace version 1 archives. Explicit foreign dialect selection blocks the UI's Forge build action; unknown/default selection retains prior behavior. Preserve existing create/preprocess/build/archive semantics and all retained compiler/runtime outputs.
+
+Freeze source/docs/tests/examples before staging. Regenerate six existing example families and new Source Intake examples through their generators, verify every staged checksum, then run all 93 declared suites against one unchanged clean extraction. Final packaging requires matching `checkpoints/source-intake-1-clean-extraction/Reproduction.json` and all 15 current browser reports. Until those records agree, current outcomes remain pending.
+
+A missing Chromium launch records blocked status with zero checks. VM/static-analysis results do not establish browser layout/native dialogs, source build compatibility, semantic equivalence, audible fidelity, independent-emulator playback, mobile performance, controllers or physical NES acceptance. Full-roadmap acceptance and promotion remain separate.
+
+## Preserved previous record
+
+---
+
 # Test policy — Native SFX Recovery
 
 Retain all **1,694 cases across 84 predecessor suites**, unchanged in count and order, and append the five suites in `native-sfx-suites.json`. No skipped cases, injected production modules, renewed historical oracles or stale outcomes. Exact outer reversal must reconstruct native-map-1 before the retained preservation chain executes. Any retained expectation adjustment must be explicitly reviewed and limited to the actual declared contract change.

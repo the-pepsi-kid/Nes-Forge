@@ -1,0 +1,22 @@
+{
+  "format": "NESForgeNativeMapBrowserQA",
+  "version": 1,
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "sha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+  "started": "2026-10-13T02:03:00.797Z",
+  "status": "blocked",
+  "browser": null,
+  "checks": [],
+  "screenshots": [],
+  "pageErrors": [],
+  "limitations": [
+    "Desktop and phone viewports are Chromium automation, not physical mobile, touchscreen, keyboard or controller acceptance.",
+    "Tests inspect original files through native file inputs and application handlers. The source ROM and recovered playable adaptation are never executed.",
+    "Save checks use the real explicit browser-download fallback, with native Save As capability disabled for these contexts. System Save As dialogs remain separate acceptance.",
+    "Screenshots need visual review. Map decoding and canonical compilation do not establish original game behavior, full cartridge acceptance, audio or hardware compatibility."
+  ],
+  "reason": "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+  "passed": 0,
+  "failed": 0,
+  "finished": "2026-10-13T02:03:01.138Z"
+}

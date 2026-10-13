@@ -1,7 +1,7 @@
 {
   "suite": "re-runtime-integration",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847",
+  "htmlSha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
   "scope": "Independent original user ROM and Bridge Room CPU/PPU/APU execution; exact runtime trace on/off parity, RAM discovery, native PPU-write reconstruction, MMC3 physical provenance and project/history isolation. VM harness, not browser, audible-output or physical-hardware acceptance.",
   "passed": 11,
   "failed": 0,
@@ -315,57 +315,57 @@
     {
       "name": "All prior picker candidate source bytes survive only the exact audio correction, release tag and two runtime modules",
       "passed": true,
-      "milliseconds": 563
+      "milliseconds": 1152
     },
     {
       "name": "The supplied Pepsi ROM is pinned by exact bytes and runtime identity",
       "passed": true,
-      "milliseconds": 407
+      "milliseconds": 641
     },
     {
       "name": "Pepsi vending trace on/off preserves actual CPU, RAM, mapper, video, APU and PCM execution",
       "passed": true,
-      "milliseconds": 2588
+      "milliseconds": 3722
     },
     {
       "name": "Bridge Room music and movement trace on/off preserves actual CPU, RAM, mapper, video, APU and PCM execution",
       "passed": true,
-      "milliseconds": 2408
+      "milliseconds": 3436
     },
     {
       "name": "Pepsi boot PPU-write reconstruction matches all 1024 native background bytes and all 32 palette bytes",
       "passed": true,
-      "milliseconds": 766
+      "milliseconds": 1154
     },
     {
       "name": "Pepsi Start and A inputs are discoverable as actual state and credit RAM differences with write origins",
       "passed": true,
-      "milliseconds": 1165
+      "milliseconds": 1640
     },
     {
       "name": "Bridge Room produces genuine APU commands and collision-constrained movement while tracing",
       "passed": true,
-      "milliseconds": 5801
+      "milliseconds": 8098
     },
     {
       "name": "MMC3 instruction provenance follows real 8 KiB bank pages at a shared CPU address",
       "passed": true,
-      "milliseconds": 343
+      "milliseconds": 1115
     },
     {
       "name": "Timeline backward and retained forward restoration invalidate observations and RAM snapshot lineage",
       "passed": true,
-      "milliseconds": 1408
+      "milliseconds": 2874
     },
     {
       "name": "Static inspection and runtime evidence never replace the active authored project or undo history",
       "passed": true,
-      "milliseconds": 959
+      "milliseconds": 1435
     },
     {
       "name": "Yielding frame navigation refuses RAM snapshots until a stable paused state is reached",
       "passed": true,
-      "milliseconds": 752
+      "milliseconds": 1092
     }
   ]
 }

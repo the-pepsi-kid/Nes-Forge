@@ -1,7 +1,7 @@
 {
   "suite": "mobile-keyboard200",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847",
+  "htmlSha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
   "scope": "Freshly reconstructed focused suite; complete standalone application and real registered pointer/touch/input/beforeinput/composition/keyboard handlers. Test-local DOM event/focus/task adapter and synthetic AudioContext sink only. No physical phone, native keyboard visibility, browser layout, browser activation or speaker claim.",
   "passed": 24,
   "failed": 0,
@@ -10,122 +10,122 @@
     {
       "name": "Desktop tracker retains piano mapping, navigation, cut, clear and no automatic advance",
       "passed": true,
-      "milliseconds": 562
+      "milliseconds": 867
     },
     {
       "name": "Desktop envelope painting and ordinary text fields keep their original behavior",
       "passed": true,
-      "milliseconds": 381
+      "milliseconds": 800
     },
     {
       "name": "Rejected separate note and envelope forms are absent",
       "passed": true,
-      "milliseconds": 389
+      "milliseconds": 615
     },
     {
       "name": "A stationary touch focuses a real text input synchronously without changing the model",
       "passed": true,
-      "milliseconds": 565
+      "milliseconds": 604
     },
     {
       "name": "Pen and touch-event fallback select the requested cell and request keyboard focus",
       "passed": true,
-      "milliseconds": 818
+      "milliseconds": 1176
     },
     {
       "name": "Scrolling and canceled gestures do not focus or replace an existing keyboard session",
       "passed": true,
-      "milliseconds": 379
+      "milliseconds": 599
     },
     {
       "name": "Multi-touch cancels both pointer and touch-fallback keyboard activation",
       "passed": true,
-      "milliseconds": 1072
+      "milliseconds": 1732
     },
     {
       "name": "Header, outside-grid and other-tab taps leave the keyboard and project inactive",
       "passed": true,
-      "milliseconds": 443
+      "milliseconds": 653
     },
     {
       "name": "Compatibility mouse events cannot steal native focus; later desktop clicks still work",
       "passed": true,
-      "milliseconds": 377
+      "milliseconds": 596
     },
     {
       "name": "Native text input uses all PC piano keys and canonical selected-instrument mutations",
       "passed": true,
-      "milliseconds": 476
+      "milliseconds": 729
     },
     {
       "name": "Android Unidentified and keyCode 229 defer mutation until native input arrives",
       "passed": true,
-      "milliseconds": 382
+      "milliseconds": 607
     },
     {
       "name": "Cancelable deletion applies once across beforeinput and its same-task input echo",
       "passed": true,
-      "milliseconds": 386
+      "milliseconds": 649
     },
     {
       "name": "Noncancelable and input-only deletion fallbacks use the original cut and clear commands",
       "passed": true,
-      "milliseconds": 389
+      "milliseconds": 637
     },
     {
       "name": "Composition is provisional, commits one note at end and suppresses a microtask echo",
       "passed": true,
-      "milliseconds": 817
+      "milliseconds": 1249
     },
     {
       "name": "Explicit trailing composition echoes stay suppressed until a new ordinary edit",
       "passed": true,
-      "milliseconds": 430
+      "milliseconds": 610
     },
     {
       "name": "Composition cannot commit into a different row, channel, order or replacement project",
       "passed": true,
-      "milliseconds": 1604
+      "milliseconds": 2394
     },
     {
       "name": "Native Done commits a single provisional note and dismisses the keyboard",
       "passed": true,
-      "milliseconds": 1522
+      "milliseconds": 2604
     },
     {
       "name": "Escape cancels a composition even when the keyboard marks it as IME keyCode 229",
       "passed": true,
-      "milliseconds": 394
+      "milliseconds": 637
     },
     {
       "name": "Paste, drop, replacement, cut and bulk text never become an unintended note importer",
       "passed": true,
-      "milliseconds": 383
+      "milliseconds": 624
     },
     {
       "name": "Blur, tab change and visibility loss stop native edits and leave other fields isolated",
       "passed": true,
-      "milliseconds": 2360
+      "milliseconds": 4082
     },
     {
       "name": "Project replacement and canonical Undo invalidate a stale native typing session",
       "passed": true,
-      "milliseconds": 818
+      "milliseconds": 1332
     },
     {
       "name": "Ctrl and Command shortcuts invoke real Undo, Redo and protected Save As",
       "passed": true,
-      "milliseconds": 1183
+      "milliseconds": 1820
     },
     {
       "name": "Native history events use canonical history with no duplicate same-task undo",
       "passed": true,
-      "milliseconds": 488
+      "milliseconds": 757
     },
     {
       "name": "Keyboard edits round-trip through project JSON while unsupported DPCM and missing instruments retain guards",
       "passed": true,
-      "milliseconds": 444
+      "milliseconds": 711
     }
   ]
 }

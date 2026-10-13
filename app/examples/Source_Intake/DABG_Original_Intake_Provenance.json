@@ -1,0 +1,213 @@
+{
+  "format": "NESForgeIndependentSourceIntake",
+  "version": 1,
+  "stage": "A2 evidence intake; no app adapter or conversion acceptance",
+  "source": {
+    "name": "Double Action Blaster Guys",
+    "author": "NovaSquirrel",
+    "repository": "https://github.com/NovaSquirrel/DABG",
+    "commit": "5ecc60b6af3f726851bfeb1c2555388c5953e0c0",
+    "commitDate": "2021-04-18T22:38:39Z",
+    "retrievedUtc": "2026-10-11",
+    "archiveUrl": "https://api.github.com/repos/NovaSquirrel/DABG/tarball/5ecc60b6af3f726851bfeb1c2555388c5953e0c0",
+    "archive": {
+      "path": "upstream/DABG-pinned-source.tar.gz",
+      "byteLength": 72769,
+      "sha256": "745613df912935dd2a0ffad403e2065e8b2d52afe5fecbeacd904e6cfb77f81d"
+    },
+    "files": 44,
+    "modified": false,
+    "inventory": "metadata/Source_Files.json",
+    "extractedPath": "source/DABG"
+  },
+  "toolchain": {
+    "repository": "https://github.com/cc65/cc65",
+    "tag": "V2.19",
+    "commit": "555282497c3ecf8b313d87d5973093af19c35bd5",
+    "commitDate": "2020-05-30T19:03:15Z",
+    "archiveUrl": "https://api.github.com/repos/cc65/cc65/tarball/555282497c3ecf8b313d87d5973093af19c35bd5",
+    "archive": {
+      "path": "upstream/cc65-2.19-pinned-source.tar.gz",
+      "byteLength": 2285431,
+      "sha256": "31c969fb9d6727ddf9ba0ec19d0300188bb0c96dd762f3f354b82b1c157febc4"
+    },
+    "ca65Version": "ca65 V2.18 - N/A",
+    "ld65Version": "ld65 V2.18 - N/A",
+    "hostCompiler": "cc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+    "hostMake": "GNU Make 4.3",
+    "build": [
+      "make -j4 ca65 ld65"
+    ],
+    "note": "The upstream V2.19 tag self-reports V2.18 - N/A when built without Git metadata; immutable commit and archive hashes identify the toolchain."
+  },
+  "build": {
+    "commands": [
+      "ca65 dabg.s -o ../build/dabg.o -l ../build/dabg.lst -g",
+      "ld65 -C nrom256.x ../build/dabg.o -o ../build/dabg.nes -m ../build/dabg.map -Ln ../build/dabg.lbl --dbgfile ../build/dabg.dbg"
+    ],
+    "workingDirectory": "unmodified extracted game source",
+    "rom": {
+      "path": "build/dabg.nes",
+      "byteLength": 32784,
+      "sha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca"
+    },
+    "supplemental": [
+      {
+        "path": "build/dabg.map",
+        "byteLength": 913,
+        "sha256": "73aa25d43dc8cc8a8f3ab04a8f272af7bc92cb6e8330719f92b8c69beccca010"
+      },
+      {
+        "path": "build/dabg.lbl",
+        "byteLength": 21042,
+        "sha256": "69a73168c9489a733e3a6deebd1eead129022e46210fd2e2dedacc4dbc92ee7c"
+      },
+      {
+        "path": "build/dabg.dbg",
+        "byteLength": 1056345,
+        "sha256": "d9da1a63a9584cb71d1f2e336540c18c1bfa9e29c81e6615b989707d9d823496"
+      },
+      {
+        "path": "build/dabg.lst",
+        "byteLength": 579778,
+        "sha256": "630a854302bb3222d2625d5e513604fc60fcc8d5e9808ef422a41b4e12af3931"
+      }
+    ],
+    "reproduceCommand": "python3 reproduce.py --work /absolute/path/to/new-empty-directory --jobs 4",
+    "originalBuildScript": "mk.bat",
+    "originalBuildBehavior": "ca65 dabg.s -o dabg.o -l dabg.lst; ld65 -C nrom256.x dabg.o -o dabg.nes",
+    "sourceModified": false,
+    "debugFlagsOnly": "The added -g, -m, -Ln and --dbgfile options generate inspection metadata without changing game source.",
+    "reproductionReceipt": "metadata/Reproduction.json",
+    "secondCleanBuildVerified": true,
+    "originalMkBatOptionsRomVerified": true,
+    "supplementalReproduction": "ROM, labels, map and listing matched between fresh builds. The ca65 debug database includes file timestamps and is supplemental inspection metadata."
+  },
+  "cartridge": {
+    "headerHex": "4e45531a020000080000000700000000",
+    "format": "NES 2.0",
+    "mapper": 0,
+    "submapper": 0,
+    "prgRomBytes": 32768,
+    "chrRomBytes": 0,
+    "chrRamBytes": 8192,
+    "prgRamBytes": 0,
+    "mirroring": "horizontal",
+    "region": "NTSC; source says PAL works without speed adjustment",
+    "trainer": false,
+    "graphics": "PB53 compressed bytes embedded in PRG ROM; original DecompressCHR uploads to CHR RAM."
+  },
+  "sourceFindings": [
+    {
+      "subject": "Level records",
+      "file": "levels.s",
+      "lines": [
+        56,
+        143
+      ],
+      "fact": "LevelParamTable occupies 416 bytes (52 records of 8 bytes); final two bytes are a map pointer; zero selects procedural generation."
+    },
+    {
+      "subject": "Native map command interpreter",
+      "file": "levels.s",
+      "lines": [
+        662,
+        795
+      ],
+      "fact": "DecodeLevelMap reads position/command pairs; singles, horizontal repeats, vertical repeats and rectangle fills write LevelBuf, then a zero command records player spawn and returns."
+    },
+    {
+      "subject": "Collision is independent from graphics",
+      "file": "meta.s",
+      "lines": [
+        181,
+        188
+      ],
+      "fact": "BlockIsSolid indexes MetatileFlags and returns flags & 4; the player calls this for upward and horizontal obstruction."
+    },
+    {
+      "subject": "Landing and platforms",
+      "file": "player.s",
+      "lines": [
+        516,
+        576
+      ],
+      "fact": "Landing separately compares metatile ID against FirstSolidTop (21), plus platform drop-through state; a single binary collision property does not represent every native behavior."
+    },
+    {
+      "subject": "Runtime map transformation",
+      "file": "meta.s",
+      "lines": [
+        352,
+        558
+      ],
+      "fact": "PrettyLevel adds clouds and decorative metatiles; RenderLevelBuf emits tiles and replaces displayed metatiles through MetatileBecomes to canonical runtime types."
+    },
+    {
+      "subject": "Documentation conflict",
+      "file": "levelformat.txt",
+      "lines": [
+        54,
+        62
+      ],
+      "fact": "The prose rectangle subtype description disagrees with actual decoder. Source and ROM use LevelData_MetaList[param], including D0 empty, D1 spikes and D4 solid."
+    },
+    {
+      "subject": "Minimal independent static record",
+      "file": "levels.s",
+      "lines": [
+        496,
+        499
+      ],
+      "fact": "LevelFinal is original bytes e1 2d d4 00: 14 solid cells at row 14 columns 1 through 14, then spawn (4,13)."
+    }
+  ],
+  "symbols": {
+    "LevelParamTable": 48098,
+    "LoadLevelParams": 48514,
+    "DecodeLevelMap": 49450,
+    "LevelFinal": 49123,
+    "BlockIsSolid": 36969,
+    "MetatileFlags": 36933,
+    "MetatileTiledata": 36753,
+    "MetatileBecomes": 36897,
+    "PrettyLevel": 37242,
+    "RenderLevelBuf": 37437,
+    "DecompressCHR": 55900,
+    "LevelBuf": 1792,
+    "LevelConfigBytes": 1248,
+    "LevelMapPointer": 1254,
+    "LevelEditStartX": 1257,
+    "LevelEditStartY": 1258
+  },
+  "licensing": {
+    "classification": "Mixed upstream notices; do not describe the entire input as uniformly zlib/permissive.",
+    "rootNotice": "licenses/DABG-zlib.txt",
+    "gplComponents": [
+      "sound.s",
+      "music.s"
+    ],
+    "gplNotice": "GPL-3.0-or-later; Damian Yerrick 2009-2011",
+    "gplText": {
+      "path": "licenses/GPL-3.0.txt",
+      "byteLength": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    "gplTextUrl": "https://www.gnu.org/licenses/gpl-3.0.txt",
+    "noticePreservingComponents": [
+      "unpb53.s",
+      "unpkb.s",
+      "math.s",
+      "musicseq.h"
+    ],
+    "completeNoticesRetained": "All original source files and notices remain byte-for-byte in the pinned source archive. GPL text is supplied as a companion, without altering upstream source.",
+    "assets": "All 44 original tracked source/assets/build inputs are included; no unrelated ROM download or replacement assets used.",
+    "boundary": "Independent input and source checkpoint only; no original GPL audio code copied into the NES Forge app. This inventory reports upstream notices without determining legal conclusions."
+  },
+  "limitations": [
+    "No claim of in-app native map import, canonical rebuild or movement acceptance.",
+    "Existing A1 parser targets iNES CHR-ROM; this original NES2 CHR-RAM cartridge requires an explicit capability decision, not a silently relaxed parser.",
+    "Native solid, top-support, hazards, cyclic blocks, teleporters, actors, scrolling, random decoration and audio must be represented or disclosed independently.",
+    "Machine-level routine evidence does not equal original game playthrough, physical hardware or independent-emulator acceptance."
+  ]
+}

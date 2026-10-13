@@ -1,0 +1,3614 @@
+{
+  "format": "NESForgeNativeSfxExampleEvidence",
+  "version": 1,
+  "source": {
+    "file": "examples/RE_Native_Audio/HonkeyPong-reproduced.nes",
+    "sha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b"
+  },
+  "effectId": 0,
+  "conversion": {
+    "status": "ready",
+    "method": "famitone2-canonical-sfx-transcription-1",
+    "sourceSha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+    "diagnostics": [],
+    "warnings": [
+      "One canonical row equals one NTSC video frame. Import requires existing tempo 150 and speed 1, and preserves project-wide tempo, speed and music order.",
+      "The effect retains all 12 native frames, including its end-command frame; row 12 cuts the pulse, followed by silent padding.",
+      "This single-channel transcription does not reproduce native SFX/music mixing, gameplay triggers or pulse phase."
+    ],
+    "limitations": [
+      "Editable transcription of one statically discovered single-pulse SFX stream, not lossless native-engine replay. The source ROM is unchanged.",
+      "One canonical row is one NTSC video frame at tempo 150 and speed 1. Import requires that existing project timing; applying preserves project-wide tempo, speed and music order.",
+      "The final native end command still mixes its retained buffer for that frame. The transcription preserves that frame, then places a cut on the following row. The complete effect and cut must fit one pattern.",
+      "Only constant-volume, length-halt pulse controls and proven audible 11-bit timer periods are supported. PAL, other channels, multiple channels and unresolved audible register state are refused.",
+      "The native clear routine initializes pulse control to $30 but retains timer RAM. Unknown timers are retained as unknown while muted and must be initialized before an audible frame.",
+      "Forge uses its existing nearest-note timer table. Each native and canonical timer difference is reported; strict mode refuses inexact timers.",
+      "Each audible frame becomes a canonical note and instrument. Canonical per-row retrigger and pulse high-register writes can change phase from native updates, even when timers match.",
+      "This preserves the isolated audible pulse trajectory, not native SFX/music arbitration, zero-volume register-buffer ties, stream priorities, original gameplay triggers or whole-game output equivalence."
+    ],
+    "imported": {
+      "format": "famitone2-sfx-transcription",
+      "tempo": 150,
+      "speed": 1,
+      "rows": 64,
+      "patterns": [
+        {
+          "rows": [
+            [
+              {
+                "note": 36,
+                "inst": 0,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": 36,
+                "inst": 1,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": 36,
+                "inst": 2,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": 36,
+                "inst": 3,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": 36,
+                "inst": 4,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": 36,
+                "inst": 5,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": 36,
+                "inst": 6,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": 36,
+                "inst": 7,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": 36,
+                "inst": 8,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": 36,
+                "inst": 9,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": 36,
+                "inst": 10,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": 36,
+                "inst": 11,
+                "vol": 15,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -2,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ],
+            [
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              },
+              {
+                "note": -1,
+                "inst": -1,
+                "vol": -1,
+                "fx": 0,
+                "fxp": 0
+              }
+            ]
+          ]
+        }
+      ],
+      "instruments": [
+        {
+          "name": "Native pulse duty 0 volume 15",
+          "volEnv": [
+            15
+          ],
+          "dutyEnv": [
+            0
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        },
+        {
+          "name": "Native pulse duty 0 volume 14",
+          "volEnv": [
+            14
+          ],
+          "dutyEnv": [
+            0
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        },
+        {
+          "name": "Native pulse duty 2 volume 13",
+          "volEnv": [
+            13
+          ],
+          "dutyEnv": [
+            2
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        },
+        {
+          "name": "Native pulse duty 2 volume 12",
+          "volEnv": [
+            12
+          ],
+          "dutyEnv": [
+            2
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        },
+        {
+          "name": "Native pulse duty 2 volume 11",
+          "volEnv": [
+            11
+          ],
+          "dutyEnv": [
+            2
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        },
+        {
+          "name": "Native pulse duty 2 volume 10",
+          "volEnv": [
+            10
+          ],
+          "dutyEnv": [
+            2
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        },
+        {
+          "name": "Native pulse duty 2 volume 9",
+          "volEnv": [
+            9
+          ],
+          "dutyEnv": [
+            2
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        },
+        {
+          "name": "Native pulse duty 2 volume 8",
+          "volEnv": [
+            8
+          ],
+          "dutyEnv": [
+            2
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        },
+        {
+          "name": "Native pulse duty 2 volume 7",
+          "volEnv": [
+            7
+          ],
+          "dutyEnv": [
+            2
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        },
+        {
+          "name": "Native pulse duty 2 volume 6",
+          "volEnv": [
+            6
+          ],
+          "dutyEnv": [
+            2
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        },
+        {
+          "name": "Native pulse duty 2 volume 5",
+          "volEnv": [
+            5
+          ],
+          "dutyEnv": [
+            2
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        },
+        {
+          "name": "Native pulse duty 2 volume 4",
+          "volEnv": [
+            4
+          ],
+          "dutyEnv": [
+            2
+          ],
+          "arpEnv": [
+            0
+          ],
+          "pitchEnv": [
+            0
+          ],
+          "loopVol": 0,
+          "loopArp": 0
+        }
+      ],
+      "sfx": [
+        {
+          "id": "re-sfx-cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b-0",
+          "name": "Native SFX 0 Pulse 1",
+          "channel": 0,
+          "pattern": 0,
+          "startRow": 0,
+          "endRow": 12
+        }
+      ],
+      "durationFrames": 12,
+      "paddingFrames": 52,
+      "noteCount": 12
+    },
+    "provenance": {
+      "method": "famitone2-canonical-sfx-transcription-1",
+      "source": {
+        "sha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+        "byteLength": 24592,
+        "container": "iNES",
+        "mapper": 0,
+        "prgBytes": 16384,
+        "trainerBytes": 0
+      },
+      "decoderMethod": "famitone2-native-nrom-1",
+      "effectId": 0,
+      "region": "NTSC",
+      "mode": "transcription",
+      "channel": 0,
+      "driver": {
+        "address": 52630,
+        "fileOffset": 3494,
+        "length": 1632
+      },
+      "effectSource": {
+        "address": 54426,
+        "fileOffset": 5290,
+        "length": 4,
+        "bytes": [
+          166,
+          212,
+          106,
+          213
+        ]
+      },
+      "callEvidence": [
+        {
+          "address": 51899,
+          "A": 0,
+          "X": 0,
+          "Y": null,
+          "argumentStart": 51895
+        },
+        {
+          "address": 52012,
+          "A": 0,
+          "X": 0,
+          "Y": null,
+          "argumentStart": 52008
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "source": {
+            "address": 54438,
+            "fileOffset": 5302,
+            "length": 2,
+            "bytes": [
+              128,
+              63
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 63
+        },
+        {
+          "frame": 0,
+          "source": {
+            "address": 54440,
+            "fileOffset": 5304,
+            "length": 2,
+            "bytes": [
+              129,
+              86
+            ]
+          },
+          "kind": "register",
+          "register": 16386,
+          "value": 86
+        },
+        {
+          "frame": 0,
+          "source": {
+            "address": 54442,
+            "fileOffset": 5306,
+            "length": 2,
+            "bytes": [
+              130,
+              3
+            ]
+          },
+          "kind": "register",
+          "register": 16387,
+          "value": 3
+        },
+        {
+          "frame": 0,
+          "source": {
+            "address": 54444,
+            "fileOffset": 5308,
+            "length": 1,
+            "bytes": [
+              1
+            ]
+          },
+          "kind": "delay",
+          "frames": 1
+        },
+        {
+          "frame": 1,
+          "source": {
+            "address": 54445,
+            "fileOffset": 5309,
+            "length": 2,
+            "bytes": [
+              128,
+              62
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 62
+        },
+        {
+          "frame": 1,
+          "source": {
+            "address": 54447,
+            "fileOffset": 5311,
+            "length": 1,
+            "bytes": [
+              1
+            ]
+          },
+          "kind": "delay",
+          "frames": 1
+        },
+        {
+          "frame": 2,
+          "source": {
+            "address": 54448,
+            "fileOffset": 5312,
+            "length": 2,
+            "bytes": [
+              128,
+              189
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 189
+        },
+        {
+          "frame": 2,
+          "source": {
+            "address": 54450,
+            "fileOffset": 5314,
+            "length": 1,
+            "bytes": [
+              1
+            ]
+          },
+          "kind": "delay",
+          "frames": 1
+        },
+        {
+          "frame": 3,
+          "source": {
+            "address": 54451,
+            "fileOffset": 5315,
+            "length": 2,
+            "bytes": [
+              128,
+              188
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 188
+        },
+        {
+          "frame": 3,
+          "source": {
+            "address": 54453,
+            "fileOffset": 5317,
+            "length": 1,
+            "bytes": [
+              1
+            ]
+          },
+          "kind": "delay",
+          "frames": 1
+        },
+        {
+          "frame": 4,
+          "source": {
+            "address": 54454,
+            "fileOffset": 5318,
+            "length": 2,
+            "bytes": [
+              128,
+              187
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 187
+        },
+        {
+          "frame": 4,
+          "source": {
+            "address": 54456,
+            "fileOffset": 5320,
+            "length": 1,
+            "bytes": [
+              1
+            ]
+          },
+          "kind": "delay",
+          "frames": 1
+        },
+        {
+          "frame": 5,
+          "source": {
+            "address": 54457,
+            "fileOffset": 5321,
+            "length": 2,
+            "bytes": [
+              128,
+              186
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 186
+        },
+        {
+          "frame": 5,
+          "source": {
+            "address": 54459,
+            "fileOffset": 5323,
+            "length": 1,
+            "bytes": [
+              1
+            ]
+          },
+          "kind": "delay",
+          "frames": 1
+        },
+        {
+          "frame": 6,
+          "source": {
+            "address": 54460,
+            "fileOffset": 5324,
+            "length": 2,
+            "bytes": [
+              128,
+              185
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 185
+        },
+        {
+          "frame": 6,
+          "source": {
+            "address": 54462,
+            "fileOffset": 5326,
+            "length": 1,
+            "bytes": [
+              1
+            ]
+          },
+          "kind": "delay",
+          "frames": 1
+        },
+        {
+          "frame": 7,
+          "source": {
+            "address": 54463,
+            "fileOffset": 5327,
+            "length": 2,
+            "bytes": [
+              128,
+              184
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 184
+        },
+        {
+          "frame": 7,
+          "source": {
+            "address": 54465,
+            "fileOffset": 5329,
+            "length": 1,
+            "bytes": [
+              1
+            ]
+          },
+          "kind": "delay",
+          "frames": 1
+        },
+        {
+          "frame": 8,
+          "source": {
+            "address": 54466,
+            "fileOffset": 5330,
+            "length": 2,
+            "bytes": [
+              128,
+              183
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 183
+        },
+        {
+          "frame": 8,
+          "source": {
+            "address": 54468,
+            "fileOffset": 5332,
+            "length": 1,
+            "bytes": [
+              1
+            ]
+          },
+          "kind": "delay",
+          "frames": 1
+        },
+        {
+          "frame": 9,
+          "source": {
+            "address": 54469,
+            "fileOffset": 5333,
+            "length": 2,
+            "bytes": [
+              128,
+              182
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 182
+        },
+        {
+          "frame": 9,
+          "source": {
+            "address": 54471,
+            "fileOffset": 5335,
+            "length": 1,
+            "bytes": [
+              1
+            ]
+          },
+          "kind": "delay",
+          "frames": 1
+        },
+        {
+          "frame": 10,
+          "source": {
+            "address": 54472,
+            "fileOffset": 5336,
+            "length": 2,
+            "bytes": [
+              128,
+              181
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 181
+        },
+        {
+          "frame": 10,
+          "source": {
+            "address": 54474,
+            "fileOffset": 5338,
+            "length": 1,
+            "bytes": [
+              1
+            ]
+          },
+          "kind": "delay",
+          "frames": 1
+        },
+        {
+          "frame": 11,
+          "source": {
+            "address": 54475,
+            "fileOffset": 5339,
+            "length": 2,
+            "bytes": [
+              128,
+              180
+            ]
+          },
+          "kind": "register",
+          "register": 16384,
+          "value": 180
+        },
+        {
+          "frame": 11,
+          "source": {
+            "address": 54477,
+            "fileOffset": 5341,
+            "length": 1,
+            "bytes": [
+              0
+            ]
+          },
+          "kind": "end",
+          "mixesRetainedBufferThisFrame": true
+        }
+      ],
+      "frameStates": [
+        {
+          "frame": 0,
+          "channel": 0,
+          "registers": {
+            "control": 63,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 15,
+          "duty": 0,
+          "period": 854,
+          "note": 36,
+          "inst": 0,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": false,
+          "sourceEvents": [
+            {
+              "address": 54438,
+              "fileOffset": 5302,
+              "length": 2,
+              "bytes": [
+                128,
+                63
+              ]
+            },
+            {
+              "address": 54440,
+              "fileOffset": 5304,
+              "length": 2,
+              "bytes": [
+                129,
+                86
+              ]
+            },
+            {
+              "address": 54442,
+              "fileOffset": 5306,
+              "length": 2,
+              "bytes": [
+                130,
+                3
+              ]
+            },
+            {
+              "address": 54444,
+              "fileOffset": 5308,
+              "length": 1,
+              "bytes": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 1,
+          "channel": 0,
+          "registers": {
+            "control": 62,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 14,
+          "duty": 0,
+          "period": 854,
+          "note": 36,
+          "inst": 1,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": false,
+          "sourceEvents": [
+            {
+              "address": 54445,
+              "fileOffset": 5309,
+              "length": 2,
+              "bytes": [
+                128,
+                62
+              ]
+            },
+            {
+              "address": 54447,
+              "fileOffset": 5311,
+              "length": 1,
+              "bytes": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 2,
+          "channel": 0,
+          "registers": {
+            "control": 189,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 13,
+          "duty": 2,
+          "period": 854,
+          "note": 36,
+          "inst": 2,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": false,
+          "sourceEvents": [
+            {
+              "address": 54448,
+              "fileOffset": 5312,
+              "length": 2,
+              "bytes": [
+                128,
+                189
+              ]
+            },
+            {
+              "address": 54450,
+              "fileOffset": 5314,
+              "length": 1,
+              "bytes": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 3,
+          "channel": 0,
+          "registers": {
+            "control": 188,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 12,
+          "duty": 2,
+          "period": 854,
+          "note": 36,
+          "inst": 3,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": false,
+          "sourceEvents": [
+            {
+              "address": 54451,
+              "fileOffset": 5315,
+              "length": 2,
+              "bytes": [
+                128,
+                188
+              ]
+            },
+            {
+              "address": 54453,
+              "fileOffset": 5317,
+              "length": 1,
+              "bytes": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 4,
+          "channel": 0,
+          "registers": {
+            "control": 187,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 11,
+          "duty": 2,
+          "period": 854,
+          "note": 36,
+          "inst": 4,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": false,
+          "sourceEvents": [
+            {
+              "address": 54454,
+              "fileOffset": 5318,
+              "length": 2,
+              "bytes": [
+                128,
+                187
+              ]
+            },
+            {
+              "address": 54456,
+              "fileOffset": 5320,
+              "length": 1,
+              "bytes": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 5,
+          "channel": 0,
+          "registers": {
+            "control": 186,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 10,
+          "duty": 2,
+          "period": 854,
+          "note": 36,
+          "inst": 5,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": false,
+          "sourceEvents": [
+            {
+              "address": 54457,
+              "fileOffset": 5321,
+              "length": 2,
+              "bytes": [
+                128,
+                186
+              ]
+            },
+            {
+              "address": 54459,
+              "fileOffset": 5323,
+              "length": 1,
+              "bytes": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 6,
+          "channel": 0,
+          "registers": {
+            "control": 185,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 9,
+          "duty": 2,
+          "period": 854,
+          "note": 36,
+          "inst": 6,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": false,
+          "sourceEvents": [
+            {
+              "address": 54460,
+              "fileOffset": 5324,
+              "length": 2,
+              "bytes": [
+                128,
+                185
+              ]
+            },
+            {
+              "address": 54462,
+              "fileOffset": 5326,
+              "length": 1,
+              "bytes": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 7,
+          "channel": 0,
+          "registers": {
+            "control": 184,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 8,
+          "duty": 2,
+          "period": 854,
+          "note": 36,
+          "inst": 7,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": false,
+          "sourceEvents": [
+            {
+              "address": 54463,
+              "fileOffset": 5327,
+              "length": 2,
+              "bytes": [
+                128,
+                184
+              ]
+            },
+            {
+              "address": 54465,
+              "fileOffset": 5329,
+              "length": 1,
+              "bytes": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 8,
+          "channel": 0,
+          "registers": {
+            "control": 183,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 7,
+          "duty": 2,
+          "period": 854,
+          "note": 36,
+          "inst": 8,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": false,
+          "sourceEvents": [
+            {
+              "address": 54466,
+              "fileOffset": 5330,
+              "length": 2,
+              "bytes": [
+                128,
+                183
+              ]
+            },
+            {
+              "address": 54468,
+              "fileOffset": 5332,
+              "length": 1,
+              "bytes": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 9,
+          "channel": 0,
+          "registers": {
+            "control": 182,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 6,
+          "duty": 2,
+          "period": 854,
+          "note": 36,
+          "inst": 9,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": false,
+          "sourceEvents": [
+            {
+              "address": 54469,
+              "fileOffset": 5333,
+              "length": 2,
+              "bytes": [
+                128,
+                182
+              ]
+            },
+            {
+              "address": 54471,
+              "fileOffset": 5335,
+              "length": 1,
+              "bytes": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 10,
+          "channel": 0,
+          "registers": {
+            "control": 181,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 5,
+          "duty": 2,
+          "period": 854,
+          "note": 36,
+          "inst": 10,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": false,
+          "sourceEvents": [
+            {
+              "address": 54472,
+              "fileOffset": 5336,
+              "length": 2,
+              "bytes": [
+                128,
+                181
+              ]
+            },
+            {
+              "address": 54474,
+              "fileOffset": 5338,
+              "length": 1,
+              "bytes": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "frame": 11,
+          "channel": 0,
+          "registers": {
+            "control": 180,
+            "low": 86,
+            "high": 3
+          },
+          "known": {
+            "control": true,
+            "low": true,
+            "high": true
+          },
+          "volume": 4,
+          "duty": 2,
+          "period": 854,
+          "note": 36,
+          "inst": 11,
+          "canonicalPeriod": 854,
+          "cents": 0,
+          "audible": true,
+          "endFrame": true,
+          "sourceEvents": [
+            {
+              "address": 54475,
+              "fileOffset": 5339,
+              "length": 2,
+              "bytes": [
+                128,
+                180
+              ]
+            },
+            {
+              "address": 54477,
+              "fileOffset": 5341,
+              "length": 1,
+              "bytes": [
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "tuning": [
+        {
+          "channel": 0,
+          "period": 854,
+          "note": 36,
+          "canonicalPeriod": 854,
+          "cents": 0
+        }
+      ],
+      "sourceStream": {
+        "address": 54438,
+        "byteLength": 40,
+        "registers": [
+          16384,
+          16386,
+          16387
+        ],
+        "endFrame": 11
+      },
+      "initialState": {
+        "control": 48,
+        "low": null,
+        "high": null,
+        "reason": "The proven native SFX clear routine mutes pulse control; timer buffer bytes retain unknown prior RAM."
+      },
+      "durationFrames": 12,
+      "paddingFrames": 52,
+      "terminalCut": {
+        "frame": 12,
+        "channel": 0,
+        "note": -2
+      },
+      "fidelity": {
+        "timing": "one native update per NTSC frame, including retained end-frame buffer",
+        "volume": "constant-volume pulse register nibbles retained per frame",
+        "duty": "native duty retained per frame",
+        "tuning": "matching-effective-timers",
+        "changedPitchMappings": 0,
+        "maxAbsoluteCents": 0,
+        "phase": "canonical per-row retrigger differs from native register writes",
+        "mixing": "native SFX/music arbitration not transcribed",
+        "ending": "retained native end frame followed by canonical cut",
+        "gameplayTriggers": "not recovered"
+      }
+    }
+  },
+  "authoredAdaptation": "Separate Scout World project, tempo150/speed1, music disabled, B/attack binding added after import."
+}

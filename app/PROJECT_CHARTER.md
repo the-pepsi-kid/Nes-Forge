@@ -1,3 +1,15 @@
+# Current continuation — D067 Source Intake Diagnostics
+
+The owner's continuing roadmap direction authorizes the next bounded supplied-source intake item after native SFX recovery. Make imported source easier to assess while preserving framework ownership and compatibility. Candidate alpha.11 / source-intake-1 retains schema 12, the five-template limit and existing runtime behavior.
+
+Deliver explicit dialect and engine declarations with bounded read-only dependency/syntax diagnostics through SourceWorkspace. Hash current/original files, identify dependency locations and incomplete/uncertain evidence, and export a separate report. SourceIntake is a diagnostic helper, not a source execution, translation or migration engine. Preserve existing workspace data and builds; only explicit foreign dialect selection prevents the UI from invoking the Forge assembler.
+
+Retain all 1,769 predecessor cases across 89 suites and add four dedicated analysis/UI/corpus/preservation suites. Actual current verification requires matching fresh records from an unchanged clean extraction. A passing automated gate is separate from owner/browser/listening/device acceptance and does not complete the roadmap.
+
+## Preserved previous record
+
+---
+
 # Current continuation — D066 Native SFX Recovery
 
 The owner's continuing roadmap direction authorizes the next bounded native SFX recovery item after the map candidate. Deliver useful canonical Audio effects through the established framework while preserving compatibility. Candidate alpha.11 / native-sfx-1 retains schema 12, the five-template limit and existing runtime behavior.

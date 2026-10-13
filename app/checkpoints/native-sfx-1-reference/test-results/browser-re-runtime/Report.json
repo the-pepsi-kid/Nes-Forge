@@ -1,0 +1,26 @@
+{
+  "format": "NESForgeRERuntimeBrowserQA",
+  "version": 1,
+  "started": "2026-10-12T06:49:12.545Z",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "sha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847",
+  "rom": {
+    "name": "pepsi_vending_v9e.nes",
+    "sha256": "8fb961353e9f626bcc62b85896550ec0108addff1fb82eaf7df7aafbf9b6462a"
+  },
+  "status": "blocked",
+  "browser": null,
+  "checks": [],
+  "screenshots": [],
+  "pageErrors": [],
+  "limitations": [
+    "Chromium viewport emulation is not a physical Android or iPhone test.",
+    "The owner-supplied Pepsi fixture exercises runtime observation and RAM comparison, not universal semantic recovery.",
+    "Observed PPU and APU data do not establish complete scenes, collision systems or editable music.",
+    "Download fallback is exercised; the native operating-system save picker, audio listening and owner acceptance remain separate."
+  ],
+  "blockedReason": "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
+  "finished": "2026-10-12T06:49:12.858Z",
+  "passed": 0,
+  "failed": 0
+}

@@ -1,3 +1,17 @@
+## October 12, 2026 — source intake diagnostics candidate
+
+Current implementation: **2.0.0-alpha.11 / source-intake-1**, schema 12. Source Workspace now provides explicit, read-only intake reports for supplied assembly trees. Reports preserve declared dialect/engine/version separately from the workspace build profile, identify current and original bytes, list literal include/binary dependencies with file/line evidence, and expose unsupported or uncertain constructs. The complete pinned DABG ca65 input and existing Forge multi-file example provide independent foreign and supported controls.
+
+`SourceWorkspace` remains the owner of file validation, paths, preserved originals, editing, preprocessing and builds. Its new analysis facade delegates bounded inspection to `SourceIntake`; the existing CODE panel owns declarations, explicit analysis, cancellation and report download. Workspace v1 and project schema 12 remain unchanged. Reports do not execute scripts, expand foreign macros, resolve linker allocation, translate source or insert gameplay hooks. Unsupported source declarations remain ineligible for the UI build action; new workspaces reset declarations, preserving the existing default build workflow.
+
+Retain all **1,769 parent cases across 89 suites** and append four intake suites: **93 mandatory suites**, plus 15 declared browser supplements. Current measured outcomes require matching `test-results/candidate/Summary.json` and `checkpoints/source-intake-1-clean-extraction/Reproduction.json`. Before those records agree, verification is pending. Existing six example families must regenerate with identical projects, recipes and ROMs; HTML identity receipts are the only permitted changes. See `docs/SOURCE_INTAKE.md`, its checklist and `examples/Source_Intake/` within the application package.
+
+Next coding dependency: select one bounded source routine and document its integration hook, ABI, registers/flags, RAM/zero-page ownership, placement and timing budget before implementation and independent runtime verification. This diagnostic slice does not establish executable foreign-engine migration. Representative NESmaker source plus engine/module version and dependencies are still needed for that specific claim. Retain remaining Audio fidelity/formats, browser/listening/device acceptance, linker/runtime/raster/LiveLink/debugging and comprehensive manual work before integrated Hosted/network/wallet/deck milestones. The full roadmap remains unfinished.
+
+Earlier entries retain their historical scope.
+
+---
+
 ## October 12, 2026 — native SFX recovery candidate
 
 Current implementation: **2.0.0-alpha.11 / native-sfx-1**, schema 12. The existing structural FamiTone2 profile now offers explicit single-pulse SFX transcription as well as its retained music workflow. The independent HonkeyPong input provides two supported effects and a multichannel refusal case. Conversion follows native register data and preserves the final mixed frame; nearest-pitch, retrigger and mixing differences remain explicit.

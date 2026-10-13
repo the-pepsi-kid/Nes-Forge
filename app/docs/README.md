@@ -1,3 +1,5 @@
+Source intake guide: `SOURCE_INTAKE.md`; owner review: `SOURCE_INTAKE_CHECKLIST.txt`. Current candidate: **source-intake-1**.
+
 Native SFX guide: `NATIVE_SFX_IMPORT.md`; owner review: `NATIVE_SFX_IMPORT_CHECKLIST.txt`.
 
 Native map/collision guide: `NATIVE_MAP_RECOVERY.md`; owner/browser checks: `NATIVE_MAP_RECOVERY_CHECKLIST.txt`. The source-backed finite subset reuses existing framework owners.

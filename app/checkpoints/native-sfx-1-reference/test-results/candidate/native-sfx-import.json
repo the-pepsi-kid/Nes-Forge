@@ -1,0 +1,119 @@
+{
+  "suite": "native-sfx-import",
+  "htmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847",
+  "fixtureSha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+  "scope": "Actual bundled pure single-pulse FamiTone2 SFX transcription and existing REMethods conversion branch, independent native records, retained terminal frame, exact source spans, timing/tuning/control bounds and nonmutation. No native mixing, pulse-phase, listening or whole-game equivalence claim.",
+  "passed": 27,
+  "total": 27,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Independent effects 0 and 1 become detached canonical single-pulse SFX with exact source identities",
+      "passed": true
+    },
+    {
+      "name": "Every original frame retains actual control duty and volume instead of inferring a generic envelope",
+      "passed": true
+    },
+    {
+      "name": "The native retained end frame sounds before the following canonical cut and silent padding",
+      "passed": true
+    },
+    {
+      "name": "Original timers match existing canonical note tables and strict mode accepts only that measured claim",
+      "passed": true
+    },
+    {
+      "name": "Raw command, pointer and frame-source spans retain exact source bytes and bounded physical provenance",
+      "passed": true
+    },
+    {
+      "name": "Relocated and NROM32 native sources preserve canonical audio without a ROM name or hash allowlist",
+      "passed": true
+    },
+    {
+      "name": "Trainer offset and relocated native stream references change provenance without changing SFX values",
+      "passed": true
+    },
+    {
+      "name": "Pulse 2 register streams retain channel identity and leave pulse 1 untouched",
+      "passed": true
+    },
+    {
+      "name": "Delay edits retain every held video frame and final end-frame mix without time quantization",
+      "passed": true
+    },
+    {
+      "name": "Valid native duty, volume and timer edits change detached notes and report nearest tuning differences",
+      "passed": true
+    },
+    {
+      "name": "Native clear-state mute allows unknown timers until explicit low and high writes precede audibility",
+      "passed": true
+    },
+    {
+      "name": "A native zero-volume interval cuts the canonical channel and later initialization can restart it",
+      "passed": true
+    },
+    {
+      "name": "Missing audible timer initialization is refused instead of inheriting unknown native RAM",
+      "passed": true
+    },
+    {
+      "name": "Unsupported pulse envelope, length and timer control bits are explicit representability refusals",
+      "passed": true
+    },
+    {
+      "name": "Multichannel original SFX and triangle or noise stream edits refuse without discarding a channel",
+      "passed": true
+    },
+    {
+      "name": "Only statically known effect IDs are selectable and entirely muted effects do not invent notes",
+      "passed": true
+    },
+    {
+      "name": "Pattern limits reserve a real terminal-cut row, including the 128-row maximum",
+      "passed": true
+    },
+    {
+      "name": "Undeclared options, noninteger sizes, PAL and unsupported modes are refused atomically",
+      "passed": true
+    },
+    {
+      "name": "Expected physical identity catches stale inputs while valid unrelated source edits require redecoding",
+      "passed": true
+    },
+    {
+      "name": "Unknown drivers, malformed streams and oversized input never return partial canonical content",
+      "passed": true
+    },
+    {
+      "name": "Single-frame command order uses final register values and retains a native terminal frame",
+      "passed": true
+    },
+    {
+      "name": "Result and input ownership stay detached and CommonJS matches the actual browser implementation",
+      "passed": true
+    },
+    {
+      "name": "Canonical AudioCompiler accepts the ordinary pattern-backed SFX and unchanged timer helper",
+      "passed": true
+    },
+    {
+      "name": "Disclosure separates audible timing from native mixing, phase, unknown muted timers and triggers",
+      "passed": true
+    },
+    {
+      "name": "Existing registry routes SFX through one profile with bounded source evidence and no active mutation",
+      "passed": true
+    },
+    {
+      "name": "Registry SFX refusal preserves unsupported semantics, stale identity and option validation",
+      "passed": true
+    },
+    {
+      "name": "Registry cancellation, work limits and result bounds preserve SFX source and application state",
+      "passed": true
+    }
+  ]
+}

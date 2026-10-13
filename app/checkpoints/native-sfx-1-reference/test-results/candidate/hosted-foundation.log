@@ -1,0 +1,202 @@
+{
+  "suite": "hosted-foundation",
+  "profile": "forge-hosted-local-v1",
+  "scope": "local HTTP/domain/durability; no browser rendering, cartridge bridge or public deployment acceptance",
+  "startedAt": "2026-10-12T07:04:16.287Z",
+  "finishedAt": "2026-10-12T07:04:16.796Z",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "inputs": [
+    {
+      "path": "domain.cjs",
+      "bytes": 16862,
+      "sha256": "d89c3992d1c18574ecbfcd15b564a43418a7b29c1142811739ae0f3c5dbe1fc9"
+    },
+    {
+      "path": "manage.cjs",
+      "bytes": 1663,
+      "sha256": "7a08ba1e52af131f1d1badda66a5f4bfde7dedfc32b62fbb4e9f5871329f301a"
+    },
+    {
+      "path": "package.json",
+      "bytes": 306,
+      "sha256": "a27fef683232a2d758ddd885cf08a4d77528a585cbb18c376ac4898076f02498"
+    },
+    {
+      "path": "public/demo.js",
+      "bytes": 6339,
+      "sha256": "940f0ff338eed2bc715f08939b4d85e1cf00ebea0ac5800292d84dc954e503fd"
+    },
+    {
+      "path": "public/index.html",
+      "bytes": 3043,
+      "sha256": "2e8a9d9a0854ba158cf652b2ef994e18fc6fe3fb9657e900f33782481e244c54"
+    },
+    {
+      "path": "public/style.css",
+      "bytes": 1550,
+      "sha256": "72b3da927ea4044c38dd9fd4dbc7a2df79ae1c8802ed8f53f1e8643f59e58a8c"
+    },
+    {
+      "path": "README.md",
+      "bytes": 11196,
+      "sha256": "0067c286f903e78ecbff3886525a56022eca9d7b3c5c27834b662ca29c8eb83d"
+    },
+    {
+      "path": "server.cjs",
+      "bytes": 5819,
+      "sha256": "cd4750984ad703d01830ac3141f3a1927513ed208fc263b6cdbd0f787e3811a7"
+    },
+    {
+      "path": "service.cjs",
+      "bytes": 3478,
+      "sha256": "005987c208f19dbeb93dfb5edcf3c08cd087d6e10eac0b83b58b3f33782ee677"
+    },
+    {
+      "path": "store.cjs",
+      "bytes": 5737,
+      "sha256": "852139707a4c4105a0d8403fd9abc82d111cb40f1f70cdccc71e6d467ae1b44d"
+    },
+    {
+      "path": "test.cjs",
+      "bytes": 24696,
+      "sha256": "6fd08e9b4bb7a6c26c6f080a8045c0172b02023cb147c2717bbe3717c036165d"
+    }
+  ],
+  "total": 32,
+  "passed": 32,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Loopback service advertises only the implemented ordinary-item profile",
+      "passed": true
+    },
+    {
+      "name": "HTTP demo is served with restrictive browser-origin and script policies",
+      "passed": true
+    },
+    {
+      "name": "Cross-origin browser calls and hostile Host headers are refused",
+      "passed": true
+    },
+    {
+      "name": "Malformed transport payloads and oversized JSON cannot mutate the World",
+      "passed": true
+    },
+    {
+      "name": "Session tokens are generated, hashed at rest, and authorize only their own player",
+      "passed": true
+    },
+    {
+      "name": "Join validation rejects injected player identity and invalid names",
+      "passed": true
+    },
+    {
+      "name": "Two simultaneous clients produce exactly one accepted pickup",
+      "passed": true
+    },
+    {
+      "name": "Identical request retries return the original durable receipt with no new mutation",
+      "passed": true
+    },
+    {
+      "name": "Request IDs cannot be reused for changed payloads or changed revisions",
+      "passed": true
+    },
+    {
+      "name": "Stale rejected receipts remain rejected after later World changes",
+      "passed": true
+    },
+    {
+      "name": "Intents reject unknown versions, extra fields, invented outcomes and owner spoofing",
+      "passed": true
+    },
+    {
+      "name": "Movement is one cardinal tile and rejects boundaries and diagonal/teleport requests",
+      "passed": true
+    },
+    {
+      "name": "Pickup and transfer enforce authoritative range and ownership",
+      "passed": true
+    },
+    {
+      "name": "Earn, equip, trade, store and retrieve preserve one stable item instance",
+      "passed": true
+    },
+    {
+      "name": "Gathering issues one server-defined claim and cannot be farmed by retry or new request IDs",
+      "passed": true
+    },
+    {
+      "name": "Consumption heals only the authoritative player and tombstones the item",
+      "passed": true
+    },
+    {
+      "name": "Vendor and recipe use the same issuance rules and atomically consume inputs",
+      "passed": true
+    },
+    {
+      "name": "Drop then pickup retains issuer, claim, quantity and item identity",
+      "passed": true
+    },
+    {
+      "name": "Projection enforces 12 actor slots and exactly 64 persistent bytes without losing server records",
+      "passed": true
+    },
+    {
+      "name": "Profile capacities refuse issuance instead of evicting identity or receipts",
+      "passed": true
+    },
+    {
+      "name": "Unknown issuers are rejected even when a voucher is correctly signed",
+      "passed": true
+    },
+    {
+      "name": "Explicit issuer/version mapping accepts a signed destination-bound voucher once",
+      "passed": true
+    },
+    {
+      "name": "Voucher tampering, wrong destination and unmapped versions are rejected",
+      "passed": true
+    },
+    {
+      "name": "Colon-containing issuer, source and claim IDs preserve separate signed identities",
+      "passed": true
+    },
+    {
+      "name": "Second local process cannot concurrently open the same data directory",
+      "passed": true
+    },
+    {
+      "name": "Restart preserves sessions, inventory, World revision and retry receipts",
+      "passed": true
+    },
+    {
+      "name": "Checksum corruption fails closed and never replaces the previous World",
+      "passed": true
+    },
+    {
+      "name": "A failed snapshot write is not acknowledged and blocks further actions until restart",
+      "passed": true
+    },
+    {
+      "name": "A directory fsync failure after rename recovers exactly one receipt on retry after restart",
+      "passed": true
+    },
+    {
+      "name": "Receipt capacity never evicts an earlier replay-protection record",
+      "passed": true
+    },
+    {
+      "name": "Offline backup validates and restores to a new directory with the same accepted outcome",
+      "passed": true
+    },
+    {
+      "name": "Accepted HTTP outcomes survive a killed process and automatic dead-PID lock recovery",
+      "passed": true
+    }
+  ]
+}

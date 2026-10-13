@@ -1,0 +1,170 @@
+{
+  "format": "NESForgeSourceIntakeReport",
+  "version": 1,
+  "method": "source-intake-1",
+  "declared": {
+    "dialect": "forge-6502-v1",
+    "engine": "NES Forge workspace example",
+    "engineVersion": ""
+  },
+  "workspace": {
+    "format": "NESForgeSourceWorkspace",
+    "version": 1,
+    "dialect": "forge-6502-v1",
+    "entry": "main.asm",
+    "build": {
+      "prgBytes": 16384,
+      "mirroring": "horizontal",
+      "chrPath": null
+    }
+  },
+  "sourceIdentity": {
+    "algorithm": "SHA-256",
+    "encoding": "UTF-8 JSON.stringify({workspace,files:[{path,sha256}]}); files sorted by normalized case-sensitive path; workspace is the report workspace object",
+    "currentSha256": "428c31b3d33746bdcf7288d383ca4722142d20677d9570bac7a386a72e0f2970",
+    "originalSha256": "428c31b3d33746bdcf7288d383ca4722142d20677d9570bac7a386a72e0f2970"
+  },
+  "files": [
+    {
+      "path": "assets/message.bin",
+      "currentBytes": 6,
+      "originalBytes": 6,
+      "currentSha256": "4f0619407722986d72e2b46b2c27aa243f1375db0d864e874db844836029299e",
+      "originalSha256": "4f0619407722986d72e2b46b2c27aa243f1375db0d864e874db844836029299e",
+      "kind": "binary",
+      "kindBasis": "filename-hint",
+      "scanned": false,
+      "scanComplete": false,
+      "reachability": "reachable"
+    },
+    {
+      "path": "main.asm",
+      "currentBytes": 170,
+      "originalBytes": 170,
+      "currentSha256": "2e1a6b1d13666948615a242555e3a2f734a57c137dde5355942e01aa0158dca9",
+      "originalSha256": "2e1a6b1d13666948615a242555e3a2f734a57c137dde5355942e01aa0158dca9",
+      "kind": "assembly",
+      "kindBasis": "assembly-role-valid-text",
+      "scanned": true,
+      "scanComplete": true,
+      "reachability": "entry"
+    },
+    {
+      "path": "src/boot.asm",
+      "currentBytes": 183,
+      "originalBytes": 183,
+      "currentSha256": "5ce5c67ba9a1e7fc8d40cad3a3413c8be1df7f267cb6cd8475e40145860b1dc6",
+      "originalSha256": "5ce5c67ba9a1e7fc8d40cad3a3413c8be1df7f267cb6cd8475e40145860b1dc6",
+      "kind": "assembly",
+      "kindBasis": "assembly-role-valid-text",
+      "scanned": true,
+      "scanComplete": true,
+      "reachability": "reachable"
+    },
+    {
+      "path": "src/constants.inc",
+      "currentBytes": 32,
+      "originalBytes": 32,
+      "currentSha256": "3d8a180980142437c966bfbcc0e236e76ed249509bb58ffedcac715c60a639b6",
+      "originalSha256": "3d8a180980142437c966bfbcc0e236e76ed249509bb58ffedcac715c60a639b6",
+      "kind": "assembly",
+      "kindBasis": "assembly-role-valid-text",
+      "scanned": true,
+      "scanComplete": true,
+      "reachability": "reachable"
+    }
+  ],
+  "dependencies": [
+    {
+      "from": "main.asm",
+      "line": 2,
+      "kind": "include",
+      "literal": "src/constants.inc",
+      "path": "src/constants.inc",
+      "status": "present",
+      "uncertain": false,
+      "context": {
+        "conditional": false,
+        "macro": false,
+        "repetition": false
+      },
+      "reachability": "reachable"
+    },
+    {
+      "from": "main.asm",
+      "line": 4,
+      "kind": "include",
+      "literal": "src/boot.asm",
+      "path": "src/boot.asm",
+      "status": "present",
+      "uncertain": false,
+      "context": {
+        "conditional": false,
+        "macro": false,
+        "repetition": false
+      },
+      "reachability": "reachable"
+    },
+    {
+      "from": "main.asm",
+      "line": 6,
+      "kind": "incbin",
+      "literal": "assets/message.bin",
+      "path": "assets/message.bin",
+      "status": "present",
+      "uncertain": false,
+      "context": {
+        "conditional": false,
+        "macro": false,
+        "repetition": false
+      },
+      "reachability": "reachable"
+    }
+  ],
+  "diagnostics": [],
+  "assessment": {
+    "scope": "syntactic-only",
+    "status": "no-known-blockers",
+    "buildVerified": false,
+    "sourceExecuted": false,
+    "sourceTranslated": false
+  },
+  "coverage": {
+    "inventoryFiles": 4,
+    "assemblyFiles": 3,
+    "scannedLines": 32,
+    "dependencyEdges": 3,
+    "entry": "main.asm",
+    "complete": true
+  },
+  "resolution": {
+    "profile": "workspace-relative-case-sensitive",
+    "base": "Each literal path resolves relative to its containing file within this workspace.",
+    "foreignSearchPathsEvaluated": false,
+    "conditionalExpansionEvaluated": false,
+    "macroExpansionEvaluated": false,
+    "repetitionExpansionEvaluated": false,
+    "linkerConfigurationEvaluated": false
+  },
+  "limits": {
+    "files": 256,
+    "fileBytes": 1048576,
+    "totalBytes": 4194304,
+    "expandedBytes": 1048576,
+    "expandedLines": 65536,
+    "includeDepth": 32,
+    "includeVisits": 512,
+    "lines": 65536,
+    "lineCharacters": 8192,
+    "dependencies": 4096,
+    "diagnostics": 1024,
+    "graphSteps": 16384
+  },
+  "truncated": false,
+  "limitations": [
+    "File inventory and lexical dependencies do not establish a complete build graph. The selected entry is declared, not inferred from build scripts.",
+    "Conditional branches, macro and repetition expansion, external search paths, generated files, linker configuration and host scripts are not executed or interpreted.",
+    "Symbol resolution, addressing modes, expression ranges, layout, vectors and output correctness require a separate existing Forge source build; this report does not verify them.",
+    "Foreign dialect declarations are metadata and are not translated into Forge syntax. No generated-gameplay or Audio Runtime integration is performed."
+  ]
+}

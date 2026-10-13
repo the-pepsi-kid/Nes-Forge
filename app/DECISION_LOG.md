@@ -1,3 +1,19 @@
+# D067 — Bounded supplied-source intake diagnostics
+
+October 13, 2026 UTC. Authority: the owner's continuing roadmap direction advances the next finite source-workspace item after native-sfx-1. Candidate **alpha.11 / source-intake-1** retains schema 12, five templates, 12 actor slots, 64 persistent bytes, Door Option B and existing runtime emitters.
+
+Inspect supplied source before selecting a future migration adapter. Add explicit dialect/engine/version declarations and read-only bounded dependency/syntax diagnostics through the existing SourceWorkspace owner. Record current/original file identity, dependency locations, missing or unsafe targets, cycles, unsupported or uncertain constructs and any truncation. Static analysis does not execute, assemble or translate source and does not certify build compatibility.
+
+Keep reports as separate `NESForgeSourceIntakeReport` version 1 exports. Preserve Source Workspace version 1 and existing create/preprocess/build/archive contracts. Explicit foreign dialect selection blocks the UI's Forge build action; unknown/default selection preserves the existing path. SourceIntake is a helper under SourceWorkspace ownership, without a parallel source project or mutation model.
+
+Freeze native-sfx-1's exact 1,769 cases across 89 suites, source/test/report inventory and six existing example families. Add four declared Source Intake suites plus the fifteenth browser supplement. Exact outer reversal reconstructs the native SFX parent and every historical protection. Matching fresh clean-extraction records establish current outcomes; implementation authority is not acceptance or promotion.
+
+A bounded source migration hook remains subsequent work and needs independently tested dialect/engine contracts. Other native Audio/map coverage, fidelity/listening, linker/runtime/raster/LiveLink/debugging and comprehensive manual requirements remain open before integrated Hosted/network/wallet/deck work. This finite diagnostic item does not complete the roadmap.
+
+## Preserved previous record
+
+---
+
 # D066 — Bounded native SFX through canonical Audio ownership
 
 October 12, 2026 UTC. Authority: the owner's continuing roadmap direction advances the next finite Audio recovery slice after native-map-1. Candidate **alpha.11 / native-sfx-1** retains schema 12, five templates, 12 actor slots, 64 persistent bytes, Door Option B and existing runtime emitters.

@@ -1,0 +1,95 @@
+NES Forge mobile alpha: host timing / audio output audit
+Application SHA-256: e7c75ccd43007c46b5e0336105f6551f4b6183cc39730802cd1fba226eb7fe12
+Read-only source audit. Application files were not changed. Tests below execute
+the complete application in an isolated Node VM, replacing only emuRunFrame and
+renderEmu inside that VM with controlled-cost mocks. This is not a phone/browser
+performance measurement, real Web Audio test, or proof of the reported lag's cause.
+
+SOURCE PATH PREFIX
+/workspace/scratch/eed3f92a7165/mobile-play/NES_Forge_1.9.0/
+
+CONFIRMED BEHAVIOR / CONDITIONAL LIMITATIONS
+1. src/legacy/01-emulator.js:578-615: elapsed-time scheduler targets 60.0988 Hz,
+   admits at most 2 frames per callback, breaks after a 10 ms processing slice,
+   and discards all remaining whole frame debts. It caps accumulated debt at 4
+   frames. This avoids unlimited catch-up but can discard useful catch-up work.
+   Synthetic 10 seconds, callback rate 30 Hz, frame cost 11 ms: 300 emulated
+   frames instead of the ideal 600, 300 recorded dropped debts, 99 audio underruns.
+   At 30 Hz / 4 ms per frame: 600 frames, 0 dropped debts, 0 audio underruns.
+   At 50 Hz / 11 ms per frame: 500 frames, 100 dropped debts, 38 audio underruns.
+   These conditions demonstrate that the policy itself can cause slower game
+   time and insufficient samples. Whether a real device reaches them is unknown.
+   At 30 Hz two 11 ms frames would fit in a 33.3 ms interval before other costs,
+   but increasing the budget unconditionally could hurt UI responsiveness.
+
+2. Same actual scheduler tested at 60, 90, 120, 144 Hz and 4 ms/frame: expected
+   600 frames over 10 seconds, no audio underruns. No simple high-refresh-rate
+   double-speed defect reproduced. Do not claim a fixed one-frame-per-rAF bug.
+
+3. src/legacy/01-emulator.js:827-839: output intentionally begins/resumes with
+   45 ms lead. A per-frame buffer lasts about 16.64 ms. Flush considers fewer
+   than 4 ms remaining to be an underrun; it resets scheduling to 45 ms. It
+   clears queued sources above 120 ms of existing lead or at 12 live sources.
+   The reported max queue can exceed 120 ms by the newly appended buffer, so
+   120 ms is a resync trigger rather than a hard final queue-length maximum.
+   No unbounded buffer growth or buffer-copy corruption reproduced.
+
+4. src/legacy/01-emulator.js:617-624: HUD frame cost includes emuRunFrame but
+   excludes apuFlush and renderEmu (including sidebar DOM work). Controlled
+   4 ms frame + 5 ms render still reports frame 4 ms. It reports last-frame cost,
+   not median/P95 total work. Queue depth excludes device/output latency.
+   A 250 ms stall executes 2 frames and reports only 2 dropped, although about
+   15 frames of wall time elapsed: the initial accumulator cap is not counted.
+   Therefore existing dropped count is not a total wall-time loss metric.
+
+5. src/legacy/01-emulator.js:815-824,843-848: retry calls resume only for state
+   'suspended'. A synthetic context in state 'interrupted' keeps zero scheduled
+   audio samples and receives zero resume calls. This is a conditional branch
+   gap, not evidence of a specific phone/browser interruption. Verify actual
+   state values and resume behavior on affected browser before changing it.
+
+6. src/legacy/01-emulator.js:843-848: Mute changes master gain; APU calculation,
+   sample generation, AudioBuffer allocation and scheduling continue. Muting
+   may reveal perception differences but cannot isolate audio CPU overhead.
+
+7. src/legacy/01-emulator.js:636,1029-1051: every rendered emulation frame writes
+   CPU register text, PPU/sidebar fields and replaces a 32-swatch palette HTML
+   string, even while the play panel is expanded and that inspector is hidden.
+   This is confirmed extra work, but its contribution to real mobile lag is
+   unmeasured. src/services/emulator-play-ui.js refreshes 5 times/second and
+   measures/writes expanded canvas fitting on each refresh, another measurable
+   host-side cost rather than evidence the emulator core needs rewriting.
+
+PRESERVED SAFEGUARDS
+src/legacy/00-editor.js:417-423 pause clears rAF, timing debt and audio sources;
+generation guards prevent stale callbacks running the resumed session.
+src/legacy/02-interaction-bootstrap.js:44 pauses on document.hidden. Source
+review supports intentional pause/resume, not an accumulating hidden backlog.
+Runtime frame's 200 ms budget remains protective and unrelated to a FPS target.
+The scheduler, audio output and pause blocks are byte-identical to the corrected
+pre-mobile baseline; see timing-baseline-comparison.json. Newly added mobile
+controls did not alter those timing policies.
+
+SMALLEST USEFUL NEXT STEP
+Capture one comparable 15-30 second session in embedded and expanded Play view
+on the affected phone, same ROM, audio output route, browser and device state.
+Record display callback cadence/gaps, emulated frames per elapsed second,
+emuRunFrame cost, apuFlush cost, render cost, queue current/min/max, underrun
+and resync deltas, AudioContext state/rate/baseLatency/outputLatency if exposed,
+visibility/focus/resize events, and exact application + ROM hashes. Avoid
+recording project contents or wallet/device-controller identifiers unnecessarily.
+Use host-boundary instrumentation only; do not edit CPU/PPU/APU implementations.
+
+BOUNDED FIX CANDIDATES AFTER MEASUREMENT
+- If hidden inspector rendering is material, throttle or skip inspector updates
+  during expanded play while preserving canvas presentation and an immediate
+  refresh on return. Do not skip CPU/PPU emulation to improve visual FPS.
+- If the 10 ms catch-up policy reproduces, evaluate a bounded cadence-aware
+  host budget/debt policy with 30/60/90/120/144 Hz plus long-stall tests. Keep a
+  maximum work bound and generation protections. This would be a targeted host
+  timing change in a protected legacy file, requiring careful scoped review.
+- If audio interruptions reproduce, add narrowly scoped recoverable-state retry
+  on user activation, verified for that browser. Do not call resume continuously.
+- Do not reduce the 45 ms lead blindly; that trades latency for more underruns.
+
+Evidence files: probe.cjs, probe-results.json, timing-baseline-comparison.json.

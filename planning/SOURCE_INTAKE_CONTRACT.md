@@ -1,0 +1,13 @@
+# Source intake contract — D067
+
+Continue the authorized roadmap after native-sfx-1 at commit 9769a3b9e8f622da73f6ffa3904e6856b01fc7ab. The bounded source-intake-1 slice adds diagnostics for supplied source; full executable migration remains separate.
+
+SourceWorkspace retains ownership of validation, safe relative paths, preserved original/current bytes and its existing assembler/build/archive behavior. An additive analysis facade snapshots validated bytes and delegates lexical inspection to SourceIntake. SourceWorkspaceUI owns explicit declarations, analysis, cancellation and report export. No second source document model or assembler is introduced. Workspace v1, project schema12, BuildGraph, RuntimeCompiler and gameplay templates remain unchanged.
+
+A report binds declared dialect/engine/version, configured entry/build and current/original file identities. Literal include/incbin evidence includes exact paths and lines. Missing/unsafe references, cycles, unsupported constructs, foreign dialects, unexecuted conditional/macro paths and report/work limits must remain visible. Whole-workspace inventory differs from configured-entry reachability. Supplied build scripts/linker configs are observations, not executed commands. No report claims resolved external routines, linked allocation, cycle budgets or complete build compatibility.
+
+Analysis is detached and must not invoke imported scripts or alter source, project, history, assembler state or emulator state. Edits/settings/declarations/replacement/cancellation invalidate current results and downloads. UI foreign declarations refuse source builds; successful new workspace/example installation resets declarations. Default existing builds still use the unchanged assembler. Declarations remain outside workspace v1 and are retained in the separate report.
+
+Use the complete pinned DABG source and the existing Forge multi-file control, preserve source/license provenance and independently verify exact dependency examples. Preserve all 1,769 parent cases across 89 suites, append four new suites, and maintain 15 browser supplements. Freeze source/docs/examples, regenerate six retained example families, then verify one unchanged clean extraction and final payload inventory. Browser and owner acceptance remain separate.
+
+Next select one routine and document its ABI, memory/register ownership, placement, hook timing and resource budget before implementing executable integration. NESmaker-specific claims require representative supplied code, its engine/module version and dependencies. Remaining native Audio, runtime/raster/LiveLink/debugging, manual and Hosted/network/wallet/deck requirements remain on the roadmap.

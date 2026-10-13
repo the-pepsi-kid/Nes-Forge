@@ -1,0 +1,20 @@
+PASS Named checkpoints restore complete physical state without enabling history or changing the project
+PASS Checkpoint preserves mapper 1 bank state, CHR RAM, SRAM, latches and active DMC
+PASS Checkpoint preserves mapper 4 bank state, CHR RAM, SRAM, latches and active DMC
+PASS Checkpoint names and storage count are bounded without evicting another named checkpoint
+PASS Checkpoint byte bound rejects the whole save and keeps previous states intact
+PASS Unsupported live physical properties reject checkpoint restoration without partial mutation
+PASS Checkpoint restore discards incompatible frame-history future and invalidates observations
+PASS Reset, successful ROM load, CPU trace and project unload invalidate checkpoints; rejected load retains them
+PASS Input script executes native movement and reproduces the complete machine and PCM stream from a checkpoint
+PASS Scripts isolate live input and editable focus without removing unrelated blockers
+PASS Script validation is atomic for duplicate/opposite buttons, counts, addresses and stale checkpoints
+PASS Canceled scripted input stops at the yield and leaves a restorable paused checkpoint
+PASS A ROM replacement during scripted replay cancels old work before the new ROM executes
+PASS RAM experiments normalize mirrors, never call bus writers and restore the complete pre-edit machine
+PASS RAM edit rejects I/O, ROM, bad values, stale expected bytes and duplicate mirrors before mutation
+PASS Keeping a RAM experiment leaves only emulator changes and a bounded explanatory log
+PASS Public checkpoint deletion cannot discard active RAM experiment rollback, while keep and restore release it
+PASS A reset invalidates active experiment rollback instead of applying a stale session
+PASS UI exposes checkpoint/script/experiment actions, errors and literal user labels with native keyboard entry
+19/19 passed

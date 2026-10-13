@@ -1,0 +1,101 @@
+{
+  "referenceCandidate": "mobile-keyboard-1",
+  "candidate": "audio-adaptive-1",
+  "referenceHtmlSha256": "4871312c2fbedc312a89d7400d669b525732e7f9fb2965b87bf74d1d75c00e42",
+  "changes": [
+    {
+      "path": "src/shell-prefix.html",
+      "beforeSha256": "62e4a8148a877332ff645c87166d52c1acd1159e3792f6f784afbb124de0676c",
+      "afterSha256": "e325d2a29fb2795254944b7abbc1fe18b221df899721f81ad1cadb8333bbd561",
+      "replacements": [
+        {
+          "before": "<title>NES Forge 2.0.0-alpha.4 \u2014 Mobile Keyboard</title>\n",
+          "after": "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>NES Forge 2.0.0-alpha.5 \u2014 Audio Adaptive Editing</title>\n"
+        },
+        {
+          "before": "<h3>Volume Envelope</h3><p style=\"font-size:8px;color:var(--dim)\">Click or drag in the envelope to edit.</p>\n",
+          "after": "<h3>Volume Envelope</h3><p style=\"font-size:8px;color:var(--dim)\">Tap or drag in the envelope to edit.</p>\n"
+        }
+      ]
+    },
+    {
+      "path": "src/services/release-info.js",
+      "beforeSha256": "ea9233c1a963254e2587de381f248164ae0dbf2ef5193aeea4859c69b998ba88",
+      "afterSha256": "b08cacad584a27eef8f8840199d87a5d95424b442aa65ddb7d77598db4441fc6",
+      "replacements": [
+        {
+          "before": "  F.release=Object.freeze({version:'2.0.0-alpha.4',name:'Mobile Keyboard',maturity:'alpha',candidate:'mobile-keyboard-1',schema:12,updateStatus,\n",
+          "after": "  F.release=Object.freeze({version:'2.0.0-alpha.5',name:'Audio Adaptive Editing',maturity:'alpha',candidate:'audio-adaptive-1',schema:12,updateStatus,\n"
+        }
+      ]
+    }
+  ],
+  "added": {
+    "path": "src/audio/audio-adaptive-ui.js",
+    "sha256": "fc0f398f981a3f7bef384c7ac49bcf4e9cfffaf438fe643c4fbef71b81710d03"
+  },
+  "referenceParts": [
+    "src/shell-prefix.html",
+    "src/legacy/00-editor.js",
+    "src/legacy/01-emulator.js",
+    "src/legacy/02-interaction-bootstrap.js",
+    "src/legacy/03-runtime-capture.js",
+    "src/legacy/04-saveas-chr.js",
+    "src/legacy/05-foundation.js",
+    "src/legacy/06-integration.js",
+    "src/legacy/07-metatiles.js",
+    "src/legacy/08-world.js",
+    "src/legacy/09-world-codec.js",
+    "src/legacy/10-world-build.js",
+    "src/legacy/11-world-interaction.js",
+    "src/legacy/12-stabilization-info.js",
+    "src/legacy/13-metasprites.js",
+    "src/legacy/14-composed-animation.js",
+    "src/legacy/15-assets-codec.js",
+    "src/legacy/16-model.js",
+    "src/legacy/17-frame-editor.js",
+    "src/legacy/18-entity-studio.js",
+    "src/legacy/19-entity-codec.js",
+    "src/legacy/20-release164.js",
+    "src/legacy/21-config165.js",
+    "src/legacy/22-compiler-engine165.js",
+    "src/legacy/23-build165.js",
+    "src/legacy/24-ui165.js",
+    "src/legacy/25-release165.js",
+    "src/legacy/26-project166.js",
+    "src/legacy/27-placement166.js",
+    "src/legacy/28-ui166.js",
+    "src/legacy/29-release166.js",
+    "src/services/release-info.js",
+    "src/world/world-config.js",
+    "src/audio/audio-config.js",
+    "src/gameplay/gameplay-model.js",
+    "src/services/asset-registry.js",
+    "src/services/project-store.js",
+    "src/audio/audio-compiler.js",
+    "src/gameplay/gameplay-compiler.js",
+    "src/audio/audio-engine.js",
+    "src/gameplay/gameplay-engine.js",
+    "src/audio/audio-import.js",
+    "src/world/world-engine.js",
+    "src/world/world-rom.js",
+    "src/world/world-compiler.js",
+    "src/services/build-services.js",
+    "src/services/emulator-bridge.js",
+    "src/services/emulator-input.js",
+    "src/services/emulator-timeline.js",
+    "src/services/emulator-play-ui.js",
+    "src/services/documentation.js",
+    "src/world/world-ui.js",
+    "src/audio/audio-ui.js",
+    "src/gameplay/gameplay-ui.js",
+    "src/re/re-bridge.js",
+    "src/re/re-ui.js",
+    "src/re/re-analysis.js",
+    "src/re/re-analysis-ui.js",
+    "src/re/re-runtime.js",
+    "src/re/re-runtime-ui.js",
+    "src/composition.js",
+    "src/shell-suffix.html"
+  ]
+}

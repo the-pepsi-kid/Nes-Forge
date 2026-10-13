@@ -1,3 +1,19 @@
+# Current review candidate — Source Intake Diagnostics
+
+Release **2.0.0-alpha.11**, candidate **source-intake-1**, schema **12**. Application: `mainline/NES_Forge_2.0.0-alpha.11.html`. Current outcomes require matching fresh records; a planned gate is not a pass.
+
+Behavioral parent: native-sfx-1 at source commit `9769a3b9e8f622da73f6ffa3904e6856b01fc7ab`; HTML SHA-256 `d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847`; 1,769/1,769 cases across 89 suites. Preserve `baseline/NES_Forge_2.0.0-alpha.11_Native_SFX.html`, `docs/history/native-sfx-1/` and `checkpoints/native-sfx-1-reference/`.
+
+Scope: read-only diagnostics for an already supplied Source Workspace. The existing SourceWorkspace service delegates explicit analysis to a bounded SourceIntake helper. Reports identify source bytes, declarations, literal dependencies, unsafe or missing paths, cycles and unsupported or uncertain syntax. They do not execute source, translate foreign projects or establish a successful build.
+
+The diagnostics report is a separate export. Dialect and engine declarations are analysis inputs and do not alter workspace version 1. Explicit foreign dialect selection blocks the UI's Forge build action; the existing default unknown-dialect build path, workspace create/preprocess/build/archive behavior, project schema and runtime emitters remain compatible.
+
+Actual identity and measured outcomes require agreement between `build-inputs.json`, fresh `test-results/candidate/Summary.json` and `checkpoints/source-intake-1-clean-extraction/Reproduction.json`. Retain all 89 predecessor suites and append the four declared Source Intake suites. Browser/device/listening and owner acceptance remain separate.
+
+## Preserved previous record
+
+---
+
 # Current review candidate — Native SFX Recovery
 
 Release **2.0.0-alpha.11**, candidate **native-sfx-1**, schema **12**. Application: `mainline/NES_Forge_2.0.0-alpha.11.html`. Current verification status belongs to matching fresh records described below; a planned gate is not a pass.

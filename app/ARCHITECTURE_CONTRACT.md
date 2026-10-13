@@ -1,3 +1,19 @@
+# Current contract — Source Intake Diagnostics
+
+Candidate `source-intake-1`, release alpha.11, schema 12. Preserve D063–D066 service ownership, canonical models and existing compiler/runtime algorithms.
+
+- `SourceWorkspace` remains the source document, preprocessing, build and archive owner. Its additive `analyze(document, options)` delegates to the pure bounded `SourceIntake` helper; diagnostics never become a second compiler or mutation owner.
+- Analysis accepts explicit dialect, engine and version declarations. Dialects include unknown, Forge 6502, ca65, Ophis, NESASM, ASM6, Lua and other. A declaration is user-provided context, not proof that syntax is supported.
+- `NESForgeSourceIntakeReport` version 1 identifies current and original file hashes, workspace entry/build metadata, declarations, literal dependency references and line locations, missing/unsafe/cyclic dependencies, unsupported or uncertain constructs, and incomplete/truncated results at bounded limits.
+- Analysis performs no assembly, JavaScript/Lua execution, foreign translation, filesystem/network access or project/emulator mutation. Static observations do not establish build compatibility, semantic equivalence or runtime behavior.
+- The UI owns explicit Analyze, Cancel and report-export interactions and rejects stale results after relevant workspace or declaration changes. Reports remain separate from portable Source Workspace version 1; declarations are not silently added to persisted workspace data.
+- Explicit foreign dialect selection blocks the UI's Forge build action. The existing unknown-dialect/default build path remains compatible. Existing SourceWorkspace create/preprocess/build/archive semantics and stored workspace bytes must remain unchanged.
+- ProjectStore, AssetRegistry, BuildGraph, RuntimeCompiler, Audio, native recovery, recipe identity, emulator/capture and Save As retain their current owners and contracts. No template, actor/persistence budget, runtime emitter or schema expansion belongs to this checkpoint.
+
+## Preserved previous record
+
+---
+
 # Current contract — Native SFX Recovery
 
 Candidate `native-sfx-1`, release alpha.11, schema 12. Preserve D063–D065 service ownership and existing compiler/runtime algorithms.

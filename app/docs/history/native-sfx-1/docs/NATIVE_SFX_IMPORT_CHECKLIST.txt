@@ -1,0 +1,21 @@
+Native SFX recovery — owner review
+
+[ ] Open HonkeyPong_SFX_0.nesforge.json, Build & Run, and press B/attack to hear the effect.
+[ ] Repeat with effect 1 and the edited effect-0 project; compare the authored pitch change.
+[ ] Open HonkeyPong-reproduced.nes for analysis and analyze its native Audio.
+[ ] Find SFX and inspect both supported single-pulse effects and the refused multichannel effect.
+[ ] Preview a supported effect; review source identity, duration, timer differences and mixing limits.
+[ ] In a project already at tempo 150/speed 1, acknowledge and confirm import; verify appended pattern, instruments and SFX.
+[ ] Check that music order, existing assets, tempo/speed, runtime settings and animation bindings stay unchanged.
+[ ] Cancel an import; verify project and history remain unchanged.
+[ ] Change the project or native source after preview; verify that stale import is refused.
+[ ] Attempt import at incompatible tempo/speed; verify refusal without retiming music.
+[ ] Edit an imported note or volume, bind it with the ordinary animation controls, and verify the rebuilt sound changes.
+[ ] Undo/Redo, Save Project As, reopen and rebuild with the same IDs/references.
+[ ] Export conversion evidence and distinguish it from a project or native ROM-copy backup.
+[ ] Recheck existing native music transcription and its established Undo/save/reopen behavior.
+[ ] Compare listening in Forge and an independent emulator, recording exact app/ROM, browser/OS and observations.
+[ ] Review actual browser keyboard, acknowledgement, confirmation and download dialogs.
+
+Automated CPU/APU evidence is not speaker listening or physical-device acceptance.
+The initial conversion does not recover native mixing, multichannel effects or game triggers.

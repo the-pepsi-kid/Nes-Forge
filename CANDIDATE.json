@@ -2,113 +2,359 @@
   "format": "NESForgeCandidateHandoff",
   "version": 1,
   "release": "2.0.0-alpha.11",
-  "candidate": "native-sfx-1",
+  "candidate": "source-intake-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/native-sfx-2026-10-12",
+  "branch": "implementation/source-intake-2026-10-13",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847",
-  "archive": "NES_Forge_2.0.0-alpha.11_Native_SFX_Candidate.zip",
-  "archiveSha256": "b96ec0ea09257ab4102d293eb55e202312885d52ea249c635186184f74c20d69",
-  "payloadChecksums": 6228,
-  "packageFiles": 6229,
+  "htmlSha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
+  "archive": "NES_Forge_2.0.0-alpha.11_Source_Intake_Candidate.zip",
+  "archiveSha256": "f68f551c22902ced0a86802ca17b6abf95de6d0ce8829ccd9e9475b4b0c6c44b",
+  "payloadChecksums": 7091,
+  "packageFiles": 7092,
   "automatedResult": {
     "status": "passed",
-    "passed": 1769,
+    "passed": 1833,
     "failed": 0,
-    "total": 1769,
-    "suiteCount": 89,
-    "startedAt": "2026-10-12T06:48:28.890Z",
-    "finishedAt": "2026-10-12T07:15:16.099Z"
+    "total": 1833,
+    "suiteCount": 93,
+    "startedAt": "2026-10-13T02:47:48.892Z",
+    "finishedAt": "2026-10-13T03:29:54.876Z"
   },
-  "retainedCases": 1694,
-  "retainedSuites": 84,
+  "retainedCases": 1769,
+  "retainedSuites": 89,
   "automatedSummary": "app/test-results/candidate/Summary.json",
-  "cleanExtractionProof": "app/checkpoints/native-sfx-1-clean-extraction/Reproduction.json",
+  "cleanExtractionProof": "app/checkpoints/source-intake-1-clean-extraction/Reproduction.json",
   "browserEvidence": [
     {
       "name": "browser-mobile",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "e65631fc89c99b3848b517673438544da8a4af738735dbfb51ecd2cd5f4d5f87"
+      "reportSha256": "ff5e0ee92839f5fdd8c3c6b36bf810930b359b5a52df2569181f9dce72b859f6",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-mobile/Prior_Launch_Attempt.json",
+        "reportSha256": "74160d337c42379d98dd546d6ebcb2eb0f2a1f9ffb7e4ca84caee58d26b517f1",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "dc0ce6b6a5cb0b492067f3b5cb01bf9a39d690cd121689cdeac3fcc35660fe67"
+      }
     },
     {
       "name": "browser-re-analysis",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "85cc6103fcffb49e475987f38d8f34a7a35521eb72ea36c829b62f6f5f5721d3"
+      "reportSha256": "bc6145d821f716369e1f312aa29210d663bb72023bff766765398ee8075a2e8d",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-re-analysis/Prior_Launch_Attempt.json",
+        "reportSha256": "4184bf6816a83b1281d10e1b7fd017be293acec5da90b99f1f10244ca845990e",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "e55230c9e7be641368b3d9a2fb3f506dc990ad7dbab674d778559bb66f4fe171"
+      }
     },
     {
       "name": "browser-re-runtime",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "cdb9bcf8153cdf1dc4dc3ac028161ecccf037c6b2f1400b58f19b64a276860a4"
+      "reportSha256": "ef335dba2292b7f1cf2d37e153ad07d2b2a3534fa7af1572639972433b86045f",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-re-runtime/Prior_Launch_Attempt.json",
+        "reportSha256": "24d2b3934725539cf77ed42d9c0a3deed1f86f2b63f4332656fd0ffd4bfb32a7",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "413f359d45d5939ee98c83e9546a4eb2293e4699ab2d6f36ffa0729317373722"
+      }
     },
     {
       "name": "browser-audio-adaptive",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "1b443751eafab16d94f7843adcdf5a0e6cdfc2148a5115d79695e93200c7c8b6"
+      "reportSha256": "3fe90616803a1c2c2daf5c4ff33f03ca550d5f7c3bc89a3e82cd97869b7abaf0",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-audio-adaptive/Prior_Launch_Attempt.json",
+        "reportSha256": "66971439872bd932fa4e942a207939aac5d78380b8dc72bd45b464a253f99fd1",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "eb72b68a0eee5c5b7dd32deab03fc996b7fa3b37e292462a79f738775d16b2a7"
+      }
     },
     {
       "name": "browser-roadmap",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "f4287a1dede43be5b1b7b515855a92fa68e045a77bf88ebc44985560ec94f12d"
+      "reportSha256": "0035370c8c34a2ff1cc7cd850a28ed3a211c8f9e8a5f2f0bee326cf355252484",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-roadmap/Prior_Launch_Attempt.json",
+        "reportSha256": "751ce359c5f16500fd4c18a126c0a2ea753c34870b7fa13675ffc299f9fe9334",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "7be06c10c80ec7a3070d42ee181575359a6e34697ead55bce785ac8cf91c3d3c"
+      }
     },
     {
       "name": "browser-native-audio",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "7c607a6a1f45fabc11ac0fd4483501224c96ebe4e5a7b0e725df8a9f1b40879e"
+      "reportSha256": "c2f30a6958c3b2caa2b6ad9003b81cb0c7f7e19a579b213495f69ff2152f12f4",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-native-audio/Prior_Launch_Attempt.json",
+        "reportSha256": "12ae2a59bec174c277834871a82838dceabbd47f030edc999408938b396cfc47",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "7c81c545dd6e119002bd7a6386eec47f374b51be3d6ef35c5f7e131d9702241f"
+      }
     },
     {
       "name": "browser-native-audio-import",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "6ad1fec5dbdd3db813b26687d4d61864947fb597e43ccfaca5988b481121f4b2"
+      "reportSha256": "dd37298167094d7d91c1eaaf0df64faac68a377b1996a134f22892e46c3e4d14",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-native-audio-import/Prior_Launch_Attempt.json",
+        "reportSha256": "09e89f617001ad633e2ce61d650a4bb022c33c572f00f7308fe804e955f280e0",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "8b99f02b25c09a72e3efd163908ed3cd3f395df181cfc96f743f4a2c0012b7c7"
+      }
     },
     {
       "name": "browser-recovery-methods",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "82515217de865ffb184a0726cfc2830847a193242ea5a9cf80dd614eb43f0150"
+      "reportSha256": "cfb5c739aac854e848ede969ac6c1cadee2e358d0c34b62aa6216398040097c1",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-recovery-methods/Prior_Launch_Attempt.json",
+        "reportSha256": "9cfb10d79bdb2ba086d3f2d0822c6de5032d16d62fb002a5a724c1c629ee6b31",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "a97a13e28dd67a237d67da1b286ea996f231c4a16e0fa979ba250e16e01c2c22"
+      }
     },
     {
       "name": "browser-seeded-mashup",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "49510df0a1c405667e309c1ac4c4084c1c4292f9c56f4cd099c67e61f362f10a"
+      "reportSha256": "d71d76fec7b0f897d5e14978575f25504684f83895c63a10791c131eb837e410",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-seeded-mashup/Prior_Launch_Attempt.json",
+        "reportSha256": "fd2d6c15dfc47c442c476773d572e557cb6726ad967958d3b2493cc636da4379",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "145b8912680979ebf72cb06370214500805006170556bb5239c531e0d52e5761"
+      }
     },
     {
       "name": "browser-movement-rules",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "35d50c892278658f9c6d2309af43ad511563460b4430c055b7a4b67a274ae6c3"
+      "reportSha256": "fb1f0d85b3fdca7d24f5a79feffb9e6305aeb3b30683ee9cdee73b5a2d45f3fb",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-movement-rules/Prior_Launch_Attempt.json",
+        "reportSha256": "f49dad3ceb449c21955baf6e14e86b91151c965d314af5f3b6936ad8ad3aab8f",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "ee603580c30fa2bdca9019964bec7cd5cf1bfd105bd9400b85eac1a2093681c3"
+      }
     },
     {
       "name": "browser-compatibility",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "ad20e8e4722e034ffa8fef74f5cdd0a1d171ac33b6da40a3c105048ee3e30188"
+      "reportSha256": "b654f5f24d4e42c33beaacf355fa1aa1ca3b27ae9cd81a7fac8fe8f64b22040a",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-compatibility/Prior_Launch_Attempt.json",
+        "reportSha256": "b3f89d3740f9d1727f053a015d72ca5da2e76fca528d02748b11dfd3643fc01e",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "d84abbb4b5edefa80412a7a82bf7a23c3d67995b0b548e93166c69f8a7be94cd"
+      }
     },
     {
       "name": "browser-native-background",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "613136d4801362457a92eda72f6204ba379cf999bfba7512770fc6cdee0a14f8"
+      "reportSha256": "3bcfcdd0d744a30cab9236a72718514cd060640e37553326a500a5f27e24dd1d",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-native-background/Prior_Launch_Attempt.json",
+        "reportSha256": "eb0aa85be5b496dc48b1a04df44ad3572b4401f9d8463db22ea95f6356815397",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "c0134135b8ac3670628e01e0e953ab8fa12a2a26aaab7057d39f8ad575d64ecf"
+      }
     },
     {
       "name": "browser-native-map",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "c61eb29407389daaed01b623ea3945ce14c3bd96e79b2e79c9ba261c5654e83c"
+      "reportSha256": "fdc28624e56916720e1bfa5f5e8a1963c947162e48737fc1010ee087bbd09eef",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-native-map/Prior_Launch_Attempt.json",
+        "reportSha256": "10baa23ba448ee1334de88f61695b0910a51eea441bfa8c7fd052d0e53fdba0a",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "7a055a0330a9f31909f7ebf11d66499277ad18386b9a6ec21f5a3a0f56d4c344"
+      }
     },
     {
       "name": "browser-native-sfx",
       "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
       "checks": 0,
-      "reportSha256": "896373eac3dae33955b7ceb0b56d653a6232931ef81a06ec0b45be1fd069c85f"
+      "reportSha256": "9f2a65787d1a225b97ad99ab759d1ebdd1af22eaee74359fe336450746d791cc",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-native-sfx/Prior_Launch_Attempt.json",
+        "reportSha256": "958987ba1e9e2e8eaff4714af24b0bc76429a19880851cda9a7c510b3c17981a",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "5e9280e3906292405c99db8acb9e46c1b62384d589370fe42d8bee094f8579ae"
+      }
+    },
+    {
+      "name": "browser-source-intake",
+      "status": "blocked",
+      "execution": "not-attempted",
+      "launchAttempted": false,
+      "checks": 0,
+      "reportSha256": "2eb5d7706fdaee5742ede2b4a188c450b8ff36710607e1848fbae30a9418bdfa",
+      "observedAt": "2026-10-13T02:50:12.468Z",
+      "blockingCondition": {
+        "code": "required-chromium-executable-missing",
+        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+        "executableExists": false,
+        "inspectionMethod": "filesystem-only; no browser process",
+        "overrideConfigured": false
+      },
+      "priorAttempt": {
+        "report": "test-results/browser-source-intake/Prior_Launch_Attempt.json",
+        "reportSha256": "3edc41877681f9593de02b3a8af5f90b4185e946da68b79f84e7a224ea2ea221",
+        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+        "runnerSha256": "9e4066350a2f7ecf499b508004ed59807a419b4af67f6dcf126584b0d38ed9cf"
+      }
     }
   ],
   "nativeAudio": {
@@ -124,13 +370,13 @@
     "sharedLifecycle": "RENativeAudioImport",
     "import": "ProjectStore.applyAudioImport"
   },
-  "ownerAcceptance": "pending for native-sfx-1; earlier owner results retain their original scope",
+  "ownerAcceptance": "pending for source-intake-1; earlier owner results retain their original scope",
   "mobilePerformance": "pending same-device comparison",
   "hardwareControllers": "not physically tested",
   "promotion": "not promoted",
   "roadmap": "in progress; complete roadmap is not implemented",
-  "parentCommit": "5de81d48e67a0f076ce067fbf8ca3f1c3a89baf3",
-  "nextCodingDependency": "Supplied-source migration: explicit dialect/dependency diagnostics, then a documented independently tested integration hook. Retain remaining native Audio fidelity/formats, browser/listening/owner acceptance, runtime and comprehensive manual dependencies before integrated Hosted/network/wallet/deck work.",
+  "parentCommit": "9769a3b9e8f622da73f6ffa3904e6856b01fc7ab",
+  "nextCodingDependency": "Selected-routine source integration: define an explicit independently tested hook contract covering registers/flags, RAM and zero-page ownership, code placement, execution timing and resource budgets. Source intake is lexical/read-only evidence, not translation or runtime compatibility. Retain remaining native Audio fidelity/formats, browser/listening/owner acceptance, runtime and comprehensive manual dependencies before integrated Hosted/network/wallet/deck work.",
   "license": "UNDECIDED",
   "recoveryMethods": {
     "contractVersion": 2,
@@ -262,17 +508,17 @@
     "compatibility": "Exact A1 staged report/project/build/import/save/Undo/Redo parity verified for both declared sources and valid edits."
   },
   "retainedExamples": {
-    "families": 5,
-    "files": 48,
-    "byteIdenticalFiles": 43,
-    "changedReceiptFiles": 5,
-    "roms": 12,
-    "generatedRoms": 11,
+    "families": 6,
+    "files": 58,
+    "byteIdenticalFiles": 52,
+    "changedReceiptFiles": 6,
+    "roms": 15,
+    "generatedRoms": 14,
     "sourceRoms": 1,
-    "projects": 16,
+    "projects": 19,
     "recipes": 6,
     "byteIdentical": true,
-    "evidence": "app/checkpoints/native-sfx-1-examples/Regeneration.json"
+    "evidence": "app/checkpoints/source-intake-1-examples/Regeneration.json"
   },
   "nativeMap": {
     "decision": "D065",
@@ -341,5 +587,88 @@
     "checklist": "app/docs/NATIVE_SFX_IMPORT_CHECKLIST.txt",
     "examples": "app/examples/RE_Native_SFX/Manifest.json",
     "apuEvidence": "app/test-results/candidate/native-sfx-apu.json"
+  },
+  "sourceIntake": {
+    "decision": "D067",
+    "method": "source-intake-1",
+    "model": "SourceIntake",
+    "workspaceOwner": "SourceWorkspace",
+    "api": "SourceWorkspace.analyze",
+    "ui": "SourceWorkspaceUI",
+    "scope": "Read-only, bounded lexical inventory of supplied source/workspace bytes, explicit dialect/engine declarations, literal dependencies, unresolved or unsafe paths, include cycles and unsupported constructs. Macro/conditional expansion, build search paths and linker semantics remain unresolved.",
+    "corpus": "tests/fixtures/source-intake/DABG-pinned-input.zip",
+    "sourceSha256": "70878e1f407134d699e7a12329102974d9b90056835b535319605f47624adca1",
+    "sourceCommit": "5ecc60b6af3f726851bfeb1c2555388c5953e0c0",
+    "sourceFileCount": 44,
+    "sourceBytes": 281267,
+    "exampleWorkspaces": [
+      "Forge_Multifile",
+      "DABG_ca65"
+    ],
+    "exampleAssessment": [
+      {
+        "name": "Forge_Multifile",
+        "assessment": {
+          "scope": "syntactic-only",
+          "status": "no-known-blockers",
+          "buildVerified": false,
+          "sourceExecuted": false,
+          "sourceTranslated": false
+        },
+        "coverage": {
+          "inventoryFiles": 4,
+          "assemblyFiles": 3,
+          "scannedLines": 32,
+          "dependencyEdges": 3,
+          "entry": "main.asm",
+          "complete": true
+        },
+        "truncated": false,
+        "diagnosticCount": 0,
+        "diagnosticLimit": 1024,
+        "report": "app/examples/Source_Intake/Forge_Multifile.intake.json"
+      },
+      {
+        "name": "DABG_ca65",
+        "assessment": {
+          "scope": "syntactic-only",
+          "status": "incomplete",
+          "buildVerified": false,
+          "sourceExecuted": false,
+          "sourceTranslated": false
+        },
+        "coverage": {
+          "inventoryFiles": 44,
+          "assemblyFiles": 27,
+          "scannedLines": 13830,
+          "dependencyEdges": 27,
+          "entry": "dabg.s",
+          "complete": false
+        },
+        "truncated": true,
+        "diagnosticCount": 1024,
+        "diagnosticLimit": 1024,
+        "report": "app/examples/Source_Intake/DABG_ca65.intake.json"
+      }
+    ],
+    "workspaceFormat": "NESForgeSourceWorkspace v1",
+    "workspaceFormatChanged": false,
+    "declarationsPersistedInWorkspace": false,
+    "analysisMutatesWorkspace": false,
+    "analysisMutatesProject": false,
+    "sourceExecuted": false,
+    "sourceTranslated": false,
+    "buildVerifiedByAnalysis": false,
+    "runtimeHooksAdded": false,
+    "foreignDialectBuild": false,
+    "reportFormat": "NESForgeSourceIntakeReport v1",
+    "reportExport": "Existing Save As flow; current source/options identity required",
+    "buildGuard": "Explicit foreign declarations refuse the UI Build Source action; unspecified and declared Forge use the unchanged assembler and NROM builder.",
+    "schemaChanged": false,
+    "runtimeEmittersChanged": false,
+    "newMechanicsOrTemplates": false,
+    "guide": "app/docs/SOURCE_INTAKE.md",
+    "checklist": "app/docs/SOURCE_INTAKE_CHECKLIST.txt",
+    "examples": "app/examples/Source_Intake/Manifest.json"
   }
 }

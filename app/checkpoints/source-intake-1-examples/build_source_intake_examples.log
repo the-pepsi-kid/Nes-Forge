@@ -1,0 +1,130 @@
+{
+  "format": "NESForgeSourceIntakeExamples",
+  "version": 1,
+  "release": "2.0.0-alpha.11",
+  "candidate": "source-intake-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
+  "input": {
+    "file": "tests/fixtures/source-intake/DABG-pinned-input.zip",
+    "format": "NESForgeSourceIntakeCorpusReceipt",
+    "version": 1,
+    "archive": "DABG-pinned-input.zip",
+    "byteLength": 356733,
+    "sha256": "70878e1f407134d699e7a12329102974d9b90056835b535319605f47624adca1",
+    "manifestSha256": "b957ac395cf3361ec5d5e39ceea0ac750a364b54472b48830a4ce655c77a7ffe",
+    "sourceCommit": "5ecc60b6af3f726851bfeb1c2555388c5953e0c0",
+    "sourceFileCount": 44,
+    "sourceBytes": 281267
+  },
+  "outputs": [
+    {
+      "name": "Forge_Multifile",
+      "description": "Original Forge multi-file example: existing include, binary insertion and macro source are preserved.",
+      "declared": {
+        "declaredDialect": "forge-6502-v1",
+        "engine": "NES Forge workspace example",
+        "engineVersion": ""
+      },
+      "entry": "main.asm",
+      "sourceFiles": 4,
+      "workspace": {
+        "file": "Forge_Multifile.nesforge-source.json",
+        "byteLength": 1635,
+        "sha256": "2b07b868cc86c8234e7cbdfbec4910a4cd48714cc42733247bb729304f93038b"
+      },
+      "report": {
+        "file": "Forge_Multifile.intake.json",
+        "byteLength": 5453,
+        "sha256": "ffde4d4ee8fd1fba20af8cf20e17f60cf6d87c3a436f4f50e89b9314b904387c"
+      },
+      "archive": {
+        "file": "Forge_Multifile.source.zip",
+        "byteLength": 3539,
+        "sha256": "f9c8d67e1b01c82d6425f58d1311b32caaee115da534e6ad5f1ddd4616f70de4"
+      },
+      "assessment": {
+        "scope": "syntactic-only",
+        "status": "no-known-blockers",
+        "buildVerified": false,
+        "sourceExecuted": false,
+        "sourceTranslated": false
+      },
+      "sourceIdentity": {
+        "algorithm": "SHA-256",
+        "encoding": "UTF-8 JSON.stringify({workspace,files:[{path,sha256}]}); files sorted by normalized case-sensitive path; workspace is the report workspace object",
+        "currentSha256": "428c31b3d33746bdcf7288d383ca4722142d20677d9570bac7a386a72e0f2970",
+        "originalSha256": "428c31b3d33746bdcf7288d383ca4722142d20677d9570bac7a386a72e0f2970"
+      },
+      "generatedRom": false
+    },
+    {
+      "name": "DABG_ca65",
+      "description": "All 44 exact upstream files with explicit dabg.s entry. ca65 source is preserved for diagnosis; no foreign translation or build.",
+      "declared": {
+        "declaredDialect": "ca65",
+        "engine": "Double Action Blaster Guys",
+        "engineVersion": ""
+      },
+      "entry": "dabg.s",
+      "sourceFiles": 44,
+      "workspace": {
+        "file": "DABG_ca65.nesforge-source.json",
+        "byteLength": 754201,
+        "sha256": "b8a1133d53ba0505fa3ab6b2e08148bc9936ef983aec63ae5ed00f1d025ca023"
+      },
+      "report": {
+        "file": "DABG_ca65.intake.json",
+        "byteLength": 246767,
+        "sha256": "e23e7d6e9e68c71853247634348c28a231050a45ffc0506e6ea0bf1584520b1f"
+      },
+      "archive": {
+        "file": "DABG_ca65.source.zip",
+        "byteLength": 1326673,
+        "sha256": "7876d70b04e251395c30554de76be359a2da97811ff6e4e2824e0d345a259181"
+      },
+      "assessment": {
+        "scope": "syntactic-only",
+        "status": "incomplete",
+        "buildVerified": false,
+        "sourceExecuted": false,
+        "sourceTranslated": false
+      },
+      "sourceIdentity": {
+        "algorithm": "SHA-256",
+        "encoding": "UTF-8 JSON.stringify({workspace,files:[{path,sha256}]}); files sorted by normalized case-sensitive path; workspace is the report workspace object",
+        "currentSha256": "443718d1c76b6aef3fcbf73baf90e6949e65a09e9b6a96c810359eb571917654",
+        "originalSha256": "443718d1c76b6aef3fcbf73baf90e6949e65a09e9b6a96c810359eb571917654"
+      },
+      "generatedRom": false
+    }
+  ],
+  "companions": [
+    {
+      "file": "DABG_GPL-3.0.txt",
+      "byteLength": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "file": "DABG_Upstream_Notices.json",
+      "byteLength": 8834,
+      "sha256": "d7cfca6b4f41d3c3263bab6dbbd030aea51c0edd2aa13ee4073240129c9e3c98"
+    },
+    {
+      "file": "DABG_Root_License.txt",
+      "byteLength": 899,
+      "sha256": "06fa223afb2949c20e030910d7010af2100a9e42ffa3d3f3c1c0307ec2903fdc"
+    },
+    {
+      "file": "DABG_Original_Intake_Provenance.json",
+      "byteLength": 8414,
+      "sha256": "bb9e5a0877333cfbb3692da2c9933cf0ae4b8b7193a76d6b6da56a401cb25b46"
+    },
+    {
+      "file": "DABG_Pinned_Source_Files.json",
+      "byteLength": 6631,
+      "sha256": "419563e6ac382ddff8081c9bbff73b0124c17fdd7b8741d13689755bc5cc689b"
+    }
+  ],
+  "scope": "Shipped SourceWorkspace.analyze plus retained create/validate/archive. Source bytes and active project remain unchanged; paired reports reproduce after JSON reopening with the same explicit declarations. No assembly, imported build-script execution, source translation, foreign ROM generation or browser acceptance."
+}

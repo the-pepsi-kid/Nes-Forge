@@ -1,3 +1,19 @@
+# Source Intake Diagnostics handoff
+
+Continue the authorized roadmap without renewed coding permission. Current bounded candidate: **alpha.11 / source-intake-1**, schema 12, following native-sfx-1. Preserve the architecture and compatibility guarantees below.
+
+1. Verify current HTML/build identity, complete fresh Summary and `checkpoints/source-intake-1-clean-extraction/Reproduction.json` together. Retain 1,769 cases across 89 suites and append every suite in `source-intake-suites.json`; 93 suites are mandatory. Until matching current records exist, gate status is pending.
+2. Preserve the exact SFX baseline and source/test/report inventory. Generate only the new `tests/fixtures/source-intake-source-delta.json` with `tools/generate_source_intake_delta.py`; historical oracles remain frozen. The retained preservation chain must first restore this outer delta, including previously added modules and retained test helpers.
+3. `SourceWorkspace.analyze(document, options)` delegates to bounded SourceIntake diagnostics. Keep exact current/original hashes, explicit declaration provenance, literal dependency locations and unsafe/missing/cyclic/unsupported/uncertain/incomplete evidence. Do not infer source compatibility or build success from the report.
+4. Analyze, Cancel and report export are explicit UI actions. Reject stale results. Declarations are analysis inputs, not new Source Workspace version 1 fields. Explicit foreign dialect selection blocks the UI's Forge build action; default unknown-dialect behavior and existing workspace create/preprocess/build/archive semantics remain compatible.
+5. Verify no source execution, translation, hidden fetches, project mutation or emulator/session changes. Cover malformed and bounded input, inert text, dependency resolution, report identity and retained workspace/archive compatibility against independently asserted source examples.
+6. Freeze source/docs/tests/examples before staging. Regenerate six retained example families plus Source Intake examples through their generators; verify every staged payload, run all 93 suites from one unchanged clean extraction, then all 15 browser supplements. Browser launch blocked by unavailable Chromium records zero checks.
+7. After this finite item and measured gate, continue with an independently tested migration-hook contract. Owner/browser/listening/device acceptance and comprehensive manual work remain open; do not claim arbitrary-engine migration, promotion or integrated Hosted/network/wallet/deck completion.
+
+## Preserved previous record
+
+---
+
 # Native SFX Recovery handoff
 
 Continue the authorized roadmap without renewed coding permission. Current bounded candidate: **alpha.11 / native-sfx-1**, schema 12, following native-map-1. Preserve the architecture and compatibility guarantees below.

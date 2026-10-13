@@ -1,22 +1,38 @@
 {
-  "format": "NESForgeMovementRulesBrowserQA",
+  "format": "NESForgeBrowserSupplementAvailability",
   "version": 1,
+  "candidate": "source-intake-1",
+  "release": "2.0.0-alpha.11",
+  "suite": "browser-movement-rules",
+  "runner": "tests/browser-movement-rules.cjs",
+  "runnerSha256": "ee603580c30fa2bdca9019964bec7cd5cf1bfd105bd9400b85eac1a2093681c3",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "sha256": "d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847",
-  "started": "2026-10-12T06:49:13.259Z",
+  "sha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
+  "observedAt": "2026-10-13T02:50:12.468Z",
   "status": "blocked",
-  "browser": null,
+  "execution": "not-attempted",
+  "launchAttempted": false,
   "checks": [],
-  "screenshots": [],
-  "pageErrors": [],
-  "limitations": [
-    "Desktop and phone viewports are Chromium automation, not physical mobile, keyboard, touchscreen or controller acceptance.",
-    "This runner does not establish audible playback, movement feel, performance, real NES behavior or level solvability.",
-    "Recipe reopening uses the native file input with browser automation; operating-system Save As dialogs remain a separate check.",
-    "Screenshots require separate visual review."
-  ],
-  "reason": "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
   "passed": 0,
   "failed": 0,
-  "finished": "2026-10-12T06:49:13.563Z"
+  "blockingCondition": {
+    "code": "required-chromium-executable-missing",
+    "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
+    "executableExists": false,
+    "inspectionMethod": "filesystem-only; no browser process",
+    "overrideConfigured": false
+  },
+  "priorAttempt": {
+    "report": "test-results/browser-movement-rules/Prior_Launch_Attempt.json",
+    "reportSha256": "f49dad3ceb449c21955baf6e14e86b91151c965d314af5f3b6936ad8ad3aab8f",
+    "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
+    "runnerSha256": "ee603580c30fa2bdca9019964bec7cd5cf1bfd105bd9400b85eac1a2093681c3"
+  },
+  "reason": "The required Chromium executable remains absent. No browser runner was launched for this corrected HTML; the previous failed launch is retained separately. The no-retry constraint remains in force.",
+  "limitations": [
+    "This is a filesystem availability observation, not an executed browser test report.",
+    "The corrected candidate was not attempted; zero browser checks, screenshots or browser acceptance are claimed.",
+    "The attached prior launch failure belongs only to its original HTML identity and is not transferred as execution evidence for this HTML.",
+    "Browser, native picker, rendering, listening, device/controller and hardware acceptance remain pending."
+  ]
 }

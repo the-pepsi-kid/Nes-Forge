@@ -1,0 +1,38 @@
+{
+  "sourceCommit": "f9ab7ad450ffebabec15623aa811a7564f079168",
+  "sourceUrl": "https://github.com/HonkeyKong/HonkeyPong",
+  "assemblerCommit": "8873359a0913d94e56a129a6b601dfc18a6574ab",
+  "command": "python3 tests/build-fixtures.py /path/to/independent-checkpoint",
+  "fixtures": [
+    {
+      "file": "independent.nes",
+      "sha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+      "bytes": 24592,
+      "classification": "unchanged independent game",
+      "sourceChanges": [],
+      "assembler": "Assembly complete: 24592 bytes output (3511 code, 10488 data, 10593 filler)\n"
+    },
+    {
+      "file": "relocated.nes",
+      "sha256": "8df730ec00cfd245bea8587bc4411ca03a297579a3480f64eca7d79a5c5cb57f",
+      "bytes": 24592,
+      "classification": "explicitly modified relocation derivative, same external driver and score",
+      "sourceChanges": [
+        "Insert .advance $D000 before unmodified driver",
+        "Insert .advance $D900 before unmodified generated music/SFX"
+      ],
+      "assembler": "Assembly complete: 24592 bytes output (3511 code, 10488 data, 10593 filler)\n"
+    },
+    {
+      "file": "nrom32.nes",
+      "sha256": "12a4ea0c802b037dbcea29724cb6b2c37f6eae2c8d6034eeef6a681b8f5eaf4b",
+      "bytes": 40976,
+      "classification": "explicitly modified relocation derivative, same external driver and score",
+      "sourceChanges": [
+        "Change PRG origin from $C000 to $8000",
+        "Change header PRG bank count from 1 to 2; retain vector fill through $FFFF"
+      ],
+      "assembler": "Assembly complete: 40976 bytes output (3511 code, 10488 data, 26977 filler)\n"
+    }
+  ]
+}
