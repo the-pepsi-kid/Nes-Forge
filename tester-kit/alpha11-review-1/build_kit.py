@@ -1,7 +1,7 @@
 """Package the alpha.11 release-candidate test kit from an unchanged source checkout.
 
 Usage from any current working directory:
-    python tester-kit/alpha11-review-1/build_kit.py --output ../NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC2.zip
+    python tester-kit/alpha11-review-1/build_kit.py --output ../NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC2.1.zip
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 APP = REPO / "app"
-KIT_NAME = "NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC2"
+KIT_NAME = "NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC2.1"
 APP_SHA = "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd"
 EXAMPLES = {
     "Scout_Gameplay_Core_2.0.0-alpha.11.nesforge.json": "f1e6703d9b23f9e716f421f98dd51c6a14faf0021f7bc5eba0d851b1e5db241b",

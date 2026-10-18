@@ -1,7 +1,9 @@
 # NES Forge alpha.11 tester kit source
 
 This directory contains the editable kit guides, authored landing page, printable
-PDFs, reference images, and packaging recipe for **Alpha Test Kit RC2**. The
+PDFs, reference images, and packaging recipe for **Alpha Test Kit RC2.1**. This is
+a public-entry documentation refresh of RC2; the tutorials, manuals and PDFs
+remain unchanged. The
 application stays pinned to source commit
 `09f2233908bc511ffe057e3f7e885a5a42ef19ac`.
 
@@ -23,7 +25,7 @@ list in `package_files.json`; the builder supplies them explicitly.
 From the repository root, with Python 3 installed:
 
 ```text
-python tester-kit/alpha11-review-1/build_kit.py --output ../NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC2.zip
+python tester-kit/alpha11-review-1/build_kit.py --output ../NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC2.1.zip
 ```
 
 The normal packaging command needs only Python's standard library. It verifies
@@ -67,5 +69,11 @@ desktop and mobile layouts too. The Playwright launch check clicks **Open NES
 Forge** from both the source checkout and extracted standalone kit and waits for
 the expected application and New Project control. Set `CHROMIUM_EXECUTABLE` if
 needed. `REVIEW_REPORT.md` and `VERIFICATION.json` record
-the RC2 review. Complete `OWNER_REVIEW_REQUIRED.txt` before the tester handoff;
+the historical RC2 review. `PUBLIC_ENTRY_REVIEW.md` records the RC2.1 checks.
+Public Alpha testing is authorized; the candidate remains unpromoted.
+`OWNER_REVIEW_REQUIRED.txt` retains the outstanding human acceptance checklist;
 documentation checks do not complete the app tutorial or device acceptance.
+
+Submit feedback through [GitHub Issues](https://github.com/the-pepsi-kid/Nes-Forge/issues),
+or return the feedback form through the channel that supplied the kit. GitHub
+issues are public; nothing is submitted automatically.
