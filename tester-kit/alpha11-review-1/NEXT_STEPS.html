@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>NES Forge — NEXT STEPS</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">NES Forge — NEXT STEPS</h1>
+</header>
+<h1 id="optional-second-session">Optional second session</h1>
+<p>Complete the desktop tutorial first and save a new native JSON
+checkpoint. These options are separate experiments; you do not need them
+to finish the first-session assignment.</p>
+<h2 id="give-the-character-another-piece">Give the character another
+piece</h2>
+<ol type="1">
+<li>In <strong>CHR SHEET</strong>, select <strong>Sprite Bank
+($1000)</strong> and draw visible pixels in another tile (for example
+<code>$11</code>; enter <code>17</code> in a decimal field). Pixel value
+zero is transparent; one piece has three visible colors.</li>
+<li>In <strong>METASPRITES</strong>, select <strong>Hero Stand</strong>
+and click <strong>+ Piece</strong>. Select the new item in
+<strong>PIECES · OAM ORDER</strong>. Set <strong>Tile / lower</strong>
+to <code>17</code>, <strong>X / Y</strong> to <code>8 / 0</code>, and
+choose <strong>Sprite palette 0</strong>. The two pieces form a 16×8
+pose. Use <strong>Set origin at feet</strong> or enter an origin that
+makes sense for your character. The cyan cross is the anchor, not a
+collision body.</li>
+<li>In <strong>ANIM</strong>, inspect the frame that refers to Hero
+Stand. In <strong>ENTITY STUDIO</strong>, choose the Player and the
+bound <code>idle</code> state. The studio previews the bound pose and
+facing; it does not run your World. Build &amp; Run to see changes in
+the generated ROM. If the visible width changed, revisit the
+<strong>WORLD → WORLD RUNTIME → Movement and collision body</strong>
+settings deliberately.</li>
+<li>Save another native JSON, reopen it, and compare the pose. If any
+piece is blank, check the sprite bank, tile number (hex <code>$11</code>
+versus decimal <code>17</code>), palette, nonzero pixels, source scene,
+frame selection and state binding.</li>
+</ol>
+<h2 id="inspect-a-prebuilt-actor">Inspect a prebuilt actor</h2>
+<p>Open
+<code>examples/Scout_Gameplay_Core_2.0.0-alpha.11.nesforge.json</code>
+with <strong>Open Project</strong> after saving your own project.
+Inspect SCENE, METASPRITES, ANIM and ENTITY STUDIO, then find the
+<strong>GAMEPLAY CORE · TYPED TABLES</strong> panel in SCENE's Gameplay
+section. The <strong>BEHAVIOR GRAPH</strong> is another view over those
+same behavior records, not a second rules engine. Build &amp; Run, note
+what actually executes, then reopen your own saved project. The
+accompanying <code>.nes</code> is a known built example, not an editable
+backup.</p>
+<h2 id="further-paths">Further paths</h2>
+<ul>
+<li><strong>Audio:</strong> Use a known sound-bearing project or ROM;
+the first tutorial is silent. Record real listening separately from
+synthetic audio tests.</li>
+<li><strong>Source Workspace:</strong> analysis inventories source and
+gives lexical diagnostics. It does not translate an arbitrary foreign
+engine into a game.</li>
+<li><strong>Recovery:</strong> only documented profiles can become
+editable native assets. General ROM analysis and running an original
+cartridge are distinct actions.</li>
+<li><strong>Mobile/controller:</strong> optional device-specific
+results; record versions, delivery method, output device and a hash of
+the tested ROM.</li>
+</ul>
+<p>Save a fresh checkpoint before each experiment and use the feedback
+form to record where actual behavior differs from these
+instructions.</p>
+</body>
+</html>

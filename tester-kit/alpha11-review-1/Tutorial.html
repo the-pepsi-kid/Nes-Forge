@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Tutorial - NES Forge alpha test kit</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Tutorial - NES Forge alpha test kit</h1>
+</header>
+<h1 id="your-first-nes-game-in-forge">Your first NES game in Forge</h1>
+<p><strong>Desktop first-session tutorial · NES Forge 2.0.0-alpha.11 /
+source-intake-1</strong></p>
+<p>Create your own terrain and a small character, build a two-screen
+World, then save and reopen the editable project. Work through steps
+1–9. This exercise uses established World Runtime controls; the newer
+source-intake and native-recovery features are separate optional
+workflows.</p>
+<p>This tutorial accompanies the <code>NES_Forge.html</code> in this
+kit. If a control or result differs from the instructions, note the
+step, what you expected and what you saw in the feedback form.</p>
+<h2 id="before-you-begin">Before you begin</h2>
+<ol type="1">
+<li>Extract the package into a normal folder. Open
+<strong>NES_Forge.html</strong> in your browser and
+<strong>Tutorial.html</strong> separately.</li>
+<li>If Forge restores previous work, use <strong>Save Project
+As…</strong> to preserve it first.</li>
+<li>Click <strong>New Project</strong> and confirm replacing the current
+workspace. The scene should be <strong>My First Room</strong>. The
+default project name is <strong>My First NES Game</strong>.</li>
+<li>Check these settings in their separate locations (the two checkboxes
+are <strong>not in CODE</strong>):</li>
+</ol>
+<table>
+<thead>
+<tr class="header">
+<th>Location</th>
+<th>Setting for this tutorial</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>CODE</strong> tab</td>
+<td>Confirm the code editor is empty.</td>
+</tr>
+<tr class="even">
+<td><strong>AUDIO</strong> tab → <strong>NES Runtime</strong></td>
+<td>Leave <strong>Compile Audio Runtime</strong> unchecked.</td>
+</tr>
+<tr class="odd">
+<td><strong>SCENE</strong> tab → <strong>Gameplay</strong> →
+<strong>GAMEPLAY CORE · TYPED TABLES</strong></td>
+<td>Leave <strong>Enable canonical Gameplay Core</strong> unchecked.
+Scroll the sidebar and expand the section if needed.</td>
+</tr>
+</tbody>
+</table>
+<p>You will enable <strong>World Runtime</strong> later in the
+<strong>WORLD</strong> tab.</p>
+<p><strong>Checkpoint:</strong> One source scene; no Worlds, entities,
+metasprites, or animations; blank background and sprite artwork. If you
+see old art or populated libraries, stop and confirm that you started a
+new project.</p>
+<p><strong>A useful habit:</strong> After changing a text or number
+field, press Tab or click outside it to commit the edit. Scroll the
+right sidebar when controls appear missing. Several important sections
+are below the first screenful.</p>
+<h3 id="what-the-tabs-contribute">What the tabs contribute</h3>
+<table>
+<thead>
+<tr class="header">
+<th>You make</th>
+<th>In these tabs</th>
+<th>Where it becomes playable</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Terrain</td>
+<td>CHR SHEET, COLLISION, SCENE, METATILES</td>
+<td>WORLD</td>
+</tr>
+<tr class="even">
+<td>Character artwork and animation</td>
+<td>CHR SHEET, METASPRITES, ANIM</td>
+<td>ENTITY STUDIO bindings</td>
+</tr>
+<tr class="odd">
+<td>Starting position and movement</td>
+<td>WORLD → WORLD RUNTIME</td>
+<td>Build &amp; Run → EMULATOR</td>
+</tr>
+</tbody>
+</table>
+<p>SCENE will serve as a small source-art workbench. WORLD will contain
+the actual level. A preview in an authoring tab is not a live view of
+the running ROM.</p>
+<h2 id="1-draw-a-background-tile">1. Draw a background tile</h2>
+<ol type="1">
+<li>Open <strong>CHR SHEET</strong> and choose <strong>BG Bank
+($0000)</strong>.</li>
+<li>Click tile <strong>$01</strong>, the second tile in the top row.
+Confirm that the <strong>Editing Tile</strong> label says
+<strong>$01</strong>.</li>
+<li>In <strong>Pixel Color (1–4)</strong>, select the second or third
+swatch. Draw a visible brick or ground pattern in the enlarged 8×8
+editor. For a simple first tile, fill the square with one color and add
+a different color along its top edge.</li>
+<li>Leave tile <strong>$00</strong>, the first tile, blank.</li>
+<li>Use <strong>Preview Palette</strong> row 0 for this exercise. If the
+colors are hard to distinguish, use its pencil controls to choose
+contrasting NES colors. Clicking a palette row selects it; the pencil
+changes the actual color.</li>
+</ol>
+<p><strong>Checkpoint:</strong> $01 visibly contains your drawing. $00
+remains empty-looking. You have edited real tile pixels, not merely
+changed a preview setting.</p>
+<h2 id="2-give-that-tile-solid-collision">2. Give that tile solid
+collision</h2>
+<ol type="1">
+<li>Open <strong>COLLISION</strong>.</li>
+<li>Under <strong>Active Property</strong>, select <strong>1 - Solid
+(blocks all)</strong>.</li>
+<li>In <strong>Tile Assignments</strong>, click tile
+<strong>$01</strong>. Leave $00 as <strong>0 - Empty</strong>.</li>
+</ol>
+<p>We will capture this collision into the metatiles next. The first
+World uses only Empty and Solid terrain collision.</p>
+<h2 id="3-make-two-reusable-terrain-blocks">3. Make two reusable terrain
+blocks</h2>
+<p>A metatile combines four 8×8 tiles into one 16×16 block. The first
+block leaves its upper half empty; the second is entirely solid.</p>
+<h3 id="make-ground-surface">Make Ground Surface</h3>
+<ol type="1">
+<li>Return to <strong>CHR SHEET → BG Bank ($0000)</strong> and select
+$01 again so it is the current Scene brush.</li>
+<li>Open <strong>SCENE</strong>. Turn on the top toolbar's
+<strong>Grid</strong> checkbox if needed.</li>
+<li>At the very top-left corner, leave the first two tiles in the first
+row blank. Paint $01 into the first two tiles of the second row. These
+are tile coordinates <strong>(0,1)</strong> and <strong>(1,1)</strong>;
+counting begins at zero.</li>
+<li>Open <strong>METATILES</strong>. Set <strong>Tool</strong> to
+<strong>Select cells</strong> and click the top-left 16×16 cell
+containing that sample.</li>
+<li>Click <strong>+ From Selected Cell</strong>. Under <strong>SELECTED
+METATILE</strong>, set <strong>Name</strong> to <strong>Ground
+Surface</strong>.</li>
+<li>Check the quadrant fields against this table:</li>
+</ol>
+<table>
+<thead>
+<tr class="header">
+<th>Quadrant</th>
+<th style="text-align: right;">CHR tile number</th>
+<th>Collision</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>TL</td>
+<td style="text-align: right;">0</td>
+<td>Empty</td>
+</tr>
+<tr class="even">
+<td>TR</td>
+<td style="text-align: right;">0</td>
+<td>Empty</td>
+</tr>
+<tr class="odd">
+<td>BL</td>
+<td style="text-align: right;">1</td>
+<td>Solid</td>
+</tr>
+<tr class="even">
+<td>BR</td>
+<td style="text-align: right;">1</td>
+<td>Solid</td>
+</tr>
+</tbody>
+</table>
+<ol start="7" type="1">
+<li>Click <strong>Detach Selected Cell</strong>. This keeps the library
+definition and the visible source drawing, but removes the cell's link
+so it will not seed the new World.</li>
+</ol>
+<h3 id="make-solid-block">Make Solid Block</h3>
+<ol type="1">
+<li>Return to <strong>SCENE</strong> with $01 selected. Paint the first
+two tiles in the first row too. The same top-left sample now contains
+four $01 tiles.</li>
+<li>Return to <strong>METATILES</strong>, select the same top-left cell,
+and click <strong>+ From Selected Cell</strong>.</li>
+<li>Name the new definition <strong>Solid Block</strong>. Its four CHR
+quadrant fields must all read <strong>1</strong>, and its four collision
+quadrants must all be <strong>Solid</strong>.</li>
+<li>Click <strong>Detach Selected Cell</strong> again.</li>
+</ol>
+<p><strong>Checkpoint:</strong> The Metatile Library contains
+<strong>Ground Surface</strong> and <strong>Solid Block</strong>. The
+first has collision only in its bottom half. The second is fully solid.
+The sample art still visible in SCENE is expected.</p>
+<p><strong>Save checkpoint 1:</strong> Click <strong>Save Project
+As…</strong>. Save a portable JSON file such as
+<strong>My_First_NES_Game_01_Terrain.json</strong>. Finish the Save As
+dialog using <strong>Choose location &amp; save…</strong> or its
+explicit browser-download option. Browser <strong>Save</strong> is
+useful too, but the portable file is your backup.</p>
+<h2 id="4-paint-a-two-screen-world">4. Paint a two-screen World</h2>
+<ol type="1">
+<li><p>Open <strong>WORLD</strong> and click <strong>+
+World</strong>.</p></li>
+<li><p>Explicitly select <strong>Tileset Scene: My First
+Room</strong>.</p></li>
+<li><p>Fill in three <strong>separate fields</strong> in the World
+sidebar:</p>
+<ul>
+<li><strong>Name:</strong> enter only <code>My First World</code>.</li>
+<li><strong>Width:</strong> enter <code>2</code>, then press Tab to
+commit it.</li>
+<li><strong>Height:</strong> enter <code>1</code>, then press Tab.</li>
+</ul>
+<p>Confirm the VIEW status reads <strong>2×1 screens · 32×15 metatiles ·
+view cell 0,0</strong>. Writing “Width: 2” in the Name field does not
+resize the World.</p></li>
+<li><p>Confirm that the World sidebar reports <strong>2 metatiles
+available</strong>. If its brush is empty, check Tileset Scene and the
+library you just made before proceeding.</p></li>
+</ol>
+<p>The World has two screens side by side. Each screen contains
+<strong>16 columns × 15 rows</strong> of metatiles. Coordinates begin at
+zero: its rows are 0–14. The World editor displays one screen at a
+time.</p>
+<h3 id="paint-screen-1">Paint screen 1</h3>
+<ol type="1">
+<li>In <strong>WORLD TOOLS</strong>, choose <strong>Paint</strong>.</li>
+<li>Choose <strong>Ground Surface</strong> in <strong>METATILE
+BRUSH</strong> or <strong>METATILE PALETTE</strong>.</li>
+<li>Paint all 16 cells of <strong>row 12</strong>, the third row from
+the bottom.</li>
+<li>Choose <strong>Solid Block</strong> and paint every cell of
+<strong>rows 13 and 14</strong>, the bottom two rows.</li>
+</ol>
+<h3 id="paint-screen-2">Paint screen 2</h3>
+<ol type="1">
+<li>Use the <strong>→</strong> View button to move to the second screen.
+The view cell should begin at <strong>16,0</strong>.</li>
+<li>Repeat the same floor: Ground Surface across row 12; Solid Block
+across rows 13 and 14.</li>
+<li>Use <strong>←</strong> to return to the first screen, view cell
+<strong>0,0</strong>.</li>
+</ol>
+<p><strong>Checkpoint:</strong> A continuous floor spans both screens,
+with blank sky above. This paints <strong>96 cells</strong>: 16 columns
+× 3 rows × 2 screens. You do not need an empty metatile to fill the
+sky.</p>
+<h3 id="place-the-starting-marker">Place the starting marker</h3>
+<ol type="1">
+<li>Choose <strong>WORLD TOOLS → Spawn</strong>.</li>
+<li>Click the <strong>fourth column from the left, third row from the
+bottom</strong> on screen 1: cell <strong>X=3, Y=12</strong>.</li>
+<li>Choose <strong>Select</strong> and click the marker. Under
+<strong>SELECTION / PROPERTIES</strong>, verify <strong>Kind:
+spawn</strong> and <strong>X / Y: 3 / 12</strong>. You may name it
+<strong>Player Start</strong>.</li>
+<li>Leave <strong>Target World</strong> and <strong>Target
+Marker</strong> at none. This is a starting Spawn, not a travel
+link.</li>
+</ol>
+<p>The marker places the center of the Player's feet at pixel
+<strong>(56,200)</strong>. The upper half of the Ground Surface cell is
+empty, so the tiny Player can stand directly above its solid lower
+half.</p>
+<p><strong>Save checkpoint 2:</strong> Save as
+<strong>My_First_NES_Game_02_World.json</strong>.</p>
+<h2 id="5-draw-your-character-and-compose-its-pose">5. Draw your
+character and compose its pose</h2>
+<h3 id="draw-one-sprite-tile">Draw one sprite tile</h3>
+<ol type="1">
+<li>Open <strong>CHR SHEET</strong> and select <strong>Sprite Bank
+($1000)</strong>.</li>
+<li>Select tile <strong>$10</strong>: first column of the second
+row.</li>
+<li>Draw a small 8×8 character or icon. Use the second, third, or fourth
+pixel swatch; sprite color index 0 is transparent.</li>
+<li>Use <strong>Sprite palette 0</strong> for this exercise and choose
+contrasting colors if necessary.</li>
+</ol>
+<p><strong>Sprite color limit:</strong> Each sprite piece uses three
+visible colors plus transparency. The first pixel swatch is transparent;
+the other three select colors from its sprite palette. Additional pieces
+can use different palettes in a larger metasprite, but use one tile and
+Sprite palette 0 for this first pass.</p>
+<p><strong>Tile-number reminder:</strong> Sheet labels are hexadecimal.
+<strong>$10 means decimal 16</strong>. Enter <strong>16</strong> in
+ordinary numeric fields.</p>
+<h3 id="make-hero-stand">Make Hero Stand</h3>
+<ol type="1">
+<li>Open <strong>METASPRITES</strong> and click <strong>+ New
+frame</strong>.</li>
+<li>Set <strong>Name: Hero Stand</strong>, <strong>Source scene: My
+First Room</strong>, and <strong>Sprite size: 8 × 8 · one tile / OAM
+slot</strong>.</li>
+<li>Click <strong>+ Piece</strong>.</li>
+<li>In the selected piece's properties, set the first <strong>Tile /
+lower</strong> field to <strong>16</strong>, <strong>X / Y</strong> to
+<strong>0 / 0</strong>, and <strong>Palette</strong> to <strong>Sprite
+palette 0</strong>. The lower-tile field is unused in 8×8 mode.</li>
+<li>Click <strong>Set origin at feet</strong>. For one 8×8 piece at 0,0,
+<strong>Origin X / Y</strong> should become <strong>4 / 8</strong>.</li>
+</ol>
+<p><strong>Checkpoint:</strong> Your character is visible in the
+composer. The cyan origin marks its centered feet. If it is blank, check
+Sprite Bank, decimal tile 16, nontransparent pixels, and the selected
+palette.</p>
+<h2 id="6-create-the-three-required-animations">6. Create the three
+required animations</h2>
+<p>You can use the same pose for all three states on this first pass.
+Walking will move the character, but its artwork will stay the same
+until you add different poses later.</p>
+<p>Open <strong>ANIM</strong>. For each row below, click <strong>+ Add
+Animation</strong>, fill in <strong>Name</strong> and
+<strong>State</strong>, set <strong>Loop</strong>, select the first
+frame, and set <strong>Duration</strong>, <strong>Frame source</strong>,
+and <strong>Metasprite</strong>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>State</th>
+<th>Loop</th>
+<th style="text-align: right;">Duration</th>
+<th>Frame source</th>
+<th>Metasprite</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Hero Idle</td>
+<td>idle</td>
+<td>On</td>
+<td style="text-align: right;">12</td>
+<td>Metasprite</td>
+<td>Hero Stand</td>
+</tr>
+<tr class="even">
+<td>Hero Walk</td>
+<td>walk</td>
+<td>On</td>
+<td style="text-align: right;">8</td>
+<td>Metasprite</td>
+<td>Hero Stand</td>
+</tr>
+<tr class="odd">
+<td>Hero Attack</td>
+<td>attack</td>
+<td><strong>Off</strong></td>
+<td style="text-align: right;">8</td>
+<td>Metasprite</td>
+<td>Hero Stand</td>
+</tr>
+</tbody>
+</table>
+<p>One frame per animation is enough. <strong>Hero Attack must be
+nonlooping</strong>, even though it currently reuses the same artwork.
+You can leave <strong>Flip on reverse</strong> off for this exercise. A
+jump animation is optional; this build can reuse idle artwork while
+airborne.</p>
+<p><strong>Checkpoint:</strong> Three animations exist. Each first frame
+points to <strong>Hero Stand</strong>, and Hero Attack has Loop
+unchecked.</p>
+<h2 id="7-create-a-player-and-assign-its-states">7. Create a Player and
+assign its states</h2>
+<ol type="1">
+<li>Open <strong>ENTITY STUDIO</strong>. Confirm its
+<strong>Scene</strong> is <strong>My First Room</strong>.</li>
+<li>Under <strong>PLACE AN ENTITY</strong>, set <strong>Type:
+Player</strong>, <strong>Scene X / Y: 48 / 200</strong>, and click
+<strong>Add at X / Y</strong>.</li>
+<li>With that Player selected, find <strong>STATES</strong>. For each
+row, enter <strong>State name</strong>, select its
+<strong>Animation</strong>, and click <strong>Assign
+state</strong>:</li>
+</ol>
+<table>
+<thead>
+<tr class="header">
+<th>State name</th>
+<th>Animation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>idle</td>
+<td>Hero Idle</td>
+</tr>
+<tr class="even">
+<td>walk</td>
+<td>Hero Walk</td>
+</tr>
+<tr class="odd">
+<td>attack</td>
+<td>Hero Attack</td>
+</tr>
+</tbody>
+</table>
+<ol start="4" type="1">
+<li>Under <strong>ENTITY DEFAULTS</strong>, choose <strong>Default
+state: idle</strong> and <strong>Default facing: Right</strong>.</li>
+</ol>
+<p>The state names must be exactly <strong>idle</strong>,
+<strong>walk</strong>, and <strong>attack</strong>. Naming an animation
+does not automatically bind it to this Player.</p>
+<p><strong>Checkpoint:</strong> The selected Player shows all three
+assigned states. The Scene X/Y locates the source entity; the World
+Spawn determines where it starts in your level.</p>
+<p><strong>Save checkpoint 3:</strong> Save as
+<strong>My_First_NES_Game_03_Player.json</strong>.</p>
+<h2 id="8-connect-world-runtime-and-build">8. Connect World Runtime and
+build</h2>
+<p>Return to <strong>WORLD</strong> and scroll the sidebar to
+<strong>WORLD RUNTIME</strong>.</p>
+<ol type="1">
+<li>Check <strong>Build this project as World Runtime</strong>.</li>
+<li>Set <strong>Start world: My First World</strong>.</li>
+<li>Set <strong>Start marker</strong> to your Spawn, either
+<strong>Player Start [spawn]</strong> or <strong>spawn 1
+[spawn]</strong>.</li>
+<li>Set <strong>Player source scene: My First Room</strong>.</li>
+<li>Set <strong>Player</strong> to <strong>Player 1</strong>, the entity
+you created in ENTITY STUDIO. It is expected to be the only option when
+you have created only one Player.</li>
+<li>Expand <strong>Movement and collision body</strong> and explicitly
+set:</li>
+</ol>
+<table>
+<thead>
+<tr class="header">
+<th>Setting</th>
+<th style="text-align: right;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Move speed</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr class="even">
+<td>Jump speed</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr class="odd">
+<td>Gravity</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td>Maximum fall</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr class="odd">
+<td>Body width</td>
+<td style="text-align: right;"><strong>8</strong></td>
+</tr>
+<tr class="even">
+<td>Body height</td>
+<td style="text-align: right;"><strong>8</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The default body is larger than this first character. Change both
+dimensions to 8; changing the artwork alone does not resize
+collision.</p>
+<p><strong>Checkpoint:</strong> Status says the start and player
+references are valid. This is a reference check; Build &amp; Run still
+validates the map, collision, animations, and ROM capacity.</p>
+<p>Click <strong>Build &amp; Run</strong>. Forge should switch to
+<strong>EMULATOR</strong> with your compiled World running. Click the
+game display if the keyboard focus is still in an editor field. Use
+<strong>Run</strong> if playback is paused.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Expected result in this tutorial</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Left / Right</td>
+<td>Move along the floor</td>
+</tr>
+<tr class="even">
+<td>Z / NES A</td>
+<td>Jump and land on the floor</td>
+</tr>
+<tr class="odd">
+<td>X / NES B</td>
+<td>Play the nonlooping attack state; with the same pose, no art change
+is visible</td>
+</tr>
+<tr class="even">
+<td>Enter / NES Start</td>
+<td>Restart at the configured Spawn</td>
+</tr>
+</tbody>
+</table>
+<p>Walk all the way to the right edge of screen 1. The game should
+change to screen 2 and continue moving on its floor. This profile
+changes whole NES screens; it does not smoothly scroll.</p>
+<p><strong>First-session success:</strong> Your own terrain and Player
+appear; movement and jumping work; the second screen is reachable; Enter
+returns to the starting position. The World is deliberately silent
+because you have not authored or enabled sound. This is a traversal
+exercise, not a combat demonstration.</p>
+<h2 id="9-save-reopen-and-keep-the-result">9. Save, reopen, and keep the
+result</h2>
+<ol type="1">
+<li>Save the completed project as
+<strong>My_First_NES_Game_04_Playable.json</strong> using <strong>Save
+Project As…</strong>. Confirm the file actually exists in your chosen
+folder or browser downloads.</li>
+<li>Use <strong>Build .NES ROM</strong> to save
+<strong>My_First_NES_Game.nes</strong> for playback testing. Keep the
+native JSON too; the ROM is executable output.</li>
+<li>Pause the emulator. After confirming your JSON backup exists, use
+<strong>Open Project</strong> to open that saved JSON.</li>
+<li>Check the two-screen World, both metatiles, Hero Stand, all three
+animations, and the World Runtime selections. Click <strong>Build &amp;
+Run</strong> again.</li>
+</ol>
+<p><strong>Checkpoint:</strong> The reopened native project builds and
+plays the same authored World. You now have both an editable project
+backup and a generated ROM.</p>
+<p>When you edit terrain, artwork, or settings, build again to see the
+change in the ROM. <strong>Run Original ROM</strong> plays retained
+cartridge bytes and does not compile your current edits.</p>
+<h2 id="10-optional-try-your-result-on-a-phone">10. Optional: try your
+result on a phone</h2>
+<p>Steps 1–9 complete the desktop assignment. A phone is optional. The
+ZIP includes no hosted URL; if local access fails, mark
+<strong>Blocked</strong> and ask the kit sender for a link to this exact
+build. Do not bypass a browser warning to continue.</p>
+<p>Copy your generated <code>.nes</code> file to the phone. Open the
+same Forge build and choose <strong>EMULATOR → Load ROM</strong>, then
+<strong>Run</strong> and <strong>Play view</strong>. Use <strong>Show
+touch</strong> if needed. Test held direction plus A, release, rotation,
+switching away and returning, and leaving Play view. Record model, OS,
+browser, delivery path and the ROM SHA-256. Fullscreen can fall back to
+expanded Play view.</p>
+<p>This tutorial ROM has no authored sound. Silence here cannot test
+Audio. Use a known sound-bearing fixture supplied separately for
+listening or lag checks. Do not mark physical controllers tested unless
+you use one.</p>
+<h2 id="if-a-checkpoint-fails">If a checkpoint fails</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Symptom</th>
+<th>First thing to check</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Right View arrow does not move</td>
+<td>Check the actual Width field is 2, press Tab, and confirm VIEW says
+2×1 screens.</td>
+</tr>
+<tr class="even">
+<td>World brush is empty</td>
+<td>Tileset Scene must be My First Room, and its library must contain
+the two metatiles.</td>
+</tr>
+<tr class="odd">
+<td>Source sample appears at the top of a new World</td>
+<td>Detach the source cell before + World, or erase the unwanted
+placement in WORLD.</td>
+</tr>
+<tr class="even">
+<td>Player is invisible</td>
+<td>Sprite Bank; tile number 16; visible nonzero pixels; Hero Stand
+source; animation frame source; Player state bindings.</td>
+</tr>
+<tr class="odd">
+<td>Player starts inside terrain</td>
+<td>Spawn cell3,12; Ground Surface collision TL/TR Empty and BL/BR
+Solid; body8×8; origin4,8.</td>
+</tr>
+<tr class="even">
+<td>Build asks for idle/walk/attack</td>
+<td>Assign the exact lowercase states in ENTITY STUDIO.</td>
+</tr>
+<tr class="odd">
+<td>Build rejects attack</td>
+<td>Turn off Loop on Hero Attack.</td>
+</tr>
+<tr class="even">
+<td>Build complains about custom assembly</td>
+<td>Save any code separately, then clear CODE for this generated World
+workflow.</td>
+</tr>
+<tr class="odd">
+<td>You only see a static source Scene</td>
+<td>Enable World Runtime and explicitly choose its World, marker, source
+scene, and Player.</td>
+</tr>
+<tr class="even">
+<td>Keys do nothing</td>
+<td>Click the emulator display, confirm Run, and close controller
+settings or save dialogs.</td>
+</tr>
+<tr class="odd">
+<td>Edits do not appear while playing</td>
+<td>Use Build &amp; Run again. Editor changes do not hot-reload the
+ROM.</td>
+</tr>
+</tbody>
+</table>
+<p>If it still fails, keep your last checkpoint and record the failing
+step, visible error text, and a screenshot. A precise first-use report
+is more helpful than silently changing several settings at once.</p>
+<h2 id="what-you-built-and-how-to-share-it">What you built and how to
+share it</h2>
+<p>The World compiler generates real 6502 machine code in the ROM. It
+does not fill the CODE tab or export editable assembly source. Share the
+native JSON (or project ZIP) alongside the ROM so others can edit in
+Forge and rebuild. This generated World-ROM profile also embeds editable
+source for <strong>Open Forge ROM</strong> recovery; do not generalize
+that to every imported ROM or other build profile.</p>
+<h2 id="continue-after-the-first-successful-session">Continue after the
+first successful session</h2>
+<p>See <code>NEXT_STEPS.html</code> for a separate multi-piece pose,
+animation and Entity Studio binding exercise, plus a prebuilt Scout
+project to inspect. Keep your first playable JSON as a checkpoint before
+doing any optional work.</p>
+</body>
+</html>
