@@ -1,0 +1,53 @@
+name: Alpha tester feedback
+description: Report a bug, blocked tutorial step or confusing control in the Alpha kit.
+title: "[Alpha] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing NES Forge. Issues are public: remove personal data, credentials and assets you do not have permission to share. Nothing from the editor is uploaded automatically.
+  - type: input
+    id: build
+    attributes:
+      label: App and kit version
+      description: Include the exact build from SOURCE_RECORD.json and the kit revision.
+      placeholder: 2.0.0-alpha.11 / source-intake-1; kit RC2.1
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser, OS and device
+      description: Include browser/OS versions and whether the kit was opened locally or hosted.
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Observation
+      options:
+        - Fail
+        - Blocked
+        - Confusing instructions or control
+        - Pass / completed testing
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps and named controls
+      description: Include the tutorial step, starting project and repeatable actions.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual result
+      description: Include the exact error, repeatability and whether this blocks the assignment. Mark anything not tried as Not tested.
+    validations:
+      required: true
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Optional evidence
+      description: Add screenshots or permitted native project checkpoints. Keep your original/native backups. Do not attach third-party game ROMs or credentials.
