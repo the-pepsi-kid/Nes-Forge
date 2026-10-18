@@ -67,14 +67,14 @@ test('Failed compile clears published artifacts and does not run/export a stale 
 
 test('ReleaseInfo owns current version/schema and production has no embedded Scout starter',()=>{
   const h=fresh();assert.equal(h.context.Forge.release.version,'2.0.0-alpha.11');assert.equal(h.context.Forge.release.schema,12);
-  assert.match(h.context.document.title,/2\.0\.0-alpha\.11.*Source Intake Diagnostics/);assert.equal(h.context.Forge.release.candidate,'source-intake-1');
+  assert.match(h.context.document.title,/2\.0\.0-alpha\.11.*Audio Tool Import/);assert.equal(h.context.Forge.release.candidate,'audio-tool-import-1');
   assert.equal(h.run('projectData().version'),12);assert.equal(h.run('projectData().foundation'),'2.0.0-alpha.11');
   assert.doesNotMatch(h.html,/const\s+STARTER\s*=/);assert.doesNotMatch(h.html,/const\s+SCOUT_STARTER\s*=/);
 });
 test('Current Tech Docs render through one owner without accumulating historical sections',()=>{
   const h=fresh(),docs=h.context.Forge.services.Documentation;assert.equal(h.run('renderDocs'),docs.render);
   h.run('renderDocs()');const first=h.get('sideDocs').innerHTML;h.run('renderDocs();renderDocs()');assert.equal(h.get('sideDocs').innerHTML,first);
-  assert.match(first,/2\.0\.0-alpha\.11/);assert.match(first,/Source Intake Diagnostics/);assert.match(first,/Gameplay Core/);assert.match(first,/Audio Runtime/);assert.match(first,/World Runtime/);
+  assert.match(first,/2\.0\.0-alpha\.11/);assert.match(first,/Audio Tool Import/);assert.match(first,/Gameplay Core/);assert.match(first,/Audio Runtime/);assert.match(first,/World Runtime/);
   assert.doesNotMatch(first,/<h[1-6][^>]*>\s*(?:NES Forge\s+)?1\.[0-5][^<]*<\/h/i);
   for(const term of ['World','Audio','Live','Save','Capture','Source workspace','Checkpoints','BEHAVIOR GRAPH','Export MIDI'])assert.match(first,new RegExp(term,'i'),'Current reference documents '+term);
 });

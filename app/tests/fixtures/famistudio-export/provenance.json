@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "description": "Original NES Forge test notes loaded and exported by the official FamiStudio application; no upstream compositions copied.",
+  "tool": {
+    "name": "FamiStudio",
+    "version": "4.5.3",
+    "releaseTag": "4.5.3",
+    "releaseCommit": "c09dca64788606c09fcb5e70db28b9dd1f34be78",
+    "releaseUrl": "https://github.com/BleuBleu/FamiStudio/releases/tag/4.5.3",
+    "assetUrl": "https://github.com/BleuBleu/FamiStudio/releases/download/4.5.3/FamiStudio453-LinuxAMD64.zip",
+    "assetBytes": 33948184,
+    "assetSha256": "9133afed2fb384663b0735d8e950cdc2714849f4fd476b16de8d56e5e81da0ad",
+    "assemblySha256": "3cea9acdf40d56e61585747205cece862c14a8c48eb8ad373dc7d0db3c0c79cf",
+    "officialTextImplementationUrl": "https://raw.githubusercontent.com/BleuBleu/FamiStudio/c09dca64788606c09fcb5e70db28b9dd1f34be78/FamiStudio/Source/IO/FamistudioTextFile.cs",
+    "officialTextImplementationSha256": "c1b7845100f6b32fbf79edd33c6119e1d23cad7cd5ca6954e12deea427b57f14"
+  },
+  "runtime": {
+    "name": ".NET",
+    "version": "8.0.32",
+    "platform": "linux-x64",
+    "archiveSha256": "a967d422e196d79679dede132418372aa34882b638a1a8dd722d5641bcd697aa"
+  },
+  "verification": {
+    "officialSeedReadAndExport": "passed",
+    "officialExportReimportAndExport": "byte-identical for both text fixtures",
+    "officialRomExport": "byte-identical on repeat export",
+    "binaryFmsProjectRoundtrip": "not performed; CLI has no .fms save command",
+    "forgeParserIndependent": true
+  },
+  "rom": {
+    "mapper": 5,
+    "mapperName": "MMC5",
+    "prgBytes": 32768,
+    "chrBytes": 8192,
+    "audio": "base 2A03 channels; no DPCM",
+    "engine": "FamiStudio 4.5.3, FamiTone2-derived",
+    "benchmarkRole": "unsupported-mapper refusal control; not a NROM engine-profile counterexample",
+    "licenseFile": "FamiStudio-LICENSE.txt"
+  },
+  "expected": {
+    "noteStartsPerPass": 18,
+    "channels": [
+      "Square1",
+      "Square2",
+      "Triangle",
+      "Noise"
+    ],
+    "famistudio": {
+      "tempoMode": "FamiStudio",
+      "patternLengthMusicalUnits": 8,
+      "noteLength": 6,
+      "groove": [
+        6
+      ],
+      "instanceCount": 2,
+      "framesPerInstance": 48,
+      "totalFrames": 96
+    },
+    "famitrackerTempo": {
+      "tempoMode": "FamiTracker",
+      "patternLengthRows": 16,
+      "instanceCount": 2,
+      "totalRows": 32,
+      "tempo": 150,
+      "speed": 6
+    },
+    "firstPulse": {
+      "note": "C4",
+      "time": 0,
+      "instrument": "Pulse \"lead\"",
+      "volume": 12,
+      "duty": 2
+    },
+    "noise": {
+      "C0Period": 14,
+      "D0Period": 12
+    }
+  },
+  "files": [
+    {
+      "path": "FamiStudio-LICENSE.txt",
+      "bytes": 1065,
+      "sha256": "5e3b4767eb00d525a783f678d7a8cf3c71a7fc33de218bbcfd84abf76a2b8106"
+    },
+    {
+      "path": "forge-four-channel-famistudio.txt",
+      "bytes": 2047,
+      "sha256": "a50974890a9a6e0da40b073dd0691589162c5d8f600bb56ec8b1b635f5cc85d3"
+    },
+    {
+      "path": "forge-four-channel-famitracker-tempo.txt",
+      "bytes": 2029,
+      "sha256": "c4f5643575ed0baf408e954760cb74d8342a62886cd7f294c17705efa036de09"
+    },
+    {
+      "path": "inputs/seed-famistudio.txt",
+      "bytes": 2240,
+      "sha256": "689df0af5e691ce4ca6d6dba70e21c808948600d33b910538710a9a8141b26cb"
+    },
+    {
+      "path": "inputs/seed-famitracker-tempo.txt",
+      "bytes": 2222,
+      "sha256": "f887b71eea791dd130a3dbb1d7a080c06872707e94892b06106941fe5ccb9080"
+    },
+    {
+      "path": "forge-four-channel-famistudio.nes",
+      "bytes": 40976,
+      "sha256": "47b8c781fe24202f44a49279a2e051be9639ed7fab54792dec58cd9cbe5d6ff7"
+    }
+  ]
+}

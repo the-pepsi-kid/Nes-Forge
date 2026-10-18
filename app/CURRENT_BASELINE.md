@@ -1,3 +1,11 @@
+# Audio Tool Import working candidate
+
+Current branch: `implementation/audio-interchange-2026-10-18`; release **2.0.0-alpha.11 / audio-tool-import-1**, schema12. The preserved parent is source-intake commit `09f2233908bc511ffe057e3f7e885a5a42ef19ac`, HTML SHA-256 `11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd`, with 1,833 cases across93 suites. The outer preservation layer retains that exact baseline and its complete case inventory.
+
+The current bundle identity is recorded in `build-inputs.json`. Fresh automated outcomes are in `test-results/candidate/Summary.json` and the FamiStudio browser workflow report. Do not reuse an earlier candidate's pass count or browser acceptance for this bundle. The existing testerkit branch remains separate.
+
+## Preserved previous baseline
+
 # Current review candidate — Source Intake Diagnostics
 
 Release **2.0.0-alpha.11**, candidate **source-intake-1**, schema **12**. Application: `mainline/NES_Forge_2.0.0-alpha.11.html`. Current outcomes require matching fresh records; a planned gate is not a pass.

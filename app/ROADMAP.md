@@ -1,3 +1,9 @@
+# Current audio import and RE work
+
+The authorized `audio-tool-import-1` slice implements bounded FamiStudio text import in AUDIO and a reproducible read-only audio-driver comparison benchmark. See `docs/AUDIO_TOOL_IMPORT.md`. Additional external formats (FamiTracker text, Aseprite frames, Tiled maps and assembly project adapters) and wider6502 recognition remain unfinished. Candidate similarity does not grant decoder/import capability. Source-backed independent project coverage, held-out evaluation and measured investigation effort are needed before claiming scalable recognition improvements.
+
+## Preserved roadmap
+
 ## October 12, 2026 — source intake diagnostics candidate
 
 Current implementation: **2.0.0-alpha.11 / source-intake-1**, schema 12. Source Workspace now provides explicit, read-only intake reports for supplied assembly trees. Reports preserve declared dialect/engine/version separately from the workspace build profile, identify current and original bytes, list literal include/binary dependencies with file/line evidence, and expose unsupported or uncertain constructs. The complete pinned DABG ca65 input and existing Forge multi-file example provide independent foreign and supported controls.

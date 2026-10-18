@@ -2,673 +2,92 @@
   "format": "NESForgeCandidateHandoff",
   "version": 1,
   "release": "2.0.0-alpha.11",
-  "candidate": "source-intake-1",
+  "candidate": "audio-tool-import-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/source-intake-2026-10-13",
+  "branch": "implementation/audio-interchange-2026-10-18",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
-  "archive": "NES_Forge_2.0.0-alpha.11_Source_Intake_Candidate.zip",
-  "archiveSha256": "f68f551c22902ced0a86802ca17b6abf95de6d0ce8829ccd9e9475b4b0c6c44b",
-  "payloadChecksums": 7091,
-  "packageFiles": 7092,
-  "automatedResult": {
-    "status": "passed",
-    "passed": 1833,
-    "failed": 0,
-    "total": 1833,
-    "suiteCount": 93,
-    "startedAt": "2026-10-13T02:47:48.892Z",
-    "finishedAt": "2026-10-13T03:29:54.876Z"
-  },
-  "retainedCases": 1769,
-  "retainedSuites": 89,
-  "automatedSummary": "app/test-results/candidate/Summary.json",
-  "cleanExtractionProof": "app/checkpoints/source-intake-1-clean-extraction/Reproduction.json",
-  "browserEvidence": [
-    {
-      "name": "browser-mobile",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "ff5e0ee92839f5fdd8c3c6b36bf810930b359b5a52df2569181f9dce72b859f6",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-mobile/Prior_Launch_Attempt.json",
-        "reportSha256": "74160d337c42379d98dd546d6ebcb2eb0f2a1f9ffb7e4ca84caee58d26b517f1",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "dc0ce6b6a5cb0b492067f3b5cb01bf9a39d690cd121689cdeac3fcc35660fe67"
-      }
-    },
-    {
-      "name": "browser-re-analysis",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "bc6145d821f716369e1f312aa29210d663bb72023bff766765398ee8075a2e8d",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-re-analysis/Prior_Launch_Attempt.json",
-        "reportSha256": "4184bf6816a83b1281d10e1b7fd017be293acec5da90b99f1f10244ca845990e",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "e55230c9e7be641368b3d9a2fb3f506dc990ad7dbab674d778559bb66f4fe171"
-      }
-    },
-    {
-      "name": "browser-re-runtime",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "ef335dba2292b7f1cf2d37e153ad07d2b2a3534fa7af1572639972433b86045f",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-re-runtime/Prior_Launch_Attempt.json",
-        "reportSha256": "24d2b3934725539cf77ed42d9c0a3deed1f86f2b63f4332656fd0ffd4bfb32a7",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "413f359d45d5939ee98c83e9546a4eb2293e4699ab2d6f36ffa0729317373722"
-      }
-    },
-    {
-      "name": "browser-audio-adaptive",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "3fe90616803a1c2c2daf5c4ff33f03ca550d5f7c3bc89a3e82cd97869b7abaf0",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-audio-adaptive/Prior_Launch_Attempt.json",
-        "reportSha256": "66971439872bd932fa4e942a207939aac5d78380b8dc72bd45b464a253f99fd1",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "eb72b68a0eee5c5b7dd32deab03fc996b7fa3b37e292462a79f738775d16b2a7"
-      }
-    },
-    {
-      "name": "browser-roadmap",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "0035370c8c34a2ff1cc7cd850a28ed3a211c8f9e8a5f2f0bee326cf355252484",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-roadmap/Prior_Launch_Attempt.json",
-        "reportSha256": "751ce359c5f16500fd4c18a126c0a2ea753c34870b7fa13675ffc299f9fe9334",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "7be06c10c80ec7a3070d42ee181575359a6e34697ead55bce785ac8cf91c3d3c"
-      }
-    },
-    {
-      "name": "browser-native-audio",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "c2f30a6958c3b2caa2b6ad9003b81cb0c7f7e19a579b213495f69ff2152f12f4",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-native-audio/Prior_Launch_Attempt.json",
-        "reportSha256": "12ae2a59bec174c277834871a82838dceabbd47f030edc999408938b396cfc47",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "7c81c545dd6e119002bd7a6386eec47f374b51be3d6ef35c5f7e131d9702241f"
-      }
-    },
-    {
-      "name": "browser-native-audio-import",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "dd37298167094d7d91c1eaaf0df64faac68a377b1996a134f22892e46c3e4d14",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-native-audio-import/Prior_Launch_Attempt.json",
-        "reportSha256": "09e89f617001ad633e2ce61d650a4bb022c33c572f00f7308fe804e955f280e0",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "8b99f02b25c09a72e3efd163908ed3cd3f395df181cfc96f743f4a2c0012b7c7"
-      }
-    },
-    {
-      "name": "browser-recovery-methods",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "cfb5c739aac854e848ede969ac6c1cadee2e358d0c34b62aa6216398040097c1",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-recovery-methods/Prior_Launch_Attempt.json",
-        "reportSha256": "9cfb10d79bdb2ba086d3f2d0822c6de5032d16d62fb002a5a724c1c629ee6b31",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "a97a13e28dd67a237d67da1b286ea996f231c4a16e0fa979ba250e16e01c2c22"
-      }
-    },
-    {
-      "name": "browser-seeded-mashup",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "d71d76fec7b0f897d5e14978575f25504684f83895c63a10791c131eb837e410",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-seeded-mashup/Prior_Launch_Attempt.json",
-        "reportSha256": "fd2d6c15dfc47c442c476773d572e557cb6726ad967958d3b2493cc636da4379",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "145b8912680979ebf72cb06370214500805006170556bb5239c531e0d52e5761"
-      }
-    },
-    {
-      "name": "browser-movement-rules",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "fb1f0d85b3fdca7d24f5a79feffb9e6305aeb3b30683ee9cdee73b5a2d45f3fb",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-movement-rules/Prior_Launch_Attempt.json",
-        "reportSha256": "f49dad3ceb449c21955baf6e14e86b91151c965d314af5f3b6936ad8ad3aab8f",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "ee603580c30fa2bdca9019964bec7cd5cf1bfd105bd9400b85eac1a2093681c3"
-      }
-    },
-    {
-      "name": "browser-compatibility",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "b654f5f24d4e42c33beaacf355fa1aa1ca3b27ae9cd81a7fac8fe8f64b22040a",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-compatibility/Prior_Launch_Attempt.json",
-        "reportSha256": "b3f89d3740f9d1727f053a015d72ca5da2e76fca528d02748b11dfd3643fc01e",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "d84abbb4b5edefa80412a7a82bf7a23c3d67995b0b548e93166c69f8a7be94cd"
-      }
-    },
-    {
-      "name": "browser-native-background",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "3bcfcdd0d744a30cab9236a72718514cd060640e37553326a500a5f27e24dd1d",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-native-background/Prior_Launch_Attempt.json",
-        "reportSha256": "eb0aa85be5b496dc48b1a04df44ad3572b4401f9d8463db22ea95f6356815397",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "c0134135b8ac3670628e01e0e953ab8fa12a2a26aaab7057d39f8ad575d64ecf"
-      }
-    },
-    {
-      "name": "browser-native-map",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "fdc28624e56916720e1bfa5f5e8a1963c947162e48737fc1010ee087bbd09eef",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-native-map/Prior_Launch_Attempt.json",
-        "reportSha256": "10baa23ba448ee1334de88f61695b0910a51eea441bfa8c7fd052d0e53fdba0a",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "7a055a0330a9f31909f7ebf11d66499277ad18386b9a6ec21f5a3a0f56d4c344"
-      }
-    },
-    {
-      "name": "browser-native-sfx",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "9f2a65787d1a225b97ad99ab759d1ebdd1af22eaee74359fe336450746d791cc",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-native-sfx/Prior_Launch_Attempt.json",
-        "reportSha256": "958987ba1e9e2e8eaff4714af24b0bc76429a19880851cda9a7c510b3c17981a",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "5e9280e3906292405c99db8acb9e46c1b62384d589370fe42d8bee094f8579ae"
-      }
-    },
-    {
-      "name": "browser-source-intake",
-      "status": "blocked",
-      "execution": "not-attempted",
-      "launchAttempted": false,
-      "checks": 0,
-      "reportSha256": "2eb5d7706fdaee5742ede2b4a188c450b8ff36710607e1848fbae30a9418bdfa",
-      "observedAt": "2026-10-13T02:50:12.468Z",
-      "blockingCondition": {
-        "code": "required-chromium-executable-missing",
-        "executablePath": "/root/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell",
-        "executableExists": false,
-        "inspectionMethod": "filesystem-only; no browser process",
-        "overrideConfigured": false
-      },
-      "priorAttempt": {
-        "report": "test-results/browser-source-intake/Prior_Launch_Attempt.json",
-        "reportSha256": "3edc41877681f9593de02b3a8af5f90b4185e946da68b79f84e7a224ea2ea221",
-        "htmlSha256": "38d2ed3731949252c0173bd4835188f1e53ad88f1fd1a23807e7ce9ac6a2d879",
-        "runnerSha256": "9e4066350a2f7ecf499b508004ed59807a419b4af67f6dcf126584b0d38ed9cf"
-      }
-    }
+  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
+  "payloadChecksums": 7156,
+  "packageFiles": 7157,
+  "parentCommit": "09f2233908bc511ffe057e3f7e885a5a42ef19ac",
+  "changes": [
+    "Bounded FamiStudio 4.5 UTF-8 text import inside AUDIO with preview, song selection, one Undo and separate original-source receipt.",
+    "Read-only source-backed audio routine comparison benchmark; strict FamiTone2 decoding remains unchanged."
   ],
-  "nativeAudio": {
-    "profile": "famitone2-native-nrom-1",
-    "conversion": "famitone2-canonical-transcription-1",
-    "canonicalAudioImport": true,
-    "scope": "Retained finite NTSC music-score transcription with represented volume/arpeggio envelopes and disclosed nearest-pitch/control differences. SFX remain outside that music conversion; the separate nativeSfx capability adds its declared single-pulse subset. DPCM, PAL, nonzero native pitch envelopes and original-engine loop behavior remain outside this music conversion.",
-    "sourceROM": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
-    "apuComparison": "Original external driver and actual generated Audio routines: two subsongs plus directed envelope/global-speed derivatives; matching supported row timing, pulse volume/duty and gates, measured nearest-pitch difference up to 4.549895 cents; edited tracker note reaches rebuilt APU.",
-    "universalEngineRecovery": false,
-    "nativeEngineEquivalence": false,
-    "listening": "pending",
-    "sharedLifecycle": "RENativeAudioImport",
-    "import": "ProjectStore.applyAudioImport"
+  "automatedResult": {
+    "passed": 1872,
+    "total": 1872,
+    "suites": 97,
+    "failed": 0,
+    "unchangedCandidate": true,
+    "workers": 4
   },
-  "ownerAcceptance": "pending for source-intake-1; earlier owner results retain their original scope",
-  "mobilePerformance": "pending same-device comparison",
-  "hardwareControllers": "not physically tested",
-  "promotion": "not promoted",
-  "roadmap": "in progress; complete roadmap is not implemented",
-  "parentCommit": "9769a3b9e8f622da73f6ffa3904e6856b01fc7ab",
-  "nextCodingDependency": "Selected-routine source integration: define an explicit independently tested hook contract covering registers/flags, RAM and zero-page ownership, code placement, execution timing and resource budgets. Source intake is lexical/read-only evidence, not translation or runtime compatibility. Retain remaining native Audio fidelity/formats, browser/listening/owner acceptance, runtime and comprehensive manual dependencies before integrated Hosted/network/wallet/deck work.",
-  "license": "UNDECIDED",
-  "recoveryMethods": {
-    "contractVersion": 2,
-    "methods": [
-      "nes.physical-chr.v1",
-      "nes.famitone2-native.v1",
-      "nes.immediate-ppu-background.v1",
-      "nes.pointer-nametable.v1",
-      "nes.command-metatile-map.v1"
-    ],
-    "discovery": "Explicit original-source recognition and route-only UI; no project/emulator/native-session changes",
-    "dispatch": "Existing five-method registry retains music/default conversion, CHR and native scene routes. FamiTone2 convert adds explicit resourceKind:sfx/effectId selection; shared native Audio lifecycle and project-owned transactions handle music and SFX.",
-    "universalEngineRecovery": false,
-    "nativeSceneCollisionRecovery": true,
-    "nativeBackgroundRecovery": true,
-    "nativeSceneCollisionScope": "Finite source-backed raw static command maps with fixed Empty/Solid semantics; one eligible resource in the independent input. No universal or original-gameplay recovery.",
-    "nativeSfxRecovery": true
-  },
-  "seededMashup": {
-    "version": 1,
-    "algorithm": "sha256-mulberry32-domains-1",
-    "ui": "SCENE > Seeded mashup",
-    "sources": "Current canonical schema-12 project plus up to eight donor Forge JSON projects; canonical content SHA-256 identities",
-    "domains": [
-      "background tiles",
-      "sprite tiles",
-      "palettes",
-      "canonical music"
-    ],
-    "gameplay": "Opt-in authored-bound patrol speeds and compatible collision-clear existing enemy/pickup slot permutations",
-    "commit": "Detached preview and exact-source recipe replay; explicit guarded Apply with one project Undo",
-    "runtimeEvidence": "Actual generated World and single-room execution; changed pixel/APU traces; exact UI recipe replay to shipped ROM and Save As/reopen ROM bytes",
-    "newRawRomDecoder": false,
-    "arbitraryEngineCodeFusion": false,
-    "wholeRoomComposition": false,
-    "solvabilityGuaranteed": false
-  },
-  "movementRules": {
-    "version": 1,
-    "ui": "SCENE > Movement rules",
-    "recipe": "NESForgeMovementRecipe v1",
-    "presets": [
-      "keep",
-      "sprint",
-      "high-jump",
-      "slow-fall",
-      "heavy-fall",
-      "seeded-mix"
-    ],
-    "intensity": [
-      1,
-      2,
-      3
-    ],
-    "bounds": {
-      "moveSpeed": [
-        1,
-        4
-      ],
-      "jumpSpeed": [
-        1,
-        12
-      ],
-      "gravity": [
-        1,
-        3
-      ],
-      "maxFallSpeed": [
-        1,
-        8
-      ]
-    },
-    "scope": "Four scalar physics values in the already configured active generated World or single-room runtime; independent locks and deterministic origins; one guarded Undoable Apply",
-    "preservation": "Raw v1 model/recipe algorithms, existing emitters, body/spawn/maps/actors/audio/inactive backend preserved; UI delegates settings transaction and explicit identity migration.",
-    "newRuntimeOrSchema": false,
-    "deathSlidingKnockbackOrTimersAdded": false,
-    "solvabilityGuaranteed": false
-  },
-  "crossReleaseRecipeUI": {
-    "status": "implemented-and-automated-handler-verified; real-browser acceptance blocked",
-    "alpha10RecipeDirectlyInAlpha11": true,
-    "contract": "NESForgeRecipeIdentityMigration v1",
-    "method": "exact-v1-foundation-reissue-1",
-    "supportedFoundations": [
-      "2.0.0-alpha.10",
-      "2.0.0-alpha.11"
-    ],
-    "verification": "Full historical source hashes/byte lengths and original result, then deterministic current recipe reissue with foundation-only equivalence; raw v1 unchanged.",
-    "evidence": "app/test-results/candidate/recipe-compatibility.json"
-  },
-  "compatibilityStabilization": {
-    "decision": "D063",
-    "roadmap": "D063 C1-C5 preserved; automated parent gate passed; browser acceptance remains open",
-    "sharedConfigurationLimits": true,
-    "explicitDetachedReferenceValidation": true,
-    "projectSettingsTransaction": "ProjectStore.applySettingsEdit",
-    "detachedCompiler": "RuntimeCompiler.compileDetached via BuildGraph.planDetached",
-    "movementPreviewBackends": [
-      "compiled-world",
-      "compiled-single-room"
-    ],
-    "schemaChanged": false,
-    "runtimeEmittersChanged": false,
-    "newMechanicsOrTemplates": false,
-    "guide": "app/docs/COMPATIBILITY_STABILIZATION.md",
-    "checklist": "app/docs/COMPATIBILITY_STABILIZATION_CHECKLIST.txt"
-  },
-  "nativeBackground": {
-    "decision": "D064",
-    "methods": [
-      "nes.immediate-ppu-background.v1",
-      "nes.pointer-nametable.v1"
-    ],
-    "corpus": [
-      "tests/fixtures/re-runtime/pepsi_vending_v9e.nes",
-      "examples/RE_Native_Audio/HonkeyPong-reproduced.nes"
-    ],
-    "canonicalService": "RENativeBackground",
-    "registry": "REMethods",
-    "import": "ProjectStore.appendScene",
-    "compiler": "RuntimeCompiler.compileDetached(project,{allowViewer:true})",
-    "scope": "Declared static background construction only; sprites/collision/gameplay/later updates/audio unknown; final pointer-loader attribute filled0 as explicit adaptation.",
-    "schemaChanged": false,
-    "runtimeEmittersChanged": false,
-    "guide": "app/docs/NATIVE_BACKGROUND_RECOVERY.md",
-    "checklist": "app/docs/NATIVE_BACKGROUND_RECOVERY_CHECKLIST.txt",
-    "examples": "app/examples/RE_Native_Background/Manifest.json",
-    "sharedLifecycle": "RENativeScene.createLifecycle",
-    "compatibility": "Exact A1 staged report/project/build/import/save/Undo/Redo parity verified for both declared sources and valid edits."
+  "retainedCases": 1833,
+  "retainedSuites": 93,
+  "automatedSummary": "app/test-results/candidate/Summary.json",
+  "preservedParent": {
+    "candidate": "source-intake-1",
+    "commit": "09f2233908bc511ffe057e3f7e885a5a42ef19ac",
+    "htmlSha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
+    "suiteCount": 93,
+    "cases": 1833,
+    "reference": "app/docs/history/source-intake-1/Reference_Inventory.json",
+    "summary": "app/checkpoints/source-intake-1-reference/test-results/candidate/Summary.json"
   },
   "retainedExamples": {
-    "families": 6,
+    "evidence": "app/checkpoints/audio-tool-import-1-examples/Regeneration.json",
     "files": 58,
-    "byteIdenticalFiles": 52,
-    "changedReceiptFiles": 6,
-    "roms": 15,
-    "generatedRoms": 14,
-    "sourceRoms": 1,
-    "projects": 19,
-    "recipes": 6,
-    "byteIdentical": true,
-    "evidence": "app/checkpoints/source-intake-1-examples/Regeneration.json"
+    "byteIdentical": 52,
+    "receiptIdentityOnlyChanges": 6,
+    "unchangedRomFiles": 15,
+    "unchangedProjects": 19,
+    "unchangedRecipes": 6
   },
-  "nativeMap": {
-    "decision": "D065",
-    "method": "nes.command-metatile-map.v1",
-    "corpus": "examples/RE_Native_Map/DABG-reproduced.nes",
-    "sourceSha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
-    "inputCheckpoint": "research/native-map-intake-1/",
-    "configurationRecords": 52,
-    "referencedMaps": 22,
-    "convertibleMaps": 1,
-    "resourceKey": "map-bfe3",
-    "collisionCells": 960,
-    "nativeDecoder": "RENativeCommandMap",
-    "graphicsDecoder": "RENativeCommandGraphics",
-    "canonicalService": "RENativeMap",
-    "registry": "REMethods",
-    "sharedLifecycle": "RENativeScene.createLifecycle",
-    "sharedUI": "RENativeSceneUI (RENativeBackgroundUI compatibility alias)",
-    "import": "ProjectStore.appendScene",
-    "compiler": "RuntimeCompiler.compileDetached(project) using existing single-room runtime",
-    "scope": "One declared command-map representation. Only fixed native Empty/Solid geometry in the visible 16 by 15 metatile region converts, before PrettyLevel decoration. Reset palette and verified PB53 CHR-RAM rendering are recovered; unsupported, procedural, unknown, wrapped, scrolling, one-way, hazardous or stateful semantics refuse conversion.",
-    "playableAdaptation": "Separate project uses an authored validation player and existing Forge physics; import appends an excluded scene without changing runtime settings.",
-    "nativeEncoder": false,
-    "nativeEngineEquivalence": false,
-    "schemaChanged": false,
-    "runtimeEmittersChanged": false,
-    "newMechanicsOrTemplates": false,
-    "guide": "app/docs/NATIVE_MAP_RECOVERY.md",
-    "checklist": "app/docs/NATIVE_MAP_RECOVERY_CHECKLIST.txt",
-    "examples": "app/examples/RE_Native_Map/Manifest.json",
-    "inputCheckpointCommit": "db13bd14c21deff5e20c110894ecbe82ffd97b75"
+  "browserEvidence": [
+    {
+      "report": "app/test-results/audio-tool-import/browser/Report.json",
+      "status": "passed",
+      "checks": 10,
+      "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
+      "scope": "Actual source file chooser, preview/cancel/import, Undo/Redo, receipt download, visible tracker edit, browser-download Save As fallback, file-chooser reopen, generated ROM/APU pitch change, phone viewport and no page errors.",
+      "limits": [
+        "Native OS Save As dialog not tested.",
+        "Phone viewport is not physical-device testing.",
+        "Controlled CPU subroutine/APU observations do not prove full-game timing, audible or hardware equivalence.",
+        "Other browser supplement reports retain their original candidate identity; they were not rerun for this candidate."
+      ]
+    }
+  ],
+  "audioToolImport": {
+    "guide": "app/docs/AUDIO_TOOL_IMPORT.md",
+    "fixtureProvenance": "app/tests/fixtures/famistudio-export/provenance.json",
+    "version": "FamiStudio 4.5.x",
+    "channels": [
+      "Pulse1",
+      "Pulse2",
+      "Triangle",
+      "Noise"
+    ],
+    "originalPreservation": "Separate downloadable receipt includes original UTF-8 text and SHA-256; schema-12 project contains converted score only.",
+    "scope": "Bounded score/instrument conversion; no binary .fms project import, FamiTracker text importer, original-engine equivalence or arbitrary effect support."
   },
-  "nativeSfx": {
-    "decision": "D066",
-    "profile": "nes.famitone2-native.v1",
-    "conversion": "famitone2-canonical-sfx-transcription-1",
-    "corpus": "examples/RE_Native_Audio/HonkeyPong-reproduced.nes",
-    "sourceSha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
-    "decoder": "FamiTone2Native",
-    "converter": "FamiTone2SfxImport",
-    "sharedLifecycle": "RENativeAudioImport",
-    "ui": "RENativeSfxUI",
-    "import": "ProjectStore.applyAudioImport",
-    "registry": "REMethods",
-    "scope": "Explicit finite NTSC single-pulse FamiTone2 SFX transcription, frames zero through inclusive native end plus canonical terminal cut; canonical notes and deduplicated duty/volume instruments. Other channels, multichannel effects, PAL, unknown state and unsupported control/timer/duration/capacity refuse.",
-    "importPrecondition": {
-      "tempo": 150,
-      "speed": 1
-    },
-    "automaticEventBinding": false,
-    "runtimeEnabledByImport": false,
-    "exampleAdaptation": "Separate Scout World projects explicitly choose timing and B/attack animation sound bindings; the import itself preserves tempo, music orders, runtime switches and bindings.",
-    "fidelity": "Native frame/volume/duty evidence is distinct from nearest-canonical-pitch error, pulse phase/retrigger and original music/SFX arbitration. Logical APU checks do not establish audible equivalence.",
-    "supportedOriginalEffects": [
-      0,
-      1
-    ],
-    "refusedMultichannelOriginalEffect": 2,
-    "effectIdOrRomHashAllowlist": false,
-    "nativeEngineEquivalence": false,
-    "schemaChanged": false,
-    "runtimeEmittersChanged": false,
-    "newMechanicsOrTemplates": false,
-    "listening": "pending",
-    "guide": "app/docs/NATIVE_SFX_IMPORT.md",
-    "checklist": "app/docs/NATIVE_SFX_IMPORT_CHECKLIST.txt",
-    "examples": "app/examples/RE_Native_SFX/Manifest.json",
-    "apuEvidence": "app/test-results/candidate/native-sfx-apu.json"
+  "audioRecognition": {
+    "report": "app/research/audio-recognition-1/baseline.json",
+    "corpusCases": 9,
+    "independentExternalGameProjects": 2,
+    "heldOutIndependentSameFamilyProjects": 0,
+    "strictAcceptedExistingInputs": 3,
+    "controlsRefused": 6,
+    "newSupportedDriverFamilies": 0,
+    "scope": "Uncalibrated read-only routine comparisons, with physical-byte evidence and work limits. Similarity cannot authorize decoding or import; no broad accuracy or time-saving claim."
   },
-  "sourceIntake": {
-    "decision": "D067",
-    "method": "source-intake-1",
-    "model": "SourceIntake",
-    "workspaceOwner": "SourceWorkspace",
-    "api": "SourceWorkspace.analyze",
-    "ui": "SourceWorkspaceUI",
-    "scope": "Read-only, bounded lexical inventory of supplied source/workspace bytes, explicit dialect/engine declarations, literal dependencies, unresolved or unsafe paths, include cycles and unsupported constructs. Macro/conditional expansion, build search paths and linker semantics remain unresolved.",
-    "corpus": "tests/fixtures/source-intake/DABG-pinned-input.zip",
-    "sourceSha256": "70878e1f407134d699e7a12329102974d9b90056835b535319605f47624adca1",
-    "sourceCommit": "5ecc60b6af3f726851bfeb1c2555388c5953e0c0",
-    "sourceFileCount": 44,
-    "sourceBytes": 281267,
-    "exampleWorkspaces": [
-      "Forge_Multifile",
-      "DABG_ca65"
-    ],
-    "exampleAssessment": [
-      {
-        "name": "Forge_Multifile",
-        "assessment": {
-          "scope": "syntactic-only",
-          "status": "no-known-blockers",
-          "buildVerified": false,
-          "sourceExecuted": false,
-          "sourceTranslated": false
-        },
-        "coverage": {
-          "inventoryFiles": 4,
-          "assemblyFiles": 3,
-          "scannedLines": 32,
-          "dependencyEdges": 3,
-          "entry": "main.asm",
-          "complete": true
-        },
-        "truncated": false,
-        "diagnosticCount": 0,
-        "diagnosticLimit": 1024,
-        "report": "app/examples/Source_Intake/Forge_Multifile.intake.json"
-      },
-      {
-        "name": "DABG_ca65",
-        "assessment": {
-          "scope": "syntactic-only",
-          "status": "incomplete",
-          "buildVerified": false,
-          "sourceExecuted": false,
-          "sourceTranslated": false
-        },
-        "coverage": {
-          "inventoryFiles": 44,
-          "assemblyFiles": 27,
-          "scannedLines": 13830,
-          "dependencyEdges": 27,
-          "entry": "dabg.s",
-          "complete": false
-        },
-        "truncated": true,
-        "diagnosticCount": 1024,
-        "diagnosticLimit": 1024,
-        "report": "app/examples/Source_Intake/DABG_ca65.intake.json"
-      }
-    ],
-    "workspaceFormat": "NESForgeSourceWorkspace v1",
-    "workspaceFormatChanged": false,
-    "declarationsPersistedInWorkspace": false,
-    "analysisMutatesWorkspace": false,
-    "analysisMutatesProject": false,
-    "sourceExecuted": false,
-    "sourceTranslated": false,
-    "buildVerifiedByAnalysis": false,
-    "runtimeHooksAdded": false,
-    "foreignDialectBuild": false,
-    "reportFormat": "NESForgeSourceIntakeReport v1",
-    "reportExport": "Existing Save As flow; current source/options identity required",
-    "buildGuard": "Explicit foreign declarations refuse the UI Build Source action; unspecified and declared Forge use the unchanged assembler and NROM builder.",
-    "schemaChanged": false,
-    "runtimeEmittersChanged": false,
-    "newMechanicsOrTemplates": false,
-    "guide": "app/docs/SOURCE_INTAKE.md",
-    "checklist": "app/docs/SOURCE_INTAKE_CHECKLIST.txt",
-    "examples": "app/examples/Source_Intake/Manifest.json"
-  }
+  "firstGateFailure": {
+    "evidence": "app/test-results/audio-tool-import/initial-gate-failure/Summary.json",
+    "reason": "Retained Gameplay Core example receipt referenced the prior HTML hash. Regenerated all six retained example families; all ROMs/projects/recipes stayed byte-identical before full gate rerun."
+  },
+  "ownerAcceptance": "Listening and independent-emulator/hardware acceptance remain open.",
+  "promotion": "Development branch only; existing tester kit unchanged and no release published.",
+  "roadmap": "In progress. Additional foreign formats, wider independent audio-driver corpus and source integration remain unfinished.",
+  "license": "UNDECIDED; upstream fixture/source notices retained."
 }

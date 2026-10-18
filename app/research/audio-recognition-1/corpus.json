@@ -1,0 +1,161 @@
+{
+  "format": "NESForgeAudioRecognitionCorpus",
+  "version": 1,
+  "reference": "honkeypong",
+  "strictDecoder": {
+    "path": "src/re/famitone2-native.js",
+    "sha256": "2392e1a1ed77ca1af4a179a44c2f288348633c68a310592a9f4ac6c18fe068cf",
+    "profilePath": "src/re/famitone2-driver-profile.js",
+    "profileSha256": "a1d7ff0d2cc39eeb403857343a9f71b0e9102652962322d8d71b4655c09b6da0"
+  },
+  "provenance": [
+    {
+      "project": "HonkeyPong",
+      "sourceCommit": "f9ab7ad450ffebabec15623aa811a7564f079168",
+      "sourceUrl": "https://github.com/HonkeyKong/HonkeyPong",
+      "assemblerCommit": "8873359a0913d94e56a129a6b601dfc18a6574ab",
+      "record": "examples/RE_Native_Audio/provenance.json",
+      "sha256": "d6c47cfd6c1af65e56fcceb3d2b0a8a4ce29c195ea1ba8f48c4adbd9a7520578",
+      "checkpoint": "examples/RE_Native_Audio/NES_Forge_Native_Audio_Input_Checkpoint.zip",
+      "checkpointSha256": "191296195795ab510fafed0e9d06c860d09dbac1b596d4ecc34437efea74f39f",
+      "buildInstructions": "examples/RE_Native_Audio/README.md"
+    },
+    {
+      "project": "Double Action Blaster Guys",
+      "sourceCommit": "5ecc60b6af3f726851bfeb1c2555388c5953e0c0",
+      "sourceUrl": "https://github.com/NovaSquirrel/DABG",
+      "assemblerCommit": "555282497c3ecf8b313d87d5973093af19c35bd5",
+      "record": "examples/RE_Native_Map/Input_Provenance.json",
+      "sha256": "bb9e5a0877333cfbb3692da2c9933cf0ae4b8b7193a76d6b6da56a401cb25b46",
+      "buildInstructions": "examples/RE_Native_Map/README.txt",
+      "checkpoint": "examples/RE_Native_Map/NES_Forge_A2_Native_Map_Input_Checkpoint.zip",
+      "checkpointSha256": "6dc4c6cadaa5774ef347b8dca22041fc9221c0d268e92fa258b25dc38075ac68",
+      "sourceCheckpointMembers": [
+        {
+          "path": "research/native-map-intake-1/source/DABG/sound.s",
+          "sha256": "91ee70bf49ca889be7f2abdba25079a5cc92949429186dce1c22a1eea5857b0c"
+        },
+        {
+          "path": "research/native-map-intake-1/source/DABG/music.s",
+          "sha256": "ae8d10573f9fb9e1719536c7615a57a4c7c63040e5f52acd37cc9f1e565a1c95"
+        }
+      ],
+      "sourceCheckpointMembersNote": "Paths are repository source references; bytes and notices also retained in source checkpoint. Benchmark validates the entire checkpoint archive."
+    },
+    {
+      "project": "Original NES Forge score exported by FamiStudio",
+      "sourceCommit": "c09dca64788606c09fcb5e70db28b9dd1f34be78",
+      "sourceUrl": "https://github.com/BleuBleu/FamiStudio/releases/tag/4.5.3",
+      "record": "tests/fixtures/famistudio-export/provenance.json",
+      "sha256": "3ebe93a41f116294fd76de5b841470aa92636d118925a2b60d1dbc96db4ec558",
+      "buildInstructions": "tests/fixtures/famistudio-export/README.md",
+      "audioSource": [
+        {
+          "path": "tests/fixtures/famistudio-export/FamiStudio-LICENSE.txt",
+          "sha256": "5e3b4767eb00d525a783f678d7a8cf3c71a7fc33de218bbcfd84abf76a2b8106"
+        },
+        {
+          "path": "tests/fixtures/famistudio-export/forge-four-channel-famistudio.txt",
+          "sha256": "a50974890a9a6e0da40b073dd0691589162c5d8f600bb56ec8b1b635f5cc85d3"
+        },
+        {
+          "path": "tests/fixtures/famistudio-export/forge-four-channel-famitracker-tempo.txt",
+          "sha256": "c4f5643575ed0baf408e954760cb74d8342a62886cd7f294c17705efa036de09"
+        },
+        {
+          "path": "tests/fixtures/famistudio-export/inputs/seed-famistudio.txt",
+          "sha256": "689df0af5e691ce4ca6d6dba70e21c808948600d33b910538710a9a8141b26cb"
+        },
+        {
+          "path": "tests/fixtures/famistudio-export/inputs/seed-famitracker-tempo.txt",
+          "sha256": "f887b71eea791dd130a3dbb1d7a080c06872707e94892b06106941fe5ccb9080"
+        },
+        {
+          "path": "tests/fixtures/famistudio-export/forge-four-channel-famistudio.nes",
+          "sha256": "47b8c781fe24202f44a49279a2e051be9639ed7fab54792dec58cd9cbe5d6ff7"
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "honkeypong",
+      "path": "examples/RE_Native_Audio/independent.nes",
+      "sha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+      "engine": "FamiTone2 v1.11 linked profile",
+      "independentProject": "HonkeyPong",
+      "role": "reference-game",
+      "expectedStrict": "decoded"
+    },
+    {
+      "id": "honkeypong-relocated",
+      "path": "examples/RE_Native_Audio/relocated.nes",
+      "sha256": "8df730ec00cfd245bea8587bc4411ca03a297579a3480f64eca7d79a5c5cb57f",
+      "engine": "FamiTone2 v1.11 linked profile",
+      "independentProject": "HonkeyPong",
+      "role": "same-game-source-reassembly",
+      "expectedStrict": "decoded"
+    },
+    {
+      "id": "honkeypong-nrom32",
+      "path": "examples/RE_Native_Audio/nrom32.nes",
+      "sha256": "12a4ea0c802b037dbcea29724cb6b2c37f6eae2c8d6034eeef6a681b8f5eaf4b",
+      "engine": "FamiTone2 v1.11 linked profile",
+      "independentProject": "HonkeyPong",
+      "role": "same-game-source-reassembly",
+      "expectedStrict": "decoded"
+    },
+    {
+      "id": "dabg-original",
+      "path": "examples/RE_Native_Map/DABG-reproduced.nes",
+      "sha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+      "engine": "Damian Yerrick LJ65/Concentration Room/Thwaite audio engine, 2009\u20132011 source",
+      "independentProject": "Double Action Blaster Guys",
+      "role": "different-engine-container-control",
+      "expectedStrict": "unknown",
+      "expectedDiagnostic": "UNSUPPORTED_CONTAINER"
+    },
+    {
+      "id": "dabg-ines-header",
+      "parent": "dabg-original",
+      "transform": "ines-header",
+      "role": "different-engine-code-control",
+      "expectedStrict": "unknown",
+      "expectedDiagnostic": "NO_PROFILE"
+    },
+    {
+      "id": "honkeypong-opcode-mutant",
+      "parent": "honkeypong",
+      "transform": "opcode-mutant",
+      "role": "same-game-synthetic-negative",
+      "expectedStrict": "unknown",
+      "expectedDiagnostic": "NO_PROFILE"
+    },
+    {
+      "id": "honkeypong-chr-decoy",
+      "parent": "honkeypong",
+      "transform": "chr-decoy",
+      "role": "synthetic-negative",
+      "expectedStrict": "unknown",
+      "expectedDiagnostic": "NO_PROFILE"
+    },
+    {
+      "id": "truncated",
+      "parent": "honkeypong",
+      "transform": "truncate",
+      "role": "malformed-control",
+      "expectedStrict": "invalid",
+      "expectedDiagnostic": "TRUNCATED"
+    },
+    {
+      "id": "famistudio-official-mmc5",
+      "path": "tests/fixtures/famistudio-export/forge-four-channel-famistudio.nes",
+      "sha256": "47b8c781fe24202f44a49279a2e051be9639ed7fab54792dec58cd9cbe5d6ff7",
+      "engine": "FamiStudio 4.5.3 (FamiTone2-derived)",
+      "independentProject": null,
+      "role": "generated-original-score-mapper-control",
+      "expectedStrict": "unknown",
+      "expectedDiagnostic": "UNSUPPORTED_MAPPER"
+    }
+  ]
+}

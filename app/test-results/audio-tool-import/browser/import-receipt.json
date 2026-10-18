@@ -1,0 +1,53 @@
+{
+  "format": "NESForgeAudioImportReceipt",
+  "version": 1,
+  "adapter": "famistudio-text-1",
+  "outcome": "imported",
+  "source": {
+    "name": "forge-four-channel-famitracker-tempo.txt",
+    "text": "Project Version=\"4.5.3\" TempoMode=\"FamiTracker\" Name=\"Forge original four-channel fixture\" Author=\"NES Forge test fixture\"\n\tInstrument Name=\"Noise tick\" Color=\"42a5f5\"\n\t\tEnvelope Type=\"Volume\" Length=\"1\" Loop=\"0\" Values=\"8\"\n\tInstrument Name=\"Pulse \"\"lead\"\"\" Color=\"42a5f5\"\n\t\tEnvelope Type=\"Volume\" Length=\"1\" Loop=\"0\" Values=\"12\"\n\t\tEnvelope Type=\"DutyCycle\" Length=\"1\" Loop=\"0\" Values=\"2\"\n\tInstrument Name=\"Pulse harmony\" Color=\"42a5f5\"\n\t\tEnvelope Type=\"Volume\" Length=\"1\" Loop=\"0\" Values=\"9\"\n\t\tEnvelope Type=\"DutyCycle\" Length=\"1\" Loop=\"0\" Values=\"1\"\n\tInstrument Name=\"Triangle bass\" Color=\"42a5f5\"\n\tSong Name=\"Tracker tempo\" Color=\"42a5f5\" Length=\"2\" LoopPoint=\"0\" PatternLength=\"16\" BeatLength=\"4\" FamiTrackerTempo=\"150\" FamiTrackerSpeed=\"6\"\n\t\tChannel Type=\"Square1\"\n\t\t\tPattern Name=\"Repeated\" Color=\"42a5f5\"\n\t\t\t\tNote Time=\"0\" Value=\"C4\" Duration=\"2\" Instrument=\"Pulse \"\"lead\"\"\"\n\t\t\t\tNote Time=\"4\" Value=\"E4\" Duration=\"2\" Instrument=\"Pulse \"\"lead\"\"\"\n\t\t\t\tNote Time=\"8\" Value=\"G4\" Duration=\"4\" Instrument=\"Pulse \"\"lead\"\"\"\n\t\t\tPatternInstance Time=\"0\" Pattern=\"Repeated\"\n\t\t\tPatternInstance Time=\"1\" Pattern=\"Repeated\"\n\t\tChannel Type=\"Square2\"\n\t\t\tPattern Name=\"Repeated\" Color=\"42a5f5\"\n\t\t\t\tNote Time=\"2\" Value=\"C3\" Duration=\"6\" Instrument=\"Pulse harmony\"\n\t\t\t\tNote Time=\"10\" Value=\"G3\" Duration=\"4\" Instrument=\"Pulse harmony\"\n\t\t\tPatternInstance Time=\"0\" Pattern=\"Repeated\"\n\t\t\tPatternInstance Time=\"1\" Pattern=\"Repeated\"\n\t\tChannel Type=\"Triangle\"\n\t\t\tPattern Name=\"Repeated\" Color=\"42a5f5\"\n\t\t\t\tNote Time=\"0\" Value=\"C2\" Duration=\"8\" Instrument=\"Triangle bass\"\n\t\t\t\tNote Time=\"8\" Value=\"D2\" Duration=\"8\" Instrument=\"Triangle bass\"\n\t\t\tPatternInstance Time=\"0\" Pattern=\"Repeated\"\n\t\t\tPatternInstance Time=\"1\" Pattern=\"Repeated\"\n\t\tChannel Type=\"Noise\"\n\t\t\tPattern Name=\"Repeated\" Color=\"42a5f5\"\n\t\t\t\tNote Time=\"0\" Value=\"C0\" Duration=\"1\" Instrument=\"Noise tick\"\n\t\t\t\tNote Time=\"8\" Value=\"D0\" Duration=\"1\" Instrument=\"Noise tick\"\n\t\t\tPatternInstance Time=\"0\" Pattern=\"Repeated\"\n\t\t\tPatternInstance Time=\"1\" Pattern=\"Repeated\"\n\t\tChannel Type=\"DPCM\"\n",
+    "sha256": "c4f5643575ed0baf408e954760cb74d8342a62886cd7f294c17705efa036de09",
+    "byteLength": 2029
+  },
+  "options": {
+    "songIndex": 0,
+    "rows": 64
+  },
+  "summary": {
+    "patterns": 1,
+    "instruments": 4,
+    "notes": 18,
+    "tempo": 150,
+    "speed": 6
+  },
+  "conversion": {
+    "profile": "famistudio-text-4.5-2a03-v1",
+    "sourceVersion": "4.5.3",
+    "songIndex": 0,
+    "songName": "Tracker tempo",
+    "sourceRows": 32,
+    "durationRows": 32,
+    "paddingRows": 32,
+    "sourceLoopPoint": 0,
+    "converted": [
+      "Note pitches, starts, durations and channel assignments",
+      "Supported volume envelopes and constant duty",
+      "Selected arrangement expanded into Forge patterns"
+    ],
+    "omitted": [
+      "Editor colors and folder organization",
+      "Unselected songs and unreferenced patterns"
+    ],
+    "warnings": [
+      "Converted score and supported instruments use the Forge sound engine; original-driver waveform and cycle equivalence are not claimed.",
+      "One finite pass is converted. Forge repeats from row zero with initial channel volume and silence reset; FamiStudio can carry channel state across its loop.",
+      "Added 32 silent padding rows to fit 64-row Forge patterns."
+    ]
+  },
+  "warnings": [
+    "Converted score and supported instruments use the Forge sound engine; original-driver waveform and cycle equivalence are not claimed.",
+    "One finite pass is converted. Forge repeats from row zero with initial channel volume and silence reset; FamiStudio can carry channel state across its loop.",
+    "Added 32 silent padding rows to fit 64-row Forge patterns."
+  ],
+  "notice": "This receipt preserves the original UTF-8 text export and a historical conversion report. Save Project As separately preserves the editable Forge score. The source text is not embedded in the Forge project. This is not an original FamiStudio binary project, current-project proof, or audio equivalence evidence."
+}

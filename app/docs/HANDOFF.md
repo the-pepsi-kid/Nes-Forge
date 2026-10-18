@@ -1,3 +1,7 @@
+# Current implementation
+
+The current bounded branch is **audio-tool-import-1**. Read `../HANDOFF.md` and `AUDIO_TOOL_IMPORT.md`; the older handoff below is historical.
+
 # Current handoff
 
 Read `../HANDOFF.md` with the charter, architecture contract, decision log, roadmap, baseline evidence and test policy.

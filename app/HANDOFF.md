@@ -1,3 +1,15 @@
+# Audio Tool Import handoff
+
+Current bounded candidate: **alpha.11 / audio-tool-import-1**, schema 12, from source-intake commit `09f2233908bc511ffe057e3f7e885a5a42ef19ac`. User priority is external-tool imports alongside scalable audio-driver investigation.
+
+- Keep the importer inside the existing AUDIO editor. `FamiStudioText` parses detached data; `AudioToolImport` captures/rechecks the project and delegates installation to `ProjectStore.applyAudioImport`. `AudioToolImportUI` owns file selection, preview, confirmation and separate source receipt downloads.
+- Preserve the strict FamiTone2 decoder. Routine similarity is read-only research evidence and cannot authorize conversion. Distinguish independent projects/engines from relocated derivatives and container-refusal controls.
+- Retain all 93 baseline suites / 1,833 cases. The outer `audio-tool-import` preservation delta restores the exact source-intake bundle before historical checks. Run the new suites and browser workflow against the actual bundled application.
+- Test import, visible editing, save/reopen, Undo/Redo and generated ROM behavior. CPU/APU and browser automation do not replace listening or independent-emulator/hardware acceptance.
+- Read `docs/AUDIO_TOOL_IMPORT.md` and the fixture/benchmark provenance. Additional FamiStudio features, FamiTracker text, Aseprite/Tiled and assembly migration remain separate, unfinished work. Existing tester-kit contents and release promotion are outside this branch.
+
+## Preserved previous record
+
 # Source Intake Diagnostics handoff
 
 Continue the authorized roadmap without renewed coding permission. Current bounded candidate: **alpha.11 / source-intake-1**, schema 12, following native-sfx-1. Preserve the architecture and compatibility guarantees below.

@@ -42,6 +42,8 @@ const nativeSfxSuites=JSON.parse(fs.readFileSync(path.join(root,'native-sfx-suit
 additional.push(...nativeSfxSuites);
 const sourceIntakeSuites=JSON.parse(fs.readFileSync(path.join(root,'source-intake-suites.json'),'utf8'));
 additional.push(...sourceIntakeSuites);
+const audioToolImportSuites=JSON.parse(fs.readFileSync(path.join(root,'audio-tool-import-suites.json'),'utf8'));
+additional.push(...audioToolImportSuites);
 function requireFile(file){assert.ok(fs.existsSync(file)&&fs.statSync(file).isFile(),'Required package file is missing: '+path.relative(root,file));}
 function discoverBaselineJobs(){
   const runner=path.join(__dirname,'run_frozen.cjs');requireFile(runner);
@@ -56,8 +58,8 @@ function walk(dir){
 function requireDirectory(dir){assert.ok(fs.existsSync(dir)&&fs.statSync(dir).isDirectory(),'Required package directory is missing: '+path.relative(root,dir));}
 function inputProvenance(jobs){
   const files=new Set([__filename,path.join(__dirname,'run_all.cjs'),path.join(__dirname,'run_frozen.cjs'),path.join(__dirname,'harness.cjs'),path.join(__dirname,'fixtures.cjs'),path.join(__dirname,'composer-cases.cjs'),path.join(__dirname,'version-expectations.cjs'),path.join(__dirname,'preserved-source.json'),path.join(__dirname,'source-preservation200.cjs'),path.join(__dirname,'world-fixtures170.cjs'),path.join(root,'source-manifest.json'),path.join(root,'build-inputs.json'),path.join(root,'roadmap-modules.json'),path.join(root,'roadmap-suites.json'),path.join(__dirname,'roadmap-preservation.cjs'),path.join(__dirname,'retained-suite-counts.json'),path.join(__dirname,'retained-alpha6-suite-counts.json'),path.join(__dirname,'native-audio-preservation.cjs'),path.join(root,'native-audio-modules.json'),path.join(root,'native-audio-suites.json'),path.join(root,'browser-suites.json'),path.join(root,'native-audio-import-modules.json'),path.join(root,'native-audio-import-suites.json'),path.join(__dirname,'retained-alpha8-suite-counts.json'),path.join(__dirname,'native-audio-import-preservation.cjs'),path.join(root,'checkpoints/native-audio-import-1-reference/test-results/candidate/Summary.json'),path.join(root,'checkpoints/roadmap-1-reference/test-results/candidate/Summary.json'),...JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'),'utf8')).parts.map(part=>path.join(root,part)),path.join(root,'tools/capture_goldens.cjs'),path.join(root,'tools/build_world_example.cjs'),path.join(root,'tools/build_audio_example.cjs'),path.join(root,'tools/build_audio_correction_examples.cjs'),path.join(root,'tools/build_gameplay_example.cjs'),...jobs.map(j=>path.join(root,j[1]))]);
-  for(const file of ['source-intake-modules.json','source-intake-suites.json','tests/retained-native-sfx-suite-counts.json','tests/source-intake-preservation-lib.cjs','tests/source-intake-fixture.cjs','tools/generate_source_intake_delta.py','tools/build_source_intake_examples.cjs','tests/browser-source-intake.cjs','native-sfx-modules.json','native-sfx-suites.json','tests/retained-native-map-suite-counts.json','tests/native-sfx-preservation-lib.cjs','tools/generate_native_sfx_delta.py','tools/build_native_sfx_examples.cjs','tests/browser-native-sfx.cjs','native-map-modules.json','native-map-suites.json','tests/retained-native-background-suite-counts.json','tests/native-map-preservation-lib.cjs','tools/generate_native_map_delta.py','tools/build_native_map_examples.cjs','tests/browser-native-map.cjs','native-background-modules.json','native-background-suites.json','tests/retained-compatibility-stabilization-suite-counts.json','tests/native-background-preservation-lib.cjs','tools/generate_native_background_delta.py','tools/build_native_background_examples.cjs','tests/browser-native-background.cjs','compatibility-stabilization-modules.json','compatibility-stabilization-suites.json','tests/retained-alpha11-suite-counts.json','tests/compatibility-stabilization-preservation.cjs','tools/generate_compatibility_stabilization_delta.py','tools/build_movement_examples.cjs','movement-rules-modules.json','movement-rules-suites.json','tests/retained-alpha10-suite-counts.json','tests/movement-rules-preservation.cjs','tools/generate_movement_rules_delta.py','tests/browser-movement-rules.cjs','tests/browser-compatibility.cjs','tools/build_mashup_examples.cjs','seeded-mashup-modules.json','seeded-mashup-suites.json','tests/retained-alpha9-suite-counts.json','tests/seeded-mashup-preservation.cjs','tools/generate_seeded_mashup_delta.py','tests/browser-seeded-mashup.cjs','tests/retained-alpha7-suite-counts.json','recovery-methods-modules.json','recovery-methods-suites.json','tests/retained-alpha8-suite-counts.json','tests/recovery-methods-preservation.cjs','tools/generate_recovery_methods_delta.py','tests/browser-recovery-methods.cjs','README.md','PROJECT_CHARTER.md','ARCHITECTURE_CONTRACT.md','DECISION_LOG.md','ROADMAP.md','CURRENT_BASELINE.md','TEST_POLICY.md','HANDOFF.md','package.json','tools/package_release.py','tools/generate_mobile_keyboard_delta.py','tools/generate_audio_adaptive_delta.py','tools/generate_roadmap_delta.py','tests/browser-roadmap.cjs','tests/browser-audio-adaptive.cjs','tests/browser-mobile-play.cjs','tests/browser-re-analysis.cjs','tests/browser-re-runtime.cjs','tests/native-audio-apu200.cjs','tests/browser-native-audio.cjs','tools/generate_native_audio_delta.py','tools/generate_native_audio_import_delta.py','tests/browser-native-audio-import.cjs','tests/native-audio-import-apu200.cjs'])files.add(path.join(root,file));
-  for(const dir of ['baseline','examples','tests/fixtures','tests/native-audio','docs','hosted','checkpoints/native-audio-1-reference','checkpoints/native-audio-import-1-reference','checkpoints/recovery-methods-1-reference','checkpoints/seeded-mashup-1-reference','checkpoints/movement-rules-1-reference','checkpoints/compatibility-stabilization-1-reference','checkpoints/native-background-1-reference','checkpoints/native-map-1-reference','checkpoints/native-sfx-1-reference'])for(const file of walk(path.join(root,dir)))files.add(file);
+  for(const file of ['audio-tool-import-modules.json','audio-tool-import-suites.json','tests/retained-source-intake-suite-counts.json','tests/audio-tool-import-preservation-lib.cjs','tools/generate_audio_tool_import_delta.py','tests/browser-audio-tool-import.cjs','source-intake-modules.json','source-intake-suites.json','tests/retained-native-sfx-suite-counts.json','tests/source-intake-preservation-lib.cjs','tests/source-intake-fixture.cjs','tools/generate_source_intake_delta.py','tools/build_source_intake_examples.cjs','tests/browser-source-intake.cjs','native-sfx-modules.json','native-sfx-suites.json','tests/retained-native-map-suite-counts.json','tests/native-sfx-preservation-lib.cjs','tools/generate_native_sfx_delta.py','tools/build_native_sfx_examples.cjs','tests/browser-native-sfx.cjs','native-map-modules.json','native-map-suites.json','tests/retained-native-background-suite-counts.json','tests/native-map-preservation-lib.cjs','tools/generate_native_map_delta.py','tools/build_native_map_examples.cjs','tests/browser-native-map.cjs','native-background-modules.json','native-background-suites.json','tests/retained-compatibility-stabilization-suite-counts.json','tests/native-background-preservation-lib.cjs','tools/generate_native_background_delta.py','tools/build_native_background_examples.cjs','tests/browser-native-background.cjs','compatibility-stabilization-modules.json','compatibility-stabilization-suites.json','tests/retained-alpha11-suite-counts.json','tests/compatibility-stabilization-preservation.cjs','tools/generate_compatibility_stabilization_delta.py','tools/build_movement_examples.cjs','movement-rules-modules.json','movement-rules-suites.json','tests/retained-alpha10-suite-counts.json','tests/movement-rules-preservation.cjs','tools/generate_movement_rules_delta.py','tests/browser-movement-rules.cjs','tests/browser-compatibility.cjs','tools/build_mashup_examples.cjs','seeded-mashup-modules.json','seeded-mashup-suites.json','tests/retained-alpha9-suite-counts.json','tests/seeded-mashup-preservation.cjs','tools/generate_seeded_mashup_delta.py','tests/browser-seeded-mashup.cjs','tests/retained-alpha7-suite-counts.json','recovery-methods-modules.json','recovery-methods-suites.json','tests/retained-alpha8-suite-counts.json','tests/recovery-methods-preservation.cjs','tools/generate_recovery_methods_delta.py','tests/browser-recovery-methods.cjs','README.md','PROJECT_CHARTER.md','ARCHITECTURE_CONTRACT.md','DECISION_LOG.md','ROADMAP.md','CURRENT_BASELINE.md','TEST_POLICY.md','HANDOFF.md','package.json','tools/package_release.py','tools/generate_mobile_keyboard_delta.py','tools/generate_audio_adaptive_delta.py','tools/generate_roadmap_delta.py','tests/browser-roadmap.cjs','tests/browser-audio-adaptive.cjs','tests/browser-mobile-play.cjs','tests/browser-re-analysis.cjs','tests/browser-re-runtime.cjs','tests/native-audio-apu200.cjs','tests/browser-native-audio.cjs','tools/generate_native_audio_delta.py','tools/generate_native_audio_import_delta.py','tests/browser-native-audio-import.cjs','tests/native-audio-import-apu200.cjs'])files.add(path.join(root,file));
+  for(const dir of ['baseline','examples','tests/fixtures','tests/native-audio','docs','hosted','checkpoints/native-audio-1-reference','checkpoints/native-audio-import-1-reference','checkpoints/recovery-methods-1-reference','checkpoints/seeded-mashup-1-reference','checkpoints/movement-rules-1-reference','checkpoints/compatibility-stabilization-1-reference','checkpoints/native-background-1-reference','checkpoints/native-map-1-reference','checkpoints/native-sfx-1-reference','checkpoints/source-intake-1-reference'])for(const file of walk(path.join(root,dir)))files.add(file);
   // Distributable native corpus/source research is part of the same immutable gate input set.
   if(fs.existsSync(path.join(root,'research')))for(const file of walk(path.join(root,'research')))files.add(file);
   // The lifecycle suite uses an independent deterministic browser-storage harness.
@@ -90,53 +92,62 @@ function validateReport(name,data,initialHash){
   for(const key of ['html','source'])if(data[key]!==undefined)assert.equal(path.basename(data[key]),path.basename(html),name+' reports a different candidate');
   return {passed:measured,total:cases.length,failed:0};
 }
-function main(){
+async function main(){
   fs.mkdirSync(output,{recursive:true});
   // Clear owned reports even if required inputs or suite discovery later fail.
   for(const file of [summaryPath,...[...expectedBaseline,...additional.map(j=>j[0])].flatMap(name=>[path.join(output,name+'.json'),path.join(output,name+'.log')])])if(fs.existsSync(file))fs.unlinkSync(file);
   loadCandidateManifest();
   assert.ok(!process.env.FORGE_TEST_FILTER,'FORGE_TEST_FILTER is not permitted by the complete release gate');
+  const requestedWorkers=process.env.FORGE_TEST_WORKERS||'1';assert.match(requestedWorkers,/^[1-4]$/,'FORGE_TEST_WORKERS must be an integer from 1 to 4');const workerCount=Number(requestedWorkers);
   assert.ok(process.argv.length<=4,'Usage: node tests/run_candidate.cjs [candidate.html] [report-directory]');
   requireFile(html);const jobs=[...discoverBaselineJobs(),...additional];
-  const retained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-native-sfx-suite-counts.json'))),reference=JSON.parse(fs.readFileSync(path.join(root,'checkpoints/native-sfx-1-reference/test-results/candidate/Summary.json')));
-  assert.equal(reference.sha256,'d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847');assert.equal(reference.status,'passed');assert.equal(reference.total,1769);assert.equal(reference.suiteCount,89);assert.deepEqual(retained,Object.fromEntries(reference.suites.map(s=>[s.name,s.total])));
-  assert.equal(Object.keys(retained).length,89);assert.equal(Object.values(retained).reduce((n,value)=>n+value,0),1769);assert.equal(new Set(jobs.map(j=>j[0])).size,jobs.length,'Duplicate mandatory suite name');assert.deepEqual(jobs.slice(0,89).map(j=>j[0]),Object.keys(retained),'Every retained native-sfx suite must remain ordered');assert.equal(jobs.length,89+sourceIntakeSuites.length);
-  require('./source-intake-preservation-lib.cjs').verifyNativeSfxReference();
+  const retained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-source-intake-suite-counts.json'))),reference=JSON.parse(fs.readFileSync(path.join(root,'checkpoints/source-intake-1-reference/test-results/candidate/Summary.json')));
+  assert.equal(reference.sha256,'11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd');assert.equal(reference.status,'passed');assert.equal(reference.total,1833);assert.equal(reference.suiteCount,93);assert.deepEqual(retained,Object.fromEntries(reference.suites.map(s=>[s.name,s.total])));
+  assert.equal(Object.keys(retained).length,93);assert.equal(Object.values(retained).reduce((n,value)=>n+value,0),1833);assert.equal(new Set(jobs.map(j=>j[0])).size,jobs.length,'Duplicate mandatory suite name');assert.deepEqual(jobs.slice(0,93).map(j=>j[0]),Object.keys(retained),'Every retained source-intake suite must remain ordered');assert.equal(jobs.length,93+audioToolImportSuites.length);
+  require('./audio-tool-import-preservation-lib.cjs').verifySourceIntakeReference();
   for(const [,script]of jobs)requireFile(path.join(root,script));
   requireFile(path.join(root,'tests/fixtures/golden167/manifest.json'));requireFile(path.join(root,'baseline/NES_Forge_1.6.6_Visual_Workspace.html'));
   const initialHash=fileHash(html),inputs=inputProvenance(jobs),startedAt=new Date().toISOString(),suites=[];
-  const runtime={node:process.version,platform:process.platform,architecture:process.arch};
+  const runtime={node:process.version,platform:process.platform,architecture:process.arch,workers:workerCount};
   let failedSuite=null;
+  const completed=new Array(jobs.length);let nextJob=0,firstFailure=null;
+  async function runSuite(index){
+    const [name,script]=jobs[index];assert.equal(fileHash(html),initialHash,'The release HTML changed between suites');unchangedInputs(inputs);
+    const report=path.join(output,name+'.json'),log=path.join(output,name+'.log'),start=Date.now();
+    // Each child owns a distinct report; inputs and candidate remain immutable.
+    const timeout=name==='world-runtime170'||name==='audio-correction200'?900000:name==='movement-rules200'||name==='audio-runtime180'||name==='gameplay-core190'||name==='re-bridge-runtime'||name==='emulator-timeline-runtime'||name==='emulator-timeline'?360000:name==='native-authoring166'?360000:180000;
+    const result=await new Promise(resolve=>cp.execFile(process.execPath,[path.join(root,script),html,report],{cwd:root,env:{...process.env,FORGE_TEST_REPORT:report,FORGE_TEST_FILTER:''},encoding:'utf8',timeout,maxBuffer:8*1024*1024},(error,stdout,stderr)=>resolve({error,stdout,stderr})));
+    fs.writeFileSync(log,(result.stdout||'')+(result.stderr||''));
+    if(result.error)throw Error(name+' process failed'+(result.error.signal?' ('+result.error.signal+')':'')+': '+result.error.message+'; see '+path.relative(root,log));
+    if(name==='world-codec')fs.writeFileSync(report,result.stdout);
+    requireFile(report);const data=JSON.parse(fs.readFileSync(report,'utf8')),counts=validateReport(name,data,initialHash);
+    assert.equal(fileHash(html),initialHash,name+' changed the release HTML');unchangedInputs(inputs);
+    completed[index]={name,script,...counts,milliseconds:Date.now()-start,scriptSha256:fileHash(path.join(root,script)),report:path.relative(root,report),reportSha256:fileHash(report),log:path.relative(root,log)};
+    process.stdout.write('PASS '+name+': '+counts.passed+'/'+counts.total+'\n');
+  }
+  async function worker(){
+    while(!firstFailure&&nextJob<jobs.length){const index=nextJob++;try{await runSuite(index);}catch(error){if(!firstFailure)firstFailure={name:jobs[index][0],error};}}
+  }
   try{
-    for(const [name,script]of jobs){
-      failedSuite=name;assert.equal(fileHash(html),initialHash,'The release HTML changed between suites');unchangedInputs(inputs);
-      const report=path.join(output,name+'.json'),log=path.join(output,name+'.log'),start=Date.now();
-      // Movement previews now perform the complete detached compiler for each case, matching the retained runtime-suite budget.
-      const result=cp.spawnSync(process.execPath,[path.join(root,script),html,report],{cwd:root,env:{...process.env,FORGE_TEST_REPORT:report,FORGE_TEST_FILTER:''},encoding:'utf8',timeout:name==='world-runtime170'||name==='audio-correction200'?900000:name==='movement-rules200'||name==='audio-runtime180'||name==='gameplay-core190'||name==='re-bridge-runtime'||name==='emulator-timeline-runtime'||name==='emulator-timeline'?360000:name==='native-authoring166'?360000:180000,maxBuffer:8*1024*1024});
-      fs.writeFileSync(log,(result.stdout||'')+(result.stderr||''));
-      if(result.error)throw Error(name+' process error: '+result.error.message);
-      assert.equal(result.signal,null,name+' was terminated by '+result.signal);assert.equal(result.status,0,name+' exited '+result.status+'; see '+path.relative(root,log));
-      if(name==='world-codec')fs.writeFileSync(report,result.stdout);
-      requireFile(report);const data=JSON.parse(fs.readFileSync(report,'utf8')),counts=validateReport(name,data,initialHash);
-      assert.equal(fileHash(html),initialHash,name+' changed the release HTML');unchangedInputs(inputs);
-      suites.push({name,script,...counts,milliseconds:Date.now()-start,scriptSha256:fileHash(path.join(root,script)),report:path.relative(root,report),reportSha256:fileHash(report),log:path.relative(root,log)});
-      process.stdout.write('PASS '+name+': '+counts.passed+'/'+counts.total+'\n');
-    }
-    failedSuite=null;assert.equal(suites.length,expectedBaseline.length+additional.length,'Every required suite must complete');
+    // Bounded concurrency changes scheduling only: no suite selection or inferred results.
+    await Promise.all(Array.from({length:workerCount},()=>worker()));
+    suites.push(...completed.filter(Boolean));
+    if(firstFailure){failedSuite=firstFailure.name;throw firstFailure.error;}
+    assert.equal(suites.length,expectedBaseline.length+additional.length,'Every required suite must complete');
   }catch(error){
     fs.writeFileSync(summaryPath,JSON.stringify({release,status:'failed',html:path.relative(root,html),sha256:initialHash,startedAt,finishedAt:new Date().toISOString(),runtime,failedSuite,error:error.message,completedSuites:suites,requiredSuites:jobs.map(j=>j[0]),provenance:inputs},null,2)+'\n');throw error;
   }
-  const retainedCounts=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-native-sfx-suite-counts.json')));for(const [name,count]of Object.entries(retainedCounts))assert.equal(suites.find(s=>s.name===name)?.total,count,'Retained case inventory: '+name);
+  const retainedCounts=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-source-intake-suite-counts.json')));for(const [name,count]of Object.entries(retainedCounts))assert.equal(suites.find(s=>s.name===name)?.total,count,'Retained case inventory: '+name);
   const summary={release,status:'passed',html:path.relative(root,html),sha256:initialHash,unchangedCandidate:true,startedAt,finishedAt:new Date().toISOString(),runtime,
     passed:suites.reduce((n,s)=>n+s.passed,0),failed:0,total:suites.reduce((n,s)=>n+s.total,0),suiteCount:suites.length,suites,
-    policy:'All 89 retained native-sfx suites (1769 measured cases), plus every declared Source Intake suite, with no filters or skipped cases; totals measured from fresh explicit case records',
+    policy:'All 93 retained source-intake suites (1833 measured cases), plus every declared Audio Tool Import suite, with no filters or skipped cases; totals measured from fresh explicit case records',
     provenance:inputs,browserAcceptance:'Separate evidence is required. This automated VM runner makes no real-browser, native picker, or browser rendering claim.'};
   fs.writeFileSync(summaryPath,JSON.stringify(summary,null,2)+'\n');process.stdout.write(summary.passed+'/'+summary.total+' automated cases passed against unchanged '+initialHash+'\n');
 }
 module.exports={expectedBaseline,additional,discoverBaselineJobs,validateReport,jobs:()=>[...discoverBaselineJobs(),...additional]};
-if(require.main===module)try{main();}catch(error){
+if(require.main===module)main().catch(error=>{
   // A missing file, filtered invocation, or malformed manifest cannot leave an
   // older successful Summary.json in place to masquerade as this run's result.
   if(!fs.existsSync(summaryPath)){fs.mkdirSync(output,{recursive:true});fs.writeFileSync(summaryPath,JSON.stringify({release,status:'failed',html:path.relative(root,html),error:error.message,finishedAt:new Date().toISOString()},null,2)+'\n');}
   console.error('FAIL release gate: '+error.message);process.exitCode=1;
-}
+});

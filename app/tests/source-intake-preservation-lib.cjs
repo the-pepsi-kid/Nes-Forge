@@ -2,6 +2,7 @@
 // Restore exact Native SFX bytes before retained guards inspect their historical layers.
 // Each approved change is full-file hashed and reversed through unique patches.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const {audioToolImportReferenceSource,audioToolImportReferenceTestBytes,audioToolImportReferenceManifest,verifySourceIntakeReference}=require('./audio-tool-import-preservation-lib.cjs');
 const root=path.resolve(__dirname,'..'),archive=path.join(root,'docs/history/native-sfx-1'),hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const pinned='d6c432663f65458c7d8186099afb1a2d4b828988eba90fc6a178cae9621f2847';
 const delta=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/source-intake-source-delta.json')));
@@ -11,11 +12,12 @@ const testAllowed=new Set(['tests/native-sfx-preservation-lib.cjs','tests/run_ca
 for(const item of delta.changes)assert.ok(sourceAllowed.has(item.path),'Unreviewed source intake source: '+item.path);
 for(const item of delta.testChanges)assert.ok(testAllowed.has(item.path),'Unreviewed retained assertion/infrastructure change: '+item.path);
 assert.equal(new Set(delta.changes.map(item=>item.path)).size,delta.changes.length);assert.equal(new Set(delta.testChanges.map(item=>item.path)).size,delta.testChanges.length);
-function referenceBytes(name,changes){const bytes=fs.readFileSync(path.join(root,name)),change=changes.find(item=>item.path===name);if(!change)return bytes;assert.equal(hash(bytes),change.afterSha256,name+' differs from the exact reviewed source intake delta');let source=bytes.toString('utf8');for(const edit of change.replacements){assert.ok(edit.after);assert.equal(source.split(edit.after).length,2,name+' reverse patch must occur exactly once');source=source.replace(edit.after,()=>edit.before);}const restored=Buffer.from(source);assert.equal(hash(restored),change.beforeSha256,name+' does not restore the committed native SFX candidate');return restored;}
+function referenceBytes(name,changes){const bytes=changes===delta.changes?Buffer.from(audioToolImportReferenceSource(name)):audioToolImportReferenceTestBytes(name),change=changes.find(item=>item.path===name);if(!change)return bytes;assert.equal(hash(bytes),change.afterSha256,name+' differs from the exact reviewed source intake delta');let source=bytes.toString('utf8');for(const edit of change.replacements){assert.ok(edit.after);assert.equal(source.split(edit.after).length,2,name+' reverse patch must occur exactly once');source=source.replace(edit.after,()=>edit.before);}const restored=Buffer.from(source);assert.equal(hash(restored),change.beforeSha256,name+' does not restore the committed native SFX candidate');return restored;}
 function sourceIntakeReferenceSource(name){return referenceBytes(name,delta.changes).toString('utf8');}
 function sourceIntakeReferenceTest(name){return referenceBytes(name,delta.testChanges).toString('utf8');}
 function sourceIntakeReferenceTestBytes(name){return referenceBytes(name,delta.testChanges);}
 function sourceIntakeReferenceManifest(manifest){
+ manifest=audioToolImportReferenceManifest(manifest);
  assert.equal(manifest.release,'2.0.0-alpha.11');assert.equal(manifest.output,'mainline/NES_Forge_2.0.0-alpha.11.html');
  const declared=JSON.parse(fs.readFileSync(path.join(root,'source-intake-modules.json'))),expected=delta.referenceParts.slice();assert.equal(declared.candidate,'source-intake-1');
  assert.deepEqual(declared.insertions,[{after:'src/source/source-workspace.js',parts:['src/source/source-intake.js']}]);
@@ -25,6 +27,7 @@ function sourceIntakeReferenceManifest(manifest){
  return {...manifest,parts:delta.referenceParts};
 }
 function verifyNativeSfxReference(){
+ verifySourceIntakeReference();
  assert.equal(hash(fs.readFileSync(path.join(root,'baseline/NES_Forge_2.0.0-alpha.11_Native_SFX.html'))),pinned);
  const baseline=JSON.parse(fs.readFileSync(path.join(archive,'root/build-inputs.json')));assert.equal(baseline.sha256,pinned);
  const manifest=sourceIntakeReferenceManifest(JSON.parse(fs.readFileSync(path.join(root,'source-manifest.json'))));assert.deepEqual(manifest.parts,baseline.inputs.map(item=>item.path));

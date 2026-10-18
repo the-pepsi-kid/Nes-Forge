@@ -1,0 +1,2614 @@
+{
+  "format": "NESForgeAudioRecognitionBenchmark",
+  "version": 1,
+  "strictDecoder": {
+    "path": "src/re/famitone2-native.js",
+    "sha256": "2392e1a1ed77ca1af4a179a44c2f288348633c68a310592a9f4ac6c18fe068cf",
+    "profilePath": "src/re/famitone2-driver-profile.js",
+    "profileSha256": "a1d7ff0d2cc39eeb403857343a9f71b0e9102652962322d8d71b4655c09b6da0",
+    "method": "famitone2-native-nrom-1"
+  },
+  "featureImplementationSha256": "21f81074f1986d956993d4e7d39969f5eb621142bb6e9d508d6627735994ea56",
+  "corpusSha256": "06141025e907bf8313d41bb790146edab786835888df7a8555fa35b0bd6a4d49",
+  "node": "v24.19.0",
+  "passed": true,
+  "counts": {
+    "independentProjects": 2,
+    "independentFamiTone2Projects": 1,
+    "independentDifferentEngineProjects": 1,
+    "sameGameReassemblyVariants": 2,
+    "syntheticOrHeaderControls": 4,
+    "officialExporterMapperControls": 1,
+    "heldOutIndependentSameFamilyProjects": 0
+  },
+  "reference": {
+    "id": "honkeypong",
+    "driverAddress": 52630,
+    "routineCount": 4
+  },
+  "conclusions": {
+    "strictAccepted": [
+      "honkeypong",
+      "honkeypong-relocated",
+      "honkeypong-nrom32"
+    ],
+    "falseAcceptancesInDeclaredControls": 0,
+    "newFamiliesSupported": 0,
+    "generalization": "Insufficient corpus: zero held-out independent games using the reference family.",
+    "manualEffortReduction": "Not measured.",
+    "similarityPolicy": "Candidate ranking only. No score or fingerprint authorizes native decoding or canonical conversion."
+  },
+  "limitations": [
+    "Static over-approximation from vectors, direct calls and branches; no execution or data-flow proof.",
+    "Only official 6502 opcodes and static NROM mappings; indirect jumps terminate traversal; indirect APU writes are not discovered.",
+    "A routine candidate follows branches and direct jumps but does not inline callees; entry points and tails may overlap.",
+    "Address normalization preserves opcode, addressing mode, literals, hardware addresses, RAM alias/offset relationships and code-relative targets; it does not infer immediate pointer constants.",
+    "Four-token set similarity is uncalibrated research evidence, not engine identification, conversion permission, semantic equivalence or a measured confidence probability."
+  ],
+  "cases": [
+    {
+      "id": "honkeypong",
+      "role": "reference-game",
+      "independentProject": "HonkeyPong",
+      "derivedFrom": null,
+      "transform": null,
+      "sha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+      "byteLength": 24592,
+      "strict": {
+        "status": "decoded",
+        "diagnosticCodes": [],
+        "expectedStatus": "decoded",
+        "expectationMet": true,
+        "conversionAuthorizedByBenchmark": false
+      },
+      "featureStatus": "analyzed",
+      "routineCount": 5,
+      "work": {
+        "graphInstructions": 1586,
+        "discoveredEntries": 42,
+        "examinedEntries": 42,
+        "routineInstructions": 1612,
+        "unsupportedStops": 0,
+        "indirectJumpStops": 0,
+        "boundaryStops": 0
+      },
+      "timingsMs": {
+        "strict": 3.67,
+        "features": 3.925
+      },
+      "evidence": [
+        {
+          "entryAddress": 49213,
+          "entryFileOffset": 77,
+          "instructionCount": 9,
+          "fingerprint": "f355b1622c378e401f20f77c2f8987986dd638a7686f872477250b91cb30140a",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 49217,
+              "fileOffset": 81,
+              "bytes": [
+                142,
+                23,
+                64
+              ],
+              "baseAddress": 16407,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 49228,
+              "fileOffset": 92,
+              "bytes": [
+                142,
+                16,
+                64
+              ],
+              "baseAddress": 16400,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 52630,
+          "entryFileOffset": 3494,
+          "instructionCount": 63,
+          "fingerprint": "118e7b505e1d4d0f7f4eebd49893f71d4f242372eea5ae4656d26e1491db8760",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 52686,
+              "fileOffset": 3550,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52691,
+              "fileOffset": 3555,
+              "bytes": [
+                141,
+                8,
+                64
+              ],
+              "baseAddress": 16392,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52696,
+              "fileOffset": 3560,
+              "bytes": [
+                141,
+                15,
+                64
+              ],
+              "baseAddress": 16399,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52701,
+              "fileOffset": 3565,
+              "bytes": [
+                141,
+                0,
+                64
+              ],
+              "baseAddress": 16384,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52704,
+              "fileOffset": 3568,
+              "bytes": [
+                141,
+                4,
+                64
+              ],
+              "baseAddress": 16388,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52707,
+              "fileOffset": 3571,
+              "bytes": [
+                141,
+                12,
+                64
+              ],
+              "baseAddress": 16396,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52712,
+              "fileOffset": 3576,
+              "bytes": [
+                141,
+                1,
+                64
+              ],
+              "baseAddress": 16385,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52715,
+              "fileOffset": 3579,
+              "bytes": [
+                141,
+                5,
+                64
+              ],
+              "baseAddress": 16389,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 52920,
+          "entryFileOffset": 3784,
+          "instructionCount": 198,
+          "fingerprint": "61649e335aab14779d0a026f9c59c53688a15d96393d951a1224743d4ed113fa",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 53310,
+              "fileOffset": 4174,
+              "bytes": [
+                141,
+                0,
+                64
+              ],
+              "baseAddress": 16384,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53316,
+              "fileOffset": 4180,
+              "bytes": [
+                141,
+                2,
+                64
+              ],
+              "baseAddress": 16386,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53330,
+              "fileOffset": 4194,
+              "bytes": [
+                141,
+                3,
+                64
+              ],
+              "baseAddress": 16387,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53336,
+              "fileOffset": 4200,
+              "bytes": [
+                141,
+                4,
+                64
+              ],
+              "baseAddress": 16388,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53342,
+              "fileOffset": 4206,
+              "bytes": [
+                141,
+                6,
+                64
+              ],
+              "baseAddress": 16390,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53356,
+              "fileOffset": 4220,
+              "bytes": [
+                141,
+                7,
+                64
+              ],
+              "baseAddress": 16391,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53362,
+              "fileOffset": 4226,
+              "bytes": [
+                141,
+                8,
+                64
+              ],
+              "baseAddress": 16392,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53368,
+              "fileOffset": 4232,
+              "bytes": [
+                141,
+                10,
+                64
+              ],
+              "baseAddress": 16394,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53374,
+              "fileOffset": 4238,
+              "bytes": [
+                141,
+                11,
+                64
+              ],
+              "baseAddress": 16395,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53380,
+              "fileOffset": 4244,
+              "bytes": [
+                141,
+                12,
+                64
+              ],
+              "baseAddress": 16396,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53386,
+              "fileOffset": 4250,
+              "bytes": [
+                141,
+                14,
+                64
+              ],
+              "baseAddress": 16398,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 53653,
+          "entryFileOffset": 4517,
+          "instructionCount": 3,
+          "fingerprint": "1948606822f33cc83a5c2ab14da0e1588b59e4dd876c2775ea34ff678a289c7b",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 53655,
+              "fileOffset": 4519,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 53659,
+          "entryFileOffset": 4523,
+          "instructionCount": 33,
+          "fingerprint": "0ddb1ba311b6c11c2bd066f6896bc5ade105f90cdde8a824758beeb39d8ced9b",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 53701,
+              "fileOffset": 4565,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53708,
+              "fileOffset": 4572,
+              "bytes": [
+                141,
+                18,
+                64
+              ],
+              "baseAddress": 16402,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53714,
+              "fileOffset": 4578,
+              "bytes": [
+                141,
+                19,
+                64
+              ],
+              "baseAddress": 16403,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53720,
+              "fileOffset": 4584,
+              "bytes": [
+                141,
+                16,
+                64
+              ],
+              "baseAddress": 16400,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53725,
+              "fileOffset": 4589,
+              "bytes": [
+                141,
+                17,
+                64
+              ],
+              "baseAddress": 16401,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53730,
+              "fileOffset": 4594,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        }
+      ],
+      "diagnostic": null,
+      "topComparisons": [
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 52920,
+          "candidateFileOffset": 3784,
+          "score": 1,
+          "intersection": 191,
+          "union": 191,
+          "referenceInstructions": 198,
+          "candidateInstructions": 198,
+          "identicalFingerprint": true,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 52630,
+          "candidateFileOffset": 3494,
+          "score": 1,
+          "intersection": 60,
+          "union": 60,
+          "referenceInstructions": 63,
+          "candidateInstructions": 63,
+          "identicalFingerprint": true,
+          "partial": false
+        },
+        {
+          "referenceEntry": 53659,
+          "candidateEntry": 53659,
+          "candidateFileOffset": 4523,
+          "score": 1,
+          "intersection": 30,
+          "union": 30,
+          "referenceInstructions": 33,
+          "candidateInstructions": 33,
+          "identicalFingerprint": true,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 49213,
+          "candidateFileOffset": 77,
+          "score": 0,
+          "intersection": 0,
+          "union": 66,
+          "referenceInstructions": 63,
+          "candidateInstructions": 9,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 49213,
+          "candidateFileOffset": 77,
+          "score": 0,
+          "intersection": 0,
+          "union": 197,
+          "referenceInstructions": 198,
+          "candidateInstructions": 9,
+          "identicalFingerprint": false,
+          "partial": false
+        }
+      ]
+    },
+    {
+      "id": "honkeypong-relocated",
+      "role": "same-game-source-reassembly",
+      "independentProject": "HonkeyPong",
+      "derivedFrom": null,
+      "transform": null,
+      "sha256": "8df730ec00cfd245bea8587bc4411ca03a297579a3480f64eca7d79a5c5cb57f",
+      "byteLength": 24592,
+      "strict": {
+        "status": "decoded",
+        "diagnosticCodes": [],
+        "expectedStatus": "decoded",
+        "expectationMet": true,
+        "conversionAuthorizedByBenchmark": false
+      },
+      "featureStatus": "analyzed",
+      "routineCount": 5,
+      "work": {
+        "graphInstructions": 1586,
+        "discoveredEntries": 42,
+        "examinedEntries": 42,
+        "routineInstructions": 1612,
+        "unsupportedStops": 0,
+        "indirectJumpStops": 0,
+        "boundaryStops": 0
+      },
+      "timingsMs": {
+        "strict": 2.993,
+        "features": 2.666
+      },
+      "evidence": [
+        {
+          "entryAddress": 49213,
+          "entryFileOffset": 77,
+          "instructionCount": 9,
+          "fingerprint": "f355b1622c378e401f20f77c2f8987986dd638a7686f872477250b91cb30140a",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 49217,
+              "fileOffset": 81,
+              "bytes": [
+                142,
+                23,
+                64
+              ],
+              "baseAddress": 16407,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 49228,
+              "fileOffset": 92,
+              "bytes": [
+                142,
+                16,
+                64
+              ],
+              "baseAddress": 16400,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 53248,
+          "entryFileOffset": 4112,
+          "instructionCount": 63,
+          "fingerprint": "f42d0e35318faf392599889a51e395bf2d61afcc91a6ffc81ff180f6d06a781d",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 53304,
+              "fileOffset": 4168,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53309,
+              "fileOffset": 4173,
+              "bytes": [
+                141,
+                8,
+                64
+              ],
+              "baseAddress": 16392,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53314,
+              "fileOffset": 4178,
+              "bytes": [
+                141,
+                15,
+                64
+              ],
+              "baseAddress": 16399,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53319,
+              "fileOffset": 4183,
+              "bytes": [
+                141,
+                0,
+                64
+              ],
+              "baseAddress": 16384,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53322,
+              "fileOffset": 4186,
+              "bytes": [
+                141,
+                4,
+                64
+              ],
+              "baseAddress": 16388,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53325,
+              "fileOffset": 4189,
+              "bytes": [
+                141,
+                12,
+                64
+              ],
+              "baseAddress": 16396,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53330,
+              "fileOffset": 4194,
+              "bytes": [
+                141,
+                1,
+                64
+              ],
+              "baseAddress": 16385,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53333,
+              "fileOffset": 4197,
+              "bytes": [
+                141,
+                5,
+                64
+              ],
+              "baseAddress": 16389,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 53538,
+          "entryFileOffset": 4402,
+          "instructionCount": 198,
+          "fingerprint": "61649e335aab14779d0a026f9c59c53688a15d96393d951a1224743d4ed113fa",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 53928,
+              "fileOffset": 4792,
+              "bytes": [
+                141,
+                0,
+                64
+              ],
+              "baseAddress": 16384,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53934,
+              "fileOffset": 4798,
+              "bytes": [
+                141,
+                2,
+                64
+              ],
+              "baseAddress": 16386,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53948,
+              "fileOffset": 4812,
+              "bytes": [
+                141,
+                3,
+                64
+              ],
+              "baseAddress": 16387,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53954,
+              "fileOffset": 4818,
+              "bytes": [
+                141,
+                4,
+                64
+              ],
+              "baseAddress": 16388,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53960,
+              "fileOffset": 4824,
+              "bytes": [
+                141,
+                6,
+                64
+              ],
+              "baseAddress": 16390,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53974,
+              "fileOffset": 4838,
+              "bytes": [
+                141,
+                7,
+                64
+              ],
+              "baseAddress": 16391,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53980,
+              "fileOffset": 4844,
+              "bytes": [
+                141,
+                8,
+                64
+              ],
+              "baseAddress": 16392,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53986,
+              "fileOffset": 4850,
+              "bytes": [
+                141,
+                10,
+                64
+              ],
+              "baseAddress": 16394,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53992,
+              "fileOffset": 4856,
+              "bytes": [
+                141,
+                11,
+                64
+              ],
+              "baseAddress": 16395,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53998,
+              "fileOffset": 4862,
+              "bytes": [
+                141,
+                12,
+                64
+              ],
+              "baseAddress": 16396,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54004,
+              "fileOffset": 4868,
+              "bytes": [
+                141,
+                14,
+                64
+              ],
+              "baseAddress": 16398,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 54271,
+          "entryFileOffset": 5135,
+          "instructionCount": 3,
+          "fingerprint": "1948606822f33cc83a5c2ab14da0e1588b59e4dd876c2775ea34ff678a289c7b",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 54273,
+              "fileOffset": 5137,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 54277,
+          "entryFileOffset": 5141,
+          "instructionCount": 33,
+          "fingerprint": "0ddb1ba311b6c11c2bd066f6896bc5ade105f90cdde8a824758beeb39d8ced9b",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 54319,
+              "fileOffset": 5183,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54326,
+              "fileOffset": 5190,
+              "bytes": [
+                141,
+                18,
+                64
+              ],
+              "baseAddress": 16402,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54332,
+              "fileOffset": 5196,
+              "bytes": [
+                141,
+                19,
+                64
+              ],
+              "baseAddress": 16403,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54338,
+              "fileOffset": 5202,
+              "bytes": [
+                141,
+                16,
+                64
+              ],
+              "baseAddress": 16400,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54343,
+              "fileOffset": 5207,
+              "bytes": [
+                141,
+                17,
+                64
+              ],
+              "baseAddress": 16401,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54348,
+              "fileOffset": 5212,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        }
+      ],
+      "diagnostic": null,
+      "topComparisons": [
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 53538,
+          "candidateFileOffset": 4402,
+          "score": 1,
+          "intersection": 191,
+          "union": 191,
+          "referenceInstructions": 198,
+          "candidateInstructions": 198,
+          "identicalFingerprint": true,
+          "partial": false
+        },
+        {
+          "referenceEntry": 53659,
+          "candidateEntry": 54277,
+          "candidateFileOffset": 5141,
+          "score": 1,
+          "intersection": 30,
+          "union": 30,
+          "referenceInstructions": 33,
+          "candidateInstructions": 33,
+          "identicalFingerprint": true,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 53248,
+          "candidateFileOffset": 4112,
+          "score": 0.8181818181818182,
+          "intersection": 54,
+          "union": 66,
+          "referenceInstructions": 63,
+          "candidateInstructions": 63,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 49213,
+          "candidateFileOffset": 77,
+          "score": 0,
+          "intersection": 0,
+          "union": 66,
+          "referenceInstructions": 63,
+          "candidateInstructions": 9,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 49213,
+          "candidateFileOffset": 77,
+          "score": 0,
+          "intersection": 0,
+          "union": 197,
+          "referenceInstructions": 198,
+          "candidateInstructions": 9,
+          "identicalFingerprint": false,
+          "partial": false
+        }
+      ]
+    },
+    {
+      "id": "honkeypong-nrom32",
+      "role": "same-game-source-reassembly",
+      "independentProject": "HonkeyPong",
+      "derivedFrom": null,
+      "transform": null,
+      "sha256": "12a4ea0c802b037dbcea29724cb6b2c37f6eae2c8d6034eeef6a681b8f5eaf4b",
+      "byteLength": 40976,
+      "strict": {
+        "status": "decoded",
+        "diagnosticCodes": [],
+        "expectedStatus": "decoded",
+        "expectationMet": true,
+        "conversionAuthorizedByBenchmark": false
+      },
+      "featureStatus": "analyzed",
+      "routineCount": 5,
+      "work": {
+        "graphInstructions": 1586,
+        "discoveredEntries": 42,
+        "examinedEntries": 42,
+        "routineInstructions": 1612,
+        "unsupportedStops": 0,
+        "indirectJumpStops": 0,
+        "boundaryStops": 0
+      },
+      "timingsMs": {
+        "strict": 5.173,
+        "features": 2.093
+      },
+      "evidence": [
+        {
+          "entryAddress": 32829,
+          "entryFileOffset": 77,
+          "instructionCount": 9,
+          "fingerprint": "f355b1622c378e401f20f77c2f8987986dd638a7686f872477250b91cb30140a",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 32833,
+              "fileOffset": 81,
+              "bytes": [
+                142,
+                23,
+                64
+              ],
+              "baseAddress": 16407,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 32844,
+              "fileOffset": 92,
+              "bytes": [
+                142,
+                16,
+                64
+              ],
+              "baseAddress": 16400,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 36246,
+          "entryFileOffset": 3494,
+          "instructionCount": 63,
+          "fingerprint": "59aeef719faad4977defde82e87659aacb20796e34e4ab8ab435beec1642763b",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 36302,
+              "fileOffset": 3550,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36307,
+              "fileOffset": 3555,
+              "bytes": [
+                141,
+                8,
+                64
+              ],
+              "baseAddress": 16392,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36312,
+              "fileOffset": 3560,
+              "bytes": [
+                141,
+                15,
+                64
+              ],
+              "baseAddress": 16399,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36317,
+              "fileOffset": 3565,
+              "bytes": [
+                141,
+                0,
+                64
+              ],
+              "baseAddress": 16384,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36320,
+              "fileOffset": 3568,
+              "bytes": [
+                141,
+                4,
+                64
+              ],
+              "baseAddress": 16388,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36323,
+              "fileOffset": 3571,
+              "bytes": [
+                141,
+                12,
+                64
+              ],
+              "baseAddress": 16396,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36328,
+              "fileOffset": 3576,
+              "bytes": [
+                141,
+                1,
+                64
+              ],
+              "baseAddress": 16385,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36331,
+              "fileOffset": 3579,
+              "bytes": [
+                141,
+                5,
+                64
+              ],
+              "baseAddress": 16389,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 36536,
+          "entryFileOffset": 3784,
+          "instructionCount": 198,
+          "fingerprint": "61649e335aab14779d0a026f9c59c53688a15d96393d951a1224743d4ed113fa",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 36926,
+              "fileOffset": 4174,
+              "bytes": [
+                141,
+                0,
+                64
+              ],
+              "baseAddress": 16384,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36932,
+              "fileOffset": 4180,
+              "bytes": [
+                141,
+                2,
+                64
+              ],
+              "baseAddress": 16386,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36946,
+              "fileOffset": 4194,
+              "bytes": [
+                141,
+                3,
+                64
+              ],
+              "baseAddress": 16387,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36952,
+              "fileOffset": 4200,
+              "bytes": [
+                141,
+                4,
+                64
+              ],
+              "baseAddress": 16388,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36958,
+              "fileOffset": 4206,
+              "bytes": [
+                141,
+                6,
+                64
+              ],
+              "baseAddress": 16390,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36972,
+              "fileOffset": 4220,
+              "bytes": [
+                141,
+                7,
+                64
+              ],
+              "baseAddress": 16391,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36978,
+              "fileOffset": 4226,
+              "bytes": [
+                141,
+                8,
+                64
+              ],
+              "baseAddress": 16392,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36984,
+              "fileOffset": 4232,
+              "bytes": [
+                141,
+                10,
+                64
+              ],
+              "baseAddress": 16394,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36990,
+              "fileOffset": 4238,
+              "bytes": [
+                141,
+                11,
+                64
+              ],
+              "baseAddress": 16395,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 36996,
+              "fileOffset": 4244,
+              "bytes": [
+                141,
+                12,
+                64
+              ],
+              "baseAddress": 16396,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 37002,
+              "fileOffset": 4250,
+              "bytes": [
+                141,
+                14,
+                64
+              ],
+              "baseAddress": 16398,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 37269,
+          "entryFileOffset": 4517,
+          "instructionCount": 3,
+          "fingerprint": "1948606822f33cc83a5c2ab14da0e1588b59e4dd876c2775ea34ff678a289c7b",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 37271,
+              "fileOffset": 4519,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 37275,
+          "entryFileOffset": 4523,
+          "instructionCount": 33,
+          "fingerprint": "0ddb1ba311b6c11c2bd066f6896bc5ade105f90cdde8a824758beeb39d8ced9b",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 37317,
+              "fileOffset": 4565,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 37324,
+              "fileOffset": 4572,
+              "bytes": [
+                141,
+                18,
+                64
+              ],
+              "baseAddress": 16402,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 37330,
+              "fileOffset": 4578,
+              "bytes": [
+                141,
+                19,
+                64
+              ],
+              "baseAddress": 16403,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 37336,
+              "fileOffset": 4584,
+              "bytes": [
+                141,
+                16,
+                64
+              ],
+              "baseAddress": 16400,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 37341,
+              "fileOffset": 4589,
+              "bytes": [
+                141,
+                17,
+                64
+              ],
+              "baseAddress": 16401,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 37346,
+              "fileOffset": 4594,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        }
+      ],
+      "diagnostic": null,
+      "topComparisons": [
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 36536,
+          "candidateFileOffset": 3784,
+          "score": 1,
+          "intersection": 191,
+          "union": 191,
+          "referenceInstructions": 198,
+          "candidateInstructions": 198,
+          "identicalFingerprint": true,
+          "partial": false
+        },
+        {
+          "referenceEntry": 53659,
+          "candidateEntry": 37275,
+          "candidateFileOffset": 4523,
+          "score": 1,
+          "intersection": 30,
+          "union": 30,
+          "referenceInstructions": 33,
+          "candidateInstructions": 33,
+          "identicalFingerprint": true,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 36246,
+          "candidateFileOffset": 3494,
+          "score": 0.875,
+          "intersection": 56,
+          "union": 64,
+          "referenceInstructions": 63,
+          "candidateInstructions": 63,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 32829,
+          "candidateFileOffset": 77,
+          "score": 0,
+          "intersection": 0,
+          "union": 66,
+          "referenceInstructions": 63,
+          "candidateInstructions": 9,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 32829,
+          "candidateFileOffset": 77,
+          "score": 0,
+          "intersection": 0,
+          "union": 197,
+          "referenceInstructions": 198,
+          "candidateInstructions": 9,
+          "identicalFingerprint": false,
+          "partial": false
+        }
+      ]
+    },
+    {
+      "id": "dabg-original",
+      "role": "different-engine-container-control",
+      "independentProject": "Double Action Blaster Guys",
+      "derivedFrom": null,
+      "transform": null,
+      "sha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+      "byteLength": 32784,
+      "strict": {
+        "status": "unknown",
+        "diagnosticCodes": [
+          "UNSUPPORTED_CONTAINER"
+        ],
+        "expectedStatus": "unknown",
+        "expectationMet": true,
+        "conversionAuthorizedByBenchmark": false
+      },
+      "featureStatus": "analyzed",
+      "routineCount": 3,
+      "work": {
+        "graphInstructions": 831,
+        "discoveredEntries": 19,
+        "examinedEntries": 19,
+        "routineInstructions": 982,
+        "unsupportedStops": 1,
+        "indirectJumpStops": 0,
+        "boundaryStops": 0
+      },
+      "timingsMs": {
+        "strict": 0.323,
+        "features": 1.617
+      },
+      "evidence": [
+        {
+          "entryAddress": 32768,
+          "entryFileOffset": 16,
+          "instructionCount": 204,
+          "fingerprint": "8e2589f0e4638b3bf769938115a6563098eabf57d91be1db5f010f7eec30601c",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 55751,
+              "fileOffset": 22999,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 54075,
+          "entryFileOffset": 21323,
+          "instructionCount": 26,
+          "fingerprint": "b7cf6ea87dd33c05fbf5d6cc6367fc17388e04f32ccfb0c2a696952d8f788d29",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 54077,
+              "fileOffset": 21325,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54082,
+              "fileOffset": 21330,
+              "bytes": [
+                141,
+                0,
+                64
+              ],
+              "baseAddress": 16384,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54085,
+              "fileOffset": 21333,
+              "bytes": [
+                141,
+                4,
+                64
+              ],
+              "baseAddress": 16388,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54088,
+              "fileOffset": 21336,
+              "bytes": [
+                141,
+                12,
+                64
+              ],
+              "baseAddress": 16396,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54099,
+              "fileOffset": 21347,
+              "bytes": [
+                141,
+                8,
+                64
+              ],
+              "baseAddress": 16392,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54104,
+              "fileOffset": 21352,
+              "bytes": [
+                141,
+                1,
+                64
+              ],
+              "baseAddress": 16385,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54107,
+              "fileOffset": 21355,
+              "bytes": [
+                141,
+                5,
+                64
+              ],
+              "baseAddress": 16389,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54112,
+              "fileOffset": 21360,
+              "bytes": [
+                141,
+                3,
+                64
+              ],
+              "baseAddress": 16387,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54115,
+              "fileOffset": 21363,
+              "bytes": [
+                141,
+                7,
+                64
+              ],
+              "baseAddress": 16391,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54118,
+              "fileOffset": 21366,
+              "bytes": [
+                141,
+                15,
+                64
+              ],
+              "baseAddress": 16399,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54134,
+              "fileOffset": 21382,
+              "bytes": [
+                141,
+                17,
+                64
+              ],
+              "baseAddress": 16401,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 55727,
+          "entryFileOffset": 22975,
+          "instructionCount": 128,
+          "fingerprint": "1dad2aa273657763f0ea54dda4ef676f987310a0538e742542672e926906b1c0",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 55751,
+              "fileOffset": 22999,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        }
+      ],
+      "diagnostic": null,
+      "topComparisons": [
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 54075,
+          "candidateFileOffset": 21323,
+          "score": 0.024691358024691357,
+          "intersection": 2,
+          "union": 81,
+          "referenceInstructions": 63,
+          "candidateInstructions": 26,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 32768,
+          "candidateFileOffset": 16,
+          "score": 0,
+          "intersection": 0,
+          "union": 259,
+          "referenceInstructions": 63,
+          "candidateInstructions": 204,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 32768,
+          "candidateFileOffset": 16,
+          "score": 0,
+          "intersection": 0,
+          "union": 390,
+          "referenceInstructions": 198,
+          "candidateInstructions": 204,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 53659,
+          "candidateEntry": 32768,
+          "candidateFileOffset": 16,
+          "score": 0,
+          "intersection": 0,
+          "union": 229,
+          "referenceInstructions": 33,
+          "candidateInstructions": 204,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 54075,
+          "candidateFileOffset": 21323,
+          "score": 0,
+          "intersection": 0,
+          "union": 214,
+          "referenceInstructions": 198,
+          "candidateInstructions": 26,
+          "identicalFingerprint": false,
+          "partial": false
+        }
+      ]
+    },
+    {
+      "id": "dabg-ines-header",
+      "role": "different-engine-code-control",
+      "independentProject": null,
+      "derivedFrom": "dabg-original",
+      "transform": "ines-header",
+      "sha256": "cd40087cd50c8458a22f1d6d035e8430c57258ce4a67342f859882487a78f8dc",
+      "byteLength": 32784,
+      "strict": {
+        "status": "unknown",
+        "diagnosticCodes": [
+          "NO_PROFILE"
+        ],
+        "expectedStatus": "unknown",
+        "expectationMet": true,
+        "conversionAuthorizedByBenchmark": false
+      },
+      "featureStatus": "analyzed",
+      "routineCount": 3,
+      "work": {
+        "graphInstructions": 831,
+        "discoveredEntries": 19,
+        "examinedEntries": 19,
+        "routineInstructions": 982,
+        "unsupportedStops": 1,
+        "indirectJumpStops": 0,
+        "boundaryStops": 0
+      },
+      "timingsMs": {
+        "strict": 1.997,
+        "features": 1.053
+      },
+      "evidence": [
+        {
+          "entryAddress": 32768,
+          "entryFileOffset": 16,
+          "instructionCount": 204,
+          "fingerprint": "8e2589f0e4638b3bf769938115a6563098eabf57d91be1db5f010f7eec30601c",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 55751,
+              "fileOffset": 22999,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 54075,
+          "entryFileOffset": 21323,
+          "instructionCount": 26,
+          "fingerprint": "b7cf6ea87dd33c05fbf5d6cc6367fc17388e04f32ccfb0c2a696952d8f788d29",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 54077,
+              "fileOffset": 21325,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54082,
+              "fileOffset": 21330,
+              "bytes": [
+                141,
+                0,
+                64
+              ],
+              "baseAddress": 16384,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54085,
+              "fileOffset": 21333,
+              "bytes": [
+                141,
+                4,
+                64
+              ],
+              "baseAddress": 16388,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54088,
+              "fileOffset": 21336,
+              "bytes": [
+                141,
+                12,
+                64
+              ],
+              "baseAddress": 16396,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54099,
+              "fileOffset": 21347,
+              "bytes": [
+                141,
+                8,
+                64
+              ],
+              "baseAddress": 16392,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54104,
+              "fileOffset": 21352,
+              "bytes": [
+                141,
+                1,
+                64
+              ],
+              "baseAddress": 16385,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54107,
+              "fileOffset": 21355,
+              "bytes": [
+                141,
+                5,
+                64
+              ],
+              "baseAddress": 16389,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54112,
+              "fileOffset": 21360,
+              "bytes": [
+                141,
+                3,
+                64
+              ],
+              "baseAddress": 16387,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54115,
+              "fileOffset": 21363,
+              "bytes": [
+                141,
+                7,
+                64
+              ],
+              "baseAddress": 16391,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54118,
+              "fileOffset": 21366,
+              "bytes": [
+                141,
+                15,
+                64
+              ],
+              "baseAddress": 16399,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 54134,
+              "fileOffset": 21382,
+              "bytes": [
+                141,
+                17,
+                64
+              ],
+              "baseAddress": 16401,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 55727,
+          "entryFileOffset": 22975,
+          "instructionCount": 128,
+          "fingerprint": "1dad2aa273657763f0ea54dda4ef676f987310a0538e742542672e926906b1c0",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 55751,
+              "fileOffset": 22999,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        }
+      ],
+      "diagnostic": null,
+      "topComparisons": [
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 54075,
+          "candidateFileOffset": 21323,
+          "score": 0.024691358024691357,
+          "intersection": 2,
+          "union": 81,
+          "referenceInstructions": 63,
+          "candidateInstructions": 26,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 32768,
+          "candidateFileOffset": 16,
+          "score": 0,
+          "intersection": 0,
+          "union": 259,
+          "referenceInstructions": 63,
+          "candidateInstructions": 204,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 32768,
+          "candidateFileOffset": 16,
+          "score": 0,
+          "intersection": 0,
+          "union": 390,
+          "referenceInstructions": 198,
+          "candidateInstructions": 204,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 53659,
+          "candidateEntry": 32768,
+          "candidateFileOffset": 16,
+          "score": 0,
+          "intersection": 0,
+          "union": 229,
+          "referenceInstructions": 33,
+          "candidateInstructions": 204,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 54075,
+          "candidateFileOffset": 21323,
+          "score": 0,
+          "intersection": 0,
+          "union": 214,
+          "referenceInstructions": 198,
+          "candidateInstructions": 26,
+          "identicalFingerprint": false,
+          "partial": false
+        }
+      ]
+    },
+    {
+      "id": "honkeypong-opcode-mutant",
+      "role": "same-game-synthetic-negative",
+      "independentProject": null,
+      "derivedFrom": "honkeypong",
+      "transform": "opcode-mutant",
+      "sha256": "3b42279ef066a91aa9ddd6f51af7aba44f380a844dc70d74355cfc2f108fe511",
+      "byteLength": 24592,
+      "strict": {
+        "status": "unknown",
+        "diagnosticCodes": [
+          "NO_PROFILE"
+        ],
+        "expectedStatus": "unknown",
+        "expectationMet": true,
+        "conversionAuthorizedByBenchmark": false
+      },
+      "featureStatus": "analyzed",
+      "routineCount": 5,
+      "work": {
+        "graphInstructions": 1586,
+        "discoveredEntries": 42,
+        "examinedEntries": 42,
+        "routineInstructions": 1612,
+        "unsupportedStops": 0,
+        "indirectJumpStops": 0,
+        "boundaryStops": 0
+      },
+      "timingsMs": {
+        "strict": 1.079,
+        "features": 3.113
+      },
+      "evidence": [
+        {
+          "entryAddress": 49213,
+          "entryFileOffset": 77,
+          "instructionCount": 9,
+          "fingerprint": "f355b1622c378e401f20f77c2f8987986dd638a7686f872477250b91cb30140a",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 49217,
+              "fileOffset": 81,
+              "bytes": [
+                142,
+                23,
+                64
+              ],
+              "baseAddress": 16407,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 49228,
+              "fileOffset": 92,
+              "bytes": [
+                142,
+                16,
+                64
+              ],
+              "baseAddress": 16400,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 52630,
+          "entryFileOffset": 3494,
+          "instructionCount": 63,
+          "fingerprint": "118e7b505e1d4d0f7f4eebd49893f71d4f242372eea5ae4656d26e1491db8760",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 52686,
+              "fileOffset": 3550,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52691,
+              "fileOffset": 3555,
+              "bytes": [
+                141,
+                8,
+                64
+              ],
+              "baseAddress": 16392,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52696,
+              "fileOffset": 3560,
+              "bytes": [
+                141,
+                15,
+                64
+              ],
+              "baseAddress": 16399,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52701,
+              "fileOffset": 3565,
+              "bytes": [
+                141,
+                0,
+                64
+              ],
+              "baseAddress": 16384,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52704,
+              "fileOffset": 3568,
+              "bytes": [
+                141,
+                4,
+                64
+              ],
+              "baseAddress": 16388,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52707,
+              "fileOffset": 3571,
+              "bytes": [
+                141,
+                12,
+                64
+              ],
+              "baseAddress": 16396,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52712,
+              "fileOffset": 3576,
+              "bytes": [
+                141,
+                1,
+                64
+              ],
+              "baseAddress": 16385,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 52715,
+              "fileOffset": 3579,
+              "bytes": [
+                141,
+                5,
+                64
+              ],
+              "baseAddress": 16389,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 52920,
+          "entryFileOffset": 3784,
+          "instructionCount": 198,
+          "fingerprint": "61649e335aab14779d0a026f9c59c53688a15d96393d951a1224743d4ed113fa",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 53310,
+              "fileOffset": 4174,
+              "bytes": [
+                141,
+                0,
+                64
+              ],
+              "baseAddress": 16384,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53316,
+              "fileOffset": 4180,
+              "bytes": [
+                141,
+                2,
+                64
+              ],
+              "baseAddress": 16386,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53330,
+              "fileOffset": 4194,
+              "bytes": [
+                141,
+                3,
+                64
+              ],
+              "baseAddress": 16387,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53336,
+              "fileOffset": 4200,
+              "bytes": [
+                141,
+                4,
+                64
+              ],
+              "baseAddress": 16388,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53342,
+              "fileOffset": 4206,
+              "bytes": [
+                141,
+                6,
+                64
+              ],
+              "baseAddress": 16390,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53356,
+              "fileOffset": 4220,
+              "bytes": [
+                141,
+                7,
+                64
+              ],
+              "baseAddress": 16391,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53362,
+              "fileOffset": 4226,
+              "bytes": [
+                141,
+                8,
+                64
+              ],
+              "baseAddress": 16392,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53368,
+              "fileOffset": 4232,
+              "bytes": [
+                141,
+                10,
+                64
+              ],
+              "baseAddress": 16394,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53374,
+              "fileOffset": 4238,
+              "bytes": [
+                141,
+                11,
+                64
+              ],
+              "baseAddress": 16395,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53380,
+              "fileOffset": 4244,
+              "bytes": [
+                141,
+                12,
+                64
+              ],
+              "baseAddress": 16396,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53386,
+              "fileOffset": 4250,
+              "bytes": [
+                141,
+                14,
+                64
+              ],
+              "baseAddress": 16398,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 53653,
+          "entryFileOffset": 4517,
+          "instructionCount": 3,
+          "fingerprint": "1948606822f33cc83a5c2ab14da0e1588b59e4dd876c2775ea34ff678a289c7b",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 53655,
+              "fileOffset": 4519,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        },
+        {
+          "entryAddress": 53659,
+          "entryFileOffset": 4523,
+          "instructionCount": 33,
+          "fingerprint": "0ddb1ba311b6c11c2bd066f6896bc5ade105f90cdde8a824758beeb39d8ced9b",
+          "partial": false,
+          "apuWrites": [
+            {
+              "address": 53701,
+              "fileOffset": 4565,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53708,
+              "fileOffset": 4572,
+              "bytes": [
+                141,
+                18,
+                64
+              ],
+              "baseAddress": 16402,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53714,
+              "fileOffset": 4578,
+              "bytes": [
+                141,
+                19,
+                64
+              ],
+              "baseAddress": 16403,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53720,
+              "fileOffset": 4584,
+              "bytes": [
+                141,
+                16,
+                64
+              ],
+              "baseAddress": 16400,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53725,
+              "fileOffset": 4589,
+              "bytes": [
+                141,
+                17,
+                64
+              ],
+              "baseAddress": 16401,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            },
+            {
+              "address": 53730,
+              "fileOffset": 4594,
+              "bytes": [
+                141,
+                21,
+                64
+              ],
+              "baseAddress": 16405,
+              "mode": "b",
+              "certainty": "direct-address static instruction"
+            }
+          ]
+        }
+      ],
+      "diagnostic": null,
+      "topComparisons": [
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 52920,
+          "candidateFileOffset": 3784,
+          "score": 1,
+          "intersection": 191,
+          "union": 191,
+          "referenceInstructions": 198,
+          "candidateInstructions": 198,
+          "identicalFingerprint": true,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 52630,
+          "candidateFileOffset": 3494,
+          "score": 1,
+          "intersection": 60,
+          "union": 60,
+          "referenceInstructions": 63,
+          "candidateInstructions": 63,
+          "identicalFingerprint": true,
+          "partial": false
+        },
+        {
+          "referenceEntry": 53659,
+          "candidateEntry": 53659,
+          "candidateFileOffset": 4523,
+          "score": 1,
+          "intersection": 30,
+          "union": 30,
+          "referenceInstructions": 33,
+          "candidateInstructions": 33,
+          "identicalFingerprint": true,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52630,
+          "candidateEntry": 49213,
+          "candidateFileOffset": 77,
+          "score": 0,
+          "intersection": 0,
+          "union": 66,
+          "referenceInstructions": 63,
+          "candidateInstructions": 9,
+          "identicalFingerprint": false,
+          "partial": false
+        },
+        {
+          "referenceEntry": 52920,
+          "candidateEntry": 49213,
+          "candidateFileOffset": 77,
+          "score": 0,
+          "intersection": 0,
+          "union": 197,
+          "referenceInstructions": 198,
+          "candidateInstructions": 9,
+          "identicalFingerprint": false,
+          "partial": false
+        }
+      ]
+    },
+    {
+      "id": "honkeypong-chr-decoy",
+      "role": "synthetic-negative",
+      "independentProject": null,
+      "derivedFrom": "honkeypong",
+      "transform": "chr-decoy",
+      "sha256": "35b2071ca558acf19ee8e22458887152bdb83090deb5897847252d09203ff4da",
+      "byteLength": 24592,
+      "strict": {
+        "status": "unknown",
+        "diagnosticCodes": [
+          "NO_PROFILE"
+        ],
+        "expectedStatus": "unknown",
+        "expectationMet": true,
+        "conversionAuthorizedByBenchmark": false
+      },
+      "featureStatus": "analyzed",
+      "routineCount": 0,
+      "work": {
+        "graphInstructions": 0,
+        "discoveredEntries": 0,
+        "examinedEntries": 0,
+        "routineInstructions": 0,
+        "unsupportedStops": 0,
+        "indirectJumpStops": 0,
+        "boundaryStops": 0
+      },
+      "timingsMs": {
+        "strict": 0.645,
+        "features": 0.032
+      },
+      "evidence": [],
+      "diagnostic": null,
+      "topComparisons": []
+    },
+    {
+      "id": "truncated",
+      "role": "malformed-control",
+      "independentProject": null,
+      "derivedFrom": "honkeypong",
+      "transform": "truncate",
+      "sha256": "32704d9219e983f509624243d71ad797d42d3cc0a650d05d21dcfa59deb8d4cb",
+      "byteLength": 24591,
+      "strict": {
+        "status": "invalid",
+        "diagnosticCodes": [
+          "TRUNCATED"
+        ],
+        "expectedStatus": "invalid",
+        "expectationMet": true,
+        "conversionAuthorizedByBenchmark": false
+      },
+      "featureStatus": "unavailable",
+      "routineCount": 0,
+      "work": null,
+      "timingsMs": {
+        "strict": 0.055,
+        "features": 0.04
+      },
+      "evidence": [],
+      "diagnostic": "Container length does not match declared layout",
+      "topComparisons": []
+    },
+    {
+      "id": "famistudio-official-mmc5",
+      "role": "generated-original-score-mapper-control",
+      "independentProject": null,
+      "derivedFrom": null,
+      "transform": null,
+      "sha256": "47b8c781fe24202f44a49279a2e051be9639ed7fab54792dec58cd9cbe5d6ff7",
+      "byteLength": 40976,
+      "strict": {
+        "status": "unknown",
+        "diagnosticCodes": [
+          "UNSUPPORTED_MAPPER"
+        ],
+        "expectedStatus": "unknown",
+        "expectationMet": true,
+        "conversionAuthorizedByBenchmark": false
+      },
+      "featureStatus": "unavailable",
+      "routineCount": 0,
+      "work": null,
+      "timingsMs": {
+        "strict": 0.017,
+        "features": 0.031
+      },
+      "evidence": [],
+      "diagnostic": "Only mapper 0, submapper 0, ordinary size fields are supported",
+      "topComparisons": []
+    }
+  ]
+}

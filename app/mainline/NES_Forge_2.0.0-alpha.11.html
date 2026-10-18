@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NES Forge 2.0.0-alpha.11 — Source Intake Diagnostics</title>
+<title>NES Forge 2.0.0-alpha.11 — Audio Tool Import</title>
 <style>
 :root{--bg:#0c0c10;--bg2:#101018;--bg3:#16161e;--bdr:#252530;--bdr2:#3a3a4a;--txt:#b8b8c8;--dim:#667;--acc:#5ad4ff;--acc2:#3a9abf;--grn:#8df57a;--red:#f57a7a;--ylw:#f5d07a;--orn:#f5a07a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -8705,7 +8705,7 @@ F.project={create,openRom,classifyRom,replaceProject};
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Source Intake Diagnostics',maturity:'alpha',candidate:'source-intake-1',schema:12,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Audio Tool Import',maturity:'alpha',candidate:'audio-tool-import-1',schema:12,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;
@@ -9821,6 +9821,255 @@ const panel=document.getElementById('sideAudio');if(panel){
  const status=document.createElement('p');status.id='audExportStatus200';status.setAttribute('role','status');status.style.cssText='font-size:9px;margin:4px 0';box.appendChild(status);panel.insertBefore(box,document.getElementById('audImportStatus180').nextSibling||null);
 }
 window.audio20_exportScore=save;services.AudioExport=Object.freeze({plan,toMidi,toMusicXml,save});
+})();
+/* FamiStudio 4.5 text -> existing Forge tracker data, without project mutation.
+ * Format reference: BleuBleu/FamiStudio commit 70625dd09d8acaef831bbce468d416fb0b596be1,
+ * IO/FamistudioTextFile.cs, ChannelStates/ChannelState.cs and ChannelStateNoise.cs.
+ * This is a bounded score/instrument conversion, not the original sound driver.
+ */
+(function(root,factory){
+ 'use strict';
+ const api=factory();
+ if(typeof module==='object'&&module.exports)module.exports=api;
+ if(root){root.FamiStudioText=api;const forge=root.Forge=root.Forge||{};(forge.services=forge.services||{}).FamiStudioText=api;}
+})(typeof window!=='undefined'?window:null,function(){
+ 'use strict';
+ const PROFILE='famistudio-text-4.5-2a03-v1';
+ const CHANNELS=['Square1','Square2','Triangle','Noise','DPCM'];
+ const MAX_TEXT=4*1024*1024,MAX_LINES=65536,MAX_EVENTS=131072,MAX_ROWS=32640;
+ const fail=(message,line)=>{throw Error('FamiStudio import: '+(line?'line '+line+': ':'')+message);};
+ const fields={
+  Project:'Version TempoMode Name Author Copyright PAL Tuning Expansions',
+  Instrument:'Name Color Folder Expansion',
+  Envelope:'Type Length Loop Release Relative Values',
+  Song:'Name Color Folder Length LoopPoint PatternLength BeatLength NoteLength Groove GroovePaddingMode FamiTrackerTempo FamiTrackerSpeed',
+  PatternCustomSettings:'Time Length BeatLength NoteLength Groove GroovePaddingMode',
+  Channel:'Type',Pattern:'Name Color',PatternInstance:'Time Pattern',
+  Note:'Time Value Duration Instrument Volume Attack Release Arpeggio SlideTarget VolumeSlideTarget VibratoSpeed VibratoDepth Speed FinePitch DutyCycle NoteDelay CutDelay DeltaCounter PhaseReset EnvelopePeriod FdsModSpeed FdsModDepth'
+ };
+ const allowed=Object.fromEntries(Object.entries(fields).map(([key,value])=>[key,new Set(value.split(' '))]));
+ function integer(value,min,max,label,line){
+  if(typeof value!=='string'||!/^\d+$/.test(value))fail(label+' must be an integer from '+min+' through '+max,line);
+  const n=Number(value);if(!Number.isSafeInteger(n)||n<min||n>max)fail(label+' must be an integer from '+min+' through '+max,line);return n;
+ }
+ function signed(value,min,max,label,line){
+  if(typeof value!=='string'||! /^-?\d+$/.test(value))fail(label+' must be an integer from '+min+' through '+max,line);
+  const n=Number(value);if(!Number.isSafeInteger(n)||n<min||n>max)fail(label+' must be an integer from '+min+' through '+max,line);return n;
+ }
+ function required(record,key){if(record.a[key]===undefined||record.a[key]==='')fail(record.type+' requires '+key,record.line);return record.a[key];}
+ function name(record,key='Name'){const value=required(record,key);if(value.length>256)fail(key+' exceeds 256 characters',record.line);return value;}
+ function boolean(value,label,line){if(value!=='True'&&value!=='False')fail(label+' must be True or False',line);return value==='True';}
+ function records(input){
+  if(typeof input!=='string'||!input.trim())fail('expected a FamiStudio text export');if(input.length>MAX_TEXT)fail('text exceeds 4 MiB');
+  if(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(input))fail('text contains invalid control characters');
+  const lines=input.replace(/^\uFEFF/,'').split(/\r\n|\n|\r/);if(lines.length>MAX_LINES)fail('text exceeds '+MAX_LINES+' lines');
+  const result=[];
+  lines.forEach((raw,i)=>{
+   const text=raw.trim(),line=i+1;if(!text)return;if(text.length>8192)fail('line exceeds 8192 characters',line);
+   const start=/^([A-Za-z][A-Za-z0-9]*)\b/.exec(text);if(!start)fail('invalid object name',line);
+   const type=start[1];if(!allowed[type])fail('unsupported object '+type,line);
+   const a=Object.create(null);let at=start[0].length;
+   while(at<text.length){
+    const gap=/^\s+/.exec(text.slice(at));if(!gap)fail('attributes must be separated by whitespace',line);at+=gap[0].length;if(at===text.length)break;
+    const keyMatch=/^([A-Za-z][A-Za-z0-9]*)\s*=\s*"/.exec(text.slice(at));if(!keyMatch)fail('malformed quoted attribute',line);
+    const key=keyMatch[1];if(!allowed[type].has(key))fail('unsupported '+type+' attribute '+key,line);if(Object.hasOwn(a,key))fail('duplicate attribute '+key,line);at+=keyMatch[0].length;
+    let value='',closed=false;
+    while(at<text.length){if(text[at]==='"'){if(text[at+1]==='"'){value+='"';at+=2;}else{at++;closed=true;break;}}else value+=text[at++];}
+    if(!closed)fail('unterminated '+key+' value',line);a[key]=value;
+   }
+   result.push({type,a,line});
+  });return result;
+ }
+ function parse(text){
+  const list=records(text);if(list[0]?.type!=='Project')fail('Project must be the first object');
+  const project=list[0];required(project,'Version');required(project,'TempoMode');
+  const result={project,instruments:[],songs:[]};let inst=null,song=null,channel=null,pattern=null;
+  const names=new Set();
+  for(const record of list.slice(1)){
+   switch(record.type){
+    case 'Project':fail('duplicate Project',record.line);break;
+    case 'Instrument':
+     if(song)fail('Instrument must appear before songs',record.line);name(record);if(names.has(record.a.Name))fail('duplicate instrument '+record.a.Name,record.line);names.add(record.a.Name);inst={...record,name:record.a.Name,envelopes:[]};result.instruments.push(inst);if(result.instruments.length>255)fail('more than 255 instruments',record.line);break;
+    case 'Envelope':
+     if(!inst||song)fail('Envelope must follow its Instrument',record.line);required(record,'Type');required(record,'Length');required(record,'Values');if(inst.envelopes.some(e=>e.a.Type===record.a.Type))fail('duplicate '+record.a.Type+' envelope',record.line);inst.envelopes.push(record);break;
+    case 'Song':
+     name(record);song={...record,name:record.a.Name,channels:[],custom:[]};result.songs.push(song);if(result.songs.length>256)fail('more than 256 songs',record.line);inst=channel=pattern=null;break;
+    case 'PatternCustomSettings':
+     if(!song||channel)fail('PatternCustomSettings must precede song channels',record.line);song.custom.push(record);break;
+    case 'Channel':
+     if(!song)fail('Channel requires a Song',record.line);required(record,'Type');if(song.channels.some(c=>c.a.Type===record.a.Type))fail('duplicate channel '+record.a.Type,record.line);channel={...record,patterns:[],instances:[]};song.channels.push(channel);pattern=null;break;
+    case 'Pattern':
+     if(!channel)fail('Pattern requires a Channel',record.line);name(record);if(channel.patterns.some(p=>p.a.Name===record.a.Name))fail('duplicate pattern '+record.a.Name,record.line);pattern={...record,notes:[]};channel.patterns.push(pattern);if(channel.patterns.length>256)fail('more than 256 patterns in a channel',record.line);break;
+    case 'Note':
+     if(!pattern)fail('Note requires a Pattern',record.line);pattern.notes.push(record);break;
+    case 'PatternInstance':
+     if(!channel)fail('PatternInstance requires a Channel',record.line);required(record,'Time');required(record,'Pattern');channel.instances.push(record);pattern=null;break;
+   }
+  }
+  if(!result.songs.length)fail('project contains no songs');return result;
+ }
+ function inspect(text){const p=parse(text);return {format:'FamiStudioText',version:p.project.a.Version,projectName:p.project.a.Name||'',tempoMode:p.project.a.TempoMode,songs:p.songs.map((song,index)=>({index,name:song.name}))};}
+ function noAttributes(record,names){for(const key of names)if(record.a[key]!==undefined)fail('unsupported '+record.type+' attribute '+key,record.line);}
+ function timing(record,mode,custom=false){
+  const a=record.a,length=integer(required(record,custom?'Length':'PatternLength'),1,4096,'pattern length',record.line);
+  if(a.BeatLength!==undefined)integer(a.BeatLength,1,4096,'BeatLength',record.line);
+  if(mode==='FamiTracker'){
+   noAttributes(record,['NoteLength','Groove','GroovePaddingMode']);
+   return {length,noteLength:1,tempo:custom?null:integer(required(record,'FamiTrackerTempo'),30,300,'FamiTrackerTempo',record.line),speed:custom?null:integer(required(record,'FamiTrackerSpeed'),1,15,'FamiTrackerSpeed',record.line)};
+  }
+  noAttributes(record,['FamiTrackerTempo','FamiTrackerSpeed']);
+  const noteLength=integer(required(record,'NoteLength'),1,18,'NoteLength',record.line),groove=required(record,'Groove').split('-').map(v=>integer(v,1,18,'Groove value',record.line));
+  if(groove.length>16||groove.some(v=>v!==noteLength))fail('only constant Groove equal to NoteLength is supported',record.line);
+  if(!['Beginning','Middle','End'].includes(required(record,'GroovePaddingMode')))fail('unknown GroovePaddingMode',record.line);
+  return {length:length*noteLength,noteLength,tempo:150,speed:1};
+ }
+ function instrument(item,tempo){
+  noAttributes(item,['Expansion']);const envs=new Map();
+  for(const env of item.envelopes){
+   const type=env.a.Type;if(!['Volume','DutyCycle','Arpeggio','Pitch'].includes(type))fail('unsupported envelope '+type,env.line);
+   noAttributes(env,['Release']);if(env.a.Relative!==undefined&&boolean(env.a.Relative,'Relative',env.line))fail('relative envelopes are unsupported',env.line);
+   const length=integer(env.a.Length,1,255,'envelope length',env.line),values=env.a.Values.split(',').map(v=>signed(v,type==='Volume'||type==='DutyCycle'?0:-127,type==='Volume'?15:type==='DutyCycle'?3:127,type+' value',env.line));
+   if(values.length!==length)fail(type+' Length differs from Values count',env.line);
+   const loop=env.a.Loop===undefined?length-1:integer(env.a.Loop,0,length-1,'envelope loop',env.line);
+   if(type==='DutyCycle'&&values.some(v=>v!==values[0]))fail('changing duty envelopes are unsupported',env.line);
+   if((type==='Arpeggio'||type==='Pitch')&&values.some(v=>v!==0))fail(type+' envelopes are unsupported except all-zero values',env.line);
+   if(type==='Volume'&&tempo!==150&&values.some(v=>v!==values[0]))fail('changing volume envelopes require tempo 150 (one envelope tick per NTSC frame)',env.line);
+   envs.set(type,{values,loop});
+  }
+  const volume=envs.get('Volume')||{values:[15],loop:0};
+  return {name:item.name,volEnv:volume.values,dutyEnv:[envs.get('DutyCycle')?.values[0]??0],arpEnv:[0],pitchEnv:[0],loopVol:volume.loop,loopArp:0};
+ }
+ function noteValue(value,line){const m=/^([A-G])(#?)([0-7])$/.exec(value||'');if(!m)fail('unsupported note '+value,line);const pitch={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[m[1]]+(m[2]?1:0);if(pitch>11||m[2]&&['E','B'].includes(m[1]))fail('invalid note '+value,line);return Number(m[3])*12+pitch;}
+ const blank=()=>({note:-1,inst:-1,vol:-1,fx:0,fxp:0});
+ function preview(text,options={}){
+  const parsed=parse(text),p=parsed.project.a;
+  if(!/^4\.5\.\d+$/.test(p.Version))fail('supported text version is 4.5.x; received '+p.Version);
+  if(!['FamiStudio','FamiTracker'].includes(p.TempoMode))fail('unknown TempoMode '+p.TempoMode);
+  if(p.PAL!==undefined&&boolean(p.PAL,'PAL',parsed.project.line))fail('PAL conversion is unsupported');
+  if(p.Tuning!==undefined&&integer(p.Tuning,1,1000,'Tuning',parsed.project.line)!==440)fail('only A440 tuning is supported');
+  if(p.Expansions!==undefined)fail('expansion audio is unsupported');
+  const songIndex=options.songIndex??0,rows=options.rows??64;
+  if(!Number.isInteger(songIndex)||songIndex<0||songIndex>=parsed.songs.length)fail('songIndex is outside the song inventory');
+  if(!Number.isInteger(rows)||rows<16||rows>128)fail('tracker row count must be 16–128');
+  const song=parsed.songs[songIndex],length=integer(required(song,'Length'),1,256,'song length',song.line),loop=signed(required(song,'LoopPoint'),-1,length-1,'LoopPoint',song.line);
+  if(loop>0)fail('nonzero song loop points are unsupported; Forge loops the complete arrangement',song.line);
+  const base=timing(song,p.TempoMode),sizes=Array(length).fill(base.length),seenCustom=new Set();
+  for(const custom of song.custom){const at=integer(required(custom,'Time'),0,length-1,'custom pattern time',custom.line);if(seenCustom.has(at))fail('duplicate custom pattern time '+at,custom.line);seenCustom.add(at);sizes[at]=timing(custom,p.TempoMode,true).length;}
+  const starts=[0];for(const size of sizes)starts.push(starts.at(-1)+size);const durationRows=starts.at(-1);
+  if(durationRows>MAX_ROWS||Math.ceil(durationRows/rows)>255)fail('song exceeds 255 orders / '+MAX_ROWS+' tracker rows');
+  const warnings=['Converted score and supported instruments use the Forge sound engine; original-driver waveform and cycle equivalence are not claimed.','One finite pass is converted. Forge repeats from row zero with initial channel volume and silence reset; FamiStudio can carry channel state across its loop.'];
+  if(loop===-1)warnings.push('The source song has no loop. Forge playback repeats the complete imported arrangement.');
+  if(parsed.songs.length>1)warnings.push('Only selected song '+(songIndex+1)+' of '+parsed.songs.length+' is imported.');
+  const instruments=[],instByName=new Map(),sourceInstruments=new Map(parsed.instruments.map(i=>[i.name,i]));
+  function getInstrument(key,line){if(instByName.has(key))return instByName.get(key);const item=sourceInstruments.get(key);if(!item)fail('unknown instrument '+key,line);const index=instruments.length;instruments.push(instrument(item,base.tempo));instByName.set(key,index);return index;}
+  const channels=Array.from({length:4},()=>[]);let noteCount=0,expandedCount=0,unusedPatterns=0;
+  for(const ch of song.channels){
+   const ci=CHANNELS.indexOf(ch.a.Type);if(ci<0)fail('unsupported channel '+ch.a.Type,ch.line);
+   if(ci===4){if(ch.patterns.some(pat=>pat.notes.length)||ch.instances.length)fail('DPCM content is unsupported',ch.line);continue;}
+   const patternMap=new Map(),times=new Set(),used=new Set();
+   for(const pattern of ch.patterns){const notes=[],noteTimes=new Set();for(const record of pattern.notes){
+    const a=record.a,time=integer(required(record,'Time'),0,MAX_ROWS-1,'note time',record.line);if(noteTimes.has(time))fail('duplicate note time '+time,record.line);noteTimes.add(time);
+    noAttributes(record,['Release','Arpeggio','SlideTarget','VolumeSlideTarget','VibratoSpeed','VibratoDepth','Speed','FinePitch','DutyCycle','NoteDelay','CutDelay','DeltaCounter','PhaseReset','EnvelopePeriod','FdsModSpeed','FdsModDepth']);
+    if(a.Attack!==undefined&&!boolean(a.Attack,'Attack',record.line))fail('legato / Attack=False is unsupported',record.line);
+    const note=a.Value===undefined?-1:a.Value==='Stop'?-2:noteValue(a.Value,record.line);
+    if(note<0&&(a.Duration!==undefined||a.Instrument!==undefined||a.Attack!==undefined))fail('non-musical note has musical attributes',record.line);
+    if(note===-1&&a.Volume===undefined)fail('empty Note has no supported event',record.line);
+    notes.push({time,note,duration:note>=0?integer(required(record,'Duration'),1,MAX_ROWS,'Duration',record.line):0,instrument:a.Instrument,volume:a.Volume===undefined?-1:integer(a.Volume,0,15,'Volume',record.line),line:record.line});
+   }patternMap.set(pattern.a.Name,notes.sort((a,b)=>a.time-b.time));}
+   for(const instance of ch.instances){const index=integer(instance.a.Time,0,length-1,'pattern instance time',instance.line);if(times.has(index))fail('duplicate pattern instance time '+index,instance.line);times.add(index);const notes=patternMap.get(instance.a.Pattern);if(!notes)fail('unknown pattern '+instance.a.Pattern,instance.line);used.add(instance.a.Pattern);
+    for(const note of notes){if(note.time>=sizes[index])fail('note lies beyond its pattern instance; hidden notes are unsupported',note.line);const row=starts[index]+note.time;if(note.note>=0&&row+note.duration>durationRows)fail('note duration extends beyond the song end',note.line);channels[ci].push({...note,row});if(++expandedCount>MAX_EVENTS)fail('expanded event budget exceeded');}
+   }unusedPatterns+=ch.patterns.length-used.size;
+  }
+  const count=Math.ceil(durationRows/rows),patterns=Array.from({length:count},()=>({rows:Array.from({length:rows},()=>Array.from({length:5},blank))}));
+  const at=(row,channel)=>patterns[Math.floor(row/rows)].rows[row%rows][channel];
+  for(let ci=0;ci<4;ci++){
+   const events=channels[ci].sort((a,b)=>a.row-b.row);let activeEnd=-1,currentInst=-1,currentVolume=15;
+   // Explicit initial state also makes full-song repeats deterministic.
+   Object.assign(at(0,ci),{note:-2,vol:15});
+   const checkVolume=(inst,volume,line)=>{if(inst>=0&&instruments[inst].volEnv.some(v=>v>0&&volume>0&&Math.round(v*volume/15)===0))fail('this envelope/volume combination needs FamiStudio minimum-volume behavior that Forge does not represent',line);};
+   for(const event of events){
+    if(activeEnd>=0&&activeEnd<=event.row){if(activeEnd<durationRows)at(activeEnd,ci).note=-2;activeEnd=-1;}
+    const cell=at(event.row,ci);
+    if(event.volume>=0){currentVolume=event.volume;cell.vol=currentVolume;}
+    if(event.note>=0){
+     if(event.instrument!==undefined)currentInst=getInstrument(event.instrument,event.line);if(currentInst<0)fail('first musical note on '+CHANNELS[ci]+' needs an Instrument',event.line);
+     if(ci===3&&instruments[currentInst].dutyEnv[0]%2)fail('short-mode noise is unsupported',event.line);
+     cell.note=ci===3?((event.note+1)&15)*6:event.note;cell.inst=currentInst;cell.vol=currentVolume;activeEnd=event.row+event.duration;noteCount++;
+    }else if(event.note===-2){cell.note=-2;activeEnd=-1;}
+    checkVolume(currentInst,currentVolume,event.line);
+   }
+   if(activeEnd>=0&&activeEnd<count*rows)at(activeEnd,ci).note=-2;
+   // Empty tail is truly silent, even when imported source sustains to its end.
+   if(durationRows<count*rows)at(durationRows,ci).note=-2;
+  }
+  if(!noteCount)fail('selected song contains no playable notes');
+  if(unusedPatterns)warnings.push(unusedPatterns+' unreferenced channel patterns were not converted; keep the original text export.');
+  if(count*rows>durationRows)warnings.push('Added '+(count*rows-durationRows)+' silent padding rows to fit '+rows+'-row Forge patterns.');
+  if(parsed.instruments.length>instruments.length)warnings.push('Only instruments used by the selected arrangement were converted.');
+  const report={profile:PROFILE,sourceVersion:p.Version,songIndex,songName:song.name,sourceRows:durationRows,durationRows,paddingRows:count*rows-durationRows,sourceLoopPoint:loop,converted:['Note pitches, starts, durations and channel assignments','Supported volume envelopes and constant duty','Selected arrangement expanded into Forge patterns'],omitted:['Editor colors and folder organization','Unselected songs and unreferenced patterns'],warnings:[...warnings]};
+  return {format:'famistudio-text',tempo:base.tempo,speed:base.speed,rows,patterns,instruments,orderList:patterns.map((_,i)=>[i,i,i,i,i]),warnings,noteCount,report,songName:song.name,durationRows};
+ }
+ return Object.freeze({profile:PROFILE,parse,inspect,preview});
+});
+/* External score conversion stays detached until the existing Audio transaction
+ * accepts it. A receipt retains the original UTF-8 export separately from the
+ * schema-12 project, which stores only the converted editable score. */
+(()=>{
+'use strict';
+const services=window.Forge.services,stages=new WeakSet(),copy=value=>JSON.parse(JSON.stringify(value));
+const MAX_BYTES=1024*1024;
+function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
+function integer(value,min,max,label){if(!Number.isSafeInteger(value)||value<min||value>max)throw Error(label+' must be an integer from '+min+' through '+max+'.');}
+const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
+function guard(){const store=services.ProjectStore;return {epoch:store.state.epoch,snapshot:store.serialize()};}
+function check(item){const store=services.ProjectStore;if(item.project.epoch!==store.state.epoch||item.project.snapshot!==store.serialize())throw Error('The project changed after preview. Preview again before importing.');}
+function validate(result,project){
+ const imported=copy(result),p=JSON.parse(project.snapshot),patternOffset=p.patterns.length,instrumentOffset=p.instruments.length;
+ if(!Array.isArray(imported.patterns)||!imported.patterns.length||!Array.isArray(imported.instruments)||!Array.isArray(imported.orderList)||!imported.orderList.length)throw Error('The import did not return a complete editable score.');
+ if(imported.rows!==p.audRows)throw Error('Imported pattern size differs from the project.');
+ integer(imported.rows,16,128,'Pattern rows');integer(imported.tempo,30,300,'Tempo');integer(imported.speed,1,15,'Speed');
+ if(patternOffset+imported.patterns.length>256||instrumentOffset+imported.instruments.length>255||imported.orderList.length>255)throw Error('The imported score exceeds the available Audio capacity. Use a shorter song or a project with fewer records.');
+ for(const pattern of imported.patterns){
+  if(!Array.isArray(pattern.rows)||pattern.rows.length!==imported.rows)throw Error('Imported patterns have inconsistent row counts.');
+  for(const row of pattern.rows){if(!Array.isArray(row)||row.length!==5)throw Error('Imported rows require five canonical channels.');for(const cell of row){
+   integer(cell.note,-2,95,'Note');integer(cell.inst,-1,imported.instruments.length-1,'Instrument reference');integer(cell.vol,-1,15,'Volume');integer(cell.fx,0,255,'Effect');integer(cell.fxp,0,255,'Effect value');
+   if(cell.inst>=0)cell.inst+=instrumentOffset;
+  }}
+ }
+ const fields={patterns:p.patterns.concat(imported.patterns),instruments:p.instruments.concat(imported.instruments),tempo:imported.tempo,speed:imported.speed,
+  orderList:imported.orderList.map(row=>{if(!Array.isArray(row)||row.length!==5)throw Error('Imported order rows require five pattern references.');return row.map(index=>{integer(index,0,imported.patterns.length-1,'Pattern reference');return index+patternOffset;});})};
+ const next={...p,...fields},prepared=services.ProjectStore.prepareLoad(next);
+ if(canonical(prepared.patterns.slice(patternOffset))!==canonical(imported.patterns)||canonical(prepared.instruments.slice(instrumentOffset))!==canonical(imported.instruments))throw Error('The imported score would change during project normalization. Import was refused.');
+ const plan=services.AudioCompiler.plan({...next,audioRuntime:{...next.audioRuntime,enabled:true,musicEnabled:true}});
+ return {...fields,patternOffset,instrumentOffset,patternCount:imported.patterns.length,instrumentCount:imported.instruments.length,estimatedBytes:plan.estimatedBytes};
+}
+async function stage(source,options={}){
+ if(!source||typeof source.text!=='string'||typeof source.name!=='string'||!source.name||source.name.length>512)throw Error('Choose a named FamiStudio UTF-8 text export.');
+ if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).some(key=>key!=='songIndex'))throw Error('Only a song selection is supported.');
+ const text=source.text,name=source.name,bytes=new TextEncoder().encode(text);
+ if(!bytes.length||bytes.length>MAX_BYTES)throw Error('FamiStudio text exports must be between 1 byte and 1 MiB.');
+ const project=guard(),songIndex=options.songIndex??0;integer(songIndex,0,255,'Song index');
+ const settings={songIndex,rows:JSON.parse(project.snapshot).audRows};
+ if(!window.crypto?.subtle?.digest)throw Error('SHA-256 is unavailable in this browser context.');
+ const hash=await window.crypto.subtle.digest('SHA-256',bytes),sha256=Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');
+ const item={project,options:settings,source:{name,text,sha256,byteLength:bytes.length}};check(item);
+ const result=window.FamiStudioText.preview(text,settings),data=validate(result,project);check(item);
+ const value=freeze({...item,result:copy(result),data});stages.add(value);return value;
+}
+function commit(item){
+ if(!stages.has(item))throw Error('Preview a supported import first.');check(item);
+ const {patterns,instruments,orderList,tempo,speed}=item.data;
+ const applied=services.ProjectStore.applyAudioImport({patterns,instruments,orderList,tempo,speed},{kind:'music',expected:item.project,intent:'audioToolImport'});
+ stages.delete(item);return freeze({...item.data,warnings:applied.warnings});
+}
+function report(item,outcome='preview'){
+ if(!item?.source||!item?.result||!['preview','imported'].includes(outcome))throw Error('A preview is required for an import receipt.');
+ return copy({format:'NESForgeAudioImportReceipt',version:1,adapter:'famistudio-text-1',outcome,source:item.source,options:item.options,
+  summary:{patterns:item.data.patternCount,instruments:item.data.instrumentCount,notes:item.result.noteCount,tempo:item.result.tempo,speed:item.result.speed},
+  conversion:item.result.report,warnings:item.result.warnings,
+  notice:'This receipt preserves the original UTF-8 text export and a historical conversion report. Save Project As separately preserves the editable Forge score. The source text is not embedded in the Forge project. This is not an original FamiStudio binary project, current-project proof, or audio equivalence evidence.'});
+}
+services.AudioToolImport=Object.freeze({version:1,maxBytes:MAX_BYTES,stage,commit,report});
 })();
 /* NES Forge 1.7: independent mapper-0 screen-transition world runtime.
  * No editor, emulator, original compiler or persistent model mutations.
@@ -11550,6 +11799,82 @@ window.addEventListener('blur',cancelStroke);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelStroke();});
 Forge.services.AudioAdaptiveUI=Object.freeze({refreshLayout,ensureSelectionVisible,cancelStroke});
 refreshLayout();
+})();
+/* The same AUDIO editor receives an inspected FamiStudio export. File loading,
+ * preview, commit and receipt export each own their asynchronous completion. */
+(()=>{
+'use strict';
+const services=window.Forge.services;
+let c=null,source=null,staged=null,receipt=null,busy=false,revision=0,operation=0;
+const make=(tag,id,text)=>{const e=document.createElement(tag);if(id)e.id=id;if(text!==undefined)e.textContent=text;return e;};
+function message(text,error=false){c.status.textContent=text;c.status.style.color=error?'var(--err, #ff9898)':'var(--dim)';}
+function enable(){c.choose.disabled=busy;c.song.disabled=busy||!source;c.preview.disabled=busy||!source;c.apply.disabled=busy||!staged;c.receipt.disabled=busy||!receipt;}
+function invalidate(){revision++;staged=null;receipt=null;c.summary.textContent='';enable();message('Selection changed. Preview the selected song before importing.');}
+async function loadFile(file){
+ if(!file)return false;const id=++operation;revision++;source=null;staged=null;receipt=null;busy=true;c.summary.textContent='';c.song.replaceChildren();enable();
+ try{
+  if(!Number.isSafeInteger(file.size)||file.size<1||file.size>services.AudioToolImport.maxBytes)throw Error('Choose a FamiStudio UTF-8 text export of at most 1 MiB.');
+  message('Reading FamiStudio text…');
+  const bytes=new Uint8Array(await file.arrayBuffer());if(bytes.length!==file.size)throw Error('The selected file changed while reading. Choose it again.');
+  // Retain a possible UTF-8 BOM in the receipt, and reject malformed encoding.
+  const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes);
+  const info=window.FamiStudioText.inspect(text);if(id!==operation)return false;
+  source={text,name:String(file.name||'FamiStudio.txt').slice(0,512)};
+  for(const song of info.songs){const option=make('option',null,song.name);option.value=String(song.index);c.song.appendChild(option);}c.song.value='0';
+  message(source.name+' · '+info.songs.length+' song(s). Choose a song and preview its supported content.');return true;
+ }catch(error){if(id===operation){source=null;message(error.message||String(error),true);}return false;}
+ finally{if(id===operation){busy=false;enable();}}
+}
+async function preview(){
+ if(busy)return false;staged=null;receipt=null;c.summary.textContent='';const id=++operation,selection=revision;busy=true;enable();
+ try{
+  if(!source)throw Error('Choose a FamiStudio text export first.');
+  const value=String(c.song.value);if(!/^\d+$/.test(value))throw Error('Choose a song from the export.');
+  message('Checking the selected song…');const item=await services.AudioToolImport.stage(source,{songIndex:Number(value)});
+  if(id!==operation||selection!==revision)throw Error('The selection changed. Preview again.');
+  const r=item.result,d=item.data,lines=[source.name+' · '+(r.report?.songName||'Song '+(Number(value)+1)),d.patternCount+' new patterns · '+d.instrumentCount+' new instruments · '+r.noteCount+' notes','Tempo '+r.tempo+' · speed '+r.speed+' · '+r.rows+' rows per pattern'];
+  for(const warning of r.warnings||[])lines.push(typeof warning==='string'?warning:JSON.stringify(warning));
+  if(r.report){lines.push('Source duration: '+r.report.durationRows+' rows; silent padding: '+r.report.paddingRows+' rows.');for(const [title,key]of [['Converted','converted'],['Not included','omitted']])if(r.report[key]?.length)lines.push(title+': '+r.report[key].join('; ')+'.');}
+  lines.push('Import appends editable patterns and instruments, and replaces the current music order and tempo/speed. Existing SFX records remain; their playback timing follows the new global tempo/speed. One Undo restores the previous song.','Audio data estimate: '+d.estimatedBytes+' bytes. Build the complete project to check ROM capacity.','Save Project As keeps the converted score. Download source + report separately to retain the original text export.');
+  c.summary.textContent=lines.join('\n');staged=item;receipt=services.AudioToolImport.report(item,'preview');message('Preview ready. Review the conversion details, then choose Import selected song.');return true;
+ }catch(error){if(id===operation)message(error.message||String(error),true);return false;}
+ finally{if(id===operation){busy=false;enable();}}
+}
+async function importMusic(){
+ if(busy)return false;if(!staged){message('Preview a supported song first.',true);return false;}
+ const item=staged,id=++operation,selection=revision;busy=true;enable();
+ try{
+  if(!confirm('Import the selected FamiStudio song into AUDIO?\n\nThe current music order and global tempo/speed will be replaced. Existing patterns, instruments and SFX records remain; SFX playback timing may change. Review the preview for conversion differences. One Undo restores the previous song.')){message('Import cancelled. The project is unchanged.');return false;}
+  if(id!==operation||selection!==revision||staged!==item)throw Error('The selection changed. Preview again.');
+  const data=services.AudioToolImport.commit(item);staged=null;receipt=services.AudioToolImport.report(item,'imported');const issues=[...(data.warnings||[])];
+  try{aud_stop();aud_currentOrder=0;aud_currentRow=0;aud_selectedInst=data.instrumentCount?data.instrumentOffset:-1;render();services.AudioUI?.refresh();}catch(error){issues.push('display refresh: '+(error.message||String(error)));}
+  message('Imported '+data.patternCount+' patterns and '+data.instrumentCount+' instruments. Save Project As keeps the editable score; download source + report to keep the original export. Enable Compile Audio Runtime to include music in a ROM.'+(issues.length?' Import succeeded with warnings: '+issues.join('; '):''),!!issues.length);
+  return {patternOffset:data.patternOffset,instrumentOffset:data.instrumentOffset,patternCount:data.patternCount,instrumentCount:data.instrumentCount};
+ }catch(error){staged=null;message(error.message||String(error),true);return false;}
+ finally{if(id===operation){busy=false;enable();}}
+}
+async function downloadReceipt(){
+ const item=receipt;
+ try{
+  if(busy||!item)throw Error('Preview a supported song before downloading its source and report.');
+  const name=item.source.name.replace(/\.[^.]*$/,'').replace(/[^a-z0-9._-]/gi,'_').slice(0,80)||'FamiStudio';
+  const result=await forgeSave.request(new TextEncoder().encode(JSON.stringify(item,null,2)),name+'-import-receipt.json','application/json');
+  if(receipt===item){if(result?.status==='saved')message('Saved original source and import report. Save Project As separately keeps the editable score.');else if(result?.status==='download-requested')message('Download requested for original source and import report.');else if(result?.status==='cancelled')message('Receipt save cancelled. The report remains available.');else if(result?.status==='busy')message('Finish the open Save As request, then download the receipt again.',true);else message('Receipt save did not complete: '+(result?.error?.message||result?.message||result?.status||'unknown result'),true);}return result;
+ }catch(error){if(receipt===item)message(error.message||String(error),true);return false;}
+}
+function mount(){
+ const anchor=document.getElementById('audImportStatus180');if(!anchor)return;
+ const panel=make('fieldset','audioToolPanel'),legend=make('legend',null,'FamiStudio text import');panel.appendChild(legend);panel.style.cssText='border:1px solid var(--bdr);padding:6px;margin:6px 0;min-width:0';
+ const intro=make('p',null,'Import a supported FamiStudio 4.5 text export into this tracker. Preview reports conversion limits; unsupported song features stop the import.');intro.style.cssText='font-size:9px;color:var(--dim)';panel.appendChild(intro);
+ c={panel,file:make('input','audioToolFile'),choose:make('button','audioToolChoose','Import FamiStudio…'),song:make('select','audioToolSong'),preview:make('button','audioToolPreview','Preview selected song'),apply:make('button','audioToolApply','Import selected song'),receipt:make('button','audioToolReceipt','Download source + report'),summary:make('pre','audioToolSummary'),status:make('p','audioToolStatus')};
+ c.file.type='file';c.file.accept='.txt,text/plain';c.file.style.display='none';c.song.setAttribute('aria-label','FamiStudio song');c.song.style.cssText='max-width:100%;width:100%;margin:4px 0;padding:5px;background:var(--bg3);color:var(--txt);border:1px solid var(--bdr)';c.status.setAttribute('role','status');c.status.style.cssText='font-size:10px;overflow-wrap:anywhere';c.summary.style.cssText='font-size:10px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto';c.summary.setAttribute('aria-label','FamiStudio conversion preview');
+ for(const key of ['choose','preview','apply','receipt'])c[key].style.cssText='display:block;width:100%;margin:4px 0;padding:5px 8px;background:var(--bg3);color:var(--txt);border:1px solid var(--bdr);font:inherit;cursor:pointer';
+ c.apply.style.color='var(--grn)';
+ for(const key of ['file','choose','song','preview','apply','receipt','summary','status'])panel.appendChild(c[key]);
+ c.choose.addEventListener('click',()=>c.file.click());c.file.addEventListener('change',()=>{const file=c.file.files?.[0];c.file.value='';void loadFile(file);});c.song.addEventListener('change',invalidate);c.preview.addEventListener('click',()=>void preview());c.apply.addEventListener('click',()=>void importMusic());c.receipt.addEventListener('click',()=>void downloadReceipt());
+ anchor.parentNode.insertBefore(panel,anchor);enable();message('Choose a FamiStudio text export to inspect its songs.');
+}
+services.AudioToolImportUI=Object.freeze({loadFile,preview,importMusic,downloadReceipt,getState:()=>({busy,hasSource:!!source,hasStage:!!staged,receiptOutcome:receipt?.outcome||null})});mount();
 })();
 /* Built-in Audio workshop: discoverable, undoable examples, no external fetch. */
 (()=>{

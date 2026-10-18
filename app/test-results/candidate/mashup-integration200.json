@@ -1,6 +1,6 @@
 {
   "suite": "mashup-integration200",
-  "htmlSha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
+  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
   "scope": "Three explicitly Scout-derived canonical source projects; actual bundled preview/apply/Undo/Redo and Save Project As with a mocked OS writable handle; deterministic recipe replay, real generated World and single-room 6502 execution, CHR framebuffer and APU register changes. No browser visuals, listening, mobile/controller/hardware or arbitrary-engine recovery acceptance.",
   "passed": 12,
   "failed": 0,
@@ -161,62 +161,62 @@
     {
       "name": "Three authored source projects compile independently and have distinct immutable source identities",
       "passed": true,
-      "milliseconds": 4197
+      "milliseconds": 3208
     },
     {
       "name": "A single candidate combines two donor graphics sources, donor music and bounded existing gameplay",
       "passed": true,
-      "milliseconds": 1936
+      "milliseconds": 1532
     },
     {
       "name": "Exact sources and seed replay byte-identical candidate data independently of donor pool ordering",
       "passed": true,
-      "milliseconds": 4159
+      "milliseconds": 3083
     },
     {
       "name": "Different seeds explore asset and patrol choices; complete locks retain the previous result",
       "passed": true,
-      "milliseconds": 5513
+      "milliseconds": 4180
     },
     {
       "name": "Actual UI preview is read-only and Apply performs the exact staged result in one Undo",
       "passed": true,
-      "milliseconds": 5898
+      "milliseconds": 4370
     },
     {
       "name": "Actual Save Project As writes the applied canonical candidate and reopening rebuilds the exact ROM",
       "passed": true,
-      "milliseconds": 5355
+      "milliseconds": 4494
     },
     {
       "name": "Generated World ROM boots, advances real frames and runs the varied patrol and music",
       "passed": true,
-      "milliseconds": 3748
+      "milliseconds": 2837
     },
     {
       "name": "Selecting the other song and graphic donors changes generated pixels and APU notes in real execution",
       "passed": true,
-      "milliseconds": 5477
+      "milliseconds": 3872
     },
     {
       "name": "The same donor workflow supports an existing generated single-room project and actual ROM build",
       "passed": true,
-      "milliseconds": 5327
+      "milliseconds": 4576
     },
     {
       "name": "Ordinary post-mashup CHR and tracker edits survive saving and alter the rebuilt ROM",
       "passed": true,
-      "milliseconds": 4772
+      "milliseconds": 3792
     },
     {
       "name": "Shipped workshop manifest binds exact canonical inputs, recipes and compiled outputs",
       "passed": true,
-      "milliseconds": 4221
+      "milliseconds": 3087
     },
     {
       "name": "A shipped recipe reopens through the actual UI using its exact original sources",
       "passed": true,
-      "milliseconds": 4256
+      "milliseconds": 3434
     }
   ]
 }

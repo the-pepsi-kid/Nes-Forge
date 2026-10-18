@@ -1,7 +1,7 @@
 {
   "suite": "services167",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
+  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
   "scope": "Active service ownership and dispatch, single-pass graph preparation/linking, phase order, output side effects, release/docs consolidation, read-only registry, existing emulator/capture delegation, inactive LiveLink. Full-script VM; no real-browser claim.",
   "passed": 14,
   "failed": 0,
@@ -10,72 +10,72 @@
     {
       "name": "Public build and preflight routes have one authoritative service owner",
       "passed": true,
-      "milliseconds": 981
+      "milliseconds": 494
     },
     {
       "name": "Preflight links one prepared project exactly once; compiling that plan does not relink or publish",
       "passed": true,
-      "milliseconds": 1626
+      "milliseconds": 683
     },
     {
       "name": "Actual compile phase order keeps linking before occupancy/allocation and final CHR bytes",
       "passed": true,
-      "milliseconds": 950
+      "milliseconds": 586
     },
     {
       "name": "Global Build prepares, links, compiles, commits and requests Save As exactly once",
       "passed": true,
-      "milliseconds": 1108
+      "milliseconds": 631
     },
     {
       "name": "Existing Build & Run uses one current compiler dispatch without a Save As request",
       "passed": true,
-      "milliseconds": 2891
+      "milliseconds": 1934
     },
     {
       "name": "Failed compile clears published artifacts and does not run/export a stale ROM",
       "passed": true,
-      "milliseconds": 1991
+      "milliseconds": 718
     },
     {
       "name": "ReleaseInfo owns current version/schema and production has no embedded Scout starter",
       "passed": true,
-      "milliseconds": 584
+      "milliseconds": 489
     },
     {
       "name": "Current Tech Docs render through one owner without accumulating historical sections",
       "passed": true,
-      "milliseconds": 595
+      "milliseconds": 380
     },
     {
       "name": "AssetRegistry lookups and validation leave authored data, IDs and history untouched",
       "passed": true,
-      "milliseconds": 1084
+      "milliseconds": 717
     },
     {
       "name": "AssetRegistry validates detached inputs without repairing them or changing live project",
       "passed": true,
-      "milliseconds": 808
+      "milliseconds": 499
     },
     {
       "name": "EmulatorBridge exposes existing commands and preserves real emulator stepping/reset semantics",
       "passed": true,
-      "milliseconds": 904
+      "milliseconds": 664
     },
     {
       "name": "EmulatorBridge runtime capture preserves validated pixels and performs one undoable insertion",
       "passed": true,
-      "milliseconds": 1263
+      "milliseconds": 830
     },
     {
       "name": "EmulatorBridge Run Original uses preserved bytes without compiling current editor data",
       "passed": true,
-      "milliseconds": 2794
+      "milliseconds": 2235
     },
     {
       "name": "Inactive LiveLink reports no capabilities and rejects apply without side effects",
       "passed": true,
-      "milliseconds": 781
+      "milliseconds": 546
     }
   ]
 }

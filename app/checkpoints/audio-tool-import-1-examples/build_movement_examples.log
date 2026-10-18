@@ -1,0 +1,209 @@
+{
+  "release": "2.0.0-alpha.11",
+  "candidate": "movement-rules-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
+  "scope": "Original Scout-derived World and synthetic single-room authoring fixtures, actual Movement Rules recipe/Apply handlers and generated ROM compilation. Browser, listening, mobile/controller/hardware and guaranteed level solvability are not established.",
+  "inputs": [
+    {
+      "filename": "World_Base.nesforge.json",
+      "sha256": "c2c89c0ec953c03cc84af75b0d0fae699cc041011e240a8b72d0298bd67b3316",
+      "sourceSha256": "217b4d11de167746e82c53e1aa3b567daa98d168355f99d5d8dc2f965f81d469",
+      "backend": "world",
+      "projectName": "Movement Workshop — World"
+    },
+    {
+      "filename": "Single_Room_Base.nesforge.json",
+      "sha256": "f42188fb0a1536b6b6080c400bc0ac1829d269171e54fd51f0dff9e6dead4c37",
+      "sourceSha256": "5439be8c6781a88dbb63fe529fc692fa18e1fb3573c3729259ee4e623a037271",
+      "backend": "single-room",
+      "projectName": "Movement Workshop — Single Room"
+    }
+  ],
+  "outputs": [
+    {
+      "source": "World_Base.nesforge.json",
+      "seed": "FORGE-JUMP-001",
+      "preset": "high-jump",
+      "intensity": 3,
+      "backend": "world",
+      "project": "World_High_Jump.nesforge.json",
+      "projectSha256": "7a5c63f8e2352908e120eeaca0a495861a7c09553f3169cd4ab802ddc064095a",
+      "recipe": "World_High_Jump.recipe.json",
+      "recipeSha256": "7e66b1669f6e9311f90c369d736f91c11ff0d61aaaa2e26a33016d49c10ce6d5",
+      "rom": "World_High_Jump.nes",
+      "romSha256": "c05f9e6fa801385dd01ef0ec9d7f57fb8db8c6cf9eef47078a4fb549f0f838f7",
+      "romBytes": 40976,
+      "decisions": {
+        "moveSpeed": 2,
+        "jumpSpeed": 12,
+        "gravity": 1,
+        "maxFallSpeed": 6
+      },
+      "changes": [
+        {
+          "domain": "movement",
+          "backend": "world",
+          "configKey": "worldRuntime",
+          "field": "jumpSpeed",
+          "before": 9,
+          "after": 12,
+          "description": "jumpSpeed: 9 → 12"
+        }
+      ],
+      "warnings": [
+        "Movement settings apply globally to the active World runtime, not just the selected editor Scene.",
+        "These are existing bounded NES movement settings; no level-solvability or playability guarantee is made.",
+        "Preset targets are absolute values, not multipliers. Locks can override part of a preset; review every resulting value.",
+        "Movement/jump/fall speeds are pixels per runtime tick; gravity is pixels per tick squared. Low gravity below 1, sliding, knockback, health/death and new mechanics are not added."
+      ]
+    },
+    {
+      "source": "World_Base.nesforge.json",
+      "seed": "FORGE-MOVE-001",
+      "preset": "seeded-mix",
+      "intensity": 3,
+      "backend": "world",
+      "project": "World_Seeded_Mix.nesforge.json",
+      "projectSha256": "43d8388b56355efb1ab41ba88bd777d1940ceeedc3d25e0f8ee38621e6f75b62",
+      "recipe": "World_Seeded_Mix.recipe.json",
+      "recipeSha256": "e09cf242713e2060bdbada8841cf3dae23ccf315ad8e09ad51be51ff42ef5830",
+      "rom": "World_Seeded_Mix.nes",
+      "romSha256": "43f38ce3f64cf95776cad8afe91f17f08fd5596e9e471fa14482bd1c0f5b6713",
+      "romBytes": 40976,
+      "decisions": {
+        "moveSpeed": 2,
+        "jumpSpeed": 5,
+        "gravity": 2,
+        "maxFallSpeed": 8
+      },
+      "changes": [
+        {
+          "domain": "movement",
+          "backend": "world",
+          "configKey": "worldRuntime",
+          "field": "jumpSpeed",
+          "before": 9,
+          "after": 5,
+          "description": "jumpSpeed: 9 → 5"
+        },
+        {
+          "domain": "movement",
+          "backend": "world",
+          "configKey": "worldRuntime",
+          "field": "gravity",
+          "before": 1,
+          "after": 2,
+          "description": "gravity: 1 → 2"
+        },
+        {
+          "domain": "movement",
+          "backend": "world",
+          "configKey": "worldRuntime",
+          "field": "maxFallSpeed",
+          "before": 6,
+          "after": 8,
+          "description": "maxFallSpeed: 6 → 8"
+        }
+      ],
+      "warnings": [
+        "Movement settings apply globally to the active World runtime, not just the selected editor Scene.",
+        "These are existing bounded NES movement settings; no level-solvability or playability guarantee is made.",
+        "Preset targets are absolute values, not multipliers. Locks can override part of a preset; review every resulting value.",
+        "Movement/jump/fall speeds are pixels per runtime tick; gravity is pixels per tick squared. Low gravity below 1, sliding, knockback, health/death and new mechanics are not added."
+      ]
+    },
+    {
+      "source": "Single_Room_Base.nesforge.json",
+      "seed": "FORGE-JUMP-001",
+      "preset": "high-jump",
+      "intensity": 3,
+      "backend": "single-room",
+      "project": "Single_Room_High_Jump.nesforge.json",
+      "projectSha256": "05bf4ba431cadb730b923feaf1cc2d279400b568894aff4cf6f280f4a2119fb7",
+      "recipe": "Single_Room_High_Jump.recipe.json",
+      "recipeSha256": "4962d46b9dacbaa4110f40e2a75306805fe18b76bff5a4c6342d080c0e880d44",
+      "rom": "Single_Room_High_Jump.nes",
+      "romSha256": "65a63d7bc29b36b070a014d7122871c5b9e9441834c16fce2f713a20d8987acc",
+      "romBytes": 40976,
+      "decisions": {
+        "moveSpeed": 2,
+        "jumpSpeed": 12,
+        "gravity": 1,
+        "maxFallSpeed": 6
+      },
+      "changes": [
+        {
+          "domain": "movement",
+          "backend": "single-room",
+          "configKey": "gameplay",
+          "field": "jumpSpeed",
+          "before": 9,
+          "after": 12,
+          "description": "jumpSpeed: 9 → 12"
+        }
+      ],
+      "warnings": [
+        "Movement settings apply globally to the active single-room runtime, not just the selected editor Scene.",
+        "These are existing bounded NES movement settings; no level-solvability or playability guarantee is made.",
+        "Preset targets are absolute values, not multipliers. Locks can override part of a preset; review every resulting value.",
+        "Movement/jump/fall speeds are pixels per runtime tick; gravity is pixels per tick squared. Low gravity below 1, sliding, knockback, health/death and new mechanics are not added."
+      ]
+    },
+    {
+      "source": "Single_Room_Base.nesforge.json",
+      "seed": "FORGE-MOVE-001",
+      "preset": "seeded-mix",
+      "intensity": 3,
+      "backend": "single-room",
+      "project": "Single_Room_Seeded_Mix.nesforge.json",
+      "projectSha256": "698d1aada7e92c9ae018e70fc9a6bd1d3d411b0402d631d5daab4fefaf05212c",
+      "recipe": "Single_Room_Seeded_Mix.recipe.json",
+      "recipeSha256": "514720e359d5fefe054e3c3397aa33221a5d44499e5e9a368e1ca1d932004fd8",
+      "rom": "Single_Room_Seeded_Mix.nes",
+      "romSha256": "64fc07f24fd239266023da26808e044248d6f2365566e67e7757a6273ef5b4fc",
+      "romBytes": 40976,
+      "decisions": {
+        "moveSpeed": 2,
+        "jumpSpeed": 5,
+        "gravity": 2,
+        "maxFallSpeed": 8
+      },
+      "changes": [
+        {
+          "domain": "movement",
+          "backend": "single-room",
+          "configKey": "gameplay",
+          "field": "jumpSpeed",
+          "before": 9,
+          "after": 5,
+          "description": "jumpSpeed: 9 → 5"
+        },
+        {
+          "domain": "movement",
+          "backend": "single-room",
+          "configKey": "gameplay",
+          "field": "gravity",
+          "before": 1,
+          "after": 2,
+          "description": "gravity: 1 → 2"
+        },
+        {
+          "domain": "movement",
+          "backend": "single-room",
+          "configKey": "gameplay",
+          "field": "maxFallSpeed",
+          "before": 6,
+          "after": 8,
+          "description": "maxFallSpeed: 6 → 8"
+        }
+      ],
+      "warnings": [
+        "Movement settings apply globally to the active single-room runtime, not just the selected editor Scene.",
+        "These are existing bounded NES movement settings; no level-solvability or playability guarantee is made.",
+        "Preset targets are absolute values, not multipliers. Locks can override part of a preset; review every resulting value.",
+        "Movement/jump/fall speeds are pixels per runtime tick; gravity is pixels per tick squared. Low gravity below 1, sliding, knockback, health/death and new mechanics are not added."
+      ]
+    }
+  ]
+}

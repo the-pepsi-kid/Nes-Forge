@@ -1,0 +1,13 @@
+PASS Actual candidate HTML initializes and registers the parser and canonical compiler
+PASS Selected song timing, repeated patterns, interruption cuts, envelopes, padding, independent previews and quoted metadata
+PASS Malformed exports, unsupported project versions and ambiguous attributes are refused
+PASS Unsupported loops, variable groove, invalid tempo settings and oversized arrangements are refused
+PASS Pattern instances, hidden notes and event identity are validated
+PASS Invalid musical notes, unsupported effects and broken instrument references are refused
+PASS Duplicate channels, DPCM and expansion content are refused
+PASS Envelope shape, values, loops, modulation and volume scaling are validated
+PASS Options, control characters and file-size limits are enforced
+PASS Fixed FamiTracker tempo, dynamic-envelope timing and noise-mode boundaries are enforced
+PASS Standalone UMD registers without editor globals and agrees with the bundled parser
+PASS Bundled canonical compiler accepts the bundled parser output without normalization loss
+12/12 cases passed; 176 assertions

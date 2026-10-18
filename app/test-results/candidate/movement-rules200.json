@@ -1,6 +1,6 @@
 {
   "suite": "movement-rules200",
-  "htmlSha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
+  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
   "scope": "Actual bundled pure MovementRules service; strict source/preset/recipe validation, field-domain deterministic randomization and locks, exact four-field preservation, stale/tamper refusal, detached World and single-room ROM preflight. No browser, hardware or level-solvability acceptance.",
   "passed": 30,
   "failed": 0,
@@ -9,77 +9,77 @@
     {
       "name": "A schema-12 generated single-room source is detached, deeply frozen and independently identified",
       "passed": true,
-      "milliseconds": 265
+      "milliseconds": 226
     },
     {
       "name": "Canonical source identity ignores object key order and filename but preserves values",
       "passed": true,
-      "milliseconds": 370
+      "milliseconds": 332
     },
     {
       "name": "Copied, foreign and forged source wrappers are refused",
       "passed": true,
-      "milliseconds": 209
+      "milliseconds": 150
     },
     {
       "name": "Viewer mode, nonzero mapper and custom assembly refuse without enabling a backend",
       "passed": true,
-      "milliseconds": 616
+      "milliseconds": 487
     },
     {
       "name": "Invalid schema, non-JSON values and invalid physics fail instead of normalizing silently",
       "passed": true,
-      "milliseconds": 408
+      "milliseconds": 333
     },
     {
       "name": "Missing/excluded player scene and invalid training target are refused using detached references",
       "passed": true,
-      "milliseconds": 824
+      "milliseconds": 692
     },
     {
       "name": "Keep is the default and reports no effective change without rewriting any project field",
       "passed": true,
-      "milliseconds": 315
+      "milliseconds": 250
     },
     {
       "name": "Sprint targets exactly 2, 3 and 4 pixels per tick at the three intensities",
       "passed": true,
-      "milliseconds": 851
+      "milliseconds": 768
     },
     {
       "name": "High-jump targets 10, 11 and 12 with gravity 1 and preserves unrelated fields",
       "passed": true,
-      "milliseconds": 850
+      "milliseconds": 711
     },
     {
       "name": "Slow-fall targets maximum fall 4, 2 and 1 with gravity 1",
       "passed": true,
-      "milliseconds": 842
+      "milliseconds": 807
     },
     {
       "name": "Heavy-fall uses the specified paired gravity and maximum-fall targets",
       "passed": true,
-      "milliseconds": 869
+      "milliseconds": 706
     },
     {
       "name": "Only the active backend four scalar settings can change, preserving layout, IDs and inactive physics",
       "passed": true,
-      "milliseconds": 295
+      "milliseconds": 232
     },
     {
       "name": "Equal seed/source/options repeat exact recipe, project and detached validation",
       "passed": true,
-      "milliseconds": 1149
+      "milliseconds": 1045
     },
     {
       "name": "Seeded-mix intensities enforce ±1, ±2 and full legal domains over varied seeds",
       "passed": true,
-      "milliseconds": 22399
+      "milliseconds": 16484
     },
     {
       "name": "Seeded-mix full intensity reaches each supported endpoint deterministically",
       "passed": true,
-      "milliseconds": 20587
+      "milliseconds": 17267
     },
     {
       "name": "Any first-preview lock is refused instead of silently selecting or inventing a value",
@@ -89,27 +89,27 @@
     {
       "name": "Four independent locks preserve prior values while unlocked fields use their own new seed domains",
       "passed": true,
-      "milliseconds": 3068
+      "milliseconds": 2861
     },
     {
       "name": "All locks retain exact physics across seed, preset and intensity changes with flat replayable origins",
       "passed": true,
-      "milliseconds": 4591
+      "milliseconds": 4405
     },
     {
       "name": "Unlocking drops the inherited origin and returns to current preset values",
       "passed": true,
-      "milliseconds": 968
+      "milliseconds": 821
     },
     {
       "name": "Locked field can override a paired preset and the result explicitly warns about that interaction",
       "passed": true,
-      "milliseconds": 616
+      "milliseconds": 621
     },
     {
       "name": "Changed original source content makes both recipe replay and previous locks stale",
       "passed": true,
-      "milliseconds": 489
+      "milliseconds": 353
     },
     {
       "name": "Unknown options, presets, intensity values and malformed locks are refused",
@@ -119,42 +119,42 @@
     {
       "name": "Blank, non-string and oversized seeds are refused",
       "passed": true,
-      "milliseconds": 327
+      "milliseconds": 221
     },
     {
       "name": "Recipe strict top-level fields, method/version and source/runtime identities are checked",
       "passed": true,
-      "milliseconds": 295
+      "milliseconds": 215
     },
     {
       "name": "Recipe decisions cannot be tampered, omitted, widened or substituted with fractional values",
       "passed": true,
-      "milliseconds": 339
+      "milliseconds": 293
     },
     {
       "name": "Recipe source hash, result hash and unlocked rule origins cannot be silently altered",
       "passed": true,
-      "milliseconds": 327
+      "milliseconds": 313
     },
     {
       "name": "Locked decisions regenerate from their saved origins instead of trusting numerical fields",
       "passed": true,
-      "milliseconds": 1020
+      "milliseconds": 864
     },
     {
       "name": "Single-room preview reports a detached ROM compilation and checked capacity accurately",
       "passed": true,
-      "milliseconds": 284
+      "milliseconds": 213
     },
     {
       "name": "World backend takes precedence and compiles the final changed physics into its own preflight artifact",
       "passed": true,
-      "milliseconds": 1557
+      "milliseconds": 1586
     },
     {
       "name": "Movement preview/replay preserve all live project/history/emulator state",
       "passed": true,
-      "milliseconds": 855
+      "milliseconds": 918
     }
   ]
 }

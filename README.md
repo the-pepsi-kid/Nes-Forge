@@ -1,3 +1,15 @@
+# NES Forge — Audio Tool Import candidate
+
+**2.0.0-alpha.11 / audio-tool-import-1**, schema 12, on `implementation/audio-interchange-2026-10-18`. Open `app/mainline/NES_Forge_2.0.0-alpha.11.html`.
+
+**AUDIO → Import FamiStudio…** imports a bounded FamiStudio 4.5 text-export subset into the existing editable tracker. Preview lists conversion limits before a guarded, one-Undo import. Save Project As preserves the converted score; a separate source-and-report receipt preserves the original export. See [the import guide](app/docs/AUDIO_TOOL_IMPORT.md).
+
+The read-only [audio recognition benchmark](app/research/audio-recognition-1/README.md) compares source-backed 6502 driver routines and strict-decoder outcomes. Similarity does not enable recovery or import. The current corpus does not establish broad recognition accuracy.
+
+Current validation and exact identity are in `CANDIDATE.json`. Prior candidate results below retain their original scope. This development branch does not change the existing tester kit or publish a release.
+
+## Previous source-intake record
+
 # NES Forge — Source Intake candidate
 
 **2.0.0-alpha.11 / source-intake-1**, schema 12. Open `app/mainline/NES_Forge_2.0.0-alpha.11.html`.

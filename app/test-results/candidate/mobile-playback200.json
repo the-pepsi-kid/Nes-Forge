@@ -1,7 +1,7 @@
 {
   "suite": "mobile-playback200",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
+  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
   "baselineHtmlSha256": "4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0",
   "scope": "Deterministic 30/60 Hz synthetic host scheduler and AudioContext sink (fixed-cost complete frame producer declared); actual PPU/capture rendering and native CPU ROM execution compared with pinned alpha.1. DOM readout semantics only; no browser compositor, physical phone, speaker, thermal or real latency claim.",
   "passed": 19,
@@ -185,97 +185,97 @@
     {
       "name": "30 Hz host callbacks with 11 ms complete frames sustain NTSC progress and continuous audio",
       "passed": true,
-      "milliseconds": 872
+      "milliseconds": 775
     },
     {
       "name": "60 Hz host control remains near real time without extra frames or queue growth",
       "passed": true,
-      "milliseconds": 758
+      "milliseconds": 723
     },
     {
       "name": "One second stall is bounded and all discarded emulation time is accounted for",
       "passed": true,
-      "milliseconds": 710
+      "milliseconds": 486
     },
     {
       "name": "Sustained overload yields bounded callbacks, retains debt, and reports lost time",
       "passed": true,
-      "milliseconds": 596
+      "milliseconds": 577
     },
     {
       "name": "Out-of-order timestamps do not consume debt; invalid timestamps stop safely",
       "passed": true,
-      "milliseconds": 541
+      "milliseconds": 539
     },
     {
       "name": "Pause/resume rejects stale callback generations and clears queued host audio",
       "passed": true,
-      "milliseconds": 540
+      "milliseconds": 484
     },
     {
       "name": "Capture parity: ordinary scrolled background and sprites",
       "passed": true,
-      "milliseconds": 1479
+      "milliseconds": 1059
     },
     {
       "name": "Capture parity: CNROM bank switches during visible rendering",
       "passed": true,
-      "milliseconds": 1327
+      "milliseconds": 1040
     },
     {
       "name": "Capture parity: MMC3 individual pages and bank inversion",
       "passed": true,
-      "milliseconds": 1432
+      "milliseconds": 1171
     },
     {
       "name": "Capture parity: raster palette mirrors, grayscale and scroll changes",
       "passed": true,
-      "milliseconds": 1772
+      "milliseconds": 1240
     },
     {
       "name": "Capture parity: CHR-RAM writes during the visible frame",
       "passed": true,
-      "milliseconds": 1417
+      "milliseconds": 1271
     },
     {
       "name": "Capture parity: CHR-ROM in-place mutation does not reuse stale tiles",
       "passed": true,
-      "milliseconds": 1343
+      "milliseconds": 1130
     },
     {
       "name": "Capture parity: CHR-ROM replacement invalidates source identity",
       "passed": true,
-      "milliseconds": 1367
+      "milliseconds": 1098
     },
     {
       "name": "Repeated capture is stable and does not advance CPU or mutate authoring data",
       "passed": true,
-      "milliseconds": 768
+      "milliseconds": 557
     },
     {
       "name": "Unsafe mid-frame sprite geometry still rejects capture atomically",
       "passed": true,
-      "milliseconds": 627
+      "milliseconds": 470
     },
     {
       "name": "Actual native ROM frames preserve complete captures while reducing 16-byte tile allocations",
       "passed": true,
-      "milliseconds": 2781
+      "milliseconds": 2309
     },
     {
       "name": "History restoration and resumed real CPU execution preserve native capture data",
       "passed": true,
-      "milliseconds": 6068
+      "milliseconds": 5807
     },
     {
       "name": "Play performance readout reflects measured counters without changing emulation or input",
       "passed": true,
-      "milliseconds": 527
+      "milliseconds": 354
     },
     {
       "name": "Play readout reacts immediately to pause and unload within its normal refresh throttle",
       "passed": true,
-      "milliseconds": 525
+      "milliseconds": 370
     }
   ]
 }

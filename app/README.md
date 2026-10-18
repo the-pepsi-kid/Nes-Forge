@@ -1,3 +1,11 @@
+# Audio Tool Import candidate
+
+Current candidate: **2.0.0-alpha.11 / audio-tool-import-1**, schema 12. Open `mainline/NES_Forge_2.0.0-alpha.11.html` and use **AUDIO → Import FamiStudio…**. Read `docs/AUDIO_TOOL_IMPORT.md` for supported content, refusals, source receipts and review steps. `research/audio-recognition-1/` provides a read-only driver comparison benchmark; the native decoder's acceptance boundaries remain unchanged.
+
+All 93 source-intake suites / 1,833 cases remain required, plus the suites in `audio-tool-import-suites.json`. Current measured results belong to `test-results/candidate/Summary.json`; older checkpoint/browser reports retain their original candidate identity. This is a development candidate, with listening/device acceptance and broader tool compatibility still open.
+
+## Preserved previous record
+
 ## October 12, 2026 — source intake diagnostics candidate
 
 Current implementation: **2.0.0-alpha.11 / source-intake-1**, schema 12. Source Workspace now provides explicit, read-only intake reports for supplied assembly trees. Reports preserve declared dialect/engine/version separately from the workspace build profile, identify current and original bytes, list literal include/binary dependencies with file/line evidence, and expose unsupported or uncertain constructs. The complete pinned DABG ca65 input and existing Forge multi-file example provide independent foreign and supported controls.

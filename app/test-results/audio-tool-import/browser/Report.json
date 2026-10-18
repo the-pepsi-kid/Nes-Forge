@@ -1,0 +1,202 @@
+{
+  "suite": "browser-audio-tool-import",
+  "format": "NESForgeAudioToolImportBrowserQA",
+  "version": 1,
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
+  "fixtureSha256": "c4f5643575ed0baf408e954760cb74d8342a62886cd7f294c17705efa036de09",
+  "started": "2026-10-18T22:49:06.098Z",
+  "status": "passed",
+  "checks": [
+    {
+      "name": "Visible file chooser loads an official FamiStudio export and preview is read-only",
+      "status": "passed"
+    },
+    {
+      "name": "Cancelling confirmation preserves the preview, project and Undo history",
+      "status": "passed"
+    },
+    {
+      "name": "Confirmed import appends editable music, preserves SFX/scenes, and makes exactly one Undo entry",
+      "status": "passed"
+    },
+    {
+      "name": "Receipt download contains the exact original text and imported outcome",
+      "status": "passed"
+    },
+    {
+      "name": "Visible Build & Run emits a ROM whose 6502 Audio Runtime writes the imported C4 pulse",
+      "status": "passed"
+    },
+    {
+      "name": "A real tracker click and piano key edit the imported first note",
+      "status": "passed"
+    },
+    {
+      "name": "Visible Save Project As and Open Project preserve the edited score",
+      "status": "passed"
+    },
+    {
+      "name": "Rebuilding after the note edit changes the ROM and actual APU pitch",
+      "status": "passed"
+    },
+    {
+      "name": "Phone viewport keeps import controls visible and functional",
+      "status": "passed"
+    },
+    {
+      "name": "No uncaught browser errors",
+      "status": "passed"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "desktop-preview.png",
+      "visualReview": "passed",
+      "reviewNotes": "Inspected rendered screenshot: FamiStudio controls fit the sidebar/phone width, report text wraps, and desktop tracker shows the imported score and the subsequent C4 to D4 edit where applicable."
+    },
+    {
+      "file": "desktop-imported.png",
+      "visualReview": "passed",
+      "reviewNotes": "Inspected rendered screenshot: FamiStudio controls fit the sidebar/phone width, report text wraps, and desktop tracker shows the imported score and the subsequent C4 to D4 edit where applicable."
+    },
+    {
+      "file": "desktop-edited.png",
+      "visualReview": "passed",
+      "reviewNotes": "Inspected rendered screenshot: FamiStudio controls fit the sidebar/phone width, report text wraps, and desktop tracker shows the imported score and the subsequent C4 to D4 edit where applicable."
+    },
+    {
+      "file": "phone-preview.png",
+      "visualReview": "passed",
+      "reviewNotes": "Inspected rendered screenshot: FamiStudio controls fit the sidebar/phone width, report text wraps, and desktop tracker shows the imported score and the subsequent C4 to D4 edit where applicable."
+    }
+  ],
+  "pageErrors": [],
+  "metrics": {
+    "original": {
+      "writes": [
+        {
+          "address": 16405,
+          "value": 15
+        },
+        {
+          "address": 16407,
+          "value": 64
+        },
+        {
+          "address": 16384,
+          "value": 188
+        },
+        {
+          "address": 16386,
+          "value": 171
+        },
+        {
+          "address": 16387,
+          "value": 249
+        },
+        {
+          "address": 16388,
+          "value": 48
+        },
+        {
+          "address": 16392,
+          "value": 255
+        },
+        {
+          "address": 16394,
+          "value": 86
+        },
+        {
+          "address": 16395,
+          "value": 251
+        },
+        {
+          "address": 16396,
+          "value": 56
+        },
+        {
+          "address": 16398,
+          "value": 14
+        },
+        {
+          "address": 16399,
+          "value": 248
+        }
+      ],
+      "period": 427,
+      "volume": 12,
+      "duty": 2,
+      "missed": 0,
+      "romBytes": 40976,
+      "romSha256": "a063c627e24598c8086dc4f4e2dcf590adfb872232d81b75c693dc8ca4c5d373"
+    },
+    "edited": {
+      "writes": [
+        {
+          "address": 16405,
+          "value": 15
+        },
+        {
+          "address": 16407,
+          "value": 64
+        },
+        {
+          "address": 16384,
+          "value": 188
+        },
+        {
+          "address": 16386,
+          "value": 124
+        },
+        {
+          "address": 16387,
+          "value": 249
+        },
+        {
+          "address": 16388,
+          "value": 48
+        },
+        {
+          "address": 16392,
+          "value": 255
+        },
+        {
+          "address": 16394,
+          "value": 86
+        },
+        {
+          "address": 16395,
+          "value": 251
+        },
+        {
+          "address": 16396,
+          "value": 56
+        },
+        {
+          "address": 16398,
+          "value": 14
+        },
+        {
+          "address": 16399,
+          "value": 248
+        }
+      ],
+      "period": 380,
+      "volume": 12,
+      "duty": 2,
+      "missed": 0,
+      "romBytes": 40976,
+      "romSha256": "79068d279c785b1b88cd05b6309dd4cc6eeb89c467ddcfd28016255eddbbd32b"
+    }
+  },
+  "limitations": [
+    "Desktop Chromium and phone viewport emulation do not establish physical-device keyboard, listening, hardware, or FamiStudio-engine equivalence.",
+    "APU evidence executes aud_init and aud_frame as controlled CPU subroutine calls, not full-game timing.",
+    "Save As uses the real explicit browser-download fallback with the OS file-picker capability disabled; native OS Save As is not tested."
+  ],
+  "browser": "153.0.8010.0",
+  "passed": 10,
+  "failed": 0,
+  "finished": "2026-10-18T22:49:10.379Z"
+}
