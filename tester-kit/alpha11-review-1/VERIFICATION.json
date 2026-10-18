@@ -158,5 +158,50 @@
     "Full owner tutorial walkthrough on exact app",
     "Physical phone/audio/controller acceptance",
     "Exhaustive alpha.11 control-table revalidation"
-  ]
+  ],
+  "github_download_correction": {
+    "review_date": "2026-10-18",
+    "cause": "The previous review checked the assembled standalone ZIP and directly opened its app; it did not test the launcher in the GitHub source download.",
+    "fix": "Include the complete unchanged NES_Forge.html and three Scout assets in the GitHub tester-kit folder.",
+    "source_checks": {
+      "layout": "source checkout",
+      "source_files": 127,
+      "documentation_html_pages": 42,
+      "local_links_and_assets_checked": 855,
+      "broken_links": 0,
+      "tutorial_core_steps": 9,
+      "historical_control_rows": 439,
+      "original_files_accounted": 38,
+      "app_sha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
+      "result": "PASS",
+      "scope": "Package, documentation coverage, links and byte integrity; not a complete app walkthrough."
+    },
+    "launcher_click_checks": {
+      "browser": "153.0.8010.0",
+      "checks": [
+        {
+          "layout": "GitHub source checkout",
+          "button": "Open NES Forge",
+          "title": "NES Forge 2.0.0-alpha.11 \u2014 Source Intake Diagnostics \u2014 Alpha \u00b7 Mobile Play",
+          "expectedDestination": true,
+          "newProjectVisible": true,
+          "scriptErrors": [],
+          "result": "PASS"
+        },
+        {
+          "layout": "Standalone tester kit",
+          "button": "Open NES Forge",
+          "title": "NES Forge 2.0.0-alpha.11 \u2014 Source Intake Diagnostics \u2014 Alpha \u00b7 Mobile Play",
+          "expectedDestination": true,
+          "newProjectVisible": true,
+          "scriptErrors": [],
+          "result": "PASS"
+        }
+      ],
+      "scope": "Actual launcher click and application ready screen in both layouts; not a full tutorial or Windows/device acceptance."
+    },
+    "standalone_rc2_sha256": "b6e2f70e3fef15753831312c4c0eb70a826f746dad4938b0cbed21ee22929b22",
+    "standalone_rc2_bytes_unchanged": true,
+    "windows_edge_acceptance": "Not performed; browser checks ran in Chromium on Linux."
+  }
 }

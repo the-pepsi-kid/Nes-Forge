@@ -5,6 +5,19 @@ PDFs, reference images, and packaging recipe for **Alpha Test Kit RC2**. The
 application stays pinned to source commit
 `09f2233908bc511ffe057e3f7e885a5a42ef19ac`.
 
+## Open a GitHub download
+
+After downloading this branch with **Code → Download ZIP**, extract the entire
+ZIP. Open `tester-kit/alpha11-review-1/START_HERE.html` and click **Open NES Forge**.
+No build command or local server is required. This kit folder includes the full
+`NES_Forge.html` application and the three Scout assets in `examples`, so you can
+also move the whole `alpha11-review-1` folder elsewhere and open it there.
+
+The included app and examples are byte-identical copies of the pinned files in
+`app/mainline` and `app/examples`. The builder and source-checkout verifier check
+these copies so they cannot silently drift. They are separate from the document
+list in `package_files.json`; the builder supplies them explicitly.
+
 ## Build a download
 
 From the repository root, with Python 3 installed:
@@ -44,10 +57,15 @@ After extracting a new kit, run:
 
 ```text
 python tester-kit/alpha11-review-1/verify_kit.py PATH_TO_EXTRACTED_KIT_FOLDER
+python tester-kit/alpha11-review-1/verify_kit.py --source-checkout
+node tester-kit/alpha11-review-1/verify_launch.cjs PATH_TO_EXTRACTED_KIT_FOLDER
 ```
 
 This verifies hashes, required material, all local guide links/anchors, tutorial
 steps and original inventory coverage. Check the launcher and reading pages in
-desktop and mobile layouts too. `REVIEW_REPORT.md` and `VERIFICATION.json` record
+desktop and mobile layouts too. The Playwright launch check clicks **Open NES
+Forge** from both the source checkout and extracted standalone kit and waits for
+the expected application and New Project control. Set `CHROMIUM_EXECUTABLE` if
+needed. `REVIEW_REPORT.md` and `VERIFICATION.json` record
 the RC2 review. Complete `OWNER_REVIEW_REQUIRED.txt` before the tester handoff;
 documentation checks do not complete the app tutorial or device acceptance.

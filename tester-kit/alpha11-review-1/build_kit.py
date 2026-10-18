@@ -68,8 +68,10 @@ def main() -> None:
         parser.error(f"Create the destination directory first: {output.parent}")
     app = APP / "mainline" / "NES_Forge_2.0.0-alpha.11.html"
     require(app, APP_SHA)
+    require(HERE / "NES_Forge.html", APP_SHA)
     for name, expected in EXAMPLES.items():
         require(APP / "examples" / name, expected)
+        require(HERE / "examples" / name, expected)
 
     with tempfile.TemporaryDirectory(prefix="nes-forge-kit-") as scratch:
         root = Path(scratch) / KIT_NAME
@@ -77,6 +79,7 @@ def main() -> None:
         for name in DOCS:
             (root / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(HERE / name, root / name)
+        # Both the GitHub kit folder and ZIP include the same pinned application.
         shutil.copyfile(app, root / "NES_Forge.html")
         (root / "examples").mkdir()
         for name in EXAMPLES:

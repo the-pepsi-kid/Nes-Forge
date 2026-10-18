@@ -67,3 +67,28 @@ The landing page is now explicitly authored and excluded from Markdown
 regeneration. The packager has a checked-in file inventory and required-guide
 checks; `verify_kit.py` checks actual package links, bytes and original coverage.
 Future kit revisions must review presentation as well as ZIP integrity.
+
+## Follow-up: GitHub download launch failure
+
+The user then downloaded this branch directly from GitHub and found that
+**Open NES Forge** failed with File not found. The GitHub kit directory omitted
+`NES_Forge.html`; the earlier checks only covered the assembled ZIP and opened
+its application directly. They did not validate the actual GitHub download path.
+The earlier launch-readiness claim was therefore too broad.
+
+The GitHub kit folder now includes the full, unchanged application and all three
+Scout assets. Its application is not a redirect: the whole kit folder can be
+moved without depending on another repository directory. All 44 existing app
+links resolve to the included application, and the optional Scout instructions
+resolve to the included examples. The authored landing page is unchanged.
+
+`verify_kit.py --source-checkout` checks the included app and example hashes plus
+all 855 guide links/assets. `verify_launch.cjs` clicks the actual **Open NES
+Forge** button in both the GitHub source layout and extracted standalone kit;
+both reached the expected application and visible New Project control with no
+script errors in Chromium 153. The builder checks the source copies against the
+pinned app/example hashes as well. The standalone RC2 ZIP remains byte-identical
+(`b6e2f70e3fef15753831312c4c0eb70a826f746dad4938b0cbed21ee22929b22`).
+
+These checks ran on Linux with Chromium. Windows Edge and the full tutorial still
+need their own acceptance; launch verification does not complete that review.
