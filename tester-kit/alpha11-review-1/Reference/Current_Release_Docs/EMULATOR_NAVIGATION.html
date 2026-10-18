@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Emulator frame navigation —
+Alpha · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#emulator-frame-navigation--alpha">Emulator frame navigation —
+Alpha</a><a class="level2" href="#first-try">First try</a><a class="level2" href="#controls">Controls</a><a class="level2" href="#why-forward-does-not-select-the-next-stage">Why Forward does not
+select the next stage</a><a class="level2" href="#how-much-history-is-available">How much history is
+available?</a><a class="level2" href="#what-gets-restored">What gets restored?</a><a class="level2" href="#branches-and-lifecycle-changes">Branches and lifecycle
+changes</a><a class="level2" href="#re-scope">RE scope</a><a class="level2" href="#verification-and-acceptance">Verification and acceptance</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1 id="emulator-frame-navigation--alpha">Emulator frame navigation —
+Alpha</h1>
+<p>Candidate <strong><code>re-analysis-1a</code></strong> retains the
+short, optional emulator history buffer introduced by
+<code>re-navigation-1</code> for playtesting and RE analysis. It works
+on the current loaded ROM in the existing emulator, including original
+ROM playback and Forge builds. Project schema remains 12. This feature
+preserves emulator states; it does not automatically decode a game's
+assets or reverse its 6502 instructions.</p>
+<h2 id="first-try">First try</h2>
+<ol type="1">
+<li>Open <strong>EMULATOR → Load ROM</strong>, choose a ROM, and wait
+for initialization. Loading leaves playback paused. Open
+<strong>Playback tools</strong> in the player controls.</li>
+<li>Press <strong>Record history: off</strong> to turn recording on.
+History begins from the current state; it cannot recover earlier time
+from before recording was enabled.</li>
+<li>Press <strong>Run</strong>, move the player for a short section,
+then pause. The status shows the current frame, retained oldest/newest
+frames, state count and stored size.</li>
+<li>Press <strong>Back 1</strong> to inspect the preceding retained
+state. Press it again or use <strong>−60 frames</strong> to go farther
+back. The displayed framebuffer and emulator state/readouts change
+together.</li>
+<li>Press <strong>Forward 1</strong> to revisit recorded future.
+<strong>+60 frames</strong> moves ahead in a batch. Once at the newest
+recorded state, forward navigation executes actual frames with neutral
+controls and muted output. Every navigation leaves playback paused.</li>
+<li>If batch navigation is still running, press <strong>Cancel
+navigation</strong>. Work yields between groups of frames so
+cancellation can take effect; any already completed navigation remains
+visible.</li>
+<li>To play a different outcome, return to an earlier state and press
+<strong>Run</strong>. This discards the old future and begins a new
+branch. The ordinary <strong>Frame</strong> action also branches when
+executed from the past. Back/Forward navigation alone preserves the
+recorded future.</li>
+<li>When finished, turn <strong>Record history</strong> off. This drops
+the temporary buffer. Forward navigation still works, but Back has no
+discarded history to restore.</li>
+</ol>
+<p>For the supplied <code>Bridge_Room.nes</code>, enable history, Run
+toward the wall, pause, then Back through the approach. Returning
+forward to the recorded wall contact lets you inspect the same machine
+state again. Use <code>docs/RE_BRIDGE.md</code> for the separate
+supported data-recovery/import workflow.</p>
+<h2 id="controls">Controls</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Playback tools</td>
+<td>Opens/closes the extra controls; initially closed</td>
+</tr>
+<tr class="even">
+<td>Record history: off/on</td>
+<td>Enables recording or disables it and drops history; initially
+off</td>
+</tr>
+<tr class="odd">
+<td>Back 1</td>
+<td>Restores one retained earlier frame</td>
+</tr>
+<tr class="even">
+<td>−60 frames</td>
+<td>Moves back up to 60 retained frames, stopping at the oldest
+available state</td>
+</tr>
+<tr class="odd">
+<td>Forward 1</td>
+<td>Restores one recorded future frame, or executes one neutral muted
+frame at the live edge</td>
+</tr>
+<tr class="even">
+<td>+60 frames</td>
+<td>Advances up to 60 frames, restoring recorded future before executing
+beyond it</td>
+</tr>
+<tr class="odd">
+<td>Cancel navigation</td>
+<td>Requests cancellation while asynchronous batch navigation is
+active</td>
+</tr>
+<tr class="even">
+<td>Run / ordinary Frame</td>
+<td>Executes normally; from the past this discards the old future and
+starts a new branch</td>
+</tr>
+</tbody>
+</table></div>
+<p>The controls are part of the shared player presentation and remain
+inside expanded Play/native fullscreen. Navigation does not hold game
+controls or resume automatically. Forward stepping works even when
+recording is off. These are frame/batch actions; there is no continuous
+2× speed mode.</p>
+<h2 id="why-forward-does-not-select-the-next-stage">Why Forward does not
+select the next stage</h2>
+<p>Forward advances normal simulation. At the live edge it deliberately
+supplies neutral input; it provides no command to press Start or force a
+chosen stage, damage event or enemy defeat. Timed events can still occur
+through the game's own logic. A game can stay on the same title screen
+or room for many advancing frames. To observe a transition now, enable
+history, press <strong>Run</strong>, play through the event with normal
+controls, pause, then revisit the retained frames.</p>
+<p>Health, enemy status and stage progression belong to each game's
+program and data. This candidate has no commands to force those events,
+no runtime memory scanner, and no breakpoint/watchpoint tools. Changing
+an arbitrary byte cannot be assumed to run all required game logic.
+Discovering and verifying those state/routine relationships is future
+debugger work, separate from frame navigation.</p>
+<p>The new <strong>GENERAL ROM ANALYSIS</strong> panel opens original
+bytes without running them; see <code>RE_ANALYSIS.md</code>. It provides
+no gameplay event controls. General binary inspection remains available
+when the emulator cannot execute a particular ROM.</p>
+<h2 id="how-much-history-is-available">How much history is
+available?</h2>
+<p>Both limits apply at once: <strong>300 stored states</strong> and
+<strong>32 MiB of serialized stored data</strong>. Older states are
+evicted when either limit is reached. The available range therefore
+depends on the size of this ROM's machine and capture state. Read the
+displayed oldest/newest frame numbers; there is no guaranteed
+five-second window.</p>
+<p>The displayed storage budget counts encoded state, framebuffers and
+per-record metadata. It does not measure all JavaScript object overhead,
+temporary codec memory or the rest of the editor. Recording adds work
+and memory use; it is off by default. No phone performance improvement
+or recording-performance guarantee is claimed.</p>
+<p>History is temporary and belongs to the current emulator session. It
+is not exported in native project JSON, persisted across page reloads or
+saved as a cartridge/game save. It does not alter Actor Instance or
+Room/World persistence semantics.</p>
+<h2 id="what-gets-restored">What gets restored?</h2>
+<p>A retained entry includes resumable CPU, mapper, PPU and APU state,
+audio filter/sample history, capture-trace data and completed
+framebuffers. The loaded ROM remains the session's immutable byte
+source. Host audio nodes, animation/scheduler handles, ROM-load tokens
+and live keyboard/touch/gamepad ownership are not restored from the
+snapshot.</p>
+<p>Navigation pauses playback, releases live controls and discards
+queued host audio. The APU's emulated state is restored for later
+execution, but old buffered speaker output is not replayed. Forward
+execution during navigation is muted and uses neutral input. Press Run
+deliberately when you want ordinary playback again.</p>
+<p>Capture and RE readouts must correspond to the restored state. You
+can examine the earlier picture/registers and invoke the existing
+capture tools on that restored state. Editing/capturing into an
+authoring project is still a separate action; navigating emulator
+history does not undo or redo editor assets.</p>
+<p>The original emulator's mapper, raster, DMC and timing accuracy
+limits remain. Restoring a state does not make an unsupported mapper
+supported or prove cycle-accurate hardware behavior.</p>
+<h2 id="branches-and-lifecycle-changes">Branches and lifecycle
+changes</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Action</th>
+<th>History effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Back/Forward through stored entries</td>
+<td>Moves the cursor while retaining the recorded future</td>
+</tr>
+<tr class="even">
+<td>Run or ordinary Frame from the past</td>
+<td>Drops the former future; subsequent executed frames form a new
+branch</td>
+</tr>
+<tr class="odd">
+<td>Forward past the newest entry</td>
+<td>Executes real frames; records them if recording is enabled</td>
+</tr>
+<tr class="even">
+<td>Turn recording off</td>
+<td>Drops the buffer</td>
+</tr>
+<tr class="odd">
+<td>Load another ROM / reset / CPU Trace / unload</td>
+<td>Clears incompatible or untracked history; recording can seed again
+from a valid active state where applicable</td>
+</tr>
+<tr class="even">
+<td>Page reload</td>
+<td>Loses the temporary buffer</td>
+</tr>
+<tr class="odd">
+<td>Cancel active navigation</td>
+<td>Stops yielded work without automatically resuming playback</td>
+</tr>
+</tbody>
+</table></div>
+<p>CPU Trace executes instructions outside the frame-navigation history,
+so it invalidates the previous buffer. The timeline is not an
+instruction-level debugger. Unsupported snapshot state is reported and
+disables/clears recording before a partial restore can be accepted.</p>
+<h2 id="re-scope">RE scope</h2>
+<p>The owner's goal is comprehensive RE. This tool supplies controlled
+access to earlier and later emulator states, which helps compare visual
+changes, inspect registers and capture a chosen frame. The native-room
+bridge supplies one known-format conversion into editable
+assets/collision/music.</p>
+<p>General file inspection, bounded official-6502 disassembly, search
+and user annotations are now available separately. Broader engine
+detection, compressed-map recovery, sound-driver coverage,
+execution-backed code/data evidence, breakpoints/watchpoints, source
+migration, ASM/Lua APIs, Method Registry, mapper/raster linking and
+controlled live edits remain separate implementation work. Back/Forward
+does not recover original source, automatically explain collision or
+provide arbitrary-game project conversion.</p>
+<h2 id="verification-and-acceptance">Verification and acceptance</h2>
+<p>Run the complete frozen candidate gate:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> tools/bundle.py <span class="at">--check</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> tests/run_all.cjs</span></code></pre></div>
+<p>The gate retains all 35 suites from <code>re-navigation-1</code> and
+adds the general-analysis suites. These three retained suites cover
+frame history:</p>
+<ul>
+<li><code>tests/emulator-timeline.cjs</code> →
+<code>test-results/candidate/emulator-timeline.json</code></li>
+<li><code>tests/emulator-timeline-ui.cjs</code> →
+<code>test-results/candidate/emulator-timeline-ui.json</code></li>
+<li><code>tests/emulator-timeline-runtime.cjs</code> →
+<code>test-results/candidate/emulator-timeline-runtime.json</code></li>
+</ul>
+<p>The model/UI/runtime evidence must cover state restoration,
+recorded-future restoration without CPU execution, live-edge/off-record
+forward execution, branching, budget/eviction, lifecycle invalidation,
+cancellation, safe audio/input behavior and corresponding
+capture/readouts. Read the actual reports and <code>Summary.json</code>
+for case counts/outcomes; no predicted total or previous candidate pass
+certifies this build. Package reproduction is recorded in
+<code>checkpoints/re-analysis-1a-clean-extraction/Reproduction.json</code>.</p>
+<p>Browser walkthrough remains pending; the current Chromium dependency
+is unavailable. Automated model, mock-DOM and bundled-emulator evidence
+does not establish visual layout, native file dialogs, actual speakers,
+mobile performance, USB/Bluetooth interoperability or independent
+hardware timing. Use <code>docs/BROWSER_QA.md</code> to record those
+observations for the exact candidate. Owner acceptance and promotion
+remain pending.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

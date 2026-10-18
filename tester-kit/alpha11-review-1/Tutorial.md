@@ -8,7 +8,7 @@ This tutorial accompanies the `NES_Forge.html` in this kit. If a control or resu
 
 ## Before you begin
 
-1. Extract the package into a normal folder. Open **NES_Forge.html** in your browser and **Tutorial.html** separately.
+1. Extract the package into a normal folder. Open **[NES_Forge.html](NES_Forge.html)** in your browser and keep this tutorial or its [printable PDF](Tutorial.pdf) beside it.
 2. If Forge restores previous work, use **Save Project As…** to preserve it first.
 3. Click **New Project** and confirm replacing the current workspace. The scene should be **My First Room**. The default project name is **My First NES Game**.
 4. Check these settings in their separate locations (the two checkboxes are **not in CODE**):
@@ -273,7 +273,9 @@ The World compiler generates real 6502 machine code in the ROM. It does not fill
 
 ## Continue after the first successful session
 
-See `NEXT_STEPS.html` for a separate multi-piece pose, animation and Entity
+See [Optional second session](NEXT_STEPS.html) for a separate multi-piece pose, animation and Entity
 Studio binding exercise, plus a prebuilt Scout project to inspect. Keep your
 first playable JSON as a checkpoint before doing any optional work.
 
+
+Use the [full manual](Manual.html) for linked Worlds, Rooms/Cameras, larger characters and reference chapters. Its opening alpha.11 notes explain changes since the preserved 1.9.0 guide. Find individual controls in the [operator reference](Reference/Operator_Reference.html), and record results in the [review checklist](Reference/Reviewer_Checklist.html) and [feedback form](Feedback_Template.txt).

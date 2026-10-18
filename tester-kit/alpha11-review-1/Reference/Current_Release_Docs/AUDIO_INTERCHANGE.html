@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Audio score
+interchange — NES Forge score profile 1 · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#audio-score-interchange--nes-forge-score-profile-1">Audio score
+interchange — NES Forge score profile 1</a><a class="level2" href="#supported-content">Supported content</a><a class="level2" href="#explicit-conversion-boundaries">Explicit conversion
+boundaries</a><a class="level2" href="#reimport-behavior">Reimport behavior</a><a class="level2" href="#review-steps">Review steps</a><a class="level2" href="#reference-specifications">Reference specifications</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1 id="audio-score-interchange--nes-forge-score-profile-1">Audio score
+interchange — NES Forge score profile 1</h1>
+<p>In <strong>AUDIO → Export Score Data</strong>, choose <strong>Export
+MIDI</strong> or <strong>Export MusicXML</strong>. The export dialog
+describes the conversion before downloading. Export never modifies the
+active project, undo history, runtime switches, or generated ROM.</p>
+<p>This is a score interchange workflow. Use <strong>Save Project
+As</strong> to preserve the complete native project, instruments,
+pattern identities, SFX, and gameplay bindings.</p>
+<h2 id="supported-content">Supported content</h2>
+<ul>
+<li>One ordered pass of the music order, with independent Pulse 1, Pulse
+2, Triangle and Noise channels.</li>
+<li>Tracker base notes, note retriggers, explicit cuts, rests,
+note-start volume and sustained notes across order boundaries.</li>
+<li>Tempo 30–300, speed 1–15 and 16–128 rows per pattern. Export is
+bounded to 255 order entries. MusicXML additionally refuses output over
+the importer’s 4 MB limit; shorten the order or use MIDI.</li>
+<li>Standard MIDI format 1: 96 ticks per quarter, conductor track and
+four channel tracks. Pulse 1/2/Triangle use zero-based MIDI channels
+0/1/2; Noise uses channel 9 (percussion). Notes use tracker note +
+12.</li>
+<li>Uncompressed score-partwise MusicXML 4.0: four named parts and
+divisions 24. A part is one implicit measure covering the ordered pass.
+Its durations are intended for score interchange, not finished
+engraving.</li>
+</ul>
+<p>A tracker tick is <code>2.5 / tempo</code> seconds, so one row is
+<code>speed / 24</code> quarter notes. MIDI uses <code>4 × speed</code>
+ticks per row; MusicXML uses <code>speed</code> division units per row.
+MIDI tempo rounds to the nearest microsecond per quarter note, the
+format's precision limit. This records logical tracker timing, not
+emulator frame quantization or measured mobile audio latency.</p>
+<h2 id="explicit-conversion-boundaries">Explicit conversion
+boundaries</h2>
+<p>The export warning is shown on every export:</p>
+<ul>
+<li>Repeated pattern references become the played sequence. Pattern
+sharing, pattern identities, SFX definitions, animation/gameplay
+triggers and indefinite looping are not exported.</li>
+<li>Instruments become score instruments. NES duty,
+volume/arpeggio/pitch envelopes and APU timbre are not reproduced by a
+MIDI synthesizer or a notation program. Arpeggio/pitch-envelope use gets
+an additional warning. The exported pitches are the base tracker notes,
+not transcribed envelope steps.</li>
+<li>Noise becomes percussion. External instruments may sound unrelated;
+the Forge profile retains the original noise-note numbers for Forge
+reimport.</li>
+<li>Tracker effects, DPCM data, changing the channel volume during a
+sustained note, zero-volume note-ons, missing patterns/instruments and
+empty music are refused with an actionable error. No silent effect or
+unsupported-channel dropping occurs.</li>
+<li>Only patterns referenced by the music order are read. Unreferenced
+patterns and named SFX are retained in the native project.</li>
+</ul>
+<h2 id="reimport-behavior">Reimport behavior</h2>
+<p>The files play without Forge metadata. A small, documented profile
+supplies timing and channel hints for loss-bounded Forge reimport; it
+does not embed project JSON or instruments.</p>
+<p>The profile text is:</p>
+<pre><code>NESFORGE-SCORE:1;tempo=137;speed=7;durationRows=32</code></pre>
+<p>MIDI places it in a conductor text meta event (type 01). MusicXML
+places it in
+<code>identification/miscellaneous/miscellaneous-field</code> named
+<code>NESForgeScore</code>. XML part IDs are
+<code>NESFORGE_PULSE1</code>, <code>NESFORGE_PULSE2</code>,
+<code>NESFORGE_TRIANGLE</code>, and <code>NESFORGE_NOISE</code>. Noise
+notes have a standard <code>other-notation</code> containing
+<code>NESForgeNoise=N</code> (0–95). Note-start velocity is represented
+by MusicXML's <code>dynamics</code> attribute.</p>
+<p>Forge reimport preserves the flattened four-channel note sequence,
+supported timing, cuts, note-start volume and trailing silence. It
+appends ordinary tracker patterns and plain instruments, replaces the
+music order, preserves existing SFX patterns, and is one undo step. It
+uses the current project's row count, so importing into a project with a
+different row count changes order grouping. If the score ends partway
+through the last target pattern, notes are cut at their original end and
+the remaining rows are silent padding; the import result warns about
+that padding. For example, a 16-row score in a 64-row project retains
+its cut at row 16 and adds 48 silent rows. Neither the project's row
+count nor existing SFX patterns are changed. Capacity checks apply
+before editing; a profile requiring more than 255 orders in the current
+row size is rejected.</p>
+<p>The profile validates its bounded values, channel identity,
+monophony, tempo and row-aligned notes. An externally edited file that
+contradicts these hints is rejected rather than silently assigned a
+different meaning. Tools that remove the profile still produce an
+ordinary MIDI/MusicXML import: the existing generic importer allocates
+tonal voices, quantizes to six-tick sixteenth-note rows and may change
+NES channel assignments. Imported files are never evidence of native APU
+timbre recovery.</p>
+<h2 id="review-steps">Review steps</h2>
+<ol type="1">
+<li>Open a native project with notes on all four channels and deliberate
+note cuts. Save it first.</li>
+<li>Export MIDI and MusicXML. Read the warnings and confirm. The tracker
+must be unchanged.</li>
+<li>Open each file in an independent MIDI/notation tool. Check pitch,
+channel separation and duration; expect replacement instruments and
+percussion sounds.</li>
+<li>Import into a copy of the project through the existing
+<strong>Import MIDI/MusicXML</strong> controls. Check channel identity,
+order sequence, cuts and tempo/speed. Existing SFX should remain.</li>
+<li>Undo, redo, save, reopen and compile the imported tracker. Listen to
+the native preview and ROM; automated structural tests do not replace
+listening or independent tool/device acceptance.</li>
+</ol>
+<h2 id="reference-specifications">Reference specifications</h2>
+<ul>
+<li>MIDI Association, <a
+href="https://midi.org/standard-midi-files">Standard MIDI
+Files</a>.</li>
+<li>W3C MusicXML 4.0: <a
+href="https://www.w3.org/2021/06/musicxml40/musicxml-reference/elements/divisions/">divisions</a>,
+<a
+href="https://www.w3.org/2021/06/musicxml40/musicxml-reference/elements/duration/">duration</a>,
+<a
+href="https://www.w3.org/2021/06/musicxml40/musicxml-reference/elements/midi-channel/">MIDI
+channel</a>, <a
+href="https://www.w3.org/2021/06/musicxml40/musicxml-reference/elements/note/">note</a>,
+and <a
+href="https://www.w3.org/2021/06/musicxml40/musicxml-reference/elements/unpitched/">unpitched</a>.</li>
+</ul>
+<p><code>tests/audio-interchange200.cjs</code> executes the actual
+application, independently inspects MIDI track/event framing and
+verifies canonical round trips, protected project/build state, rejection
+paths and registered download controls. It does not certify notation
+engraving, external applications, browser file dialogs or audible
+output.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

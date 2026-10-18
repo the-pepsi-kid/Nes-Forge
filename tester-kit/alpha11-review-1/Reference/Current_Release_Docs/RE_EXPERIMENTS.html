@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RE
+checkpoints, input scripts and reversible RAM experiments · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#re-checkpoints-input-scripts-and-reversible-ram-experiments">RE
+checkpoints, input scripts and reversible RAM experiments</a><a class="level2" href="#named-physical-checkpoints">Named physical checkpoints</a><a class="level2" href="#deterministic-scripted-input">Deterministic scripted input</a><a class="level2" href="#reversible-ram-experiments">Reversible RAM experiments</a><a class="level2" href="#review-checks">Review checks</a><a class="level2" href="#deliberate-remaining-scope">Deliberate remaining scope</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1 id="re-checkpoints-input-scripts-and-reversible-ram-experiments">RE
+checkpoints, input scripts and reversible RAM experiments</h1>
+<p>This candidate adds working runtime investigation controls under
+<strong>RE → Runtime investigation → Checkpoints and reversible
+experiments</strong>. Load a ROM in <strong>EMULATOR</strong> first.
+These controls operate on that loaded emulator session; opening a file
+for static analysis remains separate.</p>
+<h2 id="named-physical-checkpoints">Named physical checkpoints</h2>
+<p><strong>Save checkpoint</strong> pauses and saves CPU, PPU, mapper,
+logical APU, internal and cartridge RAM, controller latches, capture
+provenance and completed framebuffers. <strong>Restore selected</strong>
+restores that complete physical state, clears queued host audio,
+discards the incompatible frame-history future and leaves the emulator
+paused. The existing host audio callback stays live. Checkpoints do not
+store a screenshot as a substitute for machine state.</p>
+<p>A checkpoint is local to the exact loaded ROM/session. Reset,
+successful ROM replacement, CPU instruction tracing, or project
+unloading invalidates it. A rejected ROM load leaves the current session
+intact. Checkpoints are temporary and are not written into project JSON,
+the ROM, or a downloadable save-state file.</p>
+<p>There are at most <strong>16 checkpoints</strong>, with a separate
+<strong>32 MiB stored-byte budget</strong>. The UI shows storage usage.
+The budget counts encoded physical state and packed framebuffers;
+JavaScript object overhead and temporary codec buffers are outside that
+total. Checkpoint names have at most 64 characters. Saving beyond a
+limit rejects the operation instead of evicting another named
+checkpoint. Existing optional frame history retains its separate
+300-state/32 MiB limit.</p>
+<h2 id="deterministic-scripted-input">Deterministic scripted input</h2>
+<p>Enter input steps as JSON, select <strong>Restore selected checkpoint
+before replay</strong>, then press <strong>Run input
+script</strong>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">[</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span><span class="dt">&quot;frames&quot;</span><span class="fu">:</span> <span class="dv">30</span><span class="fu">,</span> <span class="dt">&quot;buttons&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;Right&quot;</span><span class="ot">]</span><span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span><span class="dt">&quot;frames&quot;</span><span class="fu">:</span> <span class="dv">10</span><span class="fu">,</span> <span class="dt">&quot;buttons&quot;</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span><span class="dt">&quot;frames&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">&quot;buttons&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;A&quot;</span><span class="ot">]</span><span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span><span class="dt">&quot;frames&quot;</span><span class="fu">:</span> <span class="dv">20</span><span class="fu">,</span> <span class="dt">&quot;buttons&quot;</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">}</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ot">]</span></span></code></pre></div>
+<p>Supported button names are <code>A</code>, <code>B</code>,
+<code>Select</code>, <code>Start</code>, <code>Up</code>,
+<code>Down</code>, <code>Left</code>, and <code>Right</code>. An empty
+array means neutral input. Opposite directions and duplicate buttons are
+rejected. Each step uses 1–600 frames, with at most 256 steps and 1800
+total frames.</p>
+<p>Replay executes the actual emulator CPU/PPU/APU with isolated
+scripted controller input. Keyboard, touch, gamepad, and focused editor
+fields do not add buttons. The operation yields between frames so
+<strong>Cancel script / navigation</strong> can stop it. Cancellation
+retains already executed frames; restore a checkpoint to rewind. Loading
+another ROM or resetting cancels the old operation before it can execute
+on the new session. Completion and cancellation leave the emulator
+paused and release scripted input.</p>
+<p>The same checkpoint plus the same input script reproduces the
+emulator's deterministic physical state and PCM samples in the automated
+native-ROM regression. This is scoped to Forge's emulator and supported
+mapper behavior, not proof of hardware cycle accuracy. A script replays
+gameplay inputs; it does not discover stages, guarantee a stage
+transition, grant health, or eliminate enemies automatically.</p>
+<h2 id="reversible-ram-experiments">Reversible RAM experiments</h2>
+<p>Enter an address, byte value and a label for your hypothesis, then
+choose <strong>Apply reversible RAM edit</strong>. Decimal,
+<code>$hex</code>, and <code>0xhex</code> are accepted in the UI. The
+model supports a bounded atomic group of up to 256 byte changes; the UI
+exposes a single-byte edit.</p>
+<p>Permitted targets are:</p>
+<ul>
+<li>Internal RAM <code>$0000–$1FFF</code>; mirrors normalize to
+<code>$0000–$07FF</code>.</li>
+<li>Available cartridge RAM <code>$6000–$7FFF</code>.</li>
+</ul>
+<p>I/O registers, ROM bytes, mapper registers, out-of-range values,
+conflicting expected bytes, and duplicate addresses (including mirrors)
+are rejected before mutation. Edits access RAM backing arrays directly
+and never call CPU bus writers, so an address cannot trigger an I/O side
+effect. Runtime observations and the incompatible frame-history branch
+are cleared at mutation.</p>
+<p>Applying an experiment saves a full <strong>Before:</strong>
+checkpoint. Play or replay inputs to investigate the result.
+<strong>Restore experiment</strong> restores the entire machine to that
+checkpoint, including elapsed frames and all subsequent game effects; it
+is not just an inverse write to one byte. <strong>Keep emulator
+state</strong> deletes the experiment checkpoint and retains the current
+emulator state. Neither action changes the project or original ROM. Only
+one reversible experiment is active at once. Its rollback checkpoint is
+protected from ordinary deletion through both the UI and public timeline
+API; Restore or Keep releases it. Reset/ROM replacement invalidates the
+experiment and its rollback.</p>
+<p>The experiment's label is a user hypothesis, not a decoded or
+validated gameplay meaning. Finding a byte that changes during damage is
+useful evidence, but it does not establish a portable “damage player”
+control or collision format. Engine-specific stage/combat actions still
+require verified semantics and source identity.</p>
+<h2 id="review-checks">Review checks</h2>
+<ol type="1">
+<li>Load <code>examples/RE_Bridge_Room/Bridge_Room.nes</code>, run
+several frames, then save a named checkpoint. Run to a different
+position and restore it. Check that the original view, player position
+and frame return while paused.</li>
+<li>Run the sample input script twice from the same checkpoint. Check
+that both runs end at the same position/frame. Hold an unrelated
+keyboard/gamepad/touch control during the second run and verify that it
+does not affect scripted movement.</li>
+<li>Cancel a longer replay. Verify that it stops, stays paused, and can
+return to the saved checkpoint.</li>
+<li>Apply a labeled edit to a known safe RAM candidate, run a few
+frames, then restore the experiment. Verify that the whole machine
+rewinds. Repeat and choose Keep to retain the emulator state.</li>
+<li>Try <code>$4015</code>, <code>$8000</code>, and byte value
+<code>256</code>. Each must show a validation error without changing the
+machine.</li>
+<li>Reset or load a different ROM. Verify that the old checkpoints and
+active experiment disappear.</li>
+<li>Repeat the controls on a real mobile browser, including native
+keyboard entry, responsive layout, cancel responsiveness and audio
+resumption after restore. Automated mock-DOM checks do not replace this
+device review.</li>
+</ol>
+<h2 id="deliberate-remaining-scope">Deliberate remaining scope</h2>
+<p>This slice does not implement breakpoint stepping, read watches,
+value freezes, ROM shadow patches, automatic stage/combat semantics,
+exported/imported machine snapshots, arbitrary emulator/mapper support,
+or multiplayer rollback. It provides the bounded checkpoint/replay/RAM
+experiment foundation without making those later capabilities appear
+complete.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

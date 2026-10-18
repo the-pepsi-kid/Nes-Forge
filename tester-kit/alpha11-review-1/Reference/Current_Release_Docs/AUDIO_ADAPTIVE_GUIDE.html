@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Audio adaptive
+editing — alpha.5 review guide · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#audio-adaptive-editing--alpha5-review-guide">Audio adaptive
+editing — alpha.5 review guide</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1 id="audio-adaptive-editing--alpha5-review-guide">Audio adaptive
+editing — alpha.5 review guide</h1>
+<p>Candidate: 2.0.0-alpha.5 / audio-adaptive-1, schema 12. This is a
+bounded Audio UI candidate based on the phone keyboard interaction you
+tested in alpha.4.</p>
+<p>Open <code>mainline/NES_Forge_2.0.0-alpha.5.html</code> and choose
+<strong>AUDIO</strong>. Add an instrument if your blank project has
+none. Tap a tracker cell and type the same PC piano keys: Z = C3, X =
+D3, Q = C4, 2 = C#4. Entry remains in the selected cell; Done/Enter
+closes the keyboard. Native tempo, speed, row count and instrument
+fields remain directly editable.</p>
+<p>On a narrow screen, scroll the tracker horizontally to reach the
+other channels and vertically to reach later rows. Selecting a different
+cell or resizing the viewport reveals the selected cell inside the
+tracker. Re-rendering the same selection does not snap manual scrolling
+back. Playback does not force follow-scrolling. The Audio controls below
+the tracker remain available by scrolling the workspace.</p>
+<p>Select an instrument and drag on the original <strong>Volume
+Envelope</strong> or <strong>Arpeggio Envelope</strong> with touch or
+pen. Volume is 0–15; arpeggio is −12–12. A stroke edits only the current
+instrument's existing envelope and creates one undo step when values
+change. Cancellation ends the stroke; already painted points remain
+undoable. A second pointer, tab change, window focus loss or hidden page
+stops further writes. Use space outside the envelope to scroll the
+panel. Desktop mouse painting keeps its original handler.</p>
+<p>The envelope canvas is enlarged in compact/coarse-input layouts
+without changing its canonical points. This candidate adds no new note
+form, Apply action, envelope text form, DPCM playback, channel/effect
+types or import formats.</p>
+<p>The new device-width viewport declaration enables the application's
+existing narrow-screen layouts on phones, including other tabs. Review
+Scene, CHR, Code, RE and Emulator reachability; this metadata change is
+broader than Audio's scoped CSS. Audio-specific styles and
+viewport-height handling are released on leaving Audio.</p>
+<p>Use <code>AUDIO_ADAPTIVE_CHECKLIST.txt</code> for the short device
+review. Automated gesture tests and modeled geometry do not prove actual
+keyboard presentation, browser rendering, audible output or phone
+performance. Chromium runners must either execute checks or report an
+unavailable browser with zero checks. No physical-device pass is
+inferred from them.</p>
+<p>Next, complete the supported Audio
+author/import/edit/build/listen/save/reopen workshop. MIDI and MusicXML
+remain the existing supported import routes. For compiled playback
+enable <strong>Compile Audio Runtime</strong> in AUDIO, then use the
+top-level <strong>Build .NES ROM</strong> or <strong>Build &amp;
+Run</strong> action. Preview output, compiled ROM behavior and RE audio
+observations must be evaluated separately. The older manual has not been
+fully revised or converted to a visually checked printable PDF by this
+UI pass.</p>
+<p>Two editable music/SFX review projects and their built ROMs are under
+<code>examples/Audio_Correction_2.0.0-alpha.5/</code>. Their build
+report specifies expected notes and timing; generated examples are
+review inputs, not listening acceptance. The current Gameplay Core
+example is
+<code>examples/Scout_Gameplay_Core_2.0.0-alpha.5.nesforge.json</code>;
+older example files remain preserved.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

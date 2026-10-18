@@ -10,14 +10,12 @@ in the running emulator. Changes require another Build & Run.
   actors and 64 one-byte persistent values. The Sideview Player compatibility
   runtime is separate from behavior-table execution. Door Option B and the
   one-way persistent-to-active synchronization have defined limitations.
-- Source intake reports limited information about supplied source files; it does not run or translate
-  supplied assembler projects. Native map, background, music and SFX recovery
+- **Analyze source** reports limited information about supplied source files. **Build source ROM** is a separate assembly workflow for the supported `forge-6502-v1` mapper 0 profile; it does not translate foreign assembler projects. Native map, background, music and SFX recovery
   cover finite documented profiles, not arbitrary games. Unsupported raster
   behavior must not be represented as successfully compiled.
 - Source Workspace's generic exports can misleadingly say **“Export
   requested”** when a save service returns busy/error. Confirm an output file
-  exists before reporting success. The native project JSON is the portable
-  editable backup; a ROM or diagnostic report cannot replace it.
+  exists before reporting success. The native project JSON backs up the main editor. Use **Save source workspace** separately for source-workspace files. A ROM or diagnostic report cannot replace either editable backup.
 - The first-session game you build in the tutorial is silent. Browser save
   dialogs, audio devices, emulators, phones and physical controllers can vary.
   Record your actual device and results if you try these optional paths.

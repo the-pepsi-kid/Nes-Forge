@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Audio correction —
+2.0.0-alpha.1 · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#audio-correction--200-alpha1">Audio correction —
+2.0.0-alpha.1</a><a class="level2" href="#what-changed">What changed</a><a class="level2" href="#evidence-and-reproduction">Evidence and reproduction</a><a class="level2" href="#try-the-corrections">Try the corrections</a><a class="level2" href="#preserved-scope-and-next-work">Preserved scope and next
+work</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1 id="audio-correction--200-alpha1">Audio correction —
+2.0.0-alpha.1</h1>
+<p>Candidate <code>audio-correction-1</code>, schema 12. This is a
+bounded review candidate, not a promoted release or completion of the
+full Audio workflow milestone.</p>
+<h2 id="what-changed">What changed</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Reproduced defect</th>
+<th>Correction</th>
+<th>Evidence required</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A dense music stream with 64 four-byte events could wrap its
+one-byte cursor before reaching its end marker, leaving the generated
+reader in an endless scan. SFX uses the same representation.</td>
+<td>Carry cursor advancement into the stream pointer. Music order
+changes and SFX starts still reset the pointer to the original
+data.</td>
+<td>Actual generated 6502 execution for 63, 64 and 128 events; music in
+viewer, single-room and World builds; SFX in both playable backends,
+including a late-row range.</td>
+</tr>
+<tr class="even">
+<td>Authored triangle A4 used pulse timer 253, giving about 220.2 Hz on
+triangle.</td>
+<td>Separate triangle timer lookup with the correct waveform divisor. A4
+uses timer 126, about 440.4 Hz.</td>
+<td>Independently specified note/timer expectations, actual emitted APU
+writes, arpeggios and both ends of the note range across all three
+generated backends.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The original 60-byte zero-page allocation and project representation
+remain unchanged. The separate triangle table costs 192 PRG bytes, plus
+the reader's carry instructions. Existing resource and PRG-capacity
+validation remains active. Near-capacity projects still need to fit the
+selected supported ROM layout.</p>
+<p>Pulse and noise behavior is preserved. Triangle still has hardware
+and preview limitations: C0 through G-sharp0 saturate timer 2047, about
+27.31 Hz; notes above that have normal integer-timer quantization.
+Arpeggios remain bounded to the existing 0–95 note range. This candidate
+does not redesign triangle volume, the Studio oscillator/noise preview,
+note-off semantics or host audio buffering.</p>
+<h2 id="evidence-and-reproduction">Evidence and reproduction</h2>
+<ul>
+<li>Exact application identity: <code>../build-inputs.json</code>.</li>
+<li>Measured full gate:
+<code>../test-results/candidate/Summary.json</code>; 41 retained suites
+/ 895 retained cases and the focused <code>audio-correction200</code>
+suite are required.</li>
+<li>Focused suite source: <code>../tests/audio-correction200.cjs</code>;
+expected values are specified independently of the production timer
+table. It executes compiled CPU/APU behavior rather than accepting a
+build alone.</li>
+<li>Clean extraction:
+<code>../checkpoints/audio-correction-1-clean-extraction/Reproduction.json</code>
+identifies the staging input, verified payload count, unchanged HTML,
+summary hash and measured totals.</li>
+<li>Frozen predecessor:
+<code>../baseline/NES_Forge_1.9.0_RE_Runtime.html</code>; old reports
+under <code>../checkpoints/re-runtime-1-reference/test-results/</code>
+remain evidence for those older bytes only.</li>
+<li>Fresh browser launch outcomes: the three
+<code>../test-results/browser-*/Report.json</code> records. A blocked
+launch means zero executed browser checks.</li>
+</ul>
+<p>From the extracted package root, with Node.js 20+ and Python 3:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> tools/bundle.py <span class="at">--check</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> tests/run_candidate.cjs</span></code></pre></div>
+<p>The full gate takes time because it executes compiled ROMs. A review
+package is emitted only after all mandatory suites pass on a clean
+extraction, the input provenance still matches and the fresh browser
+outcomes are recorded honestly. Automated register/CPU tests do not
+establish audible browser output, independent emulator compatibility or
+physical NES timing.</p>
+<h2 id="try-the-corrections">Try the corrections</h2>
+<p>Follow <code>AUDIO_CORRECTION_CHECKLIST.txt</code>. Two native
+projects and their generated ROMs are included under
+<code>../examples/Audio_Correction_2.0.0-alpha.1/</code>:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Dense_128</code></td>
+<td>128-row music plus a 128-row Pulse 1 SFX triggered by the player's
+attack animation. Checks that playback continues and the SFX eventually
+returns control to music.</td>
+</tr>
+<tr class="even">
+<td><code>Pulse_Triangle</code></td>
+<td>Alternating pulse/triangle A4, then pulse/triangle A5. Checks
+matching pitch despite different timbres; it is not a timbre-equality
+test.</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>Manifest.json</code> ties each input project and generated ROM
+to this HTML. Rebuild them with
+<code>node tools/build_audio_correction_examples.cjs</code>. These
+supplied ROMs are review inputs, not claimed listening results.</p>
+<h2 id="preserved-scope-and-next-work">Preserved scope and next
+work</h2>
+<p>Canonical tracker, instruments, SFX, imports and native project
+persistence remain shared with RE. Preserve the five templates, schema
+12, 12-actor and 64-persistent-byte limits, Door Option B, partial
+single-room recovery, one-way synchronization and
+editor/build/emulator/capture/Save As/CHR/undo contracts.</p>
+<p>Owner review is pending. Mobile A/V lag, hardware controllers,
+speaker output and physical-console checks remain separately unverified.
+General native music recovery is not added; existing APU observations
+are not recovered songs. After this bounded correction review, complete
+the supported audio author/import/edit/build/listen/save/reopen workshop
+and scope any reproduced playback defects before resuming native-driver
+recovery.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

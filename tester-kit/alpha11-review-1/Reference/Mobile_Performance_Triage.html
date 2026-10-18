@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mobile performance triage · NES Forge alpha.11</title><link rel="stylesheet" href="../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../START_HERE.html">Start here</a><a href="../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../Tutorial.html">Tutorial</a><a href="../Manual.html">Manual</a><a href="../Reference/Operator_Reference.html">Controls</a><a href="../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#mobile-performance-triage">Mobile performance triage</a><a class="level2" href="#describe-the-symptom">Describe the symptom</a><a class="level2" href="#read-the-current-play-diagnostics">Read the current Play
+diagnostics</a><a class="level2" href="#small-controlled-comparison">Small controlled comparison</a><a class="level2" href="#check-interruption-and-recovery">Check interruption and
+recovery</a><a class="level2" href="#observation-form">Observation form</a><a class="level2" href="#interpreting-a-finding">Interpreting a finding</a></aside><main id="guide"><h1 id="mobile-performance-triage">Mobile performance triage</h1>
+<p><strong>2.0.0-alpha.11 / source-intake-1</strong></p>
+<p>Use this guide when gameplay, input or sound feels wrong on a phone
+or tablet. It records observations for the actual candidate and device;
+it does not assume a cause or carry forward historical pass/fail
+results. Send findings with <a
+href="../Feedback_Template.txt">Feedback_Template.txt</a>.</p>
+<p>The September 30 guide is preserved as historical source. Later
+playback and presentation corrections changed the scheduler, capture
+work and expanded-view diagnostics. Its old fixed 10 ms scheduling
+description and instruction to leave Play to read every metric must not
+be treated as current behavior.</p>
+<h2 id="describe-the-symptom">Describe the symptom</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Symptom</th>
+<th>What to record</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Slow gameplay</td>
+<td>Whether movement/game time seems slow even without touching
+controls</td>
+</tr>
+<tr class="even">
+<td>Uneven motion</td>
+<td>Visible stutter, freezes or repeated frames, and whether sound also
+changes</td>
+</tr>
+<tr class="odd">
+<td>Input delay</td>
+<td>The control/combination and delay between press and visible
+response</td>
+</tr>
+<tr class="even">
+<td>Sound delay</td>
+<td>Delay relative to a visible event; record speaker/wired/Bluetooth
+output</td>
+</tr>
+<tr class="odd">
+<td>Audio gaps or crackle</td>
+<td>Whether intermittent or continuous; note gaps/resync counters</td>
+</tr>
+<tr class="even">
+<td>Audio/video drift</td>
+<td>Whether alignment gets worse over time or changes after
+pause/resume</td>
+</tr>
+<tr class="odd">
+<td>UI/input fault</td>
+<td>Cropped controls, unwanted notes, stuck buttons or keyboard blocking
+the editor</td>
+</tr>
+</tbody>
+</table></div>
+<p>Record phone model, OS/browser versions, local file versus
+hosted/embedded page, app/ROM identity, orientation, power-saving state,
+sound-output route and when the symptom begins. A device name alone is
+not a benchmark.</p>
+<h2 id="read-the-current-play-diagnostics">Read the current Play
+diagnostics</h2>
+<p>The compact diagnostic readout is available in expanded Play as well
+as the ordinary view. Record a start and end reading without resetting
+between them.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Reading</th>
+<th>Meaning and limitation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>FPS / 60.1</td>
+<td>Approximate completed emulation frames per real second. It is not
+the display or screen-recorder frame rate.</td>
+</tr>
+<tr class="even">
+<td>F / frame ms</td>
+<td>Current emulated frame and most recent frame-processing time,
+including capture work. It excludes later canvas and audio-scheduling
+work.</td>
+</tr>
+<tr class="odd">
+<td>Audio state / ms queued</td>
+<td>Browser audio state and scheduled sound ahead of its audio clock.
+This is not measured speaker/Bluetooth latency.</td>
+</tr>
+<tr class="even">
+<td>Gaps / resyncs</td>
+<td>Queue underruns/resynchronizations since load/reset. Record whether
+they keep increasing during steady play.</td>
+</tr>
+<tr class="odd">
+<td>Backlog ms</td>
+<td>Pending emulation time, including fractional frame phase. A small
+changing remainder can be normal.</td>
+</tr>
+<tr class="even">
+<td>Timing discards</td>
+<td>Time dropped by bounded overload protection. A steadily rising count
+indicates the host is not keeping pace.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The display uses sampled readings. A single fast or slow frame does
+not characterize a whole session. Sound off changes output gain;
+CPU-clocked Audio work continues, so mute is not an Audio CPU-cost
+isolation test.</p>
+<h2 id="small-controlled-comparison">Small controlled comparison</h2>
+<p>Choose one known ROM and the same short repeatable route. A silent
+tutorial ROM cannot establish speaker continuity. Start each trial from
+Reset, keep unrelated settings constant, and record observations before
+enabling screen capture because recording can itself add load. Leave
+frame history and explicit RE tracing off for the initial baseline, then
+test them separately if you use them.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Trial</th>
+<th>Compare</th>
+<th>What it can clarify</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Current app, ordinary Emulator versus expanded Play</td>
+<td>Whether the symptom follows a presentation mode</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Expanded Play versus native Fullscreen, if available</td>
+<td>Whether actual fullscreen changes the result; record a fallback
+separately</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Same route, portrait versus landscape</td>
+<td>Layout reachability and orientation-related behavior</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Same route, idle/keyboard versus repeated touch combinations</td>
+<td>Whether active touch input changes the symptom</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Same route/output, sound on versus muted</td>
+<td>Audible symptom and visible behavior; mute does not remove emulated
+Audio cost</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Touch versus one physical controller, if available</td>
+<td>Input route on the same device/ROM/view; record wired and Bluetooth
+separately</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>History/tracing off versus the exact optional feature you use</td>
+<td>Whether that additional recording work changes behavior</td>
+</tr>
+</tbody>
+</table></div>
+<p>If comparing to an earlier application, record both exact
+versions/hashes and use one unchanged ROM, route, output and loading
+method. An old kit's generated ROM or automatic test count is not a
+same-device baseline by itself.</p>
+<p>Run a short steady interval and a longer repeat if heat or time
+changes the symptom. Do not change buffering, browser flags, runtime
+code or multiple settings to make the result disappear before recording
+the original case.</p>
+<h2 id="check-interruption-and-recovery">Check interruption and
+recovery</h2>
+<ul>
+<li>Pause/resume, switch apps and return, then confirm sound/input
+resume appropriately.</li>
+<li>Release held controls during interruption; confirm no old held
+action persists unexpectedly.</li>
+<li>Rotate, enter/exit expanded Play and try native fullscreen or its
+fallback.</li>
+<li>Disconnect/reconnect a selected physical controller if that route is
+being tested.</li>
+<li>Return to the editor and confirm fields, Save As and other tabs
+remain usable.</li>
+</ul>
+<p>Record each route actually tried. A working expanded fallback is
+useful, but it does not mean native fullscreen succeeded. A successful
+keyboard test does not certify touch or controller behavior.</p>
+<h2 id="observation-form">Observation form</h2>
+<p>Copy once per trial or use <a
+href="../Feedback_Template.txt">Feedback_Template.txt</a>.</p>
+<ul>
+<li>Tester/date:</li>
+<li>Application version / SHA-256 if available:</li>
+<li>Device model / OS / browser and version:</li>
+<li>Standalone browser or embedded view:</li>
+<li>Local file or hosted URL:</li>
+<li>ROM filename / SHA-256 if known:</li>
+<li>Repeatable scene/route:</li>
+<li>View: ordinary / expanded Play / native Fullscreen / fallback:</li>
+<li>Orientation / display refresh setting if known:</li>
+<li>Input: idle / touch / keyboard / physical controller:</li>
+<li>Controller model / wired or Bluetooth / adapter:</li>
+<li>Sound output: speaker / wired / Bluetooth:</li>
+<li>Sound on or muted:</li>
+<li>History/tracing settings:</li>
+<li>Duration / already warm? / power-saving state:</li>
+<li>Exact actions and expected behavior:</li>
+<li>Observed symptom and when it starts:</li>
+<li>Start readings: FPS / frame ms / audio state / queued ms / gaps /
+resyncs / backlog / timing discards:</li>
+<li>End readings: FPS / frame ms / audio state / queued ms / gaps /
+resyncs / backlog / timing discards:</li>
+<li>Screenshot/recording/trace, if available:</li>
+<li>Result: Pass / Fail / Blocked / Not tested:</li>
+<li>Retest notes:</li>
+</ul>
+<h2 id="interpreting-a-finding">Interpreting a finding</h2>
+<p>Treat the readings as clues. High queued audio is not proof of device
+latency; a rising discard counter is not proof of a particular rendering
+or input bug. Frame history, RE tracing, browser scheduling,
+presentation work, emulation and device sound output can contribute
+differently.</p>
+<p>A useful report identifies one repeatable comparison. A later fix
+should be verified on that same case plus affected save/build/input
+behavior. Browser automation or source-level checks cannot certify
+speakers, physical controllers or physical NES timing.</p>
+<p>Technical background is preserved in <a
+href="Current_Release_Docs/MOBILE_PLAYBACK.html">Mobile playback</a>.
+Its original feature-candidate heading and measured development probes
+are historical context for inherited behavior, not measured performance
+of your current phone session. For the rest of the test flow, return to
+<a href="Reviewer_Checklist.html">Reviewer Checklist</a>.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../START_HERE.html">Back to start</a></p></main></div></body></html>

@@ -37,8 +37,7 @@ known built example, not an editable backup.
 
 - **Audio:** Use a known sound-bearing project or ROM; the first tutorial is
   silent. Record real listening separately from synthetic audio tests.
-- **Source Workspace:** analysis inventories source and gives lexical
-  diagnostics. It does not translate an arbitrary foreign engine into a game.
+- **Source Workspace:** **Analyze source** inventories files and gives lexical diagnostics. **Build source ROM** separately assembles supported `forge-6502-v1` source into a mapper 0 ROM. Foreign source is not automatically translated. Use **Save source workspace** for its separate `.nesforge-source.json` backup; ordinary project JSON does not include it. See the [current source workspace guide](Reference/Current_Release_Docs/SOURCE_WORKSPACE.html).
 - **Recovery:** only documented profiles can become editable native assets.
   General ROM analysis and running an original cartridge are distinct actions.
 - **Mobile/controller:** optional device-specific results; record versions,
@@ -46,3 +45,5 @@ known built example, not an editable backup.
 
 Save a fresh checkpoint before each experiment and use the feedback form to
 record where actual behavior differs from these instructions.
+
+For linked Worlds, exits, Rooms/Cameras and extended authoring workshops, continue with the [full manual](Manual.html). Read its alpha.11 update notes before the preserved 1.9.0 chapters.

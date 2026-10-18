@@ -1,34 +1,7 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
-<head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>KNOWN_LIMITS - NES Forge alpha test kit</title>
-  <style>
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-<header id="title-block-header">
-<h1 class="title">KNOWN_LIMITS - NES Forge alpha test kit</h1>
-</header>
-<h1 id="scope-and-known-limitations--alpha11">Scope and known
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scope and known
+limitations — alpha.11 · NES Forge alpha.11</title><link rel="stylesheet" href="style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="START_HERE.html">Start here</a><a href="NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="Tutorial.html">Tutorial</a><a href="Manual.html">Manual</a><a href="Reference/Operator_Reference.html">Controls</a><a href="Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#scope-and-known-limitations--alpha11">Scope and known
+limitations — alpha.11</a></aside><main id="guide"><h1 id="scope-and-known-limitations--alpha11">Scope and known
 limitations — alpha.11</h1>
 <p>This is a pre-release test build. The desktop first-session exercise
 covers tile art, Solid collision, metatiles, two-screen World traversal,
@@ -41,16 +14,19 @@ runtime actors and 64 one-byte persistent values. The Sideview Player
 compatibility runtime is separate from behavior-table execution. Door
 Option B and the one-way persistent-to-active synchronization have
 defined limitations.</li>
-<li>Source intake reports limited information about supplied source
-files; it does not run or translate supplied assembler projects. Native
-map, background, music and SFX recovery cover finite documented
-profiles, not arbitrary games. Unsupported raster behavior must not be
-represented as successfully compiled.</li>
+<li><strong>Analyze source</strong> reports limited information about
+supplied source files. <strong>Build source ROM</strong> is a separate
+assembly workflow for the supported <code>forge-6502-v1</code> mapper 0
+profile; it does not translate foreign assembler projects. Native map,
+background, music and SFX recovery cover finite documented profiles, not
+arbitrary games. Unsupported raster behavior must not be represented as
+successfully compiled.</li>
 <li>Source Workspace's generic exports can misleadingly say
 <strong>“Export requested”</strong> when a save service returns
 busy/error. Confirm an output file exists before reporting success. The
-native project JSON is the portable editable backup; a ROM or diagnostic
-report cannot replace it.</li>
+native project JSON backs up the main editor. Use <strong>Save source
+workspace</strong> separately for source-workspace files. A ROM or
+diagnostic report cannot replace either editable backup.</li>
 <li>The first-session game you build in the tutorial is silent. Browser
 save dialogs, audio devices, emulators, phones and physical controllers
 can vary. Record your actual device and results if you try these
@@ -59,5 +35,4 @@ optional paths.</li>
 <p>For a failure, preserve your last native checkpoint and record
 expected result, actual result, exact control and browser/device details
 in the feedback form.</p>
-</body>
-</html>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="START_HERE.html">Back to start</a></p></main></div></body></html>

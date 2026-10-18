@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Native Background Recovery · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#native-background-recovery">Native Background Recovery</a><a class="level2" href="#use-the-workflow">Use the workflow</a><a class="level2" href="#exact-supported-subset">Exact supported subset</a><a class="level2" href="#what-the-conversion-changes">What the conversion changes</a><a class="level2" href="#corpus-and-source-explanation">Corpus and source
+explanation</a><a class="level2" href="#owners-and-persistence">Owners and persistence</a><a class="level2" href="#verification-and-remaining-acceptance">Verification and
+remaining acceptance</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1 id="native-background-recovery">Native Background Recovery</h1>
+<p>Candidate <strong>2.0.0-alpha.11 / native-background-1</strong>,
+schema 12. This A1 slice recovers a declared static background through
+the same workflow for two independent native constructions. It is not
+recovery of an entire game.</p>
+<h2 id="use-the-workflow">Use the workflow</h2>
+<ol type="1">
+<li>Open <strong>RE / DISASM → General ROM Analysis</strong>, choose a
+ROM, then <strong>Open for analysis</strong>.</li>
+<li>Use <strong>Discover recovery methods</strong> and the background
+route, or scroll to <strong>Native background recovery</strong>. Choose
+<strong>Immediate PPU background construction</strong> for the supplied
+Pepsi input or <strong>Vector-linked pointer-page nametable
+loader</strong> for HonkeyPong.</li>
+<li>Click <strong>Preview background</strong>. Review the thumbnail,
+source SHA-256, recovered coverage, unknowns, limitations and actual
+independent viewer build hash. Expand <strong>Full source evidence and
+construction</strong> for the physical ranges and construction steps.
+Preview does not load the original ROM in the emulator or modify the
+project.</li>
+<li>To add the result to the current project, tick <strong>I understand
+this is a static background conversion with the limitations and unknowns
+shown below</strong>, then <strong>Import as new scene</strong>. This
+appends and selects one scene, excluded from the current ROM build.
+Existing scenes and runtime settings remain. One <strong>Undo</strong>
+removes the import and <strong>Redo</strong> restores it.</li>
+<li>Edit tiles in <strong>CHR</strong>, arrangement in
+<strong>SCENE</strong>, or palette colors using the existing controls.
+<strong>Save Project As</strong> preserves the editable scene and its
+import evidence. Reopen the <code>.nesforge.json</code> with ordinary
+<strong>Open Project</strong>.</li>
+<li>Alternatively, <strong>Download background project</strong> saves an
+independent one-scene Forge project whose background is included in a
+static viewer build. Open that file in a separate editor tab to review,
+edit, build and run it. This explicit project contains no source-ROM
+gameplay or music.</li>
+<li><strong>Download background evidence</strong> saves the successful
+preview's original source/conversion record. It is a historical report,
+not an editable project or a patch. After tile edits, use <strong>Save
+Project As</strong> for the updated project. The preview-project
+download intentionally remains the original preview result.</li>
+</ol>
+<p>Selecting a different file or method invalidates the preview. Editing
+the current project after preview requires another preview before
+import. Cancellation, unsupported inputs and failed previews leave the
+project and emulator intact. Duplicate source/method/resource identities
+are rejected; edit the previously imported scene instead. A source hash
+identifies bytes, not ownership, a digital signature or general engine
+support.</p>
+<h2 id="exact-supported-subset">Exact supported subset</h2>
+<p>Both profiles require bounded NTSC mapper-0 iNES input with 16 or 32
+KiB PRG, 8 KiB physical CHR and no trainer. The shared decoder rejects
+truncated/trailing data, unsupported mapping and unsupported header
+fields. Physical CHR-bank selection must be established by the native
+PPU-control sequence. Palette transfers honor NES universal-color
+mirrors. Grayscale/emphasis modes require separate support and are
+refused.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Native representation</th>
+<th>Decoding boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>nes.immediate-ppu-background.v1</code></td>
+<td>Reset-linked immediate palette writes followed by a direct call to
+literal/counted-fill PPU construction</td>
+<td>Approved initialization macros, forced blank and increment 1;
+bounded address setups, literal writes and counted loops; all 960
+tiles/64 attributes established; final bank, mask and zero scroll
+proven</td>
+</tr>
+<tr class="even">
+<td><code>nes.pointer-nametable.v1</code></td>
+<td>Vector-linked state dispatch, native palette table and four-page
+pointer upload loop</td>
+<td>Coherent routine/branch/pointer structure, mapped data spans, known
+control helpers and selected CHR bank; exact 1,023-write loop semantics,
+with one retained attribute marked unknown</td>
+</tr>
+</tbody>
+</table></div>
+<p>These names describe narrow supported routine families. Recompilation
+into a different instruction sequence may be unknown even when it
+renders the same picture. No filename or whole-ROM hash controls
+recognition. Source identity is used only for integrity, provenance and
+stable scene IDs. The adapters read bounded bytes and interpret approved
+constructions; they do not execute supplied 6502 code. Actual 6502
+execution in the test suite independently checks those
+interpretations.</p>
+<p>The pointer profile independently accepts its source-backed legacy
+NROM header variant with byte 10=<code>$10</code>, while still checking
+all other container/mapping fields. <strong>General Analysis continues
+to mark that original HonkeyPong header untrusted</strong>, and generic
+physical-CHR import retains its existing refusal. Method-specific
+support does not change the overall container trust decision.</p>
+<p>The pointer loop does not reset Y between pages. Its destination
+sequence is source indices
+<code>0..254, 511, 256..510, 767, 512..766, 1023, 768..1022</code>.
+Source index255 is never transferred, and PPU <code>$23FF</code> is
+never written. The original boundary bytes are zero, which can hide this
+distinction. Tests change them and execute the original loader; a
+nonzero final-attribute sentinel remains untouched. Conversion
+explicitly supplies zero for that one unknown attribute byte. It is an
+authored default, not a decoded runtime value.</p>
+<h2 id="what-the-conversion-changes">What the conversion changes</h2>
+<p>The canonical scene contains 256 background tiles, 960 nametable
+entries, 64 attributes and four palette rows. It preserves 2-bit pixel
+values and declared placement/attributes. Canonical palette rows share
+the final universal backdrop color; original transfer bytes and final
+palette RAM remain in evidence. Unused row-zero color slots do not
+establish four separate backdrop colors.</p>
+<p>The independent output uses the existing Forge static scene viewer
+and its rendering mask. Source clipping, sprite overlays, scroll/raster
+behavior, later background writes and timing are not reproduced.
+HonkeyPong's native <code>$18</code> mask clips the leftmost eight
+background pixels; the editable background includes underlying tile
+data. Pepsi's vending-state/credit logic is outside this graphics
+result. No sprites, collision, actors, original audio or gameplay are
+inferred. There is no native encoder, original-ROM patch or lossless
+whole-ROM round trip.</p>
+<p>Recovered collision remains unknown even though an editable scene has
+empty tile properties. Including an imported scene in a gameplay build
+is an authoring choice requiring appropriate collision, actors and
+capacity checks. The automatically downloaded project is a static viewer
+only. A buildable graphic is not a playable recreation of the original
+game.</p>
+<h2 id="corpus-and-source-explanation">Corpus and source
+explanation</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Independent input</th>
+<th>Identity and provenance</th>
+<th>Native records</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Owner-supplied Pepsi vending</td>
+<td><code>tests/fixtures/re-runtime/pepsi_vending_v9e.nes</code>, 24,592
+bytes, SHA-256
+<code>8fb961353e9f626bcc62b85896550ec0108addff1fb82eaf7df7aafbf9b6462a</code>;
+retained user input, not a newly downloaded commercial fixture</td>
+<td>Palette operands start at file <code>$48</code> with stride 5 for 32
+writes. Constructor CPU <code>$C2EC</code> / file <code>$02FC</code>,
+4,960 bytes through file <code>$165B</code>, emits 1,190 writes
+over1,024 distinct bytes, including 53 counted fills. Selected BG CHR
+file <code>$4010..$500F</code>. These offsets describe this corpus, not
+recognition allowlists.</td>
+</tr>
+<tr class="even">
+<td>HonkeyPong</td>
+<td><code>examples/RE_Native_Audio/HonkeyPong-reproduced.nes</code>,
+24,592 bytes, SHA-256
+<code>cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b</code>;
+MIT, Ryan Souders, 2015, source commit
+<code>f9ab7ad450ffebabec15623aa811a7564f079168</code></td>
+<td>Loader file <code>$010A</code>, entry <code>$08F8</code>, raw map
+<code>$0442</code> (1,024 bytes), palette transfer <code>$0402</code>
+(32 bytes), selected BG CHR <code>$4010</code> (4,096 bytes). The
+pointer loop applies the transformation above.</td>
+</tr>
+</tbody>
+</table></div>
+<p>HonkeyPong's pinned source and license are already packaged in
+<code>examples/RE_Native_Audio/NES_Forge_Native_Audio_Input_Checkpoint.zip</code>,
+under <code>NES_Forge_Native_Audio_Input_Checkpoint/HonkeyPong/</code>.
+<code>src/render.oph</code> lines 88–109 implement the loader and lines
+350–361 link palette/map resources; <code>src/ppu.oph</code> defines the
+palette transfer, <code>src/engine.oph</code> the title entry, and
+<code>main.oph</code> the NMI dispatch. No external source is needed to
+reproduce this evidence.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Source resource</th>
+<th style="text-align: right;">Bytes</th>
+<th>SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>res/nam/title.nam</code></td>
+<td style="text-align: right;">1,024</td>
+<td><code>2eb38137c5c2afe4affb458f8808fa8c3d1187d6b84f1b3dd9df99fe81730b93</code></td>
+</tr>
+<tr class="even">
+<td><code>res/pal/title.pal</code></td>
+<td style="text-align: right;">16</td>
+<td><code>04edffe484b6be8454303a778206cf362dfd8ea6ddcb1d2f0054688300c95bcb</code></td>
+</tr>
+<tr class="odd">
+<td><code>res/chr/honkeypong.chr</code></td>
+<td style="text-align: right;">8,192</td>
+<td><code>85b9db779a87b09fe61e84199af39dec045d51cf605cfb2195a3407ec09a37a9</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The existing relocated and 32 KiB HonkeyPong derivatives are
+structural tests of the same independent engine, not additional
+independent games. Bridge Room and Forge outputs remain controls. The
+two accepted construction families do not establish map/collision
+recovery for A2.</p>
+<h2 id="owners-and-persistence">Owners and persistence</h2>
+<p>Format adapters register directly in REMethods v2 with separate
+decode and subset-convert operations. They never claim native encoding.
+<code>RENativeBackground</code> validates a common result, constructs an
+ordinary <code>makeScene</code>, records bounded source evidence and
+compiles a detached independent viewer.
+<code>ProjectStore.appendScene</code> owns validation, stale guards, one
+history entry, atomic model installation and committed-warning handling
+for UI failures. The private transaction helper is shared with settings
+edits; callers cannot submit arbitrary mutators.</p>
+<p>Evidence lives in the existing
+<code>scene.captureMeta.recovery</code> field with format
+<code>NESForgeNativeBackgroundRecovery</code>, version 1. Schema 12
+remains unchanged. IDs bind source SHA-256, method and resource key.
+Reports are bounded to 256 KiB. The original source is not stored as the
+active project's <code>importedRom</code>. Later edits leave the import
+evidence historical. Invalid optional evidence does not delete ordinary
+project content; explicit evidence operations reject malformed
+reports.</p>
+<p>Detached viewer compilation requires <code>{allowViewer:true}</code>
+and mapper 0. It uses the ordinary BuildGraph/RuntimeCompiler path; no
+live-project swapping, emitter copy or ROM publication is used for
+preview. Settings/movement preview defaults and raw recipe-v1 algorithms
+remain unchanged.</p>
+<h2 id="verification-and-remaining-acceptance">Verification and
+remaining acceptance</h2>
+<p><code>tools/build_native_background_examples.cjs</code> writes the
+two independent editable projects, static viewer ROMs and recovery
+records in <code>examples/RE_Native_Background/</code>. Its Manifest
+records exact source, application and output hashes. Focused suites
+cover source mutations, palette aliases, pointer ordering, bounded
+refusals, immutable staging, transactions, actual UI handlers,
+save/reopen and actual generated-ROM graphics after useful edits.
+Original CPU/PPU comparisons independently check both adapters.</p>
+<p>The full release gate retains all 1,541 cases / 72 parent suites and
+adds the declared A1 suites. Current Summary and the native-background
+clean-extraction proof establish actual outcomes.
+Browser-native-background exercises the visible workflow separately; an
+unavailable Chromium launch is blocked with zero checks. VM/CPU/PPU
+results are not actual browser rendering, native dialog,
+independent-emulator, speaker, phone or physical-console acceptance.
+Owner acceptance of this finite A1 subset remains explicit; the complete
+roadmap/manual remain unfinished.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

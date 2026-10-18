@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Native music
+transcription into AUDIO · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#native-music-transcription-into-audio">Native music
+transcription into AUDIO</a><a class="level2" href="#try-the-included-example">Try the included example</a><a class="level2" href="#what-changes-in-the-project">What changes in the project</a><a class="level2" href="#supported-conversion-and-refusals">Supported conversion and
+refusals</a><a class="level2" href="#safe-review-and-persistence">Safe review and persistence</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1 id="native-music-transcription-into-audio">Native music
+transcription into AUDIO</h1>
+<p>Native sound-effect transcription is a separate selection in the same
+Audio workflow. See <code>NATIVE_SFX_IMPORT.md</code> for its
+single-pulse scope and timing requirements. The music procedure below
+retains its established behavior and does not import SFX
+automatically.</p>
+<p>This feature turns a supported FamiTone2 music excerpt into ordinary
+editable Forge patterns and instruments. It uses the currently analyzed
+native ROM copy, including any native note edits you have applied. The
+original ROM and the emulator remain unchanged.</p>
+<p>This is <strong>score transcription</strong>, not lossless replay of
+the original engine. The source driver and Forge differ in timer tuning,
+pulse retrigger behavior and triangle control. Native SFX, gameplay
+sound triggers and song switching are not imported. Review the preview
+before confirming.</p>
+<h2 id="try-the-included-example">Try the included example</h2>
+<ol type="1">
+<li>Open <strong>RE / DISASM → General ROM Analysis</strong>. Select
+<code>examples/RE_Native_Audio/HonkeyPong-reproduced.nes</code> and
+choose <strong>Open for analysis</strong>.</li>
+<li>In <strong>Native audio · FamiTone2 profile</strong>, choose
+<strong>Analyze current ROM</strong>. Keep <strong>Native
+subsong</strong> at <code>0</code> for the first test.</li>
+<li>Find <strong>Transcribe native music into AUDIO</strong> below the
+native edit/export controls. Keep <strong>Native rows in excerpt
+(1–1024)</strong> at <code>64</code>.</li>
+<li>Choose <strong>Preview import to AUDIO</strong>. This reads the ROM
+and checks the proposed Audio data without adding anything to your
+project. Read the warnings, limitations and <strong>Conversion
+evidence</strong>.</li>
+<li>Choose <strong>Transcribe music into AUDIO</strong>. Confirm only
+after reviewing the dialog: it replaces the music order and global
+tempo/speed, appends new patterns and instruments, and retains the
+existing pattern and instrument records.</li>
+<li>Open <strong>AUDIO</strong> yourself to inspect or edit the imported
+score. The import does not start playback or change the active tab. Use
+the normal Audio preview when ready.</li>
+<li><strong>Save Project As</strong> preserves the editable score in the
+project JSON. Reopen it normally. One project <strong>Undo</strong>
+restores the previous Audio data; <strong>Redo</strong> reapplies
+it.</li>
+<li>When you choose to build, open <strong>AUDIO → NES Runtime</strong>
+and enable <strong>Compile Audio Runtime</strong> and <strong>Autoplay
+tracker order as music</strong>. Import preserves your current runtime
+settings. Complete ROM compilation still checks your scene, gameplay and
+ROM capacity constraints.</li>
+</ol>
+<p>For the packaged reproduced input and the default 64-row pattern
+size:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Selected native subsong</th>
+<th style="text-align: right;">Native rows</th>
+<th style="text-align: right;">Music frames</th>
+<th style="text-align: right;">Cut/silent padding frames</th>
+<th style="text-align: right;">Notes</th>
+<th style="text-align: right;">New patterns</th>
+<th style="text-align: right;">New instruments</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">413</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">383</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table></div>
+<p>The padding count includes the terminal cut frame. Pattern counts and
+padding change with the active project's pattern row size. Source
+identification depends on the supported linked driver and data
+structure, not the filename or a ROM hash allowlist.</p>
+<h2 id="what-changes-in-the-project">What changes in the project</h2>
+<p>The transcription appends new patterns and instruments and rebases
+their references after the existing records. It replaces the music
+order, tempo and speed. <strong>Tempo 150 and speed 1 make one canonical
+tracker row one NTSC video frame.</strong> The Audio Runtime
+enabled/music-enabled settings remain as you set them.</p>
+<p>Existing SFX definitions and their referenced patterns are retained.
+<strong>Their playback timing follows the new project-wide tempo/speed
+and may change.</strong> Test existing SFX after importing; Undo
+restores the previous tempo and speed as well as the previous song.</p>
+<p>The source music is flattened into a finite excerpt, cut, and padded
+to complete patterns. Forge repeats that entire new music order,
+including the padding. This does not recreate the original engine's
+start, intro, loop, pause, song-switching or game-call behavior.</p>
+<h2 id="supported-conversion-and-refusals">Supported conversion and
+refusals</h2>
+<p>This transcription uses the same bounded linked FamiTone2 profile as
+native Audio analysis. It supports the selected subsong's proven
+note/cut schedule and global speed changes, converted to NTSC
+video-frame rows. Supported volume and arpeggio envelopes become
+canonical envelopes. Effective source periods are mapped to nearby
+canonical pitches; the preview reports the changed mappings and maximum
+tuning difference. The sample's maximum difference is approximately 4.55
+cents; other supported inputs have their own measured results.</p>
+<p>The converter refuses data it cannot represent: unsupported profiles,
+PAL conversion, DPCM in the selected window, nonzero native pitch
+envelopes, short-mode noise, invalid or unrepresentable envelope/note
+data, pause/stop speed commands, and requests beyond the stated work or
+authoring limits. Refusal leaves the project unchanged. General ROM
+inspection and native-copy editing remain available independently.</p>
+<p>Choose 1–1024 native rows. The converter also bounds the output to
+16,384 video frames, 255 imported patterns and 255 instruments before
+considering the current project's existing content. A preview can still
+be refused when the existing and new data exceed the project or Audio
+Runtime limits, or existing Audio records cannot compile with the
+proposed music. Fix the reported data or use a shorter excerpt/project;
+the importer never silently removes existing records to make room.</p>
+<p>The Audio Runtime data estimate shown in the preview is <strong>not a
+complete ROM-fit guarantee</strong>. The actual build also contains your
+graphics, scenes, gameplay and other data.</p>
+<h2 id="safe-review-and-persistence">Safe review and persistence</h2>
+<p>Changing the inspected ROM, applying or undoing a native edit,
+changing the native subsong, editing the project, opening another
+project, or changing the excerpt length makes an old preview unusable.
+Preview again. The importer revalidates both the ROM copy and project
+before confirmation and again before the single project edit.</p>
+<p>Cancel leaves the project and history unchanged. The importer does
+not play, reset or load a ROM into the emulator. Text entry uses the
+normal device keyboard and does not feed emulator controls.</p>
+<p>Only the resulting canonical score is added to the project. The
+native editing session and transcription preview are separate temporary
+investigation state. To keep native ROM edits, use <strong>Download
+native ROM copy</strong>; saving the Forge project alone does not save
+that native session. <strong>Download transcription evidence</strong>
+saves the complete last successful conversion preview or imported
+conversion as a JSON report. It retains the original/current native ROM
+hashes, options, source byte ranges, frame schedule, pitch differences
+and limitations. It remains historical evidence after you change the
+source or project; it does not prove the current project still matches
+that report. A new preview replaces the old report. The report is not an
+importable project or native session, and it contains no complete ROM
+image or project snapshot. The visible evidence view is bounded to 32
+KiB for readability; the download contains the full report.</p>
+<p>Automated model, UI-handler and logical APU tests are separate from
+real browser layout, listening, phone, controller or NES hardware
+acceptance. Consult the current candidate review checklist for those
+outstanding checks.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

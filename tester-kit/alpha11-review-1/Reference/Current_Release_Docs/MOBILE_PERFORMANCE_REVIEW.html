@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mobile Play
+presentation review — September 30, 2026 · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#mobile-play-presentation-review--september-30-2026">Mobile Play
+presentation review — September 30, 2026</a><a class="level2" href="#exact-inputs">Exact inputs</a><a class="level2" href="#what-changed">What changed</a><a class="level2" href="#reproduced-reduction-in-requested-dom-work">Reproduced reduction
+in requested DOM work</a><a class="level2" href="#timing-finding-reserved-for-measured-follow-up">Timing finding
+reserved for measured follow-up</a><a class="level2" href="#quick-same-device-comparison">Quick same-device comparison</a><a class="level2" href="#reproduce-the-call-count-probe">Reproduce the call-count
+probe</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1 id="mobile-play-presentation-review--september-30-2026">Mobile Play
+presentation review — September 30, 2026</h1>
+<p>Candidate: <strong>1.9.0 Alpha / mobile-play-2</strong>. This is a
+bounded reduction in unnecessary presentation work, not a confirmed fix
+for the owner's phone lag. Physical controller, browser layout, speaker
+timing and device performance observations remain open.</p>
+<h2 id="exact-inputs">Exact inputs</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Artifact</th>
+<th>SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Prior mobile-play-1</td>
+<td><code>e7c75ccd43007c46b5e0336105f6551f4b6183cc39730802cd1fba226eb7fe12</code></td>
+</tr>
+<tr class="even">
+<td>New mobile-play-2</td>
+<td><code>4fc607a6cbdbdfed027db10df138c64f8bfe5fa95fc7a46063041313cb63ad62</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The prior mobile application is retained in
+<code>baseline/NES_Forge_1.9.0_Mobile_Play_1_Reference.html</code>. Its
+702/702 result is historical. The new full clean-extraction result is
+recorded in <code>test-results/candidate/Summary.json</code>; only that
+file certifies these new application bytes.</p>
+<h2 id="what-changed">What changed</h2>
+<ul>
+<li>While expanded Play hides the editor, defer the original sidebar's
+DOM redraw. Restore the latest sidebar state once when leaving Play,
+including tab, dialog and fullscreen exit paths.</li>
+<li>Fit the canvas on ResizeObserver and existing resize/view events.
+Keep the timer fallback when ResizeObserver is unavailable, and skip
+identical CSS dimension writes.</li>
+<li>Identify the new application as mobile-play-2.</li>
+</ul>
+<p>Only <code>src/services/emulator-play-ui.js</code> and
+<code>src/services/release-info.js</code> changed among production
+source files. Input safety polling, original canvas uploads, all legacy
+source, CPU/PPU/APU execution, frame scheduling, audio buffering,
+capture, Save As, CHR rendering, project schema and generated-ROM
+semantics remain intact. Protected-source and whole-ROM tests remain
+required; their hashes/oracles were not relaxed.</p>
+<h2 id="reproduced-reduction-in-requested-dom-work">Reproduced reduction
+in requested DOM work</h2>
+<p>Both applications were run through the same portable probe with a
+mock DOM. The numbers are call counts, not elapsed time, FPS or measured
+phone improvement.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Controlled operation</th>
+<th style="text-align: right;">mobile-play-1</th>
+<th style="text-align: right;">mobile-play-2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Canvas uploads for 60 expanded render calls</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">60</td>
+</tr>
+<tr class="even">
+<td>Palette rebuilds for those calls</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td>Palette span requests for those calls</td>
+<td style="text-align: right;">1,920</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td>DOM lookups for those calls</td>
+<td style="text-align: right;">1,800</td>
+<td style="text-align: right;">540</td>
+</tr>
+<tr class="odd">
+<td>Screen bounds reads over 5 unchanged Play ticks, with
+ResizeObserver</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td>CSS size writes over those ticks</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table></div>
+<p>Leaving Play refreshes the deferred sidebar once; repeating Exit adds
+no work. Input/pointer call counts remain unchanged. The focused
+presentation suite includes six added cases covering rendering
+preservation, exit restoration, no pending work, observer-driven
+resizing, observer-unavailable fallback and paused reentry. Four new
+assertions fail on the prior mobile candidate and pass on the new
+candidate; two guard preserved behavior.</p>
+<p>Evidence and portable probes are under
+<code>docs/performance-evidence/presentation/</code> and
+<code>docs/performance-evidence/timing/</code>. The prior-candidate
+regression report is in
+<code>docs/performance-evidence/baseline-regressions.json</code>.</p>
+<h2 id="timing-finding-reserved-for-measured-follow-up">Timing finding
+reserved for measured follow-up</h2>
+<p>Synthetic execution of the unchanged scheduler at 30 Hz callbacks and
+11 ms per emulated frame produces 300 frames instead of 600 over ten
+seconds, with 99 simulated audio underruns. At 30 Hz with 4 ms frames,
+it produces 600 frames and no underruns. This exposes a conditional
+interaction between the fixed 10 ms processing slice and discarded frame
+debt. It does <strong>not</strong> establish that the owner's phone
+encounters those conditions.</p>
+<p>This candidate leaves scheduler/audio policies unchanged. The status
+line's frame time excludes rendering and audio-scheduling costs, and
+buffered milliseconds are not speaker latency. Muting does not stop
+emulated audio work. Preserve these distinctions during testing.</p>
+<h2 id="quick-same-device-comparison">Quick same-device comparison</h2>
+<ol type="1">
+<li>Use the same phone/browser, ROM, sound output and opening method for
+both candidates. Note exact model, OS/browser version and whether the
+symptom is slow gameplay, uneven motion, late response, delayed sound or
+audio gaps.</li>
+<li>In each build, run the same short route in ordinary Emulator view,
+then expanded Play view. Compare portrait/landscape and pause/resume.
+Record observations before screen recording, since recording can add
+work.</li>
+<li>Capture the ordinary view's FPS, frame milliseconds, buffered audio,
+gap and resync readings before entering and after leaving Play. These
+are clues, not a precise average for the entire expanded interval.</li>
+<li>Confirm that Exit restores up-to-date sidebar values;
+rotation/hiding touch still fits the canvas; controls release after
+interruptions; project save/build/capture behavior remains normal.</li>
+</ol>
+<p>Use <code>examples/Scout_Audio_Runtime_1.8.nes</code> when an
+original supplied ROM with sound is needed, or use the exact ROM that
+showed the issue. Record which one was used. A silent tutorial ROM
+cannot establish speaker behavior.</p>
+<p>Physical USB/Bluetooth tests and physical NES-console tests remain
+distinct, unperformed checks. Browser automation, if blocked, must
+report zero executed checks. This package does not promote the
+alpha.</p>
+<h2 id="reproduce-the-call-count-probe">Reproduce the call-count
+probe</h2>
+<p>From the extracted source root:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> docs/performance-evidence/presentation/probe.cjs .</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> docs/performance-evidence/presentation/probe.cjs baseline/NES_Forge_1.9.0_Mobile_Play_1_Reference.html .</span></code></pre></div>
+<p>The timing probe accepts the HTML and harness explicitly; it writes
+its result beside the probe, so run it in a scratch copy if preserving
+the packaged evidence unchanged:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> docs/performance-evidence/timing/probe.cjs mainline/NES_Forge_1.9.0_Gameplay_Core.html tests/harness.cjs</span></code></pre></div>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

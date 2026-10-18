@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Multi-file source workspace · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#multi-file-source-workspace">Multi-file source workspace</a><a class="level2" href="#supported-workflow">Supported workflow</a><a class="level2" href="#declared-dialect-and-build-profile">Declared dialect and build
+profile</a><a class="level2" href="#bounds-and-isolation">Bounds and isolation</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1 id="multi-file-source-workspace">Multi-file source workspace</h1>
+<p>This candidate adds a bounded source migration workflow in
+<strong>CODE → Open source workspace</strong>. The workflow keeps its
+files separately from the active Forge project. Building source does not
+replace the project, load the emulator, or insert generated gameplay or
+Audio Runtime code.</p>
+<p>Use <strong>Open multi-file example</strong> for a self-contained
+starting point. It has an entry file, two included source files, a
+macro, binary data and vectors. <strong>Build source ROM</strong>
+assembles a real mapper 0 ROM. Download the result, switch to EMULATOR
+and load that ROM to test it. The example deliberately displays no
+graphics; its reset routine reads the inserted data byte <code>70</code>
+into RAM <code>$0000</code> and then loops. The regression runs the
+resulting ROM's CPU instructions and verifies that behavior.</p>
+<h2 id="supported-workflow">Supported workflow</h2>
+<ol type="1">
+<li>Import source files or a source folder. Folder import retains the
+browser's relative paths, including the selected folder name.</li>
+<li>Select an entry file and 16 or 32 KiB PRG. Select mirroring and
+either an 8192-byte CHR file or CHR RAM.</li>
+<li>Pick a file in <strong>Edit file</strong>. Use the native text
+editor. Changing files, building or exporting commits the text draft
+into the workspace. Original imported bytes remain preserved.</li>
+<li>Build. Errors show source paths and one-based line numbers,
+including errors inside included source. Macro diagnostics point to the
+invocation line, as in the existing assembler.</li>
+<li>Download the source ROM, expanded ASM, and/or symbols and source
+map. The source map describes preprocessing; it is not an
+instruction-by-instruction debugger map. Symbols are actual values
+published by the assembler.</li>
+<li><strong>Save source workspace</strong> before closing the page.
+Reopen its <code>.nesforge-source.json</code> through <strong>Open saved
+source workspace</strong>. This is separate from the ordinary project
+JSON workflow.</li>
+</ol>
+<p><strong>Export source ZIP</strong> contains
+<code>workspace.nesforge-source.json</code>, the current file tree under
+<code>current/</code>, and the original imported file tree under
+<code>original/</code>. Bytes are preserved exactly until a user edits a
+file; edited text is encoded as UTF-8. Exported ZIP names explicitly use
+UTF-8. Extract the ZIP and open its workspace JSON to restore it. ZIP
+import is not part of this initial source profile.</p>
+<h2 id="declared-dialect-and-build-profile">Declared dialect and build
+profile</h2>
+<p>The dialect is <code>forge-6502-v1</code>: the existing Forge
+assembler's official 6502 instructions, constants, labels, expressions,
+macros and data/reserve directives. The source workspace adds
+deterministic preprocessing of:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode asm"><code class="sourceCode fasm"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>.<span class="bu">include</span> <span class="st">&quot;src/boot.asm&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>.incbin <span class="st">&quot;assets/data.bin&quot;</span></span></code></pre></div>
+<p>Paths are case-sensitive and relative to the including file.
+<code>../</code> can refer to a parent inside the workspace; paths that
+leave its root are rejected. Absolute paths, drive prefixes, backslashes
+and control characters are rejected. Includes use one literal quoted
+path. Binary offset/length arguments and computed include paths are not
+supported. <code>.incbin</code> inserts bytes into PRG at the current
+assembly address. The separately selected CHR file becomes CHR ROM.</p>
+<p>The profile emits an iNES mapper 0 image with 16/32 KiB PRG and
+either 8 KiB CHR ROM or CHR RAM. It requires all three vectors and an
+emitted PRG target for each vector. It rejects writes below
+<code>$8000</code>, PRG mirroring aliases, overlaps, and unsupported
+sizes. There is no battery, mapper switch, object linker, memory
+allocator, or generated-runtime hook in this profile.</p>
+<p>The workspace does not translate ca65, NESASM, NESmaker-specific
+scripts or Lua. Foreign source is retained as files, while an
+unsupported statement or dialect receives an explicit build error. Lua
+entry files receive a host-language diagnostic. There is no source
+evaluation as JavaScript. No cross-engine migration or original-game
+behavior equivalence is claimed from the included example.</p>
+<h2 id="bounds-and-isolation">Bounds and isolation</h2>
+<p>The workspace supports 256 files, 1 MiB per file, 4 MiB of current
+bytes and 4 MiB of preserved originals. Expanded source is bounded to 1
+MiB / 65,536 lines, include depth 32 and 512 include visits. Individual
+binary insertions cannot exceed 32 KiB. Macro recursion and expansion
+are checked before invoking the existing assembler, including a
+65,536-visit bound for empty macro fan-out, emitted macro-label
+accounting, and expansion-size estimates before parameter
+substitution.</p>
+<p>The build adapter temporarily supplies expanded source to the
+existing assembler, captures its writes and symbols, and restores the
+project's assembly source, diagnostics and binary state in a
+<code>finally</code> block. The editor project and emulator remain
+unchanged on success and failure. UI text edits invalidate a prior build
+so it cannot be downloaded as the current result. File and
+saved-workspace imports also check the source revision after
+asynchronous reading: edits or build-setting changes made while an
+import is loading cause the replacement to be refused, retaining the
+current work.</p>
+<p>Automated verification lives in
+<code>tests/source-workspace.cjs</code> and
+<code>tests/source-workspace-ui.cjs</code>. It covers ROM execution,
+original byte/ZIP round trips, deterministic output,
+alias/vector/encoding/path errors, bounded includes and macros, failure
+isolation, imports, native editing contracts, source configuration,
+exports, cancellation and stale asynchronous reads. DOM harness checks
+do not establish a physical mobile keyboard, visual layout or browser
+download-dialog pass.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

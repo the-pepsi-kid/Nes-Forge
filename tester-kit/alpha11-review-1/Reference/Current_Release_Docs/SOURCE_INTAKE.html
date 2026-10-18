@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Inspect supplied
+source before migration · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#inspect-supplied-source-before-migration">Inspect supplied
+source before migration</a><a class="level2" href="#try-the-examples">Try the examples</a><a class="level2" href="#interpret-the-report">Interpret the report</a><a class="level2" href="#preserve-your-work">Preserve your work</a><a class="level2" href="#evidence-and-remaining-review">Evidence and remaining
+review</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1 id="inspect-supplied-source-before-migration">Inspect supplied
+source before migration</h1>
+<p>Source intake adds a read-only diagnostic report to <strong>CODE →
+Open source workspace</strong>. It helps you identify what a supplied
+source tree contains and what remains unresolved before attempting
+migration. It preserves the existing workspace, assembler and project
+framework.</p>
+<h2 id="try-the-examples">Try the examples</h2>
+<p>Open a <code>.nesforge-source.json</code> file from
+<code>examples/Source_Intake/</code> using <strong>Open saved source
+workspace</strong>. The Forge multi-file example is the existing
+supported build control. The DABG example preserves the independently
+supplied ca65 source, including binary assets and its build/linker
+inputs; its configured entry is <code>dabg.s</code>.</p>
+<p>Select the source dialect before analysis. For DABG choose
+<strong>ca65</strong>. For the Forge example choose
+<strong>forge-6502-v1</strong>. Engine and version fields are
+declarations you supply, not inferred or authenticated facts. Leaving
+them unspecified keeps that uncertainty visible. A filename-based entry
+default is only a convenience: choose the actual entry used by the
+supplied build.</p>
+<p>Choose <strong>Analyze source</strong> and review the report. It
+records current/original file identities, configured entry and build
+settings, literal dependency evidence, unsafe or unresolved paths,
+cycles, unsupported constructs and uncertainty. The on-screen inventory,
+dependency and diagnostic sections show bounded excerpts with
+omitted-row counts; exported JSON retains every recorded row. Use
+<strong>Export intake report JSON</strong> to save its JSON. This report
+is separate from the editable workspace and its ZIP backup.</p>
+<p>The supplied DABG tree contains many unsupported foreign constructs.
+Its bounded report may reach the diagnostic cap and is then explicitly
+marked <strong>incomplete</strong>; this does not mean missing findings
+were validated. Check its generated Manifest for the actual measured
+coverage.</p>
+<p>Whole-workspace identities include the configured entry and build
+settings. The original-byte workspace identity can therefore change when
+those settings change; each file’s original-byte hash remains the direct
+preservation check.</p>
+<h2 id="interpret-the-report">Interpret the report</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Finding</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>File inventory</td>
+<td>The bytes currently supplied, including files outside the configured
+entry graph</td>
+</tr>
+<tr class="even">
+<td>Literal include or binary reference</td>
+<td>An observed directive and its file/line; resolution uses the bounded
+workspace path rules</td>
+</tr>
+<tr class="odd">
+<td>Missing or unresolved dependency</td>
+<td>The referenced file was not resolved inside the supplied workspace;
+foreign include-search paths and generated files may still be
+required</td>
+</tr>
+<tr class="even">
+<td>Conditional or macro dependency</td>
+<td>Text was observed, but this inspection did not execute the branch or
+macro to prove its active build dependency</td>
+</tr>
+<tr class="odd">
+<td>Unsupported construct</td>
+<td>The current Forge assembler profile does not establish support for
+that syntax or declared dialect</td>
+</tr>
+<tr class="even">
+<td>Linker configuration or build script</td>
+<td>Supplied build inputs are inventoried; commands and linker semantics
+are not executed or reconstructed</td>
+</tr>
+<tr class="odd">
+<td>No known lexical blocker</td>
+<td>Inspection found no blocker within its scope; this is not a
+successful assembly, linking or gameplay-migration result</td>
+</tr>
+<tr class="even">
+<td>Incomplete inspection</td>
+<td>A declared work/report limit was reached; omitted work is not
+counted as validated</td>
+</tr>
+</tbody>
+</table></div>
+<p>Symbols, external routines, macro expansion, relocation, linker
+allocation, cycle timing and total cartridge capacity require their own
+build/integration validation. Even a complete intake report cannot
+establish compatibility with every assembler or engine. Lua and host
+scripts remain source text, not cartridge-executable code.</p>
+<h2 id="preserve-your-work">Preserve your work</h2>
+<p>Native edits continue to preserve original bytes. <strong>Save source
+workspace</strong> saves current and original files in workspace v1;
+<strong>Export source ZIP</strong> retains the established archive
+contents. Diagnostic declarations are session state and report metadata,
+so select the correct dialect again after opening a saved workspace.
+Successful replacement or opening the built-in example resets
+declarations to unspecified; a failed replacement keeps the existing
+document and declarations.</p>
+<p>Editing files, changing entry/build settings or declarations,
+starting a replacement, or cancelling analysis invalidates the current
+report. A late analysis result must not overwrite newer work or become
+downloadable as current evidence. Report export uses the existing Save
+As path.</p>
+<p>An explicitly declared foreign dialect blocks <strong>Build source
+ROM</strong> in this UI. Selecting the Forge profile is not translation:
+actual source must still pass the unchanged assembler and NROM builder.
+With unspecified declarations, the established build path remains
+available and checks the actual source. Source builds remain independent
+of the active authored game; intake never inserts generated gameplay,
+Audio, runtime hooks or source into the emulator.</p>
+<h2 id="evidence-and-remaining-review">Evidence and remaining
+review</h2>
+<p>Automated cases inspect the actual standalone application,
+independent supplied files and exact parent behavior. Current outcomes
+belong to the matching candidate Summary and clean-extraction proof.
+Browser rendering, file pickers, keyboard interaction and native
+download dialogs still require browser evidence. No browser, listening,
+device/controller or physical NES acceptance follows from a VM test.</p>
+<p>The next migration item requires a selected routine and an explicit
+integration contract: inputs/results, registers and flags, RAM/zero-page
+ownership, code placement, hook timing and resource budgets. This report
+provides intake evidence for that decision.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

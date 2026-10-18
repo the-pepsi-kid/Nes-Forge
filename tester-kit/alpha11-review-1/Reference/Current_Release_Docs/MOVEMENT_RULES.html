@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Movement rules — NES
+Forge 2.0.0-alpha.11 · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#movement-rules--nes-forge-200-alpha11">Movement rules — NES
+Forge 2.0.0-alpha.11</a><a class="level2" href="#first-variation">First variation</a><a class="level2" href="#presets-and-intensity">Presets and intensity</a><a class="level2" href="#seeds-locks-and-shuffle">Seeds, locks and shuffle</a><a class="level2" href="#candidate-projects-and-movement-recipes">Candidate projects and
+movement recipes</a><a class="level2" href="#combining-assets-and-movement">Combining assets and
+movement</a><a class="level2" href="#what-to-test-in-play">What to test in play</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1 id="movement-rules--nes-forge-200-alpha11">Movement rules — NES
+Forge 2.0.0-alpha.11</h1>
+<p>Current candidate: compatibility-stabilization-1. The versioned
+recipe adapter can verify and reissue a recipe when the only source
+difference is reviewed alpha.10/alpha.11 foundation metadata. All other
+source content remains exact. See
+<code>COMPATIBILITY_STABILIZATION.md</code>.</p>
+<p>Movement rules turns the current project's existing player movement
+settings into repeatable variations. Open <strong>SCENE → Movement
+rules</strong>. The panel is separate from Seeded mashup and starts at
+<strong>Keep current</strong>.</p>
+<p>This edition supports run speed, initial jump speed, gravity and
+maximum falling speed in a compatible, enabled generated World or
+single-room runtime. The selected runtime, player body dimensions, scene
+layouts, actor definitions, audio, imported ROM and native analysis
+session stay as authored. Changes become part of a generated NES ROM
+when you use the ordinary build controls.</p>
+<h2 id="first-variation">First variation</h2>
+<ol type="1">
+<li>Open a compatible editable Forge project using the ordinary
+<strong>Open Project</strong> command. An enabled generated World or
+single-room runtime is required; this panel does not enable one for
+you.</li>
+<li>Open <strong>SCENE → Movement rules</strong> and choose <strong>Use
+current project</strong>. The captured project is the exact base for
+previews and recipes. Its displayed SHA-256 identifies canonical project
+content; it is not a checksum of the original JSON file's whitespace or
+key order.</li>
+<li>Choose a <strong>Movement preset</strong> and
+<strong>Intensity</strong>. Enter a text or number <strong>Seed</strong>
+with 1–128 characters. Start with <strong>High jump</strong>, intensity
+<strong>3</strong>, for a visible jump-speed change from the common
+default of 9 to 12.</li>
+<li>Choose <strong>Preview rules</strong>. Review the full
+<strong>Before / After</strong> table, runtime backend and validation
+notices. Preview does not apply settings, start the emulator or play
+audio.</li>
+<li>Choose <strong>Apply rules</strong>, review its exact values and
+confirm. This makes one Undo entry. Continue editing, use <strong>Save
+Project As</strong>, then build and play through the normal
+workflow.</li>
+<li>Use <strong>Undo</strong> to restore the pre-Apply project, or
+<strong>Redo</strong> to return to the variation. After any change to
+the project, choose <strong>Use current project</strong> again before
+generating another variation.</li>
+</ol>
+<p>If the settings are already the preset's values, preview reports
+<strong>No effective changes</strong> and disables Apply. Candidate and
+recipe downloads remain available.</p>
+<h2 id="presets-and-intensity">Presets and intensity</h2>
+<p>Numbers are absolute targets for the named fields; other fields
+retain their captured base values unless a previous preview has locked
+them. A larger preset intensity is a stronger named effect, not a
+promise that every game becomes harder.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Preset</th>
+<th>Intensity 1</th>
+<th>Intensity 2</th>
+<th>Intensity 3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Keep current</td>
+<td>Base values</td>
+<td>Base values</td>
+<td>Base values</td>
+</tr>
+<tr class="even">
+<td>Sprint</td>
+<td>Run speed 2</td>
+<td>Run speed 3</td>
+<td>Run speed 4</td>
+</tr>
+<tr class="odd">
+<td>High jump</td>
+<td>Jump speed 10, gravity 1</td>
+<td>Jump speed 11, gravity 1</td>
+<td>Jump speed 12, gravity 1</td>
+</tr>
+<tr class="even">
+<td>Slow fall</td>
+<td>Maximum fall speed 4, gravity 1</td>
+<td>Maximum fall speed 2, gravity 1</td>
+<td>Maximum fall speed 1, gravity 1</td>
+</tr>
+<tr class="odd">
+<td>Heavy fall</td>
+<td>Gravity 2, maximum fall speed 6</td>
+<td>Gravity 2, maximum fall speed 7</td>
+<td>Gravity 3, maximum fall speed 8</td>
+</tr>
+<tr class="even">
+<td>Seeded mix</td>
+<td>Choose within ±1 of each base value, bounded by the supported
+limits</td>
+<td>Choose within ±2 of each base value, bounded by the supported
+limits</td>
+<td>Choose across the full supported range</td>
+</tr>
+</tbody>
+</table></div>
+<p>Supported integer ranges are run speed <strong>1–4</strong>, jump
+speed <strong>1–12</strong>, gravity <strong>1–3</strong>, and maximum
+fall speed <strong>1–8</strong>. Speeds are pixels per game frame;
+gravity is the downward speed change per game frame. Initial jump speed
+is upward. Runtime collision and velocity processing affect the
+resulting trajectory, so the table is a settings comparison rather than
+a simulated jump-height chart. Wall-clock speed follows the emulator or
+hardware frame rate.</p>
+<h2 id="seeds-locks-and-shuffle">Seeds, locks and shuffle</h2>
+<p>The same exact base project, seed, preset, intensity and lock history
+reproduce the same candidate. Preview once, then lock any combination of
+<strong>run speed</strong>, <strong>jump speed</strong>,
+<strong>gravity</strong> and <strong>maximum fall speed</strong>. Locks
+retain the selected values from that successful preview, including when
+you change presets or intensity.</p>
+<p><strong>Shuffle unlocked</strong> selects <strong>Seeded mix</strong>
+and advances the seed with a numbered suffix. Locked values stay fixed.
+Independent random selection can produce the same values on some
+shuffles; a new seed does not guarantee a change. Unlock a field to let
+a new preview choose its value again. <strong>Use current
+project</strong> discards the old preview and clears all four locks
+because their previous selection belonged to the earlier capture.</p>
+<p>A lock before the first successful preview is refused. <strong>Keep
+current</strong> restores the captured base values only for unlocked
+fields.</p>
+<h2 id="candidate-projects-and-movement-recipes">Candidate projects and
+movement recipes</h2>
+<p><strong>Download candidate project</strong> saves an ordinary
+editable Forge JSON containing the previewed values without applying
+them to the active editor. Open it normally to edit or build. Downloads
+use Forge's existing Save As workflow; cancelling leaves the candidate
+and active project intact.</p>
+<p><strong>Download recipe</strong> saves a
+<code>NESForgeMovementRecipe</code> JSON. It records its exact base
+identity, seed, preset, intensity, locks and verified decisions. It does
+not contain the base project's graphics, scenes or audio.</p>
+<p>To replay:</p>
+<ol type="1">
+<li>Open the exact original base project used before that recipe's
+Apply.</li>
+<li>Choose <strong>Use current project</strong> in Movement rules.</li>
+<li>Use <strong>Open saved movement recipe</strong> and select the
+recipe JSON.</li>
+<li>Review its restored preview, then choose Apply or download
+explicitly.</li>
+</ol>
+<p>The source project must fit within <strong>8 MiB</strong> and pass
+canonical Forge schema-12 validation. Recipes are limited to <strong>64
+KiB</strong>. Wrong-source, malformed, modified or unsupported recipes
+are refused. A previously applied candidate is a different project and
+is not the original base for replaying its recipe.</p>
+<p>The panel checks the complete serialized active project and its load
+epoch before and after asynchronous work and confirmation. Editing or
+reloading the project makes a captured preview stale, even if the
+movement fields were not the ones edited. Recapture and preview
+again.</p>
+<h2 id="combining-assets-and-movement">Combining assets and
+movement</h2>
+<p>Seeded mashup continues to use its own version-1 recipe format and
+controls. To combine both features:</p>
+<ol type="1">
+<li>Preview and <strong>Apply mashup</strong> in Seeded mashup.</li>
+<li>Save that intermediate project if you want to replay a movement
+recipe later.</li>
+<li>In Movement rules, choose <strong>Use current project</strong> to
+capture the newly combined assets.</li>
+<li>Preview and <strong>Apply rules</strong>.</li>
+</ol>
+<p>These are two explicit edits with separate Undo entries. One Undo
+after step 4 restores the asset mashup with its prior movement settings.
+A second Undo restores the original project. Each recipe requires its
+own exact base: the mashup recipe's original sources, and the movement
+recipe's intermediate project. The recipe formats are not
+interchangeable.</p>
+<h2 id="what-to-test-in-play">What to test in play</h2>
+<p>Try a flat run, jump from rest, jump while running, ceiling contact,
+wall contact, landing on a thin platform and a room or World transition.
+Check whether previously reachable paths still work. Large changes can
+make a room frustrating or impossible even when its ROM compiles
+successfully.</p>
+<p>Both World and single-room previews compile a complete detached
+generated ROM, including emitted capacity checks. Preview reports the
+compiled ROM identity and size; it does not publish or play that ROM.
+Use the ordinary Build action after Apply to produce the active project
+ROM. A valid preview or compile does not certify solvability,
+audio/video timing, browser layout or physical hardware behavior.</p>
+<p>This edition uses the existing runtime's movement parameters. It does
+not add friction or ice physics, knockback, one-hit rules, timed escape,
+survival mode, larger actor limits, arbitrary original-engine code
+mixing or automatic recovery of gameplay mechanics from unknown ROMs.
+Source migration and further native asset recovery remain separate
+roadmap work.</p>
+<p>For review steps and reporting, use
+<code>MOVEMENT_RULES_CHECKLIST.txt</code>. Automated evidence covers
+specified contracts; browser walkthroughs, listening, mobile and
+physical controller/hardware acceptance must be reported separately.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

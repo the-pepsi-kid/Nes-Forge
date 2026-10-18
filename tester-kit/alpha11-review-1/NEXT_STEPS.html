@@ -1,34 +1,6 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
-<head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>NES Forge — NEXT STEPS</title>
-  <style>
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-<header id="title-block-header">
-<h1 class="title">NES Forge — NEXT STEPS</h1>
-</header>
-<h1 id="optional-second-session">Optional second session</h1>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Optional second session · NES Forge alpha.11</title><link rel="stylesheet" href="style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="START_HERE.html">Start here</a><a href="NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="Tutorial.html">Tutorial</a><a href="Manual.html">Manual</a><a href="Reference/Operator_Reference.html">Controls</a><a href="Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#optional-second-session">Optional second session</a><a class="level2" href="#give-the-character-another-piece">Give the character another
+piece</a><a class="level2" href="#inspect-a-prebuilt-actor">Inspect a prebuilt actor</a><a class="level2" href="#further-paths">Further paths</a></aside><main id="guide"><h1 id="optional-second-session">Optional second session</h1>
 <p>Complete the desktop tutorial first and save a new native JSON
 checkpoint. These options are separate experiments; you do not need them
 to finish the first-session assignment.</p>
@@ -75,9 +47,15 @@ backup.</p>
 <li><strong>Audio:</strong> Use a known sound-bearing project or ROM;
 the first tutorial is silent. Record real listening separately from
 synthetic audio tests.</li>
-<li><strong>Source Workspace:</strong> analysis inventories source and
-gives lexical diagnostics. It does not translate an arbitrary foreign
-engine into a game.</li>
+<li><strong>Source Workspace:</strong> <strong>Analyze source</strong>
+inventories files and gives lexical diagnostics. <strong>Build source
+ROM</strong> separately assembles supported <code>forge-6502-v1</code>
+source into a mapper 0 ROM. Foreign source is not automatically
+translated. Use <strong>Save source workspace</strong> for its separate
+<code>.nesforge-source.json</code> backup; ordinary project JSON does
+not include it. See the <a
+href="Reference/Current_Release_Docs/SOURCE_WORKSPACE.html">current
+source workspace guide</a>.</li>
 <li><strong>Recovery:</strong> only documented profiles can become
 editable native assets. General ROM analysis and running an original
 cartridge are distinct actions.</li>
@@ -88,5 +66,7 @@ the tested ROM.</li>
 <p>Save a fresh checkpoint before each experiment and use the feedback
 form to record where actual behavior differs from these
 instructions.</p>
-</body>
-</html>
+<p>For linked Worlds, exits, Rooms/Cameras and extended authoring
+workshops, continue with the <a href="Manual.html">full manual</a>. Read
+its alpha.11 update notes before the preserved 1.9.0 chapters.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="START_HERE.html">Back to start</a></p></main></div></body></html>

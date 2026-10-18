@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Supported recognition and
+input · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level2" href="#supported-recognition-and-input">Supported recognition and
+input</a><a class="level2" href="#evidence-retained">Evidence retained</a><a class="level2" href="#safety-and-refusal-boundaries">Safety and refusal
+boundaries</a><a class="level2" href="#pure-api">Pure API</a><a class="level2" href="#independent-evidence-and-reproduction">Independent evidence and
+reproduction</a><a class="level2" href="#reproduce-the-profile-and-relocation-derivatives">Reproduce the
+profile and relocation derivatives</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1
+id="native-audio-profile-exact-native-evidence-and-bounded-rom-edits">Native
+Audio profile: exact native evidence and bounded ROM edits</h1>
+<p>This is a partial delivery of Audio A3. It recognizes a source-backed
+FamiTone2 instruction variant, decodes native music/SFX evidence, and
+rebuilds a ROM copy through exact same-layout command-byte edits. It
+does not recover audio from every engine, import the recovered score
+into Forge's canonical Audio editor, or certify audible or hardware
+fidelity.</p>
+<h2 id="supported-recognition-and-input">Supported recognition and
+input</h2>
+<p><code>FamiTone2Native</code> is a synchronous pure JavaScript API.
+Load <code>src/re/famitone2-driver-profile.js</code> before
+<code>src/re/famitone2-native.js</code>.</p>
+<p>The profile covers the linked FamiTone2 v1.11 configuration in the
+independently published HonkeyPong source: five music channels, four SFX
+streams, and a no-op bank-switch macro. Recognition compares 606 actual
+6502 instructions, preserves internal links, and validates relocated
+RAM, zero-page, code and data references. It requires a statically
+reachable immediate initialization call whose argument setup has no
+alternate branch/jump entry. No filename, whole-ROM recognition hash,
+HonkeyPong data pointer or fixed game address selects support.</p>
+<p>Accepted containers are iNES mapper 0, 16 or 32 KiB PRG, CHR RAM or
+one 8 KiB CHR bank, and an optional 512-byte trainer. Declared and
+actual lengths must agree; the maximum is 41,488 bytes. NES 2.0,
+mapper/banking variants, other instruction builds and dynamic
+initialization patterns remain outside this profile. Static reachability
+follows direct branches/calls/jumps and stops at unknown or indirect
+control flow; it is a conservative support check, not proof of all
+runtime paths.</p>
+<p>The original source comment reverses the region flag. Actual
+instructions use A=0 for PAL and nonzero for NTSC. Both stored tempo and
+SFX region variants are decoded; the measured emulator comparison used
+NTSC.</p>
+<h2 id="evidence-retained">Evidence retained</h2>
+<ul>
+<li>Original complete-ROM SHA-256, container/mapping details, method
+version, recognition call sites, and byte/address/file-offset
+provenance.</li>
+<li>Header subsong count and all five channel pointers per song;
+PAL/NTSC fixed-point tempo steps, initial speed 6 and accumulator
+<code>$0600</code>.</li>
+<li>Native notes/cuts, instrument commands, blank runs, speed commands,
+jumps, and one-level counted references. A reference counts encoded row
+events, not expanded repeated rows. Intro and cycle positions are
+retained.</li>
+<li>Referenced eight-byte instruments, duty/control bytes, and signed
+volume/arpeggio/pitch envelopes. Instrument count is not stored, so the
+decoded inventory contains referenced records only.</li>
+<li>Envelope values −64…63, additional-frame holds, and loops with
+inherited value included in cycle state. Leading holds whose initial
+value depends on previous playback state are refused.</li>
+<li>Native period tables without substituting Forge's tuning. Pulse and
+triangle use the same native periods but different frequency
+divisors.</li>
+<li>Statically proven SFX IDs and their four-byte NTSC/PAL pointer
+records. SFX streams preserve register-buffer writes, frame delays and
+termination behavior. There is no SFX-count field, so this is explicitly
+a partial inventory.</li>
+</ul>
+<p>Channel rows are structural logical positions, not a simulated global
+frame timeline. Speed commands are global and processed in
+pulse1/pulse2/triangle/noise/DPCM order; zero or paused speed and
+cross-channel changes require playback-state analysis. Envelopes run
+every active video frame. Native SFX use louder-or-equal pulse/noise
+arbitration, active-triangle replacement and later-stream tie
+precedence. These rules are not flattened into Forge's pattern/SFX
+model.</p>
+<h2 id="safety-and-refusal-boundaries">Safety and refusal
+boundaries</h2>
+<p>Every pointer must map into the declared PRG region. Decoded data
+cannot overlap executable bytes or a different proven data role; stream
+jumps cannot enter operands. Channel decoding is limited to 8,192
+commands and 65,536 expanded rows per channel. Envelope and SFX offsets
+cannot wrap their 8-bit windows. All channels, envelopes and SFX share a
+16,384-event work/output budget. Unterminated streams, nonproductive
+loops, nested/zero-length references, invalid register opcodes,
+conflicting structures and malformed pointers return explicit
+diagnostics. Multiple initialization candidates return
+<code>ambiguous</code> and select nothing.</p>
+<p>DPCM recovery remains unsupported: this particular port's four-byte
+sample indexing disagrees with its converter's three-byte records, and
+the independent fixture contains no DPCM samples. Pitch-envelope
+effects, native tuning differences, short-mode noise, changing speeds,
+intro loops, sample playback and multichannel SFX can be retained as
+evidence without claiming canonical representability. No automatic
+canonical conversion is enabled.</p>
+<h2 id="pure-api">Pure API</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> evidence <span class="op">=</span> FamiTone2Native<span class="op">.</span><span class="fu">decode</span>(romBytes)<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">// status: decoded | unknown | invalid | ambiguous</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> rebuilt <span class="op">=</span> FamiTone2Native<span class="op">.</span><span class="fu">patch</span>(romBytes<span class="op">,</span> evidence<span class="op">,</span> [</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  {<span class="dt">song</span><span class="op">:</span> <span class="dv">0</span><span class="op">,</span> <span class="dt">channel</span><span class="op">:</span> <span class="dv">0</span><span class="op">,</span> <span class="dt">event</span><span class="op">:</span> noteEventIndex<span class="op">,</span> <span class="dt">noteCode</span><span class="op">:</span> <span class="dv">21</span>}</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>])<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// rebuilt.rom, rebuilt.evidence, rebuilt.changes,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">// rebuilt.sourceSha256, rebuilt.rebuiltSha256</span></span></code></pre></div>
+<p>A patch requires successful evidence matching the entire original
+source hash and freshly revalidates the source. Only existing one-byte
+note/cut commands or instrument-selection commands can change. Notes use
+native numeric codes: tonal 0–60, noise 0–16; zero is a cut. Instrument
+edits can select only already decoded instrument records. The existing
+empty-following-row flag is preserved. Pointer, length, timing/control,
+envelope, SFX and arbitrary-offset edits are refused.</p>
+<p>Shared byte references are reported through
+<code>changes[].affected</code>. Every affected alias is checked: a DPCM
+alias refuses the edit, and a noise alias enforces its smaller note
+range. Duplicate requests for the same physical byte are refused. Patch
+results own their ROM bytes and are decoded again before being returned;
+source ROM, editor project and emulator are not changed by these
+APIs.</p>
+<h2 id="independent-evidence-and-reproduction">Independent evidence and
+reproduction</h2>
+<p><code>examples/RE_Native_Audio/HonkeyPong-reproduced.nes</code> is
+the unchanged independent game (also named <code>independent.nes</code>
+for automated contracts). Its SHA-256 is
+<code>cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b</code>.
+The directory includes source/license provenance, declared relocation
+derivatives, symbol maps and
+<code>NES_Forge_Native_Audio_Input_Checkpoint.zip</code> with original
+sources, compatibility patch, pinned assembler and reproducible build
+instructions.</p>
+<p><code>tests/native-audio-profile200.cjs</code> loads the actual
+bundled candidate HTML. It combines 47 positive/negative core contracts,
+project/emulator nonmutation, and four native CPU/APU edit/rebuild
+checks. Contracts include source-reassembled independent code/data
+relocation and NROM32, mirrored pointers, trainer offsets, malformed
+structures, alternate-entry ambiguity, bounds, shared-byte edits, source
+identity and inherited envelope state.</p>
+<p>The measured native note-20 to note-21 edit changes one command byte
+while retaining every external-driver byte. Across 180 natural frames
+per ROM, both versions produced 2,462 APU writes; 19 pulse-low writes
+changed native period 569 to 537 at identical frame positions, and all
+other observed APU writes retained exact timing and values. This is one
+bounded edit with logical emulator evidence, not general
+sound-equivalence, listening, mobile or physical-hardware acceptance.
+The current release report records the exact tested HTML hash.</p>
+<h2 id="reproduce-the-profile-and-relocation-derivatives">Reproduce the
+profile and relocation derivatives</h2>
+<p><code>examples/RE_Native_Audio/NES_Forge_Native_Audio_Profile_Research.zip</code>
+(next to the input checkpoint) preserves the pure modules, 47-contract
+development runner, profile generator, source-reassembly scripts,
+relocation fixtures, provenance and development evidence. Extract it and
+the independent input checkpoint separately; its README gives the
+commands and explicit checkpoint path. The fresh application Summary
+remains authoritative for release acceptance; research reports retain
+their original candidate hashes. No host executables or caches are
+included.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

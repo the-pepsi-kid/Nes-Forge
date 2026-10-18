@@ -1,36 +1,53 @@
-# NES Forge alpha.11 test-kit release candidate source
+# NES Forge alpha.11 tester kit source
 
-This directory holds the **editable documentation, feedback template, fixed
-identity receipt and deterministic packaging recipe** for the alpha test kit.
-It is based on application commit
-`09f2233908bc511ffe057e3f7e885a5a42ef19ac` and does not change the
-application or its automated evidence. The release-candidate package has a
-user-facing guide; complete the separate `OWNER_REVIEW_REQUIRED.txt` before
-sending it to testers.
+This directory contains the editable kit guides, authored landing page, printable
+PDFs, reference images, and packaging recipe for **Alpha Test Kit RC2**. The
+application stays pinned to source commit
+`09f2233908bc511ffe057e3f7e885a5a42ef19ac`.
+
+## Build a download
 
 From the repository root, with Python 3 installed:
 
 ```text
-python tester-kit/alpha11-review-1/build_kit.py --output ../NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC1.zip
+python tester-kit/alpha11-review-1/build_kit.py --output ../NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC2.zip
 ```
 
-The script verifies the frozen app and Scout example hashes, includes only the
-standalone HTML, first-party example, guide and feedback form,
-then writes a SHA-256 manifest. It refuses to overwrite an existing ZIP. The
-result goes outside the repository. The owner checklist stays in Git source and
-is deliberately excluded from the user download. No external packages or
-network are needed.
+The normal packaging command needs only Python's standard library. It verifies
+the exact app and all three Scout assets, includes the checked-in documents and
+PDFs listed in `package_files.json`, and writes an integrity manifest. The ZIP is
+reproducible from those exact input files and refuses to overwrite an output.
+The owner checklist, build tools and review records remain outside the download.
 
-The `.md` files are the editable source. Their corresponding `.html` files are
-checked-in, browser-readable renderings for the offline ZIP. If a guide changes,
-update its HTML rendering as well; `pandoc --standalone --from=gfm-tex_math_dollars
---to=html5 --css=style.css` is the current rendering recipe. Check both formats
-before rebuilding. The September 30 kit is historical 1.9.0 material, not this
-package's source of truth. The source-history bundle and external ROM corpora do
-not belong in the tester ZIP.
+## Edit without losing the design or content
 
-The app's packaged full automated gate is 1,833/1,833, tied to its original
-candidate evidence. That is not an end-to-end browser or device pass. The
-source-intake review, native dialogs, listening, phone/controller and tutorial
-walkthrough have their distinct statuses in `SOURCE_RECORD.json`. No source
-change or baseline promotion is implied by this documentation branch.
+`START_HERE.html` is the authored landing page. **Never regenerate it from
+`START_HERE.md`.** The Markdown file is a plain-text fallback.
+
+Other guides are edited as Markdown. Run `python tester-kit/alpha11-review-1/render_docs.py`
+to rebuild their HTML with Pandoc; this preserves the shared navigation,
+chapter list and original reading style. Run
+`node tester-kit/alpha11-review-1/render_pdfs.cjs` with Playwright and Chromium
+and Python `pypdf` installed to rebuild the three printable PDFs. `CHROMIUM_EXECUTABLE` can select
+an installed browser. The renderer automatically removes local filesystem paths from PDF hyperlinks. Check the rendered PDFs after changing them. PDF creation
+metadata can differ between render runs; packaging the checked-in inputs is
+deterministic.
+
+Every original September 30 file has an explicit disposition in
+`CONTENT_INVENTORY.json`. Full historical manuals, all 439 control rows and
+illustrations remain available, with current alpha.11 update notes. Historical
+source copies remain byte-identical; old app binaries and old acceptance evidence
+stay in the original archive. Current source-document snapshots are labeled as
+feature guides, not new acceptance results.
+
+After extracting a new kit, run:
+
+```text
+python tester-kit/alpha11-review-1/verify_kit.py PATH_TO_EXTRACTED_KIT_FOLDER
+```
+
+This verifies hashes, required material, all local guide links/anchors, tutorial
+steps and original inventory coverage. Check the launcher and reading pages in
+desktop and mobile layouts too. `REVIEW_REPORT.md` and `VERIFICATION.json` record
+the RC2 review. Complete `OWNER_REVIEW_REQUIRED.txt` before the tester handoff;
+documentation checks do not complete the app tutorial or device acceptance.

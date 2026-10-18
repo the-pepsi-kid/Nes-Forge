@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Alpha.11 reviewer checklist · NES Forge alpha.11</title><link rel="stylesheet" href="../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../START_HERE.html">Start here</a><a href="../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../Tutorial.html">Tutorial</a><a href="../Manual.html">Manual</a><a href="../Reference/Operator_Reference.html">Controls</a><a href="../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#alpha11-reviewer-checklist">Alpha.11 reviewer checklist</a><a class="level2" href="#pass-1--create-build-save-and-reopen">Pass 1 — create, build,
+save and reopen</a><a class="level2" href="#pass-2--play-and-return-to-editing">Pass 2 — play and return to
+editing</a><a class="level2" href="#pass-3--audio-authoring-and-interchange">Pass 3 — Audio
+authoring and interchange</a><a class="level2" href="#pass-4--physical-controllers-when-available">Pass 4 — physical
+controllers, when available</a><a class="level2" href="#optional-pass-5--source-workspace-and-intake">Optional pass 5 —
+source workspace and intake</a><a class="level2" href="#optional-pass-6--variations-and-supported-recovery">Optional
+pass 6 — variations and supported recovery</a><a class="level2" href="#separate-rom-verification">Separate ROM verification</a><a class="level2" href="#record-the-result">Record the result</a></aside><main id="guide"><h1 id="alpha11-reviewer-checklist">Alpha.11 reviewer checklist</h1>
+<p><strong>2.0.0-alpha.11 / source-intake-1 · schema 12</strong></p>
+<p>Begin with <a href="../Tutorial.html">Tutorial</a>, using this kit's
+<code>NES_Forge.html</code>. Mark each applicable item <strong>Pass,
+Fail, Blocked or Not tested</strong>, with the device/browser and exact
+steps. An empty checkbox is not a pass. Record confusing instructions
+even if you find a workaround.</p>
+<p>Use <a href="../Feedback_Template.txt">Feedback_Template.txt</a> for
+findings. The <a href="../Manual.html">full manual</a> restores the
+detailed workshop, while <a href="Alpha11_Updates.html">Alpha.11 usage
+updates</a> identifies changes to the historical manual. The old 1.9.0
+success totals and September touch observations are not current results
+for your session.</p>
+<h2 id="pass-1--create-build-save-and-reopen">Pass 1 — create, build,
+save and reopen</h2>
+<p>Save your current work before starting a new tutorial project.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />I can find the starting controls and
+distinguish authoring, building and playing.</label></li>
+<li><label><input type="checkbox" />I can follow tutorial steps 1–9
+using visible controls without manually editing code or project
+JSON.</label></li>
+<li><label><input type="checkbox" />My graphics, floor, spawn and
+selected Player appear in the built game.</label></li>
+<li><label><input type="checkbox" />I can walk and jump, collide with
+the intended surfaces, and identify unexpected behavior.</label></li>
+<li><label><input type="checkbox" /><strong>Build &amp; Run</strong>
+compiles my current edited project. <strong>Run Original</strong> plays
+preserved cartridge bytes and does not apply those edits.</label></li>
+<li><label><input type="checkbox" />A visible edit appears after
+rebuilding; a failed build does not appear to succeed by silently
+playing an old result.</label></li>
+<li><label><input type="checkbox" />I can download a native project with
+<strong>Save Project As</strong>, find the file, reopen it and continue
+editing.</label></li>
+<li><label><input type="checkbox" />The reopened project's World
+references, Player bindings, collision and runtime settings remain
+correct.</label></li>
+<li><label><input type="checkbox" />I can rebuild the reopened project
+and get the intended game.</label></li>
+<li><label><input type="checkbox" />I understand that a playable ROM
+does not replace the complete native JSON/ZIP backup.</label></li>
+<li><label><input type="checkbox" />A cancelled save is not reported as
+a completed saved file.</label></li>
+<li><label><input type="checkbox" />Build errors identify an actionable
+problem; I saved the exact error text.</label></li>
+</ul>
+<h2 id="pass-2--play-and-return-to-editing">Pass 2 — play and return to
+editing</h2>
+<p>Use a ROM with known behavior; do not infer an input works when the
+ROM does not use it.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Run/Pause, Sound, expanded Play view
+and Exit to editor are discoverable.</label></li>
+<li><label><input type="checkbox" />Direction plus A/B works; releasing
+one finger leaves the other held input active.</label></li>
+<li><label><input type="checkbox" />D-pad sliding, diagonal input,
+Select and Start work where the ROM uses them.</label></li>
+<li><label><input type="checkbox" />Releasing inputs, dragging away,
+interruption and rotation leave no stuck button.</label></li>
+<li><label><input type="checkbox" />Portrait/landscape keep the game,
+touch controls and Exit reachable.</label></li>
+<li><label><input type="checkbox" />Native fullscreen works, or the
+expanded-view fallback is usable. I recorded which
+occurred.</label></li>
+<li><label><input type="checkbox" />Entering/leaving Play keeps the same
+ROM/state. A paused game stays paused.</label></li>
+<li><label><input type="checkbox" />Switching tabs/apps, opening
+settings, pausing, resetting or replacing a ROM does not carry stale
+held inputs into resumed play.</label></li>
+<li><label><input type="checkbox" />Text fields, dialogs and editor
+keyboard shortcuts do not also drive the game.</label></li>
+<li><label><input type="checkbox" />Sound is actually audible on a ROM
+with sound; mute/unmute and pause/resume behave correctly.</label></li>
+<li><label><input type="checkbox" />Any slow motion, uneven motion,
+input delay, crackle or audio/video drift is described
+separately.</label></li>
+<li><label><input type="checkbox" />I can see the current Play
+diagnostic readings and record them when a performance issue
+occurs.</label></li>
+</ul>
+<p>Use <a href="Mobile_Performance_Triage.html">Mobile Performance
+Triage</a> for a small comparison plan. Queued audio milliseconds are
+not measured speaker latency. Muting does not disable emulated Audio
+processing.</p>
+<h2 id="pass-3--audio-authoring-and-interchange">Pass 3 — Audio
+authoring and interchange</h2>
+<p>Use a saved project copy. Preview, compiled playback and exported
+score behavior are separate checks.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />With an instrument selected,
+piano-key entry updates the intended tracker cell.</label></li>
+<li><label><input type="checkbox" />On a phone, tapping a note cell
+opens the keyboard where supported; committed input goes into the
+selected cell. Z = C3, X = D3, Q = C4, 2 = C#4.</label></li>
+<li><label><input type="checkbox" />Done/Enter completes keyboard
+composition. Moving cells, leaving AUDIO or losing focus does not insert
+a deferred note into another cell.</label></li>
+<li><label><input type="checkbox" />Scrolling reaches other
+channels/rows without unwanted notes or repeated snap-back.</label></li>
+<li><label><input type="checkbox" />Touch/pen envelope painting updates
+the selected instrument; Undo restores the stroke. Scrolling outside the
+envelope still works.</label></li>
+<li><label><input type="checkbox" />Tracker preview plays the authored
+score as expected.</label></li>
+<li><label><input type="checkbox" />After enabling <strong>Compile Audio
+Runtime</strong> and rebuilding, the ROM plays the intended
+music/SFX.</label></li>
+<li><label><input type="checkbox" /><strong>Export Score Data → Export
+MIDI / Export MusicXML</strong> gives a conversion warning and produces
+a usable file for supported content.</label></li>
+<li><label><input type="checkbox" />Export leaves the native project
+unchanged. I keep the native project for instruments, SFX and
+bindings.</label></li>
+<li><label><input type="checkbox" />In an independent MIDI/notation
+tool, I check pitch, timing and channel separation while expecting
+replacement instrument timbres.</label></li>
+<li><label><input type="checkbox" />Reimport into a copy behaves as the
+conversion warning describes; Save, reopen, build and listen still
+work.</label></li>
+</ul>
+<p>See <a href="Current_Release_Docs/AUDIO_INTERCHANGE.html">Audio
+interchange</a> for the declared score profile. An unsupported
+conversion refusal is different from a crash or silent loss.</p>
+<h2 id="pass-4--physical-controllers-when-available">Pass 4 — physical
+controllers, when available</h2>
+<p>Connect the controller through the device's settings, press a button
+and select it in Forge's <strong>Controller</strong> panel. Record the
+actual device/OS/browser, controller model and wired/Bluetooth
+route.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />All eight NES actions work through
+the standard layout or explicit mapping.</label></li>
+<li><label><input type="checkbox" />Controller settings pause play;
+captured mapping input does not affect the game.</label></li>
+<li><label><input type="checkbox" />Done leaves playback paused; after
+releasing controls, Run and a fresh press resume cleanly.</label></li>
+<li><label><input type="checkbox" />Disconnect while holding an input:
+the input clears and touch remains available.</label></li>
+<li><label><input type="checkbox" />Reconnect and explicitly select the
+controller: no unexpected assignment or stuck input.</label></li>
+<li><label><input type="checkbox" />A second connected controller does
+not control the game unless selected.</label></li>
+<li><label><input type="checkbox" />No controller disables physical
+input without disabling touch/keyboard.</label></li>
+<li><label><input type="checkbox" />Mapping retention matches the
+session-only behavior; I do not assume it is saved in the project or
+across reloads.</label></li>
+<li><label><input type="checkbox" />Wired and Bluetooth are recorded
+separately if both were tested.</label></li>
+</ul>
+<p>Mark unavailable hardware <strong>Not tested</strong>. One successful
+controller/browser combination does not establish every combination.</p>
+<h2 id="optional-pass-5--source-workspace-and-intake">Optional pass 5 —
+source workspace and intake</h2>
+<p>This is an advanced workflow; the first-project tutorial does not
+require assembly.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" /><strong>CODE → Open source workspace
+→ Open multi-file example</strong> loads the source files.</label></li>
+<li><label><input type="checkbox" /><strong>Build source ROM</strong>
+produces the supported <code>forge-6502-v1</code> NROM build. I download
+and explicitly load it in EMULATOR when testing it.</label></li>
+<li><label><input type="checkbox" />I know the built-in source example
+deliberately has no graphics; its expected CPU behavior is described in
+the source-workspace guide.</label></li>
+<li><label><input type="checkbox" />Source building does not replace my
+authored project or automatically start the emulator.</label></li>
+<li><label><input type="checkbox" /><strong>Save source
+workspace</strong> produces <code>.nesforge-source.json</code>;
+reopening restores current/original files and supported
+settings.</label></li>
+<li><label><input type="checkbox" />Exported source ZIP contains the
+workspace JSON and file trees. I extract it and open the workspace JSON
+to restore; I do not expect direct ZIP import.</label></li>
+<li><label><input type="checkbox" />Selecting the actual dialect then
+<strong>Analyze source</strong> reports
+inventory/dependencies/unsupported constructs without changing
+source.</label></li>
+<li><label><input type="checkbox" /><strong>Export intake report
+JSON</strong> saves diagnostic evidence. An incomplete report is
+identified as incomplete.</label></li>
+<li><label><input type="checkbox" />Editing source/settings invalidates
+stale results. A saved report is not presented as proof of successful
+build or migration.</label></li>
+<li><label><input type="checkbox" />After reopening a source workspace,
+I select dialect/engine declarations again as required.</label></li>
+</ul>
+<p>Read <a href="Current_Release_Docs/SOURCE_WORKSPACE.html">Source
+workspace</a> and <a
+href="Current_Release_Docs/SOURCE_INTAKE.html">Source intake</a>.
+Ordinary project JSON does not back up this isolated source
+workspace.</p>
+<h2 id="optional-pass-6--variations-and-supported-recovery">Optional
+pass 6 — variations and supported recovery</h2>
+<p>Use backups and the exact supported inputs described by the relevant
+guide.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Seeded mashup/movement preview
+leaves the project unchanged until explicit Apply; Apply is
+undoable.</label></li>
+<li><label><input type="checkbox" />Recipes are kept with exact
+base/donor projects and replay only when those inputs
+match.</label></li>
+<li><label><input type="checkbox" />Preview/apply/build results are
+checked in play; technical validity is not assumed to prove level
+solvability or artistic/audio quality.</label></li>
+<li><label><input type="checkbox" />Recovery methods show the declared
+supported subset, limitations and refusals before
+importing.</label></li>
+<li><label><input type="checkbox" />A supported import appends the
+promised editable content and can be undone/redone.</label></li>
+<li><label><input type="checkbox" />Save/reopen preserves the imported
+editable content and its evidence; later edits are not described as
+authentic original-ROM behavior.</label></li>
+<li><label><input type="checkbox" />Project backup, conversion evidence
+and native ROM-copy export are recognized as separate file
+types.</label></li>
+</ul>
+<h2 id="separate-rom-verification">Separate ROM verification</h2>
+<p>An independent emulator and physical NES hardware are separate test
+environments. Record ROM identity, tool/hardware version, exact route
+and result. A physical gamepad attached to a browser is not a physical
+NES test. A browser-only symptom is not automatically a generated-ROM
+defect.</p>
+<h2 id="record-the-result">Record the result</h2>
+<p>Use <a href="../Feedback_Template.txt">Feedback_Template.txt</a>,
+including tutorial/control name, project/ROM, app identity,
+device/browser, input route, steps, expected/actual result,
+repeatability and impact. Distinguish an existing feature failure,
+unclear documentation and a future feature request. A screenshot or
+saved project that reproduces the issue helps resolve it.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../START_HERE.html">Back to start</a></p></main></div></body></html>

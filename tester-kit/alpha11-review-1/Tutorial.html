@@ -1,34 +1,15 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
-<head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>Tutorial - NES Forge alpha test kit</title>
-  <style>
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-<header id="title-block-header">
-<h1 class="title">Tutorial - NES Forge alpha test kit</h1>
-</header>
-<h1 id="your-first-nes-game-in-forge">Your first NES game in Forge</h1>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your first NES game in Forge · NES Forge alpha.11</title><link rel="stylesheet" href="style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="START_HERE.html">Start here</a><a href="NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="Tutorial.html">Tutorial</a><a href="Manual.html">Manual</a><a href="Reference/Operator_Reference.html">Controls</a><a href="Feedback_Template.txt">Feedback</a><a href="Tutorial.pdf">Printable PDF</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#your-first-nes-game-in-forge">Your first NES game in Forge</a><a class="level2" href="#before-you-begin">Before you begin</a><a class="level2" href="#1-draw-a-background-tile">1. Draw a background tile</a><a class="level2" href="#2-give-that-tile-solid-collision">2. Give that tile solid
+collision</a><a class="level2" href="#3-make-two-reusable-terrain-blocks">3. Make two reusable terrain
+blocks</a><a class="level2" href="#4-paint-a-two-screen-world">4. Paint a two-screen World</a><a class="level2" href="#5-draw-your-character-and-compose-its-pose">5. Draw your
+character and compose its pose</a><a class="level2" href="#6-create-the-three-required-animations">6. Create the three
+required animations</a><a class="level2" href="#7-create-a-player-and-assign-its-states">7. Create a Player and
+assign its states</a><a class="level2" href="#8-connect-world-runtime-and-build">8. Connect World Runtime and
+build</a><a class="level2" href="#9-save-reopen-and-keep-the-result">9. Save, reopen, and keep the
+result</a><a class="level2" href="#10-optional-try-your-result-on-a-phone">10. Optional: try your
+result on a phone</a><a class="level2" href="#if-a-checkpoint-fails">If a checkpoint fails</a><a class="level2" href="#what-you-built-and-how-to-share-it">What you built and how to
+share it</a><a class="level2" href="#continue-after-the-first-successful-session">Continue after the
+first successful session</a></aside><main id="guide"><h1 id="your-first-nes-game-in-forge">Your first NES game in Forge</h1>
 <p><strong>Desktop first-session tutorial · NES Forge 2.0.0-alpha.11 /
 source-intake-1</strong></p>
 <p>Create your own terrain and a small character, build a two-screen
@@ -41,9 +22,10 @@ kit. If a control or result differs from the instructions, note the
 step, what you expected and what you saw in the feedback form.</p>
 <h2 id="before-you-begin">Before you begin</h2>
 <ol type="1">
-<li>Extract the package into a normal folder. Open
-<strong>NES_Forge.html</strong> in your browser and
-<strong>Tutorial.html</strong> separately.</li>
+<li>Extract the package into a normal folder. Open <strong><a
+href="NES_Forge.html">NES_Forge.html</a></strong> in your browser and
+keep this tutorial or its <a href="Tutorial.pdf">printable PDF</a>
+beside it.</li>
 <li>If Forge restores previous work, use <strong>Save Project
 As…</strong> to preserve it first.</li>
 <li>Click <strong>New Project</strong> and confirm replacing the current
@@ -52,7 +34,7 @@ default project name is <strong>My First NES Game</strong>.</li>
 <li>Check these settings in their separate locations (the two checkboxes
 are <strong>not in CODE</strong>):</li>
 </ol>
-<table>
+<div class="table-wrap"><table>
 <thead>
 <tr class="header">
 <th>Location</th>
@@ -75,7 +57,7 @@ are <strong>not in CODE</strong>):</li>
 Scroll the sidebar and expand the section if needed.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>You will enable <strong>World Runtime</strong> later in the
 <strong>WORLD</strong> tab.</p>
 <p><strong>Checkpoint:</strong> One source scene; no Worlds, entities,
@@ -87,7 +69,7 @@ field, press Tab or click outside it to commit the edit. Scroll the
 right sidebar when controls appear missing. Several important sections
 are below the first screenful.</p>
 <h3 id="what-the-tabs-contribute">What the tabs contribute</h3>
-<table>
+<div class="table-wrap"><table>
 <thead>
 <tr class="header">
 <th>You make</th>
@@ -112,7 +94,7 @@ are below the first screenful.</p>
 <td>Build &amp; Run → EMULATOR</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>SCENE will serve as a small source-art workbench. WORLD will contain
 the actual level. A preview in an authoring tab is not a live view of
 the running ROM.</p>
@@ -169,7 +151,7 @@ METATILE</strong>, set <strong>Name</strong> to <strong>Ground
 Surface</strong>.</li>
 <li>Check the quadrant fields against this table:</li>
 </ol>
-<table>
+<div class="table-wrap"><table>
 <thead>
 <tr class="header">
 <th>Quadrant</th>
@@ -199,7 +181,7 @@ Surface</strong>.</li>
 <td>Solid</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <ol start="7" type="1">
 <li>Click <strong>Detach Selected Cell</strong>. This keeps the library
 definition and the visible source drawing, but removes the cell's link
@@ -344,7 +326,7 @@ Animation</strong>, fill in <strong>Name</strong> and
 <strong>State</strong>, set <strong>Loop</strong>, select the first
 frame, and set <strong>Duration</strong>, <strong>Frame source</strong>,
 and <strong>Metasprite</strong>.</p>
-<table>
+<div class="table-wrap"><table>
 <thead>
 <tr class="header">
 <th>Name</th>
@@ -381,7 +363,7 @@ and <strong>Metasprite</strong>.</p>
 <td>Hero Stand</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>One frame per animation is enough. <strong>Hero Attack must be
 nonlooping</strong>, even though it currently reuses the same artwork.
 You can leave <strong>Flip on reverse</strong> off for this exercise. A
@@ -403,7 +385,7 @@ row, enter <strong>State name</strong>, select its
 <strong>Animation</strong>, and click <strong>Assign
 state</strong>:</li>
 </ol>
-<table>
+<div class="table-wrap"><table>
 <thead>
 <tr class="header">
 <th>State name</th>
@@ -424,7 +406,7 @@ state</strong>:</li>
 <td>Hero Attack</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <ol start="4" type="1">
 <li>Under <strong>ENTITY DEFAULTS</strong>, choose <strong>Default
 state: idle</strong> and <strong>Default facing: Right</strong>.</li>
@@ -454,7 +436,7 @@ you have created only one Player.</li>
 <li>Expand <strong>Movement and collision body</strong> and explicitly
 set:</li>
 </ol>
-<table>
+<div class="table-wrap"><table>
 <thead>
 <tr class="header">
 <th>Setting</th>
@@ -487,7 +469,7 @@ set:</li>
 <td style="text-align: right;"><strong>8</strong></td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>The default body is larger than this first character. Change both
 dimensions to 8; changing the artwork alone does not resize
 collision.</p>
@@ -498,7 +480,7 @@ validates the map, collision, animations, and ROM capacity.</p>
 <strong>EMULATOR</strong> with your compiled World running. Click the
 game display if the keyboard focus is still in an editor field. Use
 <strong>Run</strong> if playback is paused.</p>
-<table>
+<div class="table-wrap"><table>
 <thead>
 <tr class="header">
 <th>Control</th>
@@ -524,7 +506,7 @@ is visible</td>
 <td>Restart at the configured Spawn</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>Walk all the way to the right edge of screen 1. The game should
 change to screen 2 and continue moving on its floor. This profile
 changes whole NES screens; it does not smoothly scroll.</p>
@@ -573,7 +555,7 @@ Audio. Use a known sound-bearing fixture supplied separately for
 listening or lag checks. Do not mark physical controllers tested unless
 you use one.</p>
 <h2 id="if-a-checkpoint-fails">If a checkpoint fails</h2>
-<table>
+<div class="table-wrap"><table>
 <thead>
 <tr class="header">
 <th>Symptom</th>
@@ -635,7 +617,7 @@ settings or save dialogs.</td>
 ROM.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>If it still fails, keep your last checkpoint and record the failing
 step, visible error text, and a screenshot. A precise first-use report
 is more helpful than silently changing several settings at once.</p>
@@ -649,9 +631,15 @@ source for <strong>Open Forge ROM</strong> recovery; do not generalize
 that to every imported ROM or other build profile.</p>
 <h2 id="continue-after-the-first-successful-session">Continue after the
 first successful session</h2>
-<p>See <code>NEXT_STEPS.html</code> for a separate multi-piece pose,
-animation and Entity Studio binding exercise, plus a prebuilt Scout
-project to inspect. Keep your first playable JSON as a checkpoint before
-doing any optional work.</p>
-</body>
-</html>
+<p>See <a href="NEXT_STEPS.html">Optional second session</a> for a
+separate multi-piece pose, animation and Entity Studio binding exercise,
+plus a prebuilt Scout project to inspect. Keep your first playable JSON
+as a checkpoint before doing any optional work.</p>
+<p>Use the <a href="Manual.html">full manual</a> for linked Worlds,
+Rooms/Cameras, larger characters and reference chapters. Its opening
+alpha.11 notes explain changes since the preserved 1.9.0 guide. Find
+individual controls in the <a
+href="Reference/Operator_Reference.html">operator reference</a>, and
+record results in the <a href="Reference/Reviewer_Checklist.html">review
+checklist</a> and <a href="Feedback_Template.txt">feedback form</a>.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="START_HERE.html">Back to start</a></p></main></div></body></html>

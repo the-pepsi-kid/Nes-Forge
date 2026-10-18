@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Alpha.11 usage updates · NES Forge alpha.11</title><link rel="stylesheet" href="../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../START_HERE.html">Start here</a><a href="../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../Tutorial.html">Tutorial</a><a href="../Manual.html">Manual</a><a href="../Reference/Operator_Reference.html">Controls</a><a href="../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#alpha11-usage-updates">Alpha.11 usage updates</a><a class="level2" href="#save-the-right-thing">Save the right thing</a><a class="level2" href="#audio-author-import-export-and-listen">Audio: author, import,
+export and listen</a><a class="level2" href="#source-workspace-builds-are-real-bounded-builds">Source
+workspace builds are real, bounded builds</a><a class="level2" href="#source-intake-is-a-separate-inspection-step">Source intake is a
+separate inspection step</a><a class="level2" href="#seeded-mashups-and-movement-variations">Seeded mashups and
+movement variations</a><a class="level2" href="#reverse-engineering-has-explicit-supported-subsets">Reverse
+engineering has explicit supported subsets</a><a class="level2" href="#mobile-performance-and-current-review">Mobile performance and
+current review</a></aside><main id="guide"><h1 id="alpha11-usage-updates">Alpha.11 usage updates</h1>
+<p><strong>Current application: 2.0.0-alpha.11 / source-intake-1 ·
+project schema 12</strong></p>
+<p>This page supplies the current layer for the restored 1.9.0 manual
+and its control tables. The full original chapters remain available for
+workshop detail, diagrams and established editor concepts. Their
+September 2026 version statements, screenshots, historical test totals
+and roadmap promises are historical. They are not alpha.11 acceptance
+results.</p>
+<p>Start with <a href="../Tutorial.html">Tutorial</a>. Use <a
+href="../Manual.html">Manual</a> for the longer workshop and <a
+href="Operator_Reference.html">Operator Reference</a> for established
+controls. Report a mismatch with <a
+href="../Feedback_Template.txt">Feedback_Template.txt</a>.</p>
+<h2 id="save-the-right-thing">Save the right thing</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Work you want to keep</th>
+<th>Save action</th>
+<th>Boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Editable scenes, World, Gameplay Core and native Audio</td>
+<td><strong>Save Project As</strong> or the normal project ZIP
+export</td>
+<td>Native schema-12 authoring backup. Keep this even after building a
+ROM.</td>
+</tr>
+<tr class="even">
+<td>Files in <strong>CODE → Open source workspace</strong></td>
+<td><strong>Save source workspace</strong>; optionally <strong>Export
+source ZIP</strong></td>
+<td>The isolated <code>.nesforge-source.json</code> workspace is
+separate from ordinary project JSON.</td>
+</tr>
+<tr class="odd">
+<td>Source diagnostic evidence</td>
+<td><strong>Export intake report JSON</strong></td>
+<td>A report is neither editable source nor a project backup.</td>
+</tr>
+<tr class="even">
+<td>Native ROM-copy edits or analysis evidence</td>
+<td>The explicit save/export action in that analysis workflow</td>
+<td>Do not assume the native analysis session is saved by ordinary
+project Save As.</td>
+</tr>
+<tr class="odd">
+<td>Mashup or movement recipe</td>
+<td><strong>Download recipe</strong>, plus unchanged copies of its exact
+base/donors</td>
+<td>A recipe does not contain its source projects.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="audio-author-import-export-and-listen">Audio: author, import,
+export and listen</h2>
+<p><strong>AUDIO → Export Score Data</strong> now offers <strong>Export
+MIDI</strong> and <strong>Export MusicXML</strong>. Any old sentence
+saying MusicXML export is unavailable applies only to the preserved
+1.9.0 edition.</p>
+<p>Export follows one ordered pass of the four-channel score. It does
+not export full NES timbre, instrument envelopes, SFX, gameplay
+triggers, pattern identities or indefinite looping. Save the native
+project to preserve those. Read the conversion warning before
+confirming, and check exported notes and timing in the receiving tool.
+Unsupported effects or other unsupported content receive an error.
+MusicXML import accepts uncompressed supported score-partwise XML; a
+compressed <code>.mxl</code> file is not the same input.</p>
+<p>On a phone, add/select an instrument, tap a tracker note cell and
+type the existing piano keys: <strong>Z = C3, X = D3, Q = C4, 2 =
+C#4</strong>. Commit composition with Done/Enter. Do not type a note
+name such as <code>C3</code>. Horizontal/vertical tracker scrolling and
+touch/pen envelope painting are supported UI workflows and still need
+verification on the actual device. Enable <strong>Compile Audio
+Runtime</strong> for ROM playback; browser tracker preview is a separate
+check.</p>
+<p>Read the exact snapshots: <a
+href="Current_Release_Docs/AUDIO_INTERCHANGE.html">Audio interchange</a>,
+<a href="Current_Release_Docs/MOBILE_KEYBOARD.html">phone keyboard
+entry</a>, and <a
+href="Current_Release_Docs/AUDIO_ADAPTIVE_GUIDE.html">adaptive Audio
+editing</a>.</p>
+<h2 id="source-workspace-builds-are-real-bounded-builds">Source
+workspace builds are real, bounded builds</h2>
+<p>Open <strong>CODE → Open source workspace</strong>. <strong>Open
+multi-file example</strong> supplies a small self-contained source tree.
+Select the entry and mapper-0 build settings, then choose <strong>Build
+source ROM</strong>. The <code>forge-6502-v1</code> profile assembles
+supported 6502 source with bounded <code>.include</code> and
+<code>.incbin</code> handling into a 16/32 KiB PRG NROM cartridge, using
+CHR RAM or one 8 KiB CHR file.</p>
+<p>Download the source ROM and load it explicitly in EMULATOR to test
+it. The built-in source example intentionally has no graphics: its reset
+routine reads data byte <code>70</code> into RAM <code>$0000</code> and
+loops. A blank screen for that example does not by itself mean assembly
+failed.</p>
+<p>This build is separate from the authored Forge project. It does not
+automatically insert generated World, Gameplay Core or Audio code,
+replace the active project, or load/run the emulator. Foreign
+ca65/NESASM/NESmaker scripts or Lua are not translated by selecting the
+Forge dialect.</p>
+<p>Save with <strong>Save source workspace</strong> before closing.
+Ordinary project JSON does not back up this isolated workspace.
+<strong>Export source ZIP</strong> includes the workspace JSON and
+current/original file trees; extract it and open its workspace JSON to
+restore it. Direct ZIP import is outside this initial profile.</p>
+<h2 id="source-intake-is-a-separate-inspection-step">Source intake is a
+separate inspection step</h2>
+<p>Inside that source workspace, select the source's actual dialect and
+choose <strong>Analyze source</strong>. Review inventory, literal
+dependencies, unresolved paths and unsupported constructs.
+<strong>Export intake report JSON</strong> saves the evidence. Its
+result is not proof of successful assembly, linking, original-game
+behavior or migration.</p>
+<p>A report marked incomplete has reached a declared bound. Declaring a
+foreign dialect prevents <strong>Build source ROM</strong> in that UI;
+declaring Forge does not translate foreign constructs. Editing
+files/settings or replacing the workspace invalidates old analysis.
+Dialect/engine declarations are report/session metadata; choose them
+again after reopening a saved workspace.</p>
+<p>Read <a href="Current_Release_Docs/SOURCE_WORKSPACE.html">Source
+workspace</a> and <a href="Current_Release_Docs/SOURCE_INTAKE.html">Source
+intake</a>.</p>
+<h2 id="seeded-mashups-and-movement-variations">Seeded mashups and
+movement variations</h2>
+<p><strong>SCENE → Seeded mashup</strong> previews compatible
+editable-project graphics, palettes, music and bounded existing
+patrol/placement variations. Capture <strong>Use current
+project</strong>, add donor Forge JSON files, preview, then explicitly
+apply. Save the exact unchanged base and donor projects alongside a
+recipe. It does not mix arbitrary ROM engines or recover unknown
+gameplay.</p>
+<p><strong>SCENE → Movement rules</strong> separately previews run
+speed, jump speed, gravity and maximum falling speed for an already
+enabled compatible generated runtime. Choose <strong>Use current
+project</strong>, preset/intensity/seed, <strong>Preview rules</strong>,
+then <strong>Apply rules</strong>. Applying creates one Undo entry.
+Preview/compilation does not prove every room remains solvable.</p>
+<p>Read <a href="Current_Release_Docs/SEEDED_MASHUP.html">Seeded
+mashup</a>, <a href="Current_Release_Docs/MOVEMENT_RULES.html">Movement
+rules</a>, and <a
+href="Current_Release_Docs/COMPATIBILITY_STABILIZATION.html">recipe
+compatibility</a>.</p>
+<h2 id="reverse-engineering-has-explicit-supported-subsets">Reverse
+engineering has explicit supported subsets</h2>
+<p>General analysis can inspect ROM/raw bytes independently of an
+editable Forge project. Use <strong>Discover recovery methods</strong>
+to see supported routes. Runtime investigation and frame history are
+additional tools; frame advance is not an automatic command to jump to a
+chosen game stage.</p>
+<p>Native background, map/collision, music and sound-effect workflows
+each declare the representation and subset they can convert. Preview
+evidence, read unknowns/refusals, and acknowledge the conversion before
+importing. A recovered background is not the original game's actor,
+collision, sound or logic system. An imported map test player is an
+authored adaptation. Native SFX import currently requires the declared
+single-pulse subset and compatible project tempo/speed; it does not add
+original gameplay triggers automatically.</p>
+<p>After importing editable data, use ordinary <strong>Save Project
+As</strong>. Downloaded conversion evidence describes the source/preview
+and does not authenticate your later edits. Native ROM-copy
+editing/export and canonical editable-project conversion are distinct
+workflows.</p>
+<p>Read <a href="Current_Release_Docs/RECOVERY_METHODS.html">Recovery
+methods</a>, <a
+href="Current_Release_Docs/NATIVE_BACKGROUND_RECOVERY.html">Native
+background</a>, <a
+href="Current_Release_Docs/NATIVE_MAP_RECOVERY.html">Native
+map/collision</a>, <a
+href="Current_Release_Docs/NATIVE_AUDIO_IMPORT.html">Native music
+import</a>, and <a
+href="Current_Release_Docs/NATIVE_SFX_IMPORT.html">Native SFX</a>.</p>
+<h2 id="mobile-performance-and-current-review">Mobile performance and
+current review</h2>
+<p>The later playback changes add diagnostics visible in expanded Play.
+Record FPS, frame time, queued audio, gaps/resyncs, backlog and timing
+discards when investigating a symptom. Queued audio is not measured
+speaker latency; mute does not stop emulated Audio processing. The older
+manual's 10 ms scheduling description and hidden-status-line workaround
+are historical implementation details.</p>
+<p>Use the current <a href="Mobile_Performance_Triage.html">Mobile
+Performance Triage</a> and <a href="Reviewer_Checklist.html">Reviewer
+Checklist</a>. Hardware controllers, speaker behavior and device/browser
+combinations need actual observations. Existing automated checks do not
+establish that the tutorial has been completed by a new tester or that
+every hardware route works.</p>
+<p>The <a href="Control_Index.csv">439-row control index</a> and two
+editor illustrations are explicitly the restored 1.9.0 baseline. The <a
+href="Alpha11_Controls.csv">Alpha11 control supplement</a> covers
+selected additions described above; it is not a certified exhaustive
+inventory of the current application.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../START_HERE.html">Back to start</a></p></main></div></body></html>

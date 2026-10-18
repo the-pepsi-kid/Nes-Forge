@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mobile Keyboard
+— 2.0.0-alpha.4 / mobile-keyboard-1 · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#mobile-keyboard--200-alpha4--mobile-keyboard-1">Mobile Keyboard
+— 2.0.0-alpha.4 / mobile-keyboard-1</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><blockquote>
+<p>Inherited alpha.4 direct-entry behavior remains in alpha.5. Its
+original release identity and evidence below belong to alpha.4. For
+current layout and touch envelope review use
+AUDIO_ADAPTIVE_GUIDE.md.</p>
+</blockquote>
+<h1 id="mobile-keyboard--200-alpha4--mobile-keyboard-1">Mobile Keyboard
+— 2.0.0-alpha.4 / mobile-keyboard-1</h1>
+<p>Add or select an instrument in <strong>AUDIO</strong> first; note
+entry requires an instrument, as on PC. Tap an ordinary note cell to
+request the phone's keyboard. Enter the same piano keys shown in the
+tracker on PC. The tapped cell remains selected; notes do not advance
+the row automatically. There is no separate editor form or Apply
+button.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Key</th>
+<th>Note / action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Z</td>
+<td>C3</td>
+</tr>
+<tr class="even">
+<td>X</td>
+<td>D3</td>
+</tr>
+<tr class="odd">
+<td>Q</td>
+<td>C4</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>C#4</td>
+</tr>
+<tr class="odd">
+<td>S, D, G, H, J</td>
+<td>Lower-row sharps on the existing PC keymap</td>
+</tr>
+<tr class="even">
+<td>3, 5, 6, 7</td>
+<td>Upper-row sharps on the existing PC keymap</td>
+</tr>
+<tr class="odd">
+<td>Space</td>
+<td>Existing Audio preview play/stop</td>
+</tr>
+<tr class="even">
+<td>Backspace</td>
+<td>Existing tracker cut action</td>
+</tr>
+<tr class="odd">
+<td>Delete</td>
+<td>Existing tracker clear action, when the keyboard provides it</td>
+</tr>
+<tr class="even">
+<td>Arrow keys</td>
+<td>Move the existing tracker cursor, when available</td>
+</tr>
+<tr class="odd">
+<td>Enter / Done</td>
+<td>Finish the current keyboard interaction</td>
+</tr>
+<tr class="even">
+<td>Escape</td>
+<td>Leave keyboard entry, when available</td>
+</tr>
+</tbody>
+</table></div>
+<p>Use one piano key at a time. If the phone keyboard keeps that letter
+underlined or otherwise composing, commit it with
+<strong>Done/Enter</strong> before changing cells. Do not type a note
+name such as “C3”: the tracker uses piano keys, as on PC. Multiword
+text, paste, autocomplete and autofill are not a note-import interface
+and are ignored. A mobile keyboard may need its number/symbol page for
+upper-row sharps. Keyboard layout and exact Done/Enter behavior remain
+device review items.</p>
+<p>Only committed input may edit the current canonical tracker cell.
+Provisional composition is cancelled when leaving the Audio tab, losing
+focus or replacing the project; it must not reappear in a different
+cell. Scrolls and multi-touch gestures must not be treated as note-entry
+taps. The input bridge belongs to Audio only and must not drive the
+emulator or other site controls. Existing Undo, Redo and Save remain the
+same canonical actions; Ctrl/Cmd shortcuts, where provided, retain that
+routing.</p>
+<p>Instrument selection and the original envelope painting workflow
+remain unchanged. Alpha.3's separate note/octave/instrument/volume forms
+and envelope step editor were withdrawn by the owner under D055. This
+correction restores the requested direct tracker workflow; it does not
+add a new touch envelope editor, audio model, compiler or playback
+engine.</p>
+<p>Use <code>MOBILE_KEYBOARD_CHECKLIST.txt</code> for the short phone
+and desktop review. The actual target reported by the owner is Cricket
+Dream 5G with Chrome. Native keyboard opening, visible layout, speakers
+and physical controllers remain unverified until performed on a real
+device. VM event tests establish event/model behavior only. The full
+candidate Summary and clean-extraction proof must match
+<code>build-inputs.json</code>; three browser reports separately
+identify passed or blocked execution. Old or lost intermediate results
+are not current evidence.</p>
+<p>The alpha.2 gameplay/audio-performance review remains separate in
+<code>MOBILE_PLAYBACK_CHECKLIST.txt</code>. Passing note entry does not
+establish faster or smoother emulation.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

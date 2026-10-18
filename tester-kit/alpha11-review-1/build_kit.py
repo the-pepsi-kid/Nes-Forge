@@ -1,13 +1,14 @@
 """Package the alpha.11 release-candidate test kit from an unchanged source checkout.
 
 Usage from any current working directory:
-    python tester-kit/alpha11-review-1/build_kit.py --output ../NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC1.zip
+    python tester-kit/alpha11-review-1/build_kit.py --output ../NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC2.zip
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import shutil
 import tempfile
 import zipfile
@@ -17,17 +18,29 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 APP = REPO / "app"
-KIT_NAME = "NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC1"
+KIT_NAME = "NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC2"
 APP_SHA = "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd"
 EXAMPLES = {
     "Scout_Gameplay_Core_2.0.0-alpha.11.nesforge.json": "f1e6703d9b23f9e716f421f98dd51c6a14faf0021f7bc5eba0d851b1e5db241b",
     "Scout_Gameplay_Core_2.0.0-alpha.11.nes": "7814bf08504653d3f23964d7c0a654a936b051bf5aadbbf92c4a2eeaf726f4a2",
+    "Scout_Gameplay_Preview.png": "c1f42ce5b63d1f86960e5bb204831faa72e6f80e0cfb07aadf2169af31787297",
 }
-DOCS = (
-    "START_HERE.md", "START_HERE.html", "Tutorial.md", "Tutorial.html",
-    "NEXT_STEPS.md", "NEXT_STEPS.html", "KNOWN_LIMITS.md", "KNOWN_LIMITS.html",
-    "Feedback_Template.txt", "SOURCE_RECORD.json", "style.css",
-)
+# Explicit inventory prevents a future rebuild from silently omitting guides.
+DOCS = tuple(json.loads((HERE / "package_files.json").read_text(encoding="utf-8")))
+REQUIRED_GUIDES = {
+    "START_HERE.html", "Tutorial.html", "Tutorial.pdf", "Manual.html", "Manual.pdf",
+    "Reference/Operator_Reference.html", "Reference/Operator_Reference.pdf",
+    "Reference/Control_Index.csv", "Reference/Alpha11_Controls.csv",
+    "Reference/Reviewer_Checklist.html", "Reference/Mobile_Performance_Triage.html",
+    "images/blank-project.png", "images/toolbar-callouts.png", "Feedback_Template.txt",
+}
+if not REQUIRED_GUIDES.issubset(DOCS):
+    raise ValueError(f"Required kit material omitted: {sorted(REQUIRED_GUIDES - set(DOCS))}")
+for name in DOCS:
+    path = Path(name)
+    if path.is_absolute() or ".." in path.parts:
+        raise ValueError(f"Unsafe package path: {name}")
+
 
 
 def digest(path: Path) -> str:
@@ -62,10 +75,11 @@ def main() -> None:
         root = Path(scratch) / KIT_NAME
         root.mkdir()
         for name in DOCS:
+            (root / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(HERE / name, root / name)
         shutil.copyfile(app, root / "NES_Forge.html")
         (root / "examples").mkdir()
-        for name in (*EXAMPLES, "Scout_Gameplay_Preview.png"):
+        for name in EXAMPLES:
             shutil.copyfile(APP / "examples" / name, root / "examples" / name)
         manifest = []
         for p in sorted(root.rglob("*")):

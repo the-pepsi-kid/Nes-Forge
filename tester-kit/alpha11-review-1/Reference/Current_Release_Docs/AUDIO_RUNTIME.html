@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Author and build · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / source-intake-1 · Alpha Test Kit RC2</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level2" href="#author-and-build">Author and build</a><a class="level2" href="#sound-effects-and-animation-events">Sound effects and animation
+events</a><a class="level2" href="#midi-and-musicxml-import">MIDI and MusicXML import</a><a class="level2" href="#runtime-limits">Runtime limits</a><a class="level2" href="#audio-correction-candidate">Audio correction candidate</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../Alpha11_Updates.html">alpha.11 usage updates</a> for the kit overview.</p></blockquote><h1
+id="audio-runtime-and-studio--18-foundation--20-alpha-correction">Audio
+Runtime and Studio — 1.8 foundation / 2.0 Alpha correction</h1>
+<p>Audio Runtime turns the existing AUDIO tracker into generated NES APU
+code. It does not add another song, instrument or event
+representation.</p>
+<h2 id="author-and-build">Author and build</h2>
+<ol type="1">
+<li>Add instruments and edit their pulse duty, volume envelope, arpeggio
+envelope and loop points.</li>
+<li>Enter notes in pulse 1, pulse 2, triangle or noise patterns and
+arrange them in Pattern Order.</li>
+<li>In <strong>NES Runtime</strong>, enable <strong>Compile Audio
+Runtime</strong>. Keep <strong>Autoplay tracker order as music</strong>
+enabled for background music, or turn it off for SFX-only builds.</li>
+<li>Build a generated scene viewer, First Playable Room or World Runtime
+ROM. Audio-enabled authored custom assembly is rejected because
+generated code cannot be inserted safely into the author program.</li>
+</ol>
+<p>Audio Runtime is off when an older project is first opened. Enabling
+it is an explicit saved choice. DPCM notes and tracker effect commands
+fail when referenced by executable music instead of disappearing from
+the ROM.</p>
+<h2 id="sound-effects-and-animation-events">Sound effects and animation
+events</h2>
+<p>An SFX names one tracker pattern, one hardware channel and an
+inclusive start/end row range. Its ID is the stable reference. In ANIM,
+add a <code>sound</code> event to a frame and set its value to the SFX
+ID; an unambiguous name also resolves for convenience.</p>
+<p>The event starts once when the generated runtime enters that
+animation frame. One SFX plays at a time. It temporarily takes over its
+selected channel and restores that channel's music state on completion.
+Another request received while an SFX is active is ignored. The scene
+viewer has no animation executor, so it only autoplays music;
+player/target frames in First Playable Room and player frames in World
+Runtime execute sound events.</p>
+<h2 id="midi-and-musicxml-import">MIDI and MusicXML import</h2>
+<p>Import is deliberately downstream of working runtime playback. Both
+adapters append ordinary patterns and instruments, keep existing SFX
+pattern indices, and replace only the music order. Import is one
+undoable edit and does not enable Audio Runtime automatically.</p>
+<ul>
+<li>MIDI: Standard MIDI format 0 or 1 with pulses-per-quarter timing.
+Pitch, velocity, initial tempo, track and program information map into
+tracker notes, volumes and instruments. MIDI channel 10 uses noise.
+Format 2 and SMPTE timing reject.</li>
+<li>MusicXML: Uncompressed <code>score-partwise</code> XML with
+divisions, note/rest/chord duration, backup/forward timing and initial
+tempo. Compressed <code>.mxl</code> is not supported.</li>
+<li>Both quantize notes to sixteenth-note rows. The current tracker has
+one tempo, so later tempo changes flatten to the initial tempo with a
+warning.</li>
+<li>More than three simultaneous pitched voices or overlapping
+percussion/noise voices reject instead of being discarded.</li>
+</ul>
+<p>Sheet-music image recognition, tablature transcription and a separate
+score editor are not included. Any later transcription must produce this
+same tracker/instrument representation.</p>
+<h2 id="runtime-limits">Runtime limits</h2>
+<ul>
+<li>Mapper 0 and existing 16/32 KB PRG plus 8 KB CHR profiles only.</li>
+<li>Pulse 1, pulse 2, triangle and noise; no DPCM sample data.</li>
+<li>At most 255 order rows, 255 instruments and 255 named SFX in the
+runtime plan; actual PRG capacity is usually lower.</li>
+<li>Pattern cells may change note, instrument and volume.
+Effect/parameter bytes have no 1.8 runtime meaning.</li>
+<li>Volume and arpeggio envelopes are tick-based. A nonlooping volume
+envelope becomes silent after its final value.</li>
+<li>Generated runtime playback is verified in the bundled emulator.
+Real-browser audible output and independent NES hardware timing remain
+separate acceptance work.</li>
+</ul>
+<h2 id="audio-correction-candidate">Audio correction candidate</h2>
+<p><code>2.0.0-alpha.1 / audio-correction-1</code> corrects event-stream
+advancement for dense music and SFX patterns through the supported
+128-row range. The generated reader carries into its stream pointer
+instead of wrapping every 64 four-byte events. Pattern/order and SFX
+restarts still reset to the original stream. The existing 60-byte
+zero-page allocation is unchanged.</p>
+<p>Triangle now uses its own timer table because its hardware waveform
+has twice the pulse period at the same timer. A4 emits triangle timer
+126 (about 440.4 Hz), rather than pulse timer 253 (about 220.2 Hz on
+triangle). Pulse timers remain unchanged. Arpeggios are clamped to the
+existing 0–95 note range before channel-specific lookup. C0 through
+G-sharp0 on triangle clamp to timer 2047, about 27.31 Hz; A0 is about
+27.50 Hz. These low notes cannot all produce their requested pitch in
+this timer model. High notes retain ordinary timer quantization.</p>
+<p>The triangle table adds 192 PRG bytes plus event-reader carry
+instructions; existing PRG-capacity checks still apply. This is a
+runtime correctness correction, not a Studio preview fidelity rewrite.
+See <code>AUDIO_CORRECTION.md</code> and
+<code>AUDIO_CORRECTION_CHECKLIST.txt</code> for the supported evidence
+and manual review.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC2 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>
