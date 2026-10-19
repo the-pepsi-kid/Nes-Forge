@@ -1,0 +1,114 @@
+{
+  "suite": "native-audio-library",
+  "htmlSha256": "c3dd4d509cb0df3be1ce60404810ec6e4cc25d95d1edfbc1cda87964f4d2247e",
+  "passed": 26,
+  "total": 26,
+  "failed": 0,
+  "scope": "Complete bundled APIs and original synthetic 6502 fixtures. Commercial ROM integration is a separate explicitly supplied-input supplement.",
+  "results": [
+    {
+      "name": "The shared core is available to live and isolated execution without changing project schema",
+      "passed": true
+    },
+    {
+      "name": "An isolated native call executes original instructions and keeps physical writer provenance",
+      "passed": true
+    },
+    {
+      "name": "Isolated memory, APU and code execution cannot mutate the live emulator or project",
+      "passed": true
+    },
+    {
+      "name": "APU samples and hardware envelope state advance in the isolated instance",
+      "passed": true
+    },
+    {
+      "name": "Physical bank selection separates identical CPU addresses in two banks",
+      "passed": true
+    },
+    {
+      "name": "Instruction loops stop at the declared limit",
+      "passed": true
+    },
+    {
+      "name": "Unknown CPU opcodes refuse native playback",
+      "passed": true
+    },
+    {
+      "name": "PPU, controller and mapper bus operations refuse isolated driver execution",
+      "passed": true
+    },
+    {
+      "name": "Limits and invalid bank mappings cannot be bypassed by caller options",
+      "passed": true
+    },
+    {
+      "name": "Writes stop at the retained APU event bound",
+      "passed": true
+    },
+    {
+      "name": "Unknown ROMs produce an explicit unknown catalog rather than invented audio",
+      "passed": true
+    },
+    {
+      "name": "Catalog identity does not consume or interfere with Runtime Investigation crypto requests",
+      "passed": true
+    },
+    {
+      "name": "Filename-like content and malformed inputs cannot authorize a known decoder",
+      "passed": true
+    },
+    {
+      "name": "Installed catalog profiles declare no native encoder or exact inverse",
+      "passed": true
+    },
+    {
+      "name": "Native catalog profiles use the shared recovery context and reject an unrelated source as unknown",
+      "passed": true
+    },
+    {
+      "name": "A finite tonal trace becomes editable rows with a terminal cut and explicit pitch evidence",
+      "passed": true
+    },
+    {
+      "name": "Noise register indexes map to the canonical noise note model",
+      "passed": true
+    },
+    {
+      "name": "Short-mode noise and DPCM remain explicitly outside the editable score",
+      "passed": true
+    },
+    {
+      "name": "Single-channel SFX has a stable definition and an inclusive terminal cut",
+      "passed": true
+    },
+    {
+      "name": "Unsupported SFX windows and channel combinations refuse conversion",
+      "passed": true
+    },
+    {
+      "name": "Conversion of a silent trace refuses rather than generating an empty song",
+      "passed": true
+    },
+    {
+      "name": "The existing import lifecycle rejects unknown ROM conversion without project/history edits",
+      "passed": true
+    },
+    {
+      "name": "An already cancelled native operation performs no decoding or mutation",
+      "passed": true
+    },
+    {
+      "name": "Audio library DOM includes native playback, conversion, timeline and source/bank controls",
+      "passed": true
+    },
+    {
+      "name": "Loading an unknown ROM automatically refreshes the Audio library without editing the project",
+      "passed": true
+    },
+    {
+      "name": "File selection races cannot replace a newer completed ROM load",
+      "passed": true
+    }
+  ]
+}
