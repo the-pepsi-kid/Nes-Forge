@@ -1,5 +1,7 @@
 # Spatial RE: scenes, collision and animation
 
+The current candidate also adds the [Ninja Gaiden / Zelda II connected resource catalog](NINJA_ZELDA_RE.md), including original initial art, objects, actor parameters, more sprites/scripts and Zelda side-view construction. The original category-map controls described below remain available.
+
 This checkpoint adds a read-only native-data workbench to the existing **RE / DISASM** tab. It reads the selected ROM in the browser. The standalone HTML works offline, and the commercial ROMs are not bundled.
 
 ## Start here

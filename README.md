@@ -1,4 +1,17 @@
-# Current increment: Spatial RE
+# NES Forge — Native Game RE
+
+[Download the complete Ninja Gaiden / Zelda II review kit](tester-kit/ninja-zelda-re-1/NF_Ninja_Zelda_RE.zip). Extract the entire ZIP to a short path such as `C:\NF\Ninja_Zelda_RE`, then open `START_HERE.html` and **Open NES Forge**.
+
+Choose your investigated ROM in **RE / DISASM → Open spatial RE workbench**. The connected catalog includes original initial scene art, geometry, objects, actor parameters/dispatch, scripts/poses, physical CHR, 6502 source annotations and contextual RAM leads. [Controls, exact coverage and remaining gaps](app/docs/NINJA_ZELDA_RE.md).
+
+Ninja Gaiden has 48 rooms, 202 poses and 83 nonempty scripts. Zelda II has nine table/world contexts: 567 slots, 561 available native scene views and 30 Link pose/facing samples. Counts include shared/unused entries. The Zelda II title-screen ground/tree corruption is also corrected by honoring its visible PPU address reload.
+
+This is read-only source investigation and evidence export. Full collision response, physics, AI, quest state, animation bindings and playable reconstruction remain incomplete. Unknown revisions stay explicit. The standalone app, previous tools, original tutorial/manual styling and all earlier examples are preserved; commercial ROMs and extracted commercial payloads are excluded.
+
+Current identity and measured verification are in [CANDIDATE.json](CANDIDATE.json) and [the checkpoint](reviews/ninja-zelda-re-1/README.md). The earlier checkpoint descriptions below are historical.
+
+## Preserved Spatial RE checkpoint
+
 
 [Download the complete standalone review kit](tester-kit/spatial-re-1/NF_Spatial_RE.zip). Extract to a short path such as `C:\NF`, then open `START_HERE.html`.
 

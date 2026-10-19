@@ -1,0 +1,33 @@
+{
+  "format": "NESForgeSourceIndexVerification",
+  "version": 1,
+  "sourceHashes": {
+    "ninja-gaiden-us": "07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e",
+    "zelda2-us": "ad8c0fbcf092bf84b48e69fd3964eea4ed91bfe62abc352943d537979782680c"
+  },
+  "ninjaWholeReassemblyByteIdentical": true,
+  "zeldaAnnotationBytesVerified": 130032,
+  "zeldaMismatchedAnnotationLines": [
+    {
+      "bank": 5,
+      "cpu": 42497,
+      "file": "src/prg5.asm",
+      "line": 4624
+    },
+    {
+      "bank": 5,
+      "cpu": 42505,
+      "file": "src/prg5.asm",
+      "line": 4625
+    }
+  ],
+  "symbols": {
+    "ninja-gaiden-us": 1992,
+    "zelda2-us": 1712
+  },
+  "outputSha256": "b1205bd185c9b68df847f9cf2272c981cfca0729e1cb529dd3ec764ec2b420ad",
+  "limits": [
+    "Labels describe the pinned research source. Byte-exact address validation is not full semantic validation of their names.",
+    "No game code, maps, sprite or audio payload is embedded in this index."
+  ]
+}

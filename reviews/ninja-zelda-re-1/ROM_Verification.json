@@ -1,0 +1,95 @@
+{
+  "format": "NESForgeNativeGamePrivateVerification",
+  "version": 1,
+  "htmlSha256": "f12c1cac282bd081c60d25e1b62a99ddce3e578d82573ecca5e930d95af5c233",
+  "sources": [
+    {
+      "profile": "ninja-gaiden-us",
+      "sha256": "07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e",
+      "sourceUnchanged": true,
+      "scenes": 48,
+      "actorContextEntries": 44,
+      "poses": 202,
+      "scripts": 83,
+      "sourceLabels": 1992,
+      "checks": [
+        {
+          "name": "All room columns agree with original queue_column, including both native tile columns; visible rows only",
+          "scenes": 48,
+          "nativeGroundCells": 37056,
+          "columns": 3088,
+          "visibleTileQueries": 135872,
+          "status": "passed"
+        },
+        {
+          "name": "Original load_area_colors agrees with all eight initial palette groups in every room",
+          "paletteGroups": 384,
+          "status": "passed"
+        },
+        {
+          "name": "Original place_enemy agrees with selector, height and both directional spawn X values",
+          "queries": 846,
+          "lanternRecords": 281,
+          "status": "passed"
+        },
+        {
+          "name": "Original player/shared enemy animation readers agree with all nonempty scripts, frame delays and restart/idle markers",
+          "scripts": 83,
+          "frames": 226,
+          "ticks": 2056,
+          "status": "passed"
+        },
+        {
+          "name": "Original draw_sprite agrees with every decoded initial player/enemy pose and OAM piece",
+          "poses": 202,
+          "pieces": 977,
+          "status": "passed"
+        }
+      ],
+      "nativeInstructions": 1948795,
+      "decodedDigest": "314f9d11766ee57433aca0738b2568acc3489cd686acc6aebbf55c1653d25286"
+    },
+    {
+      "profile": "zelda2-us",
+      "sha256": "ad8c0fbcf092bf84b48e69fd3964eea4ed91bfe62abc352943d537979782680c",
+      "sourceUnchanged": true,
+      "scenes": 567,
+      "actorContextEntries": 324,
+      "poses": 30,
+      "scripts": 0,
+      "sourceLabels": 1712,
+      "checks": [
+        {
+          "name": "Independent original CD40 + C4CB entry path agrees with all available native scene outputs and selected pointers",
+          "tableSlots": 567,
+          "contexts": 9,
+          "availableScenes": 561,
+          "unavailableSlots": 6,
+          "cellQueries": 400192,
+          "maxProductionInstructions": 91253,
+          "status": "passed"
+        },
+        {
+          "name": "Original TSA group lookup / four-character reader and palette construction agree with every rendered scene tile",
+          "tileQueries": 1600768,
+          "uniqueNativeTSAQueries": 232,
+          "status": "passed"
+        },
+        {
+          "name": "Separate harness reproduces original Link display output for all 15 selectors in both facings; timing remains unclaimed",
+          "poses": 30,
+          "pieces": 142,
+          "status": "passed"
+        }
+      ],
+      "nativeInstructions": 40969223,
+      "decodedDigest": "c84fa613cdcc5cd74903650c8a916dbb518c3be34cb90a96c0ac861b4fe02e89"
+    }
+  ],
+  "limits": [
+    "Separate bus/harness uses the shared instruction implementation. This is not an independent CPU emulator or physical NES timing oracle.",
+    "Native routine agreement verifies bounded outputs and source interpretations, not complete AI, collision/physics, quest state, animation timing or game reconstruction.",
+    "Commercial inputs and decoded scene/sprite payloads are excluded."
+  ],
+  "status": "passed"
+}
