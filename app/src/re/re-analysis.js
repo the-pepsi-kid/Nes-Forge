@@ -149,5 +149,5 @@ async function open(input,configuration={}){
   }
   return Object.freeze({report,read,disassemble,search,mapRange,readChrTile});
 }
-services.REAnalysis=Object.freeze({open,limits:LIMITS,version:2});
+services.REAnalysis=Object.freeze({open,inspectContainer:input=>freeze(parseContainer(snapshot(input))),limits:LIMITS,version:2});
 })();

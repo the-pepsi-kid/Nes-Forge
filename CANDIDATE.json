@@ -2,65 +2,75 @@
   "format": "NESForgeCandidateHandoff",
   "version": 1,
   "release": "2.0.0-alpha.11",
-  "candidate": "native-audio-library-1",
+  "candidate": "audio-discovery-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/native-audio-catalog-2026-10-18",
+  "branch": "implementation/audio-discovery-2026-10-18",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "c3dd4d509cb0df3be1ce60404810ec6e4cc25d95d1edfbc1cda87964f4d2247e",
-  "payloadChecksums": 7197,
-  "packageFiles": 7198,
-  "parentCommit": "2bdb4d728089d96ac43e50bf028e0c2907dc5d8c",
+  "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
+  "payloadChecksums": 7221,
+  "packageFiles": 7222,
+  "parentCommit": "a94252364b63f9271cec4b16ca4a4a43478002aa",
   "changes": [
-    "Known-revision native audio catalogs for the supplied US Zelda II, Ninja Gaiden and Castlevania II revisions populate AUDIO when the ROM loads.",
-    "Native cue inspection, isolated original-driver playback, APU activity timeline, physical writer source and distinct live mapper snapshots.",
-    "Explicit finite frame-end music/single-channel-SFX transcription through existing RENativeAudioImport and one-Undo ProjectStore Audio transactions.",
-    "Shared unchanged 6502 opcode implementation and existing APU model; canonical schema and compiler/runtime emitters remain unchanged."
+    "Unknown-ROM physical PRG audio-writer scans and normalized context comparisons inside Audio.",
+    "Bounded recording and current-trace inspection reuse the existing RERuntime and EmulatorBridge, with physical source, partial/unmapped origins and cancellation guards.",
+    "Independent static-file chooser works without an emulator-supported mapper. Call, indexed-read and RAM leads remain explicit hypotheses.",
+    "Original sound-producing NROM example and complete tutorial; previous native catalogs, canonical conversion, schema and runtime/compiler behavior preserved."
   ],
   "automatedResult": {
-    "passed": 1916,
-    "total": 1916,
-    "suites": 101,
+    "passed": 1948,
+    "total": 1948,
+    "suites": 103,
     "failed": 0,
     "unchangedCandidate": true,
     "workers": 4,
-    "startedAt": "2026-10-19T02:57:37.007Z",
-    "finishedAt": "2026-10-19T03:06:04.469Z"
+    "startedAt": "2026-10-19T04:39:28.895Z",
+    "finishedAt": "2026-10-19T04:48:03.607Z"
   },
-  "retainedCases": 1888,
-  "retainedSuites": 99,
+  "retainedCases": 1916,
+  "retainedSuites": 101,
   "automatedSummary": "app/test-results/candidate/Summary.json",
   "preservedParent": {
-    "candidate": "audio-driver-survey-1",
-    "commit": "2bdb4d728089d96ac43e50bf028e0c2907dc5d8c",
-    "htmlSha256": "16d29e4082bc0377e03a54903e13fa9129c46ee9cf5a39e7ffdced6779591417",
-    "suiteCount": 99,
-    "cases": 1888,
-    "reference": "app/docs/history/audio-driver-survey-1/Reference_Inventory.json",
-    "method": "Exact source/test reconstruction, all 263 protected parent test/fixture/manifest files, and shared CPU opcode bytes retained."
+    "candidate": "native-audio-library-1",
+    "commit": "a94252364b63f9271cec4b16ca4a4a43478002aa",
+    "htmlSha256": "c3dd4d509cb0df3be1ce60404810ec6e4cc25d95d1edfbc1cda87964f4d2247e",
+    "suiteCount": 101,
+    "cases": 1916,
+    "reference": "app/docs/history/native-audio-library-1/Reference_Inventory.json",
+    "method": "Exact parent source/test reconstruction, 269 protected parent files, and every earlier preservation boundary retained."
   },
   "retainedExamples": {
-    "evidence": "reviews/native-audio-library-1/Example_Regeneration.json",
     "files": 58,
     "byteIdentical": 52,
     "receiptIdentityOnlyChanges": 6,
     "unchangedRomFiles": 15,
     "unchangedProjects": 19,
-    "unchangedRecipes": 6
+    "unchangedRecipes": 6,
+    "evidence": "reviews/audio-discovery-1/Example_Regeneration.json"
   },
   "browserEvidence": [
+    {
+      "report": "reviews/audio-discovery-1/browser/Report.json",
+      "status": "passed",
+      "checks": 10,
+      "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
+      "scope": "Direct-file real chooser for unknown authored and mapper-5 files; executed recording, source/leads, actual report download, reset/cancellation, mutation ranking with refused native import and narrow layout.",
+      "limits": [
+        "Linux headless Chromium with direct file:// launch; no physical Windows/mobile or hardware/listening claim.",
+        "Mutated Ninja Gaiden is a synthetic same-title control, not a held-out independent game.",
+        "No commercial ROM/sample payload or rendered PCM is stored in the report."
+      ]
+    },
     {
       "report": "reviews/native-audio-library-1/browser/Report.json",
       "status": "passed",
       "checks": 14,
-      "htmlSha256": "c3dd4d509cb0df3be1ce60404810ec6e4cc25d95d1edfbc1cda87964f4d2247e",
-      "scope": "Actual ROM chooser and automatic catalogs for all three sources; native audio rendering, timeline, physical source navigation, canonical preview/import, one Undo/Redo, visible note edit, portable download/reopen, 64-update excerpt ROM build, full-height narrow layout and zero page errors.",
+      "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
+      "scope": "Retained three-ROM native catalog/playback/transcription/import, undo/redo, note edit, portable project download/reopen and generated ROM build.",
       "limits": [
         "Headless Chromium and phone viewport do not prove physical-device operation or hardware/listening equivalence.",
         "Native audition is controlled subroutine execution, not natural gameplay. Editable conversion is a finite frame-end adaptation, not exact native synthesis.",
-        "Source ROMs and native PCM are never saved in this report.",
-        "Native OS Save As and physical Windows/mobile hardware not tested.",
-        "Longer excerpts can exceed the generated scene viewer budget; the estimate covers Audio data only."
+        "Source ROMs and native PCM are never saved in this report."
       ]
     }
   ],
@@ -87,23 +97,15 @@
     "newSupportedDriverFamilies": 0,
     "scope": "Uncalibrated read-only routine comparisons, with physical-byte evidence and work limits. Similarity cannot authorize decoding or import; no broad accuracy or time-saving claim."
   },
-  "ownerAcceptance": "Independent listening/hardware acceptance, full native loop/instrument reconstruction and broader revision coverage remain open.",
-  "promotion": "Development review candidate only. Frozen RC3 kit remains unchanged; the separately generated Native Audio Library kit carries the current application and retained guides.",
-  "roadmap": "ROM-to-Audio workflow connected for three known revisions. Broader driver recognition and native collision/scene/animation recovery remain separate work.",
+  "ownerAcceptance": "Physical Windows/mobile, independent listening/hardware and broader unknown-driver decoder coverage remain open.",
+  "promotion": "Development review candidate. Windows-short-path Audio Discovery kit includes the current app, original tutorial/manual, native audio guide, new discovery guide and original unknown-driver example.",
+  "roadmap": "Unknown-ROM discovery and executed evidence are available inside Audio. Validated dispatcher/data-format decoding for new engines and collision/scene/animation recovery remain future milestones.",
   "license": "UNDECIDED; upstream fixture/source notices retained.",
   "audioDriverSurvey": {
     "guide": "app/docs/AUDIO_DRIVER_SURVEY.md",
     "newSupportedDriverFamilies": 0,
     "scope": "Bounded executed base-APU writer observations; no automatic whole-library detection, engine identification or editable score conversion.",
     "ownership": "Existing RERuntime and RERuntimeUI; project schema 12 and canonical Audio remain unchanged."
-  },
-  "gateCorrections": {
-    "evidence": [
-      "reviews/native-audio-library-1/initial-gate-identity-interaction/Summary.json",
-      "reviews/native-audio-library-1/initial-gate-profile-inventory/Summary.json"
-    ],
-    "registryInventory": "Two retained UI cardinality assertions now require eight installed profiles instead of five; the five original IDs are explicitly preserved and all three new profiles must remain unknown for the unrelated fixture. Case counts and all unrelated assertions are retained. The native profiles use the registry\u2019s required probe/handler context signatures, verified against all three known ROMs and an unrelated source.",
-    "reason": "Automatic catalog discovery used the same pending WebCrypto path as Runtime Investigation and interfered with its cancellation fixture. Discovery now uses the existing independent SHA-256 helper. All 24 retained runtime cases and a new isolation regression pass unchanged."
   },
   "nativeAudioLibrary": {
     "guide": "app/docs/NATIVE_AUDIO_LIBRARY.md",
@@ -125,6 +127,36 @@
     "conversion": "Finite frame-end APU-state adaptation; nearest canonical pitches, volume rows and simple duty instruments. DPCM, short-mode noise, sub-frame articulation, phase and original instrument/control-flow reconstruction remain outside editable conversion.",
     "schema": 12,
     "newGeneralizedDriverFamilies": 0,
-    "originalROMsOrSamplesEmbedded": false
+    "originalROMsOrSamplesEmbedded": false,
+    "retainedParentSupplementHtmlSha256": "c3dd4d509cb0df3be1ce60404810ec6e4cc25d95d1edfbc1cda87964f4d2247e",
+    "validationScope": "Native parity/catalog supplement retained from the byte-preserved parent; current known-revision browser workflow rerun against this candidate."
+  },
+  "audioDiscovery": {
+    "guide": "app/docs/AUDIO_DISCOVERY.md",
+    "referenceGeneration": "reviews/audio-discovery-1/Reference_Generation.json",
+    "comparisonCorpus": "reviews/audio-discovery-1/Corpus_Probe.json",
+    "derivedReferenceTitles": 3,
+    "referenceWriterContexts": 42,
+    "referenceExecution": "Four controlled 64-update native windows, not natural gameplay.",
+    "originalExample": "app/examples/Audio_Discovery/Discovery_NROM.nes",
+    "exampleProvenance": "app/examples/Audio_Discovery/Provenance.json",
+    "nativeDecoderAcceptanceBroadened": false,
+    "newGeneralizedDriverFamilies": 0,
+    "comparisonMeaning": "Uncalibrated four-instruction context overlap. No score authorizes decoding, conversion or an engine-family decision.",
+    "captureOwner": "Existing RERuntime and EmulatorBridge",
+    "sourceLimitBytes": 8388608,
+    "scanPRGByteLimit": 1048576,
+    "writerPatternLimit": 128,
+    "blockDecodeVisitLimit": 262144,
+    "recordingFrameLimit": 120,
+    "unknowns": "Full song/SFX library, queue semantics, table boundaries, pointer formats, instruments, original loops and expansion audio remain unresolved unless a separate validated decoder supports them."
+  },
+  "parentGateCorrections": {
+    "evidence": [
+      "reviews/native-audio-library-1/initial-gate-identity-interaction/Summary.json",
+      "reviews/native-audio-library-1/initial-gate-profile-inventory/Summary.json"
+    ],
+    "registryInventory": "Two retained UI cardinality assertions now require eight installed profiles instead of five; the five original IDs are explicitly preserved and all three new profiles must remain unknown for the unrelated fixture. Case counts and all unrelated assertions are retained. The native profiles use the registry\u2019s required probe/handler context signatures, verified against all three known ROMs and an unrelated source.",
+    "reason": "Automatic catalog discovery used the same pending WebCrypto path as Runtime Investigation and interfered with its cancellation fixture. Discovery now uses the existing independent SHA-256 helper. All 24 retained runtime cases and a new isolation regression pass unchanged."
   }
 }

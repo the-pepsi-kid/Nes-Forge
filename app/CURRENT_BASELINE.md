@@ -1,3 +1,7 @@
+# Audio Discovery increment
+
+The next audio milestone adds in-app unknown-ROM PRG scans, bounded executed-writer recording, ranked code-context comparisons and physical call/table/RAM leads. See docs/AUDIO_DISCOVERY.md. Candidate identity and measured validation are recorded in CANDIDATE.json and reviews/audio-discovery-1; earlier records below are historical.
+
 # Current candidate — Native Audio Library
 
 `native-audio-library-1`, alpha.11, schema 12. Parent application: `audio-driver-survey-1`, commit `2bdb4d728089d96ac43e50bf028e0c2907dc5d8c`. Known-revision catalogs, controlled native audition and finite editable conversion are connected to AUDIO. See `docs/NATIVE_AUDIO_LIBRARY.md` and root `CANDIDATE.json` for the measured final verification; work-in-progress checkpoints are not release evidence.

@@ -1,3 +1,7 @@
+# Audio Discovery increment
+
+The next audio milestone adds in-app unknown-ROM PRG scans, bounded executed-writer recording, ranked code-context comparisons and physical call/table/RAM leads. See docs/AUDIO_DISCOVERY.md. Candidate identity and measured validation are recorded in CANDIDATE.json and reviews/audio-discovery-1; earlier records below are historical.
+
 # Current handoff — Native Audio Library
 
 Open `mainline/NES_Forge_2.0.0-alpha.11.html`. AUDIO → ROM Audio Library accepts a ROM directly; EMULATOR/imported ROM loads also refresh it. Inspect a cue, play native, review the APU timeline and conversion details, then import into the unchanged tracker. Exporting an investigation report on Windows is not required.

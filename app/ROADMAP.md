@@ -1,3 +1,7 @@
+# Audio Discovery increment
+
+The next audio milestone adds in-app unknown-ROM PRG scans, bounded executed-writer recording, ranked code-context comparisons and physical call/table/RAM leads. See docs/AUDIO_DISCOVERY.md. Candidate identity and measured validation are recorded in CANDIDATE.json and reviews/audio-discovery-1; earlier records below are historical.
+
 # Current progress — Native Audio Library
 
 Supported-ROM audio catalogs, controlled native playback, source/bank and APU activity views, and finite guarded editable transcription are now integrated into AUDIO. The shared CPU core, independent native decoding and existing project transaction form a reusable foundation for later recovery work.

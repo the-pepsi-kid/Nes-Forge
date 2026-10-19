@@ -1,0 +1,189 @@
+{
+  "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
+  "cases": [
+    {
+      "id": "honkeypong",
+      "sourceSha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+      "role": "reference-game",
+      "status": "unavailable",
+      "candidates": 0,
+      "top": null,
+      "decodeAuthorized": false,
+      "milliseconds": 4
+    },
+    {
+      "id": "honkeypong-relocated",
+      "sourceSha256": "8df730ec00cfd245bea8587bc4411ca03a297579a3480f64eca7d79a5c5cb57f",
+      "role": "same-game-source-reassembly",
+      "status": "unavailable",
+      "candidates": 0,
+      "top": null,
+      "decodeAuthorized": false,
+      "milliseconds": 6
+    },
+    {
+      "id": "honkeypong-nrom32",
+      "sourceSha256": "12a4ea0c802b037dbcea29724cb6b2c37f6eae2c8d6034eeef6a681b8f5eaf4b",
+      "role": "same-game-source-reassembly",
+      "status": "unavailable",
+      "candidates": 0,
+      "top": null,
+      "decodeAuthorized": false,
+      "milliseconds": 5
+    },
+    {
+      "id": "dabg-original",
+      "sourceSha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+      "role": "different-engine-container-control",
+      "status": "scanned",
+      "candidates": 18,
+      "top": null,
+      "work": {
+        "scannedBytes": 32766,
+        "decoded": 7310,
+        "partial": false
+      },
+      "decodeAuthorized": false,
+      "milliseconds": 55
+    },
+    {
+      "id": "dabg-ines-header",
+      "sourceSha256": "cd40087cd50c8458a22f1d6d035e8430c57258ce4a67342f859882487a78f8dc",
+      "role": "different-engine-code-control",
+      "status": "scanned",
+      "candidates": 18,
+      "top": null,
+      "work": {
+        "scannedBytes": 32766,
+        "decoded": 7310,
+        "partial": false
+      },
+      "decodeAuthorized": false,
+      "milliseconds": 45
+    },
+    {
+      "id": "honkeypong-opcode-mutant",
+      "sourceSha256": "3b42279ef066a91aa9ddd6f51af7aba44f380a844dc70d74355cfc2f108fe511",
+      "role": "same-game-synthetic-negative",
+      "status": "unavailable",
+      "candidates": 0,
+      "top": null,
+      "decodeAuthorized": false,
+      "milliseconds": 1
+    },
+    {
+      "id": "honkeypong-chr-decoy",
+      "sourceSha256": "35b2071ca558acf19ee8e22458887152bdb83090deb5897847252d09203ff4da",
+      "role": "synthetic-negative",
+      "status": "unavailable",
+      "candidates": 0,
+      "top": null,
+      "decodeAuthorized": false,
+      "milliseconds": 0
+    },
+    {
+      "id": "truncated",
+      "sourceSha256": "32704d9219e983f509624243d71ad797d42d3cc0a650d05d21dcfa59deb8d4cb",
+      "role": "malformed-control",
+      "status": "unavailable",
+      "candidates": 0,
+      "top": null,
+      "decodeAuthorized": false,
+      "milliseconds": 0
+    },
+    {
+      "id": "famistudio-official-mmc5",
+      "sourceSha256": "47b8c781fe24202f44a49279a2e051be9639ed7fab54792dec58cd9cbe5d6ff7",
+      "role": "generated-original-score-mapper-control",
+      "status": "scanned",
+      "candidates": 45,
+      "top": null,
+      "work": {
+        "scannedBytes": 32766,
+        "decoded": 98260,
+        "partial": false
+      },
+      "decodeAuthorized": false,
+      "milliseconds": 198
+    },
+    {
+      "id": "Zelda 2 - The Adventure of Link (U).nes",
+      "sourceSha256": "ad8c0fbcf092bf84b48e69fd3964eea4ed91bfe62abc352943d537979782680c",
+      "role": "reference-not-held-out",
+      "status": "scanned",
+      "candidates": 117,
+      "top": {
+        "profile": "zelda2-us-1",
+        "label": "Zelda II — The Adventure of Link",
+        "score": 1,
+        "intersection": 45,
+        "union": 45,
+        "identicalFingerprint": true,
+        "referenceWriterOffset": 99496,
+        "hypothesizedPC": 33944,
+        "candidateId": "writer-99496",
+        "candidateFileOffset": 99496
+      },
+      "work": {
+        "scannedBytes": 131070,
+        "decoded": 212748,
+        "partial": false
+      },
+      "decodeAuthorized": false,
+      "milliseconds": 465
+    },
+    {
+      "id": "Ninja Gaiden (USA).nes",
+      "sourceSha256": "07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e",
+      "role": "reference-not-held-out",
+      "status": "scanned",
+      "candidates": 15,
+      "top": {
+        "profile": "ninja-gaiden-us-1",
+        "label": "Ninja Gaiden",
+        "score": 1,
+        "intersection": 25,
+        "union": 25,
+        "identicalFingerprint": true,
+        "referenceWriterOffset": 49442,
+        "hypothesizedPC": 33042,
+        "candidateId": "writer-49442",
+        "candidateFileOffset": 49442
+      },
+      "work": {
+        "scannedBytes": 131070,
+        "decoded": 22248,
+        "partial": false
+      },
+      "decodeAuthorized": false,
+      "milliseconds": 218
+    },
+    {
+      "id": "Castlevania II - Simon's Quest (USA).nes",
+      "sourceSha256": "f045d72683d3156555eccbb56090888f03a15e5b25e59db49dca7a87330472d3",
+      "role": "reference-not-held-out",
+      "status": "scanned",
+      "candidates": 22,
+      "top": {
+        "profile": "castlevania2-us-1",
+        "label": "Castlevania II — Simon's Quest",
+        "score": 1,
+        "intersection": 24,
+        "union": 24,
+        "identicalFingerprint": true,
+        "referenceWriterOffset": 9103,
+        "hypothesizedPC": 41855,
+        "candidateId": "writer-9103",
+        "candidateFileOffset": 9103
+      },
+      "work": {
+        "scannedBytes": 131070,
+        "decoded": 25420,
+        "partial": false
+      },
+      "decodeAuthorized": false,
+      "milliseconds": 130
+    }
+  ],
+  "scope": "Ranking measurements only. Reference titles are not held-out. No threshold, accuracy or decoder acceptance claimed."
+}
