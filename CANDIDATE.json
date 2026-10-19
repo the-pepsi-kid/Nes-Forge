@@ -2,31 +2,31 @@
   "format": "NESForgeCandidateHandoff",
   "version": 1,
   "release": "2.0.0-alpha.11",
-  "candidate": "megaman2-audio-1",
+  "candidate": "spatial-re-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/megaman2-native-audio-2026-10-19",
+  "branch": "implementation/spatial-re-2026-10-19",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
-  "payloadChecksums": 7238,
-  "packageFiles": 7239,
-  "parentCommit": "819838b3920987c7a47677fd40552bf5a57d5e38",
+  "htmlSha256": "b5f73734aa43356067e8fc0b0a9f45c7cbe434b4a38dfbedde827f1d534c0945",
+  "payloadChecksums": 7256,
+  "packageFiles": 7257,
+  "parentCommit": "d1f3ef5dd3be5150431d74b478fb9a38db300f6e",
   "changes": [
-    "Mega Man 2 US native audio decoder automatically populates Native Cue with 67 selectors: 33 music selectors, 24 distinct music headers, 34 effects.",
-    "Separate bounded music/effect structural decoders, preserved aliases, referenced modulation parameters, queue/control evidence and physical source addresses.",
-    "Isolated fixed-bank execution derives the actual final PRG bank from a validated iNES header; Mega Man 2 uses bank 12 below bank 15. The live CPU/APU, compiler and runtime sources remain byte-identical.",
-    "Existing native audition and guarded finite editable preview/import now support this revision; unknown revisions display an explicit unavailable-decoder option.",
-    "Complete Mega Man 2 tutorial added; original guides, prior catalogs, unknown discovery and all retained generated projects/ROMs preserved."
+    "Read-only native spatial workbench in RE / DISASM: source-scoped map/category grids, source-byte inspection and selected evidence export.",
+    "Mega Man 2: 616 stage-context views across 352 physical screen slots, retaining native stage-dependent collision semantics and offscreen rows.",
+    "Ninja Gaiden: 48 room layouts with ground kinds/contact flags, plus 13 native player scripts, durations, poses, OAM pieces and grayscale CHR preview.",
+    "Zelda II: four overworld terrain maps; Castlevania II: 79 layouts and raw tile categories before conditional block substitution. Unsupported domains are explicitly labeled.",
+    "Prior audio functionality, canonical project schema, CPU/APU, native drivers, compiler and runtime emitters preserved. Original tutorials, guides and examples retained."
   ],
   "automatedResult": {
-    "passed": 1958,
-    "total": 1958,
-    "suites": 105,
-    "failed": 0,
-    "unchangedCandidate": true,
-    "workers": 4,
-    "startedAt": "2026-10-19T05:28:24.610Z",
-    "finishedAt": "2026-10-19T05:36:58.412Z"
+    "status": "passed",
+    "suiteCount": 107,
+    "passed": 1970,
+    "total": 1970,
+    "retainedSuites": 105,
+    "retainedCases": 1958,
+    "addedCases": 12,
+    "summary": "app/test-results/candidate/Summary.json"
   },
   "retainedCases": 1948,
   "retainedSuites": 103,
@@ -52,39 +52,24 @@
   },
   "browserEvidence": [
     {
+      "report": "reviews/spatial-re-1/browser/Report.json",
+      "passed": 13,
+      "htmlSha256": "b5f73734aa43356067e8fc0b0a9f45c7cbe434b4a38dfbedde827f1d534c0945"
+    },
+    {
       "report": "reviews/megaman2-native-audio-1/browser/Report.json",
-      "status": "passed",
-      "checks": 10,
-      "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
-      "scope": "Direct-file real ROM chooser, 67 native cues, commands/modulation/banks, native music/effect audition, source navigation, editable import/undo/redo, visible note edit, actual project download/reopen and ROM build, cancellation, narrow layout and altered-source refusal.",
-      "limits": [
-        "Linux headless Chromium with direct file launch; no physical Windows/mobile or listening/hardware claim.",
-        "Finite editable excerpts are frame-end adaptations. Supplied ROMs and native PCM are excluded from saved results."
-      ]
+      "passed": 10,
+      "htmlSha256": "b5f73734aa43356067e8fc0b0a9f45c7cbe434b4a38dfbedde827f1d534c0945"
     },
     {
       "report": "reviews/native-audio-library-1/browser/Report.json",
-      "status": "passed",
-      "checks": 14,
-      "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
-      "scope": "Retained three-ROM native catalog/playback/transcription/import, undo/redo, note edit, portable project download/reopen and generated ROM build.",
-      "limits": [
-        "Headless Chromium and phone viewport do not prove physical-device operation or hardware/listening equivalence.",
-        "Native audition is controlled subroutine execution, not natural gameplay. Editable conversion is a finite frame-end adaptation, not exact native synthesis.",
-        "Source ROMs and native PCM are never saved in this report."
-      ]
+      "passed": 14,
+      "htmlSha256": "b5f73734aa43356067e8fc0b0a9f45c7cbe434b4a38dfbedde827f1d534c0945"
     },
     {
       "report": "reviews/audio-discovery-1/browser/Report.json",
-      "status": "passed",
-      "checks": 10,
-      "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
-      "scope": "Retained unknown discovery chooser, bounded source-verified capture, cancellation/reset/source/leads/report download, mapper-5 static scan, mutation ranking with native import refused and narrow layout.",
-      "limits": [
-        "Linux headless Chromium with direct file:// launch; no physical Windows/mobile or hardware/listening claim.",
-        "Mutated Ninja Gaiden is a synthetic same-title control, not a held-out independent game.",
-        "No commercial ROM/sample payload or rendered PCM is stored in the report."
-      ]
+      "passed": 10,
+      "htmlSha256": "b5f73734aa43356067e8fc0b0a9f45c7cbe434b4a38dfbedde827f1d534c0945"
     }
   ],
   "audioToolImport": {
@@ -110,9 +95,9 @@
     "newSupportedDriverFamilies": 0,
     "scope": "Uncalibrated read-only routine comparisons, with physical-byte evidence and work limits. Similarity cannot authorize decoding or import; no broad accuracy or time-saving claim."
   },
-  "ownerAcceptance": "Physical Windows/mobile, independent listening/hardware, complete song-duration and broader unknown-driver recognition remain open.",
-  "promotion": "Development review candidate on its own branch. Updated Windows-short-path kit includes the actual app, Mega Man 2 tutorial, all earlier guides and original examples. No supplied commercial ROM/sample payload.",
-  "roadmap": "Mega Man 2 exact-revision native cue recovery is connected to Audio. Generalized family recognition, further validated formats and collision/scene/animation recovery remain future work.",
+  "ownerAcceptance": "Physical Windows/mobile, NES hardware, complete scene/behavior recovery, conditional collision and generalized engine recognition remain open.",
+  "promotion": "Development review checkpoint on its own branch. Standalone app and preserved documentation included; commercial ROMs and sample payloads excluded.",
+  "roadmap": "Connect validated native geometry/art to guarded canonical scene import; implement or reject unsupported behavior explicitly. Expand actor/transition and native animation decoders.",
   "license": "UNDECIDED; upstream fixture/source notices retained.",
   "audioDriverSurvey": {
     "guide": "app/docs/AUDIO_DRIVER_SURVEY.md",
@@ -211,5 +196,22 @@
     "fullSongDurationVerified": false,
     "familyRecognition": false,
     "nativeEncoder": false
+  },
+  "spatialRE": {
+    "guide": "app/docs/SPATIAL_RE.md",
+    "verification": "reviews/spatial-re-1/ROM_Verification.json",
+    "mapViews": 747,
+    "nativePlayerScripts": 13,
+    "scope": "Decoded native geometry/categories with explicitly bounded per-title semantics; read-only evidence, not playable conversion.",
+    "sourceUnchanged": true,
+    "completeGameRecovery": false,
+    "nativeSceneImport": false,
+    "unknownEngineRecognition": false
+  },
+  "retainedNativeAudioOracles": {
+    "sourceCommit": "d1f3ef5dd3be5150431d74b478fb9a38db300f6e",
+    "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
+    "rerunThisCheckpoint": false,
+    "currentEvidence": "Exact production native-audio/CPU/APU byte preservation, complete current gate and 34 current audio browser checks. Historical PCM/catalog oracles remain labeled with their original identity."
   }
 }

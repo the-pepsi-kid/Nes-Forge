@@ -52,6 +52,8 @@ const audioDiscoverySuites=JSON.parse(fs.readFileSync(path.join(root,'audio-disc
 additional.push(...audioDiscoverySuites);
 const megaman2AudioSuites=JSON.parse(fs.readFileSync(path.join(root,'megaman2-audio-suites.json'),'utf8'));
 additional.push(...megaman2AudioSuites);
+const spatialSuites=JSON.parse(fs.readFileSync(path.join(root,'spatial-re-suites.json'),'utf8'));
+additional.push(...spatialSuites);
 function requireFile(file){assert.ok(fs.existsSync(file)&&fs.statSync(file).isFile(),'Required package file is missing: '+path.relative(root,file));}
 function discoverBaselineJobs(){
   const runner=path.join(__dirname,'run_frozen.cjs');requireFile(runner);
@@ -113,9 +115,11 @@ async function main(){
   requireFile(html);const jobs=[...discoverBaselineJobs(),...additional];
   const retained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-audio-tool-import-suite-counts.json'))),reference=JSON.parse(fs.readFileSync(path.join(root,'docs/history/audio-tool-import-1/root/gate-reference.json')));
   assert.equal(reference.sha256,'1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d');assert.equal(reference.status,'passed');assert.equal(reference.total,1872);assert.equal(reference.suiteCount,97);assert.deepEqual(retained,Object.fromEntries(reference.suites.map(s=>[s.name,s.total])));
-  assert.equal(Object.keys(retained).length,97);assert.equal(Object.values(retained).reduce((n,value)=>n+value,0),1872);assert.equal(new Set(jobs.map(j=>j[0])).size,jobs.length,'Duplicate mandatory suite name');assert.deepEqual(jobs.slice(0,97).map(j=>j[0]),Object.keys(retained),'Every retained audio tool import suite must remain ordered');assert.equal(jobs.length,97+audioDriverSurveySuites.length+nativeAudioLibrarySuites.length+audioDiscoverySuites.length+megaman2AudioSuites.length);const surveyRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-audio-driver-survey-suite-counts.json')));assert.equal(Object.keys(surveyRetained).length,99);assert.equal(Object.values(surveyRetained).reduce((n,v)=>n+v,0),1888);assert.deepEqual(jobs.slice(0,99).map(j=>j[0]),Object.keys(surveyRetained));
+  assert.equal(Object.keys(retained).length,97);assert.equal(Object.values(retained).reduce((n,value)=>n+value,0),1872);assert.equal(new Set(jobs.map(j=>j[0])).size,jobs.length,'Duplicate mandatory suite name');assert.deepEqual(jobs.slice(0,97).map(j=>j[0]),Object.keys(retained),'Every retained audio tool import suite must remain ordered');assert.equal(jobs.length,97+audioDriverSurveySuites.length+nativeAudioLibrarySuites.length+audioDiscoverySuites.length+megaman2AudioSuites.length+spatialSuites.length);const surveyRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-audio-driver-survey-suite-counts.json')));assert.equal(Object.keys(surveyRetained).length,99);assert.equal(Object.values(surveyRetained).reduce((n,v)=>n+v,0),1888);assert.deepEqual(jobs.slice(0,99).map(j=>j[0]),Object.keys(surveyRetained));
   const nativeRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-native-audio-library-suite-counts.json')));assert.equal(Object.keys(nativeRetained).length,101);assert.equal(Object.values(nativeRetained).reduce((a,b)=>a+b,0),1916);assert.deepEqual(jobs.slice(0,101).map(j=>j[0]),Object.keys(nativeRetained));
   const discoveryRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-audio-discovery-suite-counts.json')));assert.equal(Object.keys(discoveryRetained).length,103);assert.equal(Object.values(discoveryRetained).reduce((a,b)=>a+b,0),1948);assert.deepEqual(jobs.slice(0,103).map(j=>j[0]),Object.keys(discoveryRetained));
+  const spatialRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-megaman2-audio-suite-counts.json')));assert.equal(Object.keys(spatialRetained).length,105);assert.equal(Object.values(spatialRetained).reduce((a,b)=>a+b,0),1958);assert.deepEqual(jobs.slice(0,105).map(j=>j[0]),Object.keys(spatialRetained));
+  require('./spatial-re-preservation-lib.cjs').verifyParent();
   require('./megaman2-audio-preservation-lib.cjs').verifyDiscoveryReference();
   require('./audio-discovery-preservation-lib.cjs').verifyNativeLibraryReference();
   require('./audio-tool-import-preservation-lib.cjs').verifySourceIntakeReference();
@@ -155,9 +159,10 @@ async function main(){
   for(const [name,count]of Object.entries(JSON.parse(fs.readFileSync(path.join(__dirname,'retained-audio-driver-survey-suite-counts.json')))))assert.equal(suites.find(s=>s.name===name)?.total,count,'Retained survey case inventory: '+name);
   for(const [name,count]of Object.entries(JSON.parse(fs.readFileSync(path.join(__dirname,'retained-native-audio-library-suite-counts.json')))))assert.equal(suites.find(s=>s.name===name)?.total,count,'Retained native library case inventory: '+name);
   for(const [name,count]of Object.entries(discoveryRetained))assert.equal(suites.find(s=>s.name===name)?.total,count,'Retained discovery case inventory: '+name);
+  for(const [name,count]of Object.entries(spatialRetained))assert.equal(suites.find(s=>s.name===name)?.total,count,'Retained spatial predecessor case inventory: '+name);
   const summary={release,status:'passed',html:path.relative(root,html),sha256:initialHash,unchangedCandidate:true,startedAt,finishedAt:new Date().toISOString(),runtime,
     passed:suites.reduce((n,s)=>n+s.passed,0),failed:0,total:suites.reduce((n,s)=>n+s.total,0),suiteCount:suites.length,suites,
-    policy:'All 103 retained Audio Discovery suites (1948 measured cases), plus every declared Mega Man 2 Audio suite, with no filters or skipped cases; totals measured from fresh explicit case records',
+    policy:'All 105 retained Mega Man 2 Audio suites (1958 measured cases), plus every declared Spatial RE suite, with no filters or skipped cases; totals measured from fresh explicit case records',
     provenance:inputs,browserAcceptance:'Separate evidence is required. This automated VM runner makes no real-browser, native picker, or browser rendering claim.'};
   fs.writeFileSync(summaryPath,JSON.stringify(summary,null,2)+'\n');process.stdout.write(summary.passed+'/'+summary.total+' automated cases passed against unchanged '+initialHash+'\n');
 }

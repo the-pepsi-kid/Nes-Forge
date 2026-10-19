@@ -1,0 +1,36 @@
+'use strict';
+// Private-input verification. Runs original 6502 subroutines without patching
+// their instruction bytes. Does not package the inputs, maps or sprite payloads.
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'../..'),api=require(path.join(root,'app/src/re/spatial-native.js')),core=require(path.join(root,'app/src/services/cpu6502-core.js')),input=process.argv[2];assert.ok(input,'Pass the directory of private ROMs');
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+function machine(rom){const ram=new Uint8Array(32768),s={A:0,X:0,Y:0,PC:0,SP:253,C:0,Z:0,I:1,D:0,V:0,N:0,cycles:0};let bank=0,shift=0,bits=0,instructions=0;const read=a=>a<32768?ram[a]:rom[16+(a<49152?bank:rom[4]-1)*16384+(a&16383)];const write=(a,v)=>{v&=255;if(a<32768){assert.ok(a<0x2000||a>=0x6000,'Unexpected I/O write '+a.toString(16));ram[a]=v;}else if(v&128){shift=bits=0;}else{shift|=(v&1)<<bits++;if(bits===5){if(a>=0xe000)bank=shift&(rom[4]-1);shift=bits=0;}}};const cpu=core.create(s,read,write);return {ram,s,get instructions(){return instructions;},setBank:b=>{bank=b;},call(pc,a=0,x=0,y=0){s.A=a;s.X=x;s.Y=y;s.SP=253;s.PC=pc;ram[0x1fe]=0xff;ram[0x1ff]=0x5f;for(let i=0;i<10000;i++){if(s.PC===0x6000)return;s.PC&=65535;cpu.step();instructions++;}throw Error('Native subroutine instruction bound');}};}
+const report={format:'NESForgeSpatialPrivateVerification',version:1,htmlSha256:sha(fs.readFileSync(path.join(root,'app/mainline/NES_Forge_2.0.0-alpha.11.html'))),sources:[],limitations:['Native subroutine checks validate the decoded tables and query semantics within this isolated MMC1 bus; they do not establish full gameplay, hardware timing, complete transitions or behavior reconstruction.','Commercial ROMs and decoded map/sprite payloads are not included in this report.']};
+for(const p of api.profiles){const file=fs.readdirSync(input).find(f=>f.endsWith('.nes')&&sha(fs.readFileSync(path.join(input,f)))===p.sha256);assert.ok(file,p.name+' source missing');const bytes=new Uint8Array(fs.readFileSync(path.join(input,file))),before=sha(bytes),data=api.inspect(bytes,file),m=machine(bytes),out={profile:p.id,sha256:before,maps:data.maps.length,animations:data.animations.length,checks:[]};
+ if(p.id==='megaman2-us'){
+  const prg=Buffer.from(bytes.slice(16+15*16384)),signature=Buffer.from([0xa5,0x2a,0x29,0x07,0x20]),hits=[];let i=-1;while((i=prg.indexOf(signature,i+1))>=0)if(prg.subarray(i+7,i+15).equals(Buffer.from([0xa9,0x00,0x85,0x00,0xa5,0x0b,0xf0,0x09])))hits.push(i);assert.equal(hits.length,1,'unique native collision entry');const pc=0xc000+hits[0],native={background:0,solid:1,ladder:2,spikes:3,water:4,'conveyor-right':5,'conveyor-left':6,ice:7};let count=0;
+  for(const map of data.maps)for(let cell=0;cell<256;cell++){m.ram[0x2a]=map.context.stage;m.ram[8]=(cell&15)*16;m.ram[9]=map.context.slot;m.ram[10]=(cell>>4)*16;m.ram[11]=0;m.call(pc);assert.equal(m.ram[0],native[map.classes[map.cells[cell]]],map.id+':'+cell);count++;}
+  out.checks.push({name:'Every native collision cell in all 14 stage contexts and 44 slots',queries:count,entryCPU:pc,status:'passed'});assert.equal(count,157696);
+ }else if(p.id==='ninja-gaiden-us'){
+  let count=0;for(const map of data.maps){const a=map.source.cpu,base=0xa430+map.context.selector*512;for(let col=0;col<map.blocks.width;col++){m.ram[0x40]=(a+col*6)&255;m.ram[0x41]=(a+col*6)>>8;m.ram[0x48]=base&255;m.ram[0x49]=base>>8;m.ram[0x5d]=0;m.ram[0x5e]=3;m.call(0xf5ea);for(let x=0;x<2;x++)for(let y=0;y<12;y++){const value=m.ram[0x300+x*6+(y>>1)],kind=y&1?value&15:value>>4;assert.equal(kind,map.cells[y*map.width+col*2+x],map.id+':'+col+':'+x+':'+y);count++;}}}
+  out.checks.push({name:'Original load_ground produces every decoded room cell',queries:count,entryCPU:0xf5ea,status:'passed'});
+  let ticks=0,poses=0,pieces=0;for(let id=0;id<data.animations.length;id++){const a=data.animations[id];m.ram[0x80]=255;m.call(0xf62d,id);for(const f of a.frames){assert.equal(m.ram[0x82],f.duration);assert.equal(m.ram[0x83],f.pose);poses++;m.setBank(2);m.ram[0x84]=0;m.ram[0x86]=100;m.ram[0x8a]=120;m.ram[0x3b]=0;m.call(0xf0b7);for(let i=0;i<f.pieces.length;i++){const p=f.pieces[i],slot=i%2===0?0x80+(i>>1)*4:4+(i>>1)*4;assert.equal(m.ram[0x200+slot],(p.y+112)&255);assert.equal(m.ram[0x201+slot],p.tile);assert.equal(m.ram[0x202+slot],p.attributes);assert.equal(m.ram[0x203+slot],(p.x+100)&255);pieces++;}for(let t=0;t<f.duration;t++){m.call(0xe625);ticks++;}}
+   if(a.end==='return-to-idle')assert.equal(m.ram[0x80],0);else assert.equal(m.ram[0x83],a.frames[0].pose);
+  }
+  out.checks.push({name:'Original set_action / step_ryu / draw_ryu match durations, pose sequence, restart/idle and OAM pieces',scripts:13,ticks,poses,pieces,status:'passed'});
+ }else if(p.id==='zelda2-us'){
+  let runs=0;for(const map of data.maps){const bank=map.source.bank16KiB;m.ram[0x769]=bank;for(const run of map.runs){m.ram[0xe]=run.source.cpu&255;m.ram[0xf]=run.source.cpu>>8;m.ram[3]=0;m.call(0xe001);assert.equal(m.ram[2],run.kind);assert.equal(m.s.A,run.length);runs++;}assert.equal(map.cells.length,4800);}
+  out.checks.push({name:'Original LE001 overworld parser matches every run length and terrain token',runs,cells:19200,status:'passed'});
+ }else{
+  // F7D1 identifies the six metatile/threshold records in the original ROM.
+  // Locate the exact original classifier by its unmodified instruction prefix.
+  const prg=Buffer.from(bytes.slice(16+7*16384)),sig=Buffer.from([0xa0,0,0xbd,0,7,0xd1,0x6e]),offset=prg.indexOf(sig);assert.ok(offset>=0,'native classifier');assert.equal(prg.indexOf(sig,offset+1),-1);let count=0;for(const map of data.maps){const type=map.context.type,table=0xf7d3+type*4,word=a=>bytes[0x1c010+a-0xc000]|(bytes[0x1c010+a+1-0xc000]<<8),cuts=word(table);m.ram[0x6e]=cuts&255;m.ram[0x6f]=cuts>>8;for(let tile=0;tile<256;tile++){m.ram[0x700]=tile;m.ram[0x94]=0;m.s.PC=0xc000+offset; // Stop before unrelated attribute-address calculations.
+    // Stop after both ASL / ROL $94 operations in the original classifier.
+    const window=prg.subarray(offset,offset+80),tail=window.indexOf(Buffer.from([0x0a,0x26,0x94,0x0a,0x26,0x94]));assert.ok(tail>0);const end=0xc000+offset+tail+6;
+    // call() cannot stop mid-routine, so execute exact classifier in an explicit bounded core.
+    const s={A:0,X:0,Y:0,PC:0xc000+offset,SP:253,C:0,Z:0,I:1,D:0,V:0,N:0,cycles:0},c=core.create(s,a=>a<32768?m.ram[a]:bytes[16+(a<49152?4:7)*16384+(a&16383)],(a,v)=>{assert.ok(a<32768);m.ram[a]=v&255;});for(let i=0;i<50&&s.PC!==end;i++)c.step();assert.equal(s.PC,end);const native=m.ram[0x94]&3,expected=tile<map.context.thresholds[0]?0:tile<map.context.thresholds[1]?3:tile<map.context.thresholds[2]?2:1;assert.equal(native,expected);count++;
+   }}out.checks.push({name:'Original category classifier matches every tile value for all 79 layout contexts',queries:count,status:'passed'});
+ }
+ assert.equal(sha(bytes),before);out.sourceUnchanged=true;out.nativeInstructions=m.instructions;out.mapDimensionsDigest=sha(Buffer.from(JSON.stringify(data.maps.map(x=>[x.id,x.width,x.height,x.source]))));report.sources.push(out);console.log(p.id,JSON.stringify(out.checks));
+}
+fs.writeFileSync(path.join(__dirname,'ROM_Verification.json'),JSON.stringify(report,null,2)+'\n');

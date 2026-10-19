@@ -1,0 +1,86 @@
+{
+  "format": "NESForgeSpatialPrivateVerification",
+  "version": 1,
+  "htmlSha256": "b5f73734aa43356067e8fc0b0a9f45c7cbe434b4a38dfbedde827f1d534c0945",
+  "sources": [
+    {
+      "profile": "megaman2-us",
+      "sha256": "49136b412ff61beac6e40d0bbcd8691a39a50cd2744fdcdde3401eed53d71edf",
+      "maps": 616,
+      "animations": 0,
+      "checks": [
+        {
+          "name": "Every native collision cell in all 14 stage contexts and 44 slots",
+          "queries": 157696,
+          "entryCPU": 52163,
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "nativeInstructions": 14987328,
+      "mapDimensionsDigest": "f402fa6f7b16469d30101bebcdfdd43dbf9b3c5a3e597a3fd01ab9af842006ce"
+    },
+    {
+      "profile": "ninja-gaiden-us",
+      "sha256": "07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e",
+      "maps": 48,
+      "animations": 13,
+      "checks": [
+        {
+          "name": "Original load_ground produces every decoded room cell",
+          "queries": 37056,
+          "entryCPU": 62954,
+          "status": "passed"
+        },
+        {
+          "name": "Original set_action / step_ryu / draw_ryu match durations, pose sequence, restart/idle and OAM pieces",
+          "scripts": 13,
+          "ticks": 199,
+          "poses": 35,
+          "pieces": 182,
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "nativeInstructions": 221437,
+      "mapDimensionsDigest": "578fa5c2782a77f198ea09f4bad55579963ee57e4d9bcadf530e940c4768767e"
+    },
+    {
+      "profile": "zelda2-us",
+      "sha256": "ad8c0fbcf092bf84b48e69fd3964eea4ed91bfe62abc352943d537979782680c",
+      "maps": 4,
+      "animations": 0,
+      "checks": [
+        {
+          "name": "Original LE001 overworld parser matches every run length and terrain token",
+          "runs": 3201,
+          "cells": 19200,
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "nativeInstructions": 124839,
+      "mapDimensionsDigest": "1b5c8d71fe8620a652d6255650a63b7242c4acd6a96b5245d353319623bcf450"
+    },
+    {
+      "profile": "castlevania2-us",
+      "sha256": "f045d72683d3156555eccbb56090888f03a15e5b25e59db49dca7a87330472d3",
+      "maps": 79,
+      "animations": 0,
+      "checks": [
+        {
+          "name": "Original category classifier matches every tile value for all 79 layout contexts",
+          "queries": 20224,
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "nativeInstructions": 0,
+      "mapDimensionsDigest": "b3bf2c3a0c3d59e2f0fc03309628757fc66fd0866bbe2e4915e7281e27f02f48"
+    }
+  ],
+  "limitations": [
+    "Native subroutine checks validate the decoded tables and query semantics within this isolated MMC1 bus; they do not establish full gameplay, hardware timing, complete transitions or behavior reconstruction.",
+    "Commercial ROMs and decoded map/sprite payloads are not included in this report."
+  ]
+}

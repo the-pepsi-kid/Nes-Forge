@@ -1,4 +1,14 @@
-# Current increment: Mega Man 2 Audio
+# Current increment: Spatial RE
+
+Open **[the standalone application](app/mainline/NES_Forge_2.0.0-alpha.11.html)** and select **RE / DISASM → Open spatial RE workbench**. Read native map/collision evidence from the four investigated ROM revisions, inspect physical source addresses, and preview the first 13 Ninja Gaiden player animation scripts. [Complete controls, source references and limits](app/docs/SPATIAL_RE.md).
+
+Mega Man 2 exposes stage-dependent collision and raw screen slots; Ninja Gaiden exposes rooms and ground kinds; Zelda II exposes overworld terrain; Castlevania II exposes layouts and raw tile categories before conditional block substitution. This is read-only evidence, not native scene import, original physics or complete gameplay reconstruction. Unknown revisions stay explicit. The earlier Audio tools and original tutorials remain available.
+
+Current identity and verification are in [CANDIDATE.json](CANDIDATE.json) and [reviews/spatial-re-1](reviews/spatial-re-1/README.md). Commercial ROMs are excluded. Earlier checkpoint descriptions below are historical.
+
+## Preserved Mega Man 2 Audio checkpoint
+
+# Mega Man 2 Audio
 
 The supplied US Mega Man 2 revision now populates Native Cue with 67 selectors: 33 music selectors (24 distinct headers) and 34 effects. Inspect source commands, audition the native driver, and preview/import a finite editable adaptation inside Audio. Unknown revisions retain Audio Discovery and an explicit unavailable-catalog message. See app/docs/MEGAMAN2_AUDIO.md; CANDIDATE.json and reviews/megaman2-native-audio-1 record current verification. Earlier checkpoint records below remain historical.
 
