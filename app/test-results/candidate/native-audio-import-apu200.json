@@ -1,7 +1,7 @@
 {
   "suite": "native-audio-import-apu200",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
+  "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
   "scope": "Two subsongs of independently permitted HonkeyPong and directed looping-envelope/global-speed derivatives: original linked FamiTone2 and generated canonical World Audio routines executed by the actual candidate 6502 emulator, one controlled subroutine call per logical video frame. Exact supported row/gate/volume/duty observations, actual negative-arpeggio ADC carry, quantified nearest-pitch transcription, deliberate end cuts, and ordinary tracker-note rebuild evidence. Controlled calls isolate music; no SFX arbitration, full-game timing, identical synthesis, listening, browser, or hardware acceptance.",
   "passed": 16,
   "failed": 0,
@@ -713,7 +713,7 @@
     {
       "name": "Independent subsong 0 produces a canonical score for explicit transcription",
       "passed": true,
-      "milliseconds": 0
+      "milliseconds": 1
     },
     {
       "name": "Subsongs 0: original and generated 6502 routines execute without missed opcodes",
@@ -733,7 +733,7 @@
     {
       "name": "Subsong 0: sounding pitch maps to the nearest canonical period with measured error",
       "passed": true,
-      "milliseconds": 3
+      "milliseconds": 2
     },
     {
       "name": "Subsong 0: canonical excerpt cuts all channels at the declared end",
@@ -748,7 +748,7 @@
     {
       "name": "Subsongs 1: original and generated 6502 routines execute without missed opcodes",
       "passed": true,
-      "milliseconds": 0
+      "milliseconds": 1
     },
     {
       "name": "Subsong 1: row scheduling matches actual external driver calls",
@@ -773,22 +773,22 @@
     {
       "name": "Evidence records real register-behavior differences rather than claiming bit-exact playback",
       "passed": true,
-      "milliseconds": 1
+      "milliseconds": 3
     },
     {
       "name": "External-driver derivative preserves looping volume/arpeggio frames and negative-arpeggio ADC carry",
       "passed": true,
-      "milliseconds": 1289
+      "milliseconds": 1477
     },
     {
       "name": "External-driver derivative confirms global speed precedence through repeated channel loops",
       "passed": true,
-      "milliseconds": 1488
+      "milliseconds": 1421
     },
     {
       "name": "Editing an imported ordinary tracker note changes the rebuilt ROM and real APU pitch",
       "passed": true,
-      "milliseconds": 1025
+      "milliseconds": 999
     }
   ]
 }

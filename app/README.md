@@ -1,3 +1,7 @@
+# Current increment: Mega Man 2 Audio
+
+The supplied US Mega Man 2 revision now populates Native Cue with 67 selectors: 33 music selectors (24 distinct headers) and 34 effects. Inspect source commands, audition the native driver, and preview/import a finite editable adaptation inside Audio. Unknown revisions retain Audio Discovery and an explicit unavailable-catalog message. See docs/MEGAMAN2_AUDIO.md; CANDIDATE.json and reviews/megaman2-native-audio-1 record current verification. Earlier checkpoint records below remain historical.
+
 # Audio Discovery increment
 
 The next audio milestone adds in-app unknown-ROM PRG scans, bounded executed-writer recording, ranked code-context comparisons and physical call/table/RAM leads. See docs/AUDIO_DISCOVERY.md. Candidate identity and measured validation are recorded in CANDIDATE.json and reviews/audio-discovery-1; earlier records below are historical.

@@ -1,0 +1,80 @@
+{
+  "format": "NESForgeMegaMan2BrowserQA",
+  "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
+  "started": "2026-10-19T05:24:53.657Z",
+  "checks": [
+    {
+      "name": "Actual ROM chooser automatically fills Native Cue with all 67 selectors and preserves the project",
+      "passed": true
+    },
+    {
+      "name": "Native music commands, aliases, modulation parameters and bank 15 are inspectable",
+      "passed": true
+    },
+    {
+      "name": "Native music audition and timeline leave the live emulator and project unchanged",
+      "passed": true
+    },
+    {
+      "name": "The selected native writer opens its physical bank-12 source",
+      "passed": true
+    },
+    {
+      "name": "A finite music excerpt previews and imports through one Undo/Redo with unrelated data preserved",
+      "passed": true
+    },
+    {
+      "name": "Imported notes edit, download as a real project, reopen and build a playable-format ROM",
+      "passed": true
+    },
+    {
+      "name": "An effect uses its separate decoded format and native audition path",
+      "passed": true
+    },
+    {
+      "name": "Cancelling a longer conversion cannot leave a stale import staged",
+      "passed": true
+    },
+    {
+      "name": "Native cue and action controls fit the narrow Audio workspace",
+      "passed": true
+    },
+    {
+      "name": "A modified revision stays unknown and explains the unavailable cue list",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "crashes": [],
+  "limits": [
+    "Linux headless Chromium with direct file launch; no physical Windows/mobile or listening/hardware claim.",
+    "Finite editable excerpts are frame-end adaptations. Supplied ROMs and native PCM are excluded from saved results."
+  ],
+  "browser": "153.0.8010.0",
+  "imported": {
+    "updates": 32,
+    "patternsAdded": 1,
+    "instrumentsAdded": 4
+  },
+  "roundTrip": {
+    "noteBefore": -1,
+    "noteAfter": 59,
+    "generatedRomBytes": 24592
+  },
+  "status": "passed",
+  "finished": "2026-10-19T05:24:58.250Z",
+  "passed": 10,
+  "failed": 0,
+  "screenshots": [
+    {
+      "file": "desktop.png",
+      "sha256": "e44d6714652a8b95ee0fb9c4a694be1e65f1521174552305b9a5a8c49d7cfe44",
+      "visualReview": "Reviewed: title, 67/31/0 metrics, native cue/actions and channel timeline remain legible; narrow Audio workspace fits. Existing global toolbar behavior retained."
+    },
+    {
+      "file": "phone.png",
+      "sha256": "2d688f727e827995fd0f178320eaec8dcbbbdf91ad4c3ee76e1b5cfecde93c27",
+      "visualReview": "Reviewed: title, 67/31/0 metrics, native cue/actions and channel timeline remain legible; narrow Audio workspace fits. Existing global toolbar behavior retained."
+    }
+  ]
+}

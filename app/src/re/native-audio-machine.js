@@ -5,10 +5,12 @@
 'use strict';
 const services=window.Forge.services;
 function create(bytes,bank0,{maxInstructions=2000000,maxWrites=131072,onSample=()=>{}}={}){
- if(!(bytes instanceof Uint8Array)||bytes.length!==262160||!Number.isInteger(bank0)||bank0<0||bank0>7)throw Error('An investigated 128 KiB PRG source and fixed bank are required.');
+ const valid=bytes instanceof Uint8Array&&bytes.length>=16&&bytes[0]===78&&bytes[1]===69&&bytes[2]===83&&bytes[3]===26&&(bytes[7]&12)===0&&((bytes[6]>>4)|(bytes[7]&240))===1&&!(bytes[6]&4)&&bytes[4]>=1&&bytes[4]<=32&&bytes.length===16+bytes[4]*16384+bytes[5]*8192;
+ if(!valid||!Number.isInteger(bank0)||bank0<0||bank0>=bytes[4])throw Error('A complete iNES MMC1 source and valid fixed bank are required.');
+ const fixedBank=bytes[4]-1;
  if(!Number.isInteger(maxInstructions)||maxInstructions<1||maxInstructions>2000000||!Number.isInteger(maxWrites)||maxWrites<1||maxWrites>131072||typeof onSample!=='function')throw Error('Invalid isolated execution limits.');
  const rom=bytes.slice(),ram=new Uint8Array(2048),sram=new Uint8Array(8192),writes=[],state={A:0,X:0,Y:0,SP:0xfd,PC:0,C:0,Z:0,I:1,D:0,V:0,N:0,cycles:0,opsMissed:0};let instructions=0,origin=null,frame=-1;
- const physical=a=>16+(a<0xc000?bank0:7)*16384+(a&0x3fff);
+ const physical=a=>16+(a<0xc000?bank0:fixedBank)*16384+(a&0x3fff);
  function read(a){a&=65535;if(a<0x2000)return ram[a&2047];if(a===0x4015)return apu.readStatus();if(a>=0x6000&&a<0x8000)return sram[a-0x6000];if(a>=0x8000)return rom[physical(a)];throw Error('Isolated driver read unsupported bus address $'+a.toString(16));}
  function write(a,v){a&=65535;v&=255;if(a<0x2000){ram[a&2047]=v;return;}if((a>=0x4000&&a<=0x4013)||a===0x4015||a===0x4017){if(writes.length>=maxWrites)throw Error('Native APU write limit reached. Choose a shorter window.');apu.write(a,v);writes.push({frame,cycles:apu.cycles,address:a,value:v,pc:origin,fileOffset:origin>=0x8000?physical(origin):null});return;}if(a>=0x6000&&a<0x8000){sram[a-0x6000]=v;return;}throw Error('Isolated driver write unsupported bus address $'+a.toString(16));}
  const apu=new ForgeAPU(onSample,read),core=Forge6502Core.create(state,read,write);

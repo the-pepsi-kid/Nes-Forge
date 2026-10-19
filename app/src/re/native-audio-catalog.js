@@ -10,7 +10,8 @@ const sha=b=>(typeof FamiTone2Native!=='undefined'?FamiTone2Native:require('./fa
 const profiles=Object.freeze([
 {id:'zelda2-us-1',title:'Zelda II — The Adventure of Link',sha256:'ad8c0fbcf092bf84b48e69fd3964eea4ed91bfe62abc352943d537979782680c',bank:6},
 {id:'ninja-gaiden-us-1',title:'Ninja Gaiden',sha256:'07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e',bank:3},
-{id:'castlevania2-us-1',title:"Castlevania II — Simon's Quest",sha256:'f045d72683d3156555eccbb56090888f03a15e5b25e59db49dca7a87330472d3',bank:0}]);
+{id:'castlevania2-us-1',title:"Castlevania II — Simon's Quest",sha256:'f045d72683d3156555eccbb56090888f03a15e5b25e59db49dca7a87330472d3',bank:0},
+{id:'megaman2-us-1',title:'Mega Man 2',sha256:'49136b412ff61beac6e40d0bbcd8691a39a50cd2744fdcdde3401eed53d71edf',bank:12,fixedBank:15}]);
 function input(bytes){assert(bytes instanceof Uint8Array,'Choose a NES ROM.');assert(bytes.length>=16&&bytes.length<=64*1024*1024,'ROM size is outside the supported bound.');return bytes;}
 async function identify(bytes){input(bytes);const sha256=sha(bytes);return {source:{sha256,byteLength:bytes.length},profile:profiles.find(p=>p.sha256===sha256)||null};}
 function zelda(rom,sourceSha256){
@@ -260,10 +261,11 @@ return structural;
 }
 const hx=n=>'$'+n.toString(16).toUpperCase().padStart(2,'0');
 function build(bytes,identity,selection=null){
- const {profile,source}=identity;assert(profile,'This ROM revision has no installed native audio decoder.');assert(bytes.length===262160&&bytes[0]===78&&bytes[1]===69&&bytes[2]===83&&bytes[3]===26&&bytes[4]===8&&bytes[5]===16&&((bytes[6]>>4)|(bytes[7]&240))===1&&!(bytes[6]&4),'Known revision header layout differs.');
- const native=profile.id==='zelda2-us-1'?zelda(bytes,source.sha256):profile.id==='ninja-gaiden-us-1'?ninja(bytes,source.sha256,selection):castlevania(bytes,source.sha256);
+ const {profile,source}=identity;assert(profile,'This ROM revision has no installed native audio decoder.');assert(bytes.length===262160&&bytes[0]===78&&bytes[1]===69&&bytes[2]===83&&bytes[3]===26&&bytes[4]===(profile.id==='megaman2-us-1'?16:8)&&bytes[5]===(profile.id==='megaman2-us-1'?0:16)&&((bytes[6]>>4)|(bytes[7]&240))===1&&!(bytes[6]&4),'Known revision header layout differs.');
+ const native=profile.id==='megaman2-us-1'?(typeof MegaMan2Audio!=='undefined'?MegaMan2Audio:require('./megaman2-audio.js')).decode(bytes,source.sha256):profile.id==='zelda2-us-1'?zelda(bytes,source.sha256):profile.id==='ninja-gaiden-us-1'?ninja(bytes,source.sha256,selection):castlevania(bytes,source.sha256);
  let cues,instruments,samples,summary,limitations;
- if(profile.id==='zelda2-us-1'){
+ if(profile.id==='megaman2-us-1'){({cues,instruments,samples,summary,limitations}=native);
+ }else if(profile.id==='zelda2-us-1'){
  cues=native.cues.map(c=>({id:c.id,label:c.family+' · request '+hx(c.requestMask)+(c.orders.length?'':' · empty slot'),kind:c.orders.length?'music-request':'empty-request',family:c.family,requestMask:c.requestMask,requestRegister:c.requestRegister,orders:c.orders,aliases:c.sameOrderSequenceAs}));
  for(const g of native.sfx)for(const s of g.slots)cues.push({id:g.driver+':sfx:'+g.requestRegister+':'+s.mask,label:g.driver+' · SFX '+hx(g.requestRegister)+' / '+hx(s.mask),kind:'effect',driver:g.driver,requestRegister:g.requestRegister,requestMask:s.mask,...s});
  instruments=native.envelopes;samples=native.dpcm;summary=native.summary;limitations=native.limitations;
@@ -277,6 +279,6 @@ function build(bytes,identity,selection=null){
  return {format:'NESForgeNativeAudioCatalog',version:1,status:'decoded',source:copy(source),profile:copy(profile),summary,cues,instruments,samples,native,limitations:[...limitations,'Known revision only. Cue IDs and aliases are native identities, not verified song names.','Catalog evidence is separate from an editable project. Controlled native playback and canonical transcription disclose their own limits.']};
 }
 async function inspect(bytes){bytes=input(bytes).slice();const identity=await identify(bytes);if(!identity.profile)return {format:'NESForgeNativeAudioCatalog',version:1,status:'unknown',...identity,cues:[],instruments:[],samples:[],limitations:['No installed native catalog matches this revision. No claim that audio is absent. Existing FamiTone2 and runtime investigation remain available.']};return build(bytes,identity);}
-async function selection(bytes,id){bytes=input(bytes).slice();const identity=await identify(bytes),catalog=build(bytes,identity,identity.profile?.id==='ninja-gaiden-us-1'?Number(id):null),cue=catalog.cues.find(c=>c.id===String(id));assert(cue,'Select a catalog cue.');let streams;if(identity.profile.id==='zelda2-us-1')streams=(cue.orders||[]).map(o=>catalog.native.headers.find(h=>h.id===o.header));else if(identity.profile.id==='ninja-gaiden-us-1')streams=catalog.native.streams.filter(s=>s.commandIDs.includes(Number(id)));else streams=catalog.native.streams.filter(s=>cue.recordIds?.includes(s.recordId));return {source:catalog.source,profile:catalog.profile,cue,streams,instruments:catalog.instruments,samples:catalog.samples,limitations:catalog.limitations};}
+async function selection(bytes,id){bytes=input(bytes).slice();const identity=await identify(bytes),catalog=build(bytes,identity,identity.profile?.id==='ninja-gaiden-us-1'?Number(id):null),cue=catalog.cues.find(c=>c.id===String(id));assert(cue,'Select a catalog cue.');let streams;if(identity.profile.id==='megaman2-us-1')streams=catalog.native.streams.filter(s=>cue.streamIDs.includes(s.id));else if(identity.profile.id==='zelda2-us-1')streams=(cue.orders||[]).map(o=>catalog.native.headers.find(h=>h.id===o.header));else if(identity.profile.id==='ninja-gaiden-us-1')streams=catalog.native.streams.filter(s=>s.commandIDs.includes(Number(id)));else streams=catalog.native.streams.filter(s=>cue.recordIds?.includes(s.recordId));return {source:catalog.source,profile:catalog.profile,cue,streams,instruments:catalog.instruments,samples:catalog.samples,limitations:catalog.limitations};}
 return Object.freeze({version:1,profiles,identify,inspect,selection});
 });

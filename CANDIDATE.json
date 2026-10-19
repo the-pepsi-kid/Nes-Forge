@@ -2,42 +2,43 @@
   "format": "NESForgeCandidateHandoff",
   "version": 1,
   "release": "2.0.0-alpha.11",
-  "candidate": "audio-discovery-1",
+  "candidate": "megaman2-audio-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/audio-discovery-2026-10-18",
+  "branch": "implementation/megaman2-native-audio-2026-10-19",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
-  "payloadChecksums": 7221,
-  "packageFiles": 7222,
-  "parentCommit": "a94252364b63f9271cec4b16ca4a4a43478002aa",
+  "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
+  "payloadChecksums": 7238,
+  "packageFiles": 7239,
+  "parentCommit": "819838b3920987c7a47677fd40552bf5a57d5e38",
   "changes": [
-    "Unknown-ROM physical PRG audio-writer scans and normalized context comparisons inside Audio.",
-    "Bounded recording and current-trace inspection reuse the existing RERuntime and EmulatorBridge, with physical source, partial/unmapped origins and cancellation guards.",
-    "Independent static-file chooser works without an emulator-supported mapper. Call, indexed-read and RAM leads remain explicit hypotheses.",
-    "Original sound-producing NROM example and complete tutorial; previous native catalogs, canonical conversion, schema and runtime/compiler behavior preserved."
+    "Mega Man 2 US native audio decoder automatically populates Native Cue with 67 selectors: 33 music selectors, 24 distinct music headers, 34 effects.",
+    "Separate bounded music/effect structural decoders, preserved aliases, referenced modulation parameters, queue/control evidence and physical source addresses.",
+    "Isolated fixed-bank execution derives the actual final PRG bank from a validated iNES header; Mega Man 2 uses bank 12 below bank 15. The live CPU/APU, compiler and runtime sources remain byte-identical.",
+    "Existing native audition and guarded finite editable preview/import now support this revision; unknown revisions display an explicit unavailable-decoder option.",
+    "Complete Mega Man 2 tutorial added; original guides, prior catalogs, unknown discovery and all retained generated projects/ROMs preserved."
   ],
   "automatedResult": {
-    "passed": 1948,
-    "total": 1948,
-    "suites": 103,
+    "passed": 1958,
+    "total": 1958,
+    "suites": 105,
     "failed": 0,
     "unchangedCandidate": true,
     "workers": 4,
-    "startedAt": "2026-10-19T04:39:28.895Z",
-    "finishedAt": "2026-10-19T04:48:03.607Z"
+    "startedAt": "2026-10-19T05:28:24.610Z",
+    "finishedAt": "2026-10-19T05:36:58.412Z"
   },
-  "retainedCases": 1916,
-  "retainedSuites": 101,
+  "retainedCases": 1948,
+  "retainedSuites": 103,
   "automatedSummary": "app/test-results/candidate/Summary.json",
   "preservedParent": {
-    "candidate": "native-audio-library-1",
-    "commit": "a94252364b63f9271cec4b16ca4a4a43478002aa",
-    "htmlSha256": "c3dd4d509cb0df3be1ce60404810ec6e4cc25d95d1edfbc1cda87964f4d2247e",
-    "suiteCount": 101,
-    "cases": 1916,
-    "reference": "app/docs/history/native-audio-library-1/Reference_Inventory.json",
-    "method": "Exact parent source/test reconstruction, 269 protected parent files, and every earlier preservation boundary retained."
+    "candidate": "audio-discovery-1",
+    "commit": "819838b3920987c7a47677fd40552bf5a57d5e38",
+    "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
+    "suiteCount": 103,
+    "cases": 1948,
+    "reference": "app/docs/history/audio-discovery-1/Reference_Inventory.json",
+    "method": "Exact parent source/test reconstruction and 276 protected parent files; all earlier preservation boundaries retained. Explicit test adjustments add the fourth registry profile and new candidate identity; no retained cases removed."
   },
   "retainedExamples": {
     "files": 58,
@@ -46,31 +47,43 @@
     "unchangedRomFiles": 15,
     "unchangedProjects": 19,
     "unchangedRecipes": 6,
-    "evidence": "reviews/audio-discovery-1/Example_Regeneration.json"
+    "scope": "All 58 retained examples regenerated in a disposable copy. 52 files are byte-identical to the parent; six build receipts change only htmlSha256. Those six exact reproduced receipts are copied into the candidate before the final immutable gate.",
+    "evidence": "reviews/megaman2-native-audio-1/Example_Regeneration.json"
   },
   "browserEvidence": [
     {
-      "report": "reviews/audio-discovery-1/browser/Report.json",
+      "report": "reviews/megaman2-native-audio-1/browser/Report.json",
       "status": "passed",
       "checks": 10,
-      "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
-      "scope": "Direct-file real chooser for unknown authored and mapper-5 files; executed recording, source/leads, actual report download, reset/cancellation, mutation ranking with refused native import and narrow layout.",
+      "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
+      "scope": "Direct-file real ROM chooser, 67 native cues, commands/modulation/banks, native music/effect audition, source navigation, editable import/undo/redo, visible note edit, actual project download/reopen and ROM build, cancellation, narrow layout and altered-source refusal.",
       "limits": [
-        "Linux headless Chromium with direct file:// launch; no physical Windows/mobile or hardware/listening claim.",
-        "Mutated Ninja Gaiden is a synthetic same-title control, not a held-out independent game.",
-        "No commercial ROM/sample payload or rendered PCM is stored in the report."
+        "Linux headless Chromium with direct file launch; no physical Windows/mobile or listening/hardware claim.",
+        "Finite editable excerpts are frame-end adaptations. Supplied ROMs and native PCM are excluded from saved results."
       ]
     },
     {
       "report": "reviews/native-audio-library-1/browser/Report.json",
       "status": "passed",
       "checks": 14,
-      "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
+      "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
       "scope": "Retained three-ROM native catalog/playback/transcription/import, undo/redo, note edit, portable project download/reopen and generated ROM build.",
       "limits": [
         "Headless Chromium and phone viewport do not prove physical-device operation or hardware/listening equivalence.",
         "Native audition is controlled subroutine execution, not natural gameplay. Editable conversion is a finite frame-end adaptation, not exact native synthesis.",
         "Source ROMs and native PCM are never saved in this report."
+      ]
+    },
+    {
+      "report": "reviews/audio-discovery-1/browser/Report.json",
+      "status": "passed",
+      "checks": 10,
+      "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
+      "scope": "Retained unknown discovery chooser, bounded source-verified capture, cancellation/reset/source/leads/report download, mapper-5 static scan, mutation ranking with native import refused and narrow layout.",
+      "limits": [
+        "Linux headless Chromium with direct file:// launch; no physical Windows/mobile or hardware/listening claim.",
+        "Mutated Ninja Gaiden is a synthetic same-title control, not a held-out independent game.",
+        "No commercial ROM/sample payload or rendered PCM is stored in the report."
       ]
     }
   ],
@@ -97,9 +110,9 @@
     "newSupportedDriverFamilies": 0,
     "scope": "Uncalibrated read-only routine comparisons, with physical-byte evidence and work limits. Similarity cannot authorize decoding or import; no broad accuracy or time-saving claim."
   },
-  "ownerAcceptance": "Physical Windows/mobile, independent listening/hardware and broader unknown-driver decoder coverage remain open.",
-  "promotion": "Development review candidate. Windows-short-path Audio Discovery kit includes the current app, original tutorial/manual, native audio guide, new discovery guide and original unknown-driver example.",
-  "roadmap": "Unknown-ROM discovery and executed evidence are available inside Audio. Validated dispatcher/data-format decoding for new engines and collision/scene/animation recovery remain future milestones.",
+  "ownerAcceptance": "Physical Windows/mobile, independent listening/hardware, complete song-duration and broader unknown-driver recognition remain open.",
+  "promotion": "Development review candidate on its own branch. Updated Windows-short-path kit includes the actual app, Mega Man 2 tutorial, all earlier guides and original examples. No supplied commercial ROM/sample payload.",
+  "roadmap": "Mega Man 2 exact-revision native cue recovery is connected to Audio. Generalized family recognition, further validated formats and collision/scene/animation recovery remain future work.",
   "license": "UNDECIDED; upstream fixture/source notices retained.",
   "audioDriverSurvey": {
     "guide": "app/docs/AUDIO_DRIVER_SURVEY.md",
@@ -109,27 +122,40 @@
   },
   "nativeAudioLibrary": {
     "guide": "app/docs/NATIVE_AUDIO_LIBRARY.md",
-    "knownRevisionProfiles": 3,
+    "knownRevisionProfiles": 4,
     "supportedCatalogEntries": {
       "zelda2": 75,
       "ninjaGaiden": 85,
-      "castlevania2": 58
+      "castlevania2": 58,
+      "megaMan2": 67
     },
-    "standalonePlaybackEntries": 205,
+    "standalonePlaybackEntries": 272,
     "nonAudioControlsAndEmptySlots": 13,
-    "boundedCatalogSupplement": "reviews/native-audio-library-1/Native_Parity.json",
-    "allPlaybackEntriesTestedForUpdates": 16,
-    "parityWindows": 4,
+    "boundedCatalogSupplement": "reviews/megaman2-native-audio-1/ROM_Verification.json",
+    "currentSuppliedInput": {
+      "profile": "megaman2-us-1",
+      "entries": 67,
+      "updatesPerEntry": 1024,
+      "nativeExecutionRefusals": 0
+    },
+    "parityWindows": 9,
     "parityUpdatesPerWindow": 64,
-    "parityAPUWrites": 2003,
-    "parityPCMSamples": 204635,
+    "parityAPUWrites": 4402,
+    "parityPCMSamples": 460386,
     "comparison": "Exact APU address/value/source/cycle sequence and Float32 PCM against the committed unchanged parent CPU/APU in the same controlled initial state. Not natural-game or hardware equivalence.",
     "conversion": "Finite frame-end APU-state adaptation; nearest canonical pitches, volume rows and simple duty instruments. DPCM, short-mode noise, sub-frame articulation, phase and original instrument/control-flow reconstruction remain outside editable conversion.",
     "schema": 12,
     "newGeneralizedDriverFamilies": 0,
     "originalROMsOrSamplesEmbedded": false,
-    "retainedParentSupplementHtmlSha256": "c3dd4d509cb0df3be1ce60404810ec6e4cc25d95d1edfbc1cda87964f4d2247e",
-    "validationScope": "Native parity/catalog supplement retained from the byte-preserved parent; current known-revision browser workflow rerun against this candidate."
+    "retainedParentSupplement": {
+      "report": "reviews/native-audio-library-1/Native_Parity.json",
+      "htmlSha256": "c3dd4d509cb0df3be1ce60404810ec6e4cc25d95d1edfbc1cda87964f4d2247e",
+      "profiles": 3,
+      "playbackEntries": 205,
+      "updatesPerEntry": 16,
+      "parityWindows": 4,
+      "scope": "Historical exact parent parity and bounded entry sweep. Three-ROM browser workflow separately rerun against the current candidate."
+    }
   },
   "audioDiscovery": {
     "guide": "app/docs/AUDIO_DISCOVERY.md",
@@ -149,7 +175,8 @@
     "writerPatternLimit": 128,
     "blockDecodeVisitLimit": 262144,
     "recordingFrameLimit": 120,
-    "unknowns": "Full song/SFX library, queue semantics, table boundaries, pointer formats, instruments, original loops and expansion audio remain unresolved unless a separate validated decoder supports them."
+    "unknowns": "Full song/SFX library, queue semantics, table boundaries, pointer formats, instruments, original loops and expansion audio remain unresolved unless a separate validated decoder supports them.",
+    "validationScope": "Unchanged discovery implementation and derived references from three earlier titles; current 10-check browser workflow rerun. A separate exact-revision catalog now supports Mega Man 2. Discovery scores still do not authorize decoding."
   },
   "parentGateCorrections": {
     "evidence": [
@@ -158,5 +185,31 @@
     ],
     "registryInventory": "Two retained UI cardinality assertions now require eight installed profiles instead of five; the five original IDs are explicitly preserved and all three new profiles must remain unknown for the unrelated fixture. Case counts and all unrelated assertions are retained. The native profiles use the registry\u2019s required probe/handler context signatures, verified against all three known ROMs and an unrelated source.",
     "reason": "Automatic catalog discovery used the same pending WebCrypto path as Runtime Investigation and interfered with its cancellation fixture. Discovery now uses the existing independent SHA-256 helper. All 24 retained runtime cases and a new isolation regression pass unchanged."
+  },
+  "megaMan2Audio": {
+    "guide": "app/docs/MEGAMAN2_AUDIO.md",
+    "sourceSha256": "49136b412ff61beac6e40d0bbcd8691a39a50cd2744fdcdde3401eed53d71edf",
+    "nativeCatalog": {
+      "cueSelectors": 67,
+      "musicSelectors": 33,
+      "uniqueMusicHeaders": 24,
+      "effectSelectors": 34,
+      "uniqueCueHeaders": 58,
+      "sourceStreams": 124,
+      "structuralCommands": 21201,
+      "nativeStops": 68,
+      "structuralCycles": 56,
+      "modulationPresets": 31,
+      "dpcmDescriptors": 0
+    },
+    "verification": "reviews/megaman2-native-audio-1/ROM_Verification.json",
+    "controlledBanks": {
+      "lower": 12,
+      "upper": 15
+    },
+    "completeSongNamesVerified": false,
+    "fullSongDurationVerified": false,
+    "familyRecognition": false,
+    "nativeEncoder": false
   }
 }

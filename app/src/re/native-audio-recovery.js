@@ -19,6 +19,7 @@ async function run(input,options={},controls={}){
   if(cue.family){ram[0x707]=({'game-context-0':0,'game-context-1-2':1,'game-context-3-4':3,'game-context-other':5})[cue.family]??0;}
   ram[cue.requestRegister]=cue.requestMask;
  }else if(identity.profile.id==='ninja-gaiden-us-1'){update=0x8000;ram[0x600]=Number(cue.id);}
+ else if(identity.profile.id==='megaman2-us-1'){update=0x8000;machine.call(0x8003,Number(cue.id));}
  else{update=0x967d;machine.call(0xa2af,0);machine.call(0xa29b,Number(cue.id));}
  const schedule=[];
  for(let frame=0;frame<frames;frame++){

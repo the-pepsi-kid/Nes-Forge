@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NES Forge 2.0.0-alpha.11 — Audio Discovery</title>
+<title>NES Forge 2.0.0-alpha.11 — Mega Man 2 Audio</title>
 <style>
 :root{--bg:#0c0c10;--bg2:#101018;--bg3:#16161e;--bdr:#252530;--bdr2:#3a3a4a;--txt:#b8b8c8;--dim:#667;--acc:#5ad4ff;--acc2:#3a9abf;--grn:#8df57a;--red:#f57a7a;--ylw:#f5d07a;--orn:#f5a07a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -8723,7 +8723,7 @@ F.project={create,openRom,classifyRom,replaceProject};
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Audio Discovery',maturity:'alpha',candidate:'audio-discovery-1',schema:12,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Mega Man 2 Audio',maturity:'alpha',candidate:'megaman2-audio-1',schema:12,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;
@@ -13851,6 +13851,86 @@ function preview(input,options={}){
 }
 return Object.freeze({method:METHOD,preview,limits:Object.freeze({sourceBytes:MAX_SOURCE,resultBytes:MAX_RESULT,rowsMin:16,rowsMax:128,frames:127,instruments:127,channels:Object.freeze([0,1])})});
 });
+/* Mega Man 2 US audio structure. Exact revision only; current source bytes are
+ * parsed, never an embedded catalog. Structural traversal is not a timed score.
+ * The native driver remains responsible for scheduling and channel arbitration. */
+(function(root,factory){const api=factory();if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.MegaMan2Audio=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+'use strict';
+const SHA='49136b412ff61beac6e40d0bbcd8691a39a50cd2744fdcdde3401eed53d71edf',BANK=12,TABLE=0x8a50,END=0x8ad6,MAX=16384;
+const music=[['duration-scale',1,0x87d7],['signed-pitch-delta',1,0x87e1],['duty-bits',1,0x87eb],['volume-control',1,0x87fb],['counted-branch',3,0x8815],['pitch-table-offset',1,0x885d],['dotted-note',1,0x887a],['volume-envelope',2,0x888d],['modulation-preset',1,0x88c7],['stop-stream',0,0x8917]];
+const effect=[['delay-updates',1,0x85d3],['signed-pitch-delta',1,0x85db],['duty-bits',1,0x85e5],['volume-control',1,0x85f5],['counted-branch',3,0x860f],['modulation-parameters',4,0x8640],['stop-effect',0,0x8656]];
+const need=(ok,message)=>{if(!ok)throw Error('Mega Man 2 audio: '+message);},hx=(n,w=4)=>'$'+n.toString(16).toUpperCase().padStart(w,'0');
+function decode(rom,sourceSha256){
+ const digest=(typeof FamiTone2Native!=='undefined'?FamiTone2Native:require('./famitone2-native.js')).sha256;
+ need(rom instanceof Uint8Array&&rom.length===262160,'choose the investigated ROM revision.');need(sourceSha256===SHA&&digest(rom)===SHA,'source revision does not match.');
+ const off=a=>{need(Number.isInteger(a)&&a>=0x8000&&a<0xc000,'read leaves physical bank 12 at '+hx(a));return 16+BANK*16384+a-0x8000;},b=a=>rom[off(a)],word=a=>b(a)|(b(a+1)<<8),loc=a=>({bank16KiB:BANK,cpu:a,cpuHex:hx(a),fileOffset:off(a),fileHex:hx(off(a),6)});
+ const guard=(a,bytes)=>need(bytes.every((v,i)=>b(a+i)===v),'semantic anchor differs at '+hx(a));
+ guard(0x802f,[0x0a,0xaa,0xbd,0x50,0x8a,0x85,0xe2,0xbd,0x51,0x8a]);guard(0x8000,[0x4c,0x35,0x82]);
+ guard(0x86a0,[0xa0,0x00,0xb1,0xf0]);guard(0x8935,[0xa0,0x00,0xb1,0xec]);guard(0x88fd,[0xa1,0xf4,0x91,0xec]);
+ for(const [table,ops]of [[0x87c3,music],[0x85c5,effect]])ops.forEach((op,i)=>need(word(table+i*2)===op[2],'command handler table differs.'));
+ const streams=[],byRoot=new Map();
+ function walk(start,mode,channel){
+  const key=[start,mode,channel].join(':');if(byRoot.has(key))return byRoot.get(key);
+  const stream={id:key,channel,mode,source:loc(start),events:[],edges:[],stopReason:'instruction-bound',modulationPresetIDs:[]},seen=new Map();let pc=start,loop=0,pitchTable=null;
+  byRoot.set(key,stream);streams.push(stream);
+  for(let step=0;step<MAX;step++){
+   need(pc>=END&&pc<0xc000,'stream target is outside the identified data region.');
+   const state=[pc,loop,pitchTable].join(':');if(seen.has(state)){stream.stopReason='structural-cycle';stream.cycle={event:seen.get(state),target:loc(pc),scope:'Repeated parser control state; acoustic loop length is not inferred.'};break;}seen.set(state,stream.events.length);
+   const address=pc,v=b(pc++);let descriptor,size=0,kind;
+   if(mode==='effect'){
+    if(v>=128){kind=(v&15)===15?'reset-articulation':'timer-period';size=1;}
+    else descriptor=effect[v];
+   }else if(v<16)descriptor=music[v];
+   else kind=v<32?'note-zero-duration':v<48?'hold-next-onsets':v<64?'extra-half-step':'note';
+   if(descriptor){[kind,size]=descriptor;}
+   need(kind!==undefined,'unsupported '+mode+' command '+hx(v,2)+' at '+hx(address));
+   const args=Array.from({length:size},(_,i)=>b(pc+i)),event={...loc(address),byte:v,kind,byteLength:size+1,args};pc+=size;
+   if(descriptor)event.handler=loc(descriptor[2]);
+   if(kind==='pitch-table-offset')pitchTable=0x8985+args[0]*2;
+   if(kind==='modulation-preset')stream.modulationPresetIDs.push(args[0]);
+   if(kind==='note'||kind==='note-zero-duration'||kind==='dotted-note'){
+    const token=kind==='dotted-note'?args[0]:v,index=token&31,table=kind==='dotted-note'?0x897d:0x8975;
+    event.nativeNoteIndex=index;event.durationFactor=b(table+((token>>5)&7));event.durationTable=loc(table+((token>>5)&7));
+    event.timing='Native duration scale, extra half-steps, hold prefixes and update state still apply. This is not a timestamp.';
+    if(!index)event.noteMeaning='rest';else if(channel==='noise')event.noteMeaning='noise period / mode bits';
+    else if(pitchTable!==null){event.periodTable=loc(pitchTable+index*2);event.period=word(pitchTable+index*2);}else event.noteMeaning='pitch table not yet established';
+   }
+   if(kind==='timer-period')event.period=((v&7)<<8)|args[0];
+   if(kind==='hold-next-onsets')event.count=v&7;
+   stream.events.push(event);
+   if(kind==='stop-stream'||kind==='stop-effect'){stream.stopReason='native-stop';break;}
+   if(kind==='counted-branch'){
+    const count=args[0],target=args[1]|(args[2]<<8);event.count=count;event.target=loc(target);event.counterBefore=loop;
+    const take=count===0||loop!==count;if(take){if(count)loop=(loop+1)&(mode==='effect'?255:127);pc=target;}else loop=0;
+    stream.edges.push({from:loc(address),to:loc(pc),kind:take?'branch-taken':'branch-exhausted'});
+   }
+  }
+  need(stream.stopReason!=='instruction-bound','structural instruction bound exceeded.');stream.modulationPresetIDs=[...new Set(stream.modulationPresetIDs)].sort((a,b)=>a-b);return stream;
+ }
+ const headers=[],cues=[],channels=['pulse1','pulse2','triangle','noise'];
+ for(let id=0;id<(END-TABLE)/2;id++){
+  const pointer=word(TABLE+id*2);need(pointer>=END&&pointer<0xc000,'cue pointer leaves the audio data region.');
+  const priority=b(pointer),isMusic=!!(priority&15),header={id,source:loc(pointer),tableSource:loc(TABLE+id*2),priority,mode:isMusic?'music':'effect'};
+  if(isMusic){
+   need(priority===15,'unexpected music header priority.');header.channels=channels.map((channel,i)=>{const start=word(pointer+1+i*2);return {channel,pointerSource:loc(pointer+1+i*2),stream:start?loc(start):null,streamID:start?walk(start,'music',channel).id:null};});header.modulationTable=loc(word(pointer+9));
+  }else{
+   header.channelMask=b(pointer+1)&15;need(header.channelMask!==0,'empty effect routing.');header.channels=channels.filter((_,i)=>header.channelMask&(1<<i));header.stream=loc(pointer+2);header.streamID=walk(pointer+2,'effect','shared-effect').id;
+  }
+  headers.push(header);cues.push({id:String(id),label:(isMusic?'Music ':'Effect ')+hx(id,2),kind:isMusic?'music-request':'effect',source:header.source,headerID:id,priority,channels:isMusic?header.channels:header.channels.map(channel=>({channel})),streamIDs:isMusic?header.channels.map(c=>c.streamID).filter(Boolean):[header.streamID]});
+ }
+ need(Math.min(...headers.map(h=>h.source.cpu))===END,'cue table boundary differs.');
+ for(const cue of cues){cue.aliases=headers.filter(h=>h.id!==Number(cue.id)&&h.source.cpu===cue.source.cpu).map(h=>String(h.id));if(cue.aliases.length)cue.label+=' · aliases '+cue.aliases.map(id=>hx(Number(id),2)).join(', ');}
+ const instruments=[];
+ for(const header of headers.filter(h=>h.mode==='music')){
+  const ids=[...new Set(header.channels.flatMap(c=>c.streamID?byRoot.get(c.streamID).modulationPresetIDs:[]))];
+  for(const id of ids){const address=header.modulationTable.cpu+id*4;let record=instruments.find(x=>x.source.cpu===address);if(!record){record={id:'modulation:'+hx(address),source:loc(address),parameters:Array.from({length:4},(_,i)=>b(address+i)),meaning:['pitch-step delay / phase flag','pitch depth / turn count','amplitude-step delay / reset flag','signed amplitude step'],cueIDs:[],nativeIndices:[]};instruments.push(record);}record.cueIDs.push(String(header.id));record.nativeIndices.push(id);}
+ }
+ for(const i of instruments){i.cueIDs=[...new Set(i.cueIDs)];i.nativeIndices=[...new Set(i.nativeIndices)];}
+ const limitations=['This exact Mega Man 2 US revision only; recognition of another revision or a related engine is not authorized by code similarity.','67 selectors contain 33 music selectors (24 distinct headers, including short jingles) and 34 effects. Aliases are preserved; these are not 67 distinct songs.','Command streams are structural traversals through native stops or repeated control states, not fully timed scores or complete gameplay trigger coverage.','Modulation presets are source parameters, not reconstructed original tracker instruments. Duty, volume, pitch and effect modulation can also be encoded inline.','The decoded driver routes four base APU voices. No DPCM descriptors were found in this cue format; this does not classify every dormant ROM byte.','Special selectors $FC–$FF control update speed, fading and stopping; they are documented as controls and are not playable cue entries.'];
+ return {format:'NESForgeMegaMan2NativeCatalog',version:1,source:{sha256:sourceSha256,byteLength:rom.length},driver:{bank16KiB:BANK,fixedBank16KiB:15,dispatch:loc(0x8003),update:loc(0x8000),table:loc(TABLE),tableEnd:loc(END),boundaryEvidence:'67 contiguous 16-bit pointers; the first referenced header starts exactly at $8AD6. Native dispatch has no general bounds check.',queue:{enqueue:{bank16KiB:15,cpu:0xc051,fileOffset:0x3c061},bufferCPU:0x580,countCPU:0x66,capacity:16,order:'Last queued selector is dispatched first after the current update.',consumer:{bank16KiB:15,cpu:0xc03a,fileOffset:0x3c04a}},controls:[{id:252,meaning:'set update repetition to Y+1'},{id:253,meaning:'configure fade with Y'},{id:254,meaning:'stop effects / release overridden voices'},{id:255,meaning:'stop music'}]},headers,cues,streams,instruments,samples:[],opcodes:{music:music.map(([kind,argumentsCount,handler],opcode)=>({opcode,kind,argumentsCount,handler:loc(handler)})),effect:effect.map(([kind,argumentsCount,handler],opcode)=>({opcode,kind,argumentsCount,handler:loc(handler)}))},summary:{cueSelectors:cues.length,musicSelectors:cues.filter(c=>c.kind==='music-request').length,uniqueMusicHeaders:new Set(headers.filter(h=>h.mode==='music').map(h=>h.source.cpu)).size,effectSelectors:cues.filter(c=>c.kind==='effect').length,uniqueCueHeaders:new Set(headers.map(h=>h.source.cpu)).size,sourceStreams:streams.length,structuralCommands:streams.reduce((n,s)=>n+s.events.length,0),nativeStops:streams.filter(s=>s.stopReason==='native-stop').length,structuralCycles:streams.filter(s=>s.stopReason==='structural-cycle').length,modulationPresets:instruments.length,dpcmDescriptors:0},limitations};
+}
+return Object.freeze({decode,sha256:SHA,limits:Object.freeze({streamInstructions:MAX}),version:1});
+});
 /* Native byte parsers ported from the reviewed private catalog studies. No
  * recovered catalog or commercial ROM/sample payload is embedded in Forge.
  * Known-revision identity gates are explicit; each decoder re-reads source bytes. */
@@ -13863,7 +13943,8 @@ const sha=b=>(typeof FamiTone2Native!=='undefined'?FamiTone2Native:require('./fa
 const profiles=Object.freeze([
 {id:'zelda2-us-1',title:'Zelda II — The Adventure of Link',sha256:'ad8c0fbcf092bf84b48e69fd3964eea4ed91bfe62abc352943d537979782680c',bank:6},
 {id:'ninja-gaiden-us-1',title:'Ninja Gaiden',sha256:'07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e',bank:3},
-{id:'castlevania2-us-1',title:"Castlevania II — Simon's Quest",sha256:'f045d72683d3156555eccbb56090888f03a15e5b25e59db49dca7a87330472d3',bank:0}]);
+{id:'castlevania2-us-1',title:"Castlevania II — Simon's Quest",sha256:'f045d72683d3156555eccbb56090888f03a15e5b25e59db49dca7a87330472d3',bank:0},
+{id:'megaman2-us-1',title:'Mega Man 2',sha256:'49136b412ff61beac6e40d0bbcd8691a39a50cd2744fdcdde3401eed53d71edf',bank:12,fixedBank:15}]);
 function input(bytes){assert(bytes instanceof Uint8Array,'Choose a NES ROM.');assert(bytes.length>=16&&bytes.length<=64*1024*1024,'ROM size is outside the supported bound.');return bytes;}
 async function identify(bytes){input(bytes);const sha256=sha(bytes);return {source:{sha256,byteLength:bytes.length},profile:profiles.find(p=>p.sha256===sha256)||null};}
 function zelda(rom,sourceSha256){
@@ -14113,10 +14194,11 @@ return structural;
 }
 const hx=n=>'$'+n.toString(16).toUpperCase().padStart(2,'0');
 function build(bytes,identity,selection=null){
- const {profile,source}=identity;assert(profile,'This ROM revision has no installed native audio decoder.');assert(bytes.length===262160&&bytes[0]===78&&bytes[1]===69&&bytes[2]===83&&bytes[3]===26&&bytes[4]===8&&bytes[5]===16&&((bytes[6]>>4)|(bytes[7]&240))===1&&!(bytes[6]&4),'Known revision header layout differs.');
- const native=profile.id==='zelda2-us-1'?zelda(bytes,source.sha256):profile.id==='ninja-gaiden-us-1'?ninja(bytes,source.sha256,selection):castlevania(bytes,source.sha256);
+ const {profile,source}=identity;assert(profile,'This ROM revision has no installed native audio decoder.');assert(bytes.length===262160&&bytes[0]===78&&bytes[1]===69&&bytes[2]===83&&bytes[3]===26&&bytes[4]===(profile.id==='megaman2-us-1'?16:8)&&bytes[5]===(profile.id==='megaman2-us-1'?0:16)&&((bytes[6]>>4)|(bytes[7]&240))===1&&!(bytes[6]&4),'Known revision header layout differs.');
+ const native=profile.id==='megaman2-us-1'?(typeof MegaMan2Audio!=='undefined'?MegaMan2Audio:require('./megaman2-audio.js')).decode(bytes,source.sha256):profile.id==='zelda2-us-1'?zelda(bytes,source.sha256):profile.id==='ninja-gaiden-us-1'?ninja(bytes,source.sha256,selection):castlevania(bytes,source.sha256);
  let cues,instruments,samples,summary,limitations;
- if(profile.id==='zelda2-us-1'){
+ if(profile.id==='megaman2-us-1'){({cues,instruments,samples,summary,limitations}=native);
+ }else if(profile.id==='zelda2-us-1'){
  cues=native.cues.map(c=>({id:c.id,label:c.family+' · request '+hx(c.requestMask)+(c.orders.length?'':' · empty slot'),kind:c.orders.length?'music-request':'empty-request',family:c.family,requestMask:c.requestMask,requestRegister:c.requestRegister,orders:c.orders,aliases:c.sameOrderSequenceAs}));
  for(const g of native.sfx)for(const s of g.slots)cues.push({id:g.driver+':sfx:'+g.requestRegister+':'+s.mask,label:g.driver+' · SFX '+hx(g.requestRegister)+' / '+hx(s.mask),kind:'effect',driver:g.driver,requestRegister:g.requestRegister,requestMask:s.mask,...s});
  instruments=native.envelopes;samples=native.dpcm;summary=native.summary;limitations=native.limitations;
@@ -14130,7 +14212,7 @@ function build(bytes,identity,selection=null){
  return {format:'NESForgeNativeAudioCatalog',version:1,status:'decoded',source:copy(source),profile:copy(profile),summary,cues,instruments,samples,native,limitations:[...limitations,'Known revision only. Cue IDs and aliases are native identities, not verified song names.','Catalog evidence is separate from an editable project. Controlled native playback and canonical transcription disclose their own limits.']};
 }
 async function inspect(bytes){bytes=input(bytes).slice();const identity=await identify(bytes);if(!identity.profile)return {format:'NESForgeNativeAudioCatalog',version:1,status:'unknown',...identity,cues:[],instruments:[],samples:[],limitations:['No installed native catalog matches this revision. No claim that audio is absent. Existing FamiTone2 and runtime investigation remain available.']};return build(bytes,identity);}
-async function selection(bytes,id){bytes=input(bytes).slice();const identity=await identify(bytes),catalog=build(bytes,identity,identity.profile?.id==='ninja-gaiden-us-1'?Number(id):null),cue=catalog.cues.find(c=>c.id===String(id));assert(cue,'Select a catalog cue.');let streams;if(identity.profile.id==='zelda2-us-1')streams=(cue.orders||[]).map(o=>catalog.native.headers.find(h=>h.id===o.header));else if(identity.profile.id==='ninja-gaiden-us-1')streams=catalog.native.streams.filter(s=>s.commandIDs.includes(Number(id)));else streams=catalog.native.streams.filter(s=>cue.recordIds?.includes(s.recordId));return {source:catalog.source,profile:catalog.profile,cue,streams,instruments:catalog.instruments,samples:catalog.samples,limitations:catalog.limitations};}
+async function selection(bytes,id){bytes=input(bytes).slice();const identity=await identify(bytes),catalog=build(bytes,identity,identity.profile?.id==='ninja-gaiden-us-1'?Number(id):null),cue=catalog.cues.find(c=>c.id===String(id));assert(cue,'Select a catalog cue.');let streams;if(identity.profile.id==='megaman2-us-1')streams=catalog.native.streams.filter(s=>cue.streamIDs.includes(s.id));else if(identity.profile.id==='zelda2-us-1')streams=(cue.orders||[]).map(o=>catalog.native.headers.find(h=>h.id===o.header));else if(identity.profile.id==='ninja-gaiden-us-1')streams=catalog.native.streams.filter(s=>s.commandIDs.includes(Number(id)));else streams=catalog.native.streams.filter(s=>cue.recordIds?.includes(s.recordId));return {source:catalog.source,profile:catalog.profile,cue,streams,instruments:catalog.instruments,samples:catalog.samples,limitations:catalog.limitations};}
 return Object.freeze({version:1,profiles,identify,inspect,selection});
 });
 /* Installed catalog methods live in the existing recovery registry. Recognition
@@ -14153,10 +14235,12 @@ for(const profile of services.NativeAudioCatalog.profiles){
 'use strict';
 const services=window.Forge.services;
 function create(bytes,bank0,{maxInstructions=2000000,maxWrites=131072,onSample=()=>{}}={}){
- if(!(bytes instanceof Uint8Array)||bytes.length!==262160||!Number.isInteger(bank0)||bank0<0||bank0>7)throw Error('An investigated 128 KiB PRG source and fixed bank are required.');
+ const valid=bytes instanceof Uint8Array&&bytes.length>=16&&bytes[0]===78&&bytes[1]===69&&bytes[2]===83&&bytes[3]===26&&(bytes[7]&12)===0&&((bytes[6]>>4)|(bytes[7]&240))===1&&!(bytes[6]&4)&&bytes[4]>=1&&bytes[4]<=32&&bytes.length===16+bytes[4]*16384+bytes[5]*8192;
+ if(!valid||!Number.isInteger(bank0)||bank0<0||bank0>=bytes[4])throw Error('A complete iNES MMC1 source and valid fixed bank are required.');
+ const fixedBank=bytes[4]-1;
  if(!Number.isInteger(maxInstructions)||maxInstructions<1||maxInstructions>2000000||!Number.isInteger(maxWrites)||maxWrites<1||maxWrites>131072||typeof onSample!=='function')throw Error('Invalid isolated execution limits.');
  const rom=bytes.slice(),ram=new Uint8Array(2048),sram=new Uint8Array(8192),writes=[],state={A:0,X:0,Y:0,SP:0xfd,PC:0,C:0,Z:0,I:1,D:0,V:0,N:0,cycles:0,opsMissed:0};let instructions=0,origin=null,frame=-1;
- const physical=a=>16+(a<0xc000?bank0:7)*16384+(a&0x3fff);
+ const physical=a=>16+(a<0xc000?bank0:fixedBank)*16384+(a&0x3fff);
  function read(a){a&=65535;if(a<0x2000)return ram[a&2047];if(a===0x4015)return apu.readStatus();if(a>=0x6000&&a<0x8000)return sram[a-0x6000];if(a>=0x8000)return rom[physical(a)];throw Error('Isolated driver read unsupported bus address $'+a.toString(16));}
  function write(a,v){a&=65535;v&=255;if(a<0x2000){ram[a&2047]=v;return;}if((a>=0x4000&&a<=0x4013)||a===0x4015||a===0x4017){if(writes.length>=maxWrites)throw Error('Native APU write limit reached. Choose a shorter window.');apu.write(a,v);writes.push({frame,cycles:apu.cycles,address:a,value:v,pc:origin,fileOffset:origin>=0x8000?physical(origin):null});return;}if(a>=0x6000&&a<0x8000){sram[a-0x6000]=v;return;}throw Error('Isolated driver write unsupported bus address $'+a.toString(16));}
  const apu=new ForgeAPU(onSample,read),core=Forge6502Core.create(state,read,write);
@@ -14190,6 +14274,7 @@ async function run(input,options={},controls={}){
   if(cue.family){ram[0x707]=({'game-context-0':0,'game-context-1-2':1,'game-context-3-4':3,'game-context-other':5})[cue.family]??0;}
   ram[cue.requestRegister]=cue.requestMask;
  }else if(identity.profile.id==='ninja-gaiden-us-1'){update=0x8000;ram[0x600]=Number(cue.id);}
+ else if(identity.profile.id==='megaman2-us-1'){update=0x8000;machine.call(0x8003,Number(cue.id));}
  else{update=0x967d;machine.call(0xa2af,0);machine.call(0xa29b,Number(cue.id));}
  const schedule=[];
  for(let frame=0;frame<frames;frame++){
@@ -14305,12 +14390,13 @@ function sync(){const active=S.tab==='audio'&&open;document.body.classList.toggl
 function invalidate(){if(token)token.aborted=true;generation++;staged=null;trace=null;selection=null;selected=c.cue.value;page=0;c.summary.textContent='Choose Inspect cue to read the decoded source, Play native to audition it, or Preview editable score to see conversion details.';c.timeline.hidden=true;controls();}
 function cueRecords(){return catalog?.cues||[];}
 function jsonRecords(){if(!catalog)return [];if(view==='instruments')return catalog.instruments||[];if(view==='samples')return catalog.samples||[];if(view==='commands'){if(!selection)return [{notice:'Inspect a cue first to decode its complete command records.'}];const out=[];for(const stream of selection.streams||[]){if(stream.channels)for(const [channel,data]of Object.entries(stream.channels))for(const event of data.events||[])out.push({section:stream.id,channel,...event});else for(const event of stream.events||[])out.push({channel:stream.channel??stream.slot,recordId:stream.recordId,...event});}return out.length?out:[{cue:selection.cue,notice:'This entry is a control/empty slot or procedural effect. It does not have an independently decoded note stream; inspect its entry/table evidence.'}];}
- if(view==='writes')return trace?.writes||[{notice:'Run Play native or Preview editable score to collect the actual isolated native writes.'}];if(view==='methods')return [{profile:catalog.profile,drivers:catalog.native?.drivers,dispatcher:catalog.native?.driver,opcodes:catalog.native?.opcodes,queueStateMachine:catalog.native?.queueStateMachine,banks:{mapper:1,mode:'fixed PRG mapping for controlled playback',lower:{cpu:'$8000–$BFFF',physicalBank:catalog.profile?.bank,fileStart:16+(catalog.profile?.bank||0)*16384},upper:{cpu:'$C000–$FFFF',physicalBank:7,fileStart:0x1c010}},limitations:catalog.limitations}];return [{source:catalog.source,profile:catalog.profile,summary:catalog.summary,selectedCue:selection?.cue||cueRecords().find(x=>x.id===selected),limitations:catalog.limitations}];}
+ if(view==='writes')return trace?.writes||[{notice:'Run Play native or Preview editable score to collect the actual isolated native writes.'}];if(view==='methods')return [{profile:catalog.profile,drivers:catalog.native?.drivers,dispatcher:catalog.native?.driver,opcodes:catalog.native?.opcodes,queueStateMachine:catalog.native?.queueStateMachine,banks:{mapper:1,mode:'fixed PRG mapping for controlled playback',lower:{cpu:'$8000–$BFFF',physicalBank:catalog.profile?.bank,fileStart:16+(catalog.profile?.bank||0)*16384},upper:{cpu:'$C000–$FFFF',physicalBank:catalog.profile?.fixedBank??7,fileStart:16+(catalog.profile?.fixedBank??7)*16384}},limitations:catalog.limitations}];return [{source:catalog.source,profile:catalog.profile,summary:catalog.summary,selectedCue:selection?.cue||cueRecords().find(x=>x.id===selected),limitations:catalog.limitations}];}
 function showData(){const data=jsonRecords(),size=view==='commands'||view==='writes'?32:4;page=Math.max(0,Math.min(page,Math.max(0,Math.ceil(data.length/size)-1)));const start=page*size;c.data.textContent=JSON.stringify(data.slice(start,start+size),null,2);c.page.textContent=data.length?'Records '+(start+1)+'–'+Math.min(start+size,data.length)+' of '+data.length:'No records in this category.';c.prev.disabled=page===0;c.next.disabled=start+size>=data.length;}
 function metrics(){c.metrics.replaceChildren();if(!catalog||catalog.status!=='decoded')return;const pointerCount=catalog.instruments.reduce((n,x)=>n+(x.entries?.length||1),0);for(const [number,label]of [[catalog.cues.length,'cue / control entries'],[pointerCount,'envelope entries'],[catalog.samples.length,'DPCM descriptors']]){const box=make('div');box.className='nal-metric';box.appendChild(make('strong',null,String(number)));box.appendChild(make('span',null,label));c.metrics.appendChild(box);}}
 async function sourceLoaded(bytes,name='ROM'){
  if(bytes===romRef&&source)return source;fileOperation++;cancel();romRef=bytes;const id=++generation;source=null;catalog=null;selection=null;trace=null;staged=null;c.cue.replaceChildren();c.title.textContent='Reading ROM audio';metrics();busy=true;controls();status('Identifying the loaded ROM and decoding its native audio tables…');
  try{const data=bytes.slice(),result=await services.NativeAudioCatalog.inspect(data);if(id!==generation||romRef!==bytes)return false;source={bytes:data,name:String(name).slice(0,512),sha256:result.source.sha256,token:'rom-audio-'+id+'-'+result.source.sha256};catalog=result;c.title.textContent=result.profile?.title||'Audio driver not recognized';
+  if(result.status!=='decoded'){const option=make('option',null,'No native decoder for this revision — use Audio Discovery');option.value='';c.cue.appendChild(option);}
   for(const cue of result.cues){const option=make('option',null,cue.label);option.value=cue.id;c.cue.appendChild(option);}const preferred=result.cues.find(x=>x.kind==='music-candidate'||x.kind==='music-request'||x.channels?.length>=3)||result.cues[0];selected=preferred?.id||null;c.cue.value=selected||'';metrics();view='overview';page=0;showData();
   if(result.status==='decoded'){open=true;status('Decoded '+result.cues.length+' native cue/control entries from '+source.name+'. The Audio library is ready. No project data has been changed.');c.summary.textContent='The catalog comes directly from this ROM. Browse commands, instruments and samples; audition a cue, then preview its editable adaptation.';}
   else{status('This ROM revision has no installed native catalog. Runtime Investigation and the existing FamiTone2 workflow remain available.');c.summary.textContent=result.limitations.join('\n');}return source;
@@ -14321,7 +14407,7 @@ async function inspect(){if(busy)return false;const id=++generation;token={abort
 function settings(){return {cueId:c.cue.value,frames:Number(c.frames.value),rows:S.audRows,resourceKind:c.kind.value};}
 function renderTimeline(data){const canvas=c.timeline;canvas.hidden=false;const x=canvas.getContext('2d'),w=canvas.width,h=canvas.height,names=['Pulse 1','Pulse 2','Triangle','Noise','DPCM fetch'],colors=['#64e4ff','#b3a0ff','#6bf0b1','#ffc978','#ff8ba7'];x.fillStyle='#0a111e';x.fillRect(0,0,w,h);x.font='12px monospace';
  for(let ch=0;ch<5;ch++){const top=26+ch*43;x.fillStyle='#a5b5c9';x.fillText(names[ch],10,top+18);x.fillStyle='#172438';x.fillRect(86,top,w-102,32);for(const f of data.schedule){const v=ch===4?(f.dmc.remaining?15:0):f.channels[ch].volume;if(!v)continue;const a=86+f.frame*(w-102)/data.frames,b=Math.max(1,(w-102)/data.frames),height=4+v/15*26;x.fillStyle=colors[ch];x.fillRect(a,top+32-height,b,height);}}
- x.fillStyle='#8eabc4';x.fillText('Controlled native playback · channel volumes / DPCM fetch status · click a frame for exact values',10,h-9);c.timelineInfo.textContent=data.frames+' native updates · '+data.writes.length+' APU writes · '+data.stats.instructions.toLocaleString()+' CPU instructions. Fixed bank '+data.profile.bank+' at $8000; bank 7 at $C000.';
+ x.fillStyle='#8eabc4';x.fillText('Controlled native playback · channel volumes / DPCM fetch status · click a frame for exact values',10,h-9);c.timelineInfo.textContent=data.frames+' native updates · '+data.writes.length+' APU writes · '+data.stats.instructions.toLocaleString()+' CPU instructions. Fixed bank '+data.profile.bank+' at $8000; bank '+(data.profile.fixedBank??7)+' at $C000.';
 }
 async function play(){if(busy)return false;const id=++generation;token={aborted:false};busy=true;staged=null;stop();controls();try{const native=current(),options=settings(),C=window.AudioContext||window.webkitAudioContext;if(!C)throw Error('Web Audio is unavailable in this browser.');if(!audioContext)audioContext=new C();await audioContext.resume();guard(id);status('Rendering native audio in the isolated driver instance…');const data=await services.NativeAudioRecovery.run(native.bytes,{cueId:options.cueId,frames:options.frames},{signal:token,progress:p=>{if(id===generation)status('Native playback '+p.frame+' / '+p.total+' updates…');}});guard(id);trace=data;renderTimeline(data);view='writes';page=0;showData();const buffer=audioContext.createBuffer(1,data.samples.length,data.sampleRate);buffer.getChannelData(0).set(data.samples);playing=audioContext.createBufferSource();playing.buffer=buffer;playing.connect(audioContext.destination);playing.start();status('Playing the selected native cue, including native noise and DPCM, from the controlled initial state.');return true;}catch(error){if(id===generation)status(error.message,true);return false;}finally{if(id===generation){busy=false;controls();}}}
 async function preview(){if(busy)return false;const id=++generation;token={aborted:false};busy=true;staged=null;stop();controls();try{const native=current(),options=settings();status('Executing the selected native cue and preparing the editable score…');const item=await services.RENativeAudioImport.stage(native,{kind:options.resourceKind,profile:'native-catalog',...options},{signal:token});guard(id);if(item.result.status!=='ready'||!item.data){c.summary.textContent=item.result.diagnostics.map(d=>d.message).join('\n');throw Error('This selection cannot be converted. Read the conversion details; native catalog/playback remains available.');}staged=item;const r=item.result,p=r.provenance;trace={source:{sha256:native.currentSha256},profile:catalog.profile,frames:options.frames,schedule:p.schedule,writes:p.writes,stats:p.cpu};renderTimeline(trace);view='overview';page=0;showData();c.summary.textContent=[catalog.profile.title+' · '+cueRecords().find(x=>x.id===options.cueId).label,r.imported.noteCount+' note changes · '+item.data.patternCount+' new patterns · '+item.data.instrumentCount+' new duty instruments',options.frames+' native updates; '+r.imported.paddingFrames+' final cut/silent padding rows','Largest nearest-pitch difference: '+p.maxAbsoluteCents.toFixed(3)+' cents','Estimated generated Audio data: '+item.data.estimatedBytes+' bytes','',...r.warnings,'',...r.limitations,'','Import appends editable data. Music import replaces the current music order and tempo/speed; SFX import adds one named definition. One Undo restores the prior project. Save Project As preserves the score.'].join('\n');status('Preview ready. Review the transcription differences, then import into the tracker.');return true;}catch(error){if(id===generation){staged=null;status(error.message,true);}return false;}finally{if(id===generation){busy=false;controls();}}}

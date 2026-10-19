@@ -1,6 +1,8 @@
 # ROM Audio Library
 
-**2.0.0-alpha.11 / native-audio-library-1 · project schema 12**
+**Current increment: 2.0.0-alpha.11 / megaman2-audio-1 · project schema 12**
+
+Mega Man 2 US now has a native cue decoder. See [its tutorial and format explanation](MEGAMAN2_AUDIO.md). The earlier catalogs and all controls below remain available.
 
 Load a supported ROM and its recovered audio catalog appears directly inside **AUDIO**. You can inspect the native structure, audition a selected cue, preview its conversion and import editable tracker data. You do not need another desktop tool, a Windows export, a JSON transfer or a network connection.
 
@@ -21,6 +23,7 @@ Load a supported ROM and its recovered audio catalog appears directly inside **A
 | --- | --- | --- |
 | Zelda II, US | 40 music request slots, including 12 empty slots; 64 decoded sections; 35 procedural SFX cases; four pulse envelope regions; six DPCM descriptors | 75 request/effect entries. A section is not a whole song; complete-song count remains unknown. |
 | Ninja Gaiden, US | 85 command slots, 69 distinct headers, 23 envelope table entries, two unique DPCM spans | Includes aliases and a global fade control. Music/SFX names and a reliable semantic split are not asserted. |
+| Mega Man 2, US | 33 music selectors (24 distinct headers), 34 effects, 124 source streams, 31 referenced modulation records; no DPCM descriptors in this format | 67 selectors, including aliases. Separate music/effect command formats; physical bank 12 / fixed bank 15 playback. |
 | Castlevania II, US | Nine music-group candidates, 46 effect-group candidates, 93 channel records, 48 volume and 32 pitch envelope pointers, three DPCM configurations | 58 group/sample entries. One effect jump outside the identified region remains unresolved. |
 
 These are **known revisions**, checked by SHA-256 and decoded again from their current physical bytes. A renamed, translated, modified, PAL or other revision can remain unknown. This is not generalized driver-family recognition. Unknown does not mean the ROM contains no audio. The retained FamiTone2/native import and general Runtime Investigation workflows remain available.

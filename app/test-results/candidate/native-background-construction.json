@@ -1,6 +1,6 @@
 {
   "suite": "native-background-construction",
-  "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
+  "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
   "scope": "Actual production immediate-PPU decoder, source-bound literal/fill/alias semantics, pinned native output and independent bundled CPU-produced PPU comparisons, relocation and format variants, unsupported/false-positive refusal, bounded work and noninterference. Derivatives are structural tests, not independent engines. No browser or hardware evidence.",
   "passed": 16,
   "failed": 0,
@@ -9,47 +9,47 @@
     {
       "name": "Native literal/fill construction yields independently pinned background and palette data",
       "passed": true,
-      "milliseconds": 3
+      "milliseconds": 5
     },
     {
       "name": "Decoded bytes equal actual CPU-created PPU nametable and palette at the initialization return",
       "passed": true,
-      "milliseconds": 778
+      "milliseconds": 734
     },
     {
       "name": "Meaningful literal, palette and CHR edits remain recognized without the original source hash",
       "passed": true,
-      "milliseconds": 803
+      "milliseconds": 898
     },
     {
       "name": "Palette aliases keep hardware last-write semantics and physical source provenance",
       "passed": true,
-      "milliseconds": 758
+      "milliseconds": 705
     },
     {
       "name": "Final PPUCTRL selects either physical background CHR bank, without guessing tile usage",
       "passed": true,
-      "milliseconds": 2
+      "milliseconds": 1
     },
     {
       "name": "A relocated constructor is followed through its actual reset JSR, despite an old matching copy",
       "passed": true,
-      "milliseconds": 788
+      "milliseconds": 853
     },
     {
       "name": "The same construction decodes from NROM-256 upper PRG with shifted physical provenance",
       "passed": true,
-      "milliseconds": 684
+      "milliseconds": 1030
     },
     {
       "name": "Zero-count X loops mean 256 writes and the parser accounts for every destination",
       "passed": true,
-      "milliseconds": 694
+      "milliseconds": 728
     },
     {
       "name": "Each final nametable value cites its last writer, including the title overlay",
       "passed": true,
-      "milliseconds": 3
+      "milliseconds": 2
     },
     {
       "name": "Unreachable matching construction and an unknown initializer remain unknown",
@@ -84,7 +84,7 @@
     {
       "name": "All pure decode outcomes preserve original bytes, authored project, history and emulator",
       "passed": true,
-      "milliseconds": 24
+      "milliseconds": 13
     }
   ]
 }

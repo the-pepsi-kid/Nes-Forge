@@ -1,3 +1,5 @@
+**Current increment:** Mega Man 2 US now has a native cue decoder. Its exact revision populates Native Cue; see [Mega Man 2 audio](MEGAMAN2_AUDIO.md). Other unknown revisions still require investigation and a validated decoder. Discovery controls below are retained.
+
 # Audio Discovery — investigate an unknown ROM
 
 Candidate audio-discovery-1, schema 12. This adds investigation tools for audio formats without an installed catalog. It does not automatically reconstruct a full song/SFX library or enable an unknown native decoder.

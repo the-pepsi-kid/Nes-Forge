@@ -1,7 +1,7 @@
 {
   "suite": "audio-runtime180",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
+  "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
   "scope": "Schema 12 retention of the established Audio Runtime and compatibility; detached tracker/SFX compilation; generated viewer, single-room and World 6502 execution through the bundled APU emulator; sound-event entry, preemption/restore, explicit unsupported-input rejection and Audio Studio handlers. Mock DOM/emulator evidence, not real-browser speaker output or hardware acceptance.",
   "passed": 17,
   "failed": 0,
@@ -32,87 +32,87 @@
     {
       "name": "Schema 12 preserves Audio Runtime and stable SFX references while schema 10 migrates disabled",
       "passed": true,
-      "milliseconds": 911
+      "milliseconds": 1303
     },
     {
       "name": "Malformed Audio Runtime input rejects before project, history, identity, or emulator mutation",
       "passed": true,
-      "milliseconds": 690
+      "milliseconds": 754
     },
     {
       "name": "Actual frozen 1.7 rejects schema 11 before changing project or history",
       "passed": true,
-      "milliseconds": 1125
+      "milliseconds": 1101
     },
     {
       "name": "Audio compiler derives deterministic channel records, envelopes, timers, and sound links without source mutation",
       "passed": true,
-      "milliseconds": 597
+      "milliseconds": 821
     },
     {
       "name": "Disabled Audio Runtime preserves unresolved audio sketches as authoring-only data",
       "passed": true,
-      "milliseconds": 602
+      "milliseconds": 746
     },
     {
       "name": "Audio compiler rejects missing/ambiguous SFX, unsupported effects and executable DPCM",
       "passed": true,
-      "milliseconds": 2870
+      "milliseconds": 3350
     },
     {
       "name": "Audio-enabled custom assembly fails explicitly instead of silently omitting playback",
       "passed": true,
-      "milliseconds": 502
+      "milliseconds": 595
     },
     {
       "name": "Generated viewer autoplays pulse, triangle, and noise through hardware APU registers",
       "passed": true,
-      "milliseconds": 913
+      "milliseconds": 1129
     },
     {
       "name": "Generated viewer executes authored duty, volume, and arpeggio envelopes over time",
       "passed": true,
-      "milliseconds": 1284
+      "milliseconds": 1491
     },
     {
       "name": "Single-room sound event preempts its music channel once and restores the authored note",
       "passed": true,
-      "milliseconds": 1335
+      "milliseconds": 1380
     },
     {
       "name": "World sound event starts the same SFX representation and finishes within frame budget",
       "passed": true,
-      "milliseconds": 1462
+      "milliseconds": 1356
     },
     {
       "name": "World ROM round trip preserves schema 12 Audio authoring and older 1.7 rejects it atomically",
       "passed": true,
-      "milliseconds": 1536
+      "milliseconds": 1467
     },
     {
       "name": "Audio Studio controls make runtime and SFX edits undoable without inventing a second note model",
       "passed": true,
-      "milliseconds": 693
+      "milliseconds": 748
     },
     {
       "name": "Standard MIDI import maps timing, pitch, velocity, and program into ordinary tracker data",
       "passed": true,
-      "milliseconds": 494
+      "milliseconds": 653
     },
     {
       "name": "MusicXML import maps score timing into the same tracker representation and rejects excess polyphony",
       "passed": true,
-      "milliseconds": 487
+      "milliseconds": 773
     },
     {
       "name": "Audio import appends patterns, preserves SFX references, is undoable, and builds playable music",
       "passed": true,
-      "milliseconds": 1325
+      "milliseconds": 1260
     },
     {
       "name": "Supplied 1.8 Audio example retains its frozen provenance and reproduces its matching generated World ROM",
       "passed": true,
-      "milliseconds": 1507
+      "milliseconds": 1651
     }
   ]
 }

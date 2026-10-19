@@ -1,0 +1,14 @@
+# Verified checkpoint
+
+Candidate `megaman2-audio-1`, alpha.11, schema 12. Parent commit `819838b3920987c7a47677fd40552bf5a57d5e38`. Current application SHA-256: `216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe`.
+
+- **1,958 / 1,958 cases, 105 suites**, on one unchanged HTML with immutable source/docs/tests/examples. All 103 predecessor suites and 1,948 cases retained in order/count. Four retained registry test cases explicitly expand the registry to its fourth native profile; release-identity assertions use the new candidate. Exact parent reconstruction and all earlier preservation boundaries pass.
+- **67 / 67 Mega Man 2 cue selectors**, each executed for **1,024 updates** without unsupported opcodes, instruction/bus refusal or project mutation. All 67 long windows yield a finite editable music adaptation; this does not imply capacity to build every long excerpt or single-channel SFX conversion.
+- **Nine exact parent parity windows**, 64 updates each: **4,402 APU writes** and **460,386 Float32 samples**. Native source-reader addresses fall within the separately decoded command spans. This is controlled emulator/model parity, not listening/hardware or natural-game equivalence.
+- **34 / 34 browser checks** on the same HTML: 10 new Mega Man 2 checks, 14 retained known-library checks, 10 retained unknown-discovery checks. Actual chooser, native music/effects, source navigation, preview/import/Undo/Redo, visible note editing, real project download/reopen, ROM build, cancellation, variant refusal and narrow layout are covered.
+- **58 retained examples regenerated** in a disposable copy: 52 byte-identical files; six build receipts change only the HTML identity. All 15 generated ROMs, 19 projects and six recipes remain identical. Those exact six regenerated receipts were copied before the final gate.
+- **345 packaged inventory entries verified**, 164 original kit files retained byte-identically under RC3, **694 local documentation links resolve**. The actual application is included. Fresh ZIP launch, real ROM chooser, 67 cue options and native playback are verified separately in Package_Verification.json. Windows names and path lengths are checked; physical Windows Explorer is not claimed.
+
+The earlier preparation runs caught old example receipt identities and were not accepted as completed gates. The final gate runs after those six receipts and the complete source/test delta are frozen. No production CPU/APU/compiler/runtime source changed; no ROM/sample payload is included. Browser and catalog reports describe their exact measured bounds. Full song naming/duration, arbitrary engine-family recognition, original-instrument reconstruction and physical listening/hardware acceptance remain open.
+
+Download instructions and every control are documented in app/docs/MEGAMAN2_AUDIO.md and the packaged Mega_Man_2_Audio.html. This is a development review branch; main/release promotion is separate.
