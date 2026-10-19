@@ -1,3 +1,7 @@
+# NES Forge — hosting and optional local services direction
+
+The accepted [hosting and local services direction](planning/HOSTING_AND_LOCAL_SERVICES_DIRECTION_2026-10-18.md) keeps Forge distributed as one HTML file, with future browser Host/Join sessions and optional PC/cyberdeck services for storage, persistent hosting, tools and devices. This checkpoint records the design only. Audio-driver mapping and catalog recovery remain the active priority; the application and tester kit are unchanged.
+
 # NES Forge — second-engine audio recovery proof
 
 A source-specific DABG investigation now produces an editable Forge Audio project and rebuilt ROM for the first 32 source rows of its Pulse 1 lead. All **214 compared frames** match the original driver’s volume, sounding duty and period; a deliberate note edit changes the generated pitch. Two independent reproductions are byte-identical, and six browser checks reopen and rebuild both delivered projects.
