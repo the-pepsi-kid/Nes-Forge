@@ -1,0 +1,87 @@
+{
+  "format": "NESForgePartialResourceInvestigation",
+  "version": 1,
+  "sourceSha256": "07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e",
+  "script": {
+    "id": "ng-script:89",
+    "label": "action_59",
+    "source": {
+      "bank16KiB": 2,
+      "cpu": 35508,
+      "fileOffset": 35524,
+      "length": 5
+    },
+    "pointerSource": {
+      "bank16KiB": 2,
+      "cpu": 34482,
+      "fileOffset": 34498,
+      "length": 2
+    },
+    "poseSelectors": [
+      135,
+      138
+    ],
+    "effectiveUpdateTicks": [
+      3,
+      3
+    ]
+  },
+  "poseEntries": [
+    {
+      "selector": 135,
+      "shapePointer": 65535,
+      "shapeSource": {
+        "bank16KiB": 2,
+        "cpu": 33038,
+        "fileOffset": 33054,
+        "length": 2
+      },
+      "attributePointer": 65535,
+      "attributeSource": {
+        "bank16KiB": 2,
+        "cpu": 33550,
+        "fileOffset": 33566,
+        "length": 2
+      }
+    },
+    {
+      "selector": 138,
+      "shapePointer": 65535,
+      "shapeSource": {
+        "bank16KiB": 2,
+        "cpu": 33044,
+        "fileOffset": 33060,
+        "length": 2
+      },
+      "attributePointer": 65535,
+      "attributeSource": {
+        "bank16KiB": 2,
+        "cpu": 33556,
+        "fileOffset": 33572,
+        "length": 2
+      }
+    }
+  ],
+  "classification": "partial-unassigned-pose-references",
+  "playback": "unavailable",
+  "editableImport": "unavailable",
+  "evidenceExport": "available",
+  "runtimeReachability": "unresolved",
+  "sourceReference": {
+    "url": "https://github.com/0xe1f/NinjaGaidenNES",
+    "commit": "32459fdf903679ce07bb372762291be3cf0d91b3",
+    "annotations": [
+      "prg/bank02.asm: enemy_shape declares $FFFF unused; action_59 contains these two selectors.",
+      "prg/bank07.asm: step_enemy ($DFE9) transfers the stream pose; draw_enemies ($F10D) forms a full-width table index using ASL/ROL, so these are not seven-bit aliases."
+    ]
+  },
+  "nextEvidence": [
+    "Trace actual writes to enemy_action and enemy_pose during naturally reached states.",
+    "Follow table-driven action assignments and state transitions to establish whether selector $59 can be invoked.",
+    "If a special context supplies another table, recover and validate that context before enabling playback/import. Otherwise retain unassigned references and report observed reachability precisely."
+  ],
+  "limits": [
+    "$FFFF establishes unassigned native table entries; it does not establish whether this script executes.",
+    "No placeholder frames, guessed art, special-state behavior or unused-script certainty were introduced."
+  ]
+}

@@ -2,276 +2,37 @@
   "format": "NESForgeCandidateHandoff",
   "version": 1,
   "release": "2.0.0-alpha.11",
-  "candidate": "ninja-zelda-re-1",
+  "candidate": "native-game-import-1",
   "schema": 12,
-  "status": "review-candidate",
-  "branch": "implementation/ninja-zelda-re-2026-10-19",
+  "status": "source-checkpoint-full-validation-pending",
+  "branch": "implementation/native-game-import-2026-10-19",
+  "parentCommit": "81338252e1f7a2ee8629c2f23f2e4e1d72c23472",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "f12c1cac282bd081c60d25e1b62a99ddce3e578d82573ecca5e930d95af5c233",
-  "payloadChecksums": 7280,
-  "packageFiles": 7281,
-  "parentCommit": "387b99b5f4bec1e05568482c15ef5bbea1ae4527",
-  "changes": [
-    "Connected native game resource catalog inside RE / DISASM, with original initial scene art, geometry, objects, actor parameter/dispatch tables, sprite resources, CHR banks, source annotations and evidence export.",
-    "Ninja Gaiden: 48 rooms, 423 enemy and 281 lantern records, entrances/palettes, 44 actor selectors, 202 poses and 83 nonempty shared scripts with native reader timing.",
-    "Zelda II: nine world/table contexts, 567 slots with 561 available scene views, object/enemy/connection/location records and 30 native Link pose/facing samples.",
-    "Zelda II title-screen ground/tree corruption corrected by honoring visible second PPUADDR writes in the scanline renderer and matching capture coordinates.",
-    "Canonical schema, CPU instructions, APU, capture implementation, compiler/runtime emitters and native audio remain preserved; source reversal restores the exact Spatial RE parent and all 288 protected files."
-  ],
+  "htmlSha256": "cf2eb17d33d8ce63067ae04bcb7de082026300bea2bf90670414f65217b2649e",
+  "verified": {
+    "browserChecks": 30,
+    "nativeAvailableScenes": 609,
+    "comparedBackgroundPixels": 111935488,
+    "ninjaImportableClips": 80,
+    "partialNinjaSelectors": [
+      15,
+      16,
+      89
+    ],
+    "projectileNativeFrames": 4,
+    "assetCases": 19,
+    "preservationCases": 2,
+    "retainedExampleOutputs": 58
+  },
   "automatedResult": {
-    "status": "passed",
-    "suiteCount": 110,
-    "passed": 1989,
-    "total": 1989,
-    "retainedSuites": 107,
-    "retainedCases": 1970,
-    "addedCases": 19,
-    "summary": "app/test-results/candidate/Summary.json"
+    "status": "pending",
+    "scope": "The first full run hit a retained VM timeout; its project suite then passed 17/17 in isolation and in the single-worker rerun. The second full run found a stale example app-hash receipt. All 58 example outputs have now been independently regenerated: 52 are byte-identical and six receipts change only htmlSha256. Another unchanged full run is pending."
   },
-  "retainedCases": 1970,
-  "retainedSuites": 107,
-  "automatedSummary": "app/test-results/candidate/Summary.json",
-  "preservedParent": {
-    "candidate": "spatial-re-1",
-    "commit": "387b99b5f4bec1e05568482c15ef5bbea1ae4527",
-    "htmlSha256": "b5f73734aa43356067e8fc0b0a9f45c7cbe434b4a38dfbedde827f1d534c0945",
-    "suiteCount": 107,
-    "cases": 1970,
-    "reference": "app/docs/history/spatial-re-1/Reference_Inventory.json",
-    "protectedFiles": 288,
-    "method": "Exact parent source/test reconstruction around the reviewed additions; all earlier preservation boundaries retained. Three retained test edits update release identity only, with no cases removed."
-  },
-  "retainedExamples": {
-    "files": 58,
-    "byteIdentical": 52,
-    "receiptIdentityOnlyChanges": 6,
-    "unchangedRomFiles": 15,
-    "unchangedProjects": 19,
-    "unchangedRecipes": 6,
-    "scope": "All 58 retained examples regenerated in a disposable copy. 52 files are byte-identical to the parent; six build receipts change only htmlSha256. Those six exact reproduced receipts are copied into the candidate before the final immutable gate.",
-    "evidence": "reviews/ninja-zelda-re-1/Example_Regeneration.json"
-  },
-  "browserEvidence": [
-    {
-      "report": "reviews/ninja-zelda-re-1/browser/Report.json",
-      "passed": 20,
-      "htmlSha256": "f12c1cac282bd081c60d25e1b62a99ddce3e578d82573ecca5e930d95af5c233"
-    },
-    {
-      "report": "reviews/spatial-re-1/browser/Report.json",
-      "passed": 13,
-      "htmlSha256": "f12c1cac282bd081c60d25e1b62a99ddce3e578d82573ecca5e930d95af5c233"
-    },
-    {
-      "report": "reviews/megaman2-native-audio-1/browser/Report.json",
-      "passed": 10,
-      "htmlSha256": "f12c1cac282bd081c60d25e1b62a99ddce3e578d82573ecca5e930d95af5c233"
-    },
-    {
-      "report": "reviews/native-audio-library-1/browser/Report.json",
-      "passed": 14,
-      "htmlSha256": "f12c1cac282bd081c60d25e1b62a99ddce3e578d82573ecca5e930d95af5c233"
-    },
-    {
-      "report": "reviews/audio-discovery-1/browser/Report.json",
-      "passed": 10,
-      "htmlSha256": "f12c1cac282bd081c60d25e1b62a99ddce3e578d82573ecca5e930d95af5c233"
-    }
-  ],
-  "audioToolImport": {
-    "guide": "app/docs/AUDIO_TOOL_IMPORT.md",
-    "fixtureProvenance": "app/tests/fixtures/famistudio-export/provenance.json",
-    "version": "FamiStudio 4.5.x",
-    "channels": [
-      "Pulse1",
-      "Pulse2",
-      "Triangle",
-      "Noise"
-    ],
-    "originalPreservation": "Separate downloadable receipt includes original UTF-8 text and SHA-256; schema-12 project contains converted score only.",
-    "scope": "Bounded score/instrument conversion; no binary .fms project import, FamiTracker text importer, original-engine equivalence or arbitrary effect support."
-  },
-  "audioRecognition": {
-    "report": "app/research/audio-recognition-1/baseline.json",
-    "corpusCases": 9,
-    "independentExternalGameProjects": 2,
-    "heldOutIndependentSameFamilyProjects": 0,
-    "strictAcceptedExistingInputs": 3,
-    "controlsRefused": 6,
-    "newSupportedDriverFamilies": 0,
-    "scope": "Uncalibrated read-only routine comparisons, with physical-byte evidence and work limits. Similarity cannot authorize decoding or import; no broad accuracy or time-saving claim."
-  },
-  "ownerAcceptance": "Physical Windows/mobile, NES hardware, listening, full collision/physics/AI/quest behavior, native scene import and complete game reconstruction remain open.",
-  "promotion": "Development review checkpoint on its own branch. Complete app and preserved review-kit content; commercial ROMs and extracted commercial payloads excluded.",
-  "roadmap": "Continue native collision response, movement/AI/state transitions, animation bindings and guarded canonical import; preserve exact source and unresolved behavior.",
-  "license": "UNDECIDED; upstream fixture/source notices retained.",
-  "audioDriverSurvey": {
-    "guide": "app/docs/AUDIO_DRIVER_SURVEY.md",
-    "newSupportedDriverFamilies": 0,
-    "scope": "Bounded executed base-APU writer observations; no automatic whole-library detection, engine identification or editable score conversion.",
-    "ownership": "Existing RERuntime and RERuntimeUI; project schema 12 and canonical Audio remain unchanged."
-  },
-  "nativeAudioLibrary": {
-    "guide": "app/docs/NATIVE_AUDIO_LIBRARY.md",
-    "knownRevisionProfiles": 4,
-    "supportedCatalogEntries": {
-      "zelda2": 75,
-      "ninjaGaiden": 85,
-      "castlevania2": 58,
-      "megaMan2": 67
-    },
-    "standalonePlaybackEntries": 272,
-    "nonAudioControlsAndEmptySlots": 13,
-    "boundedCatalogSupplement": "reviews/megaman2-native-audio-1/ROM_Verification.json",
-    "currentSuppliedInput": {
-      "profile": "megaman2-us-1",
-      "entries": 67,
-      "updatesPerEntry": 1024,
-      "nativeExecutionRefusals": 0
-    },
-    "parityWindows": 9,
-    "parityUpdatesPerWindow": 64,
-    "parityAPUWrites": 4402,
-    "parityPCMSamples": 460386,
-    "comparison": "Exact APU address/value/source/cycle sequence and Float32 PCM against the committed unchanged parent CPU/APU in the same controlled initial state. Not natural-game or hardware equivalence.",
-    "conversion": "Finite frame-end APU-state adaptation; nearest canonical pitches, volume rows and simple duty instruments. DPCM, short-mode noise, sub-frame articulation, phase and original instrument/control-flow reconstruction remain outside editable conversion.",
-    "schema": 12,
-    "newGeneralizedDriverFamilies": 0,
-    "originalROMsOrSamplesEmbedded": false,
-    "retainedParentSupplement": {
-      "report": "reviews/native-audio-library-1/Native_Parity.json",
-      "htmlSha256": "c3dd4d509cb0df3be1ce60404810ec6e4cc25d95d1edfbc1cda87964f4d2247e",
-      "profiles": 3,
-      "playbackEntries": 205,
-      "updatesPerEntry": 16,
-      "parityWindows": 4,
-      "scope": "Historical exact parent parity and bounded entry sweep. Three-ROM browser workflow separately rerun against the current candidate."
-    }
-  },
-  "audioDiscovery": {
-    "guide": "app/docs/AUDIO_DISCOVERY.md",
-    "referenceGeneration": "reviews/audio-discovery-1/Reference_Generation.json",
-    "comparisonCorpus": "reviews/audio-discovery-1/Corpus_Probe.json",
-    "derivedReferenceTitles": 3,
-    "referenceWriterContexts": 42,
-    "referenceExecution": "Four controlled 64-update native windows, not natural gameplay.",
-    "originalExample": "app/examples/Audio_Discovery/Discovery_NROM.nes",
-    "exampleProvenance": "app/examples/Audio_Discovery/Provenance.json",
-    "nativeDecoderAcceptanceBroadened": false,
-    "newGeneralizedDriverFamilies": 0,
-    "comparisonMeaning": "Uncalibrated four-instruction context overlap. No score authorizes decoding, conversion or an engine-family decision.",
-    "captureOwner": "Existing RERuntime and EmulatorBridge",
-    "sourceLimitBytes": 8388608,
-    "scanPRGByteLimit": 1048576,
-    "writerPatternLimit": 128,
-    "blockDecodeVisitLimit": 262144,
-    "recordingFrameLimit": 120,
-    "unknowns": "Full song/SFX library, queue semantics, table boundaries, pointer formats, instruments, original loops and expansion audio remain unresolved unless a separate validated decoder supports them.",
-    "validationScope": "Unchanged discovery implementation and derived references from three earlier titles; current 10-check browser workflow rerun. A separate exact-revision catalog now supports Mega Man 2. Discovery scores still do not authorize decoding."
-  },
-  "parentGateCorrections": {
-    "evidence": [
-      "reviews/native-audio-library-1/initial-gate-identity-interaction/Summary.json",
-      "reviews/native-audio-library-1/initial-gate-profile-inventory/Summary.json"
-    ],
-    "registryInventory": "Two retained UI cardinality assertions now require eight installed profiles instead of five; the five original IDs are explicitly preserved and all three new profiles must remain unknown for the unrelated fixture. Case counts and all unrelated assertions are retained. The native profiles use the registry\u2019s required probe/handler context signatures, verified against all three known ROMs and an unrelated source.",
-    "reason": "Automatic catalog discovery used the same pending WebCrypto path as Runtime Investigation and interfered with its cancellation fixture. Discovery now uses the existing independent SHA-256 helper. All 24 retained runtime cases and a new isolation regression pass unchanged."
-  },
-  "megaMan2Audio": {
-    "guide": "app/docs/MEGAMAN2_AUDIO.md",
-    "sourceSha256": "49136b412ff61beac6e40d0bbcd8691a39a50cd2744fdcdde3401eed53d71edf",
-    "nativeCatalog": {
-      "cueSelectors": 67,
-      "musicSelectors": 33,
-      "uniqueMusicHeaders": 24,
-      "effectSelectors": 34,
-      "uniqueCueHeaders": 58,
-      "sourceStreams": 124,
-      "structuralCommands": 21201,
-      "nativeStops": 68,
-      "structuralCycles": 56,
-      "modulationPresets": 31,
-      "dpcmDescriptors": 0
-    },
-    "verification": "reviews/megaman2-native-audio-1/ROM_Verification.json",
-    "controlledBanks": {
-      "lower": 12,
-      "upper": 15
-    },
-    "completeSongNamesVerified": false,
-    "fullSongDurationVerified": false,
-    "familyRecognition": false,
-    "nativeEncoder": false
-  },
-  "spatialRE": {
-    "guide": "app/docs/SPATIAL_RE.md",
-    "verification": "reviews/spatial-re-1/ROM_Verification.json",
-    "mapViews": 747,
-    "nativePlayerScripts": 13,
-    "scope": "Decoded native geometry/categories with explicitly bounded per-title semantics; read-only evidence, not playable conversion.",
-    "sourceUnchanged": true,
-    "completeGameRecovery": false,
-    "nativeSceneImport": false,
-    "unknownEngineRecognition": false,
-    "retainedAndVerified": true
-  },
-  "retainedNativeAudioOracles": {
-    "sourceCommit": "d1f3ef5dd3be5150431d74b478fb9a38db300f6e",
-    "htmlSha256": "216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe",
-    "rerunThisCheckpoint": false,
-    "currentEvidence": "Unchanged production native audio/CPU/APU byte checks, complete current gate and 34 current audio browser checks. Historical PCM/catalog oracles remain labeled with their original identity."
-  },
-  "historicalPreservation": {
-    "audio-discovery-1": {
-      "candidate": "audio-discovery-1",
-      "commit": "819838b3920987c7a47677fd40552bf5a57d5e38",
-      "htmlSha256": "1ffaf54d1d25e5988cfac324018711d29fee51336ac9722b9375d413d61ea1c6",
-      "suiteCount": 103,
-      "cases": 1948,
-      "reference": "app/docs/history/audio-discovery-1/Reference_Inventory.json",
-      "method": "Exact parent source/test reconstruction and 276 protected parent files; all earlier preservation boundaries retained. Explicit test adjustments add the fourth registry profile and new candidate identity; no retained cases removed."
-    }
-  },
-  "nativeGameRE": {
-    "guide": "app/docs/NINJA_ZELDA_RE.md",
-    "verification": "reviews/ninja-zelda-re-1/ROM_Verification.json",
-    "ninjaRooms": 48,
-    "zeldaSceneContextSlots": 567,
-    "zeldaAvailableViews": 561,
-    "zeldaUnavailableSlots": 6,
-    "ninjaPoses": 202,
-    "ninjaNonemptyScripts": 83,
-    "zeldaLinkPoseFacingSamples": 30,
-    "sourceUnchanged": true,
-    "nativeSceneImport": false,
-    "completeGameRecovery": false,
-    "unknownEngineRecognition": false
-  },
-  "verificationRuntime": {
-    "node": "v22.23.3",
-    "platform": "linux",
-    "architecture": "x64",
-    "workers": 2
-  },
-  "reviewKit": {
-    "path": "tester-kit/ninja-zelda-re-1/NF_Ninja_Zelda_RE.zip",
-    "sha256": "ce805607abf5fcb95169678077f25a6b7ef1d54d513d5aa7ceb73b646b576686",
-    "bytes": 12517605,
-    "files": 454,
-    "applicationSha256": "f12c1cac282bd081c60d25e1b62a99ddce3e578d82573ecca5e930d95af5c233",
-    "packageVerification": "reviews/ninja-zelda-re-1/Package_Verification.json",
-    "freshPackageBrowserVerification": "reviews/ninja-zelda-re-1/Package_Browser_Verification.json",
-    "freshPackageBrowserCases": 3,
-    "totalCurrentBrowserChecks": 70,
-    "nativeWindowsExtractionTested": false,
-    "compression": {
-      "format": "standard ZIP Deflate",
-      "largeTextEncoder": "zopfli==0.4.3",
-      "iterations": 5,
-      "optimizedEntries": 51
-    }
-  },
-  "verificationLimitations": {
-    "node24": "Intermittent VM timeout failures remain unresolved; preserved attempt reports and startup diagnostics are in reviews/ninja-zelda-re-1. The unchanged full gate passed on Node 22.23.3 without widened limits or retries within the gate."
-  }
+  "historicalReports": "The app/test-results and SHA256SUMS records in this source checkpoint remain prior checkpoint records until the running full gate and integrity inventory are finalized. They are not current passing acceptance evidence.",
+  "parentManifest": "reviews/native-game-import-1/Parent_CANDIDATE.json",
+  "guide": "app/docs/NATIVE_RESOURCE_IMPORT.md",
+  "limits": [
+    "Editable initial-art/pose/timing adaptations, not full game reconstruction. Collision response, physics, AI, state transitions and unknown engine recovery remain incomplete.",
+    "This is a recoverable source checkpoint, not a finalized review kit. Use the standalone HTML for the new importer."
+  ]
 }

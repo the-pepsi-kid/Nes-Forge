@@ -247,6 +247,24 @@ function appendScene(input,options={}){
       refresh:[...(selected?[()=>loadSceneData(index)]:[]),()=>rebuildAllUI(),()=>Forge166.ui?.refresh()]};
   });
 }
+function appendAssets(input,options={}){
+  return runEdit('assets',options,candidate=>{
+    if(!input||Object.keys(input).sort().join(',')!=='animations,metasprites,scenes')fail('An asset append requires only scenes, metasprites and animations.');
+    for(const [key,min,max]of [['scenes',1,64],['metasprites',0,256],['animations',0,256]])if(!Array.isArray(input[key])||input[key].length<min||input[key].length+(candidate[key]?.length||0)>max)fail('Asset append exceeds '+key+' capacity.');
+    for(const key of ['scenes','metasprites','animations']){
+      const used=new Set((candidate[key]||[]).map(x=>x.id));
+      for(const item of input[key]){if(!item||typeof item.id!=='string'||!item.id.trim()||used.has(item.id))fail('Asset append requires new explicit '+key+' IDs.');used.add(item.id);}
+    }
+    Forge163.persistence.validate(input.metasprites,input.animations,input.scenes,{references:true});
+    const offsets=Object.fromEntries(['scenes','metasprites','animations'].map(key=>[key,candidate[key]?.length||0]));
+    for(const key of Object.keys(offsets))candidate[key]=[...(candidate[key]||[]),...cp(input[key])];
+    const prepared=Store.prepareLoad(candidate),values={};
+    for(const key of Object.keys(offsets))values[key]=[...S[key],...cp(prepared[key].slice(offsets[key]))];
+    const index=offsets.scenes,selected=options.select!==false,scene=values.scenes[index];
+    if(selected){for(const key of ['nt','attr','pal','sprPal','oam','chr','sprChr','tileProps'])values[key]=cp(scene[key]);Object.assign(values,{activeScene:index,selSprite:-1,selEntity:-1,entPlaceTool:null,chrBank:'bg',selTile:0,editTile:0});}
+    return {effective:true,values,intent:'nativeAssetImport',result:{sceneIds:input.scenes.map(s=>s.id),sceneIndex:index,metasprites:input.metasprites.length,animations:input.animations.length,selected},refresh:[...(selected?[()=>loadSceneData(index)]:[]),()=>rebuildAllUI(),()=>Forge163.metasprites.render(),()=>Forge166.ui?.refresh()]};
+  });
+}
 function applyAudioImport(changes,options={}){
   return runEdit('audio',options,candidate=>{
     const kind=options.kind,keys=kind==='music'?['patterns','instruments','orderList','tempo','speed']:kind==='sfx'?['patterns','instruments','sfx']:null;
@@ -391,7 +409,7 @@ async function dismissRecovery(){
     recoveryPhase('ready');status();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,appendScene,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};

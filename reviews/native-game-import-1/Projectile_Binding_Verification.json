@@ -1,0 +1,50 @@
+{
+  "format": "NESForgeProjectileSpriteBindingProof",
+  "status": "passed",
+  "htmlSha256": "cf2eb17d33d8ce63067ae04bcb7de082026300bea2bf90670414f65217b2649e",
+  "sourceSha256": "07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e",
+  "routine": {
+    "bank16KiB": 7,
+    "cpu": 55469,
+    "label": "draw_thrown_pic"
+  },
+  "checks": [
+    {
+      "script": 13,
+      "pose": 35,
+      "pieces": 1,
+      "playerShapePointer": 36076,
+      "playerAttributePointer": 38853,
+      "status": "passed"
+    },
+    {
+      "script": 13,
+      "pose": 36,
+      "pieces": 1,
+      "playerShapePointer": 36080,
+      "playerAttributePointer": 38854,
+      "status": "passed"
+    },
+    {
+      "script": 14,
+      "pose": 37,
+      "pieces": 2,
+      "playerShapePointer": 36084,
+      "playerAttributePointer": 38855,
+      "status": "passed"
+    },
+    {
+      "script": 14,
+      "pose": 38,
+      "pieces": 2,
+      "playerShapePointer": 36091,
+      "playerAttributePointer": 38857,
+      "status": "passed"
+    }
+  ],
+  "instructions": 308,
+  "limits": [
+    "Unmodified original drawing routine on a separate bounded bus using the shared CPU instruction implementation; no independent CPU/hardware timing claim.",
+    "Four frames verify native player shape/attribute bindings and resulting OAM. This does not establish context for shared selectors 15/16."
+  ]
+}

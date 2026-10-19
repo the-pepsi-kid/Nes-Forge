@@ -1,3 +1,11 @@
+# Native Resource Import checkpoint
+
+Current development candidate: **2.0.0-alpha.11 / native-game-import-1**, project schema 12. Investigated Ninja Gaiden / Zelda II initial art, palettes, paged room layouts and selected sprite resources can now become canonical editable assets. Ninja clips preserve native effective update ticks; Zelda display poses remain untimed. In RE / DISASM, use **Prepare editable assets**, then import into the current project in one Undo step, download a self-contained `.nfassets.json` bundle, or download a standalone `.nesforge.json` project. Bundle reopening needs no ROM. [Controls, exact scope and limits](docs/NATIVE_RESOURCE_IMPORT.md).
+
+Collision, physics, AI, source code and native state transitions remain evidence. Check the Scene Build Set and existing ROM capacity before building. Current measured results are in the root `CANDIDATE.json` and `reviews/native-game-import-1`; earlier checkpoint entries below retain their historical scope.
+
+---
+
 # Current increment: Mega Man 2 Audio
 
 The supplied US Mega Man 2 revision now populates Native Cue with 67 selectors: 33 music selectors (24 distinct headers) and 34 effects. Inspect source commands, audition the native driver, and preview/import a finite editable adaptation inside Audio. Unknown revisions retain Audio Discovery and an explicit unavailable-catalog message. See docs/MEGAMAN2_AUDIO.md; CANDIDATE.json and reviews/megaman2-native-audio-1 record current verification. Earlier checkpoint records below remain historical.

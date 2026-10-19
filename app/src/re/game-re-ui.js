@@ -58,15 +58,18 @@ function inspectCell(event){
  ui.cell.textContent=JSON.stringify({x,y,nativeY:d.originY+y*16,nativeValue:d.cells[i],nativeMeaning:d.classes?.[d.cells[i]]||'Native tile code; collision meaning is not inferred',behaviorFlags:d.behaviorFlags?.[i],source:d.cellSources[i],graphics:d.graphics?.tileSources[(y*2)*d.graphics.width+x*2]},null,2);
 }
 function actorDetails(){const actor=state.report?.actors.find(a=>a.id===ui.actors.value);ui.actorDetails.textContent=actor?JSON.stringify(actor,null,2):'No decoded actor table for this source.';}
+function scriptContext(a){return a?F.services.GameREAssets.scriptContext(a):{owner:null,status:'empty'};}
+function missingScriptPoses(a){if(!a||!scriptContext(a).owner)return [];const owner=scriptContext(a).owner;return [...new Set(a.frames.filter(f=>!state.report.poses.some(p=>p.owner===owner&&p.selector===f.pose)).map(f=>f.pose))];}
 function selectScript(){
  pause();state.animation=state.report?.animations.find(a=>a.id===ui.scripts.value)||null;state.tick=0;
- if(state.animation){const owner=state.animation.owner==='player'?'player':'enemy';state.pose=state.report.poses.find(p=>p.owner===owner&&p.selector===state.animation.frames[0].pose)||null;if(state.pose)ui.poses.value=state.pose.id;}
- drawPose();
+ if(state.animation){const owner=scriptContext(state.animation).owner;state.pose=state.report.poses.find(p=>p.owner===owner&&p.selector===state.animation.frames[0].pose)||null;if(state.pose)ui.poses.value=state.pose.id;}
+ const missing=missingScriptPoses(state.animation),context=scriptContext(state.animation);ui.play.disabled=!state.animation||!context.owner||missing.length>0;
+ drawPose();if(missing.length||context.status==='partial')message('Partial script '+state.animation.selector+': '+(missing.length?'unassigned native pose references '+missing.join(', '):context.reason)+'. Playback and editable import are unavailable; frame/source evidence remains exportable. Reachability is unresolved.');
 }
-function selectPose(){pause();state.animation=null;state.pose=state.report?.poses.find(p=>p.id===ui.poses.value)||null;drawPose();}
+function selectPose(){pause();state.animation=null;ui.play.disabled=true;state.pose=state.report?.poses.find(p=>p.id===ui.poses.value)||null;drawPose();}
 function drawPose(){
  const pose=state.pose,canvas=ui.sprite;canvas.width=256;canvas.height=192;const cx=canvas.getContext('2d');cx.fillStyle='#080f1c';cx.fillRect(0,0,256,192);
- if(!pose){ui.poseDetails.textContent='No pose selected.';return;}
+ if(!pose){ui.poseDetails.textContent=state.animation?JSON.stringify({status:'partial',script:state.animation,spriteContext:scriptContext(state.animation),unassignedPoseSelectors:missingScriptPoses(state.animation),limits:['Pose references or their sprite-table context are unresolved; no blank frames or replacement art were inferred. Runtime reachability remains unresolved.']},null,2):'No pose selected.';return;}
  const scene=state.scene,g=scene?.graphics,ng=state.report.profile.id==='ninja-gaiden-us';
  const chr0=ng?(scene?.scene.spriteChrBank4KiB||0):Math.max(0,(g?.chrBank4KiB||3)-1),chr1=ng?(scene?.scene.backgroundChrBank4KiB||1):(g?.chrBank4KiB||3);
  const banks=[state.session.chrBank(chr0).bytes,state.session.chrBank(chr1).bytes];
@@ -85,12 +88,13 @@ function drawPose(){
 function play(){
  if(state.timer!==null){pause();return;}const a=state.animation;
  if(!a){message('Select a timed native script. Zelda II display poses do not establish animation timing.');return;}
+ if(missingScriptPoses(a).length||!scriptContext(a).owner){message('This partial script has unresolved pose references or sprite-table context. Export its evidence for investigation.');return;}
  ui.play.textContent='Pause script';state.tick=0;
  state.timer=setInterval(()=>{
   if(document.hidden||S.tab!=='disasm'){pause();return;}
   if(state.tick>=a.ticks){if(a.end==='player-return-to-idle'){pause();return;}state.tick=0;}
   let t=state.tick++,frame=a.frames[0];for(const f of a.frames){frame=f;if(t<(f.updateTicks||f.duration))break;t-=f.updateTicks||f.duration;}
-  const owner=a.owner==='player'?'player':'enemy';state.pose=state.report.poses.find(p=>p.owner===owner&&p.selector===frame.pose)||null;drawPose();
+  const owner=scriptContext(a).owner;state.pose=state.report.poses.find(p=>p.owner===owner&&p.selector===frame.pose)||null;drawPose();
  },1000/60);
 }
 function drawChr(){
@@ -135,6 +139,10 @@ function exportData(kind='selected'){
  if(!state.scene)throw Error('Select an available native scene first.');
  return cloneData({format:'NESForgeNativeGameSelection',version:1,source:state.report.source,profile:state.report.profile,scene:state.scene,pose:state.pose,animation:state.animation,limits:state.report.limits});
 }
+async function exportEditable(){
+ if(!state.session||!state.scene)throw Error('Select an available native scene first.');
+ pause();return F.services.GameREAssets.seal(F.services.GameREAssets.convert(state.session,{sceneId:state.scene.scene.id,...(state.animation?{animationId:state.animation.id}:state.pose?{poseId:state.pose.id}:{})}));
+}
 const cloneData=value=>JSON.parse(JSON.stringify(value));
 async function download(kind){try{const data=exportData(kind),filename=kind==='catalog'?'NES_Forge_Native_Resource_Catalog.json':'NES_Forge_Native_Scene_Evidence.json';return await forgeSave.request(new TextEncoder().encode(JSON.stringify(data,null,2)),filename,'application/json');}catch(e){message(e.message,true);return false;}}
 function openBytes(bytes,name){
@@ -145,7 +153,7 @@ function openBytes(bytes,name){
   ui.counts.textContent=state.report.scenes.length+' scene/context slots · '+state.report.actors.length+' actor entries · '+state.report.poses.length+' poses · '+state.report.animations.length+' timed scripts · '+state.report.symbols.length+' source labels';
   option(ui.groups,'','All native contexts');for(const group of new Set(state.report.scenes.map(s=>s.group)))option(ui.groups,group,group);ui.groups.value='';
   for(const actor of state.report.actors)option(ui.actors,actor.id,(actor.group?actor.group+' · ':'')+actor.label);if(ui.actors.options.length)ui.actors.value=ui.actors.options[0].value;
-  for(const a of state.report.animations)option(ui.scripts,a.id,a.label);if(ui.scripts.options.length)ui.scripts.value=ui.scripts.options[0].value;
+  for(const a of state.report.animations){const missing=missingScriptPoses(a);option(ui.scripts,a.id,a.label+(missing.length?' · partial: unassigned poses '+missing.join(', '):!scriptContext(a).owner?' · partial: sprite table unresolved':''));}if(ui.scripts.options.length)ui.scripts.value=ui.scripts.options[0].value;
   for(const p of state.report.poses)option(ui.poses,p.id,p.label);if(ui.poses.options.length)ui.poses.value=ui.poses.options[0].value;
   ui.scripts.disabled=ui.play.disabled=!state.report.animations.length;ui.search.value='';ui.mode.value='art';ui.zoom.value='1';ui.overlay.checked=false;
   state.pose=state.report.poses[0]||null;listScenes();actorDetails();drawChr();listSymbols();coverage();showPane('scenes');
@@ -173,10 +181,10 @@ function mount(){
  const chr=field(row(panes.graphics),'Physical CHR bank (4 KiB)','nativeGameREChr');for(let i=0;i<32;i++)option(chr,i,'Bank '+i);chr.value='0';chr.addEventListener('change',drawChr);const chrCanvas=el('canvas','nativeGameREChrCanvas'),chrDetails=el('p','nativeGameREChrDetails');const chrScroll=el('div');chrScroll.className='native-scroll';chrScroll.appendChild(chrCanvas);panes.graphics.append(chrScroll,chrDetails);
  const search=field(row(panes.code),'Search source labels','nativeGameRESearch','input');search.type='search';search.addEventListener('input',listSymbols);const symbols=field(row(panes.code),'Physical source annotation','nativeGameRESymbol');symbols.addEventListener('change',showCode);const code=el('pre','nativeGameRECode'),ram=el('pre','nativeGameRERAM');panes.code.append(code,el('h3',null,'RAM investigation leads'),ram);
  const coverageNode=el('div','nativeGameRECoverage'),locationsBox=el('details'),locations=el('pre','nativeGameRELocations');locationsBox.append(el('summary',null,'Raw overworld location records'),locations);panes.coverage.append(coverageNode,locationsBox);
- const exports=row(root),selected=button(exports,'nativeGameREExportSelected','Export selected scene evidence',()=>void download('selected')),catalog=button(exports,'nativeGameREExportCatalog','Export resource catalog',()=>void download('catalog'));selected.disabled=catalog.disabled=true;root.appendChild(el('p',null,'The catalog includes resource tables and source annotations. Constructed per-cell geometry and writer evidence are exported separately for the selected scene. These exports do not import or replace an authoring project.'));
+ const exports=row(root),selected=button(exports,'nativeGameREExportSelected','Export selected scene evidence',()=>void download('selected')),catalog=button(exports,'nativeGameREExportCatalog','Export resource catalog',()=>void download('catalog'));button(exports,'nativeGameREPrepareAssets','Prepare editable assets',()=>void F.services.GameREAssetsUI.previewSelection());selected.disabled=catalog.disabled=true;root.appendChild(el('p',null,'Evidence exports retain native tables and annotations. Use Prepare editable assets to preview an importable bundle with pixels, palettes, paged layouts and the selected pose or timed script.'));
  results.insertBefore(root,document.getElementById('spatialREMaps'));
  ui={root,title,counts,status,tabs:tabButtons,panes,groups,scenes,mode,zoom,overlay,source,mapCaption,map,cell,details,actors,actorDetails:actorDetailsNode,scripts,poses,play:playButton,sprite,poseDetails,chr,chrCanvas,chrDetails,search,symbols,code,ram,coverage:coverageNode,locations,selected,catalog};
  for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation?.());document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 }
-F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,getState:()=>({status:state.report?.status||'empty',sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
+F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,exportEditable,getState:()=>({status:state.report?.status||'empty',sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
 })();

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NES Forge 2.0.0-alpha.11 — Native Game RE</title>
+<title>NES Forge 2.0.0-alpha.11 — Native Resource Import</title>
 <style>
 :root{--bg:#0c0c10;--bg2:#101018;--bg3:#16161e;--bdr:#252530;--bdr2:#3a3a4a;--txt:#b8b8c8;--dim:#667;--acc:#5ad4ff;--acc2:#3a9abf;--grn:#8df57a;--red:#f57a7a;--ylw:#f5d07a;--orn:#f5a07a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -8730,7 +8730,7 @@ F.project={create,openRom,classifyRom,replaceProject};
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Native Game RE',maturity:'alpha',candidate:'ninja-zelda-re-1',schema:12,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Native Resource Import',maturity:'alpha',candidate:'native-game-import-1',schema:12,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;
@@ -9168,6 +9168,24 @@ function appendScene(input,options={}){
       refresh:[...(selected?[()=>loadSceneData(index)]:[]),()=>rebuildAllUI(),()=>Forge166.ui?.refresh()]};
   });
 }
+function appendAssets(input,options={}){
+  return runEdit('assets',options,candidate=>{
+    if(!input||Object.keys(input).sort().join(',')!=='animations,metasprites,scenes')fail('An asset append requires only scenes, metasprites and animations.');
+    for(const [key,min,max]of [['scenes',1,64],['metasprites',0,256],['animations',0,256]])if(!Array.isArray(input[key])||input[key].length<min||input[key].length+(candidate[key]?.length||0)>max)fail('Asset append exceeds '+key+' capacity.');
+    for(const key of ['scenes','metasprites','animations']){
+      const used=new Set((candidate[key]||[]).map(x=>x.id));
+      for(const item of input[key]){if(!item||typeof item.id!=='string'||!item.id.trim()||used.has(item.id))fail('Asset append requires new explicit '+key+' IDs.');used.add(item.id);}
+    }
+    Forge163.persistence.validate(input.metasprites,input.animations,input.scenes,{references:true});
+    const offsets=Object.fromEntries(['scenes','metasprites','animations'].map(key=>[key,candidate[key]?.length||0]));
+    for(const key of Object.keys(offsets))candidate[key]=[...(candidate[key]||[]),...cp(input[key])];
+    const prepared=Store.prepareLoad(candidate),values={};
+    for(const key of Object.keys(offsets))values[key]=[...S[key],...cp(prepared[key].slice(offsets[key]))];
+    const index=offsets.scenes,selected=options.select!==false,scene=values.scenes[index];
+    if(selected){for(const key of ['nt','attr','pal','sprPal','oam','chr','sprChr','tileProps'])values[key]=cp(scene[key]);Object.assign(values,{activeScene:index,selSprite:-1,selEntity:-1,entPlaceTool:null,chrBank:'bg',selTile:0,editTile:0});}
+    return {effective:true,values,intent:'nativeAssetImport',result:{sceneIds:input.scenes.map(s=>s.id),sceneIndex:index,metasprites:input.metasprites.length,animations:input.animations.length,selected},refresh:[...(selected?[()=>loadSceneData(index)]:[]),()=>rebuildAllUI(),()=>Forge163.metasprites.render(),()=>Forge166.ui?.refresh()]};
+  });
+}
 function applyAudioImport(changes,options={}){
   return runEdit('audio',options,candidate=>{
     const kind=options.kind,keys=kind==='music'?['patterns','instruments','orderList','tempo','speed']:kind==='sfx'?['patterns','instruments','sfx']:null;
@@ -9312,7 +9330,7 @@ async function dismissRecovery(){
     recoveryPhase('ready');status();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,appendScene,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};
@@ -11482,7 +11500,7 @@ services.EmulatorTimeline=Object.freeze({saveCheckpoint,saveOwnedCheckpoint,rest
     const d=document.getElementById('sideDocs');if(!d)return;
     d.innerHTML=`<div class="doc"><h2>NES Forge ${R.version} — ${R.name}</h2>
 <p>A standalone visual NES editor, assembler, ROM builder and experimental emulator. <b>Alpha · Roadmap Workbench candidate.</b> Work through the existing tabs. Examples are ordinary editable project files included in the release package.</p>
-<h3>Ninja Gaiden and Zelda II investigation</h3><p>RE / DISASM → Open spatial RE workbench now includes connected native scene art, object records, actor parameter/dispatch tables, CHR banks, source labels, RAM leads and coverage gaps for the two investigated revisions. Ninja Gaiden includes shared player/enemy/projectile scripts and poses. Zelda II includes native side-view construction and Link pose/facing output; animation timing and full collision/AI remain unresolved. The workbench is read-only and exports source-scoped evidence. Zelda II visible PPU address reloads now update both scanline rendering and its capture trace.</p>
+<h3>Ninja Gaiden and Zelda II investigation</h3><p>RE / DISASM → Open spatial RE workbench now includes connected native scene art, object records, actor parameter/dispatch tables, CHR banks, source labels, RAM leads and coverage gaps for the two investigated revisions. Ninja Gaiden includes shared player/enemy/projectile scripts and poses. Zelda II includes native side-view construction and Link pose/facing output; animation timing and full collision/AI remain unresolved. Inspection stays detached and exports source-scoped evidence. Prepare editable assets previews a self-contained bundle with original initial-art pixels and palettes, paged scene layouts, selected poses and recovered Ninja script update ticks. Import into current project appends these in one Undo step; Download standalone project opens independently. Open editable resource bundle accepts .nfassets.json without the ROM. Untimed Zelda poses stay untimed, and collision, AI, physics and code remain reference evidence. The first imported page joins the build set; additional pages start excluded, and ROM capacity limits still apply. Zelda II visible PPU address reloads now update both scanline rendering and its capture trace.</p>
 <h3>Start, open and recover</h3><p>A fresh workspace starts with one blank scene. New Project creates a blank fixed room with the existing single-room build settings. Open Project loads a complete JSON or ZIP project. Browser recovery remains available through Restore / Dismiss; it is protected while being checked or awaiting your choice. New Project and Open Forge ROM have undoable replacement boundaries. A normal project open starts a new history.</p>
 <h3>Save your work</h3><p>Save / Load use browser storage. Save Project As and Export create portable authoring backups, including worlds, tracker data, animations and the original imported ROM. Save As retains the existing location picker and download fallback. Cancel keeps the workspace. A save completing after you switch projects cannot rename or bind the newer workspace.</p>
 <h3>Project compatibility</h3><p>Current projects use schema ${R.schema}. Supported older projects migrate with Gameplay Core disabled; their World and Audio Runtime settings are preserved when present. The frozen 1.8 editor rejects schema 12, protecting canonical actors, behaviors and scoped variables from silent loss. Unresolved behavior operations remain editable for repair and reject executable builds. Downgrade export is unsupported. Viewer/custom and single-room ROM formats remain layout 3, NFEX 1, MT16 1, WR16 3, MS16 2 and GP16 1. World ROMs retain layout 4 / WG17 version 1 and record their checked embedded source schema.</p>
@@ -16779,6 +16797,87 @@ function open(input,name='ROM'){
 }
 return Object.freeze({profiles:Object.freeze(profiles),inspect,open,decodeScene,chrTile,rasterize,limits:Object.freeze({inputBytes:64*1024*1024,constructionInstructions:250000,animationCommands:128})});
 });
+/* Editable adaptations of investigated native resources. Bundles carry their
+ * pixels and references; importing them never executes source code or needs a
+ * ROM. ProjectStore alone owns the guarded, single-history-entry append. */
+(()=>{
+'use strict';
+const services=window.Forge.services,cp=v=>JSON.parse(JSON.stringify(v)),stages=new WeakSet();
+const MAX_BYTES=32*1024*1024,format='NESForgeNativeAssets';
+const fail=m=>{throw Error('Native asset import: '+m);};
+const int=(v,a,b)=>Number.isInteger(v)&&v>=a&&v<=b;
+const canonical=v=>JSON.stringify(v,(_k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().map(k=>[k,x[k]])):x);
+function frozen(v){if(v&&typeof v==='object'){Object.values(v).forEach(frozen);Object.freeze(v);}return v;}
+function patterns(bytes){if(!bytes||bytes.length!==4096)fail('A complete 4 KiB CHR bank is required.');return Array.from({length:256},(_,t)=>Array.from({length:8},(_,y)=>Array.from({length:8},(_,x)=>{const bit=7-x;return ((bytes[t*16+y]>>bit)&1)|(((bytes[t*16+y+8]>>bit)&1)<<1);})));}
+const empty=()=>Array.from({length:256},()=>Array.from({length:8},()=>Array(8).fill(0)));
+function scriptContext(script){
+ // The shared stream does not identify its shape table. Actual Throw Star /
+ // Windmill callers select $0D/$0E and draw_thrown_pic reads $8400/$8500.
+ // Adjacent $0F/$10 streams have no established caller/table context.
+ if(script.selector===15||script.selector===16)return {owner:null,status:'partial',reason:'Sprite table context is unresolved for this shared script.'};
+ return {owner:script.owner==='player'||script.selector===13||script.selector===14?'player':'enemy',status:'supported',reason:script.selector===13||script.selector===14?'Native thrown-weapon reader uses the player shape/attribute tables.':'Declared native player/enemy shape table.'};
+}
+function convert(session,selection={}){
+ const report=session.catalog();if(report.status!=='supported')fail('Open an investigated source first.');
+ const decoded=session.scene(selection.sceneId),g=decoded.graphics;if(!g||!int(g.width,1,2048)||!int(g.height,1,30)||g.tiles.length!==g.width*g.height||g.paletteIds.length!==g.tiles.length)fail('The selected scene has no representable initial graphics.');
+ const ng=report.profile.id==='ninja-gaiden-us',sourceChr=patterns(session.chrBank(g.chrBank4KiB).bytes),chr=cp(sourceChr);
+ let blank=chr.findIndex(t=>t.every(row=>row.every(v=>v===0)));
+ if(blank<0){const used=new Set(g.tiles);blank=chr.findIndex((_t,i)=>!used.has(i));if(blank<0)fail('Padding requires a blank or unused pattern; no source pattern was discarded.');chr[blank]=Array.from({length:8},()=>Array(8).fill(0));}
+ const native=decoded.scene,banks=ng?[native.spriteChrBank4KiB,native.backgroundChrBank4KiB]:[g.chrBank4KiB-1,g.chrBank4KiB],spritePal=ng?native.palettes.sprites:Array.from({length:4},(_,i)=>[g.nativePalette[16],...g.nativePalette.slice(17+i*4,20+i*4)]);
+ let script=null,poses=[];
+ if(selection.animationId){script=report.animations.find(a=>a.id===selection.animationId);if(!script)fail('The selected timed script is unavailable.');const context=scriptContext(script);if(!context.owner)fail(context.reason);for(const f of script.frames){const pose=report.poses.find(p=>p.owner===context.owner&&p.selector===f.pose);if(!pose)fail('A timed script references an unrecovered pose.');if(!poses.some(p=>p.id===pose.id))poses.push(pose);}}
+ else if(selection.poseId){const pose=report.poses.find(p=>p.id===selection.poseId);if(!pose)fail('The selected display pose is unavailable.');poses=[pose];}
+ const sprChr=empty(),pairMap=new Map(),bankPixels=banks.map(b=>patterns(session.chrBank(b).bytes));
+ const sceneId='native-scene-0',metasprites=poses.map((pose,i)=>({id:'native-pose-'+i,name:pose.label,sceneId,spriteMode:16,originX:0,originY:0,pieces:pose.pieces.map((p,j)=>{
+  const bank=p.tile&1,tile=p.tile&254,key=bank+':'+tile;
+  if(!pairMap.has(key)){if(pairMap.size>=128)fail('The selected poses exceed a 256-pattern sprite atlas.');const target=pairMap.size*2;pairMap.set(key,target);sprChr[target]=cp(bankPixels[bank][tile]);sprChr[target+1]=cp(bankPixels[bank][tile+1]);}
+  const target=pairMap.get(key);return {id:'piece-'+j,tile:target,tile2:target+1,x:p.x,y:p.y+1,pal:p.attributes&3,flipH:!!(p.attributes&64),flipV:!!(p.attributes&128),behind:!!(p.attributes&32)};
+ })}));
+ const animations=script?[{id:'native-animation-0',name:script.label,state:'',loop:script.end!=='player-return-to-idle',frames:script.frames.map(f=>({tileIdx:0,duration:f.updateTicks,metaspriteId:metasprites[poses.findIndex(p=>p.selector===f.pose)].id,hitboxes:[],hurtboxes:[],events:[]}))}]:[];
+ const limits=[
+  'Editable initial art adaptation; native scrolling, HUD placement, raster effects and runtime palette changes are not recreated.',
+  'Content starts at project Y=0. Native origin Y='+decoded.originY+' is recorded in each scene receipt. Wide rooms are split into 256-pixel pages; padding uses a blank pattern.',
+  'Collision is unassigned. Native cell codes, spawn records, actor parameters and code are reference evidence; no physics, AI, hitboxes or event bindings are inferred.',
+  'The first page is included in the ROM build set and supplies sprite art. Other pages are excluded initially. Existing ROM build limits still apply.',
+  ...(script?['Durations use native script update ticks. State-dependent update cadence and the return-to-idle transition are not reconstructed.']:poses.length?['Display pose only; no animation timing was inferred.']:[])
+ ];
+ const pages=Math.ceil(g.width/32);if(pages>64)fail('The room exceeds the 64-scene project capacity.');
+ const scenes=Array.from({length:pages},(_,page)=>{
+  const nt=Array(960).fill(blank),attr=Array(64).fill(0);
+  for(let y=0;y<g.height;y++)for(let x=0;x<32&&page*32+x<g.width;x++){
+   const at=y*g.width+page*32+x,tile=g.tiles[at],pal=g.paletteIds[at];if(!int(tile,0,255)||!int(pal,0,3))fail('Native graphics contain invalid pattern or palette references.');nt[y*32+x]=tile;
+   const ai=(y>>2)*8+(x>>2),shift=((y&2)?4:0)+((x&2)?2:0),mask=3<<shift;
+   // Canonical hardware attributes allow one palette per 16 x 16 cell.
+   if((x&1)||(y&1)){const ox=x&~1,oy=y&~1,origin=oy*g.width+page*32+ox;if(g.paletteIds[origin]!==pal)fail('This scene needs sub-cell palettes that the project cannot represent.');}
+   attr[ai]=(attr[ai]&~mask)|(pal<<shift);
+  }
+  return makeScene({id:'native-scene-'+page,name:(native.label+' · page '+(page+1)).slice(0,120),nt,attr,pal:cp(g.palettes),sprPal:cp(spritePal),chr:cp(chr),sprChr:cp(sprChr),tileProps:Array(256).fill(0),oam:[],entities:[],links:[],sceneType:'static',scrollDir:'none',gravity:0,buildInclude:page===0,buildOrder:page,captureMeta:{nativeAssets:{version:1,source:cp(report.source),profile:report.profile.id,sceneId:native.id,animationId:script?.id||null,poseIds:poses.map(p=>p.id),spriteContext:script?scriptContext(script):null,page,contentX:page*256,originY:decoded.originY,contentHeight:g.height*8,limits:cp(limits)}}});
+ });
+ return {format,version:1,source:cp(report.source),profile:cp(report.profile),selection:{sceneId:native.id,poseId:selection.poseId||null,animationId:selection.animationId||null},assets:{scenes,metasprites,animations},evidence:{scene:decoded,poses,animation:script},limits};
+}
+async function digest(bundle){if(!window.crypto?.subtle)fail('SHA-256 is unavailable.');const value=cp(bundle);delete value.checksum;const bytes=new TextEncoder().encode(canonical(value));if(bytes.length>MAX_BYTES)fail('Bundle exceeds 32 MiB.');return Array.from(new Uint8Array(await window.crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');}
+async function seal(bundle){const value=cp(bundle);value.checksum=await digest(value);return value;}
+function project(assets,name){const d={format:'NESForge',version:services.ProjectStore.schema,projectName:String(name||'Recovered resources').slice(0,120),scenes:cp(assets.scenes),activeScene:0,metasprites:cp(assets.metasprites),animations:cp(assets.animations),worlds:[],asmSource:'',mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,instruments:[],patterns:[],orderList:[],sfx:[],tempo:150,speed:6,audRows:64};const p=services.ProjectStore.prepareLoad(d);return {...d,scenes:p.scenes,metasprites:p.metasprites,animations:p.animations};}
+function validateAssets(assets){
+ if(!assets||Object.keys(assets).sort().join(',')!=='animations,metasprites,scenes')fail('Expected only scenes, metasprites and animations.');
+ for(const [key,min,max]of [['scenes',1,64],['metasprites',0,256],['animations',0,256]])if(!Array.isArray(assets[key])||assets[key].length<min||assets[key].length>max)fail('Invalid '+key+' count.');
+ for(const sc of assets.scenes){
+  if(!sc||typeof sc.id!=='string'||!sc.id||typeof sc.name!=='string')fail('Scenes require explicit IDs and names.');
+  for(const [key,length,max]of [['nt',960,255],['attr',64,255],['tileProps',256,7]])if(!Array.isArray(sc[key])||sc[key].length!==length||sc[key].some(v=>!int(v,0,max)))fail('Invalid scene '+key+'.');
+  for(const key of ['chr','sprChr'])if(!Array.isArray(sc[key])||sc[key].length!==256||sc[key].some(t=>!Array.isArray(t)||t.length!==8||t.some(row=>!Array.isArray(row)||row.length!==8||row.some(v=>!int(v,0,3)))))fail('Invalid scene '+key+' pixels.');
+  for(const key of ['pal','sprPal'])if(!Array.isArray(sc[key])||sc[key].length!==4||sc[key].some(p=>!Array.isArray(p)||p.length!==4||p.some(v=>!int(v,0,63))||p[0]!==sc.pal[0][0]))fail('Invalid scene '+key+'.');
+  if(sc.entities?.length||sc.links?.length||sc.oam?.length||sc.raster?.length||sc.metatiles?.length||sc.metaMap?.some(v=>v!==-1))fail('This bundle supports art layouts and composer assets; executable scene entities are unsupported.');
+ }
+ const p=project(assets);window.Forge164.model.validateProject(p,{references:true});
+ for(const key of ['scenes','metasprites','animations'])if(canonical(p[key])!==canonical(assets[key]))fail('Asset '+key+' would change during canonical normalization.');
+ return p;
+}
+async function read(input){const text=typeof input==='string'?input:JSON.stringify(input);if(!text||text.length>MAX_BYTES)fail('Bundle exceeds 32 MiB or is missing.');const b=JSON.parse(text);if(b?.format!==format||b.version!==1)fail('Choose an editable .nfassets.json bundle. Evidence-only reports cannot be imported as assets.');if(typeof b.checksum!=='string'||b.checksum!==await digest(b))fail('Bundle checksum mismatch.');if(!b.source||!/^[a-f0-9]{64}$/.test(b.source.sha256)||!Array.isArray(b.limits)||b.limits.some(x=>typeof x!=='string'))fail('Missing source receipt or limits.');validateAssets(b.assets);return b;}
+function remap(assets,current){const out=cp(assets);for(const [key,prefix]of [['scenes','sc'],['metasprites','pose'],['animations','anim']]){const used=new Set((current[key]||[]).map(x=>x.id)),map=new Map();let n=1;for(const item of out[key]){let id;do{id='re_'+prefix+'_'+n++;}while(used.has(id));used.add(id);map.set(item.id,id);item.id=id;}if(key==='scenes'){out.metasprites.forEach(p=>p.sceneId=map.get(p.sceneId));out.animations.forEach(a=>a.frames.forEach(f=>{if(f.sceneId)f.sceneId=map.get(f.sceneId);}));}if(key==='metasprites')out.animations.forEach(a=>a.frames.forEach(f=>{if(f.metaspriteId)f.metaspriteId=map.get(f.metaspriteId);}));}return out;}
+async function stage(input){const store=services.ProjectStore,guard={epoch:store.state.epoch,snapshot:store.serialize()},bundle=await read(input),current=JSON.parse(guard.snapshot),assets=remap(bundle.assets,current);if(current.scenes.length+assets.scenes.length>64||(current.metasprites?.length||0)+assets.metasprites.length>256||(current.animations?.length||0)+assets.animations.length>256)fail('The combined project exceeds scene or composer capacity.');if(store.state.epoch!==guard.epoch||store.serialize()!==guard.snapshot)fail('The project changed during preview. Preview again.');const value=frozen({bundle,assets,guard,summary:{scenes:assets.scenes.length,metasprites:assets.metasprites.length,animations:assets.animations.length,source:bundle.source,limits:bundle.limits}});stages.add(value);return value;}
+function importStaged(value){if(!stages.has(value))fail('Preview this bundle in the current editor first.');const result=services.ProjectStore.appendAssets(value.assets,{expected:value.guard,select:true});stages.delete(value);return result;}
+services.GameREAssets=Object.freeze({version:1,maxBytes:MAX_BYTES,scriptContext,convert,seal,read,stage,importStaged,standalone:async input=>{const b=await read(input);return project(b.assets,b.profile?.name+' · recovered assets');}});
+})();
 /* File-scoped spatial evidence workspace. Detached from the authoring model and
  * emulator; changing files invalidates every staged result and animation timer. */
 (()=>{'use strict';
@@ -16910,15 +17009,18 @@ function inspectCell(event){
  ui.cell.textContent=JSON.stringify({x,y,nativeY:d.originY+y*16,nativeValue:d.cells[i],nativeMeaning:d.classes?.[d.cells[i]]||'Native tile code; collision meaning is not inferred',behaviorFlags:d.behaviorFlags?.[i],source:d.cellSources[i],graphics:d.graphics?.tileSources[(y*2)*d.graphics.width+x*2]},null,2);
 }
 function actorDetails(){const actor=state.report?.actors.find(a=>a.id===ui.actors.value);ui.actorDetails.textContent=actor?JSON.stringify(actor,null,2):'No decoded actor table for this source.';}
+function scriptContext(a){return a?F.services.GameREAssets.scriptContext(a):{owner:null,status:'empty'};}
+function missingScriptPoses(a){if(!a||!scriptContext(a).owner)return [];const owner=scriptContext(a).owner;return [...new Set(a.frames.filter(f=>!state.report.poses.some(p=>p.owner===owner&&p.selector===f.pose)).map(f=>f.pose))];}
 function selectScript(){
  pause();state.animation=state.report?.animations.find(a=>a.id===ui.scripts.value)||null;state.tick=0;
- if(state.animation){const owner=state.animation.owner==='player'?'player':'enemy';state.pose=state.report.poses.find(p=>p.owner===owner&&p.selector===state.animation.frames[0].pose)||null;if(state.pose)ui.poses.value=state.pose.id;}
- drawPose();
+ if(state.animation){const owner=scriptContext(state.animation).owner;state.pose=state.report.poses.find(p=>p.owner===owner&&p.selector===state.animation.frames[0].pose)||null;if(state.pose)ui.poses.value=state.pose.id;}
+ const missing=missingScriptPoses(state.animation),context=scriptContext(state.animation);ui.play.disabled=!state.animation||!context.owner||missing.length>0;
+ drawPose();if(missing.length||context.status==='partial')message('Partial script '+state.animation.selector+': '+(missing.length?'unassigned native pose references '+missing.join(', '):context.reason)+'. Playback and editable import are unavailable; frame/source evidence remains exportable. Reachability is unresolved.');
 }
-function selectPose(){pause();state.animation=null;state.pose=state.report?.poses.find(p=>p.id===ui.poses.value)||null;drawPose();}
+function selectPose(){pause();state.animation=null;ui.play.disabled=true;state.pose=state.report?.poses.find(p=>p.id===ui.poses.value)||null;drawPose();}
 function drawPose(){
  const pose=state.pose,canvas=ui.sprite;canvas.width=256;canvas.height=192;const cx=canvas.getContext('2d');cx.fillStyle='#080f1c';cx.fillRect(0,0,256,192);
- if(!pose){ui.poseDetails.textContent='No pose selected.';return;}
+ if(!pose){ui.poseDetails.textContent=state.animation?JSON.stringify({status:'partial',script:state.animation,spriteContext:scriptContext(state.animation),unassignedPoseSelectors:missingScriptPoses(state.animation),limits:['Pose references or their sprite-table context are unresolved; no blank frames or replacement art were inferred. Runtime reachability remains unresolved.']},null,2):'No pose selected.';return;}
  const scene=state.scene,g=scene?.graphics,ng=state.report.profile.id==='ninja-gaiden-us';
  const chr0=ng?(scene?.scene.spriteChrBank4KiB||0):Math.max(0,(g?.chrBank4KiB||3)-1),chr1=ng?(scene?.scene.backgroundChrBank4KiB||1):(g?.chrBank4KiB||3);
  const banks=[state.session.chrBank(chr0).bytes,state.session.chrBank(chr1).bytes];
@@ -16937,12 +17039,13 @@ function drawPose(){
 function play(){
  if(state.timer!==null){pause();return;}const a=state.animation;
  if(!a){message('Select a timed native script. Zelda II display poses do not establish animation timing.');return;}
+ if(missingScriptPoses(a).length||!scriptContext(a).owner){message('This partial script has unresolved pose references or sprite-table context. Export its evidence for investigation.');return;}
  ui.play.textContent='Pause script';state.tick=0;
  state.timer=setInterval(()=>{
   if(document.hidden||S.tab!=='disasm'){pause();return;}
   if(state.tick>=a.ticks){if(a.end==='player-return-to-idle'){pause();return;}state.tick=0;}
   let t=state.tick++,frame=a.frames[0];for(const f of a.frames){frame=f;if(t<(f.updateTicks||f.duration))break;t-=f.updateTicks||f.duration;}
-  const owner=a.owner==='player'?'player':'enemy';state.pose=state.report.poses.find(p=>p.owner===owner&&p.selector===frame.pose)||null;drawPose();
+  const owner=scriptContext(a).owner;state.pose=state.report.poses.find(p=>p.owner===owner&&p.selector===frame.pose)||null;drawPose();
  },1000/60);
 }
 function drawChr(){
@@ -16987,6 +17090,10 @@ function exportData(kind='selected'){
  if(!state.scene)throw Error('Select an available native scene first.');
  return cloneData({format:'NESForgeNativeGameSelection',version:1,source:state.report.source,profile:state.report.profile,scene:state.scene,pose:state.pose,animation:state.animation,limits:state.report.limits});
 }
+async function exportEditable(){
+ if(!state.session||!state.scene)throw Error('Select an available native scene first.');
+ pause();return F.services.GameREAssets.seal(F.services.GameREAssets.convert(state.session,{sceneId:state.scene.scene.id,...(state.animation?{animationId:state.animation.id}:state.pose?{poseId:state.pose.id}:{})}));
+}
 const cloneData=value=>JSON.parse(JSON.stringify(value));
 async function download(kind){try{const data=exportData(kind),filename=kind==='catalog'?'NES_Forge_Native_Resource_Catalog.json':'NES_Forge_Native_Scene_Evidence.json';return await forgeSave.request(new TextEncoder().encode(JSON.stringify(data,null,2)),filename,'application/json');}catch(e){message(e.message,true);return false;}}
 function openBytes(bytes,name){
@@ -16997,7 +17104,7 @@ function openBytes(bytes,name){
   ui.counts.textContent=state.report.scenes.length+' scene/context slots · '+state.report.actors.length+' actor entries · '+state.report.poses.length+' poses · '+state.report.animations.length+' timed scripts · '+state.report.symbols.length+' source labels';
   option(ui.groups,'','All native contexts');for(const group of new Set(state.report.scenes.map(s=>s.group)))option(ui.groups,group,group);ui.groups.value='';
   for(const actor of state.report.actors)option(ui.actors,actor.id,(actor.group?actor.group+' · ':'')+actor.label);if(ui.actors.options.length)ui.actors.value=ui.actors.options[0].value;
-  for(const a of state.report.animations)option(ui.scripts,a.id,a.label);if(ui.scripts.options.length)ui.scripts.value=ui.scripts.options[0].value;
+  for(const a of state.report.animations){const missing=missingScriptPoses(a);option(ui.scripts,a.id,a.label+(missing.length?' · partial: unassigned poses '+missing.join(', '):!scriptContext(a).owner?' · partial: sprite table unresolved':''));}if(ui.scripts.options.length)ui.scripts.value=ui.scripts.options[0].value;
   for(const p of state.report.poses)option(ui.poses,p.id,p.label);if(ui.poses.options.length)ui.poses.value=ui.poses.options[0].value;
   ui.scripts.disabled=ui.play.disabled=!state.report.animations.length;ui.search.value='';ui.mode.value='art';ui.zoom.value='1';ui.overlay.checked=false;
   state.pose=state.report.poses[0]||null;listScenes();actorDetails();drawChr();listSymbols();coverage();showPane('scenes');
@@ -17025,12 +17132,31 @@ function mount(){
  const chr=field(row(panes.graphics),'Physical CHR bank (4 KiB)','nativeGameREChr');for(let i=0;i<32;i++)option(chr,i,'Bank '+i);chr.value='0';chr.addEventListener('change',drawChr);const chrCanvas=el('canvas','nativeGameREChrCanvas'),chrDetails=el('p','nativeGameREChrDetails');const chrScroll=el('div');chrScroll.className='native-scroll';chrScroll.appendChild(chrCanvas);panes.graphics.append(chrScroll,chrDetails);
  const search=field(row(panes.code),'Search source labels','nativeGameRESearch','input');search.type='search';search.addEventListener('input',listSymbols);const symbols=field(row(panes.code),'Physical source annotation','nativeGameRESymbol');symbols.addEventListener('change',showCode);const code=el('pre','nativeGameRECode'),ram=el('pre','nativeGameRERAM');panes.code.append(code,el('h3',null,'RAM investigation leads'),ram);
  const coverageNode=el('div','nativeGameRECoverage'),locationsBox=el('details'),locations=el('pre','nativeGameRELocations');locationsBox.append(el('summary',null,'Raw overworld location records'),locations);panes.coverage.append(coverageNode,locationsBox);
- const exports=row(root),selected=button(exports,'nativeGameREExportSelected','Export selected scene evidence',()=>void download('selected')),catalog=button(exports,'nativeGameREExportCatalog','Export resource catalog',()=>void download('catalog'));selected.disabled=catalog.disabled=true;root.appendChild(el('p',null,'The catalog includes resource tables and source annotations. Constructed per-cell geometry and writer evidence are exported separately for the selected scene. These exports do not import or replace an authoring project.'));
+ const exports=row(root),selected=button(exports,'nativeGameREExportSelected','Export selected scene evidence',()=>void download('selected')),catalog=button(exports,'nativeGameREExportCatalog','Export resource catalog',()=>void download('catalog'));button(exports,'nativeGameREPrepareAssets','Prepare editable assets',()=>void F.services.GameREAssetsUI.previewSelection());selected.disabled=catalog.disabled=true;root.appendChild(el('p',null,'Evidence exports retain native tables and annotations. Use Prepare editable assets to preview an importable bundle with pixels, palettes, paged layouts and the selected pose or timed script.'));
  results.insertBefore(root,document.getElementById('spatialREMaps'));
  ui={root,title,counts,status,tabs:tabButtons,panes,groups,scenes,mode,zoom,overlay,source,mapCaption,map,cell,details,actors,actorDetails:actorDetailsNode,scripts,poses,play:playButton,sprite,poseDetails,chr,chrCanvas,chrDetails,search,symbols,code,ram,coverage:coverageNode,locations,selected,catalog};
  for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation?.());document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 }
-F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,getState:()=>({status:state.report?.status||'empty',sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
+F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,exportEditable,getState:()=>({status:state.report?.status||'empty',sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
+})();
+/* Portable resource imports are available before a ROM is loaded. */
+(()=>{
+'use strict';
+const services=window.Forge.services,api=services.GameREAssets;
+let stage=null,bundle=null,token=0,ui;
+const el=(tag,id,text)=>{const n=document.createElement(tag);if(id)n.id=id;if(text!==undefined)n.textContent=text;return n;};
+function message(text,error=false){ui.status.textContent=text;ui.status.dataset.error=String(error);}
+function reset(){token++;stage=bundle=null;ui.import.disabled=ui.download.disabled=ui.project.disabled=true;ui.summary.textContent='';ui.canvas.hidden=true;}
+async function preview(input){reset();const own=token;message('Validating self-contained resource bundle…');try{const next=await api.stage(input);if(own!==token)return false;stage=next;bundle=next.bundle;const s=next.summary;ui.summary.textContent=s.scenes+' editable scene page(s) · '+s.metasprites+' metasprite pose(s) · '+s.animations+' timed clip(s)\n'+bundle.assets.scenes.map(s=>s.name).join('\n')+'\nSource SHA-256: '+s.source.sha256+'\n\n'+s.limits.join('\n\n');const scene=next.assets.scenes[0],cx=ui.canvas.getContext('2d'),im=cx.createImageData(256,240);for(let y=0;y<240;y++)for(let x=0;x<256;x++){const tx=x>>3,ty=y>>3,attr=scene.attr[(ty>>2)*8+(tx>>2)],shift=((ty&2)?4:0)+((tx&2)?2:0),pal=(attr>>shift)&3,ci=scene.chr[scene.nt[ty*32+tx]][y&7][x&7],rgb=NP[scene.pal[pal][ci]];im.data.set([...rgb,255],(y*256+x)*4);}cx.putImageData(im,0,0);ui.canvas.hidden=false;ui.import.disabled=ui.download.disabled=ui.project.disabled=false;message('Preview ready. Import adds these assets to the current project in one Undo step. The first page joins the build set; check available ROM capacity.');return true;}catch(e){if(own===token)message(e.message,true);return false;}}
+async function previewSelection(){reset();message('Converting selected native resources…');const own=token;try{const data=await services.GameREUI.exportEditable();if(own!==token)return false;return await preview(data);}catch(e){if(own===token)message(e.message,true);return false;}}
+async function openFile(file){reset();if(!file){message('Choose an editable .nfassets.json bundle.');return false;}const own=token;try{if(file.size>api.maxBytes)throw Error('Bundle exceeds 32 MiB.');const text=await file.text();if(own!==token)return false;return await preview(text);}catch(e){if(own===token)message(e.message,true);return false;}}
+function importCurrent(){try{if(!stage)throw Error('Preview a resource bundle first.');const result=api.importStaged(stage);stage=null;ui.import.disabled=true;message('Imported '+result.sceneIds.length+' scene page(s), '+result.metasprites+' pose(s) and '+result.animations+' clip(s). Edit them in Scenes, Tiles, Metasprites and Animation. Undo reverses the entire import.'+(result.warnings.length?' Display warnings: '+result.warnings.join('; '):''));return result;}catch(e){ui.import.disabled=true;message(e.message,true);return false;}}
+async function download(project=false){try{if(!bundle)throw Error('Preview a resource bundle first.');const value=project?await api.standalone(bundle):bundle;return await forgeSave.request(new TextEncoder().encode(JSON.stringify(value,null,2)),project?'Recovered_Resources.nesforge.json':'Recovered_Resources.nfassets.json','application/json');}catch(e){message(e.message,true);return false;}}
+function mount(){const workspace=document.getElementById('spatialRE');if(!workspace)return;const root=el('section','nativeAssets');root.setAttribute('aria-label','Editable recovered assets');root.append(el('h3',null,'Recovered resources → project assets'),el('p',null,'Load an editable bundle without its original ROM, or prepare resources from the native selection below. Evidence-only JSON stays an inspection report. Save the bundle for the complete reference evidence; project saves preserve editable assets and per-page source receipts.'));
+ const controls=el('div');controls.className='spatial-row';const label=el('label',null,'Open editable resource bundle'),file=el('input','nativeAssetsFile');file.type='file';file.accept='.nfassets.json,application/json';label.htmlFor=file.id;label.appendChild(file);controls.appendChild(label);file.addEventListener('change',()=>void openFile(file.files?.[0]));
+ const button=(id,text,fn)=>{const b=el('button',id,text);b.type='button';b.disabled=true;b.addEventListener('click',fn);controls.appendChild(b);return b;};const add=button('nativeAssetsImport','Import into current project',importCurrent),save=button('nativeAssetsDownload','Download editable bundle',()=>void download()),project=button('nativeAssetsProject','Download standalone project',()=>void download(true));root.appendChild(controls);
+ const status=el('p','nativeAssetsStatus');status.setAttribute('role','status');status.setAttribute('aria-live','polite');const canvas=el('canvas','nativeAssetsPreview');canvas.width=256;canvas.height=240;canvas.style.maxWidth='100%';canvas.style.imageRendering='pixelated';canvas.hidden=true;canvas.setAttribute('aria-label','First adapted scene page preview');const summary=el('pre','nativeAssetsSummary');root.append(status,canvas,summary);workspace.insertBefore(root,document.getElementById('spatialREResults'));ui={root,file,import:add,download:save,project,status,summary,canvas};for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation?.());message('Ready to open an editable bundle.');}
+services.GameREAssetsUI=Object.freeze({preview,previewSelection,openFile,importCurrent,download,getState:()=>({ready:!!stage,checksum:bundle?.checksum||null})});mount();
 })();
 
 /* Single current application bootstrap. */

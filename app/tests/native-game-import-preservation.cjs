@@ -1,0 +1,4 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),html=path.resolve(process.argv[2]||path.join(__dirname,'../mainline/NES_Forge_2.0.0-alpha.11.html'));
+require('./native-game-import-preservation-lib.cjs').verifyParent();require('./game-re-preservation-lib.cjs').verifySpatialReference();
+const results=[{name:'Exact prior application and all 110 retained suite sources are reconstructible',passed:true},{name:'Native game and earlier source preservation boundaries remain intact',passed:true}],report={suite:'native-game-import-preservation',htmlSha256:crypto.createHash('sha256').update(fs.readFileSync(html)).digest('hex'),passed:2,total:2,failed:0,results},out=process.env.FORGE_TEST_REPORT||process.argv[3];if(out)fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');console.log('2/2 asset import preservation checks passed');

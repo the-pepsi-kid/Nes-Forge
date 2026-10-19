@@ -1,3 +1,13 @@
+# NES Forge — Native Resource Import
+
+[Download the standalone application](app/mainline/NES_Forge_2.0.0-alpha.11.html) from this branch and open the downloaded HTML in your browser. In **RE / DISASM → Open spatial RE workbench**, open an investigated Ninja Gaiden or Zelda II ROM, choose a scene and pose/script, then **Prepare editable assets**.
+
+Import into the current project with one Undo, download an editable `.nfassets.json` bundle that reopens without the ROM, or download a standalone `.nesforge.json` project. Art, palettes, paged layouts, sprite poses and supported Ninja timing become editable. Collision, physics, AI and code remain reference evidence. [Complete import guide](app/docs/NATIVE_RESOURCE_IMPORT.md) · [Measured checkpoint](reviews/native-game-import-1/README.md).
+
+The ZIP kits linked below are preserved earlier releases. This branch's standalone HTML contains the new import workflow.
+
+## Preserved Native Game RE checkpoint
+
 # NES Forge — Native Game RE
 
 [Download the complete Ninja Gaiden / Zelda II review kit](tester-kit/ninja-zelda-re-1/NF_Ninja_Zelda_RE.zip). Extract the entire ZIP to a short path such as `C:\NF\Ninja_Zelda_RE`, then open `START_HERE.html` and **Open NES Forge**.

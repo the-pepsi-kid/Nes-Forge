@@ -1,0 +1,53 @@
+{
+  "format": "NESForgeNativeAssetROMVerification",
+  "htmlSha256": "cf2eb17d33d8ce63067ae04bcb7de082026300bea2bf90670414f65217b2649e",
+  "games": [
+    {
+      "name": "Ninja Gaiden (USA).nes",
+      "sourceSha256": "07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e",
+      "availableScenes": 48,
+      "unavailableSlots": 0,
+      "adaptedPages": 193,
+      "comparedPixels": 9486336,
+      "scripts": 80,
+      "refusedScripts": [
+        {
+          "id": "ng-script:15",
+          "status": "explicitly-refused",
+          "reason": "sprite-table-context-unresolved"
+        },
+        {
+          "id": "ng-script:16",
+          "status": "explicitly-refused",
+          "reason": "sprite-table-context-unresolved"
+        },
+        {
+          "id": "ng-script:89",
+          "missingPoseSelectors": [
+            135,
+            138
+          ],
+          "status": "explicitly-refused"
+        }
+      ],
+      "poses": 202,
+      "roundTrips": 2
+    },
+    {
+      "name": "Zelda 2 - The Adventure of Link (U).nes",
+      "sourceSha256": "ad8c0fbcf092bf84b48e69fd3964eea4ed91bfe62abc352943d537979782680c",
+      "availableScenes": 561,
+      "unavailableSlots": 6,
+      "adaptedPages": 1924,
+      "comparedPixels": 102449152,
+      "scripts": 0,
+      "refusedScripts": [],
+      "poses": 30,
+      "roundTrips": 1
+    }
+  ],
+  "limits": [
+    "Private exact-revision inputs are not included. Pixel checks compare decoded native initial art with editable adaptation, not independent hardware. No playable reconstruction, physics, AI or new collision semantics claim."
+  ],
+  "status": "passed"
+}
