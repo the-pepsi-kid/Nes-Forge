@@ -1,0 +1,18 @@
+[
+  {
+    "attempt": "input-freeze-order",
+    "status": "failed",
+    "sha256": "16d29e4082bc0377e03a54903e13fa9129c46ee9cf5a39e7ffdced6779591417",
+    "failedSuite": "regression",
+    "error": "Test input changed during the run: examples/RE_Native_Map/Manifest.json\n+ actual - expected\n\n+ '1c7007431e76d2782d4e1f4ec7f859696ffee2e0d0e18279bfa16b3b48162c97'\n- '934be246a8347aa4dbf601463501c4df8775d16ed35c2a72cb0a3d5ac7b02e11'\n",
+    "resolution": "Finished all example regeneration before restarting the immutable gate."
+  },
+  {
+    "attempt": "current-docs-title",
+    "status": "failed",
+    "sha256": "16d29e4082bc0377e03a54903e13fa9129c46ee9cf5a39e7ffdced6779591417",
+    "failedSuite": "services167",
+    "error": "services167 process failed: Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/4a3286d86934/nes-forge-audio-survey/app/tests/services167.cjs /workspace/scratch/4a3286d86934/nes-forge-audio-survey/app/mainline/NES_Forge_2.0.0-alpha.11.html /workspace/scratch/4a3286d86934/nes-forge-audio-survey/app/test-results/candidate/services167.json\n; see test-results/candidate/services167.log",
+    "resolution": "Updated only the current Tech Docs title expectation to Audio Driver Survey; exact reversible test delta retained."
+  }
+]

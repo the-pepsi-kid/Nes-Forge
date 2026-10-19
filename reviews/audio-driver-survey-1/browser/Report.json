@@ -1,0 +1,307 @@
+{
+  "format": "NESForgeAudioDriverSurveyBrowserQA",
+  "version": 1,
+  "suite": "audio-driver-survey-browser",
+  "html": "app/mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "16d29e4082bc0377e03a54903e13fa9129c46ee9cf5a39e7ffdced6779591417",
+  "expectedHtmlSha256": "16d29e4082bc0377e03a54903e13fa9129c46ee9cf5a39e7ffdced6779591417",
+  "fixtureSha256": "deb2eeff53c00f74cd41451a7894dd396af84ff0e6fe320e38131c03398da464",
+  "started": "2026-10-19T01:42:41.949Z",
+  "status": "passed",
+  "checks": [
+    {
+      "name": "Visible audio scope/start/frame/stop/refresh controls record actual 6502 APU writes",
+      "status": "passed"
+    },
+    {
+      "name": "Visible writer selection opens the matching physical source bytes",
+      "status": "passed"
+    },
+    {
+      "name": "Real JSON download preserves source identity and exact observed APU event",
+      "status": "passed"
+    },
+    {
+      "name": "Reset clears stale audio rows and normal tracing still collects PPU evidence",
+      "status": "passed"
+    },
+    {
+      "name": "390-pixel viewport keeps new controls within the viewport and usable",
+      "status": "passed"
+    },
+    {
+      "name": "Browser workflow produced no uncaught errors",
+      "status": "passed"
+    }
+  ],
+  "pageErrors": [],
+  "screenshots": [
+    {
+      "file": "desktop-audio-observations.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visualReview": "reviewed: audio observation text, writer list and action controls are readable at the captured viewport",
+      "visualReviewScope": "Audio observations text, writer list and actions are readable and contained in the desktop/phone viewport. Existing global toolbar overflow on the narrow viewport is outside this feature review."
+    },
+    {
+      "file": "phone-audio-observations.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visualReview": "reviewed: audio observation text, writer list and action controls are readable at the captured viewport",
+      "visualReviewScope": "Audio observations text, writer list and actions are readable and contained in the desktop/phone viewport. Existing global toolbar overflow on the narrow viewport is outside this feature review."
+    }
+  ],
+  "metrics": {
+    "audio": {
+      "report": {
+        "format": "NESForgeREInspection",
+        "version": 2,
+        "kind": "audio-driver-observations",
+        "modelVersion": "re-audio-survey-1",
+        "identity": {
+          "name": "Original browser audio fixture.nes",
+          "sha256": "deb2eeff53c00f74cd41451a7894dd396af84ff0e6fe320e38131c03398da464",
+          "byteLength": 24592,
+          "mapper": 0
+        },
+        "epoch": 2,
+        "trace": {
+          "mode": "audio",
+          "tracing": false,
+          "startFrame": 0,
+          "lastFrame": 1,
+          "instructions": 9927,
+          "eventCount": 1,
+          "coverageCount": 10,
+          "stopReason": "Stopped by user",
+          "limits": {
+            "instructions": 2000000,
+            "events": 8192,
+            "coverage": 4096,
+            "watches": 8,
+            "page": 256,
+            "snapshotBytes": 10240,
+            "romBytes": 67108864
+          },
+          "ppuWritesCollected": false
+        },
+        "summary": {
+          "apuWrites": 1,
+          "writerSites": 1,
+          "mappedWrites": 1,
+          "unmappedWrites": 0,
+          "unknownOriginWrites": 0
+        },
+        "writers": [
+          {
+            "pc": 49169,
+            "fileOffset": 33,
+            "opcode": 141,
+            "sourceLength": 3,
+            "bytes": [
+              141,
+              0,
+              64
+            ],
+            "source": "mapped-rom",
+            "registers": [
+              16384
+            ],
+            "channels": [
+              "pulse1"
+            ],
+            "count": 1,
+            "firstFrame": 0,
+            "lastFrame": 0,
+            "firstEvent": 0,
+            "lastEvent": 0
+          }
+        ],
+        "registers": [
+          {
+            "address": 16384,
+            "channel": "pulse1",
+            "firstValue": 159,
+            "lastValue": 159,
+            "count": 1,
+            "firstFrame": 0,
+            "lastFrame": 0,
+            "firstEvent": 0,
+            "lastEvent": 0
+          }
+        ],
+        "channels": [
+          {
+            "id": "pulse1",
+            "label": "Pulse 1",
+            "registers": [
+              16384
+            ],
+            "count": 1,
+            "firstFrame": 0,
+            "lastFrame": 0,
+            "firstEvent": 0,
+            "lastEvent": 0
+          }
+        ],
+        "noise": {
+          "shortModeWrites": 0,
+          "longModeWrites": 0,
+          "interpretation": "Observed $400E mode-bit writes only; they do not establish audible noise or recover an instrument."
+        },
+        "dmc": {
+          "enableRequests": 0,
+          "disableRequests": 0,
+          "interpretation": "Observed $4015 bit-4 requests only; enabling an already active DMC does not restart it. Sample bytes, actual starts, bank mappings and sample counts are not inferred."
+        },
+        "events": [
+          {
+            "id": 0,
+            "pc": 49169,
+            "fileOffset": 33,
+            "opcode": 141,
+            "sourceLength": 3,
+            "bytes": [
+              141,
+              0,
+              64
+            ],
+            "frame": 0,
+            "cycles": 20,
+            "kind": "apu",
+            "address": 16384,
+            "value": 159
+          }
+        ],
+        "limitations": [
+          "Only APU writes retained in this bounded trace are included. Unvisited audio and a trace with no APU writes remain unknown.",
+          "Writer sites are observed CPU instructions, not inferred routine boundaries, song/SFX IDs, a complete audio library or recognized engine families.",
+          "Source offsets are observed emulator mappings; CPU addresses alone cannot identify banked ROM code. Unmapped CPU sites and unknown origins remain separate.",
+          "Register writes do not establish audible output, note boundaries, instrument definitions or editable music. Expansion audio is not collected by this base-APU observer.",
+          "Audio-focused mode excludes PPU write evidence; emulated graphics and audio execution continue unchanged. Existing emulator timing and mapper limitations apply."
+        ]
+      },
+      "frame": 1,
+      "ppuByte": 68,
+      "apuByte": 159,
+      "known": 0,
+      "missed": 0
+    },
+    "download": {
+      "file": "audio-driver-observations.json",
+      "suggestedFilename": "Original_browser_audio_fixture-audio-driver-observations.json",
+      "bytes": 3362,
+      "sha256": "8a9c13fa76efe99017d2bd297f5b723251caf38d869d7aa04fd06dee8d152efd"
+    },
+    "normal": {
+      "mode": "all",
+      "events": [
+        {
+          "id": 0,
+          "pc": 49164,
+          "fileOffset": 28,
+          "opcode": 141,
+          "sourceLength": 3,
+          "bytes": [
+            141,
+            7,
+            32
+          ],
+          "frame": 0,
+          "cycles": 14,
+          "kind": "ppu",
+          "address": 8192,
+          "value": 68,
+          "storage": "vram",
+          "physicalAddress": 0,
+          "storedValue": 68,
+          "accepted": true
+        },
+        {
+          "id": 1,
+          "pc": 49169,
+          "fileOffset": 33,
+          "opcode": 141,
+          "sourceLength": 3,
+          "bytes": [
+            141,
+            0,
+            64
+          ],
+          "frame": 0,
+          "cycles": 20,
+          "kind": "apu",
+          "address": 16384,
+          "value": 159
+        }
+      ],
+      "known": 1,
+      "value": 68
+    },
+    "mobileBounds": [
+      {
+        "selector": "#reRuntimeTraceMode",
+        "x": 77,
+        "y": 531.03125,
+        "width": 152,
+        "height": 19
+      },
+      {
+        "selector": "#reRuntimeStart",
+        "x": 10,
+        "y": 556.53125,
+        "width": 370,
+        "height": 34
+      },
+      {
+        "selector": "#reRuntimeResetStart",
+        "x": 10,
+        "y": 596.53125,
+        "width": 370,
+        "height": 34
+      },
+      {
+        "selector": "#reRuntimeAudioStatus",
+        "x": 25,
+        "y": 469.09375,
+        "width": 340,
+        "height": 144
+      },
+      {
+        "selector": "#reRuntimeAudioWriters",
+        "x": 25,
+        "y": 619.09375,
+        "width": 340,
+        "height": 93.125
+      },
+      {
+        "selector": "#reRuntimeViewAudio",
+        "x": 199,
+        "y": 721.21875,
+        "width": 144,
+        "height": 34
+      },
+      {
+        "selector": "#reRuntimeExportAudio",
+        "x": 25,
+        "y": 761.21875,
+        "width": 210,
+        "height": 34
+      }
+    ]
+  },
+  "limitations": [
+    "A headless Chromium browser and narrow viewport do not establish physical-device, listening or hardware acceptance.",
+    "The original synthetic NROM writes one nametable byte and one pulse control byte, then loops; this validates observation/UI behavior, not a full audio library or engine decoder.",
+    "Save As uses a real browser download with the OS file-picker capability disabled; native OS Save As is not tested."
+  ],
+  "browser": "153.0.8010.0",
+  "passed": 6,
+  "failed": 0,
+  "finished": "2026-10-19T01:42:47.363Z",
+  "visualReview": "Desktop and phone viewport captures reviewed; new audio panel readable. Existing toolbar overflow at narrow width is not claimed repaired."
+}

@@ -2,6 +2,7 @@
 // The compact reference records committed bytes, not regenerated expectations.
 // Reverse this candidate before any historical preservation layer runs.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const {audioDriverSurveyReferenceSource,audioDriverSurveyReferenceTestBytes,audioDriverSurveyReferenceManifest,verifyAudioToolImportReference}=require('./audio-driver-survey-preservation-lib.cjs');
 const root=path.resolve(__dirname,'..'),archive=path.join(root,'docs/history/source-intake-1'),hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const pinned='11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd';
 const inventoryPin='e6a96743ab3ae49c60e1dd633805777244bc292367e86e11f67bea5e21677ada';
@@ -13,7 +14,7 @@ for(const item of delta.changes)assert.ok(sourceAllowed.has(item.path),'Unreview
 for(const item of delta.testChanges)assert.ok(testAllowed.has(item.path),'Unreviewed retained assertion/infrastructure change: '+item.path);
 assert.equal(new Set(delta.changes.map(item=>item.path)).size,delta.changes.length);assert.equal(new Set(delta.testChanges.map(item=>item.path)).size,delta.testChanges.length);
 function referenceBytes(name,changes){
- const bytes=fs.readFileSync(path.join(root,name)),change=changes.find(item=>item.path===name);if(!change)return bytes;
+ const bytes=changes===delta.changes?Buffer.from(audioDriverSurveyReferenceSource(name)):audioDriverSurveyReferenceTestBytes(name),change=changes.find(item=>item.path===name);if(!change)return bytes;
  assert.equal(hash(bytes),change.afterSha256,name+' differs from the exact reviewed audio tool import delta');
  let source=bytes.toString('utf8');for(const edit of change.replacements){assert.ok(edit.after);assert.equal(source.split(edit.after).length,2,name+' reverse patch must occur exactly once');source=source.replace(edit.after,()=>edit.before);}
  const restored=Buffer.from(source);assert.equal(hash(restored),change.beforeSha256,name+' does not restore the committed source-intake candidate');return restored;
@@ -21,6 +22,7 @@ function referenceBytes(name,changes){
 function audioToolImportReferenceSource(name){return referenceBytes(name,delta.changes).toString('utf8');}
 function audioToolImportReferenceTestBytes(name){return referenceBytes(name,delta.testChanges);}
 function audioToolImportReferenceManifest(manifest){
+ manifest=audioDriverSurveyReferenceManifest(manifest);
  assert.equal(manifest.release,'2.0.0-alpha.11');assert.equal(manifest.output,'mainline/NES_Forge_2.0.0-alpha.11.html');
  const declared=JSON.parse(fs.readFileSync(path.join(root,'audio-tool-import-modules.json'))),expected=delta.referenceParts.slice();assert.equal(declared.candidate,'audio-tool-import-1');
  assert.deepEqual(declared.insertions,[{after:'src/audio/audio-export.js',parts:['src/audio/famistudio-text.js','src/audio/audio-tool-import.js']},{after:'src/audio/audio-adaptive-ui.js',parts:['src/audio/audio-tool-import-ui.js']}]);
@@ -30,6 +32,7 @@ function audioToolImportReferenceManifest(manifest){
  return {...manifest,parts:delta.referenceParts};
 }
 function verifySourceIntakeReference(){
+ verifyAudioToolImportReference();
  const inventoryBytes=fs.readFileSync(path.join(archive,'Reference_Inventory.json'));assert.equal(hash(inventoryBytes),inventoryPin,'Committed source-intake inventory changed');
  const inventory=JSON.parse(inventoryBytes);assert.equal(inventory.htmlSha256,pinned);assert.equal(inventory.sourceCommit,'09f2233908bc511ffe057e3f7e885a5a42ef19ac');
  for(const item of inventory.archiveFiles){const bytes=fs.readFileSync(path.join(root,item.path));assert.equal(hash(bytes),item.sha256,'Committed source-intake reference changed: '+item.path);assert.equal(bytes.length,item.bytes,item.path);}

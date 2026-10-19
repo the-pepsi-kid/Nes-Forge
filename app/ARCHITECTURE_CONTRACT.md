@@ -1,3 +1,13 @@
+# Current contract — Audio Driver Survey
+
+Candidate `audio-driver-survey-1`, release alpha.11, schema 12. `RERuntime` retains sole ownership of bounded runtime observations. The new explicit audio mode omits PPU evidence while preserving original emulator execution, APU events, RAM watches and existing collection limits. Default all-write tracing remains compatible.
+
+`audioDriverReport()` derives detached writer/register/channel summaries from the retained event log. Identity includes physical source location and instruction context; CPU addresses alone cannot identify banked code. Reports describe observed writer sites, not function boundaries, complete song/SFX catalogs, engine recognition or conversion eligibility. `RERuntimeUI` owns scope selection, presentation, guarded source navigation and export through the existing save service.
+
+ProjectStore, canonical Audio data, compiler/runtime emitters, native decoders, emulator behavior and project schema remain unchanged. Retained behavior and prior assertions remain required through an exact reversible preservation layer. Native catalog/decoder research must independently validate table bounds, command semantics, timing and unsupported features before any production conversion.
+
+## Preserved previous record
+
 # Current contract — Source Intake Diagnostics
 
 Candidate `source-intake-1`, release alpha.11, schema 12. Preserve D063–D066 service ownership, canonical models and existing compiler/runtime algorithms.

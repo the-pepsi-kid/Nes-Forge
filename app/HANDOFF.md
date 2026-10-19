@@ -1,3 +1,15 @@
+# Audio Driver Survey handoff
+
+Current candidate: **alpha.11 / audio-driver-survey-1**, schema 12. Continue the owner's audio-first work toward driver maps, whole-library catalogs and validated editable recovery. Runtime Investigation now supports audio-focused tracing and a bank-aware report of observed writer sites. Read `docs/AUDIO_DRIVER_SURVEY.md`.
+
+Keep observation and decoding distinct: APU writes locate executed code; native tables and parser semantics establish cues, instruments and coding methods. Three supplied MMC1 ROMs have separate private catalog investigations; source-derived music and private reports must not be added to the public repository. The earlier DABG public proof remains source-backed and bounded.
+
+Retain all 97 parent suites and 1,872 cases through the exact outer preservation adapter. Verify the current standalone bundle, ordinary tracing behavior, project preservation, banked source navigation and browser report export. No canonical Audio model, compiler/runtime emitter, native decoder or schema expansion belongs to this increment.
+
+Next: validate complete catalog reachability and cue classifications, deepen timing/envelope/arbitration models, define DPCM and native-pitch fidelity before claiming full editable imports, and evaluate new independent driver examples. Hosted services remain the documented future direction.
+
+## Preserved previous record
+
 # Audio Tool Import handoff
 
 Current bounded candidate: **alpha.11 / audio-tool-import-1**, schema 12, from source-intake commit `09f2233908bc511ffe057e3f7e885a5a42ef19ac`. User priority is external-tool imports alongside scalable audio-driver investigation.

@@ -1,3 +1,11 @@
+# Audio Driver Survey candidate
+
+Current candidate: **2.0.0-alpha.11 / audio-driver-survey-1**, schema 12. Open `mainline/NES_Forge_2.0.0-alpha.11.html`. Runtime Investigation adds an explicit audio-focused trace and **Audio driver observations** with physical ROM writer locations, channel/register activity, guarded source navigation and JSON export. Read [the workflow and interpretation guide](docs/AUDIO_DRIVER_SURVEY.md). This is observed execution evidence; complete song/SFX catalogs require native driver decoding.
+
+The previous Audio Tool Import functionality and documentation below are retained. Current candidate verification is recorded in `test-results/candidate/Summary.json`; historical results keep their original application identity.
+
+## Preserved Audio Tool Import checkpoint
+
 # Audio Tool Import candidate
 
 Current candidate: **2.0.0-alpha.11 / audio-tool-import-1**, schema 12. Open `mainline/NES_Forge_2.0.0-alpha.11.html` and use **AUDIO → Import FamiStudio…**. Read `docs/AUDIO_TOOL_IMPORT.md` for supported content, refusals, source receipts and review steps. `research/audio-recognition-1/` provides a read-only driver comparison benchmark; the native decoder's acceptance boundaries remain unchanged.

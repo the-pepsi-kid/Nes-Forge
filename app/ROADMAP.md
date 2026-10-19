@@ -1,3 +1,13 @@
+# Current priority — audio drivers and catalogs
+
+`audio-driver-survey-1` adds audio-focused Runtime Investigation and a bank-aware report of executed APU writer sites. It supports investigation across the existing emulator mappings without declaring engine recognition or complete library recovery. See `docs/AUDIO_DRIVER_SURVEY.md`.
+
+The owner clarified that the target is each ROM's full music/SFX library and the methods used to encode and run it. Map dispatcher/table boundaries, cue aliases, streams, loops, envelopes, channel arbitration and DPCM; validate recovered semantics against execution before canonical conversion. Private source-ROM investigations remain separate from public application and fixture code. The previous four-note Zelda II result is an excerpt proof, not satisfaction of this target.
+
+Preserve the established project/audio owners and compatibility gates. Browser Host/Join and optional local services remain future work described in the repository's `planning/HOSTING_AND_LOCAL_SERVICES_DIRECTION_2026-10-18.md`; this increment does not implement them.
+
+## Preserved roadmap
+
 # Current audio import and RE work
 
 The authorized `audio-tool-import-1` slice implements bounded FamiStudio text import in AUDIO and a reproducible read-only audio-driver comparison benchmark. See `docs/AUDIO_TOOL_IMPORT.md`. Additional external formats (FamiTracker text, Aseprite frames, Tiled maps and assembly project adapters) and wider6502 recognition remain unfinished. Candidate similarity does not grant decoder/import capability. Source-backed independent project coverage, held-out evaluation and measured investigation effort are needed before claiming scalable recognition improvements.

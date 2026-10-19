@@ -1,7 +1,7 @@
 {
   "suite": "audio-adaptive200",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
+  "htmlSha256": "16d29e4082bc0377e03a54903e13fa9129c46ee9cf5a39e7ffdced6779591417",
   "scope": "Complete standalone application with real registered handlers. Test-local event/focus/task and modeled geometry adapters. No physical device, browser rendering, native keyboard presentation or audible output claim.",
   "passed": 26,
   "failed": 0,
@@ -10,57 +10,57 @@
     {
       "name": "Exact alpha.4 sources and prior correction boundaries remain recoverable",
       "passed": true,
-      "milliseconds": 749
+      "milliseconds": 1084
     },
     {
       "name": "Workspace adaptation is transient and bootstrap has no errors",
       "passed": true,
-      "milliseconds": 480
+      "milliseconds": 607
     },
     {
       "name": "Touch paints canonical volume data with one undo step for a stroke",
       "passed": true,
-      "milliseconds": 602
+      "milliseconds": 674
     },
     {
       "name": "Pen paints signed arpeggio values without affecting volume or notes",
       "passed": true,
-      "milliseconds": 505
+      "milliseconds": 480
     },
     {
       "name": "Scaled canvas coordinates select the correct canonical envelope point",
       "passed": true,
-      "milliseconds": 481
+      "milliseconds": 484
     },
     {
       "name": "A no-op touch does not create an undo snapshot or dirty the project",
       "passed": true,
-      "milliseconds": 474
+      "milliseconds": 560
     },
     {
       "name": "Captured drags clamp at envelope endpoints and value limits",
       "passed": true,
-      "milliseconds": 518
+      "milliseconds": 651
     },
     {
       "name": "Secondary pointers, right buttons, outside starts and zero-sized canvases are ignored",
       "passed": true,
-      "milliseconds": 466
+      "milliseconds": 597
     },
     {
       "name": "Missing instruments and empty envelopes remain guarded",
       "passed": true,
-      "milliseconds": 1067
+      "milliseconds": 932
     },
     {
       "name": "A second pointer cancels the active stroke across canvases",
       "passed": true,
-      "milliseconds": 491
+      "milliseconds": 498
     },
     {
       "name": "Pointer cancellation stops further editing and preserves prior committed changes",
       "passed": true,
-      "milliseconds": 419
+      "milliseconds": 398
     },
     {
       "name": "Lost pointer capture releases the stroke",
@@ -70,72 +70,72 @@
     {
       "name": "Window blur releases envelope input",
       "passed": true,
-      "milliseconds": 472
+      "milliseconds": 426
     },
     {
       "name": "Visibility loss releases envelope input",
       "passed": true,
-      "milliseconds": 456
+      "milliseconds": 593
     },
     {
       "name": "Tab changes release strokes and remove Audio layout state",
       "passed": true,
-      "milliseconds": 542
+      "milliseconds": 558
     },
     {
       "name": "Project replacement and undo cannot receive stale envelope writes",
       "passed": true,
-      "milliseconds": 946
+      "milliseconds": 907
     },
     {
       "name": "Instrument selection changes cannot redirect a stroke to another instrument",
       "passed": true,
-      "milliseconds": 443
+      "milliseconds": 450
     },
     {
       "name": "Touch compatibility mouse events cannot add a duplicate desktop stroke",
       "passed": true,
-      "milliseconds": 430
+      "milliseconds": 499
     },
     {
       "name": "Touch-event fallback paints and releases with the same undo contract",
       "passed": true,
-      "milliseconds": 484
+      "milliseconds": 483
     },
     {
       "name": "Touch fallback cancels on multi-touch or cancellation",
       "passed": true,
-      "milliseconds": 859
+      "milliseconds": 841
     },
     {
       "name": "Selected row and channel scroll into the modeled tracker viewport",
       "passed": true,
-      "milliseconds": 434
+      "milliseconds": 452
     },
     {
       "name": "Rendering an unchanged selection does not snap a manually scrolled tracker",
       "passed": true,
-      "milliseconds": 400
+      "milliseconds": 459
     },
     {
       "name": "Viewport resize and scroll update Audio height without project edits",
       "passed": true,
-      "milliseconds": 650
+      "milliseconds": 602
     },
     {
       "name": "Playback does not force tracker follow-scrolling",
       "passed": true,
-      "milliseconds": 483
+      "milliseconds": 414
     },
     {
       "name": "Touch envelope edits persist through canonical project save and reopen",
       "passed": true,
-      "milliseconds": 557
+      "milliseconds": 510
     },
     {
       "name": "Envelope input releases the native keyboard and does not press emulator buttons",
       "passed": true,
-      "milliseconds": 543
+      "milliseconds": 425
     }
   ]
 }

@@ -1,3 +1,11 @@
+# Audio Driver Survey working candidate
+
+Current branch: `implementation/audio-driver-survey-2026-10-18`; release **2.0.0-alpha.11 / audio-driver-survey-1**, schema 12. The application parent is `audio-tool-import-1` at `ffb57eab61d2e69ae0b92838c7b55748423b3140`, HTML SHA-256 `1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d`, with 1,872 cases across 97 suites. The branch also retains the subsequent documentation and DABG research checkpoints.
+
+The exact current bundle is recorded in `build-inputs.json`; fresh verification belongs to `test-results/candidate/Summary.json`. The added audio-focused trace and derived writer report are documented in `docs/AUDIO_DRIVER_SURVEY.md`. The unchanged RC3 tester kit remains a separate checkpoint.
+
+## Preserved previous baseline
+
 # Audio Tool Import working candidate
 
 Current branch: `implementation/audio-interchange-2026-10-18`; release **2.0.0-alpha.11 / audio-tool-import-1**, schema12. The preserved parent is source-intake commit `09f2233908bc511ffe057e3f7e885a5a42ef19ac`, HTML SHA-256 `11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd`, with 1,833 cases across93 suites. The outer preservation layer retains that exact baseline and its complete case inventory.

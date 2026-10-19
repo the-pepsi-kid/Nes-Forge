@@ -1,3 +1,11 @@
+# NES Forge — Audio Driver Survey
+
+Open **`app/mainline/NES_Forge_2.0.0-alpha.11.html`** for the new `audio-driver-survey-1` development candidate. Runtime Investigation now has an audio-focused trace and bank-aware audio writer report. [Start with the audio RE guide](app/docs/AUDIO_DRIVER_SURVEY.md). The report helps investigate drivers; full song/SFX identification and editable conversion remain separate decoding work.
+
+The RC3 tester kit below remains its frozen Audio Tool Import checkpoint. Use the application path above to try this newer candidate.
+
+## Preserved checkpoints
+
 # NES Forge — hosting and optional local services direction
 
 The accepted [hosting and local services direction](planning/HOSTING_AND_LOCAL_SERVICES_DIRECTION_2026-10-18.md) keeps Forge distributed as one HTML file, with future browser Host/Join sessions and optional PC/cyberdeck services for storage, persistent hosting, tools and devices. This checkpoint records the design only. Audio-driver mapping and catalog recovery remain the active priority; the application and tester kit are unchanged.

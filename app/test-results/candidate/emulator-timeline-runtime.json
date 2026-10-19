@@ -1,7 +1,7 @@
 {
   "suite": "emulator-timeline-runtime",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
+  "htmlSha256": "16d29e4082bc0377e03a54903e13fa9129c46ee9cf5a39e7ffdced6779591417",
   "scope": "Independent actual CPU/PPU/APU execution with native/world and original synthetic MMC1/MMC3 CHR-RAM fixtures; complete historical state, PCM continuation, frame-validated runtime capture, branching, cancellation and unknown-state rejection. Mock DOM, not browser or physical-hardware acceptance.",
   "passed": 9,
   "failed": 0,
@@ -144,47 +144,47 @@
     {
       "name": "History is opt-in and ordinary frame execution changes no authoring project or original ROM",
       "passed": true,
-      "milliseconds": 972
+      "milliseconds": 1154
     },
     {
       "name": "Recorded native frames restore full state and re-execute identical machine state and PCM samples",
       "passed": true,
-      "milliseconds": 10608
+      "milliseconds": 9637
     },
     {
       "name": "Recorded world frames restore full state and re-execute identical machine state and PCM samples",
       "passed": true,
-      "milliseconds": 11852
+      "milliseconds": 9862
     },
     {
       "name": "Runtime capture after rewind uses restored native tiles, scanline provenance and prior sprite positions",
       "passed": true,
-      "milliseconds": 3032
+      "milliseconds": 2942
     },
     {
       "name": "Mapper 1 rewind restores actual bank state, CHR-RAM, SRAM, controller latch and active DMC internals",
       "passed": true,
-      "milliseconds": 3094
+      "milliseconds": 3553
     },
     {
       "name": "Mapper 4 rewind restores actual bank state, CHR-RAM, SRAM, controller latch and active DMC internals",
       "passed": true,
-      "milliseconds": 2797
+      "milliseconds": 3642
     },
     {
       "name": "Recorded future is restored without CPU execution; resumed play branches and discards that future",
       "passed": true,
-      "milliseconds": 2140
+      "milliseconds": 2694
     },
     {
       "name": "Unknown current emulator state rejects rewind atomically instead of dropping unsupported state",
       "passed": true,
-      "milliseconds": 1149
+      "milliseconds": 1585
     },
     {
       "name": "A replacement ROM cancels a yielding forward skip and cannot receive stale execution or restore",
       "passed": true,
-      "milliseconds": 911
+      "milliseconds": 980
     }
   ]
 }

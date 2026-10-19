@@ -1,0 +1,128 @@
+{
+  "format": "NESForgeREInspection",
+  "version": 2,
+  "kind": "audio-driver-observations",
+  "modelVersion": "re-audio-survey-1",
+  "identity": {
+    "name": "Original browser audio fixture.nes",
+    "sha256": "deb2eeff53c00f74cd41451a7894dd396af84ff0e6fe320e38131c03398da464",
+    "byteLength": 24592,
+    "mapper": 0
+  },
+  "epoch": 2,
+  "trace": {
+    "mode": "audio",
+    "tracing": false,
+    "startFrame": 0,
+    "lastFrame": 1,
+    "instructions": 9927,
+    "eventCount": 1,
+    "coverageCount": 10,
+    "stopReason": "Stopped by user",
+    "limits": {
+      "instructions": 2000000,
+      "events": 8192,
+      "coverage": 4096,
+      "watches": 8,
+      "page": 256,
+      "snapshotBytes": 10240,
+      "romBytes": 67108864
+    },
+    "ppuWritesCollected": false
+  },
+  "summary": {
+    "apuWrites": 1,
+    "writerSites": 1,
+    "mappedWrites": 1,
+    "unmappedWrites": 0,
+    "unknownOriginWrites": 0
+  },
+  "writers": [
+    {
+      "pc": 49169,
+      "fileOffset": 33,
+      "opcode": 141,
+      "sourceLength": 3,
+      "bytes": [
+        141,
+        0,
+        64
+      ],
+      "source": "mapped-rom",
+      "registers": [
+        16384
+      ],
+      "channels": [
+        "pulse1"
+      ],
+      "count": 1,
+      "firstFrame": 0,
+      "lastFrame": 0,
+      "firstEvent": 0,
+      "lastEvent": 0
+    }
+  ],
+  "registers": [
+    {
+      "address": 16384,
+      "channel": "pulse1",
+      "firstValue": 159,
+      "lastValue": 159,
+      "count": 1,
+      "firstFrame": 0,
+      "lastFrame": 0,
+      "firstEvent": 0,
+      "lastEvent": 0
+    }
+  ],
+  "channels": [
+    {
+      "id": "pulse1",
+      "label": "Pulse 1",
+      "registers": [
+        16384
+      ],
+      "count": 1,
+      "firstFrame": 0,
+      "lastFrame": 0,
+      "firstEvent": 0,
+      "lastEvent": 0
+    }
+  ],
+  "noise": {
+    "shortModeWrites": 0,
+    "longModeWrites": 0,
+    "interpretation": "Observed $400E mode-bit writes only; they do not establish audible noise or recover an instrument."
+  },
+  "dmc": {
+    "enableRequests": 0,
+    "disableRequests": 0,
+    "interpretation": "Observed $4015 bit-4 requests only; enabling an already active DMC does not restart it. Sample bytes, actual starts, bank mappings and sample counts are not inferred."
+  },
+  "events": [
+    {
+      "id": 0,
+      "pc": 49169,
+      "fileOffset": 33,
+      "opcode": 141,
+      "sourceLength": 3,
+      "bytes": [
+        141,
+        0,
+        64
+      ],
+      "frame": 0,
+      "cycles": 20,
+      "kind": "apu",
+      "address": 16384,
+      "value": 159
+    }
+  ],
+  "limitations": [
+    "Only APU writes retained in this bounded trace are included. Unvisited audio and a trace with no APU writes remain unknown.",
+    "Writer sites are observed CPU instructions, not inferred routine boundaries, song/SFX IDs, a complete audio library or recognized engine families.",
+    "Source offsets are observed emulator mappings; CPU addresses alone cannot identify banked ROM code. Unmapped CPU sites and unknown origins remain separate.",
+    "Register writes do not establish audible output, note boundaries, instrument definitions or editable music. Expansion audio is not collected by this base-APU observer.",
+    "Audio-focused mode excludes PPU write evidence; emulated graphics and audio execution continue unchanged. Existing emulator timing and mapper limitations apply."
+  ]
+}

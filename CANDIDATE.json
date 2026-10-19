@@ -2,41 +2,44 @@
   "format": "NESForgeCandidateHandoff",
   "version": 1,
   "release": "2.0.0-alpha.11",
-  "candidate": "audio-tool-import-1",
+  "candidate": "audio-driver-survey-1",
   "schema": 12,
   "status": "review-candidate",
-  "branch": "implementation/audio-interchange-2026-10-18",
+  "branch": "implementation/audio-driver-survey-2026-10-18",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
-  "payloadChecksums": 7156,
-  "packageFiles": 7157,
-  "parentCommit": "09f2233908bc511ffe057e3f7e885a5a42ef19ac",
+  "htmlSha256": "16d29e4082bc0377e03a54903e13fa9129c46ee9cf5a39e7ffdced6779591417",
+  "payloadChecksums": 7175,
+  "packageFiles": 7176,
+  "parentCommit": "8d47936d38ad06c0723498cebd54bf60ac91bae3",
   "changes": [
-    "Bounded FamiStudio 4.5 UTF-8 text import inside AUDIO with preview, song selection, one Undo and separate original-source receipt.",
-    "Read-only source-backed audio routine comparison benchmark; strict FamiTone2 decoding remains unchanged."
+    "Audio-focused runtime traces collect APU writes, RAM watches and coverage without collecting PPU writes; emulated execution is unchanged.",
+    "Bank-aware audio writer observations, guarded source navigation and explicit JSON evidence export in Runtime Investigation.",
+    "Retain the Audio Tool Import application and all 97 parent suites; add 14 feature and 2 preservation cases."
   ],
   "automatedResult": {
-    "passed": 1872,
-    "total": 1872,
-    "suites": 97,
+    "passed": 1888,
+    "total": 1888,
+    "suites": 99,
     "failed": 0,
     "unchangedCandidate": true,
-    "workers": 4
+    "workers": 4,
+    "startedAt": "2026-10-19T01:45:20.226Z",
+    "finishedAt": "2026-10-19T01:53:50.309Z"
   },
-  "retainedCases": 1833,
-  "retainedSuites": 93,
+  "retainedCases": 1872,
+  "retainedSuites": 97,
   "automatedSummary": "app/test-results/candidate/Summary.json",
   "preservedParent": {
-    "candidate": "source-intake-1",
-    "commit": "09f2233908bc511ffe057e3f7e885a5a42ef19ac",
-    "htmlSha256": "11676f2618ea9dcb4adc23be993155a49eb6a3c325ff28af5eeae95db11f92dd",
-    "suiteCount": 93,
-    "cases": 1833,
-    "reference": "app/docs/history/source-intake-1/Reference_Inventory.json",
-    "summary": "app/checkpoints/source-intake-1-reference/test-results/candidate/Summary.json"
+    "candidate": "audio-tool-import-1",
+    "commit": "ffb57eab61d2e69ae0b92838c7b55748423b3140",
+    "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
+    "suiteCount": 97,
+    "cases": 1872,
+    "reference": "app/docs/history/audio-tool-import-1/Reference_Inventory.json",
+    "method": "Exact reversible source/test delta and 257 protected parent files; all earlier guards remain active."
   },
   "retainedExamples": {
-    "evidence": "app/checkpoints/audio-tool-import-1-examples/Regeneration.json",
+    "evidence": "reviews/audio-driver-survey-1/Example_Regeneration.json",
     "files": 58,
     "byteIdentical": 52,
     "receiptIdentityOnlyChanges": 6,
@@ -46,16 +49,16 @@
   },
   "browserEvidence": [
     {
-      "report": "app/test-results/audio-tool-import/browser/Report.json",
+      "report": "reviews/audio-driver-survey-1/browser/Report.json",
       "status": "passed",
-      "checks": 10,
-      "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
-      "scope": "Actual source file chooser, preview/cancel/import, Undo/Redo, receipt download, visible tracker edit, browser-download Save As fallback, file-chooser reopen, generated ROM/APU pitch change, phone viewport and no page errors.",
+      "checks": 6,
+      "htmlSha256": "16d29e4082bc0377e03a54903e13fa9129c46ee9cf5a39e7ffdced6779591417",
+      "scope": "Visible trace controls, executed APU writes, physical source navigation, actual JSON download, reset invalidation, normal PPU tracing, unchanged project and 390-pixel viewport.",
       "limits": [
-        "Native OS Save As dialog not tested.",
         "Phone viewport is not physical-device testing.",
-        "Controlled CPU subroutine/APU observations do not prove full-game timing, audible or hardware equivalence.",
-        "Other browser supplement reports retain their original candidate identity; they were not rerun for this candidate."
+        "Existing global toolbar overflow on narrow screens is outside this feature review.",
+        "No listening or independent-emulator/hardware equivalence claim.",
+        "Older browser reports retain their original candidate identities and were not rerun."
       ]
     }
   ],
@@ -82,12 +85,18 @@
     "newSupportedDriverFamilies": 0,
     "scope": "Uncalibrated read-only routine comparisons, with physical-byte evidence and work limits. Similarity cannot authorize decoding or import; no broad accuracy or time-saving claim."
   },
-  "firstGateFailure": {
-    "evidence": "app/test-results/audio-tool-import/initial-gate-failure/Summary.json",
-    "reason": "Retained Gameplay Core example receipt referenced the prior HTML hash. Regenerated all six retained example families; all ROMs/projects/recipes stayed byte-identical before full gate rerun."
-  },
   "ownerAcceptance": "Listening and independent-emulator/hardware acceptance remain open.",
-  "promotion": "Development branch only; existing tester kit unchanged and no release published.",
-  "roadmap": "In progress. Additional foreign formats, wider independent audio-driver corpus and source integration remain unfinished.",
-  "license": "UNDECIDED; upstream fixture/source notices retained."
+  "promotion": "Development branch only; frozen RC3 tester kit remains unchanged and no release published.",
+  "roadmap": "Audio-driver observation checkpoint complete. Game-specific private catalog research remains separate from production decoding/import.",
+  "license": "UNDECIDED; upstream fixture/source notices retained.",
+  "audioDriverSurvey": {
+    "guide": "app/docs/AUDIO_DRIVER_SURVEY.md",
+    "newSupportedDriverFamilies": 0,
+    "scope": "Bounded executed base-APU writer observations; no automatic whole-library detection, engine identification or editable score conversion.",
+    "ownership": "Existing RERuntime and RERuntimeUI; project schema 12 and canonical Audio remain unchanged."
+  },
+  "gateCorrections": {
+    "evidence": "reviews/audio-driver-survey-1/Gate_Corrections.json",
+    "scope": "Earlier failed runs retained as corrections; final unchanged-candidate gate passed."
+  }
 }

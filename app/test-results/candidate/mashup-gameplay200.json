@@ -1,7 +1,7 @@
 {
   "suite": "mashup-gameplay200",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
+  "htmlSha256": "16d29e4082bc0377e03a54903e13fa9129c46ee9cf5a39e7ffdced6779591417",
   "scope": "Pure canonical Gameplay Core seed/recipe variation, collision-clear authored-slot permutations, strict bounds and source binding, preserved five-template/player/persistence/Door limits, actual generated World 6502 speed execution and single-room emission. No proof of solvability or browser/hardware acceptance.",
   "passed": 26,
   "failed": 0,
@@ -10,132 +10,132 @@
     {
       "name": "Default-off variation returns a detached unchanged canonical project",
       "passed": true,
-      "milliseconds": 688
+      "milliseconds": 660
     },
     {
       "name": "Same seed reproduces exact choices without modifying the project or live editor/emulator",
       "passed": true,
-      "milliseconds": 585
+      "milliseconds": 525
     },
     {
       "name": "Patrol speeds change only per-instance numeric overrides inside declared 1–4 bounds",
       "passed": true,
-      "milliseconds": 658
+      "milliseconds": 689
     },
     {
       "name": "Different seeds produce multiple actual speed recipes",
       "passed": true,
-      "milliseconds": 605
+      "milliseconds": 753
     },
     {
       "name": "Gameplay lock retains the complete prior selection while another seed is used",
       "passed": true,
-      "milliseconds": 532
+      "milliseconds": 553
     },
     {
       "name": "Recipes replay after JSON export and reject modified decisions",
       "passed": true,
-      "milliseconds": 578
+      "milliseconds": 626
     },
     {
       "name": "Recipe source binding rejects stale actor, collision, attribute, World links, and player start edits",
       "passed": true,
-      "milliseconds": 633
+      "milliseconds": 637
     },
     {
       "name": "Palette/CHR edits do not invalidate independently locked gameplay geometry",
       "passed": true,
-      "milliseconds": 574
+      "milliseconds": 593
     },
     {
       "name": "Compatible authored enemy/pickup slots permute without adding coordinates",
       "passed": true,
-      "milliseconds": 638
+      "milliseconds": 527
     },
     {
       "name": "Player, switches/doors, persistence owners, maps, links and template set remain exact",
       "passed": true,
-      "milliseconds": 659
+      "milliseconds": 497
     },
     {
       "name": "Placement refuses collision-intersecting slots and leaves that group intact",
       "passed": true,
-      "milliseconds": 495
+      "milliseconds": 481
     },
     {
       "name": "Placement refuses missing collision evidence instead of assuming empty space",
       "passed": true,
-      "milliseconds": 535
+      "milliseconds": 484
     },
     {
       "name": "Single-room placement follows metatile reconciliation instead of trusting stale empty collision",
       "passed": true,
-      "milliseconds": 633
+      "milliseconds": 485
     },
     {
       "name": "Placement excludes body extents beyond map, Room, or screen edges",
       "passed": true,
-      "milliseconds": 545
+      "milliseconds": 600
     },
     {
       "name": "A placement permutation cannot move patrols outside their own authored bounds",
       "passed": true,
-      "milliseconds": 603
+      "milliseconds": 503
     },
     {
       "name": "An aliased speed/bound parameter cannot masquerade as a bounded patrol variation",
       "passed": true,
-      "milliseconds": 756
+      "milliseconds": 491
     },
     {
       "name": "Different colliders or placement owners cannot share slots",
       "passed": true,
-      "milliseconds": 676
+      "milliseconds": 553
     },
     {
       "name": "Disabled or custom behaviors are left unmodified and explicitly unavailable",
       "passed": true,
-      "milliseconds": 638
+      "milliseconds": 483
     },
     {
       "name": "Item-value requests report unavailable and preserve boolean pickup semantics",
       "passed": true,
-      "milliseconds": 559
+      "milliseconds": 503
     },
     {
       "name": "Disabled Gameplay Core stays disabled and has explicit unavailable domains",
       "passed": true,
-      "milliseconds": 507
+      "milliseconds": 567
     },
     {
       "name": "Actor and persistent RAM capacity refusals are atomic",
       "passed": true,
-      "milliseconds": 509
+      "milliseconds": 526
     },
     {
       "name": "Malformed seeds/options and invalid canonical values refuse before mutation",
       "passed": true,
-      "milliseconds": 481
+      "milliseconds": 509
     },
     {
       "name": "Toggling placement cannot change domain-separated patrol speed choices",
       "passed": true,
-      "milliseconds": 539
+      "milliseconds": 596
     },
     {
       "name": "Actual emitted World ROM and 6502 patrol movement reflect the chosen speed",
       "passed": true,
-      "milliseconds": 1584
+      "milliseconds": 1544
     },
     {
       "name": "Shuffled pickup source slots reach the actual compiled actor coordinates and preserve collection binding",
       "passed": true,
-      "milliseconds": 841
+      "milliseconds": 898
     },
     {
       "name": "A single-room candidate preserves its backend and emits changed patrol speed",
       "passed": true,
-      "milliseconds": 734
+      "milliseconds": 872
     }
   ]
 }
