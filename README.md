@@ -1,5 +1,7 @@
 # Current increment: Spatial RE
 
+[Download the complete standalone review kit](tester-kit/spatial-re-1/NF_Spatial_RE.zip). Extract to a short path such as `C:\NF`, then open `START_HERE.html`.
+
 Open **[the standalone application](app/mainline/NES_Forge_2.0.0-alpha.11.html)** and select **RE / DISASM → Open spatial RE workbench**. Read native map/collision evidence from the four investigated ROM revisions, inspect physical source addresses, and preview the first 13 Ninja Gaiden player animation scripts. [Complete controls, source references and limits](app/docs/SPATIAL_RE.md).
 
 Mega Man 2 exposes stage-dependent collision and raw screen slots; Ninja Gaiden exposes rooms and ground kinds; Zelda II exposes overworld terrain; Castlevania II exposes layouts and raw tile categories before conditional block substitution. This is read-only evidence, not native scene import, original physics or complete gameplay reconstruction. Unknown revisions stay explicit. The earlier Audio tools and original tutorials remain available.

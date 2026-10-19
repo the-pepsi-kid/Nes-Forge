@@ -20,3 +20,5 @@ Native checks execute the original unpatched subroutines on a separate bounded b
 The review-kit builder preserves every predecessor file at its original path or in RC4 when metadata/the launch app is replaced. The complete original alpha kit remains in RC3. ZIP verification checks hashes, local documentation links and conservative Windows path lengths. Fresh-extraction browser verification launches the actual application and exercises spatial RE plus earlier native audio.
 
 Packaging: run `python reviews/spatial-re-1/finalize-checkpoint.py`, then `build-review-kit.py`, `verify-package.py` and `verify-package-browser.cjs` from this directory. The builder uses Python 3 and Pandoc; if the predecessor kit is absent, it rebuilds it from the pinned parent Git commit.
+
+The ZIP uses fixed timestamps, atomic delivery and a retained `Review_Kit_Inventory.json`; two rebuilds after restoration are byte-identical. `Package_Verification.json` distinguishes the original fresh-package browser launch from the later checksum-verified restoration.

@@ -1,7 +1,7 @@
 """Preserve the complete previous kit, add the current app/guide and verify ZIP paths."""
 from pathlib import Path
-import json,hashlib,shutil,subprocess,zipfile,re,html,tempfile,tarfile,io
-root=Path(__file__).resolve().parents[2];review=Path(__file__).parent;app=root/'app';base=root.parent/'NF_MM2_Audio';out=root.parent/'NF_Spatial_RE';sha=lambda b:hashlib.sha256(b).hexdigest();c=json.loads((root/'CANDIDATE.json').read_text());assert c['candidate']=='spatial-re-1'
+import json,hashlib,shutil,subprocess,zipfile,re,html,tempfile,tarfile,io,os
+root=Path(__file__).resolve().parents[2];review=Path(__file__).parent;app=root/'app';base=root.parent/'NF_MM2_Audio';final_path=root.parent/'NF_Spatial_RE.zip';package_staging=tempfile.TemporaryDirectory(prefix='nf-spatial-package-');out=Path(package_staging.name)/'NF_Spatial_RE';sha=lambda b:hashlib.sha256(b).hexdigest();c=json.loads((root/'CANDIDATE.json').read_text());assert c['candidate']=='spatial-re-1'
 temporary=None
 if not base.is_dir():
  temporary=tempfile.TemporaryDirectory(prefix='nf-spatial-predecessor-');checkout=Path(temporary.name)/'source';checkout.mkdir()
@@ -11,7 +11,7 @@ if not base.is_dir():
  base=checkout.parent/'NF_MM2_Audio'
 assert json.loads((base/'SOURCE_RECORD.json').read_text())['htmlSha256']=='216d187d3405d0da25d7d936ac06b533c0ea6ff7ed9f94c5afa8b5484ab6ddfe','Predecessor kit identity differs'
 if out.exists():shutil.rmtree(out)
-shutil.copytree(base,out);archive=out/'RC4';archive.mkdir()
+shutil.copytree(base,out,ignore=lambda directory,names:[n for n in names if n.startswith('.')]);archive=out/'RC4';archive.mkdir()
 changed=['NES_Forge.html','START_HERE.html','START_HERE.md','README.md','README.txt','SOURCE_RECORD.json','VERIFICATION.json','DOCUMENTATION_REVIEW.json','REVIEW_REPORT.md','package_files.json','CONTENT_INVENTORY.json','verify_kit.py','Evidence/Automated_Summary.json','Evidence/Known_Library_Browser_Report.json','Evidence/Discovery_Browser_Report.json']
 for name in changed:
  if (out/name).exists():
@@ -33,13 +33,14 @@ verification={'htmlSha256':c['htmlSha256'],'automated':c['automatedResult'],'aut
 (out/'verify_kit.py').write_text('from pathlib import Path\nimport json,hashlib\nr=Path(__file__).resolve().parent\nm=json.loads((r/"CONTENT_INVENTORY.json").read_text())\nfor x in m["files"]:\n p=r/x["path"];assert p.is_file(),x["path"];assert hashlib.sha256(p.read_bytes()).hexdigest()==x["sha256"],x["path"]\ns=json.loads((r/"SOURCE_RECORD.json").read_text());assert hashlib.sha256((r/s["html"]).read_bytes()).hexdigest()==s["htmlSha256"]\nprint("Verified",len(m["files"]),"files and exact Spatial RE app.")\n')
 # Every predecessor file remains either at its original path or archived exactly.
 for p in base.rglob('*'):
- if p.is_file():
+ if p.is_file() and all(not part.startswith('.') for part in p.relative_to(base).parts):
   rel=p.relative_to(base);q=archive/rel if rel.as_posix() in changed else out/rel;assert q.read_bytes()==p.read_bytes(),rel
-files=[p for p in sorted(out.rglob('*')) if p.is_file() and p!=out/'CONTENT_INVENTORY.json'];inventory={'candidate':c['candidate'],'files':[{'path':p.relative_to(out).as_posix(),'bytes':p.stat().st_size,'sha256':sha(p.read_bytes())} for p in files]};(out/'CONTENT_INVENTORY.json').write_text(json.dumps(inventory,indent=2)+'\n');subprocess.run(['python3',str(out/'verify_kit.py')],check=True)
+files=[p for p in sorted(out.rglob('*')) if p.is_file() and p!=out/'CONTENT_INVENTORY.json' and all(not part.startswith('.') for part in p.relative_to(out).parts)];inventory={'candidate':c['candidate'],'files':[{'path':p.relative_to(out).as_posix(),'bytes':p.stat().st_size,'sha256':sha(p.read_bytes())} for p in files]};(out/'CONTENT_INVENTORY.json').write_text(json.dumps(inventory,indent=2)+'\n');(review/'Review_Kit_Inventory.json').write_text(json.dumps(inventory,indent=2)+'\n');subprocess.run(['python3',str(out/'verify_kit.py')],check=True)
 zip_path=out.with_suffix('.zip')
 with zipfile.ZipFile(zip_path,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
  for p in sorted(out.rglob('*')):
-  if p.is_file():z.write(p,p.relative_to(out).as_posix())
+  if p.is_file() and all(not part.startswith('.') for part in p.relative_to(out).parts):
+   info=zipfile.ZipInfo(p.relative_to(out).as_posix(),date_time=(2026,10,19,0,0,0));info.create_system=3;info.external_attr=0o100644<<16;z.writestr(info,p.read_bytes(),compress_type=zipfile.ZIP_DEFLATED,compresslevel=9)
 with zipfile.ZipFile(zip_path) as z:
  assert z.testzip() is None;names=z.namelist();assert 'START_HERE.html' in names and 'NES_Forge.html' in names;units=lambda s:len(s.encode('utf-16-le'))//2;dest='C:/'+'d'*156
  assert len({n.casefold() for n in names})==len(names)
@@ -49,6 +50,8 @@ with zipfile.ZipFile(zip_path) as z:
    assert part not in ('.','..') and not part.endswith(('.', ' ')) and not re.search(r'[<>:"\\|?*\x00-\x1f]',part),n
    assert part.split('.')[0].upper() not in {'CON','PRN','AUX','NUL',*[f'COM{i}' for i in range(1,10)],*[f'LPT{i}' for i in range(1,10)]},n
  windows={'status':'passed','zipHasExtraEnclosingFolder':False,'entries':len(names),'maxRelativePathUTF16Units':max(map(units,names)),'simulatedDestinationUTF16Units':units(dest),'maxDestinationFilePathUTF16Units':max(units(dest+'/'+n) for n in names),'nativeWindowsExplorerTested':False}
-(review/'Windows_Zip_Check.json').write_text(json.dumps(windows,indent=2)+'\n');record={'file':str(zip_path),'bytes':zip_path.stat().st_size,'sha256':sha(zip_path.read_bytes()),'files':len(files)+1,'applicationSha256':c['htmlSha256']};(review/'Review_Kit.json').write_text(json.dumps(record,indent=2)+'\n');print(json.dumps(record))
+(review/'Windows_Zip_Check.json').write_text(json.dumps(windows,indent=2)+'\n');shutil.copy2(zip_path,final_path.with_suffix('.zip.tmp'));os.replace(final_path.with_suffix('.zip.tmp'),final_path);record={'file':str(final_path),'bytes':zip_path.stat().st_size,'sha256':sha(zip_path.read_bytes()),'files':len(files)+1,'applicationSha256':c['htmlSha256']};(review/'Review_Kit.json').write_text(json.dumps(record,indent=2)+'\n');print(json.dumps(record))
 
 if temporary:temporary.cleanup()
+
+package_staging.cleanup()
