@@ -4,6 +4,7 @@ from urllib.parse import urlsplit,unquote
 import zipfile,tempfile,json,hashlib,subprocess
 root=Path(__file__).resolve().parents[2];review=Path(__file__).parent
 record=json.loads((review/'Review_Kit.json').read_text());archive=Path(record['file']);sha=lambda b:hashlib.sha256(b).hexdigest()
+if not archive.exists():archive=root/record['repositoryFile']
 assert sha(archive.read_bytes())==record['sha256']
 out=Path(tempfile.mkdtemp(prefix='nf-game-final-kit-'))
 with zipfile.ZipFile(archive) as z:assert z.testzip() is None;z.extractall(out)

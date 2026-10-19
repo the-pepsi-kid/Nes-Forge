@@ -1,6 +1,6 @@
 {
   "suite": "native-background-construction",
-  "htmlSha256": "b5f73734aa43356067e8fc0b0a9f45c7cbe434b4a38dfbedde827f1d534c0945",
+  "htmlSha256": "f12c1cac282bd081c60d25e1b62a99ddce3e578d82573ecca5e930d95af5c233",
   "scope": "Actual production immediate-PPU decoder, source-bound literal/fill/alias semantics, pinned native output and independent bundled CPU-produced PPU comparisons, relocation and format variants, unsupported/false-positive refusal, bounded work and noninterference. Derivatives are structural tests, not independent engines. No browser or hardware evidence.",
   "passed": 16,
   "failed": 0,
@@ -9,52 +9,52 @@
     {
       "name": "Native literal/fill construction yields independently pinned background and palette data",
       "passed": true,
-      "milliseconds": 6
+      "milliseconds": 8
     },
     {
       "name": "Decoded bytes equal actual CPU-created PPU nametable and palette at the initialization return",
       "passed": true,
-      "milliseconds": 1043
+      "milliseconds": 1803
     },
     {
       "name": "Meaningful literal, palette and CHR edits remain recognized without the original source hash",
       "passed": true,
-      "milliseconds": 1036
+      "milliseconds": 1641
     },
     {
       "name": "Palette aliases keep hardware last-write semantics and physical source provenance",
       "passed": true,
-      "milliseconds": 1002
+      "milliseconds": 1449
     },
     {
       "name": "Final PPUCTRL selects either physical background CHR bank, without guessing tile usage",
       "passed": true,
-      "milliseconds": 1
+      "milliseconds": 3
     },
     {
       "name": "A relocated constructor is followed through its actual reset JSR, despite an old matching copy",
       "passed": true,
-      "milliseconds": 846
+      "milliseconds": 1454
     },
     {
       "name": "The same construction decodes from NROM-256 upper PRG with shifted physical provenance",
       "passed": true,
-      "milliseconds": 890
+      "milliseconds": 1563
     },
     {
       "name": "Zero-count X loops mean 256 writes and the parser accounts for every destination",
       "passed": true,
-      "milliseconds": 959
+      "milliseconds": 1414
     },
     {
       "name": "Each final nametable value cites its last writer, including the title overlay",
       "passed": true,
-      "milliseconds": 2
+      "milliseconds": 4
     },
     {
       "name": "Unreachable matching construction and an unknown initializer remain unknown",
       "passed": true,
-      "milliseconds": 0
+      "milliseconds": 1
     },
     {
       "name": "Near-matching branch, addressing, return and coverage failures cannot produce an importable background",
@@ -64,17 +64,17 @@
     {
       "name": "Unknown poll results cannot supply control literals and NMI cannot precede final display setup",
       "passed": true,
-      "milliseconds": 0
+      "milliseconds": 3
     },
     {
       "name": "Unsupported PPUDATA increment, NMI, final nametable and display masks are refused",
       "passed": true,
-      "milliseconds": 3
+      "milliseconds": 4
     },
     {
       "name": "Constructor work and output are bounded even for a small source with repeated full-page rewrites",
       "passed": true,
-      "milliseconds": 4
+      "milliseconds": 1
     },
     {
       "name": "Malformed containers, trainers, CHR RAM and unsupported mappers stay outside this decoder",
@@ -84,7 +84,7 @@
     {
       "name": "All pure decode outcomes preserve original bytes, authored project, history and emulator",
       "passed": true,
-      "milliseconds": 14
+      "milliseconds": 27
     }
   ]
 }

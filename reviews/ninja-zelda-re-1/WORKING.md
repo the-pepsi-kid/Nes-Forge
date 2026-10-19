@@ -1,5 +1,7 @@
 # Ninja Gaiden / Zelda II investigation
 
+Historical investigation note, retained from before verification. The current measured result is in `README.md` and `CHECKPOINT.md`.
+
 Branch: `implementation/ninja-zelda-re-2026-10-19`.
 Parent: `387b99b5f4bec1e05568482c15ef5bbea1ae4527`.
 

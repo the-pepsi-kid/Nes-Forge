@@ -45,6 +45,13 @@ candidate['changes']=[
  'Canonical schema, CPU instructions, APU, capture implementation, compiler/runtime emitters and native audio remain preserved; source reversal restores the exact Spatial RE parent and all 288 protected files.'
 ]
 candidate['automatedResult']={'status':'passed','suiteCount':110,'passed':1989,'total':1989,'retainedSuites':107,'retainedCases':1970,'addedCases':19,'summary':'app/test-results/candidate/Summary.json'}
+candidate['retainedSuites']=107
+candidate['retainedCases']=1970
+if candidate.get('preservedParent',{}).get('candidate')!='spatial-re-1':
+ prior=candidate.get('preservedParent')
+ if prior:candidate.setdefault('historicalPreservation',{})[prior['candidate']]=prior
+candidate['preservedParent']={'candidate':'spatial-re-1','commit':'387b99b5f4bec1e05568482c15ef5bbea1ae4527','htmlSha256':'b5f73734aa43356067e8fc0b0a9f45c7cbe434b4a38dfbedde827f1d534c0945','suiteCount':107,'cases':1970,'reference':'app/docs/history/spatial-re-1/Reference_Inventory.json','protectedFiles':288,'method':'Exact parent source/test reconstruction around the reviewed additions; all earlier preservation boundaries retained. Three retained test edits update release identity only, with no cases removed.'}
+candidate['retainedExamples']['evidence']='reviews/ninja-zelda-re-1/Example_Regeneration.json'
 candidate['browserEvidence']=[{'report':'reviews/ninja-zelda-re-1/browser/Report.json','passed':20,'htmlSha256':digest},*retained['reports']]
 candidate['nativeGameRE']={'guide':'app/docs/NINJA_ZELDA_RE.md','verification':'reviews/ninja-zelda-re-1/ROM_Verification.json','ninjaRooms':48,'zeldaSceneContextSlots':567,'zeldaAvailableViews':561,'zeldaUnavailableSlots':6,'ninjaPoses':202,'ninjaNonemptyScripts':83,'zeldaLinkPoseFacingSamples':30,'sourceUnchanged':True,'nativeSceneImport':False,'completeGameRecovery':False,'unknownEngineRecognition':False}
 candidate['spatialRE']['retainedAndVerified']=True

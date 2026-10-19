@@ -1,0 +1,19 @@
+node:vm:149
+    return ReflectApply(super.runInContext, this, args);
+           ^
+
+Error: Script execution timed out after 2000ms
+    at Script.runInContext (node:vm:149:12)
+    at Object.runInContext (node:vm:301:6)
+    at run (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/harness.cjs:97:46)
+    at Object.json (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/harness.cjs:99:55)
+    at Object.<anonymous> (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/composer-interactions.cjs:14:18)
+    at Module._compile (node:internal/modules/cjs/loader:1872:14)
+    at Object..js (node:internal/modules/cjs/loader:2003:10)
+    at Module.load (node:internal/modules/cjs/loader:1594:32)
+    at Module._load (node:internal/modules/cjs/loader:1396:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19) {
+  code: 'ERR_SCRIPT_EXECUTION_TIMEOUT'
+}
+
+Node.js v24.19.0

@@ -1,6 +1,16 @@
 """Preserve every predecessor file, add the real app, and build a Windows-safe ZIP."""
 from pathlib import Path
 import json,hashlib,zipfile,tempfile,shutil,subprocess,re,html,os
+import zlib
+from concurrent.futures import ThreadPoolExecutor
+from importlib.metadata import version as package_version
+from zopfli.zlib import compress as optimal_compress
+
+assert package_version('zopfli')=='0.4.3','Reproduce packaging with zopfli==0.4.3'
+class RawDeflater:
+ def __init__(self,data):self.data=data
+ def compress(self,data):return b''
+ def flush(self):return self.data
 
 root=Path(__file__).resolve().parents[2];review=Path(__file__).parent;app=root/'app'
 sha=lambda b:hashlib.sha256(b).hexdigest()
@@ -114,13 +124,24 @@ print('Verified',len(manifest['files']),'packaged payloads')
  for name in names:
   assert len('C:/NF/Ninja_Zelda_RE/'+name)<240,name
   assert not any(re.search(r'[<>:"|?*\\]|[ .]$',part) or re.match(r'(?i)^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)',part) for part in Path(name).parts),name
+ # Standard ZIP Deflate, with the same uncompressed payloads. Tighter text
+ # compression keeps the base64 GitHub-connector request below 16 MiB.
+ candidates=[(name,(out/name).read_bytes()) for name in names if Path(name).suffix.lower() in {'.html','.json','.txt','.md'} and (out/name).stat().st_size>=65536]
+ def optimize(item):
+  name,data=item;raw=optimal_compress(data,numiterations=5)[2:-4]
+  assert zlib.decompress(raw,-15)==data,name
+  return name,raw if len(raw)<len(zlib.compress(data,9))-6 else None
+ with ThreadPoolExecutor(max_workers=4) as pool:optimized={name:raw for name,raw in pool.map(optimize,candidates) if raw is not None}
  staged=Path(temporary)/'NF_Ninja_Zelda_RE.zip'
  with zipfile.ZipFile(staged,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
   for name in names:
-   info=zipfile.ZipInfo(name,(2026,10,19,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o100644<<16;z.writestr(info,(out/name).read_bytes(),compresslevel=9)
+   data=(out/name).read_bytes();info=zipfile.ZipInfo(name,(2026,10,19,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o100644<<16;info.file_size=len(data)
+   if name in optimized:
+    with z.open(info,'w') as stream:stream._compressor=RawDeflater(optimized[name]);stream.write(data)
+   else:z.writestr(info,data,compresslevel=9)
  with zipfile.ZipFile(staged) as z:assert z.testzip() is None
  final_path.parent.mkdir(parents=True,exist_ok=True);delivery=final_path.with_suffix('.zip.tmp');shutil.copyfile(staged,delivery);os.replace(delivery,final_path)
- record={'file':str(final_path),'bytes':final_path.stat().st_size,'sha256':sha(final_path.read_bytes()),'applicationSha256':candidate['htmlSha256'],'files':len(names),'inventoriedPayloads':len(payload),'predecessorFilesPreserved':366,'predecessorReplacementsArchived':len(replaced),'fixedTimestamps':True}
+ record={'file':str(final_path),'repositoryFile':'tester-kit/ninja-zelda-re-1/NF_Ninja_Zelda_RE.zip','bytes':final_path.stat().st_size,'sha256':sha(final_path.read_bytes()),'applicationSha256':candidate['htmlSha256'],'files':len(names),'inventoriedPayloads':len(payload),'predecessorFilesPreserved':366,'predecessorReplacementsArchived':len(replaced),'fixedTimestamps':True,'compression':{'format':'standard ZIP Deflate','largeTextEncoder':'zopfli==0.4.3','iterations':5,'optimizedEntries':len(optimized)}}
  (review/'Review_Kit.json').write_text(json.dumps(record,indent=2)+'\n');(review/'Review_Kit_Inventory.json').write_text(json.dumps(inventory,indent=2)+'\n')
  (review/'Windows_Zip_Check.json').write_text(json.dumps({'status':'passed','fileCount':len(names),'maxExtractionPathAtRecommendedRoot':max(len('C:/NF/Ninja_Zelda_RE/'+n) for n in names),'invalidWindowsNames':0,'redundantEnclosingFolder':False,'nativeWindowsExtractionTested':False},indent=2)+'\n')
  print(json.dumps(record))

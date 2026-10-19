@@ -1,0 +1,94 @@
+{
+  "format": "NESForgeNativeGameBrowserVerification",
+  "htmlSha256": "f12c1cac282bd081c60d25e1b62a99ddce3e578d82573ecca5e930d95af5c233",
+  "checks": [
+    {
+      "name": "Actual Ninja chooser opens the connected scene, actor, pose and script catalog",
+      "passed": true
+    },
+    {
+      "name": "Original Ninja scene art renders at native room dimensions and source cell selection exposes provenance",
+      "passed": true
+    },
+    {
+      "name": "Native scene groups, code view and spawn-trigger overlay use actual controls",
+      "passed": true
+    },
+    {
+      "name": "Native actor parameters retain code semantics and dispatch addresses",
+      "passed": true
+    },
+    {
+      "name": "Nonplayer Ninja preview uses native delay-plus-one updates and stops on a workspace change",
+      "passed": true
+    },
+    {
+      "name": "A real selected-evidence download includes scene art, objects and exact ROM identity",
+      "passed": true
+    },
+    {
+      "name": "A real resource-catalog download retains all selector slots and source annotations",
+      "passed": true
+    },
+    {
+      "name": "Actual Zelda chooser opens nine contexts, preserved unavailable slots and native side-view art",
+      "passed": true
+    },
+    {
+      "name": "Unavailable Zelda slots cannot export an invented decoded scene",
+      "passed": true
+    },
+    {
+      "name": "Zelda scene selection exposes original construction and page-indexed connection records",
+      "passed": true
+    },
+    {
+      "name": "Zelda Link pose and facing samples render without claiming timed animation",
+      "passed": true
+    },
+    {
+      "name": "The physical graphics sheet selects all 32 source banks",
+      "passed": true
+    },
+    {
+      "name": "Existing physical disassembly opens a selected native routine with its source address",
+      "passed": true
+    },
+    {
+      "name": "Coverage explicitly separates reconstructed data from unresolved game behavior",
+      "passed": true
+    },
+    {
+      "name": "Investigation leaves project, Undo and live CPU state unchanged",
+      "passed": true
+    },
+    {
+      "name": "Native controls and physical graphics stay within the 430px workbench",
+      "passed": true
+    },
+    {
+      "name": "A modified source clears the native catalog without guessing from its filename",
+      "passed": true
+    },
+    {
+      "name": "Malformed replacement clears native exports and reports the input failure",
+      "passed": true
+    },
+    {
+      "name": "Zelda title frame 835 honors the native visible PPU address reload and capture agrees",
+      "passed": false,
+      "error": "page.evaluate: Error: Frame exceeded 200 ms safety budget; paused to protect the page\n    at emuRunFrame (file:///workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/mainline/NES_Forge_2.0.0-alpha.11.html:4261:90)\n    at emuRunFrame (file:///workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/mainline/NES_Forge_2.0.0-alpha.11.html:11028:61)\n    at emuRunFrame (file:///workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/mainline/NES_Forge_2.0.0-alpha.11.html:11281:37)\n    at emuRunFrame (file:///workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/mainline/NES_Forge_2.0.0-alpha.11.html:12956:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:74)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at /workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/ninja-zelda-re-1/verify-browser.cjs:38:58\n    at async check (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/ninja-zelda-re-1/verify-browser.cjs:6:35)\n    at async /workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/ninja-zelda-re-1/verify-browser.cjs:36:2"
+    }
+  ],
+  "pageErrors": [],
+  "crashes": [],
+  "limits": [
+    "Headless Linux Chromium, direct file launch, real file/download controls and a 430px viewport. No physical Windows/mobile or NES hardware claim.",
+    "Native catalogs and playback verification remain distinct from complete game reconstruction."
+  ],
+  "browser": "151.0.7922.34",
+  "status": "failed",
+  "error": "page.evaluate: Error: Frame exceeded 200 ms safety budget; paused to protect the page\n    at emuRunFrame (file:///workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/mainline/NES_Forge_2.0.0-alpha.11.html:4261:90)\n    at emuRunFrame (file:///workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/mainline/NES_Forge_2.0.0-alpha.11.html:11028:61)\n    at emuRunFrame (file:///workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/mainline/NES_Forge_2.0.0-alpha.11.html:11281:37)\n    at emuRunFrame (file:///workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/mainline/NES_Forge_2.0.0-alpha.11.html:12956:53)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:74)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at /workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/ninja-zelda-re-1/verify-browser.cjs:38:58\n    at async check (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/ninja-zelda-re-1/verify-browser.cjs:6:35)\n    at async /workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/ninja-zelda-re-1/verify-browser.cjs:36:2",
+  "passed": 18,
+  "failed": 1
+}
