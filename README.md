@@ -1,3 +1,9 @@
+# NES Forge — second-engine audio recovery proof
+
+A source-specific DABG investigation now produces an editable Forge Audio project and rebuilt ROM for the first 32 source rows of its Pulse 1 lead. All **214 compared frames** match the original driver’s volume, sounding duty and period; a deliberate note edit changes the generated pitch. Two independent reproductions are byte-identical, and six browser checks reopen and rebuild both delivered projects.
+
+Open [the reproduction and usage notes](research/native-audio-dabg-1/README.txt). This is a partial research recovery: one lead passage, source-oracle addresses, no production engine recognition, and no whole-track or listening-equivalence claim. The existing application is unchanged. The complete documentation/tester-kit checkpoint follows below.
+
 # NES Forge — current user guide and tester kit
 
 Open `tester-kit/alpha11-review-1/START_HERE.html` after extracting the entire GitHub download. The folder includes the full verified **audio-tool-import-1** application.

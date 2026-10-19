@@ -1,0 +1,50 @@
+{
+  "format": "NESForgeDABGResearchReproduction",
+  "version": 1,
+  "applicationUnchanged": true,
+  "productionCodeChanges": false,
+  "commands": [
+    "node research/native-audio-dabg-1/observe.cjs",
+    "node research/native-audio-dabg-1/decode-lead.cjs"
+  ],
+  "independentOutputDirectories": 2,
+  "allSixArtifactsByteIdentical": true,
+  "files": [
+    {
+      "path": "results/Original_DABG_Audio_Observation.json",
+      "bytes": 405276,
+      "sha256": "dcaafd0eabd103ac41e1ae48a1c484bb2819d35629d7341b076f57a66abd2f8d",
+      "identicalOnSecondRun": true
+    },
+    {
+      "path": "results/Lead_Recovery_Comparison.json",
+      "bytes": 31372,
+      "sha256": "a8b354a5bffbd98fd2cc0ef40893c43fa84b65d530f7d443ac7e0bf3879d8ce4",
+      "identicalOnSecondRun": true
+    },
+    {
+      "path": "results/DABG_Morning_Mood_Lead_32_Rows.nesforge.json",
+      "bytes": 216870,
+      "sha256": "9a3826fc8b8a1f9bffb3cee21f810c04a22ab608c09a42c38ed3739f4f6e0f0b",
+      "identicalOnSecondRun": true
+    },
+    {
+      "path": "results/DABG_Morning_Mood_Lead_32_Rows.nes",
+      "bytes": 24592,
+      "sha256": "8b74adc7d2905ba4b9577cd933728a2adef40542d0ded283030c7bba2ceef433",
+      "identicalOnSecondRun": true
+    },
+    {
+      "path": "results/DABG_Morning_Mood_Lead_32_Rows_Edited.nesforge.json",
+      "bytes": 216886,
+      "sha256": "cfb3bff640da6de98303ffc8f66d6fb22f1eb55f245315073d92a1bcf99d3800",
+      "identicalOnSecondRun": true
+    },
+    {
+      "path": "results/DABG_Morning_Mood_Lead_32_Rows_Edited.nes",
+      "bytes": 24592,
+      "sha256": "99f23b69ba2cf2f3496c699b49484ee88d2f68b85e6ba69d6c3032d65ee5e0c2",
+      "identicalOnSecondRun": true
+    }
+  ]
+}

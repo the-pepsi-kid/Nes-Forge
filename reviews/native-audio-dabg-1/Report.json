@@ -1,0 +1,132 @@
+{
+  "format": "NESForgeDABGRecoveredAudioBrowserReview",
+  "version": 1,
+  "started": "2026-10-19T00:37:44.947Z",
+  "status": "passed",
+  "html": "app/mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
+  "script": "reviews/native-audio-dabg-1/verify-browser.cjs",
+  "scriptSha256": "13c408901d79920976b11a93e9f2b8e024fe696b3f3e0121b97c7554cdb968fd",
+  "inputLocation": "research/native-audio-dabg-1/results",
+  "checks": [
+    {
+      "name": "original: actual Open Project chooser restores the title, notes, instruments and order in AUDIO",
+      "status": "passed"
+    },
+    {
+      "name": "original: visible Build & Run emits exactly the delivered ROM and loads that current result",
+      "status": "passed"
+    },
+    {
+      "name": "edited: actual Open Project chooser restores the title, notes, instruments and order in AUDIO",
+      "status": "passed"
+    },
+    {
+      "name": "edited: visible Build & Run emits exactly the delivered ROM and loads that current result",
+      "status": "passed"
+    },
+    {
+      "name": "The edited project changes only the first tracker note and project label, and its rebuilt ROM differs",
+      "status": "passed"
+    },
+    {
+      "name": "No uncaught browser errors",
+      "status": "passed"
+    }
+  ],
+  "pageErrors": [],
+  "screenshots": [
+    {
+      "file": "recovered-lead-audio.png",
+      "visualReview": "passed",
+      "notes": "Recovered Pulse 1 notes are visible, starting at D#5; native piano instrument, 25% duty, decaying envelope, four order entries, tempo150/speed1/64 rows are visible. Other channels remain empty as the declared lead-only scope requires."
+    }
+  ],
+  "artifacts": [
+    {
+      "case": "original",
+      "project": "DABG_Morning_Mood_Lead_32_Rows.nesforge.json",
+      "projectSha256": "9a3826fc8b8a1f9bffb3cee21f810c04a22ab608c09a42c38ed3739f4f6e0f0b",
+      "rom": "DABG_Morning_Mood_Lead_32_Rows.nes",
+      "romSha256": "8b74adc7d2905ba4b9577cd933728a2adef40542d0ded283030c7bba2ceef433",
+      "romBytes": 24592
+    },
+    {
+      "case": "edited",
+      "project": "DABG_Morning_Mood_Lead_32_Rows_Edited.nesforge.json",
+      "projectSha256": "cfb3bff640da6de98303ffc8f66d6fb22f1eb55f245315073d92a1bcf99d3800",
+      "rom": "DABG_Morning_Mood_Lead_32_Rows_Edited.nes",
+      "romSha256": "99f23b69ba2cf2f3496c699b49484ee88d2f68b85e6ba69d6c3032d65ee5e0c2",
+      "romBytes": 24592
+    }
+  ],
+  "observations": [
+    {
+      "case": "original",
+      "project": {
+        "title": "DABG Morning Mood \u2014 recovered Pulse1 lead, 32 rows (research)",
+        "appTitle": "NES Forge 2.0.0-alpha.11 \u2014 Audio Tool Import \u2014 Alpha \u00b7 Mobile Play",
+        "heading": "NES FORGE 2.0.0-alpha.11 AUDIO TOOL IMPORT \u00b7 ALPHA",
+        "patternCount": 4,
+        "orderCount": 4,
+        "instrumentName": "Native piano lead, instrument 1",
+        "firstNote": 63,
+        "tempo": 150,
+        "speed": 1,
+        "rows": 64,
+        "noteAttacks": 13,
+        "cuts": 7
+      },
+      "build": {
+        "backend": "packed",
+        "audioEnabled": true,
+        "musicEnabled": true,
+        "loaded": true,
+        "running": true,
+        "loadedName": "Current project build",
+        "loadedRomMatches": true,
+        "buildLog": "Built packed NROM: 16 KB PRG + 8 KB CHR \u2022 24592 bytes.1 scene(s) selected: Authored blank viewer for recovered leadNFEX/MT16: 69 bytes; WR16 v3: 6 bytes; MS16 v2: 0 bytes.0 linked metatile definition(s) / 0 mapped cells.Metadata allocated at $CB20 with code and reserved data preserved.Scene viewer: world maps, animation bindings, contact boxes and events are preserved as authoring metadata.Tracker music and 0 named SFX compile into the generated NES runtime.",
+        "romBytes": 24592,
+        "romSha256": "8b74adc7d2905ba4b9577cd933728a2adef40542d0ded283030c7bba2ceef433"
+      }
+    },
+    {
+      "case": "edited",
+      "project": {
+        "title": "DABG Morning Mood \u2014 recovered Pulse1 lead, 32 rows (research) - first note +1",
+        "appTitle": "NES Forge 2.0.0-alpha.11 \u2014 Audio Tool Import \u2014 Alpha \u00b7 Mobile Play",
+        "heading": "NES FORGE 2.0.0-alpha.11 AUDIO TOOL IMPORT \u00b7 ALPHA",
+        "patternCount": 4,
+        "orderCount": 4,
+        "instrumentName": "Native piano lead, instrument 1",
+        "firstNote": 64,
+        "tempo": 150,
+        "speed": 1,
+        "rows": 64,
+        "noteAttacks": 13,
+        "cuts": 7
+      },
+      "build": {
+        "backend": "packed",
+        "audioEnabled": true,
+        "musicEnabled": true,
+        "loaded": true,
+        "running": true,
+        "loadedName": "Current project build",
+        "loadedRomMatches": true,
+        "buildLog": "Built packed NROM: 16 KB PRG + 8 KB CHR \u2022 24592 bytes.1 scene(s) selected: Authored blank viewer for recovered leadNFEX/MT16: 69 bytes; WR16 v3: 6 bytes; MS16 v2: 0 bytes.0 linked metatile definition(s) / 0 mapped cells.Metadata allocated at $CB20 with code and reserved data preserved.Scene viewer: world maps, animation bindings, contact boxes and events are preserved as authoring metadata.Tracker music and 0 named SFX compile into the generated NES runtime.",
+        "romBytes": 24592,
+        "romSha256": "99f23b69ba2cf2f3496c699b49484ee88d2f68b85e6ba69d6c3032d65ee5e0c2"
+      }
+    }
+  ],
+  "limitations": [
+    "Desktop Chromium, real Open Project file chooser, visible AUDIO controls and visible Build & Run. Browser state reads verify actions; project state is not injected.",
+    "This verifies usability and byte-identical rebuilding of the supplied recovered lead projects. It does not establish native decoder generality, whole-song recovery, audible listening, physical-device behavior, independent emulator compatibility, or NES hardware timing.",
+    "The empty generated scene is an intentional carrier for recovered music. No gameplay or artwork recovery is claimed."
+  ],
+  "browser": "153.0.8010.0",
+  "passed": 6,
+  "failed": 0,
+  "finished": "2026-10-19T00:37:47.972Z"
+}
