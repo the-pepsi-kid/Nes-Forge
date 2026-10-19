@@ -1,0 +1,591 @@
+{
+  "parentCommit": "81338252e1f7a2ee8629c2f23f2e4e1d72c23472",
+  "htmlSha256": "cf2eb17d33d8ce63067ae04bcb7de082026300bea2bf90670414f65217b2649e",
+  "unchangedParts": [
+    {
+      "path": "src/legacy/00-editor.js",
+      "parentSha256": "5136b1e398d03a2e7c952929ed9ded203fd1ce41a74e62cdddd817c684afe0d4",
+      "currentSha256": "5136b1e398d03a2e7c952929ed9ded203fd1ce41a74e62cdddd817c684afe0d4"
+    },
+    {
+      "path": "src/services/cpu6502-core.js",
+      "parentSha256": "2ed095816ff966a759e347d4af0118e795798d8d4859fa9b8344533410ba4f40",
+      "currentSha256": "2ed095816ff966a759e347d4af0118e795798d8d4859fa9b8344533410ba4f40"
+    },
+    {
+      "path": "src/legacy/01-emulator.js",
+      "parentSha256": "3662559c42e818ac277065bb2674ee8ea606904f221457931a775dc2ee8a053b",
+      "currentSha256": "3662559c42e818ac277065bb2674ee8ea606904f221457931a775dc2ee8a053b"
+    },
+    {
+      "path": "src/legacy/02-interaction-bootstrap.js",
+      "parentSha256": "73679b216f248119f1180bb94ba6d01da2b63df6b8aaf10a72e9dda06bdc9113",
+      "currentSha256": "73679b216f248119f1180bb94ba6d01da2b63df6b8aaf10a72e9dda06bdc9113"
+    },
+    {
+      "path": "src/legacy/03-runtime-capture.js",
+      "parentSha256": "8a39efd9a8601bda8afd45a3dcab17a83dafbe649bc25165f74dd9d21610c9ff",
+      "currentSha256": "8a39efd9a8601bda8afd45a3dcab17a83dafbe649bc25165f74dd9d21610c9ff"
+    },
+    {
+      "path": "src/legacy/04-saveas-chr.js",
+      "parentSha256": "3023b8bb9867eb2c4acf17e598bdb6146592ff6a0b5e855cb955e0102f5ee079",
+      "currentSha256": "3023b8bb9867eb2c4acf17e598bdb6146592ff6a0b5e855cb955e0102f5ee079"
+    },
+    {
+      "path": "src/legacy/05-foundation.js",
+      "parentSha256": "9d8ea5f959f39d6c4caf2091a34155f2be3599ced3a468d3800d6d70db364720",
+      "currentSha256": "9d8ea5f959f39d6c4caf2091a34155f2be3599ced3a468d3800d6d70db364720"
+    },
+    {
+      "path": "src/legacy/06-integration.js",
+      "parentSha256": "7bb8699218910ac09e7761c7a3fc66abb258649009bb46982b58fb4fc9fdbbf6",
+      "currentSha256": "7bb8699218910ac09e7761c7a3fc66abb258649009bb46982b58fb4fc9fdbbf6"
+    },
+    {
+      "path": "src/legacy/07-metatiles.js",
+      "parentSha256": "a6a2685a82b81b33eef0b72462a86c95b060770bd3f2904ac7dba0a6e43227f7",
+      "currentSha256": "a6a2685a82b81b33eef0b72462a86c95b060770bd3f2904ac7dba0a6e43227f7"
+    },
+    {
+      "path": "src/legacy/08-world.js",
+      "parentSha256": "4c456b87955c43ac28bfdee319a4c3a81cf673b9ffb6b9ca8cdd3849c174cd8c",
+      "currentSha256": "4c456b87955c43ac28bfdee319a4c3a81cf673b9ffb6b9ca8cdd3849c174cd8c"
+    },
+    {
+      "path": "src/legacy/09-world-codec.js",
+      "parentSha256": "6c6016e03bc806d07a22af0f31cb839cd920230ca0fbb7665139e5e99f8ea76b",
+      "currentSha256": "6c6016e03bc806d07a22af0f31cb839cd920230ca0fbb7665139e5e99f8ea76b"
+    },
+    {
+      "path": "src/legacy/10-world-build.js",
+      "parentSha256": "e0a42075b9a259e7aaac782e834026115a2293e991b335ff8e141b7d0ff1aee4",
+      "currentSha256": "e0a42075b9a259e7aaac782e834026115a2293e991b335ff8e141b7d0ff1aee4"
+    },
+    {
+      "path": "src/legacy/11-world-interaction.js",
+      "parentSha256": "58ad4d66edd6ded56e23c208e4a8a4c1715bd0944b2319d549f9a172b8f009ba",
+      "currentSha256": "58ad4d66edd6ded56e23c208e4a8a4c1715bd0944b2319d549f9a172b8f009ba"
+    },
+    {
+      "path": "src/legacy/12-stabilization-info.js",
+      "parentSha256": "e572763e14d2a07961df5b9fe14ab3f5842681b9e6bfa342c8ebeffcf17c40d2",
+      "currentSha256": "e572763e14d2a07961df5b9fe14ab3f5842681b9e6bfa342c8ebeffcf17c40d2"
+    },
+    {
+      "path": "src/legacy/13-metasprites.js",
+      "parentSha256": "a3da1d59af7479fb512a0d96168c2b5102e2233129c5c0eb3f0af02b8901281b",
+      "currentSha256": "a3da1d59af7479fb512a0d96168c2b5102e2233129c5c0eb3f0af02b8901281b"
+    },
+    {
+      "path": "src/legacy/14-composed-animation.js",
+      "parentSha256": "2daea40692a2028be149d440a7d768b4d10b1a81ac638964aebdbac629edd77c",
+      "currentSha256": "2daea40692a2028be149d440a7d768b4d10b1a81ac638964aebdbac629edd77c"
+    },
+    {
+      "path": "src/legacy/15-assets-codec.js",
+      "parentSha256": "bd36122466706b314dde3dc5a9511551c79fa241e6cd61f7903146122308b32b",
+      "currentSha256": "bd36122466706b314dde3dc5a9511551c79fa241e6cd61f7903146122308b32b"
+    },
+    {
+      "path": "src/legacy/16-model.js",
+      "parentSha256": "80232ade26469b4a0c7fdb72c33196b0fd45d5f9cd6c2483da5a902f34e49df8",
+      "currentSha256": "80232ade26469b4a0c7fdb72c33196b0fd45d5f9cd6c2483da5a902f34e49df8"
+    },
+    {
+      "path": "src/legacy/17-frame-editor.js",
+      "parentSha256": "c8ab55c35c58d9e131592a997232f268d6330accfea4491e58098360f0947e37",
+      "currentSha256": "c8ab55c35c58d9e131592a997232f268d6330accfea4491e58098360f0947e37"
+    },
+    {
+      "path": "src/legacy/18-entity-studio.js",
+      "parentSha256": "38b5d96e377eb491d42ad34fa708ed2930da5300ffa7e99dbe8dd388f7869dba",
+      "currentSha256": "38b5d96e377eb491d42ad34fa708ed2930da5300ffa7e99dbe8dd388f7869dba"
+    },
+    {
+      "path": "src/legacy/19-entity-codec.js",
+      "parentSha256": "9268689262a658555446e556651b276ca09a3970c04ebff2bbf570a30c14e700",
+      "currentSha256": "9268689262a658555446e556651b276ca09a3970c04ebff2bbf570a30c14e700"
+    },
+    {
+      "path": "src/legacy/20-release164.js",
+      "parentSha256": "1bd827f4cad469707662c6b7734d970c1fb4bcea14945357424a75618c62b86c",
+      "currentSha256": "1bd827f4cad469707662c6b7734d970c1fb4bcea14945357424a75618c62b86c"
+    },
+    {
+      "path": "src/legacy/21-config165.js",
+      "parentSha256": "2dd89db11591e059ce95a8fba52bd9445b27e6612fb5bc7190914e3974aa9589",
+      "currentSha256": "2dd89db11591e059ce95a8fba52bd9445b27e6612fb5bc7190914e3974aa9589"
+    },
+    {
+      "path": "src/legacy/22-compiler-engine165.js",
+      "parentSha256": "1541ba3e5fa26312a86a5d414d0ea61d181eafd4041d2bdb3ea8a562664702ec",
+      "currentSha256": "1541ba3e5fa26312a86a5d414d0ea61d181eafd4041d2bdb3ea8a562664702ec"
+    },
+    {
+      "path": "src/legacy/23-build165.js",
+      "parentSha256": "739bc1a1952a489552d4580c6578972c49afe4be9921364079bdba428a0446b2",
+      "currentSha256": "739bc1a1952a489552d4580c6578972c49afe4be9921364079bdba428a0446b2"
+    },
+    {
+      "path": "src/legacy/24-ui165.js",
+      "parentSha256": "2647e480873e60148c93a2f1487e1b924c31c94ef8347cb8f067f7119e74f901",
+      "currentSha256": "2647e480873e60148c93a2f1487e1b924c31c94ef8347cb8f067f7119e74f901"
+    },
+    {
+      "path": "src/legacy/25-release165.js",
+      "parentSha256": "6324c7c7a5720153475c8df5d54e09efd385ae79c2a2266731ae1991f7180608",
+      "currentSha256": "6324c7c7a5720153475c8df5d54e09efd385ae79c2a2266731ae1991f7180608"
+    },
+    {
+      "path": "src/legacy/26-project166.js",
+      "parentSha256": "4cc2e201bd49e7fddc833d3d6fa9b514d67c9a9e9e61ae44aef6adba0db31c2c",
+      "currentSha256": "4cc2e201bd49e7fddc833d3d6fa9b514d67c9a9e9e61ae44aef6adba0db31c2c"
+    },
+    {
+      "path": "src/legacy/27-placement166.js",
+      "parentSha256": "8f40497e52e002827d1bd11ef63cc4d01fb275ab87147ed220f77cccf8f3917d",
+      "currentSha256": "8f40497e52e002827d1bd11ef63cc4d01fb275ab87147ed220f77cccf8f3917d"
+    },
+    {
+      "path": "src/legacy/28-ui166.js",
+      "parentSha256": "54a8af973538b0ae5490c12a622aa9653087e93a22bbcd711bdaac76bc705111",
+      "currentSha256": "54a8af973538b0ae5490c12a622aa9653087e93a22bbcd711bdaac76bc705111"
+    },
+    {
+      "path": "src/legacy/29-release166.js",
+      "parentSha256": "981be068de7d44a6dfb17b10b6554866f2eadce4b2eebc39e5727b182b5ba82d",
+      "currentSha256": "981be068de7d44a6dfb17b10b6554866f2eadce4b2eebc39e5727b182b5ba82d"
+    },
+    {
+      "path": "src/world/world-config.js",
+      "parentSha256": "ba111517bc7d8b48f5096b5c1ed5c0f840aa51339bf79c936adc36265e2b6dc7",
+      "currentSha256": "ba111517bc7d8b48f5096b5c1ed5c0f840aa51339bf79c936adc36265e2b6dc7"
+    },
+    {
+      "path": "src/audio/audio-config.js",
+      "parentSha256": "edca072e1e2ba53c9de834511c1e7fd3a715c9e4c83bc64c6c0f4713145e77a3",
+      "currentSha256": "edca072e1e2ba53c9de834511c1e7fd3a715c9e4c83bc64c6c0f4713145e77a3"
+    },
+    {
+      "path": "src/gameplay/gameplay-model.js",
+      "parentSha256": "26a27d1c84ee3c17e020ea1ec44e04e8c0353f0425ec012a9c95c85bc7813cda",
+      "currentSha256": "26a27d1c84ee3c17e020ea1ec44e04e8c0353f0425ec012a9c95c85bc7813cda"
+    },
+    {
+      "path": "src/services/asset-registry.js",
+      "parentSha256": "5e28ee004648b965fd75f751f494defe5d75a62fef2297aefb96f36089d38924",
+      "currentSha256": "5e28ee004648b965fd75f751f494defe5d75a62fef2297aefb96f36089d38924"
+    },
+    {
+      "path": "src/audio/audio-compiler.js",
+      "parentSha256": "f91abeac7e465bbf0a6a3ef93351834ad6a29617fb73963f5eb72df8a511f6e2",
+      "currentSha256": "f91abeac7e465bbf0a6a3ef93351834ad6a29617fb73963f5eb72df8a511f6e2"
+    },
+    {
+      "path": "src/gameplay/gameplay-compiler.js",
+      "parentSha256": "c3f001e23b2e1571ad55503a9655dce7978c74408c6dd83bb1056834aa2926c2",
+      "currentSha256": "c3f001e23b2e1571ad55503a9655dce7978c74408c6dd83bb1056834aa2926c2"
+    },
+    {
+      "path": "src/audio/audio-engine.js",
+      "parentSha256": "31a8a187af95d447f435cc5ac58bbcb76a9a869c61e0ed51722e6b832af216b4",
+      "currentSha256": "31a8a187af95d447f435cc5ac58bbcb76a9a869c61e0ed51722e6b832af216b4"
+    },
+    {
+      "path": "src/gameplay/gameplay-engine.js",
+      "parentSha256": "baf0d80a9f090d1f3dc0457c83d7f59ffd4d7dd1a6d75b594507a861cac2f50f",
+      "currentSha256": "baf0d80a9f090d1f3dc0457c83d7f59ffd4d7dd1a6d75b594507a861cac2f50f"
+    },
+    {
+      "path": "src/audio/audio-import.js",
+      "parentSha256": "3450a5c1f3a9dd75f6ce6b6ff765df5d5adc24c256a621860fe729af5b53cdff",
+      "currentSha256": "3450a5c1f3a9dd75f6ce6b6ff765df5d5adc24c256a621860fe729af5b53cdff"
+    },
+    {
+      "path": "src/audio/audio-export.js",
+      "parentSha256": "a9af0d34028f93fc14278e3948a3669afb4ca77972bb33e5a0d13bbf19b0e65a",
+      "currentSha256": "a9af0d34028f93fc14278e3948a3669afb4ca77972bb33e5a0d13bbf19b0e65a"
+    },
+    {
+      "path": "src/audio/famistudio-text.js",
+      "parentSha256": "8cf80ae6a717dd8d15ffc727f0e3edaadb82b60bfefe46017b0d4ef0c9544eec",
+      "currentSha256": "8cf80ae6a717dd8d15ffc727f0e3edaadb82b60bfefe46017b0d4ef0c9544eec"
+    },
+    {
+      "path": "src/audio/audio-tool-import.js",
+      "parentSha256": "c894283cccec3864acc07962d5f3d3f23c611186a9ab4354ff613a9b9fe678dd",
+      "currentSha256": "c894283cccec3864acc07962d5f3d3f23c611186a9ab4354ff613a9b9fe678dd"
+    },
+    {
+      "path": "src/world/world-engine.js",
+      "parentSha256": "091ed40ab2287bd2fb432334695f3bde305793a48f4328c27d3fe26de320e1ae",
+      "currentSha256": "091ed40ab2287bd2fb432334695f3bde305793a48f4328c27d3fe26de320e1ae"
+    },
+    {
+      "path": "src/world/world-rom.js",
+      "parentSha256": "a8028fa985635ad2bc7aeaa9f30b9666b7a59f8fdf4d2482e4c1edd738b34ac3",
+      "currentSha256": "a8028fa985635ad2bc7aeaa9f30b9666b7a59f8fdf4d2482e4c1edd738b34ac3"
+    },
+    {
+      "path": "src/world/world-compiler.js",
+      "parentSha256": "05f14683ef0f3ccc63980e23bc509d89b451a6c8a089187c0d1e21fed1bf24a9",
+      "currentSha256": "05f14683ef0f3ccc63980e23bc509d89b451a6c8a089187c0d1e21fed1bf24a9"
+    },
+    {
+      "path": "src/services/build-services.js",
+      "parentSha256": "13a4680722439e129a428f860b6486305d439117e76058d107fc5d71e2ac8fa1",
+      "currentSha256": "13a4680722439e129a428f860b6486305d439117e76058d107fc5d71e2ac8fa1"
+    },
+    {
+      "path": "src/services/emulator-bridge.js",
+      "parentSha256": "f1f7731180c5701ede49911cf4447d3a352b2684d7907a4c05faad353005c680",
+      "currentSha256": "f1f7731180c5701ede49911cf4447d3a352b2684d7907a4c05faad353005c680"
+    },
+    {
+      "path": "src/services/emulator-input.js",
+      "parentSha256": "95c38d6c470392f1826abe262258a537aab25786b9a58fc1daf9da0b0d428955",
+      "currentSha256": "95c38d6c470392f1826abe262258a537aab25786b9a58fc1daf9da0b0d428955"
+    },
+    {
+      "path": "src/services/emulator-timeline.js",
+      "parentSha256": "01d78bc64d8582bea99d0873385e945d3671c496793f943f87ff14d46437af9a",
+      "currentSha256": "01d78bc64d8582bea99d0873385e945d3671c496793f943f87ff14d46437af9a"
+    },
+    {
+      "path": "src/services/emulator-play-ui.js",
+      "parentSha256": "89b39311ae38002483000de3213f18a3f409073577d0821ee9500aa16155e0ae",
+      "currentSha256": "89b39311ae38002483000de3213f18a3f409073577d0821ee9500aa16155e0ae"
+    },
+    {
+      "path": "src/world/world-ui.js",
+      "parentSha256": "2e3176ef65f7944cb492a5c27aa56d6aa9f522a7987e7847bc421de25afee87f",
+      "currentSha256": "2e3176ef65f7944cb492a5c27aa56d6aa9f522a7987e7847bc421de25afee87f"
+    },
+    {
+      "path": "src/audio/audio-ui.js",
+      "parentSha256": "bfc94d23ceecc2b147f2ffa91ed56fd27862ee2521714c9da77aea2ec09b251e",
+      "currentSha256": "bfc94d23ceecc2b147f2ffa91ed56fd27862ee2521714c9da77aea2ec09b251e"
+    },
+    {
+      "path": "src/audio/audio-adaptive-ui.js",
+      "parentSha256": "fc0f398f981a3f7bef384c7ac49bcf4e9cfffaf438fe643c4fbef71b81710d03",
+      "currentSha256": "fc0f398f981a3f7bef384c7ac49bcf4e9cfffaf438fe643c4fbef71b81710d03"
+    },
+    {
+      "path": "src/audio/audio-tool-import-ui.js",
+      "parentSha256": "33457f72da282dc2ff6d14ae4ceabc5b3297b3ea5283f7b70143168f0b97f453",
+      "currentSha256": "33457f72da282dc2ff6d14ae4ceabc5b3297b3ea5283f7b70143168f0b97f453"
+    },
+    {
+      "path": "src/services/workshop.js",
+      "parentSha256": "a09d0b883331319507daa2ad8594f04293f2cfbdad63494a38c27bc4e8bfa384",
+      "currentSha256": "a09d0b883331319507daa2ad8594f04293f2cfbdad63494a38c27bc4e8bfa384"
+    },
+    {
+      "path": "src/gameplay/gameplay-ui.js",
+      "parentSha256": "60975c7a5719a3193a895411713314c3a4fa71ec852934ff134dc35ef680b265",
+      "currentSha256": "60975c7a5719a3193a895411713314c3a4fa71ec852934ff134dc35ef680b265"
+    },
+    {
+      "path": "src/gameplay/gameplay-graph.js",
+      "parentSha256": "d001dc1bd45ef47f5df0ea34d91972d01d3ad2e48b62ffe01fb414441665222d",
+      "currentSha256": "d001dc1bd45ef47f5df0ea34d91972d01d3ad2e48b62ffe01fb414441665222d"
+    },
+    {
+      "path": "src/re/re-bridge.js",
+      "parentSha256": "269f2575b2d168a1a9cf19b7c91b67ae03855dff65a2be1f8c20012c74b41590",
+      "currentSha256": "269f2575b2d168a1a9cf19b7c91b67ae03855dff65a2be1f8c20012c74b41590"
+    },
+    {
+      "path": "src/re/re-ui.js",
+      "parentSha256": "1ad4953875fbb2d73d8e0e67dec18ff9b7073e80f78c8ee4c499f70f8658dcb1",
+      "currentSha256": "1ad4953875fbb2d73d8e0e67dec18ff9b7073e80f78c8ee4c499f70f8658dcb1"
+    },
+    {
+      "path": "src/re/re-analysis.js",
+      "parentSha256": "c3316e68135456fafa3606f5e5cead3c6440a5b76e06cd4488e4820a073a14f4",
+      "currentSha256": "c3316e68135456fafa3606f5e5cead3c6440a5b76e06cd4488e4820a073a14f4"
+    },
+    {
+      "path": "src/re/re-analysis-ui.js",
+      "parentSha256": "c77f5fc6d1b3ce7da55b1627a98386b3b900adfba4860651784c7c50158f9f02",
+      "currentSha256": "c77f5fc6d1b3ce7da55b1627a98386b3b900adfba4860651784c7c50158f9f02"
+    },
+    {
+      "path": "src/re/re-methods.js",
+      "parentSha256": "94d933199694771188a30feb8ee65040888c4b0c6552f05014da54c1491d4fd7",
+      "currentSha256": "94d933199694771188a30feb8ee65040888c4b0c6552f05014da54c1491d4fd7"
+    },
+    {
+      "path": "src/re/re-native-assets.js",
+      "parentSha256": "cb63849d33529f7c00f5d17747280465cfdb48a4a4318ae39db7fd5d4db720cb",
+      "currentSha256": "cb63849d33529f7c00f5d17747280465cfdb48a4a4318ae39db7fd5d4db720cb"
+    },
+    {
+      "path": "src/re/re-native-assets-ui.js",
+      "parentSha256": "e4696afa6e1ee02bf69061e23a4290702cc36de8f25e76ba93dbd414290611e4",
+      "currentSha256": "e4696afa6e1ee02bf69061e23a4290702cc36de8f25e76ba93dbd414290611e4"
+    },
+    {
+      "path": "src/re/re-runtime.js",
+      "parentSha256": "aa5815677ca62f575bec002bc00326c1eb7cb207376649bd0c403daaf5c6f901",
+      "currentSha256": "aa5815677ca62f575bec002bc00326c1eb7cb207376649bd0c403daaf5c6f901"
+    },
+    {
+      "path": "src/re/re-runtime-ui.js",
+      "parentSha256": "cf30bedaa71e21fa125d445d52806def7e32ba58fcf81d75c94ea3c02f8468a2",
+      "currentSha256": "cf30bedaa71e21fa125d445d52806def7e32ba58fcf81d75c94ea3c02f8468a2"
+    },
+    {
+      "path": "src/re/re-experiments.js",
+      "parentSha256": "f7f98f8f42d0b1b10a71f50b25c7c484113cc7e65ea929680f8e58c262fa8f19",
+      "currentSha256": "f7f98f8f42d0b1b10a71f50b25c7c484113cc7e65ea929680f8e58c262fa8f19"
+    },
+    {
+      "path": "src/re/re-experiments-ui.js",
+      "parentSha256": "9b724f34196cad6f353706902895a4ec8117195bfe94ad5e47a410105cd2f665",
+      "currentSha256": "9b724f34196cad6f353706902895a4ec8117195bfe94ad5e47a410105cd2f665"
+    },
+    {
+      "path": "src/source/source-workspace.js",
+      "parentSha256": "561c09ba88c4f1e6835518c7c06a0a2a59c3ff78f5c2fb48223b8d4d721fe930",
+      "currentSha256": "561c09ba88c4f1e6835518c7c06a0a2a59c3ff78f5c2fb48223b8d4d721fe930"
+    },
+    {
+      "path": "src/source/source-intake.js",
+      "parentSha256": "bb6c226ee087a074ed1899dd55a2874d2c390160d675469f0548ea0efc7ccdc7",
+      "currentSha256": "bb6c226ee087a074ed1899dd55a2874d2c390160d675469f0548ea0efc7ccdc7"
+    },
+    {
+      "path": "src/source/source-workspace-ui.js",
+      "parentSha256": "da86635a80469165b9e5e53b6bc947520f2b7024d068a4fd7298b1632b52bcd5",
+      "currentSha256": "da86635a80469165b9e5e53b6bc947520f2b7024d068a4fd7298b1632b52bcd5"
+    },
+    {
+      "path": "src/re/famitone2-driver-profile.js",
+      "parentSha256": "a1d7ff0d2cc39eeb403857343a9f71b0e9102652962322d8d71b4655c09b6da0",
+      "currentSha256": "a1d7ff0d2cc39eeb403857343a9f71b0e9102652962322d8d71b4655c09b6da0"
+    },
+    {
+      "path": "src/re/famitone2-native.js",
+      "parentSha256": "2392e1a1ed77ca1af4a179a44c2f288348633c68a310592a9f4ac6c18fe068cf",
+      "currentSha256": "2392e1a1ed77ca1af4a179a44c2f288348633c68a310592a9f4ac6c18fe068cf"
+    },
+    {
+      "path": "src/re/re-native-audio-ui.js",
+      "parentSha256": "5316c53f36b8c9447a0af919aa129548f1c9acb8735bfbd23e51c00ab0de4a5a",
+      "currentSha256": "5316c53f36b8c9447a0af919aa129548f1c9acb8735bfbd23e51c00ab0de4a5a"
+    },
+    {
+      "path": "src/re/famitone2-audio-import.js",
+      "parentSha256": "a0cee3cd4a71cf17360b2fd20d287074dee660a1bf8828781e6c4e2920fa816d",
+      "currentSha256": "a0cee3cd4a71cf17360b2fd20d287074dee660a1bf8828781e6c4e2920fa816d"
+    },
+    {
+      "path": "src/re/famitone2-sfx-import.js",
+      "parentSha256": "332805b08d5178aed091f735ef6309ad85e9fe232bb97d4ed43dcdba3ce9b392",
+      "currentSha256": "332805b08d5178aed091f735ef6309ad85e9fe232bb97d4ed43dcdba3ce9b392"
+    },
+    {
+      "path": "src/re/megaman2-audio.js",
+      "parentSha256": "ff2c9623e6f3e0c88e189596a126c6965045f7dfe6086991f3d0252b41599e08",
+      "currentSha256": "ff2c9623e6f3e0c88e189596a126c6965045f7dfe6086991f3d0252b41599e08"
+    },
+    {
+      "path": "src/re/native-audio-catalog.js",
+      "parentSha256": "9f236395a3690d3b3adbf20f33181749e1ec7f77ea1e882edaf73c215b485890",
+      "currentSha256": "9f236395a3690d3b3adbf20f33181749e1ec7f77ea1e882edaf73c215b485890"
+    },
+    {
+      "path": "src/re/native-audio-profiles.js",
+      "parentSha256": "ab7bddb9eb64bc48c052e377f7769b45a38830e9f44e7ef6f0ea0b756436430b",
+      "currentSha256": "ab7bddb9eb64bc48c052e377f7769b45a38830e9f44e7ef6f0ea0b756436430b"
+    },
+    {
+      "path": "src/re/native-audio-machine.js",
+      "parentSha256": "671fc54b596da32d2dfd1ab0ee546b679e3e40aad009fa28364805888203a882",
+      "currentSha256": "671fc54b596da32d2dfd1ab0ee546b679e3e40aad009fa28364805888203a882"
+    },
+    {
+      "path": "src/re/native-audio-recovery.js",
+      "parentSha256": "d455387c3e53b4b6c985599d69afc023b20191145c2aeec7dd309f464e11323f",
+      "currentSha256": "d455387c3e53b4b6c985599d69afc023b20191145c2aeec7dd309f464e11323f"
+    },
+    {
+      "path": "src/re/re-native-audio-import.js",
+      "parentSha256": "202e5d49101d1db22227bb21ee42c9fe7e348578f64aa722bfb5f7dcd7ea659b",
+      "currentSha256": "202e5d49101d1db22227bb21ee42c9fe7e348578f64aa722bfb5f7dcd7ea659b"
+    },
+    {
+      "path": "src/audio/native-audio-library-ui.js",
+      "parentSha256": "d93bd741d29a7b49bcf0f6bb1fb4eca86b73dd271f172f84a8ba302ee1b2d00a",
+      "currentSha256": "d93bd741d29a7b49bcf0f6bb1fb4eca86b73dd271f172f84a8ba302ee1b2d00a"
+    },
+    {
+      "path": "src/re/audio-discovery.js",
+      "parentSha256": "33d81b2bdfa2376348991c0886ce0212a2c77128f0717bdf74483bc1300521a7",
+      "currentSha256": "33d81b2bdfa2376348991c0886ce0212a2c77128f0717bdf74483bc1300521a7"
+    },
+    {
+      "path": "src/re/audio-discovery-references.js",
+      "parentSha256": "5f42cc537a09cda9b363d85d0d9d28359bdffbf4f5e744b098b2d991a3542b36",
+      "currentSha256": "5f42cc537a09cda9b363d85d0d9d28359bdffbf4f5e744b098b2d991a3542b36"
+    },
+    {
+      "path": "src/audio/audio-discovery-ui.js",
+      "parentSha256": "10c5213b77fa3121decab9b21f107b8b5006f956b8f742593cb00e99b0177531",
+      "currentSha256": "10c5213b77fa3121decab9b21f107b8b5006f956b8f742593cb00e99b0177531"
+    },
+    {
+      "path": "src/re/re-native-audio-import-ui.js",
+      "parentSha256": "fb08697a14a727c17bb9438e6495f15d0a513ec49e4b5ec28c860f34c5809808",
+      "currentSha256": "fb08697a14a727c17bb9438e6495f15d0a513ec49e4b5ec28c860f34c5809808"
+    },
+    {
+      "path": "src/re/re-native-sfx-ui.js",
+      "parentSha256": "84bfb20a0b42f8edcfc9ef54cd896662c1dedbf29648e5b7acc4ebf24ed1d8ef",
+      "currentSha256": "84bfb20a0b42f8edcfc9ef54cd896662c1dedbf29648e5b7acc4ebf24ed1d8ef"
+    },
+    {
+      "path": "src/re/recovery-profiles.js",
+      "parentSha256": "934e351e22442242801bdb9eca5789c9e1a9f0fb8711a264b41536c98ee57e35",
+      "currentSha256": "934e351e22442242801bdb9eca5789c9e1a9f0fb8711a264b41536c98ee57e35"
+    },
+    {
+      "path": "src/re/re-native-scene.js",
+      "parentSha256": "ec219b3a17ad23a3c7cf7bf1c8dac3c7365a8a673e74444caee6ace94539ce48",
+      "currentSha256": "ec219b3a17ad23a3c7cf7bf1c8dac3c7365a8a673e74444caee6ace94539ce48"
+    },
+    {
+      "path": "src/re/re-native-background.js",
+      "parentSha256": "ef238af769ec3ec0d0a401e6bfad6e408489c77d00f8e669436dd03b7064c939",
+      "currentSha256": "ef238af769ec3ec0d0a401e6bfad6e408489c77d00f8e669436dd03b7064c939"
+    },
+    {
+      "path": "src/re/native-background-construction.js",
+      "parentSha256": "a4a4f823a914430d7378e0767b322f9cfe1607043ee79aa9f8c2e795e68be2e7",
+      "currentSha256": "a4a4f823a914430d7378e0767b322f9cfe1607043ee79aa9f8c2e795e68be2e7"
+    },
+    {
+      "path": "src/re/native-background-nametable.js",
+      "parentSha256": "b7f07e706456181b8433efd0844e13c1b88b80f825fd51dabb0ce0ce2fb29ef6",
+      "currentSha256": "b7f07e706456181b8433efd0844e13c1b88b80f825fd51dabb0ce0ce2fb29ef6"
+    },
+    {
+      "path": "src/re/native-command-map.js",
+      "parentSha256": "f16cd35c2d31d4d2a458b69c3893a9658f4e2d299c8c4e0c1f0394117d0edde5",
+      "currentSha256": "f16cd35c2d31d4d2a458b69c3893a9658f4e2d299c8c4e0c1f0394117d0edde5"
+    },
+    {
+      "path": "src/re/native-command-graphics.js",
+      "parentSha256": "f8fa0d4b94dafdceadfcef190eea03d01ffbed1ddb3d612c886257d3cec242f7",
+      "currentSha256": "f8fa0d4b94dafdceadfcef190eea03d01ffbed1ddb3d612c886257d3cec242f7"
+    },
+    {
+      "path": "src/re/re-native-map.js",
+      "parentSha256": "fb91003e044ba6898a3f66abba1e3e431dd6050de07654ddc8c9f0fc3a30f797",
+      "currentSha256": "fb91003e044ba6898a3f66abba1e3e431dd6050de07654ddc8c9f0fc3a30f797"
+    },
+    {
+      "path": "src/re/re-native-background-ui.js",
+      "parentSha256": "628c5ceb5a1a51e78097e98bba5571815f0d8b6faa625f86f69b8e40851bea4b",
+      "currentSha256": "628c5ceb5a1a51e78097e98bba5571815f0d8b6faa625f86f69b8e40851bea4b"
+    },
+    {
+      "path": "src/re/recovery-methods-ui.js",
+      "parentSha256": "8d018f05f5659ca353c5d527dc1125631e46d6325183c651565d669689487bcb",
+      "currentSha256": "8d018f05f5659ca353c5d527dc1125631e46d6325183c651565d669689487bcb"
+    },
+    {
+      "path": "src/mashup/mashup-gameplay.js",
+      "parentSha256": "4bc227daf612d9a50dfee597e9c6a4da70a084f1865ea098cc27811add225f43",
+      "currentSha256": "4bc227daf612d9a50dfee597e9c6a4da70a084f1865ea098cc27811add225f43"
+    },
+    {
+      "path": "src/mashup/mashup-model.js",
+      "parentSha256": "6700b2cd8d94f6ab19173165afbe1c12cf3ed58afdc6254d774aec3622e26ebf",
+      "currentSha256": "6700b2cd8d94f6ab19173165afbe1c12cf3ed58afdc6254d774aec3622e26ebf"
+    },
+    {
+      "path": "src/services/recipe-identity.js",
+      "parentSha256": "953afa5b67c1106d0ddfcadf3b425fde736c8e1dab94bb94ca553516935001de",
+      "currentSha256": "953afa5b67c1106d0ddfcadf3b425fde736c8e1dab94bb94ca553516935001de"
+    },
+    {
+      "path": "src/mashup/mashup-ui.js",
+      "parentSha256": "e6f64553c6c3f8e6e483a91dea956576b4878028bdf0282ed8064beb5ee1f141",
+      "currentSha256": "e6f64553c6c3f8e6e483a91dea956576b4878028bdf0282ed8064beb5ee1f141"
+    },
+    {
+      "path": "src/gameplay/movement-rules.js",
+      "parentSha256": "1e68985e2707168f6d6449293919e35a6483a066412f945450958718e8a3827e",
+      "currentSha256": "1e68985e2707168f6d6449293919e35a6483a066412f945450958718e8a3827e"
+    },
+    {
+      "path": "src/gameplay/movement-rules-ui.js",
+      "parentSha256": "27f6be6554058e654a5bddc21fb50acd4b32e23c4cc03cad138822751a87c72a",
+      "currentSha256": "27f6be6554058e654a5bddc21fb50acd4b32e23c4cc03cad138822751a87c72a"
+    },
+    {
+      "path": "src/re/spatial-native.js",
+      "parentSha256": "3d6d05b91d8dc921e13a17eafd648b6c23452ff560ba00b4d4882421df3099ea",
+      "currentSha256": "3d6d05b91d8dc921e13a17eafd648b6c23452ff560ba00b4d4882421df3099ea"
+    },
+    {
+      "path": "src/re/game-re-index.js",
+      "parentSha256": "b1205bd185c9b68df847f9cf2272c981cfca0729e1cb529dd3ec764ec2b420ad",
+      "currentSha256": "b1205bd185c9b68df847f9cf2272c981cfca0729e1cb529dd3ec764ec2b420ad"
+    },
+    {
+      "path": "src/re/game-re-native.js",
+      "parentSha256": "ff50ff2a45c442952de51c08e9651b6f6556df7b4fb705d3e7806488a89d46f9",
+      "currentSha256": "ff50ff2a45c442952de51c08e9651b6f6556df7b4fb705d3e7806488a89d46f9"
+    },
+    {
+      "path": "src/re/spatial-re-ui.js",
+      "parentSha256": "dde30011a101b6e1c9c6582e1b5f6b4db256f419cae13a190d3b9541c6df0d53",
+      "currentSha256": "dde30011a101b6e1c9c6582e1b5f6b4db256f419cae13a190d3b9541c6df0d53"
+    },
+    {
+      "path": "src/composition.js",
+      "parentSha256": "2ba43b63b407559c5ed3c08679afea89a4ad1db14f2a16c0c1f4f0611dd09119",
+      "currentSha256": "2ba43b63b407559c5ed3c08679afea89a4ad1db14f2a16c0c1f4f0611dd09119"
+    },
+    {
+      "path": "src/shell-suffix.html",
+      "parentSha256": "893cb35f3016a3523c33b676c4dfbe5686c4b99a1e7128d78e2e3fa271cd4829",
+      "currentSha256": "893cb35f3016a3523c33b676c4dfbe5686c4b99a1e7128d78e2e3fa271cd4829"
+    }
+  ],
+  "reviewedModifiedParts": [
+    {
+      "path": "src/shell-prefix.html",
+      "parentSha256": "987dd2679285fc146de9de8aebc03b4f3844e79d0c79c4aff94ea7b4cf4ede7b",
+      "currentSha256": "914aa88b3167548e43df8350afbff90f56c7570b9dc26aaf2f67e833a3dd4f51"
+    },
+    {
+      "path": "src/services/release-info.js",
+      "parentSha256": "ed94fbcbda7dd465ac5e7243f433994f4bf98e8f419c7a5bc7a76ccd317f27e5",
+      "currentSha256": "58348790aaac6558100a991dcb5f4f8de10ae6c155e992cf3ced4f19c37e8d44"
+    },
+    {
+      "path": "src/services/project-store.js",
+      "parentSha256": "8a24ba6cc6ab0d0498a293b0d63f3fecf6ad92921220e1ef47c2d75092403c12",
+      "currentSha256": "07d87dc3c0a0deb7dabd4f0af194ef79a2d7089a85392352c27a5e8412fd9dff"
+    },
+    {
+      "path": "src/services/documentation.js",
+      "parentSha256": "ae187bdae263c6f1a44333422a14009f9aa86428d908c0b63905eefc67e1b4e3",
+      "currentSha256": "b649f5f9d84fae258096a2a6868a25e3dfd43c33193fe792aa13bd1cd2fe0013"
+    },
+    {
+      "path": "src/re/game-re-ui.js",
+      "parentSha256": "c1f6a4f260ca6a8d2dd7b6a34169c3e75c34a2602a232794a772c559bcefd1b5",
+      "currentSha256": "bfb6d3f89889507847854bcf5c67c74272e58b5d5afd3ecb1cc4450fcdec62b7"
+    }
+  ],
+  "limits": [
+    "New importer/UI modules plus the owned ProjectStore append, Game RE export controls, documentation and release identity. CPU/APU/PPU, original RE decoders, capture, audio, runtime/compiler and tutorial styling are byte-identical to the prior checkpoint."
+  ]
+}

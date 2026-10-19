@@ -1,0 +1,93 @@
+{
+  "suite": "project166",
+  "scope": "Full application VM: clean starter creation, GP16 project reopening/edit/build cycles, atomic rejection, history/browser identity, and foreign capture boundaries; mock DOM.",
+  "passed": 16,
+  "total": 17,
+  "results": [
+    {
+      "name": "Blank room starts clean with explicit fixed sideview defaults and missing player",
+      "passed": true,
+      "milliseconds": 1459
+    },
+    {
+      "name": "External Scout example builds through validated project replacement without custom code",
+      "passed": true,
+      "milliseconds": 730
+    },
+    {
+      "name": "Fresh editor opens Scout as one editable room and immediately rebuilds",
+      "passed": true,
+      "milliseconds": 1648
+    },
+    {
+      "name": "Opening from a populated project removes duplicate global assets and unrelated ASM",
+      "passed": true,
+      "milliseconds": 921
+    },
+    {
+      "name": "Four edit/build/open cycles preserve identities, counts and metadata size",
+      "passed": true,
+      "milliseconds": 1925
+    },
+    {
+      "name": "Reordered rooms restore separate art sources, independent CHR banks and complete linked worlds",
+      "passed": true,
+      "milliseconds": 1575
+    },
+    {
+      "name": "Replacement adds exactly one undo step and clears redo while preserving older history",
+      "passed": true,
+      "milliseconds": 1126
+    },
+    {
+      "name": "Undo/redo restores project content while keeping browser save identity detached",
+      "passed": true,
+      "milliseconds": 1350
+    },
+    {
+      "name": "Ordinary authoring undo and redo retain emulator state and browser-save identity",
+      "passed": true,
+      "milliseconds": 1056
+    },
+    {
+      "name": "Successful project replacement pauses stale playback and clears built-ROM caches",
+      "passed": true,
+      "milliseconds": 941
+    },
+    {
+      "name": "Rejected bad GP16 checksum leaves project, history, identity and running emulator unchanged",
+      "passed": true,
+      "milliseconds": 952
+    },
+    {
+      "name": "Rejected unsupported GP16 version leaves project, history, identity and running emulator unchanged",
+      "passed": true,
+      "milliseconds": 1005
+    },
+    {
+      "name": "Rejected bad MS16 checksum leaves project, history, identity and running emulator unchanged",
+      "passed": false,
+      "error": "Error: Script execution timed out after 2000ms\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/harness.cjs:97:46)\n    at /workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/project166.cjs:81:21\n    at /workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/project166.cjs:92:91\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "name": "Rejected truncated header leaves project, history, identity and running emulator unchanged",
+      "passed": true,
+      "milliseconds": 9441
+    },
+    {
+      "name": "Foreign ROM classification is nonmutating and cannot masquerade as a recovered project",
+      "passed": true,
+      "milliseconds": 9464
+    },
+    {
+      "name": "Legacy append import remains available and foreign success message states capture limits",
+      "passed": true,
+      "milliseconds": 7619
+    },
+    {
+      "name": "Unknown starter kind is rejected without modifying the workspace",
+      "passed": true,
+      "milliseconds": 950
+    }
+  ]
+}

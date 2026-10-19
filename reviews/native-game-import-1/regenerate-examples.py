@@ -1,11 +1,11 @@
 """Regenerate retained examples in a disposable copy; keep frozen gate inputs intact."""
 from pathlib import Path
-import subprocess,json,hashlib,time,tempfile,shutil
+import subprocess,json,hashlib,time,tempfile,shutil,os
 root=Path(__file__).resolve().parents[2];app=root/'app';out=Path(__file__).parent;old=json.loads((root/'reviews/ninja-zelda-re-1/Example_Regeneration.json').read_text());names=[x['path'] for x in old['comparisons']];current={name:(app/name).read_bytes() for name in names};before={name:subprocess.check_output(['git','show','81338252e1f7a2ee8629c2f23f2e4e1d72c23472:app/'+name],cwd=root) for name in names};runs=[];sha=lambda b:hashlib.sha256(b).hexdigest()
 with tempfile.TemporaryDirectory(prefix='nf-spatial-examples-') as td:
  copy=Path(td)/'app';shutil.copytree(app,copy,ignore=shutil.ignore_patterns('test-results'))
  for item in old['generatorRuns']:
-  command=['/tmp/nf-node22/node-v22.23.3-linux-x64/bin/node',*item['command'][1:]];t=time.time();p=subprocess.run(command,cwd=copy,capture_output=True,text=True);name=Path(command[-1]).stem;(out/(name+'.log')).write_text(p.stdout+p.stderr);assert p.returncode==0,(command,p.stderr);runs.append({'command':command,'exitCode':p.returncode,'seconds':round(time.time()-t,3)});print('Regenerated',name,flush=True)
+  command=[os.environ.get('FORGE_NODE','node'),*item['command'][1:]];t=time.time();p=subprocess.run(command,cwd=copy,capture_output=True,text=True);name=Path(command[-1]).stem;(out/(name+'.log')).write_text(p.stdout+p.stderr);assert p.returncode==0,(command,p.stderr);runs.append({'command':command,'exitCode':p.returncode,'seconds':round(time.time()-t,3)});print('Regenerated',name,flush=True)
  comparisons=[]
  for name,a in before.items():
   b=(copy/name).read_bytes();same=a==b;changed=[]

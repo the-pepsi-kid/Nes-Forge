@@ -1,0 +1,56 @@
+PASS Emulator, provenance capture, and Save As/CHR blocks retain exact 1.6.2 bytes outside the declared correction delta
+PASS Complete application script initializes without an application error
+PASS CHR bitplanes roundtrip every pixel value and preserve bank offsets
+PASS Palette normalization shares universal background and clamps NES colors
+PASS Portable project roundtrip retains worlds, definitions, links, CHR, and animation
+PASS Legacy schema unversioned loads with absent worlds and valid empty metatile defaults
+PASS Legacy schema 2 loads with absent worlds and valid empty metatile defaults
+PASS Legacy schema 3 loads with absent worlds and valid empty metatile defaults
+PASS Legacy schema 4 loads with absent worlds and valid empty metatile defaults
+PASS Future schemas and malformed collections fail before replacing current project
+PASS Malformed map dimensions and unknown metatile references are rejected
+PASS Undo and redo restore project data including world destinations
+PASS New edits clear redo while history stays isolated from new project load
+PASS Metatile brush writes four nametable quadrants and survives serialization
+PASS Raw tile changes detach a mismatching metatile without changing its definition
+PASS World resize preserves coordinate positions and fills new area with empty cells
+PASS World creation selects an existing metatile scene when the active scene has no library
+PASS Assembler emits known 6502 bytes, labels, branches, strings, and vectors
+PASS Assembler reports out-of-range branches and undefined symbols
+PASS Default generated ROM has a valid NROM header, vectors, and Forge marker
+PASS Custom ASM occupying $C200 advances metadata placement and preserves code
+PASS Exhausted metadata space fails promptly with a capacity message
+PASS Missing interrupt vectors fail custom ROM generation
+PASS Build excludes unselected scenes and rejects a world using an excluded tileset
+PASS World-only metatiles fail preflight when their definition cannot be included in MT16
+PASS ROM re-import restores world coordinates, rooms, camera modes, and valid tileset references
+PASS ROM re-import keeps cross-world and same-world marker destinations resolvable
+PASS Generated scene viewer boots and produces nonempty framebuffer through actual emulator
+PASS iNES parser rejects bad signature, unsupported NES 2.0, and truncated image
+PASS Save As request and explicit cancellation produce no download
+PASS Native picker cancellation never triggers fallback browser download
+PASS Native save resolves successfully only after writable stream close completes
+PASS Writable close failure aborts stream, leaves Save As retryable, and never downloads
+PASS Explicit browser download is reported as requested, with sanitized filename
+PASS A concurrent Save As request cannot replace the pending export
+PASS Composer APIs and schema v6 initialize in the complete release
+PASS Composed project JSON preserves frame identities, pieces, origins, and animation bindings
+PASS Composed OAM conversion uses origin, palette, both flips, priority, and explicit lower tile
+PASS Metasprite pixels continue using their source scene after active scene changes
+PASS 8x16 vertical flip swaps source tiles and reverses pixels around the authored anchor
+PASS OAM order wins opaque overlaps and transparent pixels leave later sprites visible
+PASS Hardware preview counts transparent OAM pieces toward eight sprites per scanline
+PASS Metasprite duplication and mirroring create new identities and reflect around the origin
+PASS Mixed-size scene OAM capture expands 8x16 pairs without losing their vertical flip
+PASS Animation sources switch through the actual commands and preserve legacy tile/duration
+PASS Animation frame bounds use the explicit origin and fixed union across composed and tile frames
+PASS Missing animation references survive editing with a visible missing-source result and block build
+PASS MS16 checksum and declared payload length reject corrupted bytes
+PASS MS16 links source tiles without mutating authoring IDs or unrelated sprite CHR
+PASS ROM import restores composed frames with new unique IDs and remapped animation references
+PASS Portable asset export contains complete frames and their sprite sources
+PASS Out-of-range authored coordinates and duplicate frame identities reject schema v6 load
+
+52/52 passed
+(node:22) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
