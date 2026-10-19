@@ -1,3 +1,11 @@
+# Current handoff — Native Audio Library
+
+Open `mainline/NES_Forge_2.0.0-alpha.11.html`. AUDIO → ROM Audio Library accepts a ROM directly; EMULATOR/imported ROM loads also refresh it. Inspect a cue, play native, review the APU timeline and conversion details, then import into the unchanged tracker. Exporting an investigation report on Windows is not required.
+
+Known revisions: US Zelda II, Ninja Gaiden and Castlevania II. This is a catalog + controlled native-playback + finite canonical-transcription workflow, not complete natural-game or original-instrument recovery. DPCM/short-mode noise are retained in native playback and explicitly omitted from editable conversion. The usage guide explains every control and ownership boundary. The RC3 tester kit retains its earlier application.
+
+## Preserved previous record
+
 # Audio Driver Survey handoff
 
 Current candidate: **alpha.11 / audio-driver-survey-1**, schema 12. Continue the owner's audio-first work toward driver maps, whole-library catalogs and validated editable recovery. Runtime Investigation now supports audio-focused tracing and a bank-aware report of observed writer sites. Read `docs/AUDIO_DRIVER_SURVEY.md`.

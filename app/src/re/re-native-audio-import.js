@@ -14,7 +14,7 @@ function readSource(input){
  return value;
 }
 function metadata(source){return {token:source.token,sourceSha256:source.sourceSha256,currentSha256:source.currentSha256,songIndex:source.songIndex,name:source.name};}
-function converter(kind){const api=kind==='music'?window.FamiTone2AudioImport:window.FamiTone2SfxImport;if(!api?.preview)throw Error('The native transcription model is unavailable in this build.');return api;}
+function converter(kind,profile){if(profile==='native-catalog'){const api=services.NativeAudioRecovery;if(!api?.preview)throw Error('Native catalog conversion is unavailable.');return api;}if(profile!==undefined)throw Error('Unknown native Audio conversion profile.');const api=kind==='music'?window.FamiTone2AudioImport:window.FamiTone2SfxImport;if(!api?.preview)throw Error('The native transcription model is unavailable in this build.');return api;}
 function projectGuard(){const store=services.ProjectStore;return {epoch:store.state.epoch,snapshot:store.serialize()};}
 function checkGuard(item,currentSource){
  if(currentSource&&item.sourceKey!==sourceKey(readSource(currentSource)))throw Error('The native ROM copy or subsong changed. Preview again.');
@@ -45,15 +45,15 @@ function validateImport(item,result){
 async function stage(source,options={},controls={}){
  if(!options||typeof options!=='object'||Array.isArray(options)||!['music','sfx'].includes(options.kind))throw Error('Choose native music or SFX transcription.');
  if(controls.signal!==undefined&&(!controls.signal||typeof controls.signal.aborted!=='boolean'))throw Error('Cancellation signal requires a boolean aborted state.');
- checkSignal(controls.signal);const native=readSource(source),{kind,...settings}=options,item={kind,options:copy(settings),source:metadata(native),sourceKey:sourceKey(native),project:projectGuard()};
- const result=await converter(kind).preview(native.bytes.slice(),item.options);checkSignal(controls.signal);checkGuard(item,source);
+ checkSignal(controls.signal);const native=readSource(source),{kind,profile,...settings}=options,item={kind,...(profile===undefined?{}:{profile}),options:copy(settings),source:metadata(native),sourceKey:sourceKey(native),project:projectGuard()};
+ const result=await converter(kind,profile).preview(native.bytes.slice(),item.options,{signal:controls.signal});checkSignal(controls.signal);checkGuard(item,source);
  if(result.sourceSha256!==item.source.currentSha256)throw Error('Transcription source identity does not match the native ROM copy.');
  const data=result.status==='ready'&&result.imported?validateImport(item,result):null,value=freeze({...item,result:copy(result),data});
  if(data){stages.add(value);signals.set(value,controls.signal);}return value;
 }
 async function revalidate(item,currentSource){
  if(!stages.has(item))throw Error('Preview a supported transcription first.');
- const signal=signals.get(item);checkSignal(signal);checkGuard(item,currentSource);const native=readSource(currentSource),result=await converter(item.kind).preview(native.bytes.slice(),item.options);checkSignal(signal);checkGuard(item,currentSource);
+ const signal=signals.get(item);checkSignal(signal);checkGuard(item,currentSource);const native=readSource(currentSource),result=await converter(item.kind,item.profile).preview(native.bytes.slice(),item.options,{signal});checkSignal(signal);checkGuard(item,currentSource);
  if(result.status!=='ready'||JSON.stringify(result)!==JSON.stringify(item.result))throw Error('The transcription changed during revalidation. Preview again before importing.');
  return freeze(validateImport(item,result));
 }

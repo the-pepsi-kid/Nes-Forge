@@ -1,3 +1,11 @@
+# NES Forge — Native Audio Library
+
+Open **`app/mainline/NES_Forge_2.0.0-alpha.11.html`** for `native-audio-library-1`. A supported ROM now populates an Audio library directly: inspect the native catalog, audition selected cues, view APU activity and physical source/bank details, preview a finite editable adaptation and import into the tracker with one Undo. [Start with the complete guide](app/docs/NATIVE_AUDIO_LIBRARY.md).
+
+Known-revision decoders cover the supplied US Zelda II, Ninja Gaiden and Castlevania II inputs. Unknown revisions remain explicit. Native playback and finite canonical transcription have different fidelity; DPCM and short-mode noise remain outside the editable tracker model. The frozen RC3 tester kit below retains its earlier application; it is not this new development build.
+
+## Preserved previous checkpoints
+
 # NES Forge — Audio Driver Survey
 
 Open **`app/mainline/NES_Forge_2.0.0-alpha.11.html`** for the new `audio-driver-survey-1` development candidate. Runtime Investigation now has an audio-focused trace and bank-aware audio writer report. [Start with the audio RE guide](app/docs/AUDIO_DRIVER_SURVEY.md). The report helps investigate drivers; full song/SFX identification and editable conversion remain separate decoding work.

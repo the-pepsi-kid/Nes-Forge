@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NES Forge 2.0.0-alpha.11 — Audio Driver Survey</title>
+<title>NES Forge 2.0.0-alpha.11 — Native Audio Library</title>
 <style>
 :root{--bg:#0c0c10;--bg2:#101018;--bg3:#16161e;--bdr:#252530;--bdr2:#3a3a4a;--txt:#b8b8c8;--dim:#667;--acc:#5ad4ff;--acc2:#3a9abf;--grn:#8df57a;--red:#f57a7a;--ylw:#f5d07a;--orn:#f5a07a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -3683,235 +3683,11 @@ _autoSaveTimer=setInterval(db_autoSave,30000);
 // ═══════════════════════════════════════════════
 // NES FORGE: 6502 CPU EMULATOR (from v9.1 core)
 // ═══════════════════════════════════════════════
-const emu={
-  loaded:false, running:false, frameCount:0, cyclesPerFrame:29780,
-  // ROM data
-  prgRom:null, chrRom:null, chrRam:new Uint8Array(8192), hasChrRam:false,
-  prgSize:0, prgMask:0, mapper:0,
-  mirroring:0,
-  // MMC1 state
-  mmc1Shift:0x10, mmc1Ctrl:0x0C, mmc1Chr0:0, mmc1Chr1:0, mmc1Prg:0,
-  // MMC3 state
-  mmc3BankSel:0, mmc3Banks:[0,0,0,0,0,0,0,0], mmc3Mirror:0,
-  mmc3IrqLatch:0, mmc3IrqCounter:0, mmc3IrqEnabled:false, mmc3IrqReload:false,
-  mmc3PrgMode:0, mmc3ChrMode:0,
-  // 8KB PRG page offsets for MMC3 ($8000,$A000,$C000,$E000)
-  prgPage:[0,0,0,0],
-  // PRG/CHR bank pointers (byte offsets into ROM)
-  prgBank0:0, prgBank1:0, chrBank0:0, chrBank1:0,
-  // Split-rendering: CHR banks before/after sprite 0 hit
-  chrBank0Pre:0, chrBank1Pre:0, chrBank0Post:0, chrBank1Post:0, spr0Line:-1,
-  // Scroll state before/after sprite-0 hit
-  tAddrPre:0, fineXPre:0, tAddrPost:0, fineXPost:0,
-  // CPU registers
-  A:0, X:0, Y:0, SP:0xFD, PC:0, C:0, Z:0, I:1, D:0, V:0, N:0,
-  cycles:0, opsMissed:0,
-  // Memory
-  ram:new Uint8Array(2048),
-  // PPU
-  vram:new Uint8Array(2048), palRam:new Uint8Array(32), oamMem:new Uint8Array(256),
-  ppuCtrl:0, ppuMask:0, ppuStatus:0x80, oamAddr:0,
-  vAddr:0, tAddr:0, wLatch:false, ppuBuf:0, fineX:0,
-  // Input
-  joyState:0, joyShift:0, joyStrobe:false,
-  // APU state
-  apuRegs:new Uint8Array(32), apuStatus:0, apuFrameCounter:0,
-  irqPending:false,
-  sram:null, // 8KB SRAM ($6000-$7FFF)
-  // Animation frame ID
-  rafId:null
-};
-
-// ── Key state for controller ──
-const emuKeys={};
-
-
-function emuReadJoyState(){if(S.tab!=='emu')return 0;let value=0;[['KeyZ','KeyA'],['KeyX','KeyS'],['ShiftLeft','ShiftRight'],['Enter'],['ArrowUp'],['ArrowDown'],['ArrowLeft'],['ArrowRight']].forEach((keys,i)=>{if(keys.some(k=>emuKeys[k]))value|=1<<i;});return value;}
-
-// ── PPU nametable mirroring ──
-function ppuMirror(a){a&=0xFFF;return emu.mirroring===4?a:emu.mirroring===0?((a>>1)&0x400)|(a&0x3FF):emu.mirroring===1?a&0x7FF:emu.mirroring===3?0x400|(a&0x3FF):a&0x3FF;}
-
-// ── PPU read/write (with CHR-RAM and bank switching support) ──
-function ppuBusRead(a){a&=0x3FFF;if(a<0x2000){const source=emu.hasChrRam?emu.chrRam:emu.chrRom;if(!source?.length)return 0;let offset;if(emu.mapper===4)offset=(emu.chrPages?.[a>>10]||0)+(a&1023);else offset=(a<4096?emu.chrBank0:emu.chrBank1)+(a&4095);return source[offset%source.length]||0;}if(a<0x3F00)return emu.vram[ppuMirror(a-0x2000)]||0;let p=a&31;if((p&19)===16)p-=16;return emu.palRam[p]&63;}
-function ppuBusWrite(a,v){a&=0x3FFF;v&=255;if(a<8192){if(emu.hasChrRam){const off=emu.mapper===4?(emu.chrPages?.[a>>10]||0)+(a&1023):(a<4096?emu.chrBank0:emu.chrBank1)+(a&4095);emu.chrRam[off%emu.chrRam.length]=v;}return;}if(a<0x3F00){emu.vram[ppuMirror(a-0x2000)]=v;return;}let p=a&31;if((p&19)===16)p-=16;emu.palRam[p]=v&63;if((p&3)===0)emu.palRam[p^16]=v&63;}
-
-// ── CPU memory bus ──
-function cpuRead(a){
-  a&=0xFFFF;
-  if(a<0x2000) return emu.ram[a&0x7FF];
-  if(a<0x4000){
-    switch(a&7){
-      case 2:{ // PPUSTATUS
-        const v=emu.ppuStatus;
-        emu.ppuStatus&=0x7F; // clear vblank
-        emu.wLatch=false;
-        return v;
-      }
-      case 4: return emu.oamMem[emu.oamAddr];
-      case 7:{
-        let v=emu.ppuBuf;
-        const addr=emu.vAddr&0x3FFF;
-        emu.ppuBuf=ppuBusRead(addr);
-        if(addr>=0x3F00){v=ppuBusRead(addr);emu.ppuBuf=ppuBusRead(addr-0x1000);} // palette bypass; underlying NT refills buffer
-        emu.vAddr=(emu.vAddr+((emu.ppuCtrl&4)?32:1))&0x7FFF;
-        return v;
-      }
-    }
-    return 0;
-  }
-  if(a===0x4016){
-    if(emu.joyStrobe) return emuReadJoyState()&1;
-    const v=(emu.joyShift&1)|0x40;
-    emu.joyShift=(emu.joyShift>>>1)|0x80;
-    return v;
-  }
-  if(a===0x4017) return 0x40; // Controller 2 (not connected, open bus)
-  if(a===0x4015) return apuCore.readStatus(); // length counters + frame/DMC IRQ flags
-  if(a>=0x4000&&a<0x4020) return 0; // APU/IO registers
-  if(a>=0x6000&&a<0x8000) return emu.sram?emu.sram[a&0x1FFF]:0; // SRAM/WRAM
-  if(a>=0x8000){
-    if(emu.mapper===4){
-      // MMC3: 4 × 8KB pages
-      const page=(a>>13)&3; // 0=$8000,1=$A000,2=$C000,3=$E000
-      return emu.prgRom[(emu.prgPage[page]+(a&0x1FFF))%emu.prgSize];
-    }
-    if(a>=0xC000) return emu.prgRom[(emu.prgBank1+(a&0x3FFF))%emu.prgSize];
-    return emu.prgRom[(emu.prgBank0+(a&0x3FFF))%emu.prgSize];
-  }
-  return 0;
-}
-function cpuWrite(a,v){
-  a&=0xFFFF;v&=0xFF;
-  if(a<0x2000){emu.ram[a&0x7FF]=v;return}
-  if(a<0x4000){
-    switch(a&7){
-      case 0:emu.ppuCtrl=v;emu.tAddr=(emu.tAddr&0x73FF)|((v&3)<<10);break;
-      case 1:emu.ppuMask=v;break;
-      case 3:emu.oamAddr=v;break;
-      case 4:emu.oamMem[emu.oamAddr++]=v;emu.oamAddr&=0xFF;break;
-      case 5:
-        if(!emu.wLatch){emu.fineX=v&7;emu.tAddr=(emu.tAddr&0x7FE0)|(v>>3)}
-        else{emu.tAddr=(emu.tAddr&0x0C1F)|((v&7)<<12)|((v>>3)<<5)}
-        emu.wLatch=!emu.wLatch;break;
-      case 6:
-        if(!emu.wLatch){emu.tAddr=(emu.tAddr&0x00FF)|((v&0x3F)<<8)}
-        else{emu.tAddr=(emu.tAddr&0xFF00)|v;emu.vAddr=emu.tAddr}
-        emu.wLatch=!emu.wLatch;break;
-      case 7:
-        ppuBusWrite(emu.vAddr,v);
-        emu.vAddr=(emu.vAddr+((emu.ppuCtrl&4)?32:1))&0x7FFF;break;
-    }
-    return;
-  }
-  if(a===0x4014){// OAM DMA
-    const base=v<<8;
-    for(let i=0;i<256;i++) emu.oamMem[(emu.oamAddr+i)&0xFF]=cpuRead(base+i);
-    emu.cycles+=513+(emu.cycles&1);return;
-  }
-  if(a===0x4016){
-    if(v&1){emu.joyStrobe=true}
-    else{if(emu.joyStrobe){emu.joyShift=emuReadJoyState()}emu.joyStrobe=false}
-  }
-  // APU register writes
-  if(a>=0x4000&&a<=0x4013){emu.apuRegs[a-0x4000]=v;apuWrite(a,v);return}
-  if(a===0x4015){emu.apuStatus=v;apuWrite(a,v);return}
-  if(a===0x4017){emu.apuFrameCounter=v;apuWrite(a,v);return}
-  // SRAM ($6000-$7FFF)
-  if(a>=0x6000&&a<0x8000){if(emu.sram)emu.sram[a&0x1FFF]=v;return}
-  // Mapper writes ($8000+)
-  if(a>=0x8000) mapperWrite(a,v);
-}
-
-function mapperWrite(a,v){
-  if(emu.mapper===1) mmc1Write(a,v);
-  else if(emu.mapper===2) uxromWrite(a,v);
-  else if(emu.mapper===3) cnromWrite(a,v);
-  else if(emu.mapper===4) mmc3Write(a,v);
-  else if(emu.mapper===7) axromWrite(a,v);
-  else if(emu.mapper===66) gxromWrite(a,v);
-  else if(emu.mapper===11) colorDreamsWrite(a,v);
-}
-
-// ── MMC1 (Mapper 1) ──
-function mmc1Write(a,v){
-  if(v&0x80){
-    // Reset shift register
-    emu.mmc1Shift=0x10;
-    emu.mmc1Ctrl|=0x0C; // set PRG mode 3
-    mmc1UpdateBanks();
-    return;
-  }
-  // Serial port: shift in bit 0
-  const complete=emu.mmc1Shift&1; // bit will shift out = register full after this write
-  emu.mmc1Shift=(emu.mmc1Shift>>1)|((v&1)<<4);
-  if(complete){
-    const reg=(a>>13)&3; // 0=$8000 1=$A000 2=$C000 3=$E000
-    const val=emu.mmc1Shift;
-    switch(reg){
-      case 0:emu.mmc1Ctrl=val;break; // Control
-      case 1:emu.mmc1Chr0=val;break; // CHR bank 0
-      case 2:emu.mmc1Chr1=val;break; // CHR bank 1
-      case 3:emu.mmc1Prg=val&0x0F;break; // PRG bank (bits 0-3)
-    }
-    emu.mmc1Shift=0x10;
-    mmc1UpdateBanks();
-  }
-}
-
-function mmc1UpdateBanks(){
-  const ctrl=emu.mmc1Ctrl;
-  // Mirroring: bits 0-1
-  const mir=ctrl&3;
-  if(mir===0) emu.mirroring=2; // one-screen lower
-  else if(mir===1) emu.mirroring=3; // one-screen upper
-  else if(mir===2) emu.mirroring=1; // vertical
-  else emu.mirroring=0; // horizontal
-
-  // PRG mode: bits 2-3
-  const prgMode=(ctrl>>2)&3;
-  const prgBanks=emu.prgSize/16384;
-  const lastBank=(prgBanks-1)*16384;
-  switch(prgMode){
-    case 0:case 1: // 32KB mode: bank = PRG register with bit 0 cleared
-      emu.prgBank0=(emu.mmc1Prg&0x0E)*16384;
-      emu.prgBank1=emu.prgBank0+16384;
-      break;
-    case 2: // Fix first bank at $8000, switch $C000
-      emu.prgBank0=0;
-      emu.prgBank1=emu.mmc1Prg*16384;
-      break;
-    case 3: // Switch $8000, fix last bank at $C000
-      emu.prgBank0=emu.mmc1Prg*16384;
-      emu.prgBank1=lastBank;
-      break;
-  }
-  // Clamp to ROM size
-  emu.prgBank0%=emu.prgSize;
-  emu.prgBank1%=emu.prgSize;
-
-  // CHR mode: bit 4
-  if(emu.chrRom||emu.hasChrRam){
-    const chrSize=emu.hasChrRam?emu.chrRam.length:emu.chrRom.length;
-    if(ctrl&0x10){
-      // 4KB mode
-      emu.chrBank0=(emu.mmc1Chr0*4096)%chrSize;
-      emu.chrBank1=(emu.mmc1Chr1*4096)%chrSize;
-    } else {
-      // 8KB mode (bit 0 of chr0 ignored)
-      emu.chrBank0=((emu.mmc1Chr0&0x1E)*4096)%chrSize;
-      emu.chrBank1=emu.chrBank0+4096;
-      if(emu.chrBank1>=chrSize) emu.chrBank1=0;
-    }
-  }
-}
-
-// ── UxROM (Mapper 2) ──
-function uxromWrite(a,v){
-  emu.prgBank0=(v*16384)%emu.prgSize;
-  // prgBank1 stays fixed at last bank (set during ROM load)
-}
-
-// ── 6502 CPU ──
+/* Shared 6502 instruction implementation. Live emulation and isolated RE
+ * subroutine execution use separate state/buses with the same opcode code. */
+(function(root,factory){const api=factory();if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.Forge6502Core=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+'use strict';
+function create(emu,cpuRead,cpuWrite){
 function cpuRead16(a){return cpuRead(a)|(cpuRead((a+1)&0xFFFF)<<8)}
 function cpuRead16Bug(a){return cpuRead(a)|(cpuRead((a&0xFF00)|((a+1)&0xFF))<<8)} // page wrap bug
 function cpuPush(v){cpuWrite(0x100|emu.SP,v);emu.SP=(emu.SP-1)&0xFF}
@@ -3919,14 +3695,6 @@ function cpuPull(){emu.SP=(emu.SP+1)&0xFF;return cpuRead(0x100|emu.SP)}
 function cpuGetP(){return(emu.C)|(emu.Z<<1)|(emu.I<<2)|(emu.D<<3)|(1<<5)|(emu.V<<6)|(emu.N<<7)}
 function cpuSetP(v){emu.C=v&1;emu.Z=(v>>1)&1;emu.I=(v>>2)&1;emu.D=(v>>3)&1;emu.V=(v>>6)&1;emu.N=(v>>7)&1}
 function setNZ(v){emu.N=(v>>7)&1;emu.Z=v===0?1:0}
-
-function cpuNmi(){cpuPush((emu.PC>>8)&0xFF);cpuPush(emu.PC&0xFF);cpuPush(cpuGetP()&~0x10);emu.I=1;emu.PC=cpuRead16(0xFFFA);emu.cycles+=7;apuClock(7)}
-
-function cpuStep(){
-  const before=emu.cycles;cpuStepRaw();const elapsed=emu.cycles-before;
-  if(!Number.isFinite(elapsed)||elapsed<=0||elapsed>2048)throw Error('CPU cycle progression is invalid');
-  apuClock(elapsed);emu.PC&=65535;
-}
 function cpuStepRaw(){
   const op=cpuRead(emu.PC++);emu.PC&=0xFFFF;
   let a=0,v=0,t=0,c=0;
@@ -4229,6 +3997,256 @@ function cpuStepRaw(){
   default:emu.opsMissed++;throw new Error('Unsupported CPU opcode $'+op.toString(16).toUpperCase()+' at $'+((emu.PC-1)&65535).toString(16).toUpperCase());
   }
 }
+return Object.freeze({step:cpuStepRaw});
+}
+return Object.freeze({create,version:1});
+});
+const emu={
+  loaded:false, running:false, frameCount:0, cyclesPerFrame:29780,
+  // ROM data
+  prgRom:null, chrRom:null, chrRam:new Uint8Array(8192), hasChrRam:false,
+  prgSize:0, prgMask:0, mapper:0,
+  mirroring:0,
+  // MMC1 state
+  mmc1Shift:0x10, mmc1Ctrl:0x0C, mmc1Chr0:0, mmc1Chr1:0, mmc1Prg:0,
+  // MMC3 state
+  mmc3BankSel:0, mmc3Banks:[0,0,0,0,0,0,0,0], mmc3Mirror:0,
+  mmc3IrqLatch:0, mmc3IrqCounter:0, mmc3IrqEnabled:false, mmc3IrqReload:false,
+  mmc3PrgMode:0, mmc3ChrMode:0,
+  // 8KB PRG page offsets for MMC3 ($8000,$A000,$C000,$E000)
+  prgPage:[0,0,0,0],
+  // PRG/CHR bank pointers (byte offsets into ROM)
+  prgBank0:0, prgBank1:0, chrBank0:0, chrBank1:0,
+  // Split-rendering: CHR banks before/after sprite 0 hit
+  chrBank0Pre:0, chrBank1Pre:0, chrBank0Post:0, chrBank1Post:0, spr0Line:-1,
+  // Scroll state before/after sprite-0 hit
+  tAddrPre:0, fineXPre:0, tAddrPost:0, fineXPost:0,
+  // CPU registers
+  A:0, X:0, Y:0, SP:0xFD, PC:0, C:0, Z:0, I:1, D:0, V:0, N:0,
+  cycles:0, opsMissed:0,
+  // Memory
+  ram:new Uint8Array(2048),
+  // PPU
+  vram:new Uint8Array(2048), palRam:new Uint8Array(32), oamMem:new Uint8Array(256),
+  ppuCtrl:0, ppuMask:0, ppuStatus:0x80, oamAddr:0,
+  vAddr:0, tAddr:0, wLatch:false, ppuBuf:0, fineX:0,
+  // Input
+  joyState:0, joyShift:0, joyStrobe:false,
+  // APU state
+  apuRegs:new Uint8Array(32), apuStatus:0, apuFrameCounter:0,
+  irqPending:false,
+  sram:null, // 8KB SRAM ($6000-$7FFF)
+  // Animation frame ID
+  rafId:null
+};
+
+// ── Key state for controller ──
+const emuKeys={};
+
+
+function emuReadJoyState(){if(S.tab!=='emu')return 0;let value=0;[['KeyZ','KeyA'],['KeyX','KeyS'],['ShiftLeft','ShiftRight'],['Enter'],['ArrowUp'],['ArrowDown'],['ArrowLeft'],['ArrowRight']].forEach((keys,i)=>{if(keys.some(k=>emuKeys[k]))value|=1<<i;});return value;}
+
+// ── PPU nametable mirroring ──
+function ppuMirror(a){a&=0xFFF;return emu.mirroring===4?a:emu.mirroring===0?((a>>1)&0x400)|(a&0x3FF):emu.mirroring===1?a&0x7FF:emu.mirroring===3?0x400|(a&0x3FF):a&0x3FF;}
+
+// ── PPU read/write (with CHR-RAM and bank switching support) ──
+function ppuBusRead(a){a&=0x3FFF;if(a<0x2000){const source=emu.hasChrRam?emu.chrRam:emu.chrRom;if(!source?.length)return 0;let offset;if(emu.mapper===4)offset=(emu.chrPages?.[a>>10]||0)+(a&1023);else offset=(a<4096?emu.chrBank0:emu.chrBank1)+(a&4095);return source[offset%source.length]||0;}if(a<0x3F00)return emu.vram[ppuMirror(a-0x2000)]||0;let p=a&31;if((p&19)===16)p-=16;return emu.palRam[p]&63;}
+function ppuBusWrite(a,v){a&=0x3FFF;v&=255;if(a<8192){if(emu.hasChrRam){const off=emu.mapper===4?(emu.chrPages?.[a>>10]||0)+(a&1023):(a<4096?emu.chrBank0:emu.chrBank1)+(a&4095);emu.chrRam[off%emu.chrRam.length]=v;}return;}if(a<0x3F00){emu.vram[ppuMirror(a-0x2000)]=v;return;}let p=a&31;if((p&19)===16)p-=16;emu.palRam[p]=v&63;if((p&3)===0)emu.palRam[p^16]=v&63;}
+
+// ── CPU memory bus ──
+function cpuRead(a){
+  a&=0xFFFF;
+  if(a<0x2000) return emu.ram[a&0x7FF];
+  if(a<0x4000){
+    switch(a&7){
+      case 2:{ // PPUSTATUS
+        const v=emu.ppuStatus;
+        emu.ppuStatus&=0x7F; // clear vblank
+        emu.wLatch=false;
+        return v;
+      }
+      case 4: return emu.oamMem[emu.oamAddr];
+      case 7:{
+        let v=emu.ppuBuf;
+        const addr=emu.vAddr&0x3FFF;
+        emu.ppuBuf=ppuBusRead(addr);
+        if(addr>=0x3F00){v=ppuBusRead(addr);emu.ppuBuf=ppuBusRead(addr-0x1000);} // palette bypass; underlying NT refills buffer
+        emu.vAddr=(emu.vAddr+((emu.ppuCtrl&4)?32:1))&0x7FFF;
+        return v;
+      }
+    }
+    return 0;
+  }
+  if(a===0x4016){
+    if(emu.joyStrobe) return emuReadJoyState()&1;
+    const v=(emu.joyShift&1)|0x40;
+    emu.joyShift=(emu.joyShift>>>1)|0x80;
+    return v;
+  }
+  if(a===0x4017) return 0x40; // Controller 2 (not connected, open bus)
+  if(a===0x4015) return apuCore.readStatus(); // length counters + frame/DMC IRQ flags
+  if(a>=0x4000&&a<0x4020) return 0; // APU/IO registers
+  if(a>=0x6000&&a<0x8000) return emu.sram?emu.sram[a&0x1FFF]:0; // SRAM/WRAM
+  if(a>=0x8000){
+    if(emu.mapper===4){
+      // MMC3: 4 × 8KB pages
+      const page=(a>>13)&3; // 0=$8000,1=$A000,2=$C000,3=$E000
+      return emu.prgRom[(emu.prgPage[page]+(a&0x1FFF))%emu.prgSize];
+    }
+    if(a>=0xC000) return emu.prgRom[(emu.prgBank1+(a&0x3FFF))%emu.prgSize];
+    return emu.prgRom[(emu.prgBank0+(a&0x3FFF))%emu.prgSize];
+  }
+  return 0;
+}
+function cpuWrite(a,v){
+  a&=0xFFFF;v&=0xFF;
+  if(a<0x2000){emu.ram[a&0x7FF]=v;return}
+  if(a<0x4000){
+    switch(a&7){
+      case 0:emu.ppuCtrl=v;emu.tAddr=(emu.tAddr&0x73FF)|((v&3)<<10);break;
+      case 1:emu.ppuMask=v;break;
+      case 3:emu.oamAddr=v;break;
+      case 4:emu.oamMem[emu.oamAddr++]=v;emu.oamAddr&=0xFF;break;
+      case 5:
+        if(!emu.wLatch){emu.fineX=v&7;emu.tAddr=(emu.tAddr&0x7FE0)|(v>>3)}
+        else{emu.tAddr=(emu.tAddr&0x0C1F)|((v&7)<<12)|((v>>3)<<5)}
+        emu.wLatch=!emu.wLatch;break;
+      case 6:
+        if(!emu.wLatch){emu.tAddr=(emu.tAddr&0x00FF)|((v&0x3F)<<8)}
+        else{emu.tAddr=(emu.tAddr&0xFF00)|v;emu.vAddr=emu.tAddr}
+        emu.wLatch=!emu.wLatch;break;
+      case 7:
+        ppuBusWrite(emu.vAddr,v);
+        emu.vAddr=(emu.vAddr+((emu.ppuCtrl&4)?32:1))&0x7FFF;break;
+    }
+    return;
+  }
+  if(a===0x4014){// OAM DMA
+    const base=v<<8;
+    for(let i=0;i<256;i++) emu.oamMem[(emu.oamAddr+i)&0xFF]=cpuRead(base+i);
+    emu.cycles+=513+(emu.cycles&1);return;
+  }
+  if(a===0x4016){
+    if(v&1){emu.joyStrobe=true}
+    else{if(emu.joyStrobe){emu.joyShift=emuReadJoyState()}emu.joyStrobe=false}
+  }
+  // APU register writes
+  if(a>=0x4000&&a<=0x4013){emu.apuRegs[a-0x4000]=v;apuWrite(a,v);return}
+  if(a===0x4015){emu.apuStatus=v;apuWrite(a,v);return}
+  if(a===0x4017){emu.apuFrameCounter=v;apuWrite(a,v);return}
+  // SRAM ($6000-$7FFF)
+  if(a>=0x6000&&a<0x8000){if(emu.sram)emu.sram[a&0x1FFF]=v;return}
+  // Mapper writes ($8000+)
+  if(a>=0x8000) mapperWrite(a,v);
+}
+
+function mapperWrite(a,v){
+  if(emu.mapper===1) mmc1Write(a,v);
+  else if(emu.mapper===2) uxromWrite(a,v);
+  else if(emu.mapper===3) cnromWrite(a,v);
+  else if(emu.mapper===4) mmc3Write(a,v);
+  else if(emu.mapper===7) axromWrite(a,v);
+  else if(emu.mapper===66) gxromWrite(a,v);
+  else if(emu.mapper===11) colorDreamsWrite(a,v);
+}
+
+// ── MMC1 (Mapper 1) ──
+function mmc1Write(a,v){
+  if(v&0x80){
+    // Reset shift register
+    emu.mmc1Shift=0x10;
+    emu.mmc1Ctrl|=0x0C; // set PRG mode 3
+    mmc1UpdateBanks();
+    return;
+  }
+  // Serial port: shift in bit 0
+  const complete=emu.mmc1Shift&1; // bit will shift out = register full after this write
+  emu.mmc1Shift=(emu.mmc1Shift>>1)|((v&1)<<4);
+  if(complete){
+    const reg=(a>>13)&3; // 0=$8000 1=$A000 2=$C000 3=$E000
+    const val=emu.mmc1Shift;
+    switch(reg){
+      case 0:emu.mmc1Ctrl=val;break; // Control
+      case 1:emu.mmc1Chr0=val;break; // CHR bank 0
+      case 2:emu.mmc1Chr1=val;break; // CHR bank 1
+      case 3:emu.mmc1Prg=val&0x0F;break; // PRG bank (bits 0-3)
+    }
+    emu.mmc1Shift=0x10;
+    mmc1UpdateBanks();
+  }
+}
+
+function mmc1UpdateBanks(){
+  const ctrl=emu.mmc1Ctrl;
+  // Mirroring: bits 0-1
+  const mir=ctrl&3;
+  if(mir===0) emu.mirroring=2; // one-screen lower
+  else if(mir===1) emu.mirroring=3; // one-screen upper
+  else if(mir===2) emu.mirroring=1; // vertical
+  else emu.mirroring=0; // horizontal
+
+  // PRG mode: bits 2-3
+  const prgMode=(ctrl>>2)&3;
+  const prgBanks=emu.prgSize/16384;
+  const lastBank=(prgBanks-1)*16384;
+  switch(prgMode){
+    case 0:case 1: // 32KB mode: bank = PRG register with bit 0 cleared
+      emu.prgBank0=(emu.mmc1Prg&0x0E)*16384;
+      emu.prgBank1=emu.prgBank0+16384;
+      break;
+    case 2: // Fix first bank at $8000, switch $C000
+      emu.prgBank0=0;
+      emu.prgBank1=emu.mmc1Prg*16384;
+      break;
+    case 3: // Switch $8000, fix last bank at $C000
+      emu.prgBank0=emu.mmc1Prg*16384;
+      emu.prgBank1=lastBank;
+      break;
+  }
+  // Clamp to ROM size
+  emu.prgBank0%=emu.prgSize;
+  emu.prgBank1%=emu.prgSize;
+
+  // CHR mode: bit 4
+  if(emu.chrRom||emu.hasChrRam){
+    const chrSize=emu.hasChrRam?emu.chrRam.length:emu.chrRom.length;
+    if(ctrl&0x10){
+      // 4KB mode
+      emu.chrBank0=(emu.mmc1Chr0*4096)%chrSize;
+      emu.chrBank1=(emu.mmc1Chr1*4096)%chrSize;
+    } else {
+      // 8KB mode (bit 0 of chr0 ignored)
+      emu.chrBank0=((emu.mmc1Chr0&0x1E)*4096)%chrSize;
+      emu.chrBank1=emu.chrBank0+4096;
+      if(emu.chrBank1>=chrSize) emu.chrBank1=0;
+    }
+  }
+}
+
+// ── UxROM (Mapper 2) ──
+function uxromWrite(a,v){
+  emu.prgBank0=(v*16384)%emu.prgSize;
+  // prgBank1 stays fixed at last bank (set during ROM load)
+}
+
+// ── 6502 CPU ──
+function cpuRead16(a){return cpuRead(a)|(cpuRead((a+1)&0xFFFF)<<8)}
+function cpuRead16Bug(a){return cpuRead(a)|(cpuRead((a&0xFF00)|((a+1)&0xFF))<<8)} // page wrap bug
+function cpuPush(v){cpuWrite(0x100|emu.SP,v);emu.SP=(emu.SP-1)&0xFF}
+function cpuPull(){emu.SP=(emu.SP+1)&0xFF;return cpuRead(0x100|emu.SP)}
+function cpuGetP(){return(emu.C)|(emu.Z<<1)|(emu.I<<2)|(emu.D<<3)|(1<<5)|(emu.V<<6)|(emu.N<<7)}
+function cpuSetP(v){emu.C=v&1;emu.Z=(v>>1)&1;emu.I=(v>>2)&1;emu.D=(v>>3)&1;emu.V=(v>>6)&1;emu.N=(v>>7)&1}
+function setNZ(v){emu.N=(v>>7)&1;emu.Z=v===0?1:0}
+
+function cpuNmi(){cpuPush((emu.PC>>8)&0xFF);cpuPush(emu.PC&0xFF);cpuPush(cpuGetP()&~0x10);emu.I=1;emu.PC=cpuRead16(0xFFFA);emu.cycles+=7;apuClock(7)}
+
+function cpuStep(){
+  const before=emu.cycles;cpuStepRaw();const elapsed=emu.cycles-before;
+  if(!Number.isFinite(elapsed)||elapsed<=0||elapsed>2048)throw Error('CPU cycle progression is invalid');
+  apuClock(elapsed);emu.PC&=65535;
+}
+const emuCPUCore=Forge6502Core.create(emu,a=>cpuRead(a),(a,v)=>cpuWrite(a,v));
+function cpuStepRaw(){return emuCPUCore.step();}
 
 // ── Frame runner ──
 function emuRunFrame(){if(!emu.loaded)return;const deadline=performance.now()+200;const start=emu._nextFrameCycle??emu.cycles;if(!Number.isFinite(start)||!Number.isFinite(emu.cycles))throw Error("Invalid CPU clock");emu.ppuStatus&=0x1F;emu.spr0Line=-1;emu.tAddrPre=emu.tAddr;emu.fineXPre=emu.fineX;emu.chrBank0Pre=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1;const scrollY=((emu.tAddr>>5)&31)*8+((emu.tAddr>>12)&7),ntY=(emu.tAddr>>11)&1;
@@ -8705,7 +8723,7 @@ F.project={create,openRom,classifyRom,replaceProject};
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Audio Driver Survey',maturity:'alpha',candidate:'audio-driver-survey-1',schema:12,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Native Audio Library',maturity:'alpha',candidate:'native-audio-library-1',schema:12,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;
@@ -13833,6 +13851,376 @@ function preview(input,options={}){
 }
 return Object.freeze({method:METHOD,preview,limits:Object.freeze({sourceBytes:MAX_SOURCE,resultBytes:MAX_RESULT,rowsMin:16,rowsMax:128,frames:127,instruments:127,channels:Object.freeze([0,1])})});
 });
+/* Native byte parsers ported from the reviewed private catalog studies. No
+ * recovered catalog or commercial ROM/sample payload is embedded in Forge.
+ * Known-revision identity gates are explicit; each decoder re-reads source bytes. */
+(function(root,factory){const api=factory();if(typeof module!=='undefined'&&module.exports)module.exports=api;else{root.NativeAudioCatalog=api;root.Forge.services.NativeAudioCatalog=api;}})(typeof globalThis!=='undefined'?globalThis:this,function(){
+'use strict';
+const assert=(test,message='Native data validation failed')=>{if(!test)throw Error(message);};
+assert.equal=(a,b,m)=>assert(a===b,m);assert.deepEqual=(a,b,m)=>assert(JSON.stringify(a)===JSON.stringify(b),m);
+const copy=x=>JSON.parse(JSON.stringify(x));
+const sha=b=>(typeof FamiTone2Native!=='undefined'?FamiTone2Native:require('./famitone2-native.js')).sha256(b);
+const profiles=Object.freeze([
+{id:'zelda2-us-1',title:'Zelda II — The Adventure of Link',sha256:'ad8c0fbcf092bf84b48e69fd3964eea4ed91bfe62abc352943d537979782680c',bank:6},
+{id:'ninja-gaiden-us-1',title:'Ninja Gaiden',sha256:'07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e',bank:3},
+{id:'castlevania2-us-1',title:"Castlevania II — Simon's Quest",sha256:'f045d72683d3156555eccbb56090888f03a15e5b25e59db49dca7a87330472d3',bank:0}]);
+function input(bytes){assert(bytes instanceof Uint8Array,'Choose a NES ROM.');assert(bytes.length>=16&&bytes.length<=64*1024*1024,'ROM size is outside the supported bound.');return bytes;}
+async function identify(bytes){input(bytes);const sha256=sha(bytes);return {source:{sha256,byteLength:bytes.length},profile:profiles.find(p=>p.sha256===sha256)||null};}
+function zelda(rom,sourceSha256){
+const hx=(v,n=4)=>'$'+v.toString(16).toUpperCase().padStart(n,'0');
+const loc=a=>({bank16KiB:6,cpu:a,cpuHex:hx(a),fileOffset:0x18010+a-0x8000,fileHex:hx(0x18010+a-0x8000,6)});
+function b(a){assert(Number.isInteger(a)&&a>=0x8000&&a<0xc000,'Bank-6 read outside mapped window '+hx(a));return rom[0x18010+a-0x8000];}
+const word=a=>b(a)|(b(a+1)<<8),issues=[];
+function guard(a,expected){assert.deepEqual(Array.from({length:expected.length},(_,i)=>b(a+i)),expected,'Native semantic anchor '+hx(a));}
+// Anchors establish the actual instruction forms used by this decoder.
+guard(0x8394,[0xb1,0xe0,0xf0,0xac,0x30,0xf0]);guard(0x8156,[0xb9,0x84,0x80]);
+guard(0x906f,[0xaa,0x6a,0x8a,0x2a,0x2a,0x2a,0x29,0x07,0x18,0x65,0xe5]);
+guard(0x9c9c,[0xb1,0xe0,0xf0,0x9d]);guard(0x9cab,[0x8a,0x29,0x3e]);
+const families=[{id:'title',base:0x84da,headerLength:8,kind:'title',context:'Title/credits mode, entry $8000'},
+ {id:'game-context-0',base:0xa000,headerLength:6,kind:'game',contextSelector:[0]},
+ {id:'game-context-1-2',base:0xa3ca,headerLength:6,kind:'game',contextSelector:[1,2]},
+ {id:'game-context-3-4',base:0xa62f,headerLength:6,kind:'game',contextSelector:[3,4]},
+ {id:'game-context-other',base:0xa936,headerLength:6,kind:'game',contextSelector:'Other $0707 values; termination additionally distinguishes 5'}];
+const headers=new Map(),cues=[];
+for(const family of families){
+ for(let bit=0;bit<8;bit++){
+  const start=b(family.base+bit),orders=[];let complete=false;
+  for(let index=0;index<256;index++){
+   const offset=(start+index)&255,headerOffset=b(family.base+offset);
+   if(headerOffset===0){complete=true;break;}
+   const cpu=family.base+headerOffset,key=family.id+':'+cpu;
+   if(!headers.has(key)){
+    const stream=word(cpu+1),h={id:key,family:family.id,kind:family.kind,source:loc(cpu),tempoOffset:b(cpu),stream:loc(stream),triangleOffset:b(cpu+3),pulse1Offset:b(cpu+4),noiseOffset:b(cpu+5)};
+    if(family.kind==='title'){h.primaryEnvelopeOffset=b(cpu+6);h.secondaryEnvelopeOffset=b(cpu+7);}
+    assert(stream>=family.base&&stream<0xb000,'Stream must be inside audio data region');headers.set(key,h);
+   }
+   orders.push({index,source:loc(family.base+offset),header:key});
+  }
+  assert(complete,'Order table exceeded bounded 256-byte index');
+  cues.push({id:family.id+':'+hx(1<<bit,2),family:family.id,requestMask:1<<bit,requestRegister:family.kind==='title'?0xea:0xeb,indexTableSource:loc(family.base+bit),orderStart:start,orders,terminal:'zero-order-entry',classification:orders.length?'sequence':'empty-request-slot'});
+ }
+}
+function event(h,pointer,channel,tick,duration){
+ const a=h.stream.cpu+pointer,v=b(a);let index,period=null,durationIndex=null;
+ if(h.kind==='title'){
+  assert(v<128&&v!==0,'Expected nonzero note command');index=v===2?2:v+4;
+  assert(index<=0x7e&&!(index&1),'Unsupported title note index');
+ }else{index=v&0x3e;durationIndex=((v&1)<<2)|(v>>6);duration=b(0x914d+h.tempoOffset+durationIndex);}
+ assert(duration>=1&&duration<=255,'Invalid/unknown duration');
+ if(channel==='noise'){
+  if(h.kind==='title')return {tick,duration,source:loc(a),byte:v,kind:'noise-register-tuple',tuple:[b(0x805d+v),b(0x805e+v),b(0x805f+v)]};
+  return {tick,duration,source:loc(a),byte:v,durationIndex,kind:index?'noise-hit':'noise-silence',tuple:index?[0x17,0x0a,0x38]:[0x10,0x0a,0x38]};
+ }
+ const table=h.kind==='title'?0x808f:0x918f,low=b(table+1+index);period=(b(table+index)&7)<<8|low;
+ return {tick,duration,source:loc(a),byte:v,durationIndex,nativeIndex:index,kind:low?'note':'rest-no-timer-write',period:low?period:null};
+}
+function decodePrimary(h){
+ let p=0,tick=0,duration=null;const events=[],commands=[];
+ for(let n=0;n<512;n++){
+  assert(p<256,'Primary offset would wrap');const a=h.stream.cpu+p,v=b(a);
+  if(v===0)return {events,durationTicks:tick,termination:loc(a),commands};
+  if(h.kind==='title'&&(v&128)){duration=b(0x8084+h.tempoOffset+(v&15));commands.push({source:loc(a),byte:v,kind:'set-duration',duration});p++;continue;}
+  const e=event(h,p,'pulse2',tick,duration);events.push(e);tick+=e.duration;p++;
+ }
+ throw Error('Primary command bound exceeded');
+}
+function decodeOther(h,channel,offset,sectionTicks){
+ if(!offset)return {status:channel==='pulse1'&&h.kind==='title'?'absent-independent-stream':'absent',events:[]};
+ let p=offset,tick=0,duration=null;const events=[],commands=[];let loops=0;
+ for(let n=0;n<2048&&tick<sectionTicks;n++){
+  assert(p<256,'Channel offset would wrap');const a=h.stream.cpu+p,v=b(a);
+  if(channel==='noise'&&v===0){p=offset;loops++;assert(loops<256,'Noise loop bound');continue;}
+  if(h.kind==='title'&&(v&128)){duration=b(0x8084+h.tempoOffset+(v&15));commands.push({source:loc(a),byte:v,kind:'set-duration',duration});p++;continue;}
+  const e=event(h,p,channel,tick,duration);events.push(e);tick+=e.duration;p++;
+ }
+ assert(tick>=sectionTicks,'Secondary decoder did not reach primary section boundary');
+ return {status:'decoded-to-primary-boundary',events,commands,loopCount:loops,coveredTicks:tick,tailClippedByPrimary:tick-sectionTicks};
+}
+for(const h of headers.values()){
+ try{
+  const p=decodePrimary(h);h.durationTicks=p.durationTicks;h.channels={pulse2:{status:'decoded',...p}};
+  for(const [ch,off]of [['pulse1',h.pulse1Offset],['triangle',h.triangleOffset],['noise',h.noiseOffset]])h.channels[ch]=decodeOther(h,ch,off,p.durationTicks);
+  h.status='decoded';
+ }catch(e){h.status='blocked';h.reason=e.message;issues.push({header:h.id,error:e.message});}
+}
+const envelopes=[{id:'title-normal-duty2',source:loc(0x8017),bytes:Array.from({length:24},(_,i)=>b(0x8017+i)),policy:'Counter starts $5F; index counter>>2; decrements once per update; level holds at table index zero.'},
+ {id:'title-normal-duty1',source:loc(0x802f),bytes:Array.from({length:24},(_,i)=>b(0x802f+i)),policy:'Alternative offset $18; no recovered header in this catalog selects it.'},
+ {id:'title-fade-in',source:loc(0x8047),bytes:Array.from({length:24},(_,i)=>b(0x8047+i)),policy:'Request bit0 initializes primary/echo levels $20; each onset adds2 until $5F; envelope counter>>2. Echo delayed8 updates while enabled.'},
+ {id:'game-pulse',source:loc(0x9135),bytes:Array.from({length:24},(_,i)=>b(0x9135+i)),policy:'Both pulse voices reset envelope count to $18 when music request bit2 set, else $2F; index counter>>1 and decrement; SFX can suppress/reset music envelope.'}];
+const sfx=[
+ {driver:'title',requestRegister:0xeb,entry:0x821b,slots:[[1,0x819c,'two-pulse stepped tones'],[2,0x81c9,'two-pulse timer pair'],[4,0x81d6,'two-pulse timer pair'],[8,0x823c,'two-pulse sweep/envelope table']]},
+ {driver:'game',requestRegister:0xe9,entry:0x920b,slots:[[1,0x9221,'DPCM one-shot gate'],[2,0x9230,'DPCM staged sequence']]},
+ {driver:'game',requestRegister:0xef,entry:0x92f4,slots:[[1,0x929c,'stop/reset channel groups'],[2,0x92be,'pulse1 stepped notes'],[4,0x9334,'pulse1 envelope/pitch table'],[8,0x9334,'pulse1 alternate envelope/pitch table'],[16,0x92de,'pulse1 timer effect'],[32,0x937a,'pulse1 low timer effect'],[64,0x93ae,'pulse1 timed tone']]},
+ {driver:'game',requestRegister:0xee,entry:0x9408,slots:[[1,0x93e5,'pulse2 stepped tone'],[2,0x942b,'dual-pulse sweep'],[4,0x9490,'pulse2 sweep'],[8,0x94ed,'pulse2 three notes'],[16,0x952b,'pulse2 swept tone'],[32,0x954c,'pulse2 alternating pitch']]},
+ {driver:'game',requestRegister:0xed,entry:0x95a7,slots:[[2,0x956c,'triangle/noise hit'],[4,0x95e6,'noise envelope table'],[16,0x95e6,'alternate noise envelope table'],[32,0x9604,'noise pitch offset table'],[64,0x9597,'fixed noise hit'],[128,0x9604,'noise envelope table']]},
+ {driver:'game',requestRegister:0xec,entry:0x990b,slots:[[1,0x9834,'pulse1 multi-stage sweep'],[2,0x98c8,'pulse1 envelope/table'],[4,0x99a2,'pulse1 multi-stage sweep'],[8,0x9a20,'pulse1 timed note sequence'],[16,0x9a48,'pulse1 timed note sequence'],[32,0x9a70,'pulse1 timed note sequence'],[64,0x9a98,'pulse1 computed sweep'],[128,0x9ad1,'noise multi-stage envelope'],[192,0x97e0,'special combined-mask pulse1 note sequence'],[96,0x9817,'special combined-mask noise envelope']]}
+].map(x=>({...x,entry:loc(x.entry),slots:x.slots.map(([mask,entry,method])=>({mask,entry:loc(entry),method,evidence:'native static control flow; no semantic gameplay name asserted'}))}));
+const sfxTables={
+ 'title:235:8':[0x8074],
+ 'game:239:4':[0x90f8,0x90fe],'game:239:8':[0x9104],
+ 'game:237:4':[0x912c],'game:237:16':[0x9123],'game:237:32':[0x90e8],'game:237:128':[0x90e8],
+ 'game:236:1':[0x9726,0x9736,0x96dd,0x970d,0x96d5,0x96d9],
+ 'game:236:2':[0x96a6,0x96b6],
+ 'game:236:4':[0x976c,0x975c,0x9749,0x9755,0x9745,0x977b],
+ 'game:236:8':[0x9644,0x964b,0x9670],
+ 'game:236:16':[0x9652,0x9658,0x9670],
+ 'game:236:32':[0x965e,0x9667,0x9670],
+ 'game:236:128':[0x978e,0x9780],
+ 'game:236:192':[0x963a,0x963f,0x9670],
+ 'game:236:96':[0x969f]
+};
+const sfxDurations={
+ 'title:235:1':12,'title:235:2':6,'title:235:4':6,'title:235:8':31,
+ 'game:233:1':192,'game:233:2':192,
+ 'game:239:2':24,'game:239:4':20,'game:239:8':59,'game:239:16':2,'game:239:32':12,'game:239:64':48,
+ 'game:238:1':121,'game:238:2':80,'game:238:4':36,'game:238:8':12,'game:238:16':16,'game:238:32':3,
+ 'game:237:2':6,'game:237:4':16,'game:237:16':16,'game:237:32':15,'game:237:128':15,
+ 'game:236:1':192,'game:236:2':31,'game:236:4':96,'game:236:8':127,'game:236:16':127,'game:236:32':159,'game:236:64':96,'game:236:128':107,'game:236:192':127,'game:236:96':6
+};
+for(const group of sfx)for(const slot of group.slots){const key=group.driver+':'+group.requestRegister+':'+slot.mask;slot.tableReferences=(sfxTables[key]||[]).map(loc);slot.initialLifetimeCounter=sfxDurations[key]??null;slot.counterMeaning='Native initial countdown, not an acoustic sample duration. Reset/one-shot cases can have no lifetime counter.';}
+const dpcm=[];for(const y of [1,2,4,5,6,7]){const table=0x917b+y*2,startRegister=b(table),lengthRegister=b(table+1),cpu=0xc000+startRegister*64,bytes=lengthRegister*16+1;dpcm.push({selector:y,source:loc(table),startRegister,lengthRegister,cpu,fileOffset:16+7*16384+(cpu-0xc000),byteLength:bytes,rateRegister:0x0f,role:y===1?'request1 direct':y===2?'request2 initial':'request2 staged selector'});}
+for(const cue of cues){cue.sameOrderSequenceAs=cues.filter(other=>other.id!==cue.id&&other.family===cue.family&&cue.orders.length&&other.orders.map(o=>o.header).join('|')===cue.orders.map(o=>o.header).join('|')).map(x=>x.id);}
+const summary={completeSongCount:null,musicRequestSlots:cues.length,nonemptyMusicRequestSlots:cues.filter(x=>x.orders.length).length,uniqueHeaders:headers.size,decodedHeaders:[...headers.values()].filter(h=>h.status==='decoded').length,orders:cues.reduce((n,c)=>n+c.orders.length,0),decodedChannelEvents:[...headers.values()].reduce((n,h)=>n+Object.values(h.channels||{}).reduce((s,c)=>s+c.events.length,0),0),sfxDispatchGroups:sfx.length,sfxDispatchCases:sfx.reduce((n,x)=>n+x.slots.length,0),dpcmDescriptors:dpcm.length,structuralIssues:issues.length,perFamily:families.map(f=>({family:f.id,requestSlots:8,nonemptySlots:cues.filter(c=>c.family===f.id&&c.orders.length).length,uniqueSections:[...headers.values()].filter(h=>h.family===f.id).length}))};
+const queueStateMachine={title:{entry:loc(0x8000),requestRegisters:{music:0xea,sfx:0xeb},activeState:{music:0xe8,sfx:0xe9},requestConsumption:'Clear $EA and $EB at end of update.',musicPriority:'Lowest set request bit selects one of eight order starts; request bit0 additionally enables delayed echo.',endOfOrders:'If active mask has any low-five bit: 1→2→4→8→16→2 (comparison against exact masks); otherwise stop.',sectionAdvance:'Primary Pulse2 zero byte advances to next order immediately in the same update; all channel cursors/countdowns reset.'},game:{entry:loc(0x9000),muteRegister:0xea,requestRegisters:{dpcm:0xe9,music:0xeb,extendedSfx:0xec,noiseSfx:0xed,pulse2Sfx:0xee,pulse1Sfx:0xef},requestConsumption:'$E9 and $EB–$EF cleared after ordinary update. Nonzero $EA disables $4015 and returns early.',activeState:{music:0x7fb,dpcm:0x7fa,pulse1Sfx:0x7ff,pulse2Sfx:0x7fe,noiseSfx:0x7fd,extendedSfx:0x7e1},musicPriority:'Lowest set request bit selects order slot. Context $0707 selects one of four tables. Mask $10 saves prior low-nibble music to $07DB before replacement.',endOfOrders:'Stop unless active & ($5F when context=5, else $1F). If active bit0 then request2; otherwise reuse active & $4E when nonzero, else resume $07DB.',sectionAdvance:'Pulse2 zero advances to next header; all four countdowns start at1; primary offset becomes0.',channelArbitration:'Active $07FE suppresses Pulse2 music; $07FF or $07DF suppress Pulse1; $07FD bits1/3 suppress triangle writes; $07FD or $07E0 suppress noise. Music parser continues while these writes are suppressed.'}};
+const report={format:'NESForgePrivateZelda2NativeCatalog',version:1,source:{sha256:sourceSha256,byteLength:rom.length,mapper:1},method:'Direct ROM-byte decoding anchored to reviewed native code. Exact-revision guard, strict per-bank and 8-bit pointer bounds. No APU-to-note inference. No source ROM copying.',summary,drivers:[{entry:loc(0x8000),name:'title mode',fixedBankCall:{bank16KiB:7,cpu:0xc037,fileOffset:0x1c047}},{entry:loc(0x9000),name:'game mode',fixedBankCall:{bank16KiB:7,cpu:0xc06a,fileOffset:0x1c07a}}],families,cues,headers:[...headers.values()],envelopes,sfx,dpcm,queueStateMachine,issues,limitations:['Exact-revision decoder; other revisions and driver-family recognition remain unsupported.','Request masks are native selector identities, not verified human song/SFX titles. Empty request slots are retained and distinguished from songs.','One header is a section, not necessarily a song; duplicate order references remain aliases.','Primary Pulse2 owns section advancement. Secondary events are bounded to that duration; final duration can be clipped.','Title echo, envelope/sweep, triangle gate and SFX interference require runtime scheduling; event catalog alone is not acoustic equivalence.','DPCM descriptors are addresses/lengths only; no sample payload extracted.','Native code contains priority/suppression and special combined request masks; all arbitrary mask combinations are not separately characterized.']};
+
+return report;
+}
+function ninja(rom,sourceSha256,selection=null){
+const offset=a=>{assert(a>=0x8000&&a<0xc000,'Expected bank-3 CPU address '+a.toString(16));return 0xc010+a-0x8000;};
+const r=a=>rom[offset(a)],w=a=>r(a)|(r(a+1)<<8),hex=(a,n=4)=>'$'+a.toString(16).toUpperCase().padStart(n,'0');
+
+// These operands anchor the manually reviewed table relationships. They do not
+// purport to recognize other revisions/titles or relocated implementations.
+for(const [a,bytes] of [[0x824e,[0xb9,0x7d,0x87]],[0x8253,[0xb9,0x7e,0x87]],[0x837e,[0xbd,0x8b,0x83]],[0x8383,[0xbd,0x8c,0x83]],[0x83d2,[0xbd,0xb1,0x85]],[0x82e5,[0xbd,0x86,0x85]]])assert.deepEqual(Array.from(rom.subarray(offset(a),offset(a)+bytes.length)),bytes);
+const tableStart=0x877d,tableEnd=0x8827,entryCount=(tableEnd-tableStart)/2;
+const slotNames=['pulse1','pulse2','triangle','noise'];
+const descriptors={
+  0xe0:['envelope-select',1,0x83cb],0xe2:['duty-control',1,0x84c3],0xe3:['attenuation-control',1,0x83e6],
+  0xe4:['hardware-sweep-write',1,0x8499],0xe5:['unsigned-timer-offset',1,0x84f2],
+  0xe8:['jump',2,0x83fa],0xe9:['call',2,0x8407],0xea:['return',0,0x8431],
+  0xeb:['repeat-begin',1,0x8448],0xec:['repeat-end',0,0x8471],
+  0xed:['vibrato-enable',0,0x8500],0xef:['vibrato-disable',0,0x850d],
+  0xf0:['skip-three-bytes',3,0x856a],0xf8:['dmc-permission-enable',0,0x8516],0xf9:['dmc-disable',0,0x851c],
+  0xfa:['dmc-if-idle',3,0x8525],0xfb:['dmc-retrigger',3,0x8535],0xfe:['fade-step-delay',1,0x8557],0xff:['stop-stream',0,0x84d7]
+};
+const opcodes=Array.from({length:32},(_,i)=>{const opcode=0xe0+i,[name,argumentsCount,handler]=descriptors[opcode]||['skip-one-byte',1,0x8568];assert.equal(w(0x838b+i*2),handler);return {opcode,name,argumentsCount,handlerCPU:handler,handlerFileOffset:offset(handler)};});
+const envelopes=Array.from({length:(0x85df-0x85b1)/2},(_,id)=>{
+  const p=w(0x85b1+id*2);assert(p>=0x85df&&p<0x877d);const stages=[];let terminated=false;
+  for(let q=p;q+1<0x877d&&stages.length<128;q+=2){const stage={cpu:q,fileOffset:offset(q),delayByte:r(q),levelByte:r(q+1)};stages.push(stage);if(stage.delayByte===255){terminated=true;break;}}
+  assert(terminated,'No long-delay marker for envelope '+id);
+  return {id,pointerTableCPU:0x85b1+id*2,cpu:p,fileOffset:offset(p),stages,stopReason:'first-255-frame-delay-marker',warning:'$FF is an ordinary 255-update delay, not a native terminator. A sufficiently long note can read beyond it. This preview is bounded at that marker.'};
+});
+const headers=Array.from({length:entryCount},(_,i)=>{
+  const id=i+1,p=w(tableStart+i*2);assert(p>=tableEnd&&p<0xc000);let q=p;const channels=[];
+  while(r(q)<128){assert(channels.length<8,'Header too long');const slot=r(q),cpu=w(q+1);assert(slot<8);assert(cpu>=tableEnd&&cpu<0xc000);assert(!channels.some(x=>x.slot===slot));channels.push({slot,channel:slotNames[slot&3],priority:slot<4?'high':'low',streamCPU:cpu,streamFileOffset:offset(cpu)});q+=3;}
+  assert.equal(r(q),255);
+  return {id,tableCPU:tableStart+i*2,tableFileOffset:offset(tableStart+i*2),headerCPU:p,headerFileOffset:offset(p),headerBytes:q-p+1,channels,dispatchBehavior:id===0x25?'special-global-fade-bypasses-header':'load-header',aliasCommandIDs:[]};
+});
+assert.equal(Math.min(...headers.map(h=>h.headerCPU)),tableEnd);
+for(const h of headers)h.aliasCommandIDs=headers.filter(x=>x.headerCPU===h.headerCPU&&x.id!==h.id).map(x=>x.id);
+const uniqueRoots=new Map();for(const h of headers)if(h.id!==0x25)for(const ch of h.channels){const key=[ch.streamCPU,ch.slot].join(':');if(!uniqueRoots.has(key))uniqueRoots.set(key,{...ch,commandIDs:[]});uniqueRoots.get(key).commandIDs.push(h.id);}
+const maxInstructions=100000,maxUpdates=1000000;
+function decode(root){
+  let pc=root.streamCPU,tick=0,duration=null,envelope=null,dutyControl=0,attenuation=0,timerOffset=0,vibrato=false,fadeDelay=0,stack=[];
+  const events=[],seen=new Map(),warnings=[],sampleUses=[];let stopReason='instruction-budget',cycle=null;
+  for(let n=0;n<maxInstructions;n++){
+    if(pc<tableEnd||pc>=0xc000){stopReason='address-outside-bank-data';warnings.push({pc});break;}
+    const state=JSON.stringify([pc,duration,envelope,dutyControl,attenuation,timerOffset,vibrato,fadeDelay,stack]);
+    if(seen.has(state)){const prior=seen.get(state);cycle={fromEvent:prior.event,toEvent:events.length,firstTick:prior.tick,repeatTick:tick,updatePeriod:tick===null||prior.tick===null?null:tick-prior.tick};stopReason='repeated-parser-state';break;}
+    seen.set(state,{event:events.length,tick});
+    const address=pc,byte=r(pc++),event={index:events.length,cpu:address,fileOffset:offset(address),byte,tick,slot:root.slot};events.push(event);
+    if(byte<128){
+      const noise=(root.slot&3)===3,isRest=noise?byte===0x10:(byte&15)===12;
+      event.kind=isRest?'rest':noise?'noise-period':'pitched-note';event.durationUpdates=duration===null?null:(duration||256);event.envelopeID=envelope;event.dutyControl=dutyControl;event.attenuation=attenuation;event.timerOffset=timerOffset;event.vibrato=vibrato;event.fadeDelay=fadeDelay;
+      if(!isRest){if(noise){event.rawTimer=byte;event.periodWithOffset=(byte+timerOffset)&65535;}else{const noteIndex=byte&15,octaveShift=byte>>>4;event.noteIndex=noteIndex;event.octaveShift=octaveShift;if(noteIndex>=12){warnings.push({cpu:address,kind:'pitched-index-outside-12-note-table',noteIndex});stopReason='unsupported-pitched-index';break;}event.basePeriod=w(0x856e+noteIndex*2)>>>octaveShift;event.periodWithOffset=event.basePeriod+timerOffset;}}
+      if(envelope===null&&!isRest)warnings.push({cpu:address,kind:'inherited-envelope-selection-on-sounding-event'});
+      if(duration===null){warnings.push({cpu:address,kind:'inherited-duration'});tick=null;}else if(tick!==null)tick+=duration||256;
+      if(tick!==null&&tick>maxUpdates){stopReason='update-budget';break;}continue;
+    }
+    if(byte<0xb0){event.kind='duration';event.durationTableIndex=byte&63;event.durationTableCPU=0x8586+(byte&63);event.durationByte=r(event.durationTableCPU);duration=event.durationByte;if(event.durationTableCPU>=0x85b1)warnings.push({cpu:address,kind:'duration-index-reads-envelope-table'});continue;}
+    if(byte<0xe0){event.kind='skip-one-byte';event.args=[r(pc++)];continue;}
+    const op=opcodes[byte-0xe0];event.kind=op.name;event.handlerCPU=op.handlerCPU;event.args=Array.from({length:op.argumentsCount},()=>r(pc++));
+    const a=event.args[0],target=event.args[0]|event.args[1]<<8;
+    if(byte===0xe0){assert(a<envelopes.length,'Envelope ID out of reviewed table');envelope=a;}
+    if(byte===0xe2)dutyControl=(dutyControl&0x3f)|a;
+    if(byte===0xe3)attenuation=a;
+    if(byte===0xe5)timerOffset=a;
+    if(byte===0xed)vibrato=true;if(byte===0xef)vibrato=false;if(byte===0xfe)fadeDelay=a;
+    if(byte===0xe8){event.targetCPU=target;pc=target;}
+    if(byte===0xe9){event.targetCPU=target;stack.push({kind:'call',returnCPU:pc});pc=target;}
+    if(byte===0xea){const frame=stack.pop();if(!frame||frame.kind!=='call'){stopReason='unmatched-return';break;}event.targetCPU=frame.returnCPU;pc=frame.returnCPU;}
+    if(byte===0xeb){stack.push({kind:'repeat',bodyCPU:pc,remaining:a||256});event.repeatCount=a||256;}
+    if(byte===0xec){const frame=stack.at(-1);if(!frame||frame.kind!=='repeat'){stopReason='unmatched-repeat';break;}frame.remaining--;if(frame.remaining){pc=frame.bodyCPU;event.targetCPU=pc;}else stack.pop();}
+    if(stack.reduce((sum,s)=>sum+(s.kind==='call'?2:3),0)>6){stopReason='channel-stack-overflow';break;}
+    if(byte===0xfa||byte===0xfb){const [control,startRegister,lengthRegister]=event.args,cpu=0xc000+64*startRegister,length=16*lengthRegister+1;assert(cpu+length<=0x10000,'Sample wraps outside reviewed fixed bank');const use={instructionCPU:address,parameterCPU:address+1,slot:root.slot,tick,operation:op.name,control,startRegister,lengthRegister,sampleCPU:cpu,sampleFileOffset:0x1c010+cpu-0xc000,sampleBytes:length,rateIndex:control&15,loop:!!(control&64),irq:!!(control&128)};sampleUses.push(use);event.sample=use;}
+    if(byte===0xff){stopReason='stop-stream';break;}
+  }
+  return {...root,events,cycle,stopReason,parserInstructions:events.length,elapsedUpdates:tick,notes:events.filter(e=>e.kind==='pitched-note'||e.kind==='noise-period').length,rests:events.filter(e=>e.kind==='rest').length,envelopeIDs:[...new Set(events.filter(e=>e.kind==='envelope-select').map(e=>e.args[0]))].sort((a,b)=>a-b),warnings,sampleUses};
+}
+const streams=[...uniqueRoots.values()].map(decode);
+const dmc=new Map();for(const stream of streams)for(const use of stream.sampleUses){const key=[use.control,use.startRegister,use.lengthRegister].join(':');if(!dmc.has(key))dmc.set(key,{...use,commandIDs:[],instructionCPUs:[],operations:[]});dmc.get(key).commandIDs.push(...stream.commandIDs);dmc.get(key).instructionCPUs.push(use.instructionCPU);dmc.get(key).operations.push(use.operation);}
+for(const d of dmc.values()){d.commandIDs=[...new Set(d.commandIDs)].sort((a,b)=>a-b);d.instructionCPUs=[...new Set(d.instructionCPUs)].sort((a,b)=>a-b);d.operations=[...new Set(d.operations)].sort();delete d.tick;delete d.slot;delete d.instructionCPU;delete d.parameterCPU;delete d.operation;}
+const stopReasons=Object.fromEntries([...new Set(streams.map(s=>s.stopReason))].map(reason=>[reason,streams.filter(s=>s.stopReason===reason).length]));
+const allEvents=streams.flatMap(s=>s.events),usedEnvelopeIDs=[...new Set(streams.flatMap(s=>s.envelopeIDs))].sort((a,b)=>a-b);
+const summary={commandTableEntries:headers.length,uniqueHeaderPointers:new Set(headers.map(h=>h.headerCPU)).size,specialQueueCommands:1,uniqueStreamPointers:new Set(streams.map(s=>s.streamCPU)).size,rootStreamSlotPairs:streams.length,uniqueNativeTokenAddresses:new Set(allEvents.map(e=>e.cpu)).size,decodedStreamInstructions:allEvents.length,stopReasons,structuralWarnings:streams.flatMap(s=>s.warnings).length,envelopeTableEntries:envelopes.length,referencedEnvelopeIDs:usedEnvelopeIDs,dmcParameterTuples:dmc.size,uniqueDmcSpans:new Set([...dmc.values()].map(d=>[d.sampleFileOffset,d.sampleBytes].join(':'))).size,opcodesUsed:[...new Set(allEvents.filter(e=>e.byte>=0xe0).map(e=>e.byte))].sort((a,b)=>a-b)};
+const catalog={format:'NinjaGaidenPrivateNativeAudioCatalog1',input:{sha256:sourceSha256,mapper:1,prgBank16k:3,prgBankFileOffset:0xc010},method:'ROM-byte native parser model derived from bank-3 executed driver and static handler instructions; no APU transcription, memory patch, or presumed title/song naming.',bounds:{commandTableStart:tableStart,commandTableEndExclusive:tableEnd,commandTableBoundaryEvidence:'85 contiguous 16-bit pointers; first referenced header begins exactly at $8827. Driver has no explicit count/range check, so this is a structural extent, not an assertion all queue values are valid.',maxInstructions,maxUpdates,stackBytes:6},summary,headers,opcodes,envelopes,streams,dmc:[...dmc.values()],limits:['This ROM revision only; hash guard is not engine-family recognition.','No names, music/SFX semantic classes, gameplay trigger completion, canonical project import, listening proof, sample binary export, or other revision support.','Parser timelines count driver invocations, not exact video frames; instructions can straddle video-frame boundaries.','DMC entries are encoded requests; conditional busy/suppression and cross-stream competition need whole-engine replay.','Envelopes preview through first $FF delay; that marker is not a native end command.','No whole-song APU/waveform equivalence; vibrato, fade, sweep and channel arbitration are cataloged but not fully synthesized here.','Repeated parser-state closure bounds cyclic streams; no claim that all dormant/unreferenced ROM bytes belong to audio.']};
+
+return {...catalog,streams:catalog.streams.map(s=>selection!==null&&s.commandIDs.includes(selection)?s:{...s,eventCount:s.events.length,events:undefined})};
+}
+function castlevania(rom,sourceSha256){
+const hx=(n,k=4)=>'$'+n.toString(16).toUpperCase().padStart(k,'0');
+const off=a=>a<0xc000?a-0x8000+16:a-0xc000+7*0x4000+16;
+const b=a=>{if(a<0x8000||a>0xffff)throw Error('Out of PRG '+hx(a));return rom[off(a)]};
+const w=a=>b(a)|(b(a+1)<<8),where=a=>({cpuAddress:hx(a),fileOffset:hx(off(a),5),bank16K:a<0xc000?0:7});
+const slotNames=['pulse1_music','pulse2','triangle','pulse1_effect_override','noise_effect','percussion_cue_sequencer'];
+const records=Array.from({length:0x61},(_,id)=>{let a=0x8137+id*3,v=b(a),ptr=w(a+1);return {id,idHex:hx(id,2),...where(a),slot:v&31,slotName:slotNames[v&31]||'special',recordSpan:(v>>6)+1,stream:where(ptr),route:id===0?'stop_all':id>=0x5d&&id<=0x5f?'dpcm_setup':'stream'};});
+const musicHeads=records.filter(r=>r.id>=0x39&&r.id<=0x5c&&r.recordSpan===4).map(r=>r.id);
+const parentById={};for(const r of records.filter(r=>r.route==='stream'&&r.recordSpan>1)){for(let i=1;i<r.recordSpan;i++)(parentById[r.id+i]??=[]).push(r.id);}
+for(const r of records)r.continuationOf=parentById[r.id]||[];
+const stats={};
+function decodeStream(start,slot){
+  const sfx=slot===4||((b(start)&0xf0)===0);const queue=[{pc:start,loop:null,ret:null}],seen=new Set(),events=[],edges=[],unknown=[];
+  while(queue.length){let {pc,loop,ret}=queue.pop();for(let n=0;n<8192;n++){
+    const key=[pc,loop,ret].join(':');if(seen.has(key)){edges.push({from:hx(pc),kind:'previously_seen_state'});break;}seen.add(key);
+    if(pc<0x8000||pc>=0xaace){unknown.push({at:hx(pc),reason:'outside bounded identified audio-data region; target is not validated'});break;}
+    let op=b(pc),size=1,kind,extra={};
+    if(op>=0xfb){
+      if(op===0xfb||op===0xfc){kind='loop_anchor';loop=pc+1;}
+      if(op===0xfd){kind='call';size=3;let target=w(pc+1);if(ret!==null){unknown.push({at:hx(pc),reason:'nested call overwrites one native return slot'});break;}events.push({...where(pc),kind,target:where(target)});edges.push({from:hx(pc),to:hx(target),kind});ret=pc+3;pc=target;continue;}
+      if(op===0xfe){size=2;if(b(pc+1)===0xff){kind='jump';size=4;let target=w(pc+2);events.push({...where(pc),kind,target:where(target)});edges.push({from:hx(pc),to:hx(target),kind});pc=target;continue;}kind='repeat';extra.count=b(pc+1);if(loop===null)unknown.push({at:hx(pc),reason:'repeat has no known anchor'});else{edges.push({from:hx(pc),to:hx(loop),kind});queue.push({pc:loop,loop,ret});}}
+      if(op===0xff){kind=ret===null?'end':'return';events.push({...where(pc),kind});if(ret===null)break;pc=ret;ret=null;continue;}
+    }else if(sfx){
+      if((op&0xf0)===0){if(slot===4){kind=op?'set_effect_duration':'effect_event_with_zero_prefix';size=op?1:2;}else if(slot===2){kind=op?'set_effect_duration_and_sweep':'effect_event_with_zero_prefix';size=op?2:3;}else{kind=op?'set_effect_duration_control_sweep':'effect_event_with_zero_prefix';size=3;}}
+      else {kind=slot===4?'noise_effect_event':'pitched_effect_timer_event';size=slot===4?1:2;}
+    }else if(op<0xd0){kind=slot===5?'percussion_dispatch':(op>>4)===12?'rest':'note';extra.durationMultiplier=(op&15)+1;if(slot===5){const k=op>>4;extra.cueIds=k===12?[]:k===10?[3,b(0x9a47+k)]:[b(0x9a47+k)];}else extra.pitchClass=op>>4;}
+    else if(op<0xe0){kind='duration_and_instrument';size=slot===5?1:slot===2?2:4;extra.baseDuration=op&15;if(slot!==5&&slot!==2)extra.envelopeIndex=(b(pc+2)&0x80)?null:b(pc+2);}
+    else if(op<0xe6){kind='octave';extra.value=op&15;}
+    else if(op<0xec){const kinds=['duration','volume_envelope','gate_release','control_mode','transpose','pitch_effect'];kind=kinds[op-0xe6];size=op===0xeb?3:2;if(op===0xe7)extra.envelopeIndex=(b(pc+1)&0x80)?null:b(pc+1);if(op===0xeb)extra.pitchEnvelopeIndex=b(pc+2);}
+    else if(op<0xf0){kind='combined_instrument_pitch_setup';size=4+(slot===5?1:slot===2?2:4);extra.pitchEnvelopeIndex=b(pc+3);if(slot!==5&&slot!==2)extra.envelopeIndex=(b(pc+6)&0x80)?null:b(pc+6);}
+    else {kind='volume_attenuation';extra.value=op&15;}
+    events.push({...where(pc),kind,byteLength:size,...extra});pc+=size;
+  }}
+  return {start:where(start),slot,mode:sfx?'effect_timer':'score',structuralStateCount:seen.size,events,edges,unknown};
+}
+const streams=records.filter(r=>r.route==='stream').map(r=>({recordId:r.id,...decodeStream(parseInt(r.stream.cpuAddress.slice(1),16),r.slot)}));
+const envelopeTables=[{name:'volume',address:0x8b3a,count:48,reader:0x9ccd},{name:'pitch',address:0x8cd0,count:32,reader:0x9c6f}].map(t=>({...t,address:hx(t.address),reader:where(t.reader),boundaryEvidence:'Pointer table ends exactly at first referenced stream; count is structural, no native index range check.',entries:Array.from({length:t.count},(_,index)=>({index,target:where(w(t.address+index*2))}))}));
+for(const t of envelopeTables){const targets=t.entries.map(e=>e.target.cpuAddress);for(const e of t.entries)e.aliases=t.entries.filter(x=>x.index!==e.index&&x.target.cpuAddress===e.target.cpuAddress).map(x=>x.index);t.uniqueTargets=new Set(targets).size;}
+const samples=records.filter(r=>r.route==='dpcm_setup').map(r=>{let a=0xfbc4+(r.id-0x5d)*4,control=b(a),start=0xc000+b(a+2)*64,length=b(a+3)*16+1;return {cueId:r.id,configuration:where(a),control,initialDac:b(a+1),rateIndex:control&15,loop:!!(control&64),sampleStart:where(start),lengthBytes:length,sampleEnd:where(start+length-1),sampleSha256:sha(rom.subarray(off(start),off(start)+length)),payloadExported:false};});
+const structural={rom:{sha256:sourceSha256,size:rom.length},scope:'Exact-ROM structural catalog, not generic recognition or editable import. Private addresses and summaries only; original ROM/sample payloads excluded.',driver:{dispatch:where(0xa29b),update:where(0x967d),table:where(0x8137),recordStride:3,stopIds:[0,0x61],supportedCatalogIds:[1,0x60],higherIds:'Not range-checked by native code; not cataloged as valid cues.',percussionMap:Array.from({length:12},(_,n)=>({noteNibble:n,cueIds:n===10?[3,b(0x9a47+n)]:[b(0x9a47+n)]}))},records,groups:records.filter(r=>r.route==='stream'&&r.continuationOf.length===0).map(r=>({id:r.id,classification:musicHeads.includes(r.id)?'four_channel_music_candidate':'effect_candidate',recordIds:Array.from({length:r.recordSpan},(_,i)=>r.id+i)})),streams,envelopeTables,samples};
+
+return structural;
+}
+const hx=n=>'$'+n.toString(16).toUpperCase().padStart(2,'0');
+function build(bytes,identity,selection=null){
+ const {profile,source}=identity;assert(profile,'This ROM revision has no installed native audio decoder.');assert(bytes.length===262160&&bytes[0]===78&&bytes[1]===69&&bytes[2]===83&&bytes[3]===26&&bytes[4]===8&&bytes[5]===16&&((bytes[6]>>4)|(bytes[7]&240))===1&&!(bytes[6]&4),'Known revision header layout differs.');
+ const native=profile.id==='zelda2-us-1'?zelda(bytes,source.sha256):profile.id==='ninja-gaiden-us-1'?ninja(bytes,source.sha256,selection):castlevania(bytes,source.sha256);
+ let cues,instruments,samples,summary,limitations;
+ if(profile.id==='zelda2-us-1'){
+ cues=native.cues.map(c=>({id:c.id,label:c.family+' · request '+hx(c.requestMask)+(c.orders.length?'':' · empty slot'),kind:c.orders.length?'music-request':'empty-request',family:c.family,requestMask:c.requestMask,requestRegister:c.requestRegister,orders:c.orders,aliases:c.sameOrderSequenceAs}));
+ for(const g of native.sfx)for(const s of g.slots)cues.push({id:g.driver+':sfx:'+g.requestRegister+':'+s.mask,label:g.driver+' · SFX '+hx(g.requestRegister)+' / '+hx(s.mask),kind:'effect',driver:g.driver,requestRegister:g.requestRegister,requestMask:s.mask,...s});
+ instruments=native.envelopes;samples=native.dpcm;summary=native.summary;limitations=native.limitations;
+ }else if(profile.id==='ninja-gaiden-us-1'){
+ cues=native.headers.map(c=>({...c,id:String(c.id),label:'Command '+hx(c.id)+(c.id===0x25?' · global fade':''),kind:c.id===0x25?'control':'command'}));instruments=native.envelopes;samples=native.dmc;summary=native.summary;limitations=native.limits;
+ }else{
+ cues=native.groups.map(g=>({...g,id:String(g.id),label:'Cue '+hx(g.id)+' · '+g.classification.replaceAll('_',' '),kind:g.classification==='four_channel_music_candidate'?'music-candidate':'effect-candidate',channels:g.recordIds.map(id=>native.records[id])}));
+ for(const s of native.samples)cues.push({id:String(s.cueId),label:'DPCM cue '+hx(s.cueId),kind:'dpcm',...s});
+ instruments=native.envelopeTables;samples=native.samples;summary={musicGroupCandidates:native.groups.filter(g=>g.classification==='four_channel_music_candidate').length,effectGroupCandidates:native.groups.filter(g=>g.classification==='effect_candidate').length,channelRecords:native.streams.length,structuralCommands:native.streams.reduce((n,s)=>n+s.events.length,0),unknowns:native.streams.flatMap(s=>s.unknown),volumeEnvelopePointers:48,pitchEnvelopePointers:32,dpcmConfigurations:samples.length};limitations=['Native command structure is decoded; this static walker is not a timed score decoder.','One effect edge leaves the bounded audio-data region and remains unknown.','Music/effect groups are structural candidates; human names and all gameplay triggers remain unknown.'];
+ }
+ return {format:'NESForgeNativeAudioCatalog',version:1,status:'decoded',source:copy(source),profile:copy(profile),summary,cues,instruments,samples,native,limitations:[...limitations,'Known revision only. Cue IDs and aliases are native identities, not verified song names.','Catalog evidence is separate from an editable project. Controlled native playback and canonical transcription disclose their own limits.']};
+}
+async function inspect(bytes){bytes=input(bytes).slice();const identity=await identify(bytes);if(!identity.profile)return {format:'NESForgeNativeAudioCatalog',version:1,status:'unknown',...identity,cues:[],instruments:[],samples:[],limitations:['No installed native catalog matches this revision. No claim that audio is absent. Existing FamiTone2 and runtime investigation remain available.']};return build(bytes,identity);}
+async function selection(bytes,id){bytes=input(bytes).slice();const identity=await identify(bytes),catalog=build(bytes,identity,identity.profile?.id==='ninja-gaiden-us-1'?Number(id):null),cue=catalog.cues.find(c=>c.id===String(id));assert(cue,'Select a catalog cue.');let streams;if(identity.profile.id==='zelda2-us-1')streams=(cue.orders||[]).map(o=>catalog.native.headers.find(h=>h.id===o.header));else if(identity.profile.id==='ninja-gaiden-us-1')streams=catalog.native.streams.filter(s=>s.commandIDs.includes(Number(id)));else streams=catalog.native.streams.filter(s=>cue.recordIds?.includes(s.recordId));return {source:catalog.source,profile:catalog.profile,cue,streams,instruments:catalog.instruments,samples:catalog.samples,limitations:catalog.limitations};}
+return Object.freeze({version:1,profiles,identify,inspect,selection});
+});
+/* Installed catalog methods live in the existing recovery registry. Recognition
+ * declares a known revision only; decode still interprets current physical bytes. */
+(()=>{
+'use strict';
+const services=window.Forge.services;
+for(const profile of services.NativeAudioCatalog.profiles){
+ const span={start:16+profile.bank*16384,length:16384},evidence=status=>[{status,claim:status==='decoded'?'Native audio tables and commands decoded from the verified current source.':'SHA-256 identifies this investigated ROM revision; it does not establish another title or revision.',ranges:[span]}];
+ services.REMethods.registerProfile({id:'native-audio.'+profile.id,version:1,contractVersion:2,name:profile.title+' · known revision audio catalog',domains:['audio','code'],limits:{maxSourceBytes:262160,maxWork:4*1024*1024},limitations:['Exact investigated revision only. Full engine-family recognition is not implemented.','Cue IDs and structural candidates are not verified song names. Canonical transcription has separate fidelity limits.','No native encoder or ROM rebuild is implied by catalog decoding.'],operations:{inspect:{label:'Identify investigated audio revision',effect:'read-only'},decode:{label:'Decode native audio catalog',effect:'read-only'}},
+  probe:(_analysis,ctx)=>({status:ctx.source.sha256===profile.sha256?'supported':'unknown',reason:ctx.source.sha256===profile.sha256?'Matches the investigated revision; its decoded catalog is available in AUDIO / ROM Audio Library.':'This profile does not identify the current revision.',evidence:ctx.source.sha256===profile.sha256?evidence('observed'):[]}),
+  handlers:{inspect:(_analysis,_input,ctx)=>({status:'supported',reason:'Known revision identified; audio tables have not been decoded by this operation.',evidence:evidence('observed'),data:{profile}}),decode:async(_analysis,_input,ctx)=>{const bytes=new Uint8Array(ctx.source.byteLength);for(let offset=0;offset<bytes.length;offset+=65536){const n=Math.min(65536,bytes.length-offset);bytes.set(ctx.read(offset,n).bytes,offset);await ctx.checkpoint();}const catalog=await services.NativeAudioCatalog.inspect(bytes);if(catalog.status!=='decoded'||catalog.profile.id!==profile.id)throw Error('Current bytes no longer decode as the selected profile.');return {status:'supported',reason:'Native audio catalog decoded from physical source bytes.',evidence:evidence('decoded'),data:catalog};}}
+ });
+}
+})();
+/* Isolated native-driver execution using the same instruction implementation
+ * and ForgeAPU class as live emulation. Fixed physical banks, no DOM/files/network,
+ * no live emulator mutation, no ROM writes. All calls and windows are bounded. */
+(()=>{
+'use strict';
+const services=window.Forge.services;
+function create(bytes,bank0,{maxInstructions=2000000,maxWrites=131072,onSample=()=>{}}={}){
+ if(!(bytes instanceof Uint8Array)||bytes.length!==262160||!Number.isInteger(bank0)||bank0<0||bank0>7)throw Error('An investigated 128 KiB PRG source and fixed bank are required.');
+ if(!Number.isInteger(maxInstructions)||maxInstructions<1||maxInstructions>2000000||!Number.isInteger(maxWrites)||maxWrites<1||maxWrites>131072||typeof onSample!=='function')throw Error('Invalid isolated execution limits.');
+ const rom=bytes.slice(),ram=new Uint8Array(2048),sram=new Uint8Array(8192),writes=[],state={A:0,X:0,Y:0,SP:0xfd,PC:0,C:0,Z:0,I:1,D:0,V:0,N:0,cycles:0,opsMissed:0};let instructions=0,origin=null,frame=-1;
+ const physical=a=>16+(a<0xc000?bank0:7)*16384+(a&0x3fff);
+ function read(a){a&=65535;if(a<0x2000)return ram[a&2047];if(a===0x4015)return apu.readStatus();if(a>=0x6000&&a<0x8000)return sram[a-0x6000];if(a>=0x8000)return rom[physical(a)];throw Error('Isolated driver read unsupported bus address $'+a.toString(16));}
+ function write(a,v){a&=65535;v&=255;if(a<0x2000){ram[a&2047]=v;return;}if((a>=0x4000&&a<=0x4013)||a===0x4015||a===0x4017){if(writes.length>=maxWrites)throw Error('Native APU write limit reached. Choose a shorter window.');apu.write(a,v);writes.push({frame,cycles:apu.cycles,address:a,value:v,pc:origin,fileOffset:origin>=0x8000?physical(origin):null});return;}if(a>=0x6000&&a<0x8000){sram[a-0x6000]=v;return;}throw Error('Isolated driver write unsupported bus address $'+a.toString(16));}
+ const apu=new ForgeAPU(onSample,read),core=Forge6502Core.create(state,read,write);
+ function clock(n){if(!Number.isInteger(n)||n<0||n>100000)throw Error('Invalid isolated clock budget.');state.cycles+=apu.clock(n);}
+ function call(pc,a=0){if(!Number.isInteger(pc)||pc<0x8000||pc>0xffff)throw Error('Invalid native subroutine entry.');state.PC=pc;state.A=a;state.SP=0xfd;ram[0x1fd]=0x7f;ram[0x1fc]=0xee;state.SP=0xfb;let steps=0;
+ while(state.PC!==0x7fef){if(++steps>50000||++instructions>maxInstructions)throw Error('Native instruction limit reached. Choose a shorter window.');origin=state.PC;const before=state.cycles;core.step();state.PC&=65535;const elapsed=state.cycles-before;if(!Number.isInteger(elapsed)||elapsed<1||elapsed>2048)throw Error('Invalid native CPU progression.');clock(elapsed);}
+ origin=null;if(state.SP!==0xfd)throw Error('Native subroutine did not balance its stack.');return steps;}
+ function channels(){return [...apu.pulse.map((p,i)=>({channel:i,period:p.period,volume:p.enabled&&p.length&&p.period>=8&&apu.sweepTarget(p,i)<=2047?(p.ctrl&16?p.ctrl&15:p.env):0,duty:p.ctrl>>6,sweep:p.sweep})),{channel:2,period:apu.triangle.period,volume:apu.triangle.enabled&&apu.triangle.length&&apu.triangle.linear&&apu.triangle.period>=2?15:0,duty:0},{channel:3,period:apu.noise.period,periodIndex:[4,8,16,32,64,96,128,160,202,254,380,508,762,1016,2034,4068].indexOf(apu.noise.period),volume:apu.noise.enabled&&apu.noise.length?(apu.noise.ctrl&16?apu.noise.ctrl&15:apu.noise.env):0,short:apu.noise.short,duty:0}];}
+ return Object.freeze({ram,state,apu,writes,call,clock,write,channels,setFrame:n=>{frame=n;},stats:()=>({instructions,writes:writes.length,cycles:state.cycles,opsMissed:state.opsMissed}),snapshot:()=>({state:{...state},ram:Array.from(ram),apu:JSON.parse(JSON.stringify(apu))})});
+}
+services.NativeAudioMachine=Object.freeze({create,version:1});
+})();
+/* Native catalog playback and finite editable transcriptions. Playback executes
+ * the reviewed driver in an isolated machine; canonical conversion is explicitly
+ * a frame-sampled adaptation, never an original-engine or whole-game import. */
+(()=>{
+'use strict';
+const services=window.Forge.services,MAX_FRAMES=1024;
+const limits=['Controlled native cue playback starts from cleared driver RAM, the declared fixed PRG banks and one update per 29,780 NTSC CPU cycles. It is not a natural gameplay recording.','Native preview uses Forge’s existing APU model, including its approximate DMC bus timing. Hardware/listening equivalence is not established.','Editable conversion samples channel state at the end of each native update window. Sub-frame changes, oscillator phase, retriggers, original command flow and original instruments are not preserved.','Tonal periods use the nearest canonical pitch. Volume and duty become editable rows and simple duty instruments; the source envelopes remain in the catalog.','DPCM has no canonical Audio sample model and is omitted from the editable score. Short-mode noise is also omitted. Native playback retains both.','The chosen finite window is cut and padded with silence. The canonical music order repeats that excerpt, not the recovered native loop. Gameplay calls, collision/scenes and triggers are not imported.'];
+function integer(n,min,max,label){if(!Number.isInteger(n)||n<min||n>max)throw Error(label+' must be an integer from '+min+' through '+max+'.');return n;}
+function aborted(signal){if(signal?.aborted){const e=Error('Native Audio operation cancelled.');e.name='AbortError';throw e;}}
+async function run(input,options={},controls={}){
+ if(!options||typeof options!=='object'||Object.keys(options).some(k=>!['cueId','frames','samples'].includes(k)))throw Error('Choose a cue and a bounded native window.');
+ const bytes=input.slice(),frames=integer(options.frames??256,1,MAX_FRAMES,'Native updates');aborted(controls.signal);
+ const identity=await services.NativeAudioCatalog.identify(bytes);aborted(controls.signal);if(!identity.profile)throw Error('No installed decoder supports this ROM revision.');
+ const catalog=await services.NativeAudioCatalog.inspect(bytes),cue=catalog.cues.find(c=>String(c.id)===String(options.cueId));if(!cue)throw Error('Select a cue from the decoded catalog.');if(['empty-request','control'].includes(cue.kind))throw Error('This is an empty request or control command, not a standalone sound. Inspect its native data instead.');
+ const samples=[],machine=services.NativeAudioMachine.create(bytes,identity.profile.bank,{onSample:options.samples===false?()=>{}:s=>samples.push(s)}),ram=machine.ram;let update;
+ machine.write(0x4015,15);machine.write(0x4017,0xc0);
+ if(identity.profile.id==='zelda2-us-1'){
+  update=cue.family==='title'||cue.driver==='title'?0x8000:0x9000;
+  if(cue.family){ram[0x707]=({'game-context-0':0,'game-context-1-2':1,'game-context-3-4':3,'game-context-other':5})[cue.family]??0;}
+  ram[cue.requestRegister]=cue.requestMask;
+ }else if(identity.profile.id==='ninja-gaiden-us-1'){update=0x8000;ram[0x600]=Number(cue.id);}
+ else{update=0x967d;machine.call(0xa2af,0);machine.call(0xa29b,Number(cue.id));}
+ const schedule=[];
+ for(let frame=0;frame<frames;frame++){
+  aborted(controls.signal);machine.setFrame(frame);const before=machine.apu.cycles;machine.call(update);const elapsed=machine.apu.cycles-before;if(elapsed>29780)throw Error('Native call exceeded its update window.');machine.clock(29780-elapsed);
+  schedule.push({frame,channels:machine.channels(),dmc:{remaining:machine.apu.dmc.remaining,level:machine.apu.dmc.level,address:machine.apu.dmc.address}});
+  if((frame&15)===15){controls.progress?.({frame:frame+1,total:frames});await new Promise(resolve=>setTimeout(resolve,0));aborted(controls.signal);}
+ }
+ const stats=machine.stats();return {format:'NESForgeNativeAudioPlayback',version:1,source:identity.source,profile:identity.profile,cue,frames,sampleRate:48000,clock:29780,schedule,writes:machine.writes,stats,limitations:limits.slice(),samples:Float32Array.from(samples)};
+}
+function transcribe(trace,options={}){
+ const rows=integer(options.rows??64,16,128,'Pattern rows'),kind=options.resourceKind??'music';if(!['music','sfx'].includes(kind))throw Error('Choose music or a single-channel SFX transcription.');
+ const blank=()=>({note:-1,inst:-1,vol:-1,fx:0,fxp:0}),count=Math.ceil((trace.frames+1)/rows),patterns=Array.from({length:count},()=>({rows:Array.from({length:rows},()=>Array.from({length:5},blank))})),instruments=[],instrumentMap=new Map(),pitchMap=new Map(),prior=Array(4).fill(null),active=new Set();let notes=0,shortNoiseFrames=0,dmcFrames=0;
+ function timer(n,ch){return Math.max(ch===2?2:8,Math.min(2047,Math.round(1789773/((ch===2?32:16)*440*Math.pow(2,(n-57)/12))-1)));}
+ function pitch(period,ch){const key=ch+':'+period;if(pitchMap.has(key))return pitchMap.get(key);let best=Infinity,value;for(let n=0;n<96;n++){const target=timer(n,ch),cents=1200*Math.log2((period+1)/(target+1));if(Math.abs(cents)<best){best=Math.abs(cents);value={channel:ch,nativePeriod:period,note:n,canonicalPeriod:target,cents};}}pitchMap.set(key,value);return value;}
+ function instrument(ch,duty){const key=ch+':'+duty;if(instrumentMap.has(key))return instrumentMap.get(key);const i=instruments.length;instruments.push({name:['Native Pulse 1','Native Pulse 2','Native Triangle','Native Noise'][ch]+' duty '+duty,volEnv:[15],dutyEnv:[duty],arpEnv:[0],pitchEnv:[0],loopVol:0,loopArp:0});instrumentMap.set(key,i);return i;}
+ for(const frame of trace.schedule){if(frame.dmc.remaining||frame.dmc.level)dmcFrames++;for(const ch of frame.channels){const c=ch.channel,cell=patterns[Math.floor(frame.frame/rows)].rows[frame.frame%rows][c];let sounding=ch.volume>0;if(c===3&&ch.short&&sounding){shortNoiseFrames++;sounding=false;}
+  if(!sounding){if(prior[c])cell.note=-2;prior[c]=null;continue;}
+  const note=c===3?(15-ch.periodIndex)*6:pitch(ch.period,c).note,inst=instrument(c,ch.duty);active.add(c);if(!prior[c]||prior[c].note!==note||prior[c].inst!==inst){cell.note=note;cell.inst=inst;notes++;}cell.vol=ch.volume;prior[c]={note,inst};
+ }}
+ if(!notes)throw Error('No representable sounding channels occurred in this window. Native playback and catalog data remain available.');
+ for(let c=0;c<4;c++)patterns[Math.floor(trace.frames/rows)].rows[trace.frames%rows][c].note=-2;
+ const tuning=[...pitchMap.values()],maxCents=tuning.reduce((n,t)=>Math.max(n,Math.abs(t.cents)),0),warnings=['This imports a frame-sampled editable adaptation. Review the source and conversion limits.',kind==='music'?'Tempo changes to 150 / speed 1: one canonical row per native update window. Existing SFX playback timing follows this global tempo.':'SFX import requires the existing project at tempo 150 / speed 1 and preserves its music order and timing.','DPCM is retained in native playback/catalog only, not the editable score.'];if(shortNoiseFrames)warnings.push(shortNoiseFrames+' short-mode noise frame(s) are omitted.');
+ const imported={rows,tempo:150,speed:1,patterns,instruments,orderList:patterns.map((_,i)=>[i,i,i,i,i]),noteCount:notes,durationFrames:trace.frames,paddingFrames:count*rows-trace.frames};
+ if(kind==='sfx'){if(active.size!==1||count!==1||trace.frames>=rows)throw Error('SFX import requires one representable channel and a window shorter than one pattern. Reduce updates or import as a music excerpt.');const channel=[...active][0];imported.sfx=[{id:('native-'+trace.profile.id+'-'+trace.cue.id).replace(/[^a-z0-9-]/gi,'-').slice(0,80),name:(trace.profile.title+' '+trace.cue.label).slice(0,80),channel,pattern:0,startRow:0,endRow:trace.frames}];}
+ return {status:'ready',method:'native-driver-frame-transcription-1',sourceSha256:trace.source.sha256,imported,warnings,limitations:limits.slice(),diagnostics:[],provenance:{profile:trace.profile,cue:trace.cue.id,frames:trace.frames,clock:trace.clock,kind,nativeWrites:trace.writes.length,cpu:trace.stats,tuning,maxAbsoluteCents:maxCents,shortNoiseFrames,dmcFrames,fidelity:'Frame-end APU-state adaptation; original driver structure and sub-frame articulation are not preserved.',schedule:trace.schedule,writes:trace.writes}};
+}
+async function preview(input,options={},controls={}){
+ try{if(!options||typeof options!=='object'||Object.keys(options).some(k=>!['cueId','frames','rows','resourceKind'].includes(k)))throw Error('Unknown native conversion option.');const trace=await run(input,{cueId:options.cueId,frames:options.frames,samples:false},controls);return transcribe(trace,options);}catch(e){return {status:'unsupported',method:'native-driver-frame-transcription-1',sourceSha256:(await services.NativeAudioCatalog.identify(input)).source.sha256,imported:null,warnings:[],limitations:limits.slice(),diagnostics:[{code:'NATIVE_CONVERSION',message:e.message}]};}
+}
+services.NativeAudioRecovery=Object.freeze({run,preview,transcribe,limits:Object.freeze({frames:MAX_FRAMES}),version:1});
+})();
 /* Shared native music/SFX transcription lifecycle. Converters return detached
  * canonical proposals; ProjectStore alone installs bounded Audio appends. */
 (()=>{
@@ -13849,7 +14237,7 @@ function readSource(input){
  return value;
 }
 function metadata(source){return {token:source.token,sourceSha256:source.sourceSha256,currentSha256:source.currentSha256,songIndex:source.songIndex,name:source.name};}
-function converter(kind){const api=kind==='music'?window.FamiTone2AudioImport:window.FamiTone2SfxImport;if(!api?.preview)throw Error('The native transcription model is unavailable in this build.');return api;}
+function converter(kind,profile){if(profile==='native-catalog'){const api=services.NativeAudioRecovery;if(!api?.preview)throw Error('Native catalog conversion is unavailable.');return api;}if(profile!==undefined)throw Error('Unknown native Audio conversion profile.');const api=kind==='music'?window.FamiTone2AudioImport:window.FamiTone2SfxImport;if(!api?.preview)throw Error('The native transcription model is unavailable in this build.');return api;}
 function projectGuard(){const store=services.ProjectStore;return {epoch:store.state.epoch,snapshot:store.serialize()};}
 function checkGuard(item,currentSource){
  if(currentSource&&item.sourceKey!==sourceKey(readSource(currentSource)))throw Error('The native ROM copy or subsong changed. Preview again.');
@@ -13880,15 +14268,15 @@ function validateImport(item,result){
 async function stage(source,options={},controls={}){
  if(!options||typeof options!=='object'||Array.isArray(options)||!['music','sfx'].includes(options.kind))throw Error('Choose native music or SFX transcription.');
  if(controls.signal!==undefined&&(!controls.signal||typeof controls.signal.aborted!=='boolean'))throw Error('Cancellation signal requires a boolean aborted state.');
- checkSignal(controls.signal);const native=readSource(source),{kind,...settings}=options,item={kind,options:copy(settings),source:metadata(native),sourceKey:sourceKey(native),project:projectGuard()};
- const result=await converter(kind).preview(native.bytes.slice(),item.options);checkSignal(controls.signal);checkGuard(item,source);
+ checkSignal(controls.signal);const native=readSource(source),{kind,profile,...settings}=options,item={kind,...(profile===undefined?{}:{profile}),options:copy(settings),source:metadata(native),sourceKey:sourceKey(native),project:projectGuard()};
+ const result=await converter(kind,profile).preview(native.bytes.slice(),item.options,{signal:controls.signal});checkSignal(controls.signal);checkGuard(item,source);
  if(result.sourceSha256!==item.source.currentSha256)throw Error('Transcription source identity does not match the native ROM copy.');
  const data=result.status==='ready'&&result.imported?validateImport(item,result):null,value=freeze({...item,result:copy(result),data});
  if(data){stages.add(value);signals.set(value,controls.signal);}return value;
 }
 async function revalidate(item,currentSource){
  if(!stages.has(item))throw Error('Preview a supported transcription first.');
- const signal=signals.get(item);checkSignal(signal);checkGuard(item,currentSource);const native=readSource(currentSource),result=await converter(item.kind).preview(native.bytes.slice(),item.options);checkSignal(signal);checkGuard(item,currentSource);
+ const signal=signals.get(item);checkSignal(signal);checkGuard(item,currentSource);const native=readSource(currentSource),result=await converter(item.kind,item.profile).preview(native.bytes.slice(),item.options,{signal});checkSignal(signal);checkGuard(item,currentSource);
  if(result.status!=='ready'||JSON.stringify(result)!==JSON.stringify(item.result))throw Error('The transcription changed during revalidation. Preview again before importing.');
  return freeze(validateImport(item,result));
 }
@@ -13899,6 +14287,65 @@ async function commit(item,currentSource){
  stages.delete(item);signals.delete(item);return freeze({...data,warnings:applied.warnings});
 }
 services.RENativeAudioImport=Object.freeze({version:1,stage,revalidate,commit});
+})();
+/* ROM Audio Library: one in-app path from a loaded ROM to native evidence,
+ * isolated playback, an explicit conversion preview and canonical Audio import. */
+(()=>{
+'use strict';
+const services=window.Forge.services,make=(tag,id,text)=>{const e=document.createElement(tag);if(id)e.id=id;if(text!==undefined)e.textContent=text;return e;},cp=x=>JSON.parse(JSON.stringify(x)),hex=(n,w=4)=>Number.isInteger(n)?'$'+n.toString(16).toUpperCase().padStart(w,'0'):'unmapped';
+let c,romRef=null,source=null,catalog=null,selected=null,selection=null,staged=null,trace=null,busy=false,generation=0,token=null,open=false,page=0,view='overview',audioContext=null,playing=null,fileOperation=0;
+function status(text,error=false){c.status.textContent=text;c.status.dataset.state=error?'error':'ready';c.banner.textContent=text;}
+function controls(){const ready=!!catalog&&catalog.status==='decoded';for(const key of ['cue','frames','kind','inspect','play','preview'])c[key].disabled=busy||!ready;const chosen=cueRecords().find(x=>x.id===c.cue.value);if(chosen&&['empty-request','control'].includes(chosen.kind)){c.play.disabled=true;c.preview.disabled=true;}c.apply.disabled=busy||!staged;c.cancel.disabled=!busy;c.source.disabled=busy||!trace?.writes.some(w=>w.fileOffset!==null);}
+function stop(){try{playing?.stop();}catch(_){}playing=null;}
+function cancel(){if(token)token.aborted=true;generation++;busy=false;staged=null;stop();controls();status('Operation cancelled. Your project and source ROM are unchanged.');}
+function current(){if(!source||emu.lastBuiltRom!==romRef)throw Error('The loaded ROM changed. Wait for its catalog, then preview again.');return {bytes:source.bytes,token:source.token,sourceSha256:source.sha256,currentSha256:source.sha256,name:source.name,songIndex:0};}
+function guard(id){if(id!==generation||token?.aborted)throw Error('The selection changed or the operation was cancelled.');current();}
+function setOpen(value=true){open=!!value;sync();}
+function sync(){const active=S.tab==='audio'&&open;document.body.classList.toggle('native-audio-library-open',active);c.workspace.hidden=!active;if(S.tab==='audio')cv.style.display=open?'none':'block';}
+function invalidate(){if(token)token.aborted=true;generation++;staged=null;trace=null;selection=null;selected=c.cue.value;page=0;c.summary.textContent='Choose Inspect cue to read the decoded source, Play native to audition it, or Preview editable score to see conversion details.';c.timeline.hidden=true;controls();}
+function cueRecords(){return catalog?.cues||[];}
+function jsonRecords(){if(!catalog)return [];if(view==='instruments')return catalog.instruments||[];if(view==='samples')return catalog.samples||[];if(view==='commands'){if(!selection)return [{notice:'Inspect a cue first to decode its complete command records.'}];const out=[];for(const stream of selection.streams||[]){if(stream.channels)for(const [channel,data]of Object.entries(stream.channels))for(const event of data.events||[])out.push({section:stream.id,channel,...event});else for(const event of stream.events||[])out.push({channel:stream.channel??stream.slot,recordId:stream.recordId,...event});}return out.length?out:[{cue:selection.cue,notice:'This entry is a control/empty slot or procedural effect. It does not have an independently decoded note stream; inspect its entry/table evidence.'}];}
+ if(view==='writes')return trace?.writes||[{notice:'Run Play native or Preview editable score to collect the actual isolated native writes.'}];if(view==='methods')return [{profile:catalog.profile,drivers:catalog.native?.drivers,dispatcher:catalog.native?.driver,opcodes:catalog.native?.opcodes,queueStateMachine:catalog.native?.queueStateMachine,banks:{mapper:1,mode:'fixed PRG mapping for controlled playback',lower:{cpu:'$8000–$BFFF',physicalBank:catalog.profile?.bank,fileStart:16+(catalog.profile?.bank||0)*16384},upper:{cpu:'$C000–$FFFF',physicalBank:7,fileStart:0x1c010}},limitations:catalog.limitations}];return [{source:catalog.source,profile:catalog.profile,summary:catalog.summary,selectedCue:selection?.cue||cueRecords().find(x=>x.id===selected),limitations:catalog.limitations}];}
+function showData(){const data=jsonRecords(),size=view==='commands'||view==='writes'?32:4;page=Math.max(0,Math.min(page,Math.max(0,Math.ceil(data.length/size)-1)));const start=page*size;c.data.textContent=JSON.stringify(data.slice(start,start+size),null,2);c.page.textContent=data.length?'Records '+(start+1)+'–'+Math.min(start+size,data.length)+' of '+data.length:'No records in this category.';c.prev.disabled=page===0;c.next.disabled=start+size>=data.length;}
+function metrics(){c.metrics.replaceChildren();if(!catalog||catalog.status!=='decoded')return;const pointerCount=catalog.instruments.reduce((n,x)=>n+(x.entries?.length||1),0);for(const [number,label]of [[catalog.cues.length,'cue / control entries'],[pointerCount,'envelope entries'],[catalog.samples.length,'DPCM descriptors']]){const box=make('div');box.className='nal-metric';box.appendChild(make('strong',null,String(number)));box.appendChild(make('span',null,label));c.metrics.appendChild(box);}}
+async function sourceLoaded(bytes,name='ROM'){
+ if(bytes===romRef&&source)return source;fileOperation++;cancel();romRef=bytes;const id=++generation;source=null;catalog=null;selection=null;trace=null;staged=null;c.cue.replaceChildren();c.title.textContent='Reading ROM audio';metrics();busy=true;controls();status('Identifying the loaded ROM and decoding its native audio tables…');
+ try{const data=bytes.slice(),result=await services.NativeAudioCatalog.inspect(data);if(id!==generation||romRef!==bytes)return false;source={bytes:data,name:String(name).slice(0,512),sha256:result.source.sha256,token:'rom-audio-'+id+'-'+result.source.sha256};catalog=result;c.title.textContent=result.profile?.title||'Audio driver not recognized';
+  for(const cue of result.cues){const option=make('option',null,cue.label);option.value=cue.id;c.cue.appendChild(option);}const preferred=result.cues.find(x=>x.kind==='music-candidate'||x.kind==='music-request'||x.channels?.length>=3)||result.cues[0];selected=preferred?.id||null;c.cue.value=selected||'';metrics();view='overview';page=0;showData();
+  if(result.status==='decoded'){open=true;status('Decoded '+result.cues.length+' native cue/control entries from '+source.name+'. The Audio library is ready. No project data has been changed.');c.summary.textContent='The catalog comes directly from this ROM. Browse commands, instruments and samples; audition a cue, then preview its editable adaptation.';}
+  else{status('This ROM revision has no installed native catalog. Runtime Investigation and the existing FamiTone2 workflow remain available.');c.summary.textContent=result.limitations.join('\n');}return source;
+ }catch(error){if(id===generation){source=null;catalog=null;c.title.textContent='Catalog could not be decoded';status(error.message,true);}return false;}finally{if(id===generation){busy=false;controls();sync();}}
+}
+async function loadFile(file){if(!file)return false;const fileId=++fileOperation;try{if(!Number.isSafeInteger(file.size)||file.size<16||file.size>64*1024*1024)throw Error('Choose a NES ROM of at most 64 MiB.');const bytes=new Uint8Array(await file.arrayBuffer());if(bytes.length!==file.size)throw Error('The ROM changed while reading. Choose it again.');if(fileId!==fileOperation)return false;if(!services.EmulatorBridge.loadRom(bytes,String(file.name||'ROM'),0))throw Error('The ROM could not be loaded.');await sourceLoaded(emu.lastBuiltRom,emu.romName);setOpen(true);return true;}catch(error){status(error.message,true);return false;}}
+async function inspect(){if(busy)return false;const id=++generation;token={aborted:false};busy=true;controls();staged=null;try{const native=current();status('Decoding the selected cue…');const data=await services.NativeAudioCatalog.selection(native.bytes,c.cue.value);guard(id);selection=data;selected=c.cue.value;c.summary.textContent=data.cue.label+'\n'+data.streams.length+' decoded source stream/section records. Use Native commands to inspect every retained command.\n'+data.limitations.join('\n');view='commands';page=0;showData();status('Cue source decoded. Native commands retain their original physical ROM locations.');return true;}catch(error){if(id===generation)status(error.message,true);return false;}finally{if(id===generation){busy=false;controls();}}}
+function settings(){return {cueId:c.cue.value,frames:Number(c.frames.value),rows:S.audRows,resourceKind:c.kind.value};}
+function renderTimeline(data){const canvas=c.timeline;canvas.hidden=false;const x=canvas.getContext('2d'),w=canvas.width,h=canvas.height,names=['Pulse 1','Pulse 2','Triangle','Noise','DPCM fetch'],colors=['#64e4ff','#b3a0ff','#6bf0b1','#ffc978','#ff8ba7'];x.fillStyle='#0a111e';x.fillRect(0,0,w,h);x.font='12px monospace';
+ for(let ch=0;ch<5;ch++){const top=26+ch*43;x.fillStyle='#a5b5c9';x.fillText(names[ch],10,top+18);x.fillStyle='#172438';x.fillRect(86,top,w-102,32);for(const f of data.schedule){const v=ch===4?(f.dmc.remaining?15:0):f.channels[ch].volume;if(!v)continue;const a=86+f.frame*(w-102)/data.frames,b=Math.max(1,(w-102)/data.frames),height=4+v/15*26;x.fillStyle=colors[ch];x.fillRect(a,top+32-height,b,height);}}
+ x.fillStyle='#8eabc4';x.fillText('Controlled native playback · channel volumes / DPCM fetch status · click a frame for exact values',10,h-9);c.timelineInfo.textContent=data.frames+' native updates · '+data.writes.length+' APU writes · '+data.stats.instructions.toLocaleString()+' CPU instructions. Fixed bank '+data.profile.bank+' at $8000; bank 7 at $C000.';
+}
+async function play(){if(busy)return false;const id=++generation;token={aborted:false};busy=true;staged=null;stop();controls();try{const native=current(),options=settings(),C=window.AudioContext||window.webkitAudioContext;if(!C)throw Error('Web Audio is unavailable in this browser.');if(!audioContext)audioContext=new C();await audioContext.resume();guard(id);status('Rendering native audio in the isolated driver instance…');const data=await services.NativeAudioRecovery.run(native.bytes,{cueId:options.cueId,frames:options.frames},{signal:token,progress:p=>{if(id===generation)status('Native playback '+p.frame+' / '+p.total+' updates…');}});guard(id);trace=data;renderTimeline(data);view='writes';page=0;showData();const buffer=audioContext.createBuffer(1,data.samples.length,data.sampleRate);buffer.getChannelData(0).set(data.samples);playing=audioContext.createBufferSource();playing.buffer=buffer;playing.connect(audioContext.destination);playing.start();status('Playing the selected native cue, including native noise and DPCM, from the controlled initial state.');return true;}catch(error){if(id===generation)status(error.message,true);return false;}finally{if(id===generation){busy=false;controls();}}}
+async function preview(){if(busy)return false;const id=++generation;token={aborted:false};busy=true;staged=null;stop();controls();try{const native=current(),options=settings();status('Executing the selected native cue and preparing the editable score…');const item=await services.RENativeAudioImport.stage(native,{kind:options.resourceKind,profile:'native-catalog',...options},{signal:token});guard(id);if(item.result.status!=='ready'||!item.data){c.summary.textContent=item.result.diagnostics.map(d=>d.message).join('\n');throw Error('This selection cannot be converted. Read the conversion details; native catalog/playback remains available.');}staged=item;const r=item.result,p=r.provenance;trace={source:{sha256:native.currentSha256},profile:catalog.profile,frames:options.frames,schedule:p.schedule,writes:p.writes,stats:p.cpu};renderTimeline(trace);view='overview';page=0;showData();c.summary.textContent=[catalog.profile.title+' · '+cueRecords().find(x=>x.id===options.cueId).label,r.imported.noteCount+' note changes · '+item.data.patternCount+' new patterns · '+item.data.instrumentCount+' new duty instruments',options.frames+' native updates; '+r.imported.paddingFrames+' final cut/silent padding rows','Largest nearest-pitch difference: '+p.maxAbsoluteCents.toFixed(3)+' cents','Estimated generated Audio data: '+item.data.estimatedBytes+' bytes','',...r.warnings,'',...r.limitations,'','Import appends editable data. Music import replaces the current music order and tempo/speed; SFX import adds one named definition. One Undo restores the prior project. Save Project As preserves the score.'].join('\n');status('Preview ready. Review the transcription differences, then import into the tracker.');return true;}catch(error){if(id===generation){staged=null;status(error.message,true);}return false;}finally{if(id===generation){busy=false;controls();}}}
+async function apply(){if(busy||!staged)return false;const item=staged,id=++generation;busy=true;controls();try{current();if(!confirm('Import this native audio transcription into the tracker?\n\n'+(item.kind==='music'?'The music order and global tempo/speed will be replaced. Existing SFX timing follows that tempo.':'One named single-channel SFX will be appended.')+'\n\nThis is the finite, frame-sampled adaptation described in the preview. DPCM and short-mode noise are not converted. One Undo restores the prior project.'))return false;guard(id);const result=await services.RENativeAudioImport.commit(item,()=>{guard(id);return current();});guard(id);staged=null;const issues=[...(result.warnings||[])];try{aud_stop();aud_currentOrder=aud_currentRow=0;aud_selectedInst=result.instrumentCount?result.instrumentOffset:-1;services.AudioUI?.refresh();render();}catch(error){issues.push('Display refresh: '+error.message);}status('Imported '+result.patternCount+' editable patterns and '+result.instrumentCount+' duty instruments. Choose Tracker to edit and play; Save Project As preserves your work.'+(issues.length?' Import succeeded with warnings: '+issues.join('; '):''),!!issues.length);return result;}catch(error){if(id===generation)status(error.message,true);return false;}finally{if(id===generation){busy=false;controls();}}}
+async function viewSource(){try{const native=current(),row=trace?.writes.find(w=>w.fileOffset!==null);if(!row)throw Error('Play native first to collect writer locations.');const ref=romRef;await services.REAnalysisUI.openFile({name:native.name,size:native.bytes.length,arrayBuffer:async()=>native.bytes.slice().buffer});if(ref!==romRef)throw Error('The ROM changed while opening source.');services.REAnalysisUI.showWorkspace();return services.REAnalysisUI.viewRange({fileOffset:row.fileOffset,length:3,cpuAddress:row.pc,bankLabel:'Controlled native driver bank '+catalog.profile.bank,variant:'2a03'});}catch(error){status(error.message,true);return false;}}
+function liveMapper(){current();c.data.textContent=JSON.stringify({kind:'live-emulator-mapper-snapshot',frame:emu.frameCount,mapper:emu.mapper,PRG:{bank0Offset:emu.prgBank0,bank1Offset:emu.prgBank1,pages:emu.prgPage},CHR:{bank0Offset:emu.chrBank0,bank1Offset:emu.chrBank1,pages:emu.chrPages},MMC1:emu.mapper===1?{control:emu.mmc1Ctrl,prg:emu.mmc1Prg,chr0:emu.mmc1Chr0,chr1:emu.mmc1Chr1}:undefined,notice:'Current live mapping snapshot, not a history of bank changes and not the controlled native playback mapping.'},null,2);c.page.textContent='Live mapper snapshot at emulator frame '+emu.frameCount;}
+function mount(){
+ const style=make('style');style.textContent=`.native-audio-library-open #rightP{display:none!important}.native-audio-library-open .main{min-height:0;overflow:hidden}.native-audio-library-open #leftP{display:block;flex:1 1 auto;min-height:0;max-height:none!important;overflow:hidden}#nativeAudioLibrary{height:100%;box-sizing:border-box;width:100%;padding:clamp(14px,3vw,30px);color:#d8e8f5;background:radial-gradient(ellipse at top right,#18314855,transparent 60%),#0b111d;font:13px/1.55 system-ui,sans-serif;overflow:auto;min-height:0;text-align:left}#nativeAudioLibrary[hidden]{display:none!important}#nativeAudioLibrary *{box-sizing:border-box}#nativeAudioLibrary h2{font:600 clamp(23px,3vw,34px)/1.2 system-ui;margin:8px 0 12px;color:#f3f8ff;letter-spacing:-.7px}#nativeAudioLibrary h3{font:600 16px system-ui;color:#eef6ff;margin:0 0 14px}#nativeAudioLibrary button,#nativeAudioLibrary select,#nativeAudioLibrary input{font:inherit;min-height:42px;border:1px solid #30445d;border-radius:7px;background:#142238;color:#e9f6ff;padding:8px 11px;cursor:pointer;max-width:100%}#nativeAudioLibrary button:hover{border-color:#6be0ff;background:#1d334b}#nativeAudioLibrary button:disabled{opacity:.38;cursor:default}#nativeAudioLibrary .nal-primary{background:#69e5ec;color:#071c26;border-color:#69e5ec;font-weight:650}#nativeAudioLibrary .nal-kicker{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#6ce5e7}#nativeAudioLibrary p{color:#9fb3ca;margin:9px 0}#nativeAudioLibrary .nal-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}#nativeAudioLibrary .nal-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:23px 0}#nativeAudioLibrary .nal-metric{padding:13px;background:#142133aa;border:1px solid #293e56;border-radius:9px}#nativeAudioLibrary .nal-metric strong{display:block;font-size:27px;font-weight:550;color:#a0f4f0}#nativeAudioLibrary .nal-metric span{display:block;color:#9daec4;font-size:10px}#nativeAudioLibrary .nal-card{border:1px solid #293e56;border-radius:12px;padding:18px;background:#0e1929cc;margin:14px 0}#nativeAudioLibrary label{display:flex;flex-direction:column;gap:5px;color:#a6bad2;font-size:11px}#nativeAudioLibrary select{width:100%;font-size:12px}#nativeAudioLibrary pre{font:11px/1.65 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:440px;overflow:auto;color:#bed2e9;margin:12px 0;padding:12px;background:#080e19;border:1px solid #20334b;border-radius:7px}#nativeAudioLibrary #nativeAudioStatus{padding:11px 13px;border-left:3px solid #64dacf;background:#10283180;color:#b4ede5}#nativeAudioLibrary #nativeAudioStatus[data-state=error]{border-color:#ff8fa4;color:#ffbdca}#nativeAudioLibrary canvas{width:100%;height:auto;display:block;border:1px solid #253c55;border-radius:8px;cursor:crosshair}#nativeAudioLibrary canvas[hidden]{display:none}#nativeAudioLibrary .nal-subtle{font-size:11px;color:#8da2bc}@media(max-width:600px){#nativeAudioLibrary{padding:12px}#nativeAudioLibrary .nal-card{padding:12px}#nativeAudioLibrary .nal-metrics{gap:6px}#nativeAudioLibrary .nal-metric{padding:9px}#nativeAudioLibrary .nal-row>*{flex:1 1 130px}}`;document.head.appendChild(style);
+ const workspace=make('section','nativeAudioLibrary');workspace.setAttribute('aria-label','ROM Audio Library');workspace.hidden=true;document.getElementById('leftP').appendChild(workspace);
+ workspace.appendChild(make('div',null,'NES FORGE / REVERSE ENGINEERING')).className='nal-kicker';const title=make('h2','nativeAudioTitle','Your ROM. Its audio library.');workspace.appendChild(title);workspace.appendChild(make('p',null,'Browse the native audio structure, audition the original driver, and turn a verified selection into editable tracker data. Everything stays inside Forge.'));
+ const top=make('div');top.className='nal-row';workspace.appendChild(top);const choose=make('button','nativeAudioChoose','Open NES ROM…'),tracker=make('button','nativeAudioTracker','Tracker'),file=make('input','nativeAudioFile');file.type='file';file.accept='.nes,application/octet-stream';file.style.display='none';top.appendChild(choose);top.appendChild(tracker);top.appendChild(file);const metrics=make('div','nativeAudioMetrics');metrics.className='nal-metrics';workspace.appendChild(metrics);
+ const card=make('div');card.className='nal-card';workspace.appendChild(card);card.appendChild(make('h3',null,'Explore a native cue'));const cue=make('select','nativeAudioCue');cue.setAttribute('aria-label','Native audio cue');card.appendChild(cue);const fields=make('div');fields.className='nal-row';card.appendChild(fields);const frames=make('input','nativeAudioFrames');frames.type='number';frames.min='1';frames.max='1024';frames.value='256';const fl=make('label',null,'Native updates · 1–1024');fl.appendChild(frames);fields.appendChild(fl);const kind=make('select','nativeAudioKind');for(const [value,label]of [['music','Music excerpt'],['sfx','Single-channel SFX']]){const o=make('option',null,label);o.value=value;kind.appendChild(o);}kind.value='music';const kl=make('label',null,'Editable destination');kl.appendChild(kind);fields.appendChild(kl);
+ const actions=make('div');actions.className='nal-row';actions.style.marginTop='14px';card.appendChild(actions);const inspect=make('button','nativeAudioInspect','Inspect cue'),play=make('button','nativeAudioPlay','▶ Play native'),stopButton=make('button','nativeAudioStop','■ Stop'),preview=make('button','nativeAudioPreview','Preview editable score'),applyButton=make('button','nativeAudioApply','Import into tracker'),cancelButton=make('button','nativeAudioCancel','Cancel operation');applyButton.className='nal-primary';for(const b of [inspect,play,stopButton,preview,applyButton,cancelButton])actions.appendChild(b);
+ const statusEl=make('p','nativeAudioStatus');statusEl.setAttribute('role','status');workspace.appendChild(statusEl);const timeline=make('canvas','nativeAudioTimeline');timeline.width=1000;timeline.height=280;timeline.hidden=true;timeline.setAttribute('aria-label','Native APU channel volume timeline; click a native update to inspect values');workspace.appendChild(timeline);const timelineInfo=make('p','nativeAudioTimelineInfo');timelineInfo.className='nal-subtle';workspace.appendChild(timelineInfo);
+ const details=make('details','nativeAudioConversionDetails');details.open=true;details.appendChild(make('summary',null,'Selection and conversion details'));const summary=make('pre','nativeAudioSummary','Load a supported ROM to begin.');details.appendChild(summary);workspace.appendChild(details);
+ const dataCard=make('div');dataCard.className='nal-card';workspace.appendChild(dataCard);dataCard.appendChild(make('h3',null,'Recovered data & hardware evidence'));const tabs=make('div');tabs.className='nal-row';dataCard.appendChild(tabs);for(const [key,label]of [['overview','Overview'],['commands','Native commands'],['instruments','Envelopes'],['samples','DPCM'],['methods','Driver & banks'],['writes','APU writes']]){const b=make('button',null,label);b.addEventListener('click',()=>{view=key;page=0;showData();});tabs.appendChild(b);}const sourceButton=make('button','nativeAudioSource','View writer source'),mapper=make('button','nativeAudioMapper','Live mapper snapshot');tabs.appendChild(sourceButton);tabs.appendChild(mapper);const data=make('pre','nativeAudioData'),paging=make('div');paging.className='nal-row';const prev=make('button','nativeAudioPrev','← Previous'),pageText=make('span','nativeAudioPage'),next=make('button','nativeAudioNext','Next →');for(const e of [prev,pageText,next])paging.appendChild(e);dataCard.appendChild(data);dataCard.appendChild(paging);
+ const banner=make('p','nativeAudioBanner','Load a ROM to discover its audio catalog.'),openButton=make('button','nativeAudioOpen','ROM Audio Library');openButton.style.cssText='width:100%;min-height:42px;margin:7px 0;border:1px solid #4caaa9;background:#123037;color:#a3f4ef;font:inherit';const side=document.getElementById('sideAudio');side.insertBefore(banner,side.firstChild);side.insertBefore(openButton,side.firstChild);
+ c={workspace,title,metrics,cue,frames,kind,inspect,play,preview,apply:applyButton,cancel:cancelButton,status:statusEl,banner,summary,data,page:pageText,prev,next,source:sourceButton,timeline,timelineInfo};
+ choose.addEventListener('click',()=>file.click());file.addEventListener('change',()=>{const f=file.files?.[0];file.value='';void loadFile(f);});tracker.addEventListener('click',()=>setOpen(false));openButton.addEventListener('click',()=>setOpen(true));for(const e of [cue,frames,kind])e.addEventListener('change',invalidate);inspect.addEventListener('click',()=>void services.NativeAudioLibraryUI.inspect());play.addEventListener('click',()=>void services.NativeAudioLibraryUI.play());stopButton.addEventListener('click',stop);preview.addEventListener('click',()=>void services.NativeAudioLibraryUI.preview());applyButton.addEventListener('click',()=>void services.NativeAudioLibraryUI.apply());cancelButton.addEventListener('click',cancel);sourceButton.addEventListener('click',()=>void viewSource());mapper.addEventListener('click',()=>{try{liveMapper();}catch(e){status(e.message,true);}});prev.addEventListener('click',()=>{page--;showData();});next.addEventListener('click',()=>{page++;showData();});
+ timeline.addEventListener('click',event=>{if(!trace)return;const rect=timeline.getBoundingClientRect(),px=(event.clientX-rect.left)*timeline.width/rect.width,frame=Math.max(0,Math.min(trace.frames-1,Math.floor((px-86)/(timeline.width-102)*trace.frames)));c.data.textContent=JSON.stringify({kind:'controlled-native-update',...trace.schedule[frame],writes:trace.writes.filter(w=>w.frame===frame)},null,2);c.page.textContent='Native update '+frame+' of '+trace.frames;});for(const type of ['keydown','keyup'])workspace.addEventListener(type,e=>e.stopPropagation?.());
+ const originalSwitch=switchTab;switchTab=function(...args){const result=originalSwitch.apply(this,args);sync();return result;};controls();status('Load a ROM in EMULATOR or open one here. Supported revisions populate this library automatically.');
+}
+mount();services.NativeAudioLibraryUI=Object.freeze({loadFile,sourceLoaded,inspect,play,preview,apply,cancel,stop,open:setOpen,getState:()=>({busy,opened:open,sourceSha256:source?.sha256||null,profile:catalog?.profile?.id||null,status:catalog?.status||'empty',cues:catalog?.cues.length||0,hasStage:!!staged,hasTrace:!!trace,generation}),catalog:()=>catalog?cp(catalog):null});
+services.RERuntime.subscribe(()=>{if(emu.loaded&&emu.lastBuiltRom!==romRef)void sourceLoaded(emu.lastBuiltRom,emu.romName);});
 })();
 /* Explicit native music transcription into canonical Audio. Preview is isolated;
  * only the confirmed, still-current plan changes authoring data in one Undo. */

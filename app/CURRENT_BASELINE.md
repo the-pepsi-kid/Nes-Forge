@@ -1,3 +1,9 @@
+# Current candidate — Native Audio Library
+
+`native-audio-library-1`, alpha.11, schema 12. Parent application: `audio-driver-survey-1`, commit `2bdb4d728089d96ac43e50bf028e0c2907dc5d8c`. Known-revision catalogs, controlled native audition and finite editable conversion are connected to AUDIO. See `docs/NATIVE_AUDIO_LIBRARY.md` and root `CANDIDATE.json` for the measured final verification; work-in-progress checkpoints are not release evidence.
+
+## Preserved previous record
+
 # Audio Driver Survey working candidate
 
 Current branch: `implementation/audio-driver-survey-2026-10-18`; release **2.0.0-alpha.11 / audio-driver-survey-1**, schema 12. The application parent is `audio-tool-import-1` at `ffb57eab61d2e69ae0b92838c7b55748423b3140`, HTML SHA-256 `1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d`, with 1,872 cases across 97 suites. The branch also retains the subsequent documentation and DABG research checkpoints.

@@ -1,0 +1,127 @@
+{
+  "format": "NESForgeNativeAudioLibraryBrowserQA",
+  "version": 1,
+  "htmlSha256": "c3dd4d509cb0df3be1ce60404810ec6e4cc25d95d1edfbc1cda87964f4d2247e",
+  "started": "2026-10-19T02:56:27.171Z",
+  "checks": [
+    {
+      "name": "Zelda 2 - The Adventure of Link (U).nes \u2014 actual chooser automatically decodes the catalog without changing the project",
+      "passed": true
+    },
+    {
+      "name": "Zelda 2 - The Adventure of Link (U).nes \u2014 source commands and complete paginated records are inspectable",
+      "passed": true
+    },
+    {
+      "name": "Zelda 2 - The Adventure of Link (U).nes \u2014 native audition, APU timeline and physical source navigation work",
+      "passed": true
+    },
+    {
+      "name": "Zelda 2 - The Adventure of Link (U).nes \u2014 editable preview imports through one Undo and preserves unrelated project data",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes \u2014 actual chooser automatically decodes the catalog without changing the project",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes \u2014 source commands and complete paginated records are inspectable",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes \u2014 native audition, APU timeline and physical source navigation work",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes \u2014 editable preview imports through one Undo and preserves unrelated project data",
+      "passed": true
+    },
+    {
+      "name": "Imported notes can be edited, saved through a real download, reopened and compiled",
+      "passed": true
+    },
+    {
+      "name": "New Audio library controls remain within the narrow workspace",
+      "passed": true
+    },
+    {
+      "name": "Castlevania II - Simon's Quest (USA).nes \u2014 actual chooser automatically decodes the catalog without changing the project",
+      "passed": true
+    },
+    {
+      "name": "Castlevania II - Simon's Quest (USA).nes \u2014 source commands and complete paginated records are inspectable",
+      "passed": true
+    },
+    {
+      "name": "Castlevania II - Simon's Quest (USA).nes \u2014 native audition, APU timeline and physical source navigation work",
+      "passed": true
+    },
+    {
+      "name": "Castlevania II - Simon's Quest (USA).nes \u2014 editable preview imports through one Undo and preserves unrelated project data",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "cases": [
+    {
+      "file": "Zelda 2 - The Adventure of Link (U).nes",
+      "cues": 75,
+      "patternsAdded": 3,
+      "instrumentsAdded": 2,
+      "tempo": 150,
+      "speed": 1
+    },
+    {
+      "file": "Ninja Gaiden (USA).nes",
+      "cues": 85,
+      "patternsAdded": 2,
+      "instrumentsAdded": 4,
+      "tempo": 150,
+      "speed": 1
+    },
+    {
+      "file": "Castlevania II - Simon's Quest (USA).nes",
+      "cues": 58,
+      "patternsAdded": 3,
+      "instrumentsAdded": 6,
+      "tempo": 150,
+      "speed": 1
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "native-audio-library-desktop.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1100
+      },
+      "visualReview": "Reviewed: readable controls, catalog counts and APU timeline; focused desktop and full-height phone library. Existing global toolbar clipping is outside this component change."
+    },
+    {
+      "file": "native-audio-library-phone.png",
+      "viewport": {
+        "width": 430,
+        "height": 950
+      },
+      "visualReview": "Reviewed: readable controls, catalog counts and APU timeline; focused desktop and full-height phone library. Existing global toolbar clipping is outside this component change."
+    }
+  ],
+  "limits": [
+    "Headless Chromium and phone viewport do not prove physical-device operation or hardware/listening equivalence.",
+    "Native audition is controlled subroutine execution, not natural gameplay. Editable conversion is a finite frame-end adaptation, not exact native synthesis.",
+    "Source ROMs and native PCM are never saved in this report."
+  ],
+  "browser": "153.0.8010.0",
+  "persistedEdit": {
+    "noteBefore": 62,
+    "noteAfter": 59,
+    "patterns": 3,
+    "instruments": 4,
+    "generatedRomBytes": 24592,
+    "portableDownloadSha256": "ac6213623edded4a07f7b30cfef96d4f75b541b30b141c6d80fdd3a35e9e52bd"
+  },
+  "status": "passed",
+  "finished": "2026-10-19T02:56:40.675Z",
+  "passed": 14,
+  "failed": 0
+}

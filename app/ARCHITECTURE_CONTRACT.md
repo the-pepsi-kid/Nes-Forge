@@ -1,3 +1,13 @@
+# Current contract — Native Audio Library
+
+Schema 12 and canonical Audio remain unchanged. Native catalog profiles use the existing REMethods registry. Source interpretation remains separate from explicitly requested, bounded native-subroutine execution in isolated state. The latter uses the same shared 6502 instruction implementation and existing ForgeAPU class as live emulation; fixed-bank and restricted-bus limits refuse unsupported behavior. No new compiler or live emulator algorithm is introduced.
+
+Native playback is controlled source behavior, not natural gameplay. Canonical conversion is explicitly a finite frame-end adaptation with reported tuning, articulation, DPCM and short-noise losses. RENativeAudioImport retains detached staging, source/project revalidation and cancellation; ProjectStore.applyAudioImport remains the sole one-Undo mutation owner. No parallel registry, project lifecycle, Audio persistence schema or recovered scene/collision store is introduced.
+
+The exact source/test delta reconstructs audio-driver-survey-1 and all 99 retained suites, with the extracted shared opcode implementation checked against its original bytes. New ROM/catalog observations do not renew historical expectations.
+
+## Preserved previous record
+
 # Current contract — Audio Driver Survey
 
 Candidate `audio-driver-survey-1`, release alpha.11, schema 12. `RERuntime` retains sole ownership of bounded runtime observations. The new explicit audio mode omits PPU evidence while preserving original emulator execution, APU events, RAM watches and existing collection limits. Default all-write tracing remains compatible.

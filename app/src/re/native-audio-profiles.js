@@ -1,0 +1,13 @@
+/* Installed catalog methods live in the existing recovery registry. Recognition
+ * declares a known revision only; decode still interprets current physical bytes. */
+(()=>{
+'use strict';
+const services=window.Forge.services;
+for(const profile of services.NativeAudioCatalog.profiles){
+ const span={start:16+profile.bank*16384,length:16384},evidence=status=>[{status,claim:status==='decoded'?'Native audio tables and commands decoded from the verified current source.':'SHA-256 identifies this investigated ROM revision; it does not establish another title or revision.',ranges:[span]}];
+ services.REMethods.registerProfile({id:'native-audio.'+profile.id,version:1,contractVersion:2,name:profile.title+' · known revision audio catalog',domains:['audio','code'],limits:{maxSourceBytes:262160,maxWork:4*1024*1024},limitations:['Exact investigated revision only. Full engine-family recognition is not implemented.','Cue IDs and structural candidates are not verified song names. Canonical transcription has separate fidelity limits.','No native encoder or ROM rebuild is implied by catalog decoding.'],operations:{inspect:{label:'Identify investigated audio revision',effect:'read-only'},decode:{label:'Decode native audio catalog',effect:'read-only'}},
+  probe:(_analysis,ctx)=>({status:ctx.source.sha256===profile.sha256?'supported':'unknown',reason:ctx.source.sha256===profile.sha256?'Matches the investigated revision; its decoded catalog is available in AUDIO / ROM Audio Library.':'This profile does not identify the current revision.',evidence:ctx.source.sha256===profile.sha256?evidence('observed'):[]}),
+  handlers:{inspect:(_analysis,_input,ctx)=>({status:'supported',reason:'Known revision identified; audio tables have not been decoded by this operation.',evidence:evidence('observed'),data:{profile}}),decode:async(_analysis,_input,ctx)=>{const bytes=new Uint8Array(ctx.source.byteLength);for(let offset=0;offset<bytes.length;offset+=65536){const n=Math.min(65536,bytes.length-offset);bytes.set(ctx.read(offset,n).bytes,offset);await ctx.checkpoint();}const catalog=await services.NativeAudioCatalog.inspect(bytes);if(catalog.status!=='decoded'||catalog.profile.id!==profile.id)throw Error('Current bytes no longer decode as the selected profile.');return {status:'supported',reason:'Native audio catalog decoded from physical source bytes.',evidence:evidence('decoded'),data:catalog};}}
+ });
+}
+})();

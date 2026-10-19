@@ -1,3 +1,11 @@
+# Current progress — Native Audio Library
+
+Supported-ROM audio catalogs, controlled native playback, source/bank and APU activity views, and finite guarded editable transcription are now integrated into AUDIO. The shared CPU core, independent native decoding and existing project transaction form a reusable foundation for later recovery work.
+
+Still open: broader revision/driver-family recognition, verified names/gameplay triggers, original instrument reconstruction, complete loop/sub-frame canonical fidelity, editable DPCM/short-noise support, the unresolved Castlevania II effect edge, and independent listening/hardware acceptance. Native collision, scene and animation recovery remain separate next work; no audio milestone completes them implicitly.
+
+## Preserved previous record
+
 # Current priority — audio drivers and catalogs
 
 `audio-driver-survey-1` adds audio-focused Runtime Investigation and a bank-aware report of executed APU writer sites. It supports investigation across the existing emulator mappings without declaring engine recognition or complete library recovery. See `docs/AUDIO_DRIVER_SURVEY.md`.
