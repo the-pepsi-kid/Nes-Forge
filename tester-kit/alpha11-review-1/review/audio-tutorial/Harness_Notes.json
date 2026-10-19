@@ -1,0 +1,18 @@
+{
+  "format": "NESForgeAudioTutorialHarnessNotes",
+  "scope": "Harness development only; neither failed attempt demonstrated an application or tutorial failure.",
+  "attempts": [
+    {
+      "started": "2026-10-19T00:25:16.230Z",
+      "failedCheck": "Save Project As performs a real download and Open Project reopens the editable score",
+      "reason": "Download helper was called with an extra page argument.",
+      "correction": "Pass only the Locator and filename required by the helper."
+    },
+    {
+      "started": "2026-10-19T00:25:38.147Z",
+      "failedCheck": "Visible Build & Run builds and loads the current music-enabled mapper-0 viewer",
+      "reason": "Harness checked nonexistent emu.rom instead of the emulator loaded flag.",
+      "correction": "Check emu.loaded and compare emu.lastBuiltRom byte-for-byte with the build artifact."
+    }
+  ]
+}

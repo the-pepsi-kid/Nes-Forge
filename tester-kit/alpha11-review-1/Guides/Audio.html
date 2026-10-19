@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Audio: compose, arrange,
+import, and build · NES Forge alpha.11</title><link rel="stylesheet" href="../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../START_HERE.html">Start here</a><a href="../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../Guide.html">User guide</a><a href="../Tutorial.html">Tutorial</a><a href="../Manual.html">Manual</a><a href="../Reference/Operator_Reference.html">Controls</a><a href="../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#audio-compose-arrange-import-and-build">Audio: compose, arrange,
+import, and build</a><a class="level2" href="#make-your-first-four-note-melody">Make your first four-note
+melody</a><a class="level2" href="#what-the-audio-controls-do">What the AUDIO controls do</a><a class="level2" href="#add-a-named-sound-effect">Add a named sound effect</a><a class="level2" href="#built-in-audio-workshop-examples">Built-in audio workshop
+examples</a><a class="level2" href="#bring-in-a-score-from-another-tool">Bring in a score from
+another tool</a><a class="level2" href="#export-and-keep-the-right-files">Export and keep the right
+files</a><a class="level2" href="#preview-rom-playback-and-practical-limits">Preview, ROM
+playback, and practical limits</a><a class="level2" href="#if-something-does-not-work">If something does not work</a><a class="level2" href="#source-audit">Source audit</a></aside><main id="guide"><h1 id="audio-compose-arrange-import-and-build">Audio: compose, arrange,
+import, and build</h1>
+<p><strong>Current guide · NES Forge 2.0.0-alpha.11 /
+audio-tool-import-1 · project schema 12</strong></p>
+<p>You can create music and sound effects in <strong>AUDIO</strong>
+without importing a song or building a ROM. The tracker, instruments,
+and sound effects belong to the normal Forge project. <strong>Save
+Project As…</strong> saves that complete editable project.</p>
+<p>A dedicated <strong>New Sound Project</strong> command, separate
+audio-only project format, and named multi-song library are not
+available yet. The current project has one music order and one global
+Tempo/Speed pair. Importing a selected FamiStudio song puts it into this
+same editor; it does not open FamiStudio inside Forge.</p>
+<p>Use this guide for authoring and score interchange. Native-ROM
+investigation and transcription have separate <a
+href="../Reference/Current_Release_Docs/NATIVE_AUDIO_IMPORT.html">native
+music</a> and <a
+href="../Reference/Current_Release_Docs/NATIVE_SFX_IMPORT.html">native
+SFX</a> references. Their source investigation state is different from
+the editable score saved in your Forge project.</p>
+<h2 id="make-your-first-four-note-melody">Make your first four-note
+melody</h2>
+<p>This exercise starts with an empty project, writes four notes, saves
+and reopens them, and makes a simple ROM that plays the music. You do
+not need character artwork or a Player entity.</p>
+<h3 id="1-start-and-set-the-pattern-length">1. Start and set the pattern
+length</h3>
+<ol type="1">
+<li>Open <a href="../NES_Forge.html">NES Forge</a>. If the workspace
+contains work you want to keep, use <strong>Save Project As…</strong>
+first.</li>
+<li>Click <strong>New Project</strong> and confirm. The scene should be
+<strong>My First Room</strong> and the project <strong>My First NES
+Game</strong>.</li>
+<li>Open <strong>AUDIO</strong>. Set <strong>Rows</strong> to
+<strong>16</strong>, <strong>Tempo</strong> to <strong>150</strong>, and
+<strong>Speed</strong> to <strong>6</strong>. Press Tab after each
+number to commit it.</li>
+<li>Leave <strong>Compile Audio Runtime</strong> off for now. Browser
+preview works with it off.</li>
+</ol>
+<p><strong>Checkpoint:</strong> The tracker has rows
+<strong>000–015</strong> and the instrument list is empty. Set Rows
+before writing notes: reducing it later removes rows beyond the new
+length from every pattern. Undo can restore a mistaken reduction.</p>
+<h3 id="2-make-an-instrument">2. Make an instrument</h3>
+<ol type="1">
+<li>Click <strong>+ Add Instrument</strong>.</li>
+<li>In <strong>Instrument Editor</strong>, change <strong>Name</strong>
+to <strong>Melody</strong> and leave <strong>Duty</strong> at
+<strong>50%</strong>.</li>
+<li>Leave the two envelopes as created for this first pass.</li>
+</ol>
+<p>The default volume envelope falls from 15 to 0. Each entered note
+will therefore sound like a short pluck, with silence between widely
+spaced notes. Instrument <strong>00 Melody</strong> should be
+selected.</p>
+<h3 id="3-enter-the-notes">3. Enter the notes</h3>
+<p>Click the indicated cell in <strong>Pulse 1</strong>, then press the
+indicated key. Select each row explicitly: entering a note does
+<strong>not</strong> move to the next row.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Tracker row</th>
+<th>Key</th>
+<th>Expected note</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>000</td>
+<td>Q</td>
+<td>C-4</td>
+</tr>
+<tr class="even">
+<td>004</td>
+<td>W</td>
+<td>D-4</td>
+</tr>
+<tr class="odd">
+<td>008</td>
+<td>E</td>
+<td>E-4</td>
+</tr>
+<tr class="even">
+<td>012</td>
+<td>T</td>
+<td>G-4</td>
+</tr>
+<tr class="odd">
+<td>015</td>
+<td>Backspace</td>
+<td><code>===</code> — an explicit cut</td>
+</tr>
+</tbody>
+</table></div>
+<p>The number at the left of each tracker cell is
+<strong>decimal</strong>: row twelve displays <strong>012</strong>.
+Instrument and pattern identifiers elsewhere in AUDIO use hexadecimal,
+so instrument <strong>00</strong> is the first instrument. The four
+unused channels should remain empty; the fifth column is the
+unimplemented DPCM placeholder.</p>
+<p><strong>Checkpoint:</strong> Pulse 1 shows C-4, D-4, E-4, and G-4
+with instrument <strong>00</strong>. Click the tracker again if typing
+changes a text field instead of entering notes.</p>
+<h3 id="4-listen-and-make-an-edit">4. Listen and make an edit</h3>
+<ol type="1">
+<li>Click <strong>Play</strong> in <strong>Transport</strong>. Playback
+starts at the first order row and row 0, then repeats the order.</li>
+<li>Listen for four ascending notes. Click <strong>Stop</strong>.</li>
+<li>Click Pulse 1 row <strong>004</strong>, press <strong>E</strong>,
+and play again. The second note is now E-4.</li>
+<li>Click <strong>Stop</strong>, then <strong>Undo</strong> once to
+restore D-4. The tracker should show the original four-note phrase.</li>
+</ol>
+<p><strong>Checkpoint:</strong> Play and Stop control the browser
+preview. A brief sound when you enter a note is only a note audition. It
+is not a full song playback or a ROM test.</p>
+<h3 id="5-save-and-reopen-the-editable-music">5. Save and reopen the
+editable music</h3>
+<ol type="1">
+<li>Click <strong>Save Project As…</strong> and use a name such as
+<strong>My_First_Forge_Melody.json</strong>.</li>
+<li>Finish the Save As dialog with <strong>Choose location &amp;
+save…</strong>, or use its explicit browser-download option when a
+location picker is unavailable. Keep the resulting file somewhere you
+can find again in Windows.</li>
+<li>Click <strong>Open Project</strong>, choose that saved JSON, and
+return to <strong>AUDIO</strong>.</li>
+<li>Check the four notes, <strong>Melody</strong> instrument, Rows 16,
+Tempo 150, and Speed 6. Click <strong>Play</strong> again.</li>
+</ol>
+<p><strong>Checkpoint:</strong> Your notes and instrument reopen as
+editable data. <strong>Save / Load</strong> use browser storage; they
+are useful conveniences but do not create this portable file. MIDI or
+MusicXML export is not a substitute for it.</p>
+<h3 id="6-make-a-music-playing-rom">6. Make a music-playing ROM</h3>
+<p>Fresh <strong>New Project</strong> uses <strong>Single-room
+platformer</strong> settings even though it has no Player. Change that
+build mode for this simple music-only exercise:</p>
+<ol type="1">
+<li>Open <strong>SCENE</strong>, expand <strong>Gameplay</strong>, and
+set <strong>ROM mode</strong> to <strong>Scene viewer / custom
+assembly</strong>.</li>
+<li>Open <strong>CODE</strong> and confirm that the assembly editor is
+empty. This exercise uses the generated viewer, not authored custom
+assembly.</li>
+<li>Return to <strong>AUDIO → NES Runtime</strong>. Enable
+<strong>Compile Audio Runtime</strong>, then enable <strong>Autoplay
+tracker order as music</strong>.</li>
+<li>Click the top-level <strong>Build &amp; Run</strong>. This builds
+the current project and opens the resulting ROM in
+<strong>EMULATOR</strong>.</li>
+<li>Expect a blank visual scene accompanied by the music. You have not
+drawn a game screen in this exercise. Use the emulator's playback/audio
+controls if it is paused or muted.</li>
+<li>Use <strong>Build .NES ROM</strong> when you want the downloadable
+<code>.nes</code> output. Save the Forge project again to keep your
+runtime and build-mode choices.</li>
+</ol>
+<p><strong>Checkpoint:</strong> The generated ROM plays the authored
+melody. The <code>.nes</code> file is an output for playing and testing;
+retain your JSON for editing. Browser preview and compiled NES playback
+are different implementations, so compare both after significant sound
+changes.</p>
+<h2 id="what-the-audio-controls-do">What the AUDIO controls do</h2>
+<h3 id="tracker-transport-and-timing">Tracker, transport, and
+timing</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control or display</th>
+<th>Purpose and use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Pulse 1 / Pulse 2</strong></td>
+<td>Two independent pitched voices with selectable pulse duty. Use
+separate notes and patterns for melody and accompaniment.</td>
+</tr>
+<tr class="even">
+<td><strong>Triangle</strong></td>
+<td>A pitched triangle voice, commonly useful for bass. The generated
+hardware channel does not have the same amplitude behavior as a pulse
+voice.</td>
+</tr>
+<tr class="odd">
+<td><strong>Noise</strong></td>
+<td>A percussion/noise voice. Its note values select noise behavior;
+they are not another normally tuned melodic voice.</td>
+</tr>
+<tr class="even">
+<td><strong>DPCM (not implemented)</strong></td>
+<td>A visible placeholder. Note entry reports that sample playback is
+unavailable. It is not a sample importer.</td>
+</tr>
+<tr class="odd">
+<td>Highlighted tracker cell</td>
+<td>The row and channel that receive keyboard notes. Each channel
+displays the pattern selected for it in the current order row.</td>
+</tr>
+<tr class="even">
+<td><code>---</code></td>
+<td>No note event in that cell. It does not itself stop a previously
+sounding note.</td>
+</tr>
+<tr class="odd">
+<td><code>===</code></td>
+<td>Explicitly cuts the channel at that row.</td>
+</tr>
+<tr class="even">
+<td>Instrument number / <code>..</code></td>
+<td>The hexadecimal instrument index stored with the note, or no
+explicit instrument. Choose the desired instrument before entering a new
+note. Selecting an instrument alone does not reassign existing
+notes.</td>
+</tr>
+<tr class="odd">
+<td><strong>Play</strong></td>
+<td>Starts browser preview at order 0, row 0. The whole order repeats.
+It does not resume from the selected cell.</td>
+</tr>
+<tr class="even">
+<td><strong>Stop</strong></td>
+<td>Stops browser preview and silences its channels.</td>
+</tr>
+<tr class="odd">
+<td><strong>Row / Ord</strong></td>
+<td>Current preview row and order position.</td>
+</tr>
+<tr class="even">
+<td><strong>Tempo</strong></td>
+<td>Global tempo, 30–300. Higher values make ticks faster.</td>
+</tr>
+<tr class="odd">
+<td><strong>Speed</strong></td>
+<td>Global ticks per row, 1–15. Larger values make rows last longer at
+the same tempo.</td>
+</tr>
+<tr class="even">
+<td><strong>Rows</strong></td>
+<td>Global pattern length, 16–128. Changing it resizes every pattern.
+Increasing adds empty rows; decreasing discards later rows. Check SFX
+ranges after changing it.</td>
+</tr>
+</tbody>
+</table></div>
+<p>At Tempo 150 and Speed 6, a row lasts 0.1 seconds in the logical
+tracker schedule. Tempo 150 and Speed 1 means one row per NTSC video
+frame for the frame-based import profiles. There is no separate tempo
+per pattern or per named SFX.</p>
+<p>The visible tracker edits notes and their selected instrument.
+Imported data can also contain supported per-cell volume values. There
+is no separate visible volume/effect-column editor in this candidate.
+Runtime effect commands and DPCM are unsupported; the build reports
+unsupported executable data rather than silently treating it as working
+audio.</p>
+<h3 id="keyboard-and-touch-input">Keyboard and touch input</h3>
+<p>Click or tap a tracker cell first. Text and number fields keep their
+normal keyboard behavior.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Keys</th>
+<th>Notes or action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Z, S, X, D, C, V, G, B, H, N, J, M</td>
+<td>C3, C#3, D3, D#3, E3, F3, F#3, G3, G#3, A3, A#3, B3</td>
+</tr>
+<tr class="even">
+<td>Q, 2, W, 3, E, R, 5, T, 6, Y, 7, U</td>
+<td>C4, C#4, D4, D#4, E4, F4, F#4, G4, G#4, A4, A#4, B4</td>
+</tr>
+<tr class="odd">
+<td>Up / Down</td>
+<td>Select the previous or next row.</td>
+</tr>
+<tr class="even">
+<td>Left / Right</td>
+<td>Select the previous or next channel.</td>
+</tr>
+<tr class="odd">
+<td>Delete</td>
+<td>Clear the selected note event to <code>---</code>. This differs from
+a cut.</td>
+</tr>
+<tr class="even">
+<td>Backspace</td>
+<td>Enter an explicit <code>===</code> cut.</td>
+</tr>
+<tr class="odd">
+<td>Space</td>
+<td>Start or stop browser preview while AUDIO has keyboard focus.</td>
+</tr>
+<tr class="even">
+<td>Ctrl+Z / Ctrl+Shift+Z or Ctrl+Y</td>
+<td>Undo / Redo on Windows.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The current PC piano mapping covers C3–B4. Imported/project note data
+can cover the wider supported C0–B7 range; there is no visible
+octave-shift control in this keyboard workflow.</p>
+<p>On a phone or tablet, tap a cell to request the native text keyboard,
+then use the same letters. <strong>Done / Enter</strong> closes that
+keyboard. Entry stays in the selected cell. The tracker can scroll
+horizontally to the other channels and vertically to later rows.
+Playback does not force it to follow the current row. Scroll the
+workspace to reach the controls beneath it.</p>
+<p>Paste is not a multi-note entry method. If your keyboard does not
+appear, try a direct tap on the cell and note the device/browser in
+feedback. Physical-device keyboard and audio behavior still need
+device-specific review.</p>
+<h3 id="instruments-and-envelopes">Instruments and envelopes</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose and result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>+ Add Instrument</strong></td>
+<td>Creates and selects a new instrument. Its initial volume envelope
+decays to silence, its duty is 50%, and its arpeggio steps are
+zero.</td>
+</tr>
+<tr class="even">
+<td>Instrument list</td>
+<td>Selects the instrument to edit and to assign when entering notes.
+Existing notes keep their stored instrument index.</td>
+</tr>
+<tr class="odd">
+<td><strong>Name</strong></td>
+<td>Labels the instrument; up to 80 characters.</td>
+</tr>
+<tr class="even">
+<td><strong>Duty</strong></td>
+<td>Selects 12.5%, 25%, 50%, or 75% pulse duty. This affects pulse
+timbre, not the triangle/noise waveform.</td>
+</tr>
+<tr class="odd">
+<td><strong>Volume Envelope</strong></td>
+<td>Paints the selected instrument's existing amplitude steps, 0–15.
+Time runs left to right; the top is louder.</td>
+</tr>
+<tr class="even">
+<td><strong>Arpeggio Envelope</strong></td>
+<td>Paints existing pitch-offset steps from −12 to +12 semitones. Zero
+retains the base note, +12 is one octave higher, and −12 is one octave
+lower.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Click or drag on an envelope with the mouse, touch, or pen. A
+touch/pen stroke is one undoable edit when it changes values. Scroll
+beside the canvas rather than dragging over it when you want to move the
+panel. A cancelled gesture stops further painting; points already
+painted remain Undo-able.</p>
+<p>Envelope steps advance on tracker ticks. A nonlooping volume envelope
+becomes silent after its last step. Imported instruments can retain
+supported loop metadata, but the current sidebar does
+<strong>not</strong> provide loop-point, envelope-length,
+pitch-envelope, or instrument-delete controls. Painting changes the
+existing points. Do not look for an Apply button or assume that drawing
+to the right adds more points.</p>
+<h3 id="pattern-order-reuse-and-variation">Pattern Order: reuse and
+variation</h3>
+<p>One order row chooses a pattern for each channel. A pattern is stored
+data, while an order entry is a reference to that data. Reusing a
+pattern means later edits affect every order entry that references that
+same pattern/channel.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose and result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Order row outside its buttons</td>
+<td>Selects that order row and returns the tracker selection to row
+0.</td>
+</tr>
+<tr class="even">
+<td>Channel's pattern button</td>
+<td>Opens a prompt for a pattern index from 0–255. Enter a decimal
+integer; a new index creates a blank pattern. The displayed button
+labels are hexadecimal.</td>
+</tr>
+<tr class="odd">
+<td><strong>+ Add Order Row</strong></td>
+<td>Appends a copy of the last order's pattern references and selects
+it. The new row initially repeats existing material; it does not
+duplicate the pattern's notes into independent data.</td>
+</tr>
+</tbody>
+</table></div>
+<p>To repeat the first exercise's phrase, click <strong>+ Add Order
+Row</strong>. Both Pulse 1 buttons initially refer to pattern 0. To make
+the second phrase different, click its Pulse 1 pattern button and enter
+<strong>1</strong> in the fresh project, then write notes in the newly
+blank Pulse 1 pattern. The other channels can keep referencing pattern
+0. Play starts from the first order and visits both phrases.</p>
+<p>The current sidebar has no order-delete, reorder, pattern-duplicate,
+or named-song controls. Use Undo immediately after an unwanted addition.
+Save a checkpoint before restructuring a longer arrangement.</p>
+<h2 id="add-a-named-sound-effect">Add a named sound effect</h2>
+<p>A named SFX points to a row range in one channel of one tracker
+pattern. It does not contain another independent sound recording.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose and result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>+ Add SFX</strong></td>
+<td>Creates a named definition with a generated stable ID.</td>
+</tr>
+<tr class="even">
+<td>SFX list</td>
+<td>Selects the definition to edit.</td>
+</tr>
+<tr class="odd">
+<td><strong>Name</strong></td>
+<td>Human-readable name, up to 80 characters.</td>
+</tr>
+<tr class="even">
+<td><strong>ID</strong></td>
+<td>Read-only stable reference for an animation <code>sound</code>
+event. Prefer this when names might be duplicated or renamed.</td>
+</tr>
+<tr class="odd">
+<td><strong>Channel</strong></td>
+<td>Pulse 1, Pulse 2, Triangle, or Noise. Only this pattern channel
+plays for the SFX.</td>
+</tr>
+<tr class="even">
+<td><strong>Pattern</strong></td>
+<td>Decimal pattern index, 0–255. That pattern must exist.</td>
+</tr>
+<tr class="odd">
+<td><strong>Start row / End row</strong></td>
+<td>Inclusive row range. Both must fit the current Rows value; End must
+not precede Start.</td>
+</tr>
+<tr class="even">
+<td><strong>Delete SFX</strong></td>
+<td>Removes the definition. It does not erase its pattern. Check
+animation events that referenced the deleted ID; unresolved references
+will prevent the relevant build.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="make-and-trigger-a-short-effect">Make and trigger a short
+effect</h3>
+<p>Use a copy of the four-note project before adding the arrangement
+variation above, so pattern 1 is still unused:</p>
+<ol type="1">
+<li>In order 0, click the Pulse 1 pattern button and enter
+<strong>1</strong> to create a blank pattern.</li>
+<li>Enter <strong>Z</strong> at row 000, <strong>X</strong> at row 002,
+<strong>C</strong> at row 004, and <strong>Backspace</strong> at row
+006. Click <strong>Play</strong> to audition the pattern and then
+<strong>Stop</strong>.</li>
+<li>Set the order's Pulse 1 pattern button back to <strong>0</strong>.
+Pattern 1 remains stored but is no longer the background music.</li>
+<li>Click <strong>+ Add SFX</strong>. Set <strong>Name: Rising
+beep</strong>, <strong>Channel: Pulse 1</strong>, <strong>Pattern:
+1</strong>, <strong>Start row: 0</strong>, and <strong>End row:
+7</strong>. Keep the generated ID.</li>
+<li>Save the project. To use this effect in a game, open the desired
+animation in <strong>ANIM</strong>, select the frame where it should
+begin, choose <strong>sound</strong> in <strong>Frame-entry
+events</strong>, and click <strong>+ Event</strong>. Put the SFX ID in
+the event's <strong>Value</strong> field. A unique SFX name also
+resolves, but the ID survives renaming.</li>
+<li>Bind that animation to a supported playable runtime through your
+game workflow. Enable <strong>Compile Audio Runtime</strong> and build.
+Trigger the animation in the running game to test the effect.</li>
+</ol>
+<p><strong>Checkpoint:</strong> The animation's frame entry starts the
+effect once in a supported generated playable runtime. <strong>ENTITY
+STUDIO</strong> logs frame-entry markers during preview; its log is not
+an SFX playback test. The simple scene-viewer ROM from the melody
+exercise has no animation executor, so it will not trigger the
+event.</p>
+<p>Generated playback supports one SFX at a time. It temporarily takes
+over its selected hardware channel, then restores that channel's music
+state. Another SFX request while one is active is ignored. A frame may
+request at most one <code>sound</code> event. Single-room player/target
+animations and World player animations have the documented sound-event
+execution path; arbitrary markers do not automatically create gameplay
+behavior.</p>
+<p>There is no dedicated <strong>Play SFX</strong> button. You can
+audition its notes by temporarily selecting its pattern in the music
+order as above, then restore the music order. That auditions the
+pattern; the actual SFX range and trigger still need a generated-game
+test.</p>
+<h2 id="built-in-audio-workshop-examples">Built-in audio workshop
+examples</h2>
+<p>Expand <strong>Audio workshop examples</strong>, choose
+<strong>Four-note melody</strong> or <strong>Four NES channels</strong>,
+and click <strong>Add example to this project</strong>.</p>
+<p>The first example supplies C4, D4, E4, and G4 on Pulse 1. The second
+supplies notes on Pulse 1, Pulse 2, Triangle, then Noise so you can
+compare the voices. Both add ordinary editable patterns and instruments,
+replace the music order and timing, and retain existing patterns and
+SFX. They do not change the runtime switches. Confirm the replacement
+deliberately; one Undo restores the previous song.</p>
+<p>Use <strong>Play</strong>, change one note, paint an envelope,
+save/reopen, and then build the ROM. The examples teach the same editor
+you use for your own work; there is no separate example-only sound
+engine.</p>
+<h2 id="bring-in-a-score-from-another-tool">Bring in a score from
+another tool</h2>
+<p>Save the current project before importing. All three score-import
+routes append patterns and instruments and replace the music order and
+global tempo/speed. Existing SFX records remain, but their timing
+follows the new global settings. Review those effects again after an
+import.</p>
+<h3 id="famistudio-text">FamiStudio text</h3>
+<ol type="1">
+<li>Obtain a UTF-8 text project export from FamiStudio 4.5.x. A native
+<code>.fms</code> project is not accepted by this route.</li>
+<li>In <strong>AUDIO → FamiStudio text import</strong>, choose
+<strong>Import FamiStudio…</strong> and select the <code>.txt</code>
+file.</li>
+<li>Choose the song in the song selector and click <strong>Preview
+selected song</strong>.</li>
+<li>Read the conversion preview: note count, new patterns/instruments,
+timing, silent padding, converted content, omitted metadata, warnings,
+and Audio data estimate.</li>
+<li>Click <strong>Import selected song</strong> and confirm only when
+those changes are suitable. Cancel leaves the project unchanged. A
+successful import is one Undo step.</li>
+<li>Play and inspect the resulting score. Use <strong>Save Project
+As…</strong> for the editable result. Use <strong>Download source +
+report</strong> separately if you want to retain the original text and
+conversion evidence.</li>
+</ol>
+<p>The supported first profile is NTSC base 2A03, with Pulse 1, Pulse 2,
+Triangle, and Noise. It supports a bounded set of note/cut data,
+constant duty, and volume envelopes. Constant FamiStudio groove converts
+to Tempo 150 / Speed 1; supported fixed FamiTracker tempo mode retains
+its corresponding tempo and speed. This is FamiStudio's tempo mode, not
+a FamiTracker text-file importer.</p>
+<p>Unsupported versions, PAL/custom tuning, expansion audio, DPCM,
+variable grooves, nonzero loop starts, dynamic effects, slides,
+releases, legato, changing duty, and nonzero pitch/arpeggio envelopes
+are refused. Dynamic volume envelopes require Tempo 150; some
+volume/envelope combinations also cannot be represented. The error
+identifies the unsupported field and source line where available.
+Unselected songs and unreferenced patterns are not converted. This
+profile does not emulate or embed FamiStudio's driver.</p>
+<p>The UI file limit is 1 MiB. Existing plus imported data must fit 256
+patterns, 255 instruments, and 255 order entries. The active project's
+Rows setting determines output grouping and padding. A byte estimate is
+not a guarantee that the complete game will fit in ROM.</p>
+<p>If you change the selected source/song or edit/open the project after
+previewing, preview again before importing. <strong>Download source +
+report</strong> produces a JSON receipt with original text, SHA-256
+identity, selected song, and historical conversion report. It is
+available after a successful preview or import. The source is not
+embedded in the Forge project, and the receipt is not an editable
+project backup or proof that later edits still match the import.</p>
+<h3 id="midi-and-musicxml">MIDI and MusicXML</h3>
+<ol type="1">
+<li>Choose <strong>Import MIDI</strong> or <strong>Import
+MusicXML</strong> under <strong>Import Score Data</strong>.</li>
+<li>Select the file and read the confirmation. These routes do not use
+the FamiStudio song-preview panel.</li>
+<li>Confirm, then read the import status/warnings, inspect the channels,
+and play the result.</li>
+<li>Undo if the conversion is unsuitable; otherwise save a new project
+checkpoint.</li>
+</ol>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Input</th>
+<th>Supported scope and important limits</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MIDI <code>.mid</code> / <code>.midi</code></td>
+<td>Standard MIDI format 0 or 1 with pulses-per-quarter timing. Imports
+note pitch/duration/velocity and uses track/program information for
+instrument labels. MIDI channel 10 maps to Noise. Format 2 and SMPTE
+timing are refused.</td>
+</tr>
+<tr class="even">
+<td>MusicXML <code>.musicxml</code> / <code>.xml</code></td>
+<td>Uncompressed <code>score-partwise</code> data with supported
+divisions, note/rest/chord durations, and backup/forward timing.
+Compressed <code>.mxl</code>, DTD/entity declarations, and sheet-music
+images are not supported.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Generic imports quantize notes to sixteenth-note rows with Speed 6,
+allocate at most three simultaneous pitched voices plus Noise, and
+flatten later tempo changes to the initial tempo with a warning. Too
+many simultaneous pitched notes or overlapping noise voices are refused.
+Import does not recreate the external synthesizer's instruments or sound
+effects. Each route has a bounded approximately 4 MB input limit.</p>
+<p>Forge's own MIDI/MusicXML exports include timing/channel hints for a
+more faithful score reimport. Those hints preserve supported note
+sequence, channel identity, cuts, note-start volume, and timing; they do
+not store native instruments. If an external editor removes the hints,
+the ordinary generic-import behavior applies. See <a
+href="../Reference/Current_Release_Docs/AUDIO_INTERCHANGE.html">Audio
+score interchange</a> for the exact conversion contract.</p>
+<h2 id="export-and-keep-the-right-files">Export and keep the right
+files</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Action</th>
+<th>What it gives you</th>
+<th>What to keep it for</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Save Project As…</strong></td>
+<td>Complete native Forge JSON, including music, instruments, SFX,
+scenes, and game configuration.</td>
+<td>Primary editable backup.</td>
+</tr>
+<tr class="even">
+<td><strong>Save / Load</strong></td>
+<td>Browser-local project storage.</td>
+<td>Convenient recovery on that browser; keep a portable file too.</td>
+</tr>
+<tr class="odd">
+<td>Top-level <strong>Export</strong></td>
+<td>Full project/asset ZIP including <code>project.json</code>.</td>
+<td>Portable project and asset handoff.</td>
+</tr>
+<tr class="even">
+<td><strong>Export Score Data → Export MIDI</strong></td>
+<td>One ordered pass of the music as a standard MIDI score.</td>
+<td>External composition/score tools.</td>
+</tr>
+<tr class="odd">
+<td><strong>Export Score Data → Export MusicXML</strong></td>
+<td>One ordered pass in uncompressed MusicXML.</td>
+<td>External score/notation tools.</td>
+</tr>
+<tr class="even">
+<td><strong>Download source + report</strong></td>
+<td>FamiStudio source text and conversion receipt.</td>
+<td>Import provenance alongside the saved Forge project.</td>
+</tr>
+<tr class="odd">
+<td><strong>Build .NES ROM</strong></td>
+<td>Generated playable ROM output.</td>
+<td>Emulator/hardware review, within supported build limits.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Score exports show conversion warnings before downloading and do not
+modify the project. Repeated pattern references become a flattened
+sequence. SFX and game triggers, pattern sharing, infinite looping,
+pulse duty, and NES envelopes/timbre are not preserved as native Forge
+authoring data. External playback will use different instruments; Noise
+becomes percussion. An arpeggio envelope is not transcribed into
+separate score notes.</p>
+<p>Unsupported effect/DPCM data, missing references, empty music,
+zero-volume note-ons, and volume changes during a sustained note can
+prevent score export. Fix the named problem or keep the native project.
+There is currently no WAV recording export, NSF export, FamiStudio
+<code>.fms</code>/text export, or audio-only project-save command.</p>
+<h2 id="preview-rom-playback-and-practical-limits">Preview, ROM
+playback, and practical limits</h2>
+<p><strong>Browser preview</strong> is a convenient Web Audio audition.
+<strong>Generated Audio Runtime</strong> emits code and data for the NES
+APU in supported generated mapper-0 ROMs. <strong>RE
+observations/transcriptions</strong> concern a separately inspected ROM.
+Hearing or seeing a result in one does not establish equivalent behavior
+in the others.</p>
+<p><strong>Compile Audio Runtime</strong> adds executable music/SFX
+support to a generated viewer, single-room game, or World game. With it
+off, audio remains authoring data. <strong>Autoplay tracker order as
+music</strong> enables background music when the runtime is compiled;
+turn it off for an SFX-only playable build. Both settings are saved in
+the project. Importing music does not enable them automatically.</p>
+<p>Generated audio cannot be inserted into authored custom assembly. Use
+an empty CODE editor with a generated build, or leave Audio Runtime
+disabled for your own assembly. The supported build layouts remain
+mapper 0 with 16/32 KB PRG and 8 KB CHR; the complete project must fit.
+Runtime limits include 255 order rows, 255 instruments, 255 named SFX,
+and 255 steps per compiled volume/arpeggio envelope, with actual ROM
+space often the tighter limit.</p>
+<p>Pulse/triangle timer quantization and hardware channel behavior can
+differ from the browser preview. Very low triangle notes C0–G#0 reach
+the lower timer boundary rather than their requested pitches. Review
+edited music in the generated ROM and an independent emulator; physical
+NES timing and audible device performance need their own checks.</p>
+<h2 id="if-something-does-not-work">If something does not work</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Symptom</th>
+<th>What to check or do</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>“Add an instrument first”</td>
+<td>Click <strong>+ Add Instrument</strong>, select it, then click the
+tracker and enter a note.</td>
+</tr>
+<tr class="even">
+<td>Typing does not enter notes</td>
+<td>Click/tap the intended cell. A name, Tempo, Speed, or Rows field
+keeps normal text input. Use the mapped keys and move to the next row
+explicitly.</td>
+</tr>
+<tr class="odd">
+<td>A blank row does not stop a note</td>
+<td>Use <strong>Backspace</strong> to enter a cut.
+<strong>Delete</strong> clears the event and may let an earlier note
+continue.</td>
+</tr>
+<tr class="even">
+<td>Notes end sooner than expected</td>
+<td>Inspect the volume envelope. The default instrument decays to
+silence; a long gap before the next note does not extend it.</td>
+</tr>
+<tr class="odd">
+<td>Play repeats a phrase you thought you changed independently</td>
+<td>Check both order entries' pattern references. Shared references edit
+the same underlying pattern/channel. Choose a new blank index for a new
+phrase.</td>
+</tr>
+<tr class="even">
+<td>Preview is silent</td>
+<td>Check instrument and notes, click Play directly, and check
+browser/OS mute and output device. Hidden-page handling stops preview;
+return and start it again.</td>
+</tr>
+<tr class="odd">
+<td>Preview works but the ROM is silent</td>
+<td>Enable both Audio Runtime and background-music switches, then
+rebuild the current project. Check the emulator's audio controls
+separately.</td>
+</tr>
+<tr class="even">
+<td>Fresh-project build asks for a Player</td>
+<td>For the melody exercise, choose <strong>SCENE → Gameplay → Scene
+viewer / custom assembly</strong> and leave CODE empty. A playable-room
+build needs its actual Player setup.</td>
+</tr>
+<tr class="odd">
+<td>Build refuses custom assembly</td>
+<td>Generated Audio Runtime cannot be inserted into authored assembly.
+Save the assembly separately before choosing an empty generated build,
+or disable Audio Runtime for the custom program.</td>
+</tr>
+<tr class="even">
+<td>SFX exists but never sounds</td>
+<td>Check its ID in a <code>sound</code> event's Value, the playable
+animation binding, runtime enabled state, and the selected
+pattern/range. Scene viewer and Entity Studio's event log do not execute
+this game trigger.</td>
+</tr>
+<tr class="odd">
+<td>Existing SFX feels faster after import</td>
+<td>Tempo/Speed are project-wide. Imports retain the SFX record but
+replace those timing values. Undo or review/re-author the effect at the
+new timing.</td>
+</tr>
+<tr class="even">
+<td>FamiStudio import is refused</td>
+<td>Read the exact field/line and supported profile. Exporting a
+<code>.fms</code> file under a <code>.txt</code> name will not convert
+it. Simplify a copy in the source tool or keep using the source project
+for unsupported features.</td>
+</tr>
+<tr class="odd">
+<td>FamiStudio preview is stale</td>
+<td>Preview again after changing the source, song, or project. A receipt
+is historical and is not a fresh preview.</td>
+</tr>
+<tr class="even">
+<td>Build or import exceeds capacity</td>
+<td>Use a shorter arrangement/excerpt or a smaller project. An audio
+estimate alone cannot establish complete ROM fit. Keep the original
+saved project before reducing content.</td>
+</tr>
+<tr class="odd">
+<td>Saved MIDI sounds different elsewhere</td>
+<td>Expected: MIDI preserves supported score information, not the NES
+sound engine or native instruments. Open your Forge JSON to recover the
+editable original.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="source-audit">Source audit</h2>
+<p>Maintainer reference for this guide's current controls and
+behavior:</p>
+<ul>
+<li><code>app/src/shell-prefix.html</code>: <code>sideAudio</code>,
+tracker transport fields, runtime switches, instrument/envelope panels,
+order list, and SFX fields.</li>
+<li><code>app/src/legacy/00-editor.js</code>: <code>renderAudio</code>,
+<code>aud_enterNote</code>, <code>aud_choosePattern</code>,
+<code>aud_addOrder</code>, <code>aud_addInstrument</code>,
+<code>aud_updateRows</code>, and browser-preview/envelope functions.
+<code>renderAudio</code> prints decimal tracker rows and hexadecimal
+instrument indices.</li>
+<li><code>app/src/legacy/02-interaction-bootstrap.js</code>: desktop
+AUDIO key map, cell selection, mouse envelope painting, and hidden-page
+preview stop.</li>
+<li><code>app/src/audio/audio-ui.js</code> and
+<code>audio-adaptive-ui.js</code>: SFX/runtime UI, native-keyboard
+input, touch/pen envelopes, and narrow-screen tracker behavior.</li>
+<li><code>app/src/services/workshop.js</code>:
+<code>AudioWorkshop</code> catalog and undoable example import.</li>
+<li><code>app/src/audio/audio-import.js</code> and
+<code>audio-export.js</code>: MIDI/MusicXML import/export and the
+score-profile conversion contract.</li>
+<li><code>app/src/audio/famistudio-text.js</code>,
+<code>audio-tool-import.js</code>, and
+<code>audio-tool-import-ui.js</code>: FamiStudio profile, staged
+conversion, UI actions, and receipt lifetime.</li>
+<li><code>app/src/audio/audio-config.js</code>,
+<code>audio-compiler.js</code>, and <code>audio-engine.js</code>: saved
+switches, validation, generated APU music/SFX, and limits.</li>
+<li><code>app/src/legacy/26-project166.js</code>,
+<code>28-ui166.js</code>, <code>24-ui165.js</code>, and
+<code>app/src/services/build-services.js</code>: blank-project mode,
+current Gameplay placement, viewer mode, and custom-assembly build
+restrictions.</li>
+<li><code>app/src/legacy/17-frame-editor.js</code> and
+<code>18-entity-studio.js</code>: frame-entry event controls and preview
+logging boundary.</li>
+</ul>
+<p>This guide describes source-audited behavior. It does not convert
+older documentation, logical audio tests, or a successful compile into a
+claim of listening acceptance on every browser, phone, or physical
+console.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../START_HERE.html">Back to start</a></p></main></div></body></html>

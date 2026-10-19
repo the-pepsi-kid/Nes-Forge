@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scope and known
+limitations — alpha.11 · NES Forge alpha.11</title><link rel="stylesheet" href="style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="START_HERE.html">Start here</a><a href="NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="Guide.html">User guide</a><a href="Tutorial.html">Tutorial</a><a href="Manual.html">Manual</a><a href="Reference/Operator_Reference.html">Controls</a><a href="Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#scope-and-known-limitations--alpha11">Scope and known
+limitations — alpha.11</a><a class="level2" href="#audio-and-documentation-boundaries">Audio and documentation
+boundaries</a></aside><main id="guide"><h1 id="scope-and-known-limitations--alpha11">Scope and known
+limitations — alpha.11</h1>
+<p>This is a pre-release test build. The desktop first-session exercise
+covers tile art, Solid collision, metatiles, two-screen World traversal,
+one bound Player, a generated ROM, and native save/ reopen. Scene and
+Entity Studio are authoring/pose views; gameplay is observed in the
+running emulator. Changes require another Build &amp; Run.</p>
+<ul>
+<li>The current gameplay profile retains five templates, at most 12
+runtime actors and 64 one-byte persistent values. The Sideview Player
+compatibility runtime is separate from behavior-table execution. Door
+Option B and the one-way persistent-to-active synchronization have
+defined limitations.</li>
+<li><strong>Analyze source</strong> reports limited information about
+supplied source files. <strong>Build source ROM</strong> is a separate
+assembly workflow for the supported <code>forge-6502-v1</code> mapper 0
+profile; it does not translate foreign assembler projects. Native map,
+background, music and SFX recovery cover finite documented profiles, not
+arbitrary games. Unsupported raster behavior must not be represented as
+successfully compiled.</li>
+<li>Source Workspace's generic exports can misleadingly say
+<strong>“Export requested”</strong> when a save service returns
+busy/error. Confirm an output file exists before reporting success. The
+native project JSON backs up the main editor. Use <strong>Save source
+workspace</strong> separately for source-workspace files. A ROM or
+diagnostic report cannot replace either editable backup.</li>
+<li>The first-session game you build in the tutorial is silent. Browser
+save dialogs, audio devices, emulators, phones and physical controllers
+can vary. Record your actual device and results if you try these
+optional paths.</li>
+</ul>
+<p>For a failure, preserve your last native checkpoint and record
+expected result, actual result, exact control and browser/device details
+in the feedback form.</p>
+<h2 id="audio-and-documentation-boundaries">Audio and documentation
+boundaries</h2>
+<p>Music and SFX are authored inside a normal Forge project. A dedicated
+New Sound Project command, multi-song project library, audio-only save,
+WAV/NSF export and FamiStudio project export are not implemented.
+FamiStudio import accepts a bounded 4.5 text-export subset, not native
+<code>.fms</code> files. Keep both project JSON and the separate
+original-source receipt. See the <a href="Guides/Audio.html">Audio
+guide</a>.</p>
+<p>The <a href="Guide.html">current user guide</a> supersedes older
+version-specific manual and in-app help text. Older manuals, control
+rows and screenshots are retained and labeled. Current source inspection
+and browser smoke checks are not full device or owner acceptance.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="START_HERE.html">Back to start</a></p></main></div></body></html>

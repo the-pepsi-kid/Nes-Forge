@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge user guide · NES Forge alpha.11</title><link rel="stylesheet" href="style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="START_HERE.html">Start here</a><a href="NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="Guide.html">User guide</a><a href="Tutorial.html">Tutorial</a><a href="Manual.html">Manual</a><a href="Reference/Operator_Reference.html">Controls</a><a href="Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#nes-forge-user-guide">NES Forge user guide</a><a class="level2" href="#choose-what-you-want-to-do">Choose what you want to do</a><a class="level2" href="#how-to-use-the-reference">How to use the reference</a><a class="level2" href="#keep-the-right-file">Keep the right file</a><a class="level2" href="#what-is-implemented-and-what-remains-unfinished">What is
+implemented, and what remains unfinished</a><a class="level2" href="#where-to-find-deeper-detail">Where to find deeper detail</a></aside><main id="guide"><h1 id="nes-forge-user-guide">NES Forge user guide</h1>
+<p><strong>2.0.0-alpha.11 · audio-tool-import-1 · User guide edition 1 ·
+19 October 2026</strong></p>
+<p>Use this guide with the included <a href="NES_Forge.html">NES Forge
+application</a>. It explains the current workspaces, controls, save
+formats, and supported workflows. Each chapter includes tasks to try,
+the result to expect, and what to check when that result does not
+appear.</p>
+<p>The <a href="Tutorial.html">nine-step first-game tutorial</a> starts
+from a blank project. For music, start with <a
+href="Guides/Audio.html">Make a sound project in Forge</a>. You can
+compose now inside a normal Forge project; a separate <strong>New Sound
+Project</strong> command and dedicated sound-project format are not
+implemented.</p>
+<h2 id="choose-what-you-want-to-do">Choose what you want to do</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Goal</th>
+<th>Start here</th>
+<th>What you will make or learn</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Open Forge and keep your work</td>
+<td><a href="Guides/Projects_and_Play.html">Projects and play</a></td>
+<td>Navigation, JSON/ZIP, browser saves, recovery, Undo, builds and
+troubleshooting</td>
+</tr>
+<tr class="even">
+<td>Make your first playable game</td>
+<td><a href="Tutorial.html">First-game tutorial</a></td>
+<td>Draw terrain and a character, make a two-screen World, build, save
+and reopen</td>
+</tr>
+<tr class="odd">
+<td>Draw or import art</td>
+<td><a href="Guides/Art_and_Scenes.html">Art and scenes</a></td>
+<td>CHR pixels, palettes, attributes, collision, metatiles, sprites,
+poses and animation</td>
+</tr>
+<tr class="even">
+<td>Make levels and behavior</td>
+<td><a href="Guides/Gameplay_and_World.html">Gameplay and World</a></td>
+<td>Player setup, Worlds, rooms, entrances, links, Gameplay Core,
+mashups and movement rules</td>
+</tr>
+<tr class="odd">
+<td>Compose music or sound effects</td>
+<td><a href="Guides/Audio.html">Audio</a></td>
+<td>Notes, instruments, envelopes, order, SFX, preview, ROM playback and
+portable saves</td>
+</tr>
+<tr class="even">
+<td>Bring in music from another tool</td>
+<td><a href="Guides/Audio.html">Audio import and export</a></td>
+<td>FamiStudio text, MIDI, MusicXML, conversion limits and
+original-source receipts</td>
+</tr>
+<tr class="odd">
+<td>Investigate or recover ROM assets</td>
+<td><a href="Guides/RE_and_Code.html">RE and code</a></td>
+<td>Hex/disassembly, mappings, traces, experiments and explicitly
+supported recovery methods</td>
+</tr>
+<tr class="even">
+<td>Write or import assembly source</td>
+<td><a href="Guides/RE_and_Code.html">RE and code</a></td>
+<td>CODE, separate source workspace, source analysis and supported
+source ROM builds</td>
+</tr>
+<tr class="odd">
+<td>Play on a phone or controller</td>
+<td><a href="Guides/Projects_and_Play.html">Projects and play</a></td>
+<td>Touch controls, Play view, mapping, interruptions and performance
+readings</td>
+</tr>
+<tr class="even">
+<td>Work through larger workshops</td>
+<td><a href="Manual.html">Extended manual</a></td>
+<td>Preserved detailed workshops with current corrections at the
+front</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="how-to-use-the-reference">How to use the reference</h2>
+<p>Open a chapter and use its Contents list or your browser's
+<strong>Ctrl+F</strong> to find the visible label. Control tables
+explain what changes, what is only a preview, and what must be saved
+separately. Instructions assume the named tab is open; scroll its
+sidebar and expand the named section if it is below the visible area.
+Commit text/number edits with Tab or a click outside the field.</p>
+<p>The current chapters take precedence over the preserved 1.9.0 manual,
+older feature-guide headings, and older in-app help text. Some retained
+help still describes features as planned even though current services
+implement them. The <a href="Reference/Operator_Reference.html">operator
+reference</a> and all 439 original control-index rows remain available
+for detail; they are historical reference material, not a claim that
+every current dialog or device has been tested.</p>
+<h2 id="keep-the-right-file">Keep the right file</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Work</th>
+<th>Keep this</th>
+<th>Important distinction</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Game or composed sound project</td>
+<td><strong>Save Project As…</strong> native JSON; optionally a project
+ZIP from <strong>Export</strong></td>
+<td>Keeps the editable Forge project, including Audio. A generated ROM
+is not a complete backup.</td>
+</tr>
+<tr class="even">
+<td>Imported FamiStudio score</td>
+<td>Native project JSON <strong>and</strong> <strong>Download source +
+report</strong></td>
+<td>Project JSON keeps the conversion. The receipt preserves the
+original text separately.</td>
+</tr>
+<tr class="odd">
+<td>Multi-file assembly work</td>
+<td><strong>Save source workspace</strong>; optionally <strong>Export
+source ZIP</strong></td>
+<td>Separate from the main editor project and its saves.</td>
+</tr>
+<tr class="even">
+<td>Analysis findings</td>
+<td>The corresponding analysis/report export; save modified ROM copies
+separately</td>
+<td>Reports describe evidence. They are not editable project backups or
+emulator save states.</td>
+</tr>
+<tr class="odd">
+<td>Mashup or movement recipe</td>
+<td>Recipe plus the exact base/donor projects</td>
+<td>A recipe references its inputs; it does not contain those
+projects.</td>
+</tr>
+<tr class="even">
+<td>Runtime checkpoints</td>
+<td>Treat as temporary emulator-session work</td>
+<td>Reset or ROM replacement can clear them.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Confirm that a downloaded file actually exists. Reopen an important
+checkpoint before relying on it. See <a
+href="Guides/Projects_and_Play.html">Projects and play</a> for JSON versus
+ZIP import and browser-local recovery.</p>
+<h2 id="what-is-implemented-and-what-remains-unfinished">What is
+implemented, and what remains unfinished</h2>
+<p>Forge can author NES graphics, scenes, supported gameplay and
+four-channel Audio; build supported mapper-0 ROMs; run supported
+cartridges in its emulator; inspect ROMs; and convert specific native
+formats into editable assets. Those are distinct workflows. Importing a
+file does not imply that every source feature can be edited, reproduced
+or compiled.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Area</th>
+<th>Current boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Sound projects</td>
+<td>Music and SFX are stored in a regular Forge project. No dedicated
+New Sound Project, named multi-song library, audio-only project save,
+WAV/NSF export or FamiStudio project export.</td>
+</tr>
+<tr class="even">
+<td>FamiStudio</td>
+<td>Bounded FamiStudio 4.5 text-export conversion. Native
+<code>.fms</code> files and unsupported expansion/effect features are
+not imported. Preview before applying.</td>
+</tr>
+<tr class="odd">
+<td>Native recovery</td>
+<td>Documented structural profiles only. Raw inspection can remain
+useful when recovery is refused. No generic ROM-to-source/game
+recreation.</td>
+</tr>
+<tr class="even">
+<td>Audio recognition research</td>
+<td>Routine comparisons are research evidence, not a new recovery
+command. No new driver families are enabled by similarity.</td>
+</tr>
+<tr class="odd">
+<td>Gameplay</td>
+<td>Selected generated profiles and budgets apply. Authoring a canonical
+record does not guarantee that the selected runtime executes it.</td>
+</tr>
+<tr class="even">
+<td>Source</td>
+<td>Source intake is diagnosis. Source ROM builds accept the declared
+Forge assembler profile; they do not translate arbitrary foreign
+toolchains or merge external code into generated gameplay.</td>
+</tr>
+<tr class="odd">
+<td>Hosted experiment</td>
+<td>A separate local-server developer experiment exists in the full
+source checkout. It is not part of this offline test-kit workflow or a
+cartridge networking feature.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Read <a href="KNOWN_LIMITS.html">known limitations</a> for additional
+export and device caveats. The current app's existing automated evidence
+covers 1,872 cases in 97 suites plus a separate ten-check audio-import
+browser review. Those results do not mean every tutorial, native OS
+dialog, sound device or physical controller has been accepted.
+Documentation verification has its own record in the source
+repository.</p>
+<h2 id="where-to-find-deeper-detail">Where to find deeper detail</h2>
+<ul>
+<li><a href="Reference/Current_Feature_Guides.html">Current feature-guide
+index</a>: detailed feature contracts retained from the source checkout,
+with their historical scope identified.</li>
+<li><a href="NEXT_STEPS.html">Optional next steps</a>: expand your first
+character and inspect the included Scout project.</li>
+<li><a href="Feedback_Template.txt">Feedback template</a>: record exact
+control, input, expected result, actual result and browser version.</li>
+<li><a href="SOURCE_RECORD.json">Build record</a>: exact included
+application and example identities.</li>
+</ul>
+<p>For a reproducible report, include the project or a small example
+that shows the problem. Keep your last working backup. If a guide and
+the actual app disagree, report the label and step rather than assuming
+your project is broken.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="START_HERE.html">Back to start</a></p></main></div></body></html>

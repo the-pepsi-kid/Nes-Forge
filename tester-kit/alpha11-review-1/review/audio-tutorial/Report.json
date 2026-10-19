@@ -1,0 +1,210 @@
+{
+  "format": "NESForgeAudioTutorialBrowserReview",
+  "version": 1,
+  "started": "2026-10-19T00:26:41.142Z",
+  "status": "passed",
+  "html": "NES_Forge.html",
+  "htmlSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
+  "guide": "Guides/Audio.md",
+  "guideSha256": "a3a9fbbc3e0e9cef989ba3ff82887f29bcd6ec275612baa5c57d2903328fc098",
+  "script": "verify_audio_tutorial.cjs",
+  "scriptSha256": "2f1b5195d1d2855e7bc3928fbd50d79846e42ae80d833ebe9fd5afbba1ab3212",
+  "checks": [
+    {
+      "name": "New Project creates the documented blank workspace and single-room default",
+      "status": "passed"
+    },
+    {
+      "name": "Visible AUDIO fields set 16 rows, tempo 150 and speed 6, with runtime off",
+      "status": "passed"
+    },
+    {
+      "name": "Add Instrument and Name create the documented Melody instrument",
+      "status": "passed"
+    },
+    {
+      "name": "Actual tracker clicks and piano keys enter C4, D4, E4, G4 and the final cut",
+      "status": "passed"
+    },
+    {
+      "name": "Visible Play and Stop start from order zero, advance the browser preview and stop",
+      "status": "passed"
+    },
+    {
+      "name": "The tutorial note edit and one Undo restore the original phrase",
+      "status": "passed"
+    },
+    {
+      "name": "Save Project As performs a real download and Open Project reopens the editable score",
+      "status": "passed"
+    },
+    {
+      "name": "Visible Gameplay selection and Audio switches prepare a generated music viewer",
+      "status": "passed"
+    },
+    {
+      "name": "Visible Build & Run builds and loads the current music-enabled mapper-0 viewer",
+      "status": "passed"
+    },
+    {
+      "name": "The emitted 6502 viewer plays all four pulse periods, cuts, and repeats in controlled APU observations",
+      "status": "passed"
+    },
+    {
+      "name": "Build .NES ROM downloads the same music output and saved project retains runtime choices",
+      "status": "passed"
+    },
+    {
+      "name": "No uncaught browser errors",
+      "status": "passed"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "audio-authored.png",
+      "visualReview": "passed",
+      "notes": "Four notes and cut visible in the tracker; rows 000\u2013015, instrument Melody, Tempo 150, Speed 6, Rows 16 and envelopes visible."
+    },
+    {
+      "file": "audio-rom-running.png",
+      "visualReview": "passed",
+      "notes": "Blank viewer screen is expected for the melody-only exercise; emulator loaded the current 24,592-byte project build and shows running controls."
+    }
+  ],
+  "pageErrors": [],
+  "metrics": {
+    "blankProject": {
+      "name": "My First NES Game",
+      "scene": "My First Room",
+      "instruments": 0,
+      "entities": 0,
+      "mode": "single-room",
+      "asm": ""
+    },
+    "authoredNotes": [
+      {
+        "row": 0,
+        "note": "C4"
+      },
+      {
+        "row": 4,
+        "note": "D4"
+      },
+      {
+        "row": 8,
+        "note": "E4"
+      },
+      {
+        "row": 12,
+        "note": "G4"
+      },
+      {
+        "row": 15,
+        "note": "cut"
+      }
+    ],
+    "previewTransport": {
+      "playing": true,
+      "row": 1,
+      "order": 0
+    },
+    "projectDownload": {
+      "file": "My_First_Forge_Melody.json",
+      "bytes": 161009,
+      "sha256": "93360409660648591b8a0cb7f1bdb801e450eb4e4d1ab131ab0a16c0d0de498c"
+    },
+    "build": {
+      "backend": "packed",
+      "mode": "viewer",
+      "audio": {
+        "enabled": true,
+        "musicEnabled": true,
+        "records": 4
+      },
+      "buildLog": "Built packed NROM: 16 KB PRG + 8 KB CHR \u2022 24592 bytes.1 scene(s) selected: My First RoomNFEX/MT16: 42 bytes; WR16 v3: 6 bytes; MS16 v2: 0 bytes.0 linked metatile definition(s) / 0 mapped cells.Metadata allocated at $CAB0 with code and reserved data preserved.Scene viewer: world maps, animation bindings, contact boxes and events are preserved as authoring metadata.Tracker music and 0 named SFX compile into the generated NES runtime.",
+      "loaded": true,
+      "loadedRomMatches": true,
+      "bytes": 24592,
+      "sha256": "2a040a8743d789bd5359713a4bacb32bbcd457b7c3c7a6b6de58fabf30d9c4e5"
+    },
+    "emittedAudio": {
+      "nmiAddress": 49546,
+      "audioFrameAddress": 50942,
+      "trampoline": [
+        72,
+        138,
+        72,
+        152,
+        72,
+        32,
+        99,
+        193,
+        32,
+        254,
+        198
+      ],
+      "frames": [
+        {
+          "frame": 0,
+          "period": 427,
+          "volume": 15,
+          "duty": 2
+        },
+        {
+          "frame": 24,
+          "period": 380,
+          "volume": 15,
+          "duty": 2
+        },
+        {
+          "frame": 48,
+          "period": 338,
+          "volume": 15,
+          "duty": 2
+        },
+        {
+          "frame": 72,
+          "period": 284,
+          "volume": 15,
+          "duty": 2
+        },
+        {
+          "frame": 90,
+          "period": 284,
+          "volume": 0,
+          "duty": 0
+        },
+        {
+          "frame": 96,
+          "period": 427,
+          "volume": 15,
+          "duty": 2
+        }
+      ],
+      "apuWrites": 572,
+      "pulsePeriodWrites": 91,
+      "totalInstructions": 22056,
+      "missedOpcodes": 0
+    },
+    "romDownload": {
+      "file": "My_First_Forge_Melody.nes",
+      "bytes": 24592,
+      "sha256": "2a040a8743d789bd5359713a4bacb32bbcd457b7c3c7a6b6de58fabf30d9c4e5"
+    },
+    "runtimeProjectDownload": {
+      "file": "My_First_Forge_Melody_Runtime.json",
+      "bytes": 161003,
+      "sha256": "5a08ebdc89820c8953419c17c48f24b817d524f9530191f25ad6274d4f6119e0"
+    }
+  },
+  "limitations": [
+    "Desktop Chromium only. Browser preview transport and note state were observed; audible listening, physical-phone behavior, independent emulators, and NES hardware were not tested.",
+    "Save As uses the explicit browser-download fallback with showSaveFilePicker disabled. A real browser download and Open Project file chooser are exercised; the native operating-system Save As dialog is untested.",
+    "The CPU supplement locates the audio-frame call in the emitted viewer NMI trampoline and invokes that emitted routine directly. It verifies the authored phrase, cut, and repeat through APU register writes, not full-game or host-audio timing."
+  ],
+  "browser": "153.0.8010.0",
+  "passed": 12,
+  "failed": 0,
+  "finished": "2026-10-19T00:26:44.756Z",
+  "harnessNotes": "Harness_Notes.json"
+}

@@ -1,0 +1,94 @@
+{
+  "format": "NESForgeDocumentationReview",
+  "version": 1,
+  "status": "passed",
+  "edition": "RC3 / user-guide-1",
+  "dateUtc": "2026-10-19",
+  "branch": "docs/user-guide-2026-10-19",
+  "applicationCommit": "ffb57eab61d2e69ae0b92838c7b55748423b3140",
+  "priorDocumentationCommit": "9e78e148fc96f5a645c83e262e43b0ee89560763",
+  "appSha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d",
+  "runtimeChanged": false,
+  "coverage": {
+    "tabs": 15,
+    "workspaceChapters": 5,
+    "audit": "DOCUMENTATION_AUDIT.md",
+    "claim": "All identified main tabs and dynamic feature groups have current operator guidance; not every dynamic control or device has been exercised."
+  },
+  "guides": {
+    "Guides/Art_and_Scenes.md": "4120e604b68185412b54db1e956161289ea349300e7d0759c9af20e5282f1763",
+    "Guides/Audio.md": "a3a9fbbc3e0e9cef989ba3ff82887f29bcd6ec275612baa5c57d2903328fc098",
+    "Guides/Gameplay_and_World.md": "475cd70e84110d22d3c3e686f447181f32a25176c64232d5d42e3ca6c9e171e7",
+    "Guides/Projects_and_Play.md": "f10530c27ebf252330ccc55c8b062abe720785b3176b35f49289b965f820fdcd",
+    "Guides/RE_and_Code.md": "501d1218a31ec833786110f9540a8c530630c5967df81cddc9a59eb1404a7390"
+  },
+  "preservation": {
+    "originalPackageInventoryFilesRetained": 111,
+    "originalFilesAccounted": 38,
+    "originalSourceAndAssetHashesVerified": 17,
+    "historicalControlRows": 439,
+    "landingCss": "byte-identical to prior documentation commit",
+    "sharedGuideCss": "byte-identical to prior documentation commit",
+    "originalTutorialSteps1Through9AndTail": "byte-identical to prior documentation commit"
+  },
+  "package": {
+    "filename": "NES_Forge_2.0.0-alpha.11_Alpha_Test_Kit_RC3.zip",
+    "sha256": "f2b203fd66b7bee23ea16107eb95896040c3ca43c32939804d6d0e999fa7d430",
+    "files": 132,
+    "htmlGuidePages": 50,
+    "localLinksAndAssetsChecked": 1164,
+    "brokenLinks": 0,
+    "standaloneFullAppIncluded": true,
+    "allPayloadManifestHashesVerified": true
+  },
+  "layout": {
+    "report": "review/document-layout/Report.json",
+    "checks": 20,
+    "viewports": [
+      1380,
+      390
+    ],
+    "result": "passed",
+    "visualReview": "Landing page, guide index and Audio chapter reviewed in representative desktop/mobile screenshots; no clipping or page-level overflow."
+  },
+  "pdfs": {
+    "pages": {
+      "Tutorial.pdf": 8,
+      "Manual.pdf": 76,
+      "Reference/Operator_Reference.pdf": 45
+    },
+    "localPortableLinksChecked": 41,
+    "review": "First pages with changed prefaces visually inspected; retained print styling and historical content. Not a claim of a new line-by-line visual audit of all 129 pages."
+  },
+  "launch": {
+    "report": "review/Launch_Report.json",
+    "checks": 2,
+    "result": "passed",
+    "layouts": [
+      "source checkout",
+      "extracted standalone kit"
+    ]
+  },
+  "audioTutorial": {
+    "report": "review/audio-tutorial/Report.json",
+    "passed": 12,
+    "total": 12,
+    "pageErrors": [],
+    "scope": "Real UI authoring, Play/Stop, edit/Undo, downloaded native project, file-chooser reopen, viewer build and ROM download. Controlled execution of emitted 6502 verifies four periods, cut and repeat."
+  },
+  "retainedApplicationEvidence": {
+    "payloadChecksumsVerified": 7156,
+    "automatedCases": 1872,
+    "suites": 97,
+    "rerun": false,
+    "reason": "Entire app payload and bundled HTML are unchanged; existing exact-byte application evidence is retained."
+  },
+  "limitations": [
+    "Full nine-step first-game owner tutorial was source-reviewed, not newly replayed end to end.",
+    "Native OS Save As dialog, physical phone/controller, audible listening and NES hardware acceptance remain untested in this review.",
+    "Headless viewport checks do not certify a physical mobile device.",
+    "Controlled APU calls do not establish full-game timing or audible equivalence.",
+    "In-app TECH DOCS and some source guides retain older overview text; current kit chapters explicitly take precedence.",
+    "Dedicated sound-project workflow remains unfinished."
+  ]
+}

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Native map and collision
+recovery · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Guide.html">User guide</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#native-map-and-collision-recovery">Native map and collision
+recovery</a><a class="level2" href="#try-the-included-example">Try the included example</a><a class="level2" href="#recover-a-map-from-the-original-input">Recover a map from the
+original input</a><a class="level2" href="#declared-supported-subset">Declared supported subset</a><a class="level2" href="#editing-collision">Editing collision</a><a class="level2" href="#evidence-and-boundaries">Evidence and boundaries</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../../Guide.html">current user guide</a> for current operator instructions.</p></blockquote><h1 id="native-map-and-collision-recovery">Native map and collision
+recovery</h1>
+<p>The command-metatile method recovers source-backed native map records
+and converts a declared static Empty/Solid subset into an editable
+scene. It uses the same recovery registry, guarded scene import and
+compiler as the existing background workflow. Schema 12 and existing
+runtime emitters remain unchanged.</p>
+<h2 id="try-the-included-example">Try the included example</h2>
+<p>Open
+<code>examples/RE_Native_Map/DABG_Static_Map.nesforge.json</code> with
+<strong>Open Project</strong>, then <strong>Build &amp; Run</strong>.
+The floor is recovered native geometry. The square player, animation
+bindings and movement settings are authored validation aids using
+Forge's existing single-room runtime.</p>
+<p>Open <code>DABG_Static_Map_Floor_Opened.nesforge.json</code> to see
+the collision edit. Its floor graphics remain, but the four floor tile
+types have Empty collision and the player falls. The evidence still
+describes the original source; it does not authenticate later authored
+edits. Use normal Save Project As to preserve changes.</p>
+<h2 id="recover-a-map-from-the-original-input">Recover a map from the
+original input</h2>
+<ol type="1">
+<li>Open <code>DABG-reproduced.nes</code> for <strong>General
+Analysis</strong>. Existing analysis recognizes its valid NES 2.0 header
+and NROM mapping while leaving runtime CHR-RAM contents unknown. The
+declared recovery method separately verifies its precise layout and
+graphics construction. This feature does not enable original-ROM
+frontend playback.</li>
+<li>Discover recovery methods and open the command-metatile map
+conversion. In the shared native scene panel, choose <strong>Find
+maps</strong>.</li>
+<li>Select the eligible static map, then <strong>Preview map</strong>.
+Review its geometry, collision summary, source ranges and adaptation
+notes. Preview compiles the separate playable project without changing
+the active project or emulator.</li>
+<li>Acknowledge the displayed limitations and choose <strong>Import as
+new scene</strong>. This appends an editable scene excluded from the
+current build, preserving existing scenes and runtime settings. One Undo
+removes the import; Redo restores it.</li>
+<li><strong>Download map project</strong> saves the separate playable
+adaptation with its authored test player. <strong>Download map
+evidence</strong> saves provenance JSON. Evidence is not an editable
+project.</li>
+</ol>
+<p>Changing the source, selected method/resource or current project
+invalidates an earlier import preview. Cancellation, unsupported input
+and failed validation do not import anything. A duplicate resource is
+refused rather than appended again.</p>
+<h2 id="declared-supported-subset">Declared supported subset</h2>
+<p>The pinned independent Double Action Blaster Guys input has 52 level
+configuration records. Thirty-nine reference 22 unique command maps;
+thirteen use procedural generation. Source research also found three
+unreferenced map definitions, which production discovery does not guess
+from nearby bytes. Of the 22 referenced resources, one fits the initial
+static Empty/Solid conversion subset. The others retain explicit refusal
+reasons.</p>
+<p>The method follows coherent native configuration pointers, command
+dispatch, zero-initialization and collision lookups. It does not
+recognize filenames or use a whole-ROM hash allowlist. Valid data and
+relocation variants are tested. This establishes one declared native
+representation, not arbitrary-engine recovery.</p>
+<p>Commands produce a 16×16 native metatile buffer. Conversion maps the
+visible 16×15 region to 32×30 Forge cells at the same origin. Every
+16×16 native fixed Solid cell becomes four 8×8 Forge Solid cells; Empty
+becomes four Empty cells. Unknown cells, wrapping/cross-row commands, a
+nonempty hidden row and unsupported native semantics prevent
+conversion.</p>
+<p>The conversion shows raw command geometry using the proven reset
+palette and actual PB53 CHR-RAM upload. Native random clouds,
+grass/platform decoration, later palette changes and game-state effects
+are omitted. The native unpacker's retained-buffer behavior is checked
+against executed upload bytes rather than assumed from the distributed
+CHR asset. CHR data with unknown initial-state dependence is refused for
+import.</p>
+<p>Full-solid obstruction, one-way landing, hazards, moving/cycling
+blocks, teleports, scrolling and actors are separate native meanings.
+This subset never collapses all nonempty cells into Solid. Forge
+controls, jump/gravity, room bounds and the authored player are
+adaptations; original gameplay, goals, audio and physics are not
+reconstructed.</p>
+<h2 id="editing-collision">Editing collision</h2>
+<p>For the included map, each graphic tile has a consistent collision
+meaning, so the ordinary <strong>Collision</strong> tab's tile
+properties are authoritative. Change the floor tiles to Empty,
+save/reopen and rebuild to observe falling through the drawn floor.</p>
+<p>When identical graphics carry different cell meanings, conversion
+uses existing linked metatile quadrant overrides. Those overrides take
+precedence over raw tile properties. Edit the linked definition's
+collision for those cells. Raw graphics or attribute edits can detach a
+metatile link under existing reconciliation rules; collision then falls
+back to tile properties. Inspect the resulting collision after such
+edits. No separate hidden collision model is added.</p>
+<h2 id="evidence-and-boundaries">Evidence and boundaries</h2>
+<p>The native decoder suites compare original assembled CPU map writes
+and predicates. The graphics suite compares actual CHR-RAM uploads,
+palette writes and raw metatile rendering. Integration checks use
+generated Forge 6502 execution to verify collision editing and
+save/reopen/rebuild. Shared lifecycle tests compare A1 reports,
+projects, ROMs and import behavior with the frozen background
+candidate.</p>
+<p>The complete current gate is recorded in
+<code>test-results/candidate/Summary.json</code>; clean-extraction proof
+and browser reports accompany the candidate. Missing browser launches
+record blocked status with zero checks. CPU/VM results do not establish
+browser layout/native dialogs, a full original-game boot,
+independent-emulator behavior, listening, phone/controller or physical
+NES acceptance. Owner acceptance remains separate.</p>
+<p>The original cartridge and complete source/toolchain/license
+checkpoint are retained under <code>examples/RE_Native_Map/</code>. Its
+mixed upstream notices are preserved; native audio implementation is not
+incorporated into the Forge application. Original input bytes are
+unchanged, and no native encoder or patch workflow is implied by
+canonical conversion.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

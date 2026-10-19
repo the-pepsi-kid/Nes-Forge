@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Compatibility
+stabilization — alpha.11 · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Guide.html">User guide</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#compatibility-stabilization--alpha11">Compatibility
+stabilization — alpha.11</a><a class="level2" href="#historical-recipes">Historical recipes</a><a class="level2" href="#shared-validation-and-complete-previews">Shared validation and
+complete previews</a><a class="level2" href="#project-owned-application">Project-owned application</a><a class="level2" href="#verification-and-remaining-acceptance">Verification and
+remaining acceptance</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../../Guide.html">current user guide</a> for current operator instructions.</p></blockquote><h1 id="compatibility-stabilization--alpha11">Compatibility
+stabilization — alpha.11</h1>
+<p>Candidate <code>compatibility-stabilization-1</code> retains project
+schema 12 and the existing movement/runtime behavior. It addresses the
+four integration issues recorded in D063 before further feature
+expansion. Open <code>mainline/NES_Forge_2.0.0-alpha.11.html</code>.</p>
+<h2 id="historical-recipes">Historical recipes</h2>
+<p>Use the ordinary Seeded mashup workflow with the original base
+project and every original donor, then choose <strong>Open saved mashup
+recipe</strong>. The current editor can verify the shipped alpha.10
+recipe even though opening the base updates its <code>foundation</code>
+release metadata. A successful migration displays an explicit notice;
+preview and migration do not apply anything. Review and confirm Apply
+normally. Download the reissued recipe to retain its current source
+identity.</p>
+<p><code>RecipeIdentity</code> contract version 1 uses method
+<code>exact-v1-foundation-reissue-1</code>. Direct exact-source replay
+remains the first path. Migration considers only the reviewed
+<code>2.0.0-alpha.10</code> and <code>2.0.0-alpha.11</code> foundation
+values, preserving every other canonical field. It reconstructs and
+verifies complete original source SHA-256 identities (and mashup source
+byte lengths), reproduces the original recipe result, remaps
+source-bound asset choices, and verifies current replay differs only in
+foundation metadata. The provenance record identifies original/current
+sources, recipes and results. The original recipe and sources remain
+unchanged.</p>
+<p>This adapter also supports the corresponding foundation-only Movement
+Rules recipe boundary. It does not authorize arbitrary release, schema
+or behavior migration. A changed name, art, audio, movement value,
+donor, recipe decision or result hash is not a metadata migration.
+Missing, ambiguous and incompatible sources refuse without changing
+project/history/emulator state. Raw mashup and movement v1 algorithms
+and formats remain unchanged.</p>
+<h2 id="shared-validation-and-complete-previews">Shared validation and
+complete previews</h2>
+<p>The existing single-room configuration service owns immutable physics
+limits. World configuration, the single-room controls and Movement Rules
+consume those limits. Single-room reference validation accepts an
+explicit detached project, matching the existing World validation
+pattern, so a preview cannot validate against an unrelated live
+scene.</p>
+<p><code>BuildGraph.planDetached(project)</code> and
+<code>RuntimeCompiler.compileDetached(project)</code> accept
+current-schema generated World or single-room projects. They validate
+detached input and run the ordinary linking/allocation/compiler path
+with explicit source parameters. They do not swap live state, execute
+custom ASM, publish a built artifact, change Undo history, load the
+emulator or play Audio. Both Movement Rules preview backends now report
+a full compiled ROM hash and byte count; capacity errors refuse before
+Apply.</p>
+<p>Compilation does not prove level reachability, movement feel,
+visual/music quality, browser rendering or hardware timing. The ordinary
+Build action remains how the user produces the active project's
+downloadable/playable ROM.</p>
+<h2 id="project-owned-application">Project-owned application</h2>
+<p><code>ProjectStore.applySettingsEdit(changes, {expected, intent})</code>
+owns a bounded synchronous edit of existing
+<code>gameplay</code>/<code>worldRuntime</code> scalar settings.
+<code>expected</code> is the captured epoch and serialized project. The
+store validates a detached candidate, rejects
+stale/reentrant/paused-history edits, records one snapshot and installs
+only requested configuration values. Unrelated authored data is not
+replaced or normalized. A failed snapshot/install rolls back owned
+settings/history; notification failures after a committed edit are
+reported as presentation warnings while the successful edit remains
+Undoable.</p>
+<p>Movement Rules owns its four-field projection, preview, options and
+confirmation; it delegates mutation/history to ProjectStore. This
+checkpoint does not rewrite every older authoring tool or expand the
+transaction into arbitrary project replacement.</p>
+<h2 id="verification-and-remaining-acceptance">Verification and
+remaining acceptance</h2>
+<p>The parent 1,504 cases across 68 suites remain required. Added tests
+cover recipe UI migration/refusal, settings transaction failure/Undo
+behavior, shared validation and complete detached compilation. Exact
+source/test deltas reconstruct the original pinned alpha.11 before older
+preservation checks; original ROM goldens remain unchanged.</p>
+<p>Current measured outcomes belong to
+<code>test-results/candidate/Summary.json</code>, the compatibility
+clean-extraction proof and current-hash browser reports. A blocked
+browser reports zero checks. Browser/native dialogs, listening, phone
+A/V performance, controllers, NES hardware, full manual completion and
+owner promotion remain separate acceptance items.</p>
+<p>After this checkpoint, the feature roadmap resumes at A1
+native-background recovery/import and then A2 on suitable independent
+map/collision inputs.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

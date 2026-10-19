@@ -1,3 +1,13 @@
+# NES Forge — current user guide and tester kit
+
+Open `tester-kit/alpha11-review-1/START_HERE.html` after extracting the entire GitHub download. The folder includes the full verified **audio-tool-import-1** application.
+
+The [current user guide](tester-kit/alpha11-review-1/Guide.md) explains projects/play, art/scenes, Gameplay/World, Audio, and RE/code, with control descriptions, tutorials, expected results and limits. The original nine-step game tutorial, design, extended manuals and historical references remain available. [Compose a sound project](tester-kit/alpha11-review-1/Guides/Audio.md) is the direct Audio starting point.
+
+This documentation branch adds Alpha Test Kit RC3; it retains the application bytes from `ffb57ea` and does not publish a release. Application validation below belongs to that unchanged app; documentation verification is recorded separately in the kit source. See [kit build and verification instructions](tester-kit/alpha11-review-1/README.md).
+
+## Preserved application implementation handoff
+
 # NES Forge — Audio Tool Import candidate
 
 **2.0.0-alpha.11 / audio-tool-import-1**, schema 12, on `implementation/audio-interchange-2026-10-18`. Open `app/mainline/NES_Forge_2.0.0-alpha.11.html`.

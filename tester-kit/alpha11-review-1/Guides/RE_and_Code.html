@@ -1,0 +1,1466 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reverse engineering and
+6502 source · NES Forge alpha.11</title><link rel="stylesheet" href="../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../START_HERE.html">Start here</a><a href="../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../Guide.html">User guide</a><a href="../Tutorial.html">Tutorial</a><a href="../Manual.html">Manual</a><a href="../Reference/Operator_Reference.html">Controls</a><a href="../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#reverse-engineering-and-6502-source">Reverse engineering and
+6502 source</a><a class="level2" href="#choose-the-right-starting-point">Choose the right starting
+point</a><a class="level2" href="#general-rom-analysis-controls-and-meanings">General ROM
+analysis: controls and meanings</a><a class="level2" href="#discover-available-recovery-methods">Discover available recovery
+methods</a><a class="level2" href="#native-audio-inspect-edit-a-copy-or-transcribe">Native audio:
+inspect, edit a copy, or transcribe</a><a class="level2" href="#runtime-investigation-observe-an-event">Runtime investigation:
+observe an event</a><a class="level2" href="#code-assembly-belonging-to-the-project">CODE: assembly belonging
+to the project</a><a class="level2" href="#multi-file-source-workspace">Multi-file source workspace</a><a class="level2" href="#source-intake-understand-a-tree-before-migration">Source intake:
+understand a tree before migration</a><a class="level2" href="#save-the-right-result">Save the right result</a><a class="level2" href="#common-problems-and-next-steps">Common problems and next
+steps</a><a class="level2" href="#source-audit-and-deeper-references">Source audit and deeper
+references</a></aside><main id="guide"><h1 id="reverse-engineering-and-6502-source">Reverse engineering and
+6502 source</h1>
+<p>This guide covers the <strong>RE / DISASM</strong> and
+<strong>CODE</strong> workspaces in NES Forge 2.0.0-alpha.11, candidate
+<strong>audio-tool-import-1</strong>. It explains what you can inspect,
+recover, edit, save and build. Recovery is limited to the specific
+formats described below. A decoded instruction, captured picture or
+matching routine is evidence to investigate; it is not automatically a
+recovered game project.</p>
+<h2 id="choose-the-right-starting-point">Choose the right starting
+point</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>You want to…</th>
+<th>Start here</th>
+<th>What it changes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Inspect any ROM or raw binary</td>
+<td><strong>RE / DISASM → GENERAL ROM ANALYSIS → Open for
+analysis</strong></td>
+<td>Opens a separate immutable file snapshot; leaves the project and
+emulator alone</td>
+</tr>
+<tr class="even">
+<td>Observe a running NES program</td>
+<td><strong>EMULATOR → Load ROM</strong>, then <strong>RE / DISASM →
+RUNTIME INVESTIGATION</strong></td>
+<td>Loads emulator state; tracing is a separate explicit action</td>
+</tr>
+<tr class="odd">
+<td>Inspect the exact emulator file</td>
+<td><strong>Use emulator ROM for analysis</strong></td>
+<td>Copies that file into general analysis without resetting the
+game</td>
+</tr>
+<tr class="even">
+<td>Recover graphics, a supported background/map, or native audio</td>
+<td>Open general analysis, then <strong>Discover recovery
+methods</strong></td>
+<td>Reports installed method support; previews and imports remain
+separate actions</td>
+</tr>
+<tr class="odd">
+<td>Recover the Bridge Room demonstration</td>
+<td><strong>RECOVER EDITABLE PROJECT → Choose ROM</strong></td>
+<td>Stages a separate known-profile project; <strong>Import as new
+project</strong> replaces the current project in one undoable
+operation</td>
+</tr>
+<tr class="even">
+<td>Reopen an editable Forge-generated ROM</td>
+<td>Top-level <strong>Open Forge ROM</strong></td>
+<td>Reads supported Forge metadata/source; this is different from
+decoding an unfamiliar game engine</td>
+</tr>
+<tr class="odd">
+<td>Capture a game's current appearance</td>
+<td><strong>Import ROM</strong>, or emulator capture controls</td>
+<td>Adds captured or supported packed scene data; a picture does not
+establish native collision, gameplay or music</td>
+</tr>
+<tr class="even">
+<td>Write code for the current project</td>
+<td><strong>CODE</strong> project assembly editor</td>
+<td>Edits assembly saved with the ordinary Forge project</td>
+</tr>
+<tr class="odd">
+<td>Inspect/build a supplied source tree</td>
+<td><strong>CODE → Open source workspace</strong></td>
+<td>Uses an isolated multi-file document with its own save/export
+controls</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Keep these four things separate:</strong> the editable Forge
+project, the file opened for general analysis, the emulator's loaded
+ROM/state, and the temporary edited native-audio ROM copy. They have
+different save controls. A project save does not save all investigation
+sessions.</p>
+<h3 id="which-examples-are-in-this-kit">Which examples are in this
+kit?</h3>
+<p>The tester kit includes the <strong>Scout</strong> project and ROM
+under <code>examples/</code>. You can use its ROM for general analysis,
+physical CHR inspection and runtime observations. Scout is a
+Forge-generated control; it is not evidence that an unrelated game
+engine can be reconstructed.</p>
+<p>The built-in <strong>Open multi-file example</strong> needs no extra
+download. The following advanced examples require the <strong>full
+source checkout</strong>, with paths relative to its <code>app/</code>
+directory. They are not missing tester-kit files:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Example</th>
+<th>Full-checkout path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Raw counter and overlapping banks</td>
+<td><code>examples/RE_Analysis/</code></td>
+<td>Tiny static-analysis exercises</td>
+</tr>
+<tr class="even">
+<td>Bridge Room</td>
+<td><code>examples/RE_Bridge_Room/Bridge_Room.nes</code></td>
+<td>Known native room/collision/Pulse 1 recovery</td>
+</tr>
+<tr class="odd">
+<td>Pepsi vending</td>
+<td><code>tests/fixtures/re-runtime/pepsi_vending_v9e.nes</code></td>
+<td>Runtime-state investigation and immediate PPU background
+construction</td>
+</tr>
+<tr class="even">
+<td>HonkeyPong</td>
+<td><code>examples/RE_Native_Audio/HonkeyPong-reproduced.nes</code></td>
+<td>Bounded linked FamiTone2 audio and pointer-page background
+profile</td>
+</tr>
+<tr class="odd">
+<td>Double Action Blaster Guys</td>
+<td><code>examples/RE_Native_Map/</code></td>
+<td>Declared command-map/Empty-Solid collision subset</td>
+</tr>
+<tr class="even">
+<td>Supplied source workspaces</td>
+<td><code>examples/Source_Intake/</code></td>
+<td>Forge build control and independently supplied ca65 source
+intake</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="general-rom-analysis-controls-and-meanings">General ROM
+analysis: controls and meanings</h2>
+<p>Use <strong>Choose ROM or binary</strong>, then <strong>Open for
+analysis</strong>. Selection alone does not open the file. The identity
+panel records the name, byte count and SHA-256 of the opened bytes.
+General analysis accepts files up to 64 MiB independently of whether
+Forge can emulate them. Valid recognized iNES/NES 2.0 containers expose
+physical PRG/CHR spans. Unrecognized or malformed containers retain raw
+inspection with a diagnostic.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control or panel</th>
+<th>Use and result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Show general analysis / Show emulator
+disassembly</strong></td>
+<td>Switches the main view between the independent file analyzer and the
+current emulator-mapping disassembly</td>
+</tr>
+<tr class="even">
+<td><strong>File offset</strong>, <strong>Range bytes</strong>,
+<strong>View range</strong></td>
+<td>Chooses a physical byte span in the opened file; plain numbers are
+decimal, <code>$</code> or <code>0x</code> prefixes are hexadecimal</td>
+</tr>
+<tr class="odd">
+<td><strong>Previous 512 bytes / Next 512 bytes</strong></td>
+<td>Pages through the selected span, showing at most 512 bytes per
+page</td>
+</tr>
+<tr class="even">
+<td><strong>CPU origin (optional)</strong>, <strong>Bank label</strong>,
+<strong>CPU variant</strong></td>
+<td>Supplies the mapping and instruction interpretation for the selected
+span; leave the origin blank if unknown</td>
+</tr>
+<tr class="odd">
+<td><strong>Save mapping</strong>, saved mapping list, <strong>Go to
+mapping</strong></td>
+<td>Saves and revisits an analyst-defined mapping; separate banks can
+map to the same CPU address</td>
+</tr>
+<tr class="even">
+<td>Hex and instruction listings</td>
+<td>Shows original bytes alongside candidate instructions; data can
+resemble instructions</td>
+</tr>
+<tr class="odd">
+<td><strong>Raw CHR patterns · grayscale</strong></td>
+<td>Shows physical 8×8 CHR-ROM patterns when a trusted container
+identifies their location</td>
+</tr>
+<tr class="even">
+<td><strong>Previous 256 tiles / Next 256 tiles</strong></td>
+<td>Changes the physical CHR page; colors are pattern values 0–3, not
+recovered game palettes</td>
+</tr>
+<tr class="odd">
+<td><strong>Hex bytes</strong>, <strong>Search from file
+offset</strong>, <strong>Search</strong></td>
+<td>Searches a literal byte pattern, such as <code>A9 01 8D</code>;
+records physical matches</td>
+</tr>
+<tr class="even">
+<td><strong>Cancel search</strong>, result list, <strong>Go to
+result</strong></td>
+<td>Stops pending search or jumps to a selected match</td>
+</tr>
+<tr class="odd">
+<td><strong>Labels and comments · user evidence</strong></td>
+<td>Expands annotation controls: <strong>File offset</strong>,
+<strong>Length in bytes</strong>, <strong>Label</strong>,
+<strong>Comment</strong>, <strong>Save annotation</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Download inspection + notes</strong></td>
+<td>Saves file identity, diagnostics, mappings and annotations as
+evidence JSON</td>
+</tr>
+</tbody>
+</table></div>
+<p>The <strong>6502</strong> and <strong>2A03</strong> choices decode
+official instructions in this implementation. Unofficial opcodes and
+truncated instructions remain <code>.byte</code>. They are not a
+65C02/65C816 decoder. Each page begins decoding from its own first byte;
+a page boundary need not be an instruction boundary.</p>
+<p><strong>File offset</strong> includes the header and any trainer. A
+<strong>CPU address</strong> describes where bytes are mapped when a
+stated mapping applies. A <strong>physical CHR bank</strong> describes
+storage, not necessarily the mapper's currently visible window. Do not
+exchange these three address types.</p>
+<h3 id="tutorial-inspect-and-annotate-the-supplied-scout-rom">Tutorial:
+inspect and annotate the supplied Scout ROM</h3>
+<ol type="1">
+<li>Open <strong>RE / DISASM → GENERAL ROM ANALYSIS</strong> and choose
+<code>examples/Scout_Gameplay_Core_2.0.0-alpha.11.nes</code> from the
+kit. Select <strong>Open for analysis</strong>.</li>
+<li>Check its displayed name, byte count and hash. Set <strong>File
+offset</strong> to <code>0</code>, <strong>Range bytes</strong> to
+<code>16</code>, and select <strong>View range</strong>. The first four
+bytes should be <code>4E 45 53 1A</code>, the NES container
+signature.</li>
+<li>Enter <code>4E 45 53 1A</code> in <strong>Hex bytes</strong>, set
+<strong>Search from file offset</strong> to <code>0</code>, and select
+<strong>Search</strong>. Select the offset-zero match and <strong>Go to
+result</strong>. This locates the header; it does not identify gameplay
+code.</li>
+<li>Expand <strong>Raw CHR patterns · grayscale</strong> and page
+through the stored graphics. Read the physical file range shown for each
+page.</li>
+<li>Expand <strong>Labels and comments · user evidence</strong>. Enter
+offset <code>0</code>, length <code>4</code>, label
+<code>NES signature</code>, comment
+<code>Observed container signature</code>, then <strong>Save
+annotation</strong>.</li>
+<li>Select <strong>Download inspection + notes</strong> and save the
+JSON. The original ROM and your authoring project remain unchanged.</li>
+</ol>
+<p><strong>Expected result:</strong> a repeatable physical-byte finding
+with source identity and a saved annotation. Inspection JSON cannot be
+reopened as an editable Forge project or restored as an analysis session
+in this version. Export before opening another analysis file or closing
+the page.</p>
+<p><strong>Search limits:</strong> patterns contain 1–256 bytes. Work
+yields between 1 MiB chunks and stops at 256 results. When capped, the
+start field moves to a continuation offset; search again to continue.
+Set the start back to <code>0</code> before a new whole-file query. A
+capped list does not prove later matches are absent. Up to 128 mappings
+and 256 annotations are retained per session; labels allow 160
+characters and comments 2,000.</p>
+<h3 id="emulator-disassembly">Emulator disassembly</h3>
+<p><strong>Disassemble PRG</strong> reads the currently mapped CPU
+window of the loaded emulator ROM. It follows direct control flow from
+RESET/NMI/IRQ, displays vectors, labels and code/data counts, and
+retains other bytes as data. With bank switching, this is one current
+mapping, not all cartridge banks.</p>
+<p><strong>Download .asm</strong> saves that listing. <strong>Copy ASM
+to Code Tab</strong> replaces project assembly after a confirmation when
+existing code is present, switches to CODE, and disables scene packing
+to avoid overlaying the copied window. Save your project before
+replacing code. Generated labels and hardware-register descriptions are
+analysis aids, not recovered original symbols, comments or filenames.
+Reassembling a mapped listing does not reconstruct a whole bank-switched
+cartridge or its source tree.</p>
+<h2 id="discover-available-recovery-methods">Discover available recovery
+methods</h2>
+<p>In the general-analysis workspace, open <strong>Available recovery
+methods</strong> and select <strong>Discover recovery methods</strong>.
+Read each method's status, explanation, operations and limits. Discovery
+examines the exact original file; it does not run a game, import data or
+erase an edited native-audio copy.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Status</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>supported</strong></td>
+<td>The method recognizes its required structure; the selected
+conversion still needs its own checks</td>
+</tr>
+<tr class="even">
+<td><strong>unknown</strong></td>
+<td>The bounded probe could not establish that profile</td>
+</tr>
+<tr class="odd">
+<td><strong>unsupported</strong></td>
+<td>A declared requirement is outside the method</td>
+</tr>
+<tr class="even">
+<td><strong>ambiguous</strong></td>
+<td>Evidence does not select one safe interpretation</td>
+</tr>
+<tr class="odd">
+<td><strong>invalid</strong></td>
+<td>A required structure is malformed or inconsistent</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Cancel discovery</strong> stops publication of pending
+results. <strong>Download method evidence</strong> saves the recognition
+report. Selecting another file invalidates results immediately: complete
+<strong>Open for analysis</strong>, then discover again.</p>
+<p>Successful routes are <strong>Open tile recovery tools</strong>,
+<strong>Open native background recovery</strong>, <strong>Open native
+map and collision recovery</strong>, <strong>Open native Audio
+tools</strong>, and <strong>Open AUDIO transcription tools</strong>, as
+applicable. These reveal the appropriate panel; they do not perform the
+preview or import for you.</p>
+<h3 id="physical-chr-recover-editable-tile-pixels">Physical CHR: recover
+editable tile pixels</h3>
+<ol type="1">
+<li>Open the Scout ROM for analysis and expand <strong>Raw CHR patterns
+· grayscale</strong>.</li>
+<li>Choose the desired physical tile page, then <strong>Preview native
+tile import</strong>. Review the hash, tile indices and source-byte
+range.</li>
+<li>Select <strong>Import as new tile sheet</strong>. A new scene is
+appended and selected; existing scenes remain.</li>
+<li>Open <strong>CHR SHEET</strong>, edit a pixel, and <strong>Save
+Project As…</strong> to keep the editable result. <strong>Undo</strong>
+removes the import; <strong>Redo</strong> restores it.</li>
+<li>With that imported sheet selected, use <strong>Download active sheet
+CHR</strong> for the current raw planar graphics and <strong>Download
+recovery evidence</strong> for the original import record.</li>
+</ol>
+<p><strong>Expected result:</strong> an editable grayscale tile sheet
+with preserved 2-bit pixels and source provenance. Each selected tile is
+checked by encoding it back to its original 16 bytes before import. The
+sheet is excluded from ROM builds by default. Its arrangement and
+grayscale palette are inspection aids, not recovered scene placement or
+palette choices.</p>
+<p>This method accepts 1–256 physical CHR-ROM tiles per operation. It
+does not recover CHR RAM, compressed PRG graphics, sprite groups, active
+bank visibility, maps, collision or audio. Reimporting the same
+source/range is refused to prevent duplicate identities. An edited
+<code>.chr</code> file is not a playable ROM or an automatically safe
+native patch.</p>
+<h3
+id="native-background-recover-one-supported-static-construction">Native
+background: recover one supported static construction</h3>
+<p>Two bounded profiles are available through <strong>Background
+recovery method</strong>:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Method name</th>
+<th>Full-checkout example</th>
+<th>Recovered result and boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Immediate PPU background construction</strong></td>
+<td>Pepsi vending</td>
+<td>Approved initialization/palette/construction routines establish a
+static background; vending states and credits are not recovered</td>
+</tr>
+<tr class="even">
+<td><strong>Vector-linked pointer-page nametable loader</strong></td>
+<td>HonkeyPong</td>
+<td>Proven native pointer upload plus palette/CHR; one untouched final
+attribute is unknown and explicitly supplied as zero for conversion</td>
+</tr>
+</tbody>
+</table></div>
+<p>Both target declared NTSC mapper-0 iNES layouts with 16/32 KiB PRG, 8
+KiB CHR and no trainer. A different instruction sequence can remain
+unknown even if it renders a similar picture. HonkeyPong's profile has a
+specific supported legacy-header interpretation; generic container/CHR
+recovery can still refuse that same original file.</p>
+<p><strong>Tutorial, full checkout required:</strong> open the chosen
+source for general analysis, select its method, and <strong>Preview
+background</strong>. Inspect the thumbnail, coverage, hash, warnings and
+<strong>Full source evidence and construction</strong>. Tick the
+displayed limitations acknowledgement and select <strong>Import as new
+scene</strong>. The scene is appended, selected and excluded from the
+current build; one Undo reverses it. Alternatively choose
+<strong>Download background project</strong>, open that separate JSON,
+then build its static viewer.</p>
+<p><strong>Download background evidence</strong> saves the preview's
+provenance. <strong>Cancel preview</strong> abandons pending work.
+Source, method or project changes require a fresh preview before import.
+A duplicate resource is refused. The separate project download remains
+the original preview result; use <strong>Save Project As…</strong> after
+editing the imported scene.</p>
+<p><strong>Expected result:</strong> editable tiles, nametable,
+attributes and palette data for one static background. Source sprites,
+collision, raster behavior, scroll, later writes, music and original
+game code are not part of this conversion. Empty collision defaults mean
+“not recovered,” not verified walkable space.</p>
+<h3 id="native-map-and-collision-the-declared-emptysolid-subset">Native
+map and collision: the declared Empty/Solid subset</h3>
+<p>This method handles the supported Double Action Blaster Guys
+command-metatile representation. It does not convert every map in that
+game. The pinned input contains 52 level configurations; 39 reference 22
+unique command maps and 13 are procedural. One referenced resource meets
+the current static Empty/Solid conversion subset; others show refusal
+reasons.</p>
+<p><strong>Tutorial, full checkout required:</strong> open
+<code>examples/RE_Native_Map/DABG-reproduced.nes</code> for general
+analysis. Use its discovery route, or choose <strong>NES command
+metatile maps</strong> in <strong>Scene recovery method</strong>. Select
+<strong>Find maps</strong>, choose an eligible <strong>Native map /
+region</strong>, then <strong>Preview map</strong>. Review geometry,
+collision and the conversion acknowledgement. <strong>Import as new
+scene</strong> appends an excluded scene. <strong>Download map
+project</strong> saves the independent playable adaptation;
+<strong>Download map evidence</strong> saves provenance.</p>
+<p>For a ready-made edit exercise, open
+<code>examples/RE_Native_Map/DABG_Static_Map.nesforge.json</code>, then
+<strong>Build &amp; Run</strong>. Change its floor tile properties to
+Empty in COLLISION, save and rebuild. The player should fall through the
+still-visible floor.
+<code>DABG_Static_Map_Floor_Opened.nesforge.json</code> provides the
+corresponding control.</p>
+<p>The conversion expands a visible 16×15 native metatile area into
+32×30 Forge cells. It does not collapse every nonempty native value into
+Solid: one-way surfaces, hazards, moving blocks, teleports and unknown
+cells can prevent conversion. Graphics use the proven reset palette and
+bounded PB53 CHR-RAM construction, omitting native random decoration and
+later game effects. The separate project supplies an authored test
+player and Forge movement; these are not recovered original physics or
+actors.</p>
+<p>Where identical tile graphics have different collision meanings,
+linked metatile quadrant overrides take precedence over tile properties.
+Inspect collision after graphics/attribute changes that detach those
+links. Original DABG NES 2.0 static analysis support does not imply that
+the emulator frontend can play that original cartridge.</p>
+<h3 id="bridge-room-and-forge-metadata-recovery">Bridge Room and Forge
+metadata recovery</h3>
+<p><strong>Bridge Room, full checkout required:</strong> under
+<strong>RECOVER EDITABLE PROJECT</strong>, use <strong>Choose ROM →
+Preview editable recovery</strong> on
+<code>examples/RE_Bridge_Room/Bridge_Room.nes</code>. Review
+<strong>Show recovered solid collision (pink)</strong>, raw background
+CHR and <strong>Recovery limits and adaptation notes</strong>.
+<strong>Import as new project</strong> replaces the active project in
+one undoable step. <strong>Download Forge project JSON</strong> saves
+the editable staged project; <strong>Download inspection report</strong>
+saves separate evidence.</p>
+<p>This bounded profile decodes native fixed-room graphics, Empty/Solid
+collision, player art/spawn and sixteen constant Pulse 1 timer rows. The
+original demo supports left/right movement; the rebuild adapts it to
+Forge's player runtime, including jump/attack controls. It has no
+recovered original SFX, combat implementation or multi-room engine.</p>
+<p><strong>Open Forge ROM</strong> instead reads supported
+Forge-authored metadata/source. World WG17 builds can recover their
+checked embedded project source. Single-room GP16/layout-3 recovery is
+partial and does not restore Gameplay Core source. <strong>Import
+ROM</strong> retains its append/capture behavior; World ROMs direct you
+to <strong>Open Forge ROM</strong>. Keep native project JSON/ZIP as the
+complete authoring backup. <strong>Run Original ROM</strong> plays
+preserved imported bytes; <strong>Build &amp; Run</strong> compiles
+current project edits. Editing a captured or recovered scene does not
+patch the preserved original ROM.</p>
+<h2 id="native-audio-inspect-edit-a-copy-or-transcribe">Native audio:
+inspect, edit a copy, or transcribe</h2>
+<p>These are three separate operations. The native profile recognizes
+one structurally verified linked <strong>FamiTone2 v1.11</strong>
+configuration, including checked instruction relationships and data
+pointers. A familiar engine name, filename or a similar APU routine does
+not establish support. The current profile accepts bounded mapper-0 iNES
+containers; other instruction builds, banking, NES 2.0 and dynamic
+initialization patterns remain outside it.</p>
+<h3 id="native-evidence-and-same-layout-edits">Native evidence and
+same-layout edits</h3>
+<p>After opening the ROM for general analysis, go to <strong>Native
+audio · FamiTone2 profile → Analyze current ROM</strong>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Profile limits and diagnostics</strong></td>
+<td>Explains recognition results and refusals</td>
+</tr>
+<tr class="even">
+<td><strong>Native subsong</strong>, <strong>Channel</strong></td>
+<td>Selects native decoded records; logical rows are not necessarily
+video frames</td>
+</tr>
+<tr class="odd">
+<td><strong>Editable native command</strong></td>
+<td>Selects a proven one-byte note/cut or instrument-selection
+command</td>
+</tr>
+<tr class="even">
+<td><strong>Previous 100 commands / Next 100 commands</strong></td>
+<td>Pages the editable command inventory</td>
+</tr>
+<tr class="odd">
+<td><strong>Native note code · 0 cuts</strong></td>
+<td>Changes a driver-native code: tonal 0–60, noise 0–16; these are not
+MIDI note numbers</td>
+</tr>
+<tr class="even">
+<td><strong>Decoded instrument</strong></td>
+<td>Selects an already decoded instrument for a supported instrument
+command</td>
+</tr>
+<tr class="odd">
+<td><strong>Apply native edit</strong></td>
+<td>Changes the permitted existing byte in a separate ROM copy, checks
+aliases and decodes it again</td>
+</tr>
+<tr class="even">
+<td><strong>Undo native edit / Redo native edit</strong></td>
+<td>Navigates this native-copy history, independently of project
+Undo</td>
+</tr>
+<tr class="odd">
+<td><strong>Referenced instrument evidence</strong></td>
+<td>Shows referenced records and volume/arpeggio/pitch-envelope
+evidence</td>
+</tr>
+<tr class="even">
+<td><strong>Known SFX evidence · partial inventory</strong></td>
+<td>Shows statically proven effects and NTSC/PAL streams; dynamically
+supplied IDs can remain unknown</td>
+</tr>
+<tr class="odd">
+<td><strong>Download native ROM copy</strong></td>
+<td>Saves the current native bytes; project saving does not save this
+session</td>
+</tr>
+<tr class="even">
+<td><strong>Download native evidence</strong></td>
+<td>Saves the decoded source/edit report, not the ROM or an editable
+Forge project</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Tutorial, full checkout required:</strong> analyze
+<code>examples/RE_Native_Audio/HonkeyPong-reproduced.nes</code>, select
+subsong <code>0</code> and a tonal channel, then choose an existing note
+command. Read its file/CPU location and original code. Change it by one
+supported native code, select <strong>Apply native edit</strong>, review
+affected aliases, and download the copy. Load the downloaded copy
+separately in EMULATOR to compare it with the original. <strong>Undo
+native edit</strong> restores the prior copy. The source opened for
+general analysis is unchanged.</p>
+<p>Only existing supported note/cut and instrument-selection bytes can
+be edited. Pointer, length, timing, envelope, arbitrary-offset, DPCM and
+SFX-stream edits are not offered. Shared stream references can affect
+several events, so read the reported aliases. <strong>Analyze current
+ROM</strong> again starts a new native session from the original
+analysis file and discards that session's edits; export first.</p>
+<h3 id="transcribe-native-music-into-audio">Transcribe native music into
+AUDIO</h3>
+<ol type="1">
+<li>Analyze the native ROM and choose <strong>Native
+subsong</strong>.</li>
+<li>Under <strong>Transcribe native music into AUDIO</strong>, choose
+<strong>Native rows in excerpt (1–1024)</strong>. Start with
+<code>64</code> on the full-checkout HonkeyPong example.</li>
+<li>Select <strong>Preview import to AUDIO</strong> and read
+<strong>Conversion evidence</strong>, source identity, timing,
+pitch/envelope differences and capacity estimate.</li>
+<li>Select <strong>Transcribe music into AUDIO</strong> and review the
+confirmation. This appends patterns/instruments and replaces the music
+order plus global tempo/speed. Existing SFX records remain, but their
+timing uses the new tempo/speed.</li>
+<li>Open AUDIO to edit and preview. Use <strong>Save Project
+As…</strong> for the resulting score. Project <strong>Undo/Redo</strong>
+reverses/reapplies the import as one operation. <strong>Download
+transcription evidence</strong> saves the historical conversion
+report.</li>
+</ol>
+<p><strong>Expected result:</strong> a finite editable score excerpt
+with terminal cut/padding, using tempo 150 and speed 1 so one row is an
+NTSC video frame. The entire resulting order loops, including padding;
+the original engine's intro, loop, pause, song switching and calls are
+not reconstructed. Preview can refuse PAL, DPCM, nonzero pitch
+envelopes, short-mode noise or unsupported control/timing/data. The
+output is bounded to 16,384 video frames and 255 imported
+patterns/instruments, with existing project and build limits checked
+too.</p>
+<p>Import does not enable <strong>Compile Audio Runtime</strong> or
+<strong>Autoplay tracker order as music</strong>, run a ROM, or switch
+the active tab. Set runtime options deliberately before a build. The
+audio-data estimate is not a complete ROM-fit guarantee. Changed source
+bytes, subsong, excerpt length or project content require another
+preview. Native-copy edits are included when the current analyzed native
+session is used.</p>
+<h3 id="transcribe-a-native-sfx-into-audio">Transcribe a native SFX into
+AUDIO</h3>
+<p>The current project must already use <strong>tempo 150 / speed
+1</strong>. The importer refuses incompatible timing rather than
+changing an existing song for you.</p>
+<ol type="1">
+<li>After native analysis, select <strong>Find SFX</strong> under
+<strong>Transcribe native SFX into AUDIO</strong>.</li>
+<li>Choose <strong>Statically proven native SFX</strong> and select
+<strong>Preview SFX transcription</strong>.</li>
+<li>Read <strong>SFX conversion evidence</strong> and the tuning,
+phase/retrigger and mixing differences. Tick the acknowledgement, then
+<strong>Import SFX into AUDIO</strong> and confirm.</li>
+<li>Inspect the appended patterns, instruments and named SFX in AUDIO.
+Connect a gameplay/animation sound trigger separately; none is recovered
+automatically.</li>
+<li>Save the project. Use <strong>Download SFX evidence</strong> for
+provenance, or <strong>Cancel SFX transcription</strong> to abandon
+staging.</li>
+</ol>
+<p>The subset accepts one fully known pulse channel, supported
+controls/timers and a finite stream that fits one current pattern plus a
+terminal cut. On the supplied HonkeyPong input, effects 0 and 1 each
+have twelve audible frames and fit; effect 2 uses two pulse channels and
+is refused. Native mixer arbitration, simultaneous streams, exact
+waveform/retrigger behavior and original game triggers are not
+reproduced. Existing music order, timing, runtime settings and bindings
+remain unchanged. Duplicate source-effect imports are refused. Project
+Undo removes a successful import.</p>
+<h2 id="runtime-investigation-observe-an-event">Runtime investigation:
+observe an event</h2>
+<p>Load a supported ROM in <strong>EMULATOR</strong>. Return to
+<strong>RE / DISASM → RUNTIME INVESTIGATION</strong> and select
+<strong>Use emulator ROM for analysis</strong>. The displayed hash
+connects runtime evidence to the exact original file. Choosing another
+general-analysis file does not replace the emulator ROM; a mismatched
+<strong>View originating code</strong> request is refused.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Show runtime investigation</strong></td>
+<td>Reveals the results workspace</td>
+</tr>
+<tr class="even">
+<td><strong>Start trace</strong></td>
+<td>Starts at the current game state, clears the prior observation set
+and memory A/B, retains watches</td>
+</tr>
+<tr class="odd">
+<td><strong>Trace from reset (resets game)</strong></td>
+<td>Deliberately resets and arms tracing before initialization</td>
+</tr>
+<tr class="even">
+<td><strong>Stop trace</strong></td>
+<td>Stops collecting; does not replace a separate emulator pause
+action</td>
+</tr>
+<tr class="odd">
+<td><strong>Refresh results</strong></td>
+<td>Refreshes executed-code, write-event and resource lists</td>
+</tr>
+<tr class="even">
+<td><strong>Clear observations</strong></td>
+<td>Discards observations without editing the project or ROM</td>
+</tr>
+<tr class="odd">
+<td><strong>Executed code and originating ROM bytes</strong></td>
+<td>Shows observed PCs, mapped physical offsets and execution
+counts</td>
+</tr>
+<tr class="even">
+<td><strong>Event type</strong></td>
+<td>Filters All writes, PPU writes, APU writes or Watched RAM
+writes</td>
+</tr>
+<tr class="odd">
+<td><strong>Previous 128 / Next 128</strong></td>
+<td>Pages memory, code or write lists within their own section</td>
+</tr>
+<tr class="even">
+<td><strong>View originating code</strong></td>
+<td>Opens the selected event/instruction's verified physical location in
+general analysis</td>
+</tr>
+<tr class="odd">
+<td><strong>Export runtime evidence</strong></td>
+<td>Saves source identity, bounded events, code coverage and snapshots
+as JSON</td>
+</tr>
+<tr class="even">
+<td><strong>Export observed PPU resources</strong></td>
+<td>Saves observed nametable/palette/CHR-RAM bytes, known masks and
+their event references</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="tutorial-locate-graphics-writes-in-scout">Tutorial: locate
+graphics writes in Scout</h3>
+<ol type="1">
+<li>In EMULATOR, <strong>Load ROM</strong> using the kit's Scout
+<code>.nes</code>.</li>
+<li>In RE, choose <strong>Use emulator ROM for analysis → Trace from
+reset (resets game)</strong>.</li>
+<li>Return to EMULATOR and <strong>Run</strong> long enough for the
+scene to appear, then pause playback.</li>
+<li>Return to RE and choose <strong>Stop trace → Refresh
+results</strong>. Set <strong>Event type</strong> to <strong>PPU
+writes</strong>.</li>
+<li>Select a write and <strong>View originating code</strong>. The
+analyzer opens a small verified byte span at its origin; extend the
+range only after checking the mapping.</li>
+<li>Export the runtime evidence before starting a different
+interval.</li>
+</ol>
+<p><strong>Expected result:</strong> observed writes and code locations
+from actual execution. An initialization trace is needed to see
+initialization writes; beginning later cannot recover missed history.
+The originating instruction may compute or decompress data, so its
+location is not automatically the original asset's location.</p>
+<p>A trace stops at 2,000,000 observed instructions, 8,192 events or
+4,096 executed-code records. Read the stop reason. This bounds retained
+evidence; it does not prove every path was visited. Frame/cycle fields
+reflect Forge's instruction-level emulator, not cycle-exact hardware
+verification. An empty APU list means no APU writes were observed in
+that interval, not necessarily that the cartridge contains no audio.</p>
+<p>Observed resource bytes have a <code>known</code> mask. A zero
+placeholder with <code>known: 0</code> means unobserved, not verified
+black/empty data. Resource and runtime exports are evidence-only; they
+do not reopen a saved machine state or import a native scene.</p>
+<h3 id="compare-ram-and-watch-a-candidate-variable">Compare RAM and
+watch a candidate variable</h3>
+<ol type="1">
+<li>If tracing writes, start the trace first; starting a new trace
+clears old A/B snapshots.</li>
+<li>Pause at a starting state and select <strong>Save memory
+A</strong>.</li>
+<li>Run one short controller action in EMULATOR, then pause and select
+<strong>Save memory B</strong>.</li>
+<li>Choose <strong>RAM region</strong>: All RAM, Internal RAM or
+Cartridge RAM. Choose <strong>Comparison</strong>: Changed, Unchanged,
+Increased, Decreased or After equals. For the latter, enter
+<strong>After value (decimal or hex)</strong> from 0–255. Select
+<strong>Compare memory</strong>.</li>
+<li>Select a candidate and <strong>Use selected address for
+watch</strong>, or enter a known <strong>Watch address</strong>. Enter
+<strong>Your label (optional)</strong> and select <strong>Add
+watch</strong>.</li>
+<li>Start a new trace, repeat the action, then inspect <strong>Watched
+RAM writes</strong>. <strong>Remove selected watch</strong> removes a
+watch without changing RAM.</li>
+</ol>
+<p><strong>Expected result:</strong> byte changes and write origins to
+investigate. A changing byte can be a timer or temporary value rather
+than the intended game state. Comparisons are unsigned: 255→0 is a
+decrease, not an inferred wrapped increment. Snapshots read RAM backing
+arrays, not I/O registers. They are observations, not restore
+points.</p>
+<p>Up to eight RAM addresses can be watched. Internal mirrors normalize
+to <code>$0000–$07FF</code>; available cartridge RAM uses
+<code>$6000–$7FFF</code>. Labels are your hypotheses. Reset, successful
+ROM replacement, CPU Trace and history restoration invalidate
+incompatible observations. ROM changes also clear watches. Export useful
+evidence before navigation or a new trace.</p>
+<h2
+id="checkpoints-scripted-input-and-reversible-ram-experiments">Checkpoints,
+scripted input and reversible RAM experiments</h2>
+<p>These controls are under <strong>Runtime investigation → Checkpoints
+and reversible experiments</strong>. They operate on the currently
+loaded emulator session, independently of the project and static
+analyzer.</p>
+<h3 id="checkpoint-controls">Checkpoint controls</h3>
+<p>Enter <strong>Checkpoint name</strong>, then <strong>Save
+checkpoint</strong>. Saving pauses the emulator and retains CPU, PPU,
+mapper, logical APU, RAM, controller latches and completed framebuffer
+state. Select a saved entry in <strong>Saved checkpoints</strong> and
+use <strong>Restore selected</strong> to return to it while paused, or
+<strong>Delete selected</strong> to remove it.</p>
+<p>Up to sixteen checkpoints fit within a separate 32 MiB encoded-state
+budget. Names allow 64 characters. Limits reject another save rather
+than evicting an existing named checkpoint. These are temporary session
+states, not project JSON or downloadable save states. Reset, successful
+ROM replacement, CPU Trace and unloading invalidate them; a failed ROM
+load retains the current session.</p>
+<h3 id="tutorial-replay-the-same-short-input">Tutorial: replay the same
+short input</h3>
+<ol type="1">
+<li>Load and run Scout to a useful starting view. Save a checkpoint
+named <code>Before movement</code>.</li>
+<li>In <strong>Input steps</strong>, enter:</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">[</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span><span class="dt">&quot;frames&quot;</span><span class="fu">:</span> <span class="dv">30</span><span class="fu">,</span> <span class="dt">&quot;buttons&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;Right&quot;</span><span class="ot">]</span><span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span><span class="dt">&quot;frames&quot;</span><span class="fu">:</span> <span class="dv">10</span><span class="fu">,</span> <span class="dt">&quot;buttons&quot;</span><span class="fu">:</span> <span class="ot">[]</span><span class="fu">}</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ot">]</span></span></code></pre></div>
+<ol start="3" type="1">
+<li>Tick <strong>Restore selected checkpoint before replay</strong> and
+select <strong>Run input script</strong>.</li>
+<li>Record the resulting frame/view. Run the same script again from the
+same checkpoint and compare.</li>
+</ol>
+<p><strong>Expected result:</strong> the same emulator state from the
+same checkpoint and inputs within Forge's supported implementation.
+Keyboard/touch/gamepad input is isolated during script replay.
+<strong>Cancel script / navigation</strong> stops further frames and
+leaves playback paused; executed frames remain. Restore the checkpoint
+to rewind them.</p>
+<p>Buttons are <code>A</code>, <code>B</code>, <code>Select</code>,
+<code>Start</code>, <code>Up</code>, <code>Down</code>,
+<code>Left</code>, <code>Right</code>. Empty <code>buttons</code> means
+neutral input. Opposite directions and duplicate names are rejected.
+Each step uses 1–600 frames, with up to 256 steps and 1,800 frames
+total. Replay drives the actual emulated program; it does not
+automatically find a stage, enemy or health variable.</p>
+<h3 id="reversible-ram-edit-controls">Reversible RAM edit controls</h3>
+<p>Enter <strong>Your hypothesis label</strong>, <strong>RAM
+address</strong> and <strong>Byte value</strong>, then <strong>Apply
+reversible RAM edit</strong>. The UI exposes one byte at a time.
+Decimal, <code>$hex</code> and <code>0xhex</code> are accepted. Allowed
+addresses are internal RAM <code>$0000–$1FFF</code> with mirrors
+normalized, and available cartridge RAM <code>$6000–$7FFF</code>. Values
+must be 0–255. I/O, mapper registers and ROM are refused.</p>
+<p>Applying creates a full <strong>Before:</strong> checkpoint and
+changes RAM directly. <strong>Restore experiment</strong> restores the
+whole machine, including time and all later effects. <strong>Keep
+emulator state</strong> discards the rollback checkpoint and retains the
+current state. Only one reversible experiment is active; its checkpoint
+is protected from ordinary deletion. Reset or ROM replacement
+invalidates it.</p>
+<p><strong>Tutorial, full checkout required for the known-byte
+example:</strong> load the exact Pepsi vending fixture, enter its
+product-selection state with Start, pause, and compare/watch
+<code>$0001</code> while A adds credit. Its known fixture meaning is
+credits. Once your observations confirm that relationship, apply a
+labeled edit to <code>$0001</code>, run briefly, then <strong>Restore
+experiment</strong>. Expect a full state rewind, not merely one inverse
+byte write. Do not transfer that address or meaning to other ROMs.</p>
+<p>The tools do not currently provide breakpoints, read watches, value
+freezes, ROM shadow patches, arbitrary mapper support, exported/imported
+snapshots, or generic “change stage/health/enemies” commands.</p>
+<h2 id="code-assembly-belonging-to-the-project">CODE: assembly belonging
+to the project</h2>
+<p>The main CODE text editor holds project assembly. It uses normal text
+selection and keyboard editing. <strong>Assemble (Ctrl+Enter)</strong>
+checks and assembles it; the sidebar displays <strong>Assembly
+Status</strong>, code size/origin, <strong>Errors</strong>,
+<strong>Symbol Table</strong> and <strong>Hex Output</strong>. Clicking
+an error moves to its source line. Assembly alone does not load the
+emulator or prove a working cartridge.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose and caution</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Insert template… → Minimal (vectors + loop)</strong></td>
+<td>Replaces the editor after confirmation when needed; creates an
+intentionally blank boot program</td>
+</tr>
+<tr class="even">
+<td><strong>Scene Viewer (working engine)</strong></td>
+<td>Generates project-scene viewer assembly with vectors; regenerate
+after changing the scene count</td>
+</tr>
+<tr class="odd">
+<td><strong>Scene Constants (generated)</strong></td>
+<td>Inserts packed-scene layout constants at the selection; these
+describe the retained packed layout, not every newer runtime's internal
+addresses</td>
+</tr>
+<tr class="even">
+<td><strong>ROM CONFIG → Mapper</strong></td>
+<td>Generated cartridge target is mapper 0/NROM; importing another
+mapper does not add a generator for it</td>
+</tr>
+<tr class="odd">
+<td><strong>Mirroring</strong></td>
+<td>Chooses horizontal or vertical nametable arrangement for the
+generated header/profile</td>
+</tr>
+<tr class="even">
+<td><strong>Battery-backed SRAM ($6000–$7FFF)</strong></td>
+<td>Declares the cartridge battery-backed RAM configuration; it does not
+implement a game's save system</td>
+</tr>
+<tr class="odd">
+<td><strong>Pack scene data at $D000</strong></td>
+<td>Reserves/emits the established scene payload alongside compatible
+assembly; overlapping code/data is an error</td>
+</tr>
+<tr class="even">
+<td><strong>Memory Map</strong>, <strong>Build Log</strong></td>
+<td>Helps inspect placement and complete build diagnostics</td>
+</tr>
+<tr class="odd">
+<td>Top-level <strong>Build .NES ROM / Build &amp; Run</strong></td>
+<td>Compiles the selected project build mode; the latter loads the
+successful fresh result into EMULATOR</td>
+</tr>
+</tbody>
+</table></div>
+<p>Custom project assembly belongs to <strong>Gameplay → Scene viewer /
+custom assembly</strong> mode. The generated single-room/World runtimes
+have their own validated build paths; this editor is not an automatic
+patch point for arbitrary code into those engines. Audio Runtime cannot
+be inserted into custom assembly: disable it for that build, or use a
+generated runtime. With scene packing off, the custom build uses the
+active CHR banks and ignores the Build Scene Set/authoring metadata. Use
+the build diagnostics to resolve unsupported combinations and
+overlapping reserved regions.</p>
+<h3 id="assembler-syntax-reference">Assembler syntax reference</h3>
+<p>The <code>forge-6502-v1</code> dialect supports the official 6502
+mnemonics/addressing modes, labels, semicolon comments, constants
+(<code>NAME = expression</code> or
+<code>.define NAME expression</code>), and integer expressions. Numbers
+can be decimal, <code>$hex</code>, <code>0xhex</code> or
+<code>%binary</code>; unary <code>&lt;</code>/<code>&gt;</code> select
+low/high bytes. <code>a:</code> forces absolute addressing when a small
+value would otherwise choose zero page.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Directive</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>.org address</code></td>
+<td>Sets the assembly address</td>
+</tr>
+<tr class="even">
+<td><code>.byte</code> / <code>.db</code></td>
+<td>Emits byte values or byte-sized quoted strings</td>
+</tr>
+<tr class="odd">
+<td><code>.word</code> / <code>.dw</code></td>
+<td>Emits little-endian 16-bit values</td>
+</tr>
+<tr class="even">
+<td><code>.macro name parameters</code> … <code>.endm</code> /
+<code>.endmacro</code></td>
+<td>Defines a bounded textual macro; invocation errors use the
+invocation line</td>
+</tr>
+<tr class="odd">
+<td><code>.rsset address</code>, <code>name .rs size</code></td>
+<td>Assigns reserve symbols without emitting PRG data</td>
+</tr>
+<tr class="even">
+<td><code>.enum address</code> … <code>.ende</code></td>
+<td>Provides the retained reserve-origin form</td>
+</tr>
+</tbody>
+</table></div>
+<p>Overlapping writes, unresolved/cyclic constants, illegal addressing
+modes, oversized operands and out-of-range relative branches are errors.
+The project editor does not directly support <code>.include</code> or
+<code>.incbin</code>; use the source workspace below for those. Foreign
+ca65/NESASM/ASM6/Ophis syntax is not automatically translated.</p>
+<h3 id="tutorial-build-an-intentionally-blank-program">Tutorial: build
+an intentionally blank program</h3>
+<ol type="1">
+<li>Save your current project, then create a new project for this
+exercise.</li>
+<li>Open <strong>Gameplay</strong> and select <strong>Scene viewer /
+custom assembly</strong>.</li>
+<li>Open CODE and choose <strong>Minimal (vectors + loop)</strong>. Turn
+off <strong>Pack scene data at $D000</strong> for this standalone boot
+exercise. Keep Audio Runtime disabled.</li>
+<li>Choose <strong>Assemble (Ctrl+Enter)</strong>. Expect valid vectors,
+symbols and no errors.</li>
+<li>Select <strong>Build &amp; Run</strong>, then run/step the resulting
+ROM in EMULATOR if it is paused.</li>
+</ol>
+<p><strong>Expected result:</strong> an intentionally blank display
+while the reset code loops. This template contains no PPU drawing or
+gameplay. Save with ordinary <strong>Save Project As…</strong> to retain
+project assembly. Use the multi-file example below when you want a
+positive RAM-write result and independent source export.</p>
+<h2 id="multi-file-source-workspace">Multi-file source workspace</h2>
+<p>Select <strong>CODE → Open source workspace</strong>. <strong>Return
+to project assembly</strong> switches back. The source document has its
+own current files, preserved original bytes, entry/build settings and
+exports. A successful source build does not replace the authoring
+project, insert generated Gameplay/Audio Runtime, or load the
+emulator.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Controls</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Import source files / Import source folder</strong></td>
+<td>Replaces the isolated document after its confirmation; folder import
+retains relative folder names</td>
+</tr>
+<tr class="even">
+<td><strong>Open saved source workspace</strong></td>
+<td>Opens <code>.nesforge-source.json</code>, restoring current and
+preserved original files</td>
+</tr>
+<tr class="odd">
+<td><strong>Open multi-file example</strong></td>
+<td>Loads a self-contained entry/includes/macro/binary-data/vector
+example</td>
+</tr>
+<tr class="even">
+<td><strong>Save source workspace</strong></td>
+<td>Saves the editable isolated document; ordinary project save is not
+its backup</td>
+</tr>
+<tr class="odd">
+<td><strong>Export source ZIP</strong></td>
+<td>Saves the workspace JSON plus <code>current/</code> and
+<code>original/</code> file trees</td>
+</tr>
+<tr class="even">
+<td><strong>Entry file</strong></td>
+<td>Chooses the root source file for assembly; a filename default is
+only a convenience</td>
+</tr>
+<tr class="odd">
+<td><strong>PRG size</strong></td>
+<td>Selects 16 or 32 KiB</td>
+</tr>
+<tr class="even">
+<td><strong>Mirroring</strong></td>
+<td>Selects horizontal or vertical</td>
+</tr>
+<tr class="odd">
+<td><strong>CHR source</strong></td>
+<td>Selects an exactly 8,192-byte CHR file, or <strong>CHR RAM (no CHR
+ROM)</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Edit file</strong> and text editor</td>
+<td>Edits a selected text file; binary bytes remain preserved, not
+converted into text</td>
+</tr>
+<tr class="odd">
+<td><strong>Build source ROM</strong></td>
+<td>Preprocesses and assembles the current entry into the bounded
+mapper-0 profile</td>
+</tr>
+<tr class="even">
+<td><strong>Download source ROM</strong></td>
+<td>Saves the latest valid build, which you can load explicitly in
+EMULATOR</td>
+</tr>
+<tr class="odd">
+<td><strong>Export symbols and source map</strong></td>
+<td>Saves assembler values and preprocessing provenance, not an
+instruction-level debugger map</td>
+</tr>
+<tr class="even">
+<td><strong>Export expanded ASM</strong></td>
+<td>Saves include/binary-expanded source for inspection</td>
+</tr>
+</tbody>
+</table></div>
+<p>Changing files, building or exporting commits a pending text draft.
+Editing source/settings invalidates a prior build; build again before
+downloading it as current. Files remain byte-exact until edited, after
+which text is encoded as UTF-8. Export before replacing the workspace or
+closing the page. ZIP import is not offered: extract a saved source ZIP
+and open its workspace JSON.</p>
+<h3 id="tutorial-assemble-test-and-preserve-supplied-source">Tutorial:
+assemble, test and preserve supplied source</h3>
+<ol type="1">
+<li>Select <strong>Open multi-file example</strong>. Note the entry and
+file list.</li>
+<li>Select each file in <strong>Edit file</strong> to inspect the entry,
+includes and binary asset. Leave its existing settings for the first
+build.</li>
+<li>Select <strong>Build source ROM</strong>, then <strong>Download
+source ROM</strong>.</li>
+<li>In EMULATOR, explicitly <strong>Load ROM</strong> using the
+downloaded file. Run a few frames and pause.</li>
+<li>In Runtime investigation, select <strong>Save memory A</strong> and
+<strong>Save memory B</strong>, choose <strong>Internal RAM</strong>,
+<strong>After equals</strong>, and enter <code>70</code>; choose
+<strong>Compare memory</strong>. Inspect address <code>$0000</code>
+among the results.</li>
+<li>Return to CODE's source workspace and use <strong>Save source
+workspace</strong> and/or <strong>Export source ZIP</strong>. Reopen the
+saved workspace through <strong>Open saved source
+workspace</strong>.</li>
+</ol>
+<p><strong>Expected result:</strong> the sample writes decimal
+<code>70</code> into <code>$0000</code> then loops; its display is
+intentionally blank. The saved source document restores files and edits
+independently of the active Forge project. Do not expect loading this
+source-built ROM to restore editable source through <strong>Open Forge
+ROM</strong>: this profile does not embed a Forge authoring project.</p>
+<h3 id="includes-binary-data-and-build-boundaries">Includes, binary data
+and build boundaries</h3>
+<p>The workspace adds deterministic preprocessing for literal paths:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode asm"><code class="sourceCode fasm"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>.<span class="bu">include</span> <span class="st">&quot;src/boot.asm&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>.incbin <span class="st">&quot;assets/data.bin&quot;</span></span></code></pre></div>
+<p>Paths are case-sensitive and relative to the including file.
+<code>../</code> can reach a parent within the workspace, but paths
+cannot escape its root. Absolute paths, drive prefixes, backslashes and
+control characters are rejected. <code>.incbin</code> inserts bytes into
+PRG at the current assembly location; selected <strong>CHR
+source</strong> supplies CHR ROM separately. Offset/length arguments and
+computed include paths are unsupported.</p>
+<p>The NROM profile requires NMI/RESET/IRQ vectors that target emitted
+PRG. It rejects writes below <code>$8000</code>, mirrored PRG aliases,
+overlaps and unsupported sizes. It supplies no external linker, mapper
+switching, battery support, runtime hook injection or engine
+migration.</p>
+<p>Workspace limits are 256 files, 1 MiB per file, 4 MiB current data
+and 4 MiB preserved originals. Expanded source is bounded to 1
+MiB/65,536 lines, include depth 32 and 512 include visits. Each binary
+insertion is at most 32 KiB. Macro recursion/expansion is also bounded.
+A limit or build error leaves files available; it does not silently
+truncate the program into a successful build.</p>
+<h2 id="source-intake-understand-a-tree-before-migration">Source intake:
+understand a tree before migration</h2>
+<p>The <strong>Source intake report</strong> section is read-only
+analysis of the isolated source workspace.</p>
+<ol type="1">
+<li>Import/open a source tree and choose its actual <strong>Entry
+file</strong> and build settings.</li>
+<li>Set <strong>Declared source dialect</strong>: Unknown/not declared,
+Forge 6502 v1, ca65, Ophis, NESASM, ASM6, Lua or Other. Optionally fill
+<strong>Engine</strong> and <strong>Engine version</strong>. These are
+your declarations, not authenticated detections.</li>
+<li>Select <strong>Analyze source</strong>. Review current/original file
+identities, file inventory, literal dependencies, unresolved paths,
+cycles, unsupported constructs and truncation notices.</li>
+<li>Use <strong>Export intake report JSON</strong> to preserve findings.
+<strong>Cancel analysis</strong> invalidates pending report work without
+changing files.</li>
+</ol>
+<p><strong>Expected result:</strong> a bounded lexical/dependency report
+identifying what still needs investigation. It does not assemble, run
+scripts, expand foreign build systems or prove a working migration. A
+dependency inside a macro/conditional is a textual observation, not
+proof that it executes. “No known lexical blocker” is not a build pass.
+An <strong>incomplete</strong> report reached a limit; missing findings
+remain unverified. The screen shows bounded excerpts; JSON preserves
+every recorded row.</p>
+<p><strong>Full-checkout exercise:</strong> open a workspace from
+<code>examples/Source_Intake/</code>. For the preserved DABG source
+select <strong>ca65</strong> and its configured <code>dabg.s</code>
+entry. Review includes, binary assets, linker/build inputs and
+unsupported statements. A foreign declaration blocks <strong>Build
+source ROM</strong> in this UI. Selecting Forge afterward does not
+translate the source; it must actually pass the Forge
+assembler/profile.</p>
+<p>Edits, settings/declarations changes, replacement or cancellation
+invalidate the current report. Declarations are report/session metadata
+and reset after a successful workspace replacement; select the proper
+dialect again after reopening. Save the editable workspace separately.
+Lua and host scripts are retained as text, never evaluated as JavaScript
+or cartridge code.</p>
+<p>A later migration needs an explicit routine contract: input/output
+values, registers/flags, RAM and zero-page ownership, placement, call
+timing and resource budgets. An intake report is the preparation for
+that work, not automatic integration.</p>
+<h2
+id="audio-pattern-research-what-has-and-has-not-been-established">Audio-pattern
+research: what has and has not been established</h2>
+<p>The full source checkout contains
+<code>app/research/audio-recognition-1/</code>, a read-only benchmark
+that compares normalized 6502 routines and APU-store evidence. It is not
+another UI importer and does not expand production decoder support.</p>
+<p>The current corpus has nine cases from two independent external game
+projects. Three existing HonkeyPong variants are accepted by the
+unchanged strict decoder; six controls are refused. Relocation variants
+are the same game, not independent validation games. There are no
+held-out independent same-family games yet. The official FamiStudio MMC5
+control tests mapper refusal, not NROM engine discrimination.</p>
+<p>The important negative control contains a damaged driver with a
+perfect similarity score for an unchanged routine while the strict
+decoder still refuses it. Similarity is a useful investigation lead, not
+permission to convert. Broader recognition needs independently authored
+same-family inputs, other negative engines, verified format/timing rules
+and separate conversion tests.</p>
+<p><strong>Full checkout only, from <code>app/</code>, with Node 20 or
+newer:</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> research/audio-recognition-1/benchmark.cjs <span class="at">--out</span> audio-comparison.json</span></code></pre></div>
+<p>The report records exact input/source identities, bounded comparisons
+and refusals. It does not measure broad recognition accuracy, establish
+hardware/audio equivalence, or recover source symbols and song semantics
+for an unknown engine. FamiStudio text import in AUDIO is a separate
+documented interchange path.</p>
+<h2 id="save-the-right-result">Save the right result</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Result you want to keep</th>
+<th>Save/export action</th>
+<th>Reopen or reuse</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Editable scenes, recovered tiles, canonical score/SFX, project
+assembly</td>
+<td><strong>Save Project As…</strong> or full project ZIP export</td>
+<td>Ordinary <strong>Open Project</strong> / supported pack import</td>
+</tr>
+<tr class="even">
+<td>Static-analysis mappings and notes</td>
+<td><strong>Download inspection + notes</strong></td>
+<td>Evidence-only JSON; no analysis-session reimport</td>
+</tr>
+<tr class="odd">
+<td>Recognition decisions</td>
+<td><strong>Download method evidence</strong></td>
+<td>Historical evidence</td>
+</tr>
+<tr class="even">
+<td>Native background/map preview project</td>
+<td><strong>Download background project / Download map
+project</strong></td>
+<td>Ordinary <strong>Open Project</strong>; save again after your
+edits</td>
+</tr>
+<tr class="odd">
+<td>Native-copy audio byte edits</td>
+<td><strong>Download native ROM copy</strong></td>
+<td>Load as a ROM; project JSON does not contain the temporary native
+session</td>
+</tr>
+<tr class="even">
+<td>Audio/background/map import provenance</td>
+<td>Corresponding <strong>Download … evidence</strong> action</td>
+<td>Historical report, not editable project data or authentication of
+later edits</td>
+</tr>
+<tr class="odd">
+<td>Runtime trace/resource observations</td>
+<td><strong>Export runtime evidence / Export observed PPU
+resources</strong></td>
+<td>Evidence-only JSON, not emulator save state</td>
+</tr>
+<tr class="even">
+<td>Current checkpoint/experiment</td>
+<td>Session-local checkpoint controls</td>
+<td>Restore in the same valid session; no downloadable checkpoint
+format</td>
+</tr>
+<tr class="odd">
+<td>Isolated source tree/current edits/original bytes</td>
+<td><strong>Save source workspace / Export source ZIP</strong></td>
+<td><strong>Open saved source workspace</strong></td>
+</tr>
+<tr class="even">
+<td>Built source output</td>
+<td><strong>Download source ROM</strong>, expanded ASM, symbol/source
+map exports</td>
+<td>Explicit ROM load or external inspection</td>
+</tr>
+<tr class="odd">
+<td>Source intake findings</td>
+<td><strong>Export intake report JSON</strong></td>
+<td>Historical diagnostic report; save the source workspace
+separately</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="common-problems-and-next-steps">Common problems and next
+steps</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>What you see</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ROM plays but general analysis shows another file</td>
+<td>Use <strong>Use emulator ROM for analysis</strong>; the sessions are
+deliberately separate</td>
+</tr>
+<tr class="even">
+<td>Static analysis works but playback fails</td>
+<td>Container/mapper support differs between analyzer and emulator;
+analysis success does not repair the ROM</td>
+</tr>
+<tr class="odd">
+<td>Recovery says unknown/unsupported</td>
+<td>Read that method's exact reason; raw inspection and runtime
+observations may still be useful</td>
+</tr>
+<tr class="even">
+<td>Import preview expired</td>
+<td>Source, selected resource, options or project changed; preview
+again</td>
+</tr>
+<tr class="odd">
+<td>SFX import refuses timing</td>
+<td>Existing project needs tempo 150/speed 1; make that authoring
+decision explicitly or use a separate project</td>
+</tr>
+<tr class="even">
+<td>Edited scene does not affect Run Original</td>
+<td>Run Original uses preserved original bytes; build the edited project
+to test its adaptation</td>
+</tr>
+<tr class="odd">
+<td>Native note edit vanished after analyzing again</td>
+<td>Reanalysis starts from original bytes; export the native copy before
+starting a new native session</td>
+</tr>
+<tr class="even">
+<td>Trace misses background initialization</td>
+<td>Use <strong>Trace from reset</strong>, then run the game; late
+tracing cannot see earlier writes</td>
+</tr>
+<tr class="odd">
+<td>Code jump refused from a runtime event</td>
+<td>Confirm matching ROM identity and a known physical mapping; a CPU
+address alone is insufficient</td>
+</tr>
+<tr class="even">
+<td>Blank screen from Minimal/source example</td>
+<td>Those programs intentionally draw nothing; check successful assembly
+and the stated RAM-write expectation</td>
+</tr>
+<tr class="odd">
+<td>Foreign source cannot build</td>
+<td>The workspace preserves it but does not translate external
+dialects/linkers; use intake findings to plan a bounded migration</td>
+</tr>
+<tr class="even">
+<td>Project save did not retain notes or source workspace</td>
+<td>Use the result-specific exports in the table above</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="source-audit-and-deeper-references">Source audit and deeper
+references</h2>
+<p>This chapter was checked against the current standalone candidate's
+source, not only older narrative docs. Some retained feature documents
+describe the release when that feature first appeared; later candidate
+behavior and this current guide take precedence where scope has since
+expanded.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Guide coverage</th>
+<th>Audited implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Static analysis, ranges, mappings, search, annotations and CHR
+display</td>
+<td><code>app/src/re/re-analysis.js</code>,
+<code>re-analysis-ui.js</code></td>
+</tr>
+<tr class="even">
+<td>Recovery discovery and method routing</td>
+<td><code>app/src/re/re-methods.js</code>,
+<code>recovery-methods-ui.js</code>,
+<code>recovery-profiles.js</code></td>
+</tr>
+<tr class="odd">
+<td>Tile, background, map and Bridge Room recovery</td>
+<td><code>app/src/re/re-native-assets*.js</code>,
+<code>re-native-background*.js</code>, <code>re-native-map.js</code>,
+<code>re-native-scene.js</code>, <code>native-*.js</code>,
+<code>re-bridge.js</code>, <code>re-ui.js</code></td>
+</tr>
+<tr class="even">
+<td>Native audio evidence/copy edits and music/SFX conversion</td>
+<td><code>app/src/re/famitone2-*.js</code>,
+<code>re-native-audio*.js</code>, <code>re-native-sfx-ui.js</code></td>
+</tr>
+<tr class="odd">
+<td>Runtime tracing, snapshots, watches, experiments</td>
+<td><code>app/src/re/re-runtime*.js</code>,
+<code>re-experiments*.js</code>, and emulator timeline service</td>
+</tr>
+<tr class="even">
+<td>Project assembly, templates and mapped disassembly</td>
+<td><code>app/src/shell-prefix.html</code>,
+<code>app/src/legacy/00-editor.js</code>,
+<code>02-interaction-bootstrap.js</code>, current runtime compiler/build
+services</td>
+</tr>
+<tr class="odd">
+<td>Isolated source editing/building and intake</td>
+<td><code>app/src/source/source-workspace.js</code>,
+<code>source-workspace-ui.js</code>, <code>source-intake.js</code></td>
+</tr>
+<tr class="even">
+<td>Audio comparison research</td>
+<td><code>app/research/audio-recognition-1/README.md</code>,
+<code>corpus.json</code>, <code>features.cjs</code>,
+<code>benchmark.cjs</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Detailed retained references: <a
+href="../Reference/Current_Release_Docs/RE_ANALYSIS.html">General
+analysis</a>, <a
+href="../Reference/Current_Release_Docs/RE_RUNTIME.html">Runtime
+investigation</a>, <a
+href="../Reference/Current_Release_Docs/RE_EXPERIMENTS.html">Experiments</a>,
+<a href="../Reference/Current_Release_Docs/RECOVERY_METHODS.html">Recovery
+discovery</a>, <a
+href="../Reference/Current_Release_Docs/RE_NATIVE_ASSETS.html">Physical
+CHR</a>, <a
+href="../Reference/Current_Release_Docs/NATIVE_BACKGROUND_RECOVERY.html">Native
+backgrounds</a>, <a
+href="../Reference/Current_Release_Docs/NATIVE_MAP_RECOVERY.html">Native
+maps</a>, <a
+href="../Reference/Current_Release_Docs/RE_BRIDGE.html">Bridge Room</a>,
+<a
+href="../Reference/Current_Release_Docs/NATIVE_AUDIO_PROFILE.html">Native
+audio profile</a>, <a
+href="../Reference/Current_Release_Docs/NATIVE_AUDIO_IMPORT.html">Music
+transcription</a>, <a
+href="../Reference/Current_Release_Docs/NATIVE_SFX_IMPORT.html">SFX
+transcription</a>, <a
+href="../Reference/Current_Release_Docs/SOURCE_WORKSPACE.html">Source
+workspace</a>, <a
+href="../Reference/Current_Release_Docs/SOURCE_INTAKE.html">Source
+intake</a>.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../START_HERE.html">Back to start</a></p></main></div></body></html>

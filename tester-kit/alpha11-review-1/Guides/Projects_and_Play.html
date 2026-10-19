@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Projects, navigation,
+building and play · NES Forge alpha.11</title><link rel="stylesheet" href="../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../START_HERE.html">Start here</a><a href="../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../Guide.html">User guide</a><a href="../Tutorial.html">Tutorial</a><a href="../Manual.html">Manual</a><a href="../Reference/Operator_Reference.html">Controls</a><a href="../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#projects-navigation-building-and-play">Projects, navigation,
+building and play</a><a class="level2" href="#open-the-application-and-find-the-controls">Open the application
+and find the controls</a><a class="level2" href="#start-save-and-reopen-a-project">Start, save and reopen a
+project</a><a class="level2" href="#build-inspect-errors-and-test-the-result">Build, inspect errors
+and test the result</a><a class="level2" href="#play-with-the-bundled-emulator">Play with the bundled
+emulator</a><a class="level2" href="#revisit-a-frame-with-playback-tools">Revisit a frame with
+Playback tools</a><a class="level2" href="#keep-the-right-evidence-and-troubleshoot">Keep the right
+evidence and troubleshoot</a><a class="level2" href="#source-audit-for-this-guide">Source audit for this guide</a></aside><main id="guide"><h1 id="projects-navigation-building-and-play">Projects, navigation,
+building and play</h1>
+<p>This guide describes the current <strong>2.0.0-alpha.11 / Audio Tool
+Import</strong> application. It covers the shared controls you use
+around every art, gameplay, audio and reverse-engineering task. Continue
+with <a href="Art_and_Scenes.html">Art and Scenes</a>, <a
+href="Gameplay_and_World.html">Gameplay and World</a>, <a
+href="Audio.html">Audio</a>, or <a href="RE_and_Code.html">RE and Code</a>
+for the detailed tools. The longer <a
+href="../Tutorial.html">blank-project tutorial</a> remains the path for
+building a first World.</p>
+<h2 id="open-the-application-and-find-the-controls">Open the application
+and find the controls</h2>
+<p>On Windows, extract the complete review-kit ZIP first. Open
+<code>START_HERE.html</code>, then <strong>Open NES Forge</strong>, or
+open <a href="../NES_Forge.html">NES_Forge.html</a> directly in a
+browser. Keep this guide in another window. The application is a
+standalone HTML file; the tutorial is a companion document. Opening a
+documentation page alone does not open an editor project.</p>
+<p>The top strip contains authoring tabs and project/build controls. The
+main canvas or editor is on the left, with tools and properties in the
+sidebar. On narrower screens the panels stack vertically. Scroll both
+the upper controls and the sidebar when needed; expandable headings such
+as <strong>Gameplay</strong> and <strong>Latest build details</strong>
+may be closed. On a phone, use <strong>EMULATOR → Play view</strong> for
+playing; the desktop layout gives more room for authoring.</p>
+<p>The tabs are views of related project data, not separate saved
+documents:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Tab or panel</th>
+<th>What it is for</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SCENE</td>
+<td>Paint an individual screen, choose scene palettes, place retained
+entities, and configure scene properties and Gameplay.</td>
+</tr>
+<tr class="even">
+<td>CHR SHEET</td>
+<td>Draw or inspect the background and sprite tile pixels owned by the
+selected Scene.</td>
+</tr>
+<tr class="odd">
+<td>METATILES</td>
+<td>Define reusable 16×16 blocks from four background tiles, with a
+palette and quadrant collision.</td>
+</tr>
+<tr class="even">
+<td>WORLD</td>
+<td>Arrange metatiles across screens; author rooms, markers and camera
+regions; configure World Runtime.</td>
+</tr>
+<tr class="odd">
+<td>ATTR MAP</td>
+<td>Inspect and edit background palette assignments.</td>
+</tr>
+<tr class="even">
+<td>SPRITES</td>
+<td>Place and edit the Scene's hardware sprite/OAM entries.</td>
+</tr>
+<tr class="odd">
+<td>METASPRITES</td>
+<td>Assemble reusable multi-piece poses.</td>
+</tr>
+<tr class="even">
+<td>ANIM</td>
+<td>Sequence poses or tiles, set durations, contact boxes and
+frame-entry events.</td>
+</tr>
+<tr class="odd">
+<td>ENTITY STUDIO</td>
+<td>Bind animations to retained scene entities and preview their
+states.</td>
+</tr>
+<tr class="even">
+<td>AUDIO</td>
+<td>Compose tracker music and SFX, edit instruments, preview sound,
+import/export supported scores and configure Audio Runtime.</td>
+</tr>
+<tr class="odd">
+<td>CODE</td>
+<td>Edit and assemble the project's single assembly text; open the
+separate multi-file Source Workspace.</td>
+</tr>
+<tr class="even">
+<td>COLLISION</td>
+<td>Assign tile collision properties. Metatile quadrant overrides are
+edited in METATILES.</td>
+</tr>
+<tr class="odd">
+<td>TECH DOCS</td>
+<td>Read the built-in capability overview. Use these current guides for
+detailed procedures and corrections to older wording.</td>
+</tr>
+<tr class="even">
+<td>EMULATOR</td>
+<td>Run a generated or loaded ROM; use touch/controller input, frame
+history and capture tools.</td>
+</tr>
+<tr class="odd">
+<td>RE / DISASM</td>
+<td>Inspect original files and runtime evidence, use supported recovery
+methods, and investigate code/data.</td>
+</tr>
+<tr class="even">
+<td>GAMEPLAY CORE / BEHAVIOR GRAPH</td>
+<td>Panels reached through Gameplay; edit canonical actor and behavior
+records. They are not additional project files.</td>
+</tr>
+</tbody>
+</table></div>
+<p>A pose in METASPRITES, a Scene canvas and the running ROM can show
+different things because each represents a different stage of the work.
+<strong>Build &amp; Run</strong> compiles current authoring changes.
+Switching tabs does not update the already running ROM.</p>
+<h3 id="shared-toolbar-and-status-controls">Shared toolbar and status
+controls</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose and practical effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Grid</td>
+<td>Toggle a grid overlay in applicable editor views. It does not add
+lines to exported artwork.</td>
+</tr>
+<tr class="even">
+<td>Attr</td>
+<td>Show the attribute/palette overlay where supported.</td>
+</tr>
+<tr class="odd">
+<td>Meta</td>
+<td>Show metatile boundaries where supported.</td>
+</tr>
+<tr class="even">
+<td>Zoom, 2x/3x/4x</td>
+<td>Change editor canvas magnification. It is not emulator speed or ROM
+resolution.</td>
+</tr>
+<tr class="odd">
+<td>Upload Image</td>
+<td>Convert a browser-supported image into a new constrained NES Scene.
+Conversion can change colors and pixels; inspect its result.</td>
+</tr>
+<tr class="even">
+<td>Load .zip Pack</td>
+<td>Restore a Forge export ZIP or supported raw tile pack. A complete
+<code>project.json</code> in the ZIP takes precedence over individual
+asset files.</td>
+</tr>
+<tr class="odd">
+<td>Export</td>
+<td>Save a portable project-and-assets ZIP.</td>
+</tr>
+<tr class="even">
+<td>Build .NES ROM</td>
+<td>Compile the current project and offer the executable ROM through
+Save As.</td>
+</tr>
+<tr class="odd">
+<td>Build &amp; Run</td>
+<td>Compile the current project and load/run that result in EMULATOR. It
+does not substitute an old successful build if compilation fails.</td>
+</tr>
+<tr class="even">
+<td>Import ROM</td>
+<td>Append supported Forge assets or a runtime capture to the workspace
+and retain original ROM bytes. It is not a universal native-project
+importer.</td>
+</tr>
+<tr class="odd">
+<td>Clean Cache</td>
+<td>After confirmation, dismiss crash-recovery data and stop temporary
+audio/playback. It preserves the open project and named browser
+saves.</td>
+</tr>
+<tr class="even">
+<td>Scene selector</td>
+<td>Change the active Scene; art tools use that Scene's assets.</td>
+</tr>
+<tr class="odd">
+<td>Scene <code>+</code> / duplicate / delete / rename icons</td>
+<td>Add a blank Scene, create an independent copy, remove the selected
+Scene, or change its name. Read deletion warnings and check references
+afterward.</td>
+</tr>
+<tr class="even">
+<td>Undo / Redo</td>
+<td>Move through recorded editor changes. New edits after Undo replace
+the redo future.</td>
+</tr>
+<tr class="odd">
+<td>Copy / Paste</td>
+<td>Copy/paste the selected tile in supported art views. These buttons
+do not copy an entire project.</td>
+</tr>
+<tr class="even">
+<td>Gameplay</td>
+<td>Open the SCENE Gameplay panel and its build-mode settings.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The bottom bar reports the selected <strong>Tile</strong>, use count,
+<strong>Pal</strong> palette, pointer <strong>Pos</strong>,
+<strong>Zone</strong>, undo depth, tile clipboard, unique/free tiles and
+metatile count as applicable. Error/status text appears on the left.
+Hover a shortened message to read its tooltip. The
+<strong>Modified/Saved</strong> status has separate timestamps for
+browser save, recovery and portable save; these are different
+destinations.</p>
+<h3 id="keyboard-and-linked-windows">Keyboard and linked windows</h3>
+<p>Outside editable text fields, <strong>Ctrl+Z</strong> undoes,
+<strong>Ctrl+Shift+Z</strong> or <strong>Ctrl+Y</strong> redoes, and
+<strong>Ctrl+S</strong> opens portable <strong>Save Project
+As…</strong>. Ctrl+C/V operate on tiles only in applicable art views.
+Text inputs retain normal text-editing shortcuts. On macOS the
+corresponding modifier is Command. Escape closes the palette picker and
+clears the retained entity placement tool.</p>
+<p>Right-click an authoring tab for <strong>Open in new tab</strong>,
+<strong>Open all views in tabs</strong>, or <strong>Detach as popup
+window</strong>. Middle-click also opens the selected view. These
+explicitly linked windows share whole-project edits within the same
+browser session; they are useful for keeping CHR and SCENE visible
+together. The small dot beside the tabs reports linked peers. Browser
+popup restrictions or unavailable cross-window messaging can prevent
+linking. The retained “Open all” command opens its configured view set;
+open any omitted newer view individually. This is not collaborative Git
+synchronization, and it does not stream edits into a running ROM.
+<strong>LiveLink is inactive</strong> in this candidate. Save portable
+checkpoints before editing from multiple linked windows.</p>
+<h2 id="start-save-and-reopen-a-project">Start, save and reopen a
+project</h2>
+<h3
+id="fresh-launch-and-new-project-are-different-starting-points">Fresh
+launch and New Project are different starting points</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Start</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Fresh page launch without a restored project</td>
+<td><code>Untitled</code>, one blank <code>Untitled Scene</code>,
+<strong>Scene viewer / custom assembly</strong> mode, no example loaded.
+Recovery may be offered separately.</td>
+</tr>
+<tr class="even">
+<td>New Project, then confirm</td>
+<td><code>My First NES Game</code>, one blank
+<code>My First Room</code>, <strong>Single-room platformer</strong>
+mode, no Player, art, animations or Worlds. World Runtime, Audio Runtime
+and Gameplay Core start disabled.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>New Project does not create a finished playable
+room.</strong> It prepares the single-room settings; add and select the
+required Player and animation bindings before that mode can build. For a
+simple art or music demonstration, switch <strong>Gameplay → ROM mode →
+Scene viewer / custom assembly</strong>, leave CODE empty, and build the
+viewer instead.</p>
+<p>New Project replaces the workspace with an undoable boundary. Undo
+can restore the previous project while this page session and its history
+remain available. <strong>Open Project</strong>, ZIP restoration and
+normal browser <strong>Load</strong> instead begin a new project
+history. Save a portable copy before either route; history is not a
+backup after closing the page.</p>
+<h3 id="choose-the-right-save-or-open-action">Choose the right save or
+open action</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Action</th>
+<th>What it saves or opens</th>
+<th>Use it for</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Save</td>
+<td>A named record in this browser's local project database. Saving a
+loaded browser record updates that record.</td>
+<td>Convenient local checkpoints. This is not a file on disk or a Git
+commit.</td>
+</tr>
+<tr class="even">
+<td>Load</td>
+<td>The browser's named project list, newest first. Select a name to
+open it; the <code>×</code> deletes that saved record after
+confirmation.</td>
+<td>Returning to a project in the same browser/storage context. Deleting
+a saved record leaves the currently open workspace.</td>
+</tr>
+<tr class="odd">
+<td>Save Project As…</td>
+<td>Complete native <code>.nesforge.json</code> through the Save As
+dialog.</td>
+<td>Portable editing backup, moving machines, review and source
+history.</td>
+</tr>
+<tr class="even">
+<td>Open Project</td>
+<td>Native project JSON selected in the file picker.</td>
+<td>Reopen a portable <code>.nesforge.json</code> or
+<code>project.json</code>. The visible picker accepts JSON; use Load
+.zip Pack for a ZIP.</td>
+</tr>
+<tr class="odd">
+<td>Export</td>
+<td><code>.nesforge.zip</code> with complete <code>project.json</code>
+and exported assets.</td>
+<td>Native backup plus assets for another workflow. Individual binary
+files mainly reflect the active Scene; <code>project.json</code> carries
+the whole project.</td>
+</tr>
+<tr class="even">
+<td>Load .zip Pack</td>
+<td>Complete Forge export ZIP, or the supported tile-pack layout.</td>
+<td>Restore the whole exported project, or start from supplied binary
+art. It replaces the loaded project rather than merging all possible
+file types.</td>
+</tr>
+<tr class="odd">
+<td>Open Forge ROM</td>
+<td>Supported generated Forge <code>.nes</code>, replacing the workspace
+after confirmation.</td>
+<td>Backend-specific editable recovery. Keep native JSON/ZIP as the
+primary backup.</td>
+</tr>
+<tr class="even">
+<td>EMULATOR → Load ROM</td>
+<td>A ROM in the emulator.</td>
+<td>Play/investigate a file without converting it into the active
+editable project.</td>
+</tr>
+</tbody>
+</table></div>
+<p>You can also drop a project JSON, supported ZIP, image, or
+<code>.nes</code> onto the application. A dropped <code>.nes</code>
+follows <strong>Import ROM</strong>, not Open Forge ROM. Use the
+explicit buttons when the difference matters.</p>
+<p>For raw tile packs without <code>project.json</code>, the retained
+loader expects a background CHR file of at least 4,096 bytes and
+recognizes names such as <code>tiles.chr</code>,
+<code>sprites.chr</code>, <code>nametable.bin</code>,
+<code>attributes.bin</code>, <code>palettes.pal</code>,
+<code>sprite_palettes.pal</code>, <code>oam.bin</code> and
+<code>scenes.json</code>. This is a bounded asset layout, not arbitrary
+ZIP interchange. Duplicate ambiguous names, damaged ZIP checksums and
+malformed assets reject with an error.</p>
+<h3
+id="tutorial-make-a-portable-checkpoint-and-prove-that-it-opens">Tutorial:
+make a portable checkpoint and prove that it opens</h3>
+<ol type="1">
+<li>Finish the current edit and choose <strong>Save Project
+As…</strong>.</li>
+<li>Give the file a useful name such as
+<code>MyGame_terrain-01.nesforge.json</code>.</li>
+<li>Choose <strong>Choose location &amp; save…</strong> if available. In
+the operating-system picker, select a folder you can find again and
+save.</li>
+<li>If the picker is unavailable, choose <strong>Use browser
+download</strong>. Check your browser's Downloads list and confirm the
+downloaded file is present.</li>
+<li>Open a separate, independent application window for verification, or
+finish saving before replacing the current workspace.</li>
+<li>Choose <strong>Open Project</strong> and select that JSON. Check the
+Scene name, a visible edit and any important AUDIO/World settings.</li>
+</ol>
+<p><strong>Expected result:</strong> the project opens as editable data,
+including the saved art and project settings. No ROM recovery or
+reconstruction is needed. A download-requested message means the browser
+was asked to save a file; verify its completion in Downloads. Renaming
+the output file is not the same as renaming the project's internal name;
+<strong>Save</strong> offers the project-name prompt.</p>
+<p>The Save As dialog also serves ZIP, ROM, ASM and supported report
+downloads. <strong>Cancel</strong> does not start a fallback download.
+In an embedded preview, the location picker may open a helper window; if
+the host blocks it, open the HTML directly or use browser download. The
+app cannot tell you the browser-controlled destination folder. A
+canceled or failed save leaves the workspace available.</p>
+<h3 id="recovery-and-temporary-state">Recovery and temporary state</h3>
+<p>If <strong>Recovery found</strong> appears, choose
+<strong>Restore</strong> to recover the retained workspace, then save it
+normally. <strong>Dismiss</strong> discards that recovery copy and
+allows a new one to be created. While that decision is pending, autosave
+is held so the old recovery is not silently overwritten. If recovery
+cannot be read, the app preserves it and reports the problem; do not
+dismiss it until you have decided it is no longer needed.</p>
+<p>Browser saves and recovery can depend on browser profile, site/file
+context and storage permissions. Clearing browser data, private
+browsing, moving to another browser, or opening from a different context
+can make them unavailable. A portable JSON/ZIP is the reliable transfer
+between these contexts.</p>
+<p>The native project contains Scenes, art, Worlds, metasprites,
+animations, Gameplay Core, tracker/instrument/SFX data, runtime
+switches, single-file CODE and retained original ROM bytes when present.
+It does <strong>not</strong> save the currently executing emulator
+state, frame-history buffer, controller mappings, RE runtime
+checkpoints/trace session, or the separate multi-file Source Workspace.
+Save source-workspace exports and import-source receipts separately.
+MIDI/MusicXML exports are score conversions, not complete project
+backups.</p>
+<h3 id="compatibility-and-rom-recovery-boundaries">Compatibility and ROM
+recovery boundaries</h3>
+<p>Current native projects use <strong>schema 12</strong>. Supported
+older projects migrate into this model, with newer features disabled
+when absent. A future/unsupported schema, invalid format or malformed
+data is rejected before the active project is replaced. An RE inspection
+or evidence JSON is not a project JSON. Explicit downgrade export to an
+older schema is unsupported.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>File or route</th>
+<th>Recovery boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Native project JSON / exported ZIP</td>
+<td>Complete supported authoring representation, including records that
+may still need repair before building.</td>
+</tr>
+<tr class="even">
+<td>World Runtime ROM, layout 4 / WG17</td>
+<td>Restores its checked embedded authoring source. A previously
+imported ROM is omitted from that embedded source to avoid recursion;
+the newly opened ROM becomes the retained original.</td>
+</tr>
+<tr class="odd">
+<td>Single-room ROM, layout 3 / GP16</td>
+<td>Partial editable recovery: scene/art/retained bindings and legacy
+gameplay settings. Gameplay Core source is not embedded and reopens
+disabled/empty. It is not a complete music/game source backup.</td>
+</tr>
+<tr class="even">
+<td>Other ROM</td>
+<td>Playback, inspection, capture and specifically supported recovery
+profiles only. Importing a ROM does not generally recover original maps,
+code or music authoring.</td>
+</tr>
+</tbody>
+</table></div>
+<p>World ROMs require <strong>Open Forge ROM</strong>, rather than
+append-style Import ROM. A supported ROM opening is undoable; ordinary
+project JSON opening starts new history. Keep the original source files
+and project backup alongside executable output.</p>
+<h2 id="build-inspect-errors-and-test-the-result">Build, inspect errors
+and test the result</h2>
+<h3 id="choose-the-output-you-mean">Choose the output you mean</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Route</th>
+<th>Result and prerequisites</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Scene viewer / custom assembly, CODE empty</td>
+<td>Generated viewer of selected Scenes. Start cycles the selected
+scenes. A viewer does not automatically provide Player movement.</td>
+</tr>
+<tr class="even">
+<td>Single-room platformer</td>
+<td>Fixed 256×240 room with selected Player, required animation
+bindings, solid terrain and optional training target.</td>
+</tr>
+<tr class="odd">
+<td>World Runtime enabled in WORLD</td>
+<td>Generated World traversal with an explicit starting World, start
+marker and Player. It follows World resource dependencies.</td>
+</tr>
+<tr class="even">
+<td>Authored CODE</td>
+<td>Your assembly controls the program. Generated gameplay and Audio
+Runtime are not silently inserted into arbitrary custom assembly.</td>
+</tr>
+<tr class="odd">
+<td>CODE → Source Workspace → Build source ROM</td>
+<td>Independent bounded source build with separate exports. It does not
+replace the active project or automatically load the emulator.</td>
+</tr>
+</tbody>
+</table></div>
+<p>For packed viewer/single-room work, <strong>Build Scene Set</strong>
+in the shared lower sidebar determines included Scenes and their order.
+It is visible from multiple tabs, including SCENE and CODE.
+<strong>Include first 7</strong> is a quick selection aid for the
+seven-scene packed limit; it is not an automatic choice of all
+dependencies. <strong>Preflight Build</strong> checks the current plan
+and shows diagnostics without downloading or running a ROM. A workspace
+may contain more Scenes than its selected output can hold. World Runtime
+uses its own reachable dependencies, so changing the viewer's Build
+Scene Set does not choose the World start.</p>
+<p>The generated profiles use mapper 0/NROM with fixed PRG/CHR capacity.
+A large project can exceed code, metadata, atlas, actor, audio or
+compressed-source limits before reaching a visible editor collection
+limit. Build errors identify the failed requirement; output is not
+silently truncated. Passing preflight does not replace compiling and
+testing the ROM.</p>
+<h3
+id="tutorial-build-a-blank-viewer-without-inventing-a-player">Tutorial:
+build a blank viewer without inventing a Player</h3>
+<ol type="1">
+<li>Save existing work, choose <strong>New Project</strong>, and
+confirm.</li>
+<li>Choose <strong>Gameplay</strong>, then <strong>ROM mode → Scene
+viewer / custom assembly</strong>.</li>
+<li>Leave CODE empty and World Runtime, Audio Runtime and Gameplay Core
+disabled for this first test.</li>
+<li>Choose <strong>Build &amp; Run</strong>.</li>
+<li>In EMULATOR, check the loaded result and frame count. A blank screen
+is expected because no art has been drawn.</li>
+<li>Draw a visible tile and paint it in SCENE using <a
+href="Art_and_Scenes.html">Art and Scenes</a>, then choose <strong>Build
+&amp; Run</strong> again.</li>
+</ol>
+<p><strong>Expected result:</strong> the second ROM displays the edited
+Scene. This proves the art-to-build path without requiring single-room
+gameplay. Choose <strong>Build .NES ROM</strong> when you also want the
+executable file for another emulator or a tester.</p>
+<p><strong>Assemble (Ctrl+Enter)</strong> in CODE checks/assembles the
+code editor text; it is not equivalent to building the complete project
+ROM. <strong>Reset</strong> in EMULATOR resets the loaded program and
+pauses it. It does not compile new editor changes. <strong>Run Original
+ROM</strong> loads retained original cartridge bytes, so it deliberately
+ignores subsequent authoring edits.</p>
+<h3 id="when-a-build-fails">When a build fails</h3>
+<p>Open <strong>CODE → Build Log</strong> to read the complete failure.
+Gameplay also exposes <strong>Latest build details</strong> for its
+<strong>Build &amp; Play</strong> route. Correct the named reference,
+runtime setting, unsupported operation or capacity issue, then build
+again. A failed build clears the current build result so a previous ROM
+cannot masquerade as the new one. Do not interpret a still-visible old
+emulator picture as proof that a new build succeeded.</p>
+<p>Common fixes include selecting a Player for single-room mode,
+including a needed source Scene, completing animation bindings, turning
+off an unintended runtime, or saving and clearing custom CODE before
+using a generated gameplay mode. Use the relevant guide to fix the
+source requirement rather than disabling unrelated validation.</p>
+<h2 id="play-with-the-bundled-emulator">Play with the bundled
+emulator</h2>
+<h3 id="emulator-toolbar-and-readouts">Emulator toolbar and
+readouts</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Load ROM</td>
+<td>Load supported <code>.nes</code> bytes for emulation. It does not
+author a native project.</td>
+</tr>
+<tr class="even">
+<td>Run Original ROM</td>
+<td>Load/run the original ROM retained by an import/open. An error is
+shown if the project has none.</td>
+</tr>
+<tr class="odd">
+<td>Run / Pause</td>
+<td>Start or pause execution of the loaded machine.</td>
+</tr>
+<tr class="even">
+<td>Stop</td>
+<td>Pause execution or interrupt ROM initialization; it does not delete
+the project.</td>
+</tr>
+<tr class="odd">
+<td>Frame</td>
+<td>Execute an ordinary frame while paused. This differs from timeline
+Forward when revisiting stored history.</td>
+</tr>
+<tr class="even">
+<td>Reset</td>
+<td>Restart the loaded machine and leave it paused; choose Run to
+continue. History and session-dependent RE state are reset.</td>
+</tr>
+<tr class="odd">
+<td>Capture Runtime Scene</td>
+<td>Recover the current logical PPU/CHR/OAM scene representation; it can
+differ from the scrolled visible picture.</td>
+</tr>
+<tr class="even">
+<td>Bake Visible Frame</td>
+<td>Convert the rendered picture into a constrained static background.
+This can approximate the image and removes separate sprite placements in
+the capture.</td>
+</tr>
+<tr class="odd">
+<td>Hybrid Capture</td>
+<td>Capture background and editable sprites through the existing hybrid
+route. Read its report and limits in <a href="RE_and_Code.html">RE and
+Code</a>.</td>
+</tr>
+<tr class="even">
+<td>New Scene / Replace Current / Merge Fields</td>
+<td>Choose capture destination. Merge exposes explicit <code>nt</code>,
+<code>attr</code>, <code>pal</code>, <code>sprPal</code>,
+<code>oam</code>, <code>chr</code> and <code>sprChr</code> field
+switches. Save before replacing or merging.</td>
+</tr>
+<tr class="odd">
+<td>Trace 20</td>
+<td>Execute/log a small CPU instruction trace. It invalidates
+incompatible frame history and is not a 20-frame playback button.</td>
+</tr>
+<tr class="even">
+<td>Audio / Sound on/off</td>
+<td>Mute/unmute emulator output. It does not change the project's
+Compile Audio Runtime setting.</td>
+</tr>
+<tr class="odd">
+<td>Play view / ▶ Play view</td>
+<td>Expand the existing canvas and controls without rebuilding,
+reloading or resetting the ROM.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Below the screen, <strong>A/X/Y</strong> are CPU registers,
+<strong>SP</strong> is the stack pointer, <strong>PC</strong> the
+instruction address, <strong>P</strong> processor flags,
+<strong>CYC</strong> executed CPU cycles and <strong>FRM</strong>
+completed frames. The sidebar shows PPU control/mask/status, VRAM
+address, Fine X scroll, mapper/bank/mirroring information, palette RAM
+and active OAM count. These are observations of the loaded machine, not
+editable project settings.</p>
+<h3 id="keyboard-touch-and-controller-use">Keyboard, touch and
+controller use</h3>
+<p>Click the emulator display before using keyboard controls so an
+editor text field or button does not receive them.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>NES button</th>
+<th>Keyboard</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A</td>
+<td>Z or A</td>
+</tr>
+<tr class="even">
+<td>B</td>
+<td>X or S</td>
+</tr>
+<tr class="odd">
+<td>Select</td>
+<td>Shift</td>
+</tr>
+<tr class="even">
+<td>Start</td>
+<td>Enter</td>
+</tr>
+<tr class="odd">
+<td>Direction pad</td>
+<td>Arrow keys</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Run</strong> starts emulation; <strong>Start</strong> is a
+button sent to the game. In the generated single-room game, Left/Right
+moves, A jumps, B attacks and Start restarts. World Runtime also uses Up
+at a linked marker. Other loaded ROMs define their own controls.</p>
+<p>On touch screens, hold a D-pad direction and A/B with separate
+fingers. Slide inside the D-pad to change direction or select a
+diagonal. <strong>Hide touch / Show touch</strong> changes visibility.
+Opposing horizontal or vertical directions cancel to neutral when input
+sources are combined.</p>
+<p>For a USB/Bluetooth controller:</p>
+<ol type="1">
+<li>Connect or pair it through the device's operating-system
+settings.</li>
+<li>Focus the browser and press a controller button so the browser can
+expose it.</li>
+<li>Open <strong>Controller</strong> and choose the listed device, or
+<strong>No controller</strong> to disable it.</li>
+<li>For each NES action, select its mapping button, release all physical
+controls, then press the desired button or move a stick axis.</li>
+<li><strong>Cancel mapping</strong> stops capture; <strong>Reset
+mapping</strong> restores standard defaults or an empty mapping for a
+nonstandard device.</li>
+<li>Choose <strong>Done</strong>, release controls, then
+<strong>Run</strong> to resume.</li>
+</ol>
+<p>The standard browser mapping uses the south face button for A, east
+for B, Back/Select for Select, Start/Menu for Start, and D-pad or left
+stick for directions. Physical printed letters vary. One controller
+feeds one local NES port; this is not multiplayer. Mappings last only
+for the page session. After disconnection, select the controller again.
+Browser/device exposure determines whether a particular controller
+works; a USB-C connector alone is not a compatibility promise.</p>
+<p>Controller settings pause play. Input is released when the page loses
+focus, playback pauses, tabs change, ROMs reset/replace, or expanded
+view/settings changes. Return controls to neutral before resuming; held
+keys/sticks should not be assumed to carry through an interruption.</p>
+<h3 id="fullscreen-performance-and-speed">Fullscreen, performance and
+speed</h3>
+<p><strong>Fullscreen</strong> asks the browser for native fullscreen.
+If unavailable or declined, expanded Play remains usable in the page.
+<strong>Exit to editor</strong> returns the same loaded machine to the
+ordinary layout. Entering/exiting Play view preserves the ROM and
+running/paused state while releasing input.</p>
+<p>The performance readout shows emulation FPS (target about 60.1),
+frame processing time, scheduled audio queue, gaps/resyncs, backlog and
+timing discards. The audio queue is not measured speaker latency. If
+play lags, compare the same ROM in ordinary and expanded Play with
+history recording and RE tracing off; record the device, browser, view,
+sound state and these readings. “Frame exceeded 200 ms safety budget”
+means execution paused to protect the page; retain that error for a
+report.</p>
+<p>There is no continuous fast-forward/2× playback-speed control here.
+<strong>+60 frames</strong> advances a batch; <strong>AUDIO →
+Speed</strong> changes tracker timing; editor <strong>Zoom</strong>
+changes magnification. These controls do not change real-time emulator
+speed. The emulator supports selected mappers and remains approximate
+for raster/IRQ/DMC timing. Use an independent emulator or hardware when
+verifying output compatibility beyond the bundled player.</p>
+<h2 id="revisit-a-frame-with-playback-tools">Revisit a frame with
+Playback tools</h2>
+<ol type="1">
+<li>Load or build a ROM, open <strong>Playback tools</strong>, and turn
+<strong>Record history: off</strong> to <strong>on</strong> before the
+event you want to inspect.</li>
+<li>Choose <strong>Run</strong> and play through the event
+normally.</li>
+<li>Pause, then select <strong>Back 1</strong> or <strong>−60
+frames</strong>.</li>
+<li>Read the displayed history range and current frame. Use
+<strong>Forward 1</strong> or <strong>+60 frames</strong> to return
+through retained future states.</li>
+<li>Choose <strong>Run</strong> explicitly when ready to play
+again.</li>
+</ol>
+<p><strong>Expected result:</strong> retained machine state and the
+displayed frame move together. Back/Forward pauses playback, releases
+live controls and discards queued host audio. Navigating is muted. At
+the live edge, Forward executes real frames with neutral controls; it
+does not press Start, force a stage, damage an enemy or reconstruct game
+meaning. Timed events may still happen through the ROM's own
+program.</p>
+<p>History is bounded by both <strong>300 stored states</strong> and
+<strong>32 MiB of encoded stored data</strong>. Older states are
+evicted, so read the actual range rather than assuming a fixed number of
+seconds. <strong>Record history: off</strong> drops the buffer. Reset,
+another ROM, CPU Trace and page reload invalidate or clear history.
+<strong>Cancel navigation</strong> interrupts a running batch without
+resuming play. Running or using ordinary Frame from a past state
+discards its old future and creates a new execution branch.</p>
+<p>History is temporary emulator state. It is separate from editor
+Undo/Redo and is not saved in project JSON. For named machine
+checkpoints, scripted input and reversible RAM experiments, use <a
+href="RE_and_Code.html">RE and Code</a>; timeline navigation is not the
+complete debugger workflow.</p>
+<h2 id="keep-the-right-evidence-and-troubleshoot">Keep the right
+evidence and troubleshoot</h2>
+<p>Project files answer “what can I edit?” ROMs answer “what executes?”
+Reports answer “what did the tool inspect or convert?” Keep each kind
+with its purpose.</p>
+<p>The ordinary build route displays <strong>Preflight Build</strong>,
+<strong>Build Log</strong> and <strong>Latest build details</strong>; it
+has no general “Export all diagnostics” button. Copy the exact relevant
+log text into <a
+href="../Feedback_Template.txt">Feedback_Template.txt</a>. Specialized
+RE, source-intake, recovery, score-import and mashup panels have their
+own report/recipe downloads. Export those from the panel that produced
+them and keep the original input. An evidence/report JSON does not
+reopen through Open Project. After FamiStudio import, save both the
+native project and <strong>source + report</strong> if you need the
+imported original text later.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Symptom</th>
+<th>Check and next action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Open NES Forge link fails</td>
+<td>Confirm the ZIP was fully extracted and <code>NES_Forge.html</code>
+exists beside the entry page. Re-extract the complete kit; a docs-only
+folder cannot launch the app.</td>
+</tr>
+<tr class="even">
+<td>A sidebar control seems absent</td>
+<td>Scroll the sidebar and upper toolbar; expand its section. On a
+narrow display, the sidebar can be below the canvas.</td>
+</tr>
+<tr class="odd">
+<td>New Project will not build</td>
+<td>It selects single-room mode but has no Player. Complete the gameplay
+setup, or explicitly select viewer mode for an art/music test.</td>
+</tr>
+<tr class="even">
+<td>The emulator shows old art</td>
+<td>Choose Build &amp; Run and verify its build log. Reset and Run
+Original do not compile editor changes.</td>
+</tr>
+<tr class="odd">
+<td>A saved project is missing from Load</td>
+<td>Load lists browser storage only. Use Open Project for a downloaded
+JSON, or Load .zip Pack for an exported ZIP.</td>
+</tr>
+<tr class="even">
+<td>The file picker does not show a ZIP</td>
+<td>Open Project selects JSON. Use Load .zip Pack instead.</td>
+</tr>
+<tr class="odd">
+<td>Save was clicked but no file is on disk</td>
+<td>Plain Save writes browser storage. Save Project As writes a file;
+check its status and the browser Downloads list.</td>
+</tr>
+<tr class="even">
+<td>A JSON says it is an inspection report</td>
+<td>Keep it as evidence. Use the appropriate recovery action to generate
+a native Forge project, or reopen the original ROM in RE.</td>
+</tr>
+<tr class="odd">
+<td>Keyboard Start/arrows do nothing</td>
+<td>Close text/settings dialogs, click the emulator screen, release
+controls and choose Run. Start and Run have different jobs.</td>
+</tr>
+<tr class="even">
+<td>No sound</td>
+<td>Check emulator Sound, browser/tab/device output, and whether the
+loaded ROM has music. Authored tracker notes need Compile Audio Runtime
+and the relevant music setting before being included in a generated ROM.
+Browser tracker Play is separate.</td>
+</tr>
+<tr class="odd">
+<td>Back is disabled</td>
+<td>History must have been enabled before earlier frames were recorded.
+Reset, load, Trace or eviction may have removed them.</td>
+</tr>
+<tr class="even">
+<td>Forward stays on the title screen</td>
+<td>Forward uses neutral controls. Run and press the game's Start input
+normally.</td>
+</tr>
+<tr class="odd">
+<td>Controller is not listed</td>
+<td>Connect it through the OS, focus the page and press a button. If the
+browser does not expose it, use keyboard/touch and report the
+device/browser combination.</td>
+</tr>
+<tr class="even">
+<td>ROM opens but authoring data is missing</td>
+<td>Check its recovery backend. Single-room and foreign ROMs do not
+promise complete native source recovery; reopen the saved JSON/ZIP.</td>
+</tr>
+</tbody>
+</table></div>
+<p>For a useful issue report, include the candidate name, the relevant
+project/ROM/input file, exact button sequence, expected and observed
+result, full error/log text, and device/browser details. A screenshot
+helps with layout, but it cannot replace the project or exact error. The
+current guides document intended and source-checked behavior; previous
+test counts and old manual screenshots are historical evidence, not
+proof of every device scenario.</p>
+<h2 id="source-audit-for-this-guide">Source audit for this guide</h2>
+<p>Reviewed against active source at candidate
+<code>audio-tool-import-1</code>, application commit
+<code>ffb57ea</code>. Key owners are
+<code>app/src/shell-prefix.html</code>;
+<code>services/project-store.js</code>,
+<code>services/release-info.js</code>,
+<code>services/build-services.js</code>,
+<code>services/emulator-play-ui.js</code>,
+<code>services/emulator-input.js</code> and
+<code>services/emulator-timeline.js</code>; retained
+<code>legacy/00-editor.js</code>,
+<code>02-interaction-bootstrap.js</code>, <code>04-saveas-chr.js</code>,
+<code>05-foundation.js</code>, <code>24-ui165.js</code>,
+<code>26-project166.js</code> and <code>28-ui166.js</code>; and
+<code>source/source-workspace-ui.js</code>. The existing Manual, format
+notes and mobile/navigation guides were cross-checked, with active
+services taking precedence over obsolete release identities and replaced
+documentation functions. This audit did not add new application behavior
+or establish new physical-controller/hardware acceptance.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../START_HERE.html">Back to start</a></p></main></div></body></html>

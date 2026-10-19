@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Format compatibility — 1.9.0 · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Guide.html">User guide</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#format-compatibility--190">Format compatibility — 1.9.0</a><a class="level2" href="#project-schema-12">Project schema 12</a><a class="level2" href="#retained-audio-schema-11-model">Retained Audio schema 11
+model</a><a class="level2" href="#rom-formats-by-backend">ROM formats by backend</a><a class="level2" href="#runtime-allocation">Runtime allocation</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../../Guide.html">current user guide</a> for current operator instructions.</p></blockquote><h1 id="format-compatibility--190">Format compatibility — 1.9.0</h1>
+<h2 id="project-schema-12">Project schema 12</h2>
+<p>Current project JSON uses schema <strong>12</strong> and foundation
+<strong>1.9.0</strong>. Top-level <code>gameplayCore</code> owns its
+explicit enable flag, Actor Definitions, canonical behavior tables,
+Actor Instances and Room/World persistent-variable declarations. Runtime
+Actor slots and transient state are never serialized into this authoring
+record.</p>
+<p>Schema 11 cannot preserve Gameplay Core. The actual frozen 1.8 editor
+rejects schema 12 before mutation. Supported older projects migrate with
+Gameplay Core disabled and retain their supported World/Audio settings.
+Unknown condition/action records survive authoring but reject an enabled
+executable build. Explicit downgrade is unsupported.</p>
+<p>World layout 4 / WG17 remains version 1. Its checked source record
+accepts schemas 10, 11 and 12. Layout-3 codecs and GP16 remain unchanged
+when Gameplay Core is unused.</p>
+<h2 id="retained-audio-schema-11-model">Retained Audio schema 11
+model</h2>
+<p>Schema <strong>11</strong> and foundation <strong>1.8</strong>
+introduced top-level <code>audioRuntime</code> with explicit
+<code>enabled</code> and <code>musicEnabled</code> switches. Top-level
+<code>sfx</code> retains the existing collection while schema 11 gives
+each entry a required unique string <code>id</code>, name, channel,
+pattern and inclusive start/end rows. Tracker patterns, instruments,
+order, tempo, speed and animation <code>sound</code> events remain their
+existing records inside schema 12.</p>
+<p>Schema 10 cannot preserve the new runtime switches and stable SFX
+routing. The actual frozen 1.7 editor rejects schema 11 before mutation.
+Explicit downgrade is unsupported. Supported older projects migrate with
+Audio Runtime disabled; schema-10 World settings remain intact.
+Unresolved sound values survive while authoring-only and fail when an
+enabled build needs them.</p>
+<p>The schema-10 World and schema-9 unresolved-reference guarantees
+remain. The actual 1.6.6 schema-8 data-loss behavior is historical
+characterization, not supported downgrade behavior.</p>
+<h2 id="rom-formats-by-backend">ROM formats by backend</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Backend</th>
+<th>Outer layout</th>
+<th>Records</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>World Runtime</td>
+<td>NFORGE15 layout 4</td>
+<td>WG17 v1 checked compressed schema-10/11/12 source and generated
+world/audio/gameplay code/data</td>
+</tr>
+<tr class="even">
+<td>Packed viewer/custom, existing single-room</td>
+<td>NFORGE15 layout 3</td>
+<td>NFEX v1, MT16 v1, WR16 v3, MS16 v2; single-room GP16 v1</td>
+</tr>
+<tr class="odd">
+<td>Unpacked custom</td>
+<td>Existing custom layout</td>
+<td>Existing assembly and direct CHR behavior</td>
+</tr>
+</tbody>
+</table></div>
+<p>Audio Runtime does not add or relabel an outer ROM format.
+Audio-enabled generated viewer/single-room code is executable data in
+the existing layout-3 ROM; JSON/ZIP is the complete audio-authoring
+backup for those paths. Audio-enabled authored custom assembly
+rejects.</p>
+<p>World output remains iNES mapper 0 with 32 KB PRG and 8 KB CHR. WG17
+version 1 retains its 64-byte checked header and deterministic LZSS
+source bytes. Its source-schema field accepts 10, 11 or 12, and decoded
+JSON must match that field. Lengths, bounds, header/source/engine/CHR
+checksums, placement, vectors and flags are validated before
+replacement. The source omits a prior imported ROM to avoid
+recursion.</p>
+<p>Open Forge ROM restores checked World source and retains the newly
+opened ROM as original playback bytes. Single-room layout-3/GP16 ROMs do
+not embed schema-12 Gameplay Core source: reopening them is explicitly
+partial, leaves Gameplay Core disabled/empty, preserves the original
+bytes for Run Original and directs creators to native JSON/ZIP backups
+for complete authoring recovery. A new source-bearing single-room ROM
+format is not authorized by 1.9.0 stabilization. Append Import directs
+World ROMs to Open Forge ROM. Old supported ROMs continue through
+existing append/capture paths. Corrupt or unsupported recognized formats
+reject before state/history/runtime/identity mutation.</p>
+<h2 id="runtime-allocation">Runtime allocation</h2>
+<p>The scene viewer’s generated audio code/data must fit below the
+existing <code>$CFF0</code> marker without overlapping packed metadata.
+The single-room engine keeps code below <code>$A000</code>, runtime data
+below <code>$B800</code>, GP16 at <code>$B800–$BFFF</code>, and the
+retained packed authoring bank at <code>$C000–$FFFF</code>. World code,
+screen resources and audio must end before <code>$CFF0</code>; WG17 is
+then allocated without overlap. Gameplay Core permits 12 executable
+Actor Instances total and 64 one-byte persistent values at
+<code>$0380–$03BF</code>; actor health begins at <code>$03C0</code>.
+Capacity failures publish no artifact.</p>
+<p>Protected source and five whole-ROM golden comparisons remain release
+gates. New audio or source-schema support does not establish general
+reverse engineering, arbitrary recovery from foreign ROMs, or
+independent NES hardware verification.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

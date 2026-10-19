@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scout asset
+reference — retained single-room example · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Guide.html">User guide</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#scout-asset-reference--retained-single-room-example">Scout asset
+reference — retained single-room example</a><a class="level2" href="#animation-data">Animation data</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../../Guide.html">current user guide</a> for current operator instructions.</p></blockquote><h1 id="scout-asset-reference--retained-single-room-example">Scout asset
+reference — retained single-room example</h1>
+<p>This is the external legacy single-room Player/Target example, not a
+World Runtime walkthrough. Keep World Runtime disabled to reproduce its
+original behavior.</p>
+<p>These are the authored values used by the example. All are editable
+in the existing tabs. Open the supplied Scout project to inspect the
+pixel art in CHR SHEET; this is a reference sheet, not an in-app setup
+flow.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Existing panel</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SCENE</td>
+<td>Sideview; no scrolling; camera 0,0 at 256×240; no follow
+entity.</td>
+</tr>
+<tr class="even">
+<td>CHR SHEET</td>
+<td>BG tiles 0–4; sprite tiles 10–27 and 32–33.</td>
+</tr>
+<tr class="odd">
+<td>COLLISION</td>
+<td>Tiles 1, 2 and 3 Solid; other tiles Empty.</td>
+</tr>
+<tr class="even">
+<td>METASPRITES</td>
+<td>Four poses; 8×8 hardware pieces; origin 8,24. Body uses six pieces
+at X=0/8 and Y=0/8/16. Attack adds blade pieces at X=16/24, Y=8.</td>
+</tr>
+<tr class="odd">
+<td>ENTITY STUDIO</td>
+<td>Player feet at 48,208, facing right; target feet at 208,208, facing
+left.</td>
+</tr>
+<tr class="even">
+<td>SCENE → Gameplay</td>
+<td>Single-room platformer; speed 2, jump 9, gravity 1, maximum fall 6,
+body 12×22.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="animation-data">Animation data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Animation</th>
+<th>Durations (ticks)</th>
+<th>Loop</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Scout idle</td>
+<td>30</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>Scout walk</td>
+<td>8, 5, 8, 5</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td>Scout attack</td>
+<td>6, 6, 8</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td>Scout hurt</td>
+<td>12, 8</td>
+<td>No</td>
+</tr>
+</tbody>
+</table></div>
+<p>A tick is 1/60 second. Bind idle/walk/attack to the player and
+idle/hurt to the target. The target default state is idle.</p>
+<p>The player and target body hurtbox is X=-6, Y=-22, W=12, H=22
+relative to the feet. Attack contact areas are edited on the active
+attack frame in ANIM:</p>
+<ul>
+<li>Frame 2: Blade — X=8, Y=-15, W=16, H=7.</li>
+</ul>
+<p>Use Build &amp; Run to inspect the result. The example replay checks
+running to X=64, jumping to the platform at X=96/Y=176, moving to X=186
+and striking the target.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>
