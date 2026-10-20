@@ -1,0 +1,70 @@
+{
+  "suite": "re-native-background",
+  "htmlSha256": "273d7b1cfaf68c968e7bb65551380f4416fa8362388046ff6d040e4036f1cd15",
+  "scope": "Actual production bundle: two independent native source ROMs, shared immutable conversion/staging and append transactions, ordinary/detached generated viewer parity, actual 6502 viewer boot and full background PPU/CHR pixel equality against decoded geometry, edited CHR/nametable persistence and rebuild. Unknown native attribute defaults and rendering-mask adaptation remain explicit; no browser, original full-game, hardware, collision or gameplay recovery acceptance.",
+  "passed": 15,
+  "total": 15,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Pepsi production stage is immutable, source-bound, fully built and isolated from live project/history/playback",
+      "passed": true
+    },
+    {
+      "name": "Pepsi fresh staged import uses one shared append transaction and round-trips Undo/Redo/save/reopen",
+      "passed": true
+    },
+    {
+      "name": "Pepsi source rename and valid CHR mutation use structural decoding, not name/hash recognition",
+      "passed": true
+    },
+    {
+      "name": "Pepsi generated viewer executes exact decoded background geometry through real PPU/CHR rendering",
+      "passed": true
+    },
+    {
+      "name": "Pepsi real CHR/nametable edits survive reopening and change the rebuilt viewer while original evidence remains",
+      "passed": true
+    },
+    {
+      "name": "HonkeyPong production stage is immutable, source-bound, fully built and isolated from live project/history/playback",
+      "passed": true
+    },
+    {
+      "name": "HonkeyPong fresh staged import uses one shared append transaction and round-trips Undo/Redo/save/reopen",
+      "passed": true
+    },
+    {
+      "name": "HonkeyPong source rename and valid CHR mutation use structural decoding, not name/hash recognition",
+      "passed": true
+    },
+    {
+      "name": "HonkeyPong generated viewer executes exact decoded background geometry through real PPU/CHR rendering",
+      "passed": true
+    },
+    {
+      "name": "HonkeyPong real CHR/nametable edits survive reopening and change the rebuilt viewer while original evidence remains",
+      "passed": true
+    },
+    {
+      "name": "Detached viewer requires explicit consent, mapper zero and byte-identical ordinary compilation",
+      "passed": true
+    },
+    {
+      "name": "HonkeyPong remains raw to strict General Analysis while its declared structural background method succeeds",
+      "passed": true
+    },
+    {
+      "name": "Forged/stale stages, duplicate resources, invalid source options and cancellation refuse without applying",
+      "passed": true
+    },
+    {
+      "name": "An intervening project edit during actual asynchronous staging cannot publish a usable stale preview",
+      "passed": true
+    },
+    {
+      "name": "Malformed persistent source identity, evidence, coverage, version and oversized records are rejected",
+      "passed": true
+    }
+  ]
+}

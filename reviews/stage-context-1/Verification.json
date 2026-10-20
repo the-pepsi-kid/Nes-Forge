@@ -1,0 +1,62 @@
+{
+  "format": "NESForgeStageContextVerification",
+  "status": "passed",
+  "candidate": "stage-context-1",
+  "version": "2.0.0-alpha.11",
+  "promoted": false,
+  "parentCommit": "c86b98aafd828f2f66b2f10ec068a726619ede45",
+  "sourceCommit": "81032f71c64105892dea19ed9471fbc7bad11717",
+  "html": "app/mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "273d7b1cfaf68c968e7bb65551380f4416fa8362388046ff6d040e4036f1cd15",
+  "automated": {
+    "passed": 2087,
+    "total": 2087,
+    "suites": 120,
+    "executionMode": "standard-candidate-gate",
+    "runtime": {
+      "node": "v24.19.0",
+      "platform": "linux",
+      "architecture": "x64",
+      "workers": 1
+    },
+    "retainedCases": 2061,
+    "retainedSuites": 118,
+    "newCases": 26,
+    "summary": "reviews/stage-context-1/standard-gate/Summary.json",
+    "priorFailures": []
+  },
+  "browser": {
+    "passed": 34,
+    "authoredDesktopAndNarrow": 28,
+    "actualNativeSourceWorkflow": 6,
+    "reports": [
+      "Browser_Verification.json",
+      "Native_Browser_Verification.json"
+    ]
+  },
+  "examples": {
+    "wholeRomByteIdentical": 14,
+    "changedProjects": 0,
+    "changedRecipes": 0,
+    "changedRoms": 0,
+    "updatedHtmlIdentityReceipts": 6
+  },
+  "preservation": {
+    "exactParentHtmlReconstructed": true,
+    "protectedPredecessorFiles": 318,
+    "priorDocumentsPreservedByteForByte": 11
+  },
+  "scope": [
+    "Explicit source area/table membership and visible unresolved coverage",
+    "Imported room/page selection, existing World/Scene selectors and exact World page viewport",
+    "Canonical shared sprite-owner references with collision-free repeated imports",
+    "Save/reopen, Undo/Redo, explicit matching-source return and byte-identical unedited native rebuild"
+  ],
+  "limits": [
+    "Native area/table context is not complete playable-stage topology, ordering or reachability",
+    "Audio remains project-wide; scene/event-to-cue bindings remain unresolved",
+    "Older room-only receipts retain existing navigation without guessed context migration",
+    "Native encoders still cover only four supported Zelda II location fields",
+    "No listening, native dialogs, physical device/controller, owner tutorial or hardware acceptance"
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "suite": "source-intake-ui",
+  "htmlSha256": "273d7b1cfaf68c968e7bb65551380f4416fa8362388046ff6d040e4036f1cd15",
+  "passed": 19,
+  "total": 19,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Intake controls mount inside the existing source workspace with explicit actions and no auto-analysis",
+      "passed": true
+    },
+    {
+      "name": "Actual explicit analysis reports current source identity and leaves workspace, build, project, history, assembler and emulator intact",
+      "passed": true
+    },
+    {
+      "name": "Engine declarations are report-only, never added to version 1 workspace or source ZIP exports",
+      "passed": true
+    },
+    {
+      "name": "Explicit foreign declarations refuse UI assembly; unknown and Forge declarations preserve the existing build path",
+      "passed": true
+    },
+    {
+      "name": "Successful workspace replacement resets declarations and restores the ordinary example build",
+      "passed": true
+    },
+    {
+      "name": "Failed replacement preserves source and declarations but retires the previous report",
+      "passed": true
+    },
+    {
+      "name": "Native text edits, build settings and declaration edits invalidate reports immediately",
+      "passed": true
+    },
+    {
+      "name": "Analysis completing after source edits, settings, declarations or cancellation cannot install stale reports",
+      "passed": true
+    },
+    {
+      "name": "Starting either asynchronous import invalidates analysis before any bytes finish loading",
+      "passed": true
+    },
+    {
+      "name": "Later analysis wins when an older success or failure finishes last",
+      "passed": true
+    },
+    {
+      "name": "Report Save As exports exact current evidence and cancellation retains a usable report",
+      "passed": true
+    },
+    {
+      "name": "Report export revalidates declarations even when a programmatic change missed its input event",
+      "passed": true
+    },
+    {
+      "name": "Stale report-save success, cancellation and failure cannot overwrite newer status or resurrect a report",
+      "passed": true
+    },
+    {
+      "name": "Busy or failed Save As requests keep the current report and do not claim an export started",
+      "passed": true
+    },
+    {
+      "name": "Long inventory and dependency displays disclose omitted rows while JSON retains all evidence",
+      "passed": true
+    },
+    {
+      "name": "Public report return values and state snapshots cannot mutate the owned export evidence",
+      "passed": true
+    },
+    {
+      "name": "Unsafe-looking source names and metadata render as literal report text",
+      "passed": true
+    },
+    {
+      "name": "Metadata fields share source keyboard isolation without cancelling native editing",
+      "passed": true
+    },
+    {
+      "name": "Current analysis errors leave source, active project and earlier source ROM available",
+      "passed": true
+    }
+  ]
+}

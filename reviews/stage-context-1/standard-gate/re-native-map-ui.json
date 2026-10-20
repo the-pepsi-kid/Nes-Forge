@@ -1,0 +1,75 @@
+{
+  "suite": "re-native-map-ui",
+  "htmlSha256": "273d7b1cfaf68c968e7bb65551380f4416fa8362388046ff6d040e4036f1cd15",
+  "sourceSha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+  "scope": "Production shared scene UI, 22 referenced native resource choices, explicit capability routing, supported and refused conversion, detached playable build proof, acknowledgement/import/Undo/Redo, stale resource/source/project guards, cancellation and protected Save As. No browser layout or cartridge acceptance claim.",
+  "passed": 16,
+  "total": 16,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Scene conversion metadata is optional, bounded and cannot imply an undeclared convert operation",
+      "passed": true
+    },
+    {
+      "name": "Map and background share one panel with explicit output kind and preserved background API",
+      "passed": true
+    },
+    {
+      "name": "Visible Find maps lists the 22 referenced native maps and distinguishes unsupported semantics without authoring changes",
+      "passed": true
+    },
+    {
+      "name": "Map discovery route opens shared controls without finding, converting, importing or playing maps",
+      "passed": true
+    },
+    {
+      "name": "Supported native map preview exposes exact identity, resource, collision and actual single-room compile proof",
+      "passed": true
+    },
+    {
+      "name": "Unsupported native collision remains listed with its reason and cannot preview or import",
+      "passed": true
+    },
+    {
+      "name": "Acknowledged map import adds one excluded canonical scene, one Undo and reversible Redo without changing runtime settings",
+      "passed": true
+    },
+    {
+      "name": "Changing the selected native resource clears stage, acknowledgement and export eligibility",
+      "passed": true
+    },
+    {
+      "name": "Source changes during native resource inspection cancel old work and clear stale choices",
+      "passed": true
+    },
+    {
+      "name": "Explicit cancel prevents an older map inspection from replacing newer results",
+      "passed": true
+    },
+    {
+      "name": "Changing maps while conversion is pending prevents stale preview publication",
+      "passed": true
+    },
+    {
+      "name": "Project changes during or after map preview refuse stale import without discarding the newer project",
+      "passed": true
+    },
+    {
+      "name": "Wrong source, native resource and static-viewer backend cannot masquerade as a map preview",
+      "passed": true
+    },
+    {
+      "name": "Map project and evidence downloads are separate and never load the playable adaptation into the editor",
+      "passed": true
+    },
+    {
+      "name": "Map Save As preserves busy, cancellation and failure outcomes and suppresses late status after source change",
+      "passed": true
+    },
+    {
+      "name": "Switching conversion kinds clears map records and cannot route old map output into background import",
+      "passed": true
+    }
+  ]
+}

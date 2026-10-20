@@ -27,13 +27,19 @@
     "No schema, gameplay template/capacity, CPU/APU/PPU or code-generator changes"
   ],
   "verification": {
-    "status": "in-progress",
+    "status": "passed",
     "requiredRetainedSuites": 118,
     "retainedCaseCount": 2061,
     "expectedSuiteCount": 120,
     "expectedCaseCount": 2087,
     "freshResults": "reviews/stage-context-1/Verification.json",
-    "historicalResultsDoNotCertifyThisCandidate": true
+    "historicalResultsDoNotCertifyThisCandidate": true,
+    "passed": 2087,
+    "total": 2087,
+    "suiteCount": 120,
+    "browserChecks": 34,
+    "wholeRomByteIdenticalExamples": 14,
+    "executionMode": "standard-candidate-gate"
   },
   "sourcePreservation": {
     "delta": "app/tests/fixtures/stage-context-source-delta.json",
@@ -44,5 +50,6 @@
     "privateRomsIncluded": false,
     "sourceBearingProjectsIncluded": false,
     "previousKit": "tester-kit/context-cleanup-1"
-  }
+  },
+  "sourceCommit": "81032f71c64105892dea19ed9471fbc7bad11717"
 }

@@ -1,0 +1,20 @@
+PASS Editable bundles carry complete pixels and preserve wide-room palette/pixel placement
+PASS 8x16 poses preserve both source banks, OAM Y offset, flips, priority and palettes
+PASS Ninja clips preserve effective update ticks and explicit loop/stop endings
+PASS Throwing-star and windmill scripts bind player poses despite projectile ownership
+PASS Shared scripts without an established sprite-table context refuse editable conversion
+PASS An untimed display pose stays a metasprite without an invented animation
+PASS Standalone projects open without ROM state and retain source receipts through save/load
+PASS Preview and export leave project, history and live emulator untouched
+PASS Current-project append is one Undo, preserves old record identities and unrelated audio/settings
+PASS Repeated imports remap scene, pose and animation references without ID collisions
+PASS Stale project previews refuse to import and leave no history entry
+PASS Changed payloads and evidence-only JSON are refused before project mutation
+PASS Missing references, malformed pixels and lossy normalization fail even with a fresh checksum
+PASS Full project capacity refuses atomically rather than truncating imported pages
+PASS Unrepresentable native palettes and missing recovered poses fail rather than silently dropping data
+PASS Scene padding never overwrites a used nonblank CHR pattern
+PASS Portable bundle controls are usable before a ROM is loaded and import without it
+PASS Malformed replacement clears staged import and download availability
+PASS Store append validates IDs and references before history changes
+19/19 passed

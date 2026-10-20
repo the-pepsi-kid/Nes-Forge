@@ -1,0 +1,59 @@
+{
+  "suite": "audio-tool-import",
+  "htmlSha256": "273d7b1cfaf68c968e7bb65551380f4416fa8362388046ff6d040e4036f1cd15",
+  "fixtureSha256": "c4f5643575ed0baf408e954760cb74d8342a62886cd7f294c17705efa036de09",
+  "scope": "Actual bundled FamiStudio text lifecycle and visible handlers; immutable preview, guarded append transaction, one Undo/Redo, portable Save As/reopen, source-selection races, original-text receipt and editable generated Audio Runtime ROM. Separate browser/CPU evidence is required; no external-engine or audible equivalence claim.",
+  "passed": 12,
+  "total": 12,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Real external export stages an immutable canonical score without editing the project",
+      "passed": true
+    },
+    {
+      "name": "Import appends editable data with correct references and preserves existing SFX and unrelated owners",
+      "passed": true
+    },
+    {
+      "name": "One Undo, Redo and actual portable Save As/reopen preserve the imported score",
+      "passed": true
+    },
+    {
+      "name": "Authenticity, consumed stages and edited or replaced projects cannot install stale imports",
+      "passed": true
+    },
+    {
+      "name": "Capacity refusal and malformed source leave project and Undo untouched",
+      "passed": true
+    },
+    {
+      "name": "Visible workflow requires preview and allows cancellation without changing the score",
+      "passed": true
+    },
+    {
+      "name": "New source selection and song changes invalidate a visible preview",
+      "passed": true
+    },
+    {
+      "name": "Project edits during confirmation refuse the import without undoing the user edit",
+      "passed": true
+    },
+    {
+      "name": "A slow file read cannot overwrite a later selected file",
+      "passed": true
+    },
+    {
+      "name": "Malformed UTF-8, UTF-16, oversized and changed-size files fail before preview",
+      "passed": true
+    },
+    {
+      "name": "Receipt export preserves original text and the historical import result separately from the project",
+      "passed": true
+    },
+    {
+      "name": "Imported ordinary note can be edited, saved, reopened and compiled to a real Audio Runtime ROM",
+      "passed": true
+    }
+  ]
+}

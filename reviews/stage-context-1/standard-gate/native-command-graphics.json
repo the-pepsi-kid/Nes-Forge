@@ -1,0 +1,54 @@
+{
+  "suite": "native-command-graphics",
+  "htmlSha256": "273d7b1cfaf68c968e7bb65551380f4416fa8362388046ff6d040e4036f1cd15",
+  "scope": "Actual bundled bounded native PB53 graphics and raw map rendering. Independent execution of original source-linked 6502 palette/upload/renderer instructions verifies exact PPU writes, changed data and coherent relocation. Unknown initial buffer bytes are tracked and used unknown tiles refuse rendering. This is not game boot, PrettyLevel recovery, browser, hardware or independent emulator acceptance.",
+  "passed": 11,
+  "failed": 0,
+  "total": 11,
+  "results": [
+    {
+      "name": "Native reset and renderer structures recover complete known CHR-RAM, reset palette and metatile evidence without changing state",
+      "passed": true
+    },
+    {
+      "name": "Original native decompressor confirms all 8192 PPU bytes with nonzero initial RAM and source PB53 retained-buffer behavior",
+      "passed": true
+    },
+    {
+      "name": "Original reset palette writes independently confirm aliases and explicit override",
+      "passed": true
+    },
+    {
+      "name": "Original metatile renderer confirms all referenced raw maps including attributes and post-render IDs",
+      "passed": true
+    },
+    {
+      "name": "Valid compressed literal, palette and metatile edits are decoded as data and match original CPU construction",
+      "passed": true
+    },
+    {
+      "name": "PB53 plane repeats, inversions, arbitrary solid controls and retained slots follow the original loader",
+      "passed": true
+    },
+    {
+      "name": "Coherent relocation of compressed data, upload, unpacker, reset, renderer and visual tables follows references",
+      "passed": true
+    },
+    {
+      "name": "Unknown initial PB53 buffer dependencies remain marked and refuse rendering when a visible tile uses them",
+      "passed": true
+    },
+    {
+      "name": "Final reset background-bank selection is explicit and does not change the recovered upload",
+      "passed": true
+    },
+    {
+      "name": "Incoherent routines, pointers, masks, out-of-range tables and compressed source bounds refuse",
+      "passed": true
+    },
+    {
+      "name": "Rendering is bounded, deterministic and isolated from active authoring and emulator state",
+      "passed": true
+    }
+  ]
+}
