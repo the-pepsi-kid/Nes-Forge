@@ -1383,7 +1383,6 @@ function buildSceneSel(){
       sel.appendChild(opt);
     });
   }
-  window.Forge?.services?.SceneContextUI?.refresh();
   // Thumbnail browser
   const browser=document.getElementById('sceneBrowser');
   if(!browser)return;
@@ -5484,6 +5483,7 @@ function refreshActiveThumb(){
 }
 const buildSceneSel14=buildSceneSel;
 buildSceneSel=function(){
+  window.Forge?.services?.SceneContextUI?.refresh();
   const sel=$15('sceneSel');if(sel){sel.innerHTML='';S.scenes.forEach((sc,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(i+1)+': '+sc.name;o.selected=i===S.activeScene;sel.appendChild(o);});}
   const browser=$15('sceneBrowser');if(!browser)return;
   browser.innerHTML='';S.scenes.forEach((sc,i)=>{
@@ -5496,7 +5496,7 @@ buildSceneSel=function(){
 };
 function scheduleActiveCommit(reason){clearTimeout(F15.thumbTimer);F15.thumbTimer=setTimeout(()=>{if(reason==='renameScene'){saveCurrentScene();buildSceneSel();}else refreshActiveThumb();},140);}
 markEdited=function(reason='edit'){
-  findLastTile=-1;setDirty(reason);render();scheduleActiveCommit(reason);broadcastState(reason);
+  findLastTile=-1;setDirty(reason);render();scheduleActiveCommit(reason);broadcastState(reason);window.Forge?.services?.SceneContextUI?.changed(reason);
 };
 // Full project sync is retained for compatibility, but only after an edit burst.
 broadcastState=function(reason){if(!BC||syncApplying)return;clearTimeout(F15.syncTimer);F15.syncTimer=setTimeout(()=>{try{saveCurrentScene();BC.postMessage({type:'state',session:syncSession,peer:syncPeer,seq:++syncSeq,state:projectData(),reason});}catch(e){reportError(e);}},180);};
@@ -17512,9 +17512,9 @@ function mount(){
  const source=button('sceneContextOpenSource','Open matching RE scene',()=>openAsset('source')),notes=el('p','sceneContextNotes');notes.setAttribute('role','status');root.append(controls,notes);
  const style=el('style');style.textContent='#sceneContext{flex:1 0 100%;width:100%;max-width:100%;box-sizing:border-box;padding:6px 10px;border-top:1px solid var(--bdr);font:11px/1.5 system-ui;overflow-wrap:anywhere}#sceneContext summary{cursor:pointer;color:#a6e4d4}#sceneContext .context-controls{display:flex;flex-wrap:wrap;align-items:end;gap:6px;padding-top:6px}#sceneContext label{display:flex;flex-direction:column;flex:1 1 180px;min-width:0}#sceneContext select{width:100%;min-width:0}#sceneContext button,#sceneContext select{min-height:44px;font:inherit;background:var(--bg3);color:var(--txt);border:1px solid var(--bdr);border-radius:4px;padding:4px 8px}#sceneContextNotes{margin:5px 0;color:var(--dim)}';document.head.appendChild(style);
  tabs.parentNode.appendChild(root);ui={root,summary,group:contexts,scene,world,openWorld,pose,openPose,clip,openClip,source,notes};
- for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation());refresh();
+ for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation());root.addEventListener('toggle',()=>{if(root.open)refresh();});refresh();
 }
-services.SceneContext=Object.freeze({describe,selectScene,selectGroup,selectWorld,openAsset});services.SceneContextUI=Object.freeze({refresh});mount();
+services.SceneContext=Object.freeze({describe,selectScene,selectGroup,selectWorld,openAsset});services.SceneContextUI=Object.freeze({refresh,changed:reason=>{if(/^(metasprite|animation|frame|world|nativeAssetImport|renameScene)/i.test(reason))refresh();}});mount();
 })();
 
 /* Single current application bootstrap. */

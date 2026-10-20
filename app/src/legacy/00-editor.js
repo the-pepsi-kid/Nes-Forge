@@ -594,7 +594,6 @@ function buildSceneSel(){
       sel.appendChild(opt);
     });
   }
-  window.Forge?.services?.SceneContextUI?.refresh();
   // Thumbnail browser
   const browser=document.getElementById('sceneBrowser');
   if(!browser)return;

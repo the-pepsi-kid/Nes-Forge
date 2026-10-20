@@ -9,7 +9,7 @@
   "branch": "implementation/context-cleanup-2026-10-20",
   "parentCommit": "697a998e744c7794fae5d1063748e8d83d5ffe57",
   "html": "app/mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "d048976527ebca224d6500d7352d78b24a32982038c55c2f583e0fe8e569eab4",
+  "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f",
   "changes": [
     "Reconcile conflicting current governance headings and preserve all previous documents verbatim.",
     "Navigate existing canonical Worlds, recovered room pages, poses and shared animation references through a derived scene context.",
@@ -27,7 +27,12 @@
     {
       "report": "reviews/context-cleanup-1/Browser_Verification.json",
       "passed": 14,
-      "htmlSha256": "d048976527ebca224d6500d7352d78b24a32982038c55c2f583e0fe8e569eab4"
+      "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f"
+    },
+    {
+      "report": "reviews/context-cleanup-1/Native_Context_Verification.json",
+      "passed": 4,
+      "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f"
     }
   ],
   "parentEvidence": {
@@ -43,5 +48,9 @@
     "Native projects retain their four supported Zelda II location fields and reference-room boundary.",
     "Physical Windows dialogs, phones/controllers, listening, hardware and owner acceptance remain separate."
   ],
-  "promotion": "Unpromoted development checkpoint; no main merge, tag or prerelease publication."
+  "promotion": "Unpromoted development checkpoint; no main merge, tag or prerelease publication.",
+  "publication": {
+    "status": "blocked-pending-owner-approval",
+    "reason": "Automatic approval review rejected pushing the new branch because this turn did not explicitly authorize publication. Local commits and downloadable artifacts remain available."
+  }
 }

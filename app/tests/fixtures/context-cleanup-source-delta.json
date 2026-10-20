@@ -258,15 +258,15 @@
     {
       "path": "build-inputs.json",
       "beforeSha256": "01ae67532c96ab343de6bfae613e5dccfa555d769e836d85ee83d382812f1685",
-      "afterSha256": "b7451db283d77c200b34d6a8c5345cf3642d4a2cec44acd810347f5e82c86300",
+      "afterSha256": "c2e9af2613b30aa338db885156d6be7e9fa05260fb46d98d4536bcafec1156f0",
       "replacements": [
         {
           "before": "{\n  \"release\": \"2.0.0-alpha.11\",\n  \"output\": \"mainline/NES_Forge_2.0.0-alpha.11.html\",\n  \"sha256\": \"b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73\",\n  \"inputs\": [\n    {\n      \"path\": \"src/shell-prefix.html\",\n",
-          "after": "{\n  \"release\": \"2.0.0-alpha.11\",\n  \"output\": \"mainline/NES_Forge_2.0.0-alpha.11.html\",\n  \"sha256\": \"d048976527ebca224d6500d7352d78b24a32982038c55c2f583e0fe8e569eab4\",\n  \"inputs\": [\n    {\n      \"path\": \"src/shell-prefix.html\",\n"
+          "after": "{\n  \"release\": \"2.0.0-alpha.11\",\n  \"output\": \"mainline/NES_Forge_2.0.0-alpha.11.html\",\n  \"sha256\": \"d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f\",\n  \"inputs\": [\n    {\n      \"path\": \"src/shell-prefix.html\",\n"
         },
         {
-          "before": "    },\n    {\n      \"path\": \"src/legacy/00-editor.js\",\n      \"sha256\": \"5136b1e398d03a2e7c952929ed9ded203fd1ce41a74e62cdddd817c684afe0d4\",\n      \"bytes\": 190408\n    },\n    {\n      \"path\": \"src/services/cpu6502-core.js\",\n",
-          "after": "    },\n    {\n      \"path\": \"src/legacy/00-editor.js\",\n      \"sha256\": \"31912bd0bc6d968d73421fba8917005a2818c612e235d31589ee43eebd861c44\",\n      \"bytes\": 190461\n    },\n    {\n      \"path\": \"src/services/cpu6502-core.js\",\n"
+          "before": "    },\n    {\n      \"path\": \"src/legacy/05-foundation.js\",\n      \"sha256\": \"9d8ea5f959f39d6c4caf2091a34155f2be3599ced3a468d3800d6d70db364720\",\n      \"bytes\": 30089\n    },\n    {\n      \"path\": \"src/legacy/06-integration.js\",\n",
+          "after": "    },\n    {\n      \"path\": \"src/legacy/05-foundation.js\",\n      \"sha256\": \"3717e22941dd2e598a6bdd8ae4cbbeb988aaa6e1f4b9a1dc2f5c647fa2f3fb44\",\n      \"bytes\": 30198\n    },\n    {\n      \"path\": \"src/legacy/06-integration.js\",\n"
         },
         {
           "before": "    },\n    {\n      \"path\": \"src/services/release-info.js\",\n      \"sha256\": \"780f925bebd9023c619e56b011abc716c168bc4c4be8c787e302db25cf66613f\",\n      \"bytes\": 1071\n    },\n    {\n      \"path\": \"src/world/world-config.js\",\n",
@@ -286,7 +286,7 @@
         },
         {
           "before": "      \"bytes\": 7920\n    },\n    {\n      \"path\": \"src/composition.js\",\n      \"sha256\": \"2ba43b63b407559c5ed3c08679afea89a4ad1db14f2a16c0c1f4f0611dd09119\",\n      \"bytes\": 165\n",
-          "after": "      \"bytes\": 7920\n    },\n    {\n      \"path\": \"src/services/scene-context.js\",\n      \"sha256\": \"fce96bb74cc5e30126e229b7a216bfd00cb6b46cb300fe18297e9925f9955f0c\",\n      \"bytes\": 9480\n    },\n    {\n      \"path\": \"src/composition.js\",\n      \"sha256\": \"2ba43b63b407559c5ed3c08679afea89a4ad1db14f2a16c0c1f4f0611dd09119\",\n      \"bytes\": 165\n"
+          "after": "      \"bytes\": 7920\n    },\n    {\n      \"path\": \"src/services/scene-context.js\",\n      \"sha256\": \"32a80dc22be49a855bb42beef63946bb5436f5db3c64af1a13e3a2c6c6c43d0b\",\n      \"bytes\": 9656\n    },\n    {\n      \"path\": \"src/composition.js\",\n      \"sha256\": \"2ba43b63b407559c5ed3c08679afea89a4ad1db14f2a16c0c1f4f0611dd09119\",\n      \"bytes\": 165\n"
         }
       ]
     },
@@ -302,13 +302,17 @@
       ]
     },
     {
-      "path": "src/legacy/00-editor.js",
-      "beforeSha256": "5136b1e398d03a2e7c952929ed9ded203fd1ce41a74e62cdddd817c684afe0d4",
-      "afterSha256": "31912bd0bc6d968d73421fba8917005a2818c612e235d31589ee43eebd861c44",
+      "path": "src/legacy/05-foundation.js",
+      "beforeSha256": "9d8ea5f959f39d6c4caf2091a34155f2be3599ced3a468d3800d6d70db364720",
+      "afterSha256": "3717e22941dd2e598a6bdd8ae4cbbeb988aaa6e1f4b9a1dc2f5c647fa2f3fb44",
       "replacements": [
         {
-          "before": "      sel.appendChild(opt);\n    });\n  }\n  // Thumbnail browser\n  const browser=document.getElementById('sceneBrowser');\n  if(!browser)return;\n",
-          "after": "      sel.appendChild(opt);\n    });\n  }\n  window.Forge?.services?.SceneContextUI?.refresh();\n  // Thumbnail browser\n  const browser=document.getElementById('sceneBrowser');\n  if(!browser)return;\n"
+          "before": "}\nconst buildSceneSel14=buildSceneSel;\nbuildSceneSel=function(){\n  const sel=$15('sceneSel');if(sel){sel.innerHTML='';S.scenes.forEach((sc,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(i+1)+': '+sc.name;o.selected=i===S.activeScene;sel.appendChild(o);});}\n  const browser=$15('sceneBrowser');if(!browser)return;\n  browser.innerHTML='';S.scenes.forEach((sc,i)=>{\n",
+          "after": "}\nconst buildSceneSel14=buildSceneSel;\nbuildSceneSel=function(){\n  window.Forge?.services?.SceneContextUI?.refresh();\n  const sel=$15('sceneSel');if(sel){sel.innerHTML='';S.scenes.forEach((sc,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(i+1)+': '+sc.name;o.selected=i===S.activeScene;sel.appendChild(o);});}\n  const browser=$15('sceneBrowser');if(!browser)return;\n  browser.innerHTML='';S.scenes.forEach((sc,i)=>{\n"
+        },
+        {
+          "before": "};\nfunction scheduleActiveCommit(reason){clearTimeout(F15.thumbTimer);F15.thumbTimer=setTimeout(()=>{if(reason==='renameScene'){saveCurrentScene();buildSceneSel();}else refreshActiveThumb();},140);}\nmarkEdited=function(reason='edit'){\n  findLastTile=-1;setDirty(reason);render();scheduleActiveCommit(reason);broadcastState(reason);\n};\n// Full project sync is retained for compatibility, but only after an edit burst.\nbroadcastState=function(reason){if(!BC||syncApplying)return;clearTimeout(F15.syncTimer);F15.syncTimer=setTimeout(()=>{try{saveCurrentScene();BC.postMessage({type:'state',session:syncSession,peer:syncPeer,seq:++syncSeq,state:projectData(),reason});}catch(e){reportError(e);}},180);};\n",
+          "after": "};\nfunction scheduleActiveCommit(reason){clearTimeout(F15.thumbTimer);F15.thumbTimer=setTimeout(()=>{if(reason==='renameScene'){saveCurrentScene();buildSceneSel();}else refreshActiveThumb();},140);}\nmarkEdited=function(reason='edit'){\n  findLastTile=-1;setDirty(reason);render();scheduleActiveCommit(reason);broadcastState(reason);window.Forge?.services?.SceneContextUI?.changed(reason);\n};\n// Full project sync is retained for compatibility, but only after an edit burst.\nbroadcastState=function(reason){if(!BC||syncApplying)return;clearTimeout(F15.syncTimer);F15.syncTimer=setTimeout(()=>{try{saveCurrentScene();BC.postMessage({type:'state',session:syncSession,peer:syncPeer,seq:++syncSeq,state:projectData(),reason});}catch(e){reportError(e);}},180);};\n"
         }
       ]
     },
@@ -458,7 +462,7 @@
   "added": [
     {
       "path": "src/services/scene-context.js",
-      "sha256": "fce96bb74cc5e30126e229b7a216bfd00cb6b46cb300fe18297e9925f9955f0c"
+      "sha256": "32a80dc22be49a855bb42beef63946bb5436f5db3c64af1a13e3a2c6c6c43d0b"
     }
   ],
   "protectedFiles": [

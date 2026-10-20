@@ -20,7 +20,7 @@ for full in subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', '--f
         if name.startswith('tests/') or '/' not in name and name.endswith(('-suites.json', '-modules.json')):
             b = old(name)
             protected.append({'path': name, 'sha256': sha(b)})
-allowed = {'src/legacy/00-editor.js', 'src/services/project-store.js', 'src/services/release-info.js', 'src/services/documentation.js', 'src/re/game-re-ui.js', 'source-manifest.json', 'build-inputs.json', 'tests/native-transition-preservation-lib.cjs', 'tests/run_candidate.cjs', 'tests/services167.cjs', 'tests/spatial-re.cjs', 'tests/megaman2-audio.cjs', 'tests/README.md'}
+allowed = {'src/legacy/00-editor.js', 'src/legacy/05-foundation.js', 'src/services/project-store.js', 'src/services/release-info.js', 'src/services/documentation.js', 'src/re/game-re-ui.js', 'source-manifest.json', 'build-inputs.json', 'tests/native-transition-preservation-lib.cjs', 'tests/run_candidate.cjs', 'tests/services167.cjs', 'tests/spatial-re.cjs', 'tests/megaman2-audio.cjs', 'tests/README.md'}
 changes = []
 names = sorted(set([i['path'] for i in base['inputs']] + [i['path'] for i in protected] + ['source-manifest.json', 'build-inputs.json']))
 for name in names:

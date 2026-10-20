@@ -76,6 +76,7 @@ function refreshActiveThumb(){
 }
 const buildSceneSel14=buildSceneSel;
 buildSceneSel=function(){
+  window.Forge?.services?.SceneContextUI?.refresh();
   const sel=$15('sceneSel');if(sel){sel.innerHTML='';S.scenes.forEach((sc,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(i+1)+': '+sc.name;o.selected=i===S.activeScene;sel.appendChild(o);});}
   const browser=$15('sceneBrowser');if(!browser)return;
   browser.innerHTML='';S.scenes.forEach((sc,i)=>{
@@ -88,7 +89,7 @@ buildSceneSel=function(){
 };
 function scheduleActiveCommit(reason){clearTimeout(F15.thumbTimer);F15.thumbTimer=setTimeout(()=>{if(reason==='renameScene'){saveCurrentScene();buildSceneSel();}else refreshActiveThumb();},140);}
 markEdited=function(reason='edit'){
-  findLastTile=-1;setDirty(reason);render();scheduleActiveCommit(reason);broadcastState(reason);
+  findLastTile=-1;setDirty(reason);render();scheduleActiveCommit(reason);broadcastState(reason);window.Forge?.services?.SceneContextUI?.changed(reason);
 };
 // Full project sync is retained for compatibility, but only after an edit burst.
 broadcastState=function(reason){if(!BC||syncApplying)return;clearTimeout(F15.syncTimer);F15.syncTimer=setTimeout(()=>{try{saveCurrentScene();BC.postMessage({type:'state',session:syncSession,peer:syncPeer,seq:++syncSeq,state:projectData(),reason});}catch(e){reportError(e);}},180);};
