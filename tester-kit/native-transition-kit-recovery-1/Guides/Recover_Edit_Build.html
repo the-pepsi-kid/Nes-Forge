@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recover, edit and build · NES Forge alpha.11</title><link rel="stylesheet" href="../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / native-transition-edit-1 · Documented Kit Recovery 1</small><nav aria-label="Kit guides"><a href="../START_HERE.html">Start here</a><a href="../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../Guide.html">User guide</a><a href="../Tutorial.html">Tutorial</a><a href="../Manual.html">Manual</a><a href="../Reference/Operator_Reference.html">Controls</a><a href="../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#recover-edit-and-build">Recover, edit and build</a><a class="level2" href="#choose-the-result-you-want">Choose the result you want</a><a class="level2" href="#1-run-the-original-or-inspect-evidence">1. Run the original or
+inspect evidence</a><a class="level2" href="#2-make-an-editable-resource-copy">2. Make an editable resource
+copy</a><a class="level2" href="#3-preserve-the-zelda-engine-and-edit-a-location">3. Preserve the
+Zelda engine and edit a location</a><a class="level2" href="#before-reporting-a-result">Before reporting a result</a></aside><main id="guide"><h1 id="recover-edit-and-build">Recover, edit and build</h1>
+<p>This guide describes the <strong>native-transition-edit-1</strong>
+candidate. It adds a route through the existing controls; it does not
+establish a complete recovered game or a new approved baseline.</p>
+<p>If you are learning Forge, keep the original <a
+href="../Tutorial.html">first-game tutorial</a> open. Its first nine
+steps still teach the ordinary blank-project workflow. This RE exercise
+is a separate session. Start from <a href="../START_HERE.html">the kit
+launcher</a>, extract the entire ZIP, and keep all files together.</p>
+<h2 id="choose-the-result-you-want">Choose the result you want</h2>
+<p>Three different workflows can show similar-looking art. Their build
+results are different.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Your goal</th>
+<th>Use this path</th>
+<th>What you get</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>See the original game or investigate its data</td>
+<td>Original playback and RE evidence</td>
+<td>The original game running, or decoded records and observations. An
+evidence report is not an editable project.</td>
+</tr>
+<tr class="even">
+<td>Reuse recovered art, room geometry, poses or supported clips in
+Forge</td>
+<td>Editable resource copy</td>
+<td>Ordinary Forge assets you can edit and save. Original gameplay,
+collision, scene links and music triggers are not automatically
+recreated.</td>
+</tr>
+<tr class="odd">
+<td>Retain the investigated Zelda II engine and change supported
+location fields</td>
+<td>Native-preserving Zelda project</td>
+<td>The complete source ROM plus an edit recipe. Build &amp; Run changes
+only fields with a supported native encoder.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Use your own investigated ROM. The kit does not supply private game
+ROMs or their extracted assets. Recognition is tied to supported source
+revisions; renaming an unsupported file does not make it supported.</p>
+<h2 id="1-run-the-original-or-inspect-evidence">1. Run the original or
+inspect evidence</h2>
+<p>For ordinary playback, load your ROM in <strong>EMULATOR</strong> and
+use its playback controls. When a project retains an original ROM,
+<strong>Run Original ROM</strong> plays those retained bytes. It does
+not apply your project edits. <strong>Build &amp; Run</strong> builds
+the active project and then plays that output.</p>
+<p>For investigation, open <strong>RE / DISASM → Open spatial RE
+workbench</strong>. Use <strong>Choose investigated ROM</strong> to
+select the source, or <strong>Use emulator ROM</strong> to copy the
+currently loaded input into the workbench. Choosing a file here does not
+replace your authoring project or start the game.</p>
+<p>In <strong>Scenes &amp; objects</strong>, select the native context
+and scene. <strong>Original initial art</strong> shows the decoded
+initial background; <strong>Native ground / tile codes</strong> shows
+its investigated codes. Click a cell for source information.
+<strong>Show spawn triggers</strong> displays records, not simulated
+enemies. Expand <strong>Objects, connections, native execution and
+limits</strong>, and read <strong>Coverage &amp; gaps</strong> before
+drawing conclusions about gameplay.</p>
+<p><strong>Scripts &amp; poses</strong>, <strong>Actors &amp;
+parameters</strong>, <strong>CHR patterns</strong>, and <strong>6502
+&amp; RAM</strong> provide other views of that source. A displayed pose
+does not prove animation timing. A source label or ground code does not
+prove complete behavior.</p>
+<p><strong>Export selected scene evidence</strong> and <strong>Export
+resource catalog</strong> save investigation records. They do not create
+ordinary editable assets. Use the next path when you want to paint,
+rearrange or save a Forge project.</p>
+<h2 id="2-make-an-editable-resource-copy">2. Make an editable resource
+copy</h2>
+<p>Save your current work first. The resource importer appends assets to
+the current project; a downloaded standalone project opens as a separate
+workspace.</p>
+<ol type="1">
+<li>In the spatial workbench, choose a supported Ninja Gaiden or Zelda
+II source. Select an available scene and a pose or a supported timed
+Ninja script.</li>
+<li>Click <strong>Prepare editable assets</strong>. Read the preview's
+page, pose, clip and World counts, source identity and limitations.
+Preparation alone does not change the project.</li>
+<li>Choose <strong>Import into current project</strong>. It appends the
+assets with new IDs in one Undo step. Alternatively, <strong>Download
+standalone project</strong> saves a separate <code>.nesforge.json</code>
+workspace.</li>
+<li>Click <strong>Open imported World</strong> to see the first
+recovered room map. Edit tiles in <strong>CHR SHEET</strong>, scene
+composition in <strong>SCENE</strong>, room geometry in
+<strong>WORLD</strong>, poses in <strong>METASPRITES</strong>, and
+supported timed clips in <strong>ANIM</strong>.</li>
+<li>Use <strong>Save Project As…</strong> to preserve the editable
+project. Also choose <strong>Download editable bundle</strong> if you
+need the complete recovery evidence. That <code>.nfassets.json</code>
+file reopens with <strong>Open editable resource bundle</strong> without
+the original ROM. Project saves retain editable assets and per-page
+source receipts, but not the entire investigation catalog.</li>
+<li>Check <strong>Build Scene Set</strong> and the project's runtime
+settings before <strong>Build &amp; Run</strong>. Imported resources do
+not automatically become the starting World, Player, collision or game
+rules. A build refusal is a capacity or support result to resolve; it is
+not permission to discard part of the room.</li>
+</ol>
+<p>The imported World contains the <strong>selected room</strong>,
+potentially split into labeled segments. It is not the assembled
+overworld or all connected scenes. Native exits and conditions remain
+evidence; Forge does not invent runnable connections. Collision starts
+unassigned. Zelda supplies poses without established animation timing;
+supported Ninja clips retain their interpreted update ticks, with
+incomplete scripts refused.</p>
+<p>The first imported page joins the build set and provides sprite art.
+Later pages initially remain excluded. World-used metatiles may require
+placements in their tileset scene and inclusion of that source scene
+before the current viewer linker can export them. Existing mapper,
+atlas, metadata and seven-page viewer limits still apply. Keep the
+project and resource bundle even when the complete imported collection
+cannot fit one generated ROM.</p>
+<h3 id="bring-in-an-audio-excerpt-separately">Bring in an audio excerpt
+separately</h3>
+<p>From the same spatial workbench, choose <strong>Recover / import
+audio</strong>. It opens that RE source in the Audio library without
+replacing the live emulator ROM. Choose a native cue, set a finite
+native-update window, and select <strong>Music excerpt</strong> or
+<strong>Single-channel SFX</strong>. Use <strong>Play native</strong> to
+audition the controlled native playback, then <strong>Preview editable
+score</strong> to inspect the proposed conversion. Choose <strong>Import
+into tracker</strong> only after reading its differences and
+omissions.</p>
+<p>This creates canonical Forge Audio data, not a second audio project.
+Music import appends patterns/instruments, replaces the music order, and
+sets tempo/speed to 150/1; existing SFX timing follows that global
+tempo. Single-channel SFX requires project tempo 150, speed 1, and a
+representable one-channel window fitting one pattern. Each Audio import
+has its own Undo, separate from the room import. Save the ordinary
+project after both imports; the spatial resource bundle does not contain
+this Audio transaction.</p>
+<p>The conversion is a <strong>finite excerpt</strong>, not automatic
+full-song recovery or replacement of music inside the original game. It
+can approximate pitches, omit sub-frame behavior and cannot transcribe
+DPCM or short-mode Noise. It does not recover native loops, driver
+control flow or gameplay-to-cue bindings. Runtime enablement and
+gameplay bindings remain unchanged. Use an ordinary generated Forge
+project for authored playback; this import does not provide a native
+Zelda music encoder.</p>
+<h2 id="3-preserve-the-zelda-engine-and-edit-a-location">3. Preserve the
+Zelda engine and edit a location</h2>
+<p>This path is currently specific to the investigated Zelda II
+revision. It keeps its native mapper, engine, art, audio and other ROM
+data. It is separate from importing reusable resource copies.</p>
+<ol type="1">
+<li>Save the active project. Open <strong>RE / DISASM → Open spatial RE
+workbench</strong> and choose the investigated Zelda II ROM.</li>
+<li>Find <strong>Native game edit / build</strong> and click
+<strong>Prepare native edit/build project</strong>. Review the source
+identity. The preview reports four location tables, 248 static editable
+records and four transient read-only slots. Your current project is
+still intact.</li>
+<li>Click <strong>Import native game as new project</strong>. This
+replaces the active workspace through the ordinary project lifecycle. It
+retains the source ROM, supported edit recipe and one reference room
+World. <strong>Open reference room World</strong> shows that room; it is
+not the complete overworld.</li>
+<li>Use ordinary <strong>Build &amp; Run</strong> before making edits. A
+no-edit native build must reproduce the original source byte-for-byte.
+<strong>Run Original ROM</strong> remains available as a separate
+source-playback control.</li>
+<li>Return to <strong>Native game edit / build</strong>. Set
+<strong>Native region / table</strong> to <strong>West Hyrule</strong>,
+then <strong>Location record</strong> to <strong>Location 44</strong>.
+Its original <strong>Overworld X (native coordinate)</strong> is 50.
+Change it to 49, then leave the field to commit the change. Check the
+status message and saved-field count. This is one Undo step.</li>
+<li><strong>Build &amp; Run again, then save and reopen.</strong> Use
+the ordinary top-toolbar <strong>Build &amp; Run</strong>; there is no
+separate native-build button. This edit produces an output differing at
+the supported coordinate byte. Use <strong>Save Project As…</strong> and
+confirm a native project file was created. Reopen it with <strong>Open
+Project</strong>, check that Location 44 still reads 49, and rebuild.
+Return X to 50 or use Undo before saving if you want the unchanged
+location.</li>
+</ol>
+<p>Step 6 applies the recipe to a copy of the preserved source. It does
+not repaint a terrain tile or move the map icon. The original engine
+decides how the location trigger interacts with terrain, quest state and
+travel flags. A changed byte or a successfully built ROM does not by
+itself prove a reachable, safe entrance. Check the original-game
+behavior you intended to change.</p>
+<h3 id="supported-native-fields">Supported native fields</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Exact field label</th>
+<th>Accepted integer range</th>
+<th>Meaning and limit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Overworld X (native coordinate)</td>
+<td>0–63</td>
+<td>Native location coordinate; not a WORLD editor pixel position.</td>
+</tr>
+<tr class="even">
+<td>Overworld Y (native coordinate)</td>
+<td>0–127</td>
+<td>Uses the game's original coordinate convention.</td>
+</tr>
+<tr class="odd">
+<td>Native scene selector</td>
+<td>0–62</td>
+<td>Requires a nonempty destination stream in a verified context.
+Unresolved special destination contexts are refused.</td>
+</tr>
+<tr class="even">
+<td>Native entry code</td>
+<td>0–3</td>
+<td>Packed native code with special handling; not universally a page
+number.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Each table's <strong>Location 62 · transient slot, read only</strong>
+is not editable. Neighboring flags and all other ROM bytes stay
+protected by the current adapter. Arbitrary ROM hacks, other revisions,
+complete entrance/return conditions and all movement/camera/music
+behavior are not covered by these four fields.</p>
+<h3 id="what-the-project-saves-and-what-it-can-build">What the project
+saves and what it can build</h3>
+<p>The native project saves the <strong>complete original ROM and edit
+recipe</strong> along with its authored project data. Keep this project
+as a private source-bearing backup. The generated ROM alone is not a
+substitute for the editable project.</p>
+<p>Native projects use <strong>schema 13</strong> because older
+schema-12 editors cannot preserve the native recipe safely. Those older
+editors must refuse the newer project before changing their workspace.
+Ordinary generated projects continue to save as <strong>schema
+12</strong>; importing ordinary resource copies does not activate the
+native backend.</p>
+<p>You can save art, World paint, Audio and other authoring edits in the
+native project, but the native build <strong>refuses changes it cannot
+encode back into the original engine</strong>. They are not silently
+ignored or automatically translated. For example, editing the reference
+room's art or importing a tracker excerpt does not yet rewrite native
+Zelda graphics or music. Keep a backup of that work; use a separate
+ordinary Forge project for reusable authored assets. A failed build must
+not be mistaken for a newly generated playable result.</p>
+<p>If the source or project changes after preparation, prepare a new
+preview. The source identity and change detector protect against stale
+or accidental input changes; they are not an authenticated signature for
+manually modified project JSON.</p>
+<h2
+id="unfinished-one-stage--scene-context-across-the-editor">Unfinished:
+one Stage → Scene context across the editor</h2>
+<p>The intended workflow is to choose a Stage, then a Scene, and have
+the relevant authoring and investigation views follow that context.
+<strong>That common-context workflow is an unfinished requirement, not a
+current feature claimed by this kit.</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Intended behavior</th>
+<th>Current boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Scene, World, CHR, metasprite, animation, actor, Audio and source
+views follow one selected Stage/Scene.</td>
+<td>Existing selectors and imported copies require explicit navigation.
+The reference room and a selected RE scene are not a complete shared
+game-context model.</td>
+</tr>
+<tr class="even">
+<td>The editor shows which music/SFX cue belongs to the scene and which
+event plays it.</td>
+<td>Native cue catalogs and finite Audio imports exist; complete
+scene/event-to-cue bindings remain unresolved.</td>
+</tr>
+<tr class="odd">
+<td>Shared assets identify every context that uses them and retain
+source provenance through edits.</td>
+<td>Resource imports retain receipts and evidence, but do not establish
+all cross-scene uses or a complete dependency-aware editing
+workflow.</td>
+</tr>
+<tr class="even">
+<td>Editing a recovered game and rebuilding preserves the chosen native
+behavior or explicitly converts it.</td>
+<td>Only the declared resource conversions and Zelda location-field
+encoding are supported here. Missing encoders and unverified behavior
+must remain visible.</td>
+</tr>
+</tbody>
+</table></div>
+<p>This requirement does not imply new implementation in the recovered
+kit. Full connected maps, collision/AI/physics, animation timing for
+every actor, quest state, native art/Audio encoders and complete
+playable reconstruction remain unfinished.</p>
+<h2 id="before-reporting-a-result">Before reporting a result</h2>
+<p>Record which of the three paths you used, the candidate identity,
+selected native context/scene or location, exact control, expected
+result and actual result. Keep the original ROM and last native project
+backup. Attach only material you have permission to share; a
+source-bearing project contains the original game.</p>
+<p>Use <a href="../Feedback_Template.txt">the feedback template</a>.
+Mark untried steps <strong>Not tested</strong> and unavailable steps
+<strong>Blocked</strong>. A screenshot, successful evidence export,
+successful project save and successful ROM build are separate
+observations. Return to <a href="../Tutorial.html">the first-game
+tutorial</a> for the original nine-step authored-game exercise.</p>
+<p class="stamp">NES Forge alpha.11 · Documented Kit Recovery 1 · <a href="../START_HERE.html">Back to start</a></p></main></div></body></html>
