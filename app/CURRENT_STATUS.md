@@ -1,19 +1,19 @@
 # NES Forge — current status
 
-**2.0.0-alpha.11 / context-cleanup-1 · unpromoted development checkpoint**
+**2.0.0-alpha.11 / stage-context-1 · unpromoted development checkpoint**
 
-Source parent: `697a998e744c7794fae5d1063748e8d83d5ffe57`. Branch: `implementation/context-cleanup-2026-10-20`. Build identity: `build-inputs.json`. Repository-root `CANDIDATE.json` describes this increment; older records remain under their named review folders.
+Parent: published `context-cleanup-1`, commit `c86b98aafd828f2f66b2f10ec068a726619ede45`. Branch: `implementation/stage-context-2026-10-20`. Build identity: `build-inputs.json`; repository-root `CANDIDATE.json` records this checkpoint.
 
-Ordinary projects write schema **12**. Native projects containing the preserved ROM/recipe write schema **13**; supported read ceiling is 13. Filename changes do not establish a release.
+Scene resources now connects explicit native area/table context → imported room → page → related World and sprite owner. Choosing an imported page aligns its World segment and relative page viewport. The existing World and Scene selectors participate. Shared poses/animations keep canonical IDs; imports record and remap their World and sprite-owner IDs independently.
 
-The new Scene resources navigator groups existing Worlds and recovered rooms, selects canonical scenes/pages and opens related Worlds, poses, animations, actors, CHR and collision views. Matching-hash RE scene navigation is explicit. Audio remains project-wide; full Stage → Scene synchronization and scene/event-to-cue bindings remain unfinished.
+New imports save catalog membership in existing source receipts. Missing rooms, unavailable slots and conflicting receipts remain explicit. Native area/table membership does not establish a playable stage, stage ordering, reachability or transition semantics. Older receipts retain room navigation without invented stage membership. Source inspection remains read-only; Use inspected room explicitly returns to a matching already-imported scene.
 
-Native rebuilding still encodes only supported Zelda II location X/Y, scene selector and packed entry code. Other authoring edits remain saved but can block native builds. A reference room is not the full overworld.
+Audio stays project-wide. Scene/event-to-cue bindings, native art/Audio/behavior encoders and complete Stage topology remain future work. World art still uses its declared tileset scene; editing another page does not rebind or copy shared resources.
+
+Ordinary projects write schema **12**. Native source/recipe projects write schema **13**; supported read ceiling remains 13. Native encoding still supports only the four verified Zelda II location fields. Five gameplay templates, 12 actor slots and 64 persistent bytes retain their existing contracts.
 
 ## Evidence
 
-The parent supplied 2,046/2,046 cases across 116 suites via durable bounded workers and 30 matching-app browser checks. These are retained results. The documented kit passed 152-file integrity and 1,188 local-link checks; its browser launch was blocked in the recovery session.
+The parent recorded 2,061 passing cases across 118 suites with documented VM retries and 28 browser checks. Those results describe the parent only. Current results are in [the Stage context verification](../reviews/stage-context-1/Verification.json), with the exact tested HTML hash, actual execution mode and separate browser/native outcomes. A pass requires the completed current report. Native dialogs, listening, physical devices, controllers and hardware remain separate acceptance.
 
-Fresh results for this increment live in `../reviews/context-cleanup-1/Verification.json`, including actual run mode, exact HTML hash and browser status. Do not replace a blocked or failed outcome with a historical pass. Native dialogs, audible acceptance, Windows/phones, controllers, hardware and owner tutorial acceptance remain separate.
-
-[Use the navigator](docs/SCENE_CONTEXT.md) · [native build](docs/NATIVE_ENGINE_EDIT_BUILD.md) · [verification policy](TEST_POLICY.md) · [next work](ROADMAP.md).
+[Navigator guide](docs/SCENE_CONTEXT.md) · [roadmap](ROADMAP.md) · [verification policy](TEST_POLICY.md) · [previous status](docs/history/stage-context-1/CURRENT_STATUS.md).

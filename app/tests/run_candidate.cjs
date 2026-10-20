@@ -64,6 +64,8 @@ const nativeTransitionSuites=JSON.parse(fs.readFileSync(path.join(root,'native-t
 additional.push(...nativeTransitionSuites);
 const contextCleanupSuites=JSON.parse(fs.readFileSync(path.join(root,'context-cleanup-suites.json'),'utf8'));
 additional.push(...contextCleanupSuites);
+const stageContextSuites=JSON.parse(fs.readFileSync(path.join(root,'stage-context-suites.json'),'utf8'));
+additional.push(...stageContextSuites);
 function requireFile(file){assert.ok(fs.existsSync(file)&&fs.statSync(file).isFile(),'Required package file is missing: '+path.relative(root,file));}
 function discoverBaselineJobs(){
   const runner=path.join(__dirname,'run_frozen.cjs');requireFile(runner);
@@ -83,6 +85,7 @@ function inputProvenance(jobs){
   for(const dir of ['baseline','examples','tests/fixtures','tests/native-audio','docs','hosted','checkpoints/native-audio-1-reference','checkpoints/native-audio-import-1-reference','checkpoints/recovery-methods-1-reference','checkpoints/seeded-mashup-1-reference','checkpoints/movement-rules-1-reference','checkpoints/compatibility-stabilization-1-reference','checkpoints/native-background-1-reference','checkpoints/native-map-1-reference','checkpoints/native-sfx-1-reference','checkpoints/source-intake-1-reference'])for(const file of walk(path.join(root,dir)))files.add(file);
   for(const file of surveyFiles)files.add(path.join(root,file));
   for(const file of ['native-transition-suites.json','tests/native-transition-preservation-lib.cjs','tests/retained-native-world-suite-counts.json','tools/generate_native_transition_delta.py'])files.add(path.join(root,file));
+  for(const file of ['stage-context-suites.json','tests/stage-context-preservation-lib.cjs','tests/stage-context-fixture.cjs','tests/fixtures/stage-context-source-delta.json','tools/generate_stage_context_delta.py'])files.add(path.join(root,file));
   for(const file of ['context-cleanup-suites.json','tests/context-cleanup-preservation-lib.cjs','tests/fixtures/context-cleanup-source-delta.json','tools/generate_context_cleanup_delta.py'])files.add(path.join(root,file));
   // Distributable native corpus/source research is part of the same immutable gate input set.
   if(fs.existsSync(path.join(root,'research')))for(const file of walk(path.join(root,'research')))files.add(file);
@@ -127,7 +130,7 @@ async function main(){
   requireFile(html);const jobs=[...discoverBaselineJobs(),...additional];
   const retained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-audio-tool-import-suite-counts.json'))),reference=JSON.parse(fs.readFileSync(path.join(root,'docs/history/audio-tool-import-1/root/gate-reference.json')));
   assert.equal(reference.sha256,'1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d');assert.equal(reference.status,'passed');assert.equal(reference.total,1872);assert.equal(reference.suiteCount,97);assert.deepEqual(retained,Object.fromEntries(reference.suites.map(s=>[s.name,s.total])));
-  assert.equal(Object.keys(retained).length,97);assert.equal(Object.values(retained).reduce((n,value)=>n+value,0),1872);assert.equal(new Set(jobs.map(j=>j[0])).size,jobs.length,'Duplicate mandatory suite name');assert.deepEqual(jobs.slice(0,97).map(j=>j[0]),Object.keys(retained),'Every retained audio tool import suite must remain ordered');assert.equal(jobs.length,97+audioDriverSurveySuites.length+nativeAudioLibrarySuites.length+audioDiscoverySuites.length+megaman2AudioSuites.length+spatialSuites.length+gameRESuites.length+nativeAssetSuites.length+nativeWorldSuites.length+nativeTransitionSuites.length+contextCleanupSuites.length);const surveyRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-audio-driver-survey-suite-counts.json')));assert.equal(Object.keys(surveyRetained).length,99);assert.equal(Object.values(surveyRetained).reduce((n,v)=>n+v,0),1888);assert.deepEqual(jobs.slice(0,99).map(j=>j[0]),Object.keys(surveyRetained));
+  assert.equal(Object.keys(retained).length,97);assert.equal(Object.values(retained).reduce((n,value)=>n+value,0),1872);assert.equal(new Set(jobs.map(j=>j[0])).size,jobs.length,'Duplicate mandatory suite name');assert.deepEqual(jobs.slice(0,97).map(j=>j[0]),Object.keys(retained),'Every retained audio tool import suite must remain ordered');assert.equal(jobs.length,97+audioDriverSurveySuites.length+nativeAudioLibrarySuites.length+audioDiscoverySuites.length+megaman2AudioSuites.length+spatialSuites.length+gameRESuites.length+nativeAssetSuites.length+nativeWorldSuites.length+nativeTransitionSuites.length+contextCleanupSuites.length+stageContextSuites.length);const surveyRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-audio-driver-survey-suite-counts.json')));assert.equal(Object.keys(surveyRetained).length,99);assert.equal(Object.values(surveyRetained).reduce((n,v)=>n+v,0),1888);assert.deepEqual(jobs.slice(0,99).map(j=>j[0]),Object.keys(surveyRetained));
   const nativeRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-native-audio-library-suite-counts.json')));assert.equal(Object.keys(nativeRetained).length,101);assert.equal(Object.values(nativeRetained).reduce((a,b)=>a+b,0),1916);assert.deepEqual(jobs.slice(0,101).map(j=>j[0]),Object.keys(nativeRetained));
   const discoveryRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-audio-discovery-suite-counts.json')));assert.equal(Object.keys(discoveryRetained).length,103);assert.equal(Object.values(discoveryRetained).reduce((a,b)=>a+b,0),1948);assert.deepEqual(jobs.slice(0,103).map(j=>j[0]),Object.keys(discoveryRetained));
   const spatialRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-megaman2-audio-suite-counts.json')));assert.equal(Object.keys(spatialRetained).length,105);assert.equal(Object.values(spatialRetained).reduce((a,b)=>a+b,0),1958);assert.deepEqual(jobs.slice(0,105).map(j=>j[0]),Object.keys(spatialRetained));
@@ -135,6 +138,7 @@ async function main(){
   const importRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-game-re-suite-counts.json')));assert.equal(Object.keys(importRetained).length,110);assert.equal(Object.values(importRetained).reduce((n,v)=>n+v,0),1989);assert.deepEqual(jobs.slice(0,110).map(j=>j[0]),Object.keys(importRetained));
   const roomWorldRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-native-world-suite-counts.json')));assert.equal(Object.keys(roomWorldRetained).length,114);assert.equal(Object.values(roomWorldRetained).reduce((n,v)=>n+v,0),2031);assert.deepEqual(jobs.slice(0,114).map(j=>j[0]),Object.keys(roomWorldRetained));
   const worldRetained=JSON.parse(fs.readFileSync(path.join(__dirname,'retained-native-game-import-suite-counts.json')));assert.equal(Object.keys(worldRetained).length,112);assert.equal(Object.values(worldRetained).reduce((n,v)=>n+v,0),2010);assert.deepEqual(jobs.slice(0,112).map(j=>j[0]),Object.keys(worldRetained));
+  const stageRetained=require('./stage-context-preservation-lib.cjs').verifyParent().retainedCounts;assert.deepEqual(jobs.slice(0,118).map(j=>j[0]),Object.keys(stageRetained));
   require('./context-cleanup-preservation-lib.cjs').verifyParent();
   require('./native-world-import-preservation-lib.cjs').verifyParent();
   require('./native-game-import-preservation-lib.cjs').verifyParent();
@@ -175,6 +179,7 @@ async function main(){
   }catch(error){
     fs.writeFileSync(summaryPath,JSON.stringify({release,status:'failed',html:path.relative(root,html),sha256:initialHash,startedAt,finishedAt:new Date().toISOString(),runtime,failedSuite,error:error.message,completedSuites:suites,requiredSuites:jobs.map(j=>j[0]),provenance:inputs},null,2)+'\n');throw error;
   }
+  for(const [name,count]of Object.entries(stageRetained))assert.equal(suites.find(s=>s.name===name)?.total,count,'Retained Stage predecessor inventory: '+name);
   for(const [name,count]of Object.entries(require('./context-cleanup-preservation-lib.cjs').verifyParent().retainedCounts))assert.equal(suites.find(s=>s.name===name)?.total,count,'Retained context predecessor inventory: '+name);
   for(const [name,count]of Object.entries(JSON.parse(fs.readFileSync(path.join(__dirname,'retained-native-world-suite-counts.json')))))assert.equal(suites.find(s=>s.name===name)?.total,count,'Retained native World case inventory: '+name);
   for(const [name,count]of Object.entries(JSON.parse(fs.readFileSync(path.join(__dirname,'retained-native-game-import-suite-counts.json')))))assert.equal(suites.find(s=>s.name===name)?.total,count,'Retained native game import case inventory: '+name);
@@ -186,7 +191,7 @@ async function main(){
   for(const [name,count]of Object.entries(gameRetained))assert.equal(suites.find(s=>s.name===name)?.total,count,'Retained spatial case inventory: '+name);
   const summary={release,status:'passed',html:path.relative(root,html),sha256:initialHash,unchangedCandidate:true,startedAt,finishedAt:new Date().toISOString(),runtime,
     passed:suites.reduce((n,s)=>n+s.passed,0),failed:0,total:suites.reduce((n,s)=>n+s.total,0),suiteCount:suites.length,suites,
-    policy:'All 116 retained native-transition suites (2046 measured cases), plus every declared context cleanup suite, with no filters or skipped cases; totals measured from fresh explicit case records',
+    policy:'All 118 retained context cleanup suites (2061 measured cases), plus every declared Stage context suite, with no filters or skipped cases; totals measured from fresh explicit case records',
     provenance:inputs,browserAcceptance:'Separate evidence is required. This automated VM runner makes no real-browser, native picker, or browser rendering claim.'};
   fs.writeFileSync(summaryPath,JSON.stringify(summary,null,2)+'\n');process.stdout.write(summary.passed+'/'+summary.total+' automated cases passed against unchanged '+initialHash+'\n');
 }

@@ -6037,7 +6037,7 @@ function createWorldFromScene(seed=true){if(S.worlds.length>=MAX_WORLDS)return r
 function duplicateWorld(){const w=world();if(!w||S.worlds.length>=MAX_WORLDS)return;snapshot();S.worlds.push(normalizeWorld({...cp(w),id:null,name:w.name+' copy'}));W.selected=S.worlds.length-1;markEdited('worldDuplicate');renderWorldUI();}
 function deleteWorld(){const w=world();if(!w)return;if(!confirm('Delete world "'+w.name+'"?'))return;snapshot();S.worlds.splice(W.selected,1);W.selected=clamp(W.selected,0,Math.max(0,S.worlds.length-1));markEdited('worldDelete');renderWorldUI();}
 function updateWorldProps(){const w=world();if(!w)return;const nextTileset=$('wTileset161').value,changedTileset=nextTileset!==w.tilesetSceneId;snapshot();w.name=$('wName161').value.trim().slice(0,100)||w.name;w.tilesetSceneId=nextTileset;resizeWorld(w,+$('wWidth161').value,+$('wHeight161').value);if(changedTileset){W.brush=-1;const ids=validMetaIds(w),missing=new Set(w.map.filter(v=>v>=0&&!ids.has(v)));if(missing.size)showToast('Tileset changed · '+missing.size+' unresolved metatile ID(s) preserved. Choose a compatible tileset or repaint them.');}markEdited('worldProps');renderWorldUI();render();}
-function selectWorld(i){W.selected=clamp(i,0,Math.max(0,S.worlds.length-1));W.panX=W.panY=0;renderWorldUI();render();}
+function selectWorld(i){W.selected=clamp(i,0,Math.max(0,S.worlds.length-1));W.panX=W.panY=0;window.Forge?.services?.SceneContextUI?.worldSelected(world()?.id);renderWorldUI();render();}
 function currentScreenCell(){const w=world();if(!w)return {x:0,y:0};return {x:Math.floor(W.panX/COLS_PER_SCREEN)*COLS_PER_SCREEN,y:Math.floor(W.panY/ROWS_PER_SCREEN)*ROWS_PER_SCREEN};}
 function addRoom(){const w=world();if(!w)return;const p=currentScreenCell();snapshot();w.rooms.push(normalizeRoom({name:'Room '+(w.rooms.length+1),x:p.x,y:p.y,w:16,h:15},w));markEdited('worldRoom');renderWorldUI();}
 function addMarker(kind){const w=world();if(!w)return;const p=currentScreenCell();snapshot();w.markers.push(normalizeMarker({name:kind+' '+(w.markers.length+1),kind,x:p.x+8,y:p.y+7},w));markEdited('worldMarker');renderWorldUI();}
@@ -8731,7 +8731,7 @@ F.project={create,openRom,classifyRom,replaceProject};
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Scene Resource Context',maturity:'alpha',candidate:'context-cleanup-1',schema:13,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Shared Stage Context',maturity:'alpha',candidate:'stage-context-1',schema:13,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;
@@ -11524,7 +11524,7 @@ services.EmulatorTimeline=Object.freeze({saveCheckpoint,saveOwnedCheckpoint,rest
     const d=document.getElementById('sideDocs');if(!d)return;
     d.innerHTML=`<div class="doc"><h2>NES Forge ${R.version} — ${R.name}</h2>
 <p>A standalone visual NES editor, assembler, ROM builder and experimental emulator. <b>Alpha · Roadmap Workbench candidate.</b> Work through the existing tabs. Examples are ordinary editable project files included in the release package.</p>
-<h3>Scene resources</h3><p>Expand Scene resources below the toolbar. Choose a World or recovered room, then a scene/page. CHR, collision and actor views use that canonical scene. Open a related World, pose or animation explicitly; shared animations retain their other scene references. Open matching RE scene requires the same source hash in the investigated catalog. Audio remains project-wide and native scene-to-cue bindings are unresolved. This navigator adds no Stage schema, native encoder or automatic gameplay conversion.</p>
+<h3>Scene resources</h3><p>Expand Scene resources below the toolbar. New imports preserve their explicit native area/table context, catalogued rooms and pages. Missing rooms and unavailable slots remain listed; these contexts do not establish stage order or routes. Choose an imported room/page to align the existing Scene and World selectors and World page viewport. World art still uses its declared tileset; shared poses and clips keep their canonical sprite owner. Navigation does not clone or rebind assets. Open matching RE scene requires the same source hash/profile already loaded; Use inspected room explicitly returns to an existing matching import. Audio remains project-wide, with native scene/event-to-cue bindings unresolved. Older room-only receipts retain their existing navigator. No new Stage schema, encoder or automatic gameplay conversion is introduced.</p>
 <h3>Ninja Gaiden and Zelda II investigation</h3><p>RE / DISASM → Open spatial RE workbench now includes connected native scene art, object records, actor parameter/dispatch tables, CHR banks, source labels, RAM leads and coverage gaps for the two investigated revisions. Ninja Gaiden includes shared player/enemy/projectile scripts and poses. Zelda II includes native side-view construction and Link pose/facing output; animation timing and full collision/AI remain unresolved. Inspection stays detached and exports source-scoped evidence. Prepare editable assets previews a self-contained bundle with original initial-art pixels and palettes, paged scene layouts, shared metatile libraries, editable room worlds, selected poses and recovered Ninja script update ticks. Import into current project appends these in one Undo step; Download standalone project opens independently. Open editable resource bundle accepts .nfassets.json without the ROM. Open imported World jumps to the new room map; coverage identifies unassigned collision and reference-only native connections. Recover / import audio opens the same RE ROM in the Audio library without replacing the live emulator. Preview a finite supported music or single-channel SFX transcription, then Import into tracker and save the ordinary project to preserve both spatial and audio assets. DPCM, short-mode noise and native gameplay triggers are not transcribed. Spatial bundles do not include the separately imported audio. Untimed Zelda poses stay untimed, and collision, AI, physics and code remain reference evidence. The first imported page joins the build set; additional pages start excluded, and ROM capacity limits still apply. Zelda II visible PPU address reloads now update both scanline rendering and its capture trace.</p>
 <h3>Native engine edit/build</h3><p>RE → Open spatial RE workbench → choose Zelda II → Prepare native edit/build project → Import native game as new project. This replaces the workspace with preserved original ROM bytes, an editable location recipe and one reference room World. Build &amp; Run uses the native banked engine. An unedited build is byte-identical; supported X/Y, scene-selector and entry-code edits preserve every other byte and packed flag. Use the native location controls, Undo/Redo and ordinary Save Project As. Native project schema 13 prevents older editors from discarding the recipe. Ordinary projects retain schema 12, existing recipe identities and generated ROM bytes. Edits to reference art or generic runtime settings block the native build until an encoder exists. This bounded milestone does not reconstruct the entire game or provide reusable movement-rule compilation. The source-independent fixed-size packed-record codec is reusable in fresh projects; the Zelda location layout is an engine adapter.</p>
 <h3>Start, open and recover</h3><p>A fresh workspace starts with one blank scene. New Project creates a blank fixed room with the existing single-room build settings. Open Project loads a complete JSON or ZIP project. Browser recovery remains available through Restore / Dismiss; it is protected while being checked or awaiting your choice. New Project and Open Forge ROM have undoable replacement boundaries. A normal project open starts a new history.</p>
@@ -16944,7 +16944,7 @@ function adapt(scenes,decoded){
   for(let page=start;page<end;page++){
    const sc=scenes[page];sc.metatiles=cp([...defs.values()]);sc.metaMap=cells[page].map(c=>c?defs.get(c.key).id:-1);
    for(let y=0;y<15;y++)for(let x=0;x<16;x++)map[y*cols+(page-start)*16+x]=sc.metaMap[y*16+x];
-   sc.captureMeta.nativeAssets.world={segment:index,startPage:start,pageCount:width,contentWidthPixels:Math.min(width*256,g.width*8-start*256),contentHeightPixels:g.height*8,geometry:'initial-art-layout',collision:'unassigned',connections:'reference-only'};
+   sc.captureMeta.nativeAssets.world={worldId:'native-world-'+index,segment:index,startPage:start,pageCount:width,contentWidthPixels:Math.min(width*256,g.width*8-start*256),contentHeightPixels:g.height*8,geometry:'initial-art-layout',collision:'unassigned',connections:'reference-only'};
   }
   segments.push({id:'native-world-'+index,name:(decoded.scene.label+(start||end<scenes.length?' · segment '+(index+1):'')).slice(0,100),tilesetSceneId:scenes[start].id,widthScreens:width,heightScreens:1,map,rooms:[{id:'native-room-'+index,name:'Recovered room geometry',x:0,y:0,w:Math.min(cols,Math.ceil(g.width/2)-start*16),h:rows}],markers:[],cameraRegions:[]});
   start=end;
@@ -16952,6 +16952,62 @@ function adapt(scenes,decoded){
  return segments;
 }
 services.GameREWorlds=Object.freeze({adapt});
+})();
+/* Source context is a catalog receipt, not a second asset store or a route graph.
+ * Project asset IDs and World tileset references remain authoritative. */
+(()=>{
+'use strict';
+const services=window.Forge.services,copy=value=>JSON.parse(JSON.stringify(value));
+const text=value=>typeof value==='string'&&value.length>0&&value.length<=160;
+function nativeKey(scene){
+ const r=scene?.captureMeta?.nativeAssets;
+ return r&&/^[a-f0-9]{64}$/.test(r.source?.sha256)&&text(r.profile)&&text(r.sceneId)?JSON.stringify([r.source.sha256,r.profile,r.sceneId]):null;
+}
+function receipt(catalog,scene){
+ const field=Number.isInteger(scene.area)?'area':text(scene.set)?'set':null;
+ if(!field||!Array.isArray(catalog.scenes))return null;
+ const members=catalog.scenes.filter(s=>s[field]===scene[field]).map(s=>({sceneId:s.id,label:s.label,status:s.status==='unavailable-slot'?'unavailable':'catalogued'}));
+ if(!members.length||members.length>1024)return null;
+ return {version:1,id:field+':'+scene[field],kind:field==='area'?'native-area':'native-table',label:scene.group||String(scene[field]),members,
+  scope:'Catalog membership only. Stage order, reachability, transitions and scene/event Audio bindings remain unresolved.'};
+}
+function read(scene){
+ if(!nativeKey(scene))return null;
+ const r=scene.captureMeta.nativeAssets,c=r.context;
+ if(c?.version!==1||!text(c.id)||!text(c.label)||!['native-area','native-table'].includes(c.kind)||!Array.isArray(c.members)||!c.members.length||c.members.length>1024)return null;
+ const seen=new Set();
+ for(const m of c.members){if(!text(m?.sceneId)||!text(m.label)||!['catalogued','unavailable'].includes(m.status)||seen.has(m.sceneId))return null;seen.add(m.sceneId);}
+ if(!c.members.some(m=>m.sceneId===r.sceneId&&m.status==='catalogued'))return null;
+ return {id:'stage:'+JSON.stringify([r.source.sha256,r.profile,c.id]),sourceSha256:r.source.sha256,profile:r.profile,context:copy(c),nativeSceneId:r.sceneId};
+}
+function describe(scenes){
+ const stages=new Map();
+ for(const scene of scenes){
+  const value=read(scene);if(!value)continue;
+  let stage=stages.get(value.id);
+  if(!stage){stage={id:value.id,name:value.context.label,kind:value.context.kind,sourceSha256:value.sourceSha256,profile:value.profile,contextId:value.context.id,sceneIds:[],rooms:value.context.members.map(m=>({...m,sceneIds:[]})),conflict:false};stages.set(value.id,stage);}
+  const signature=c=>JSON.stringify([c.kind,c.label,c.members.map(m=>[m.sceneId,m.label,m.status])]);
+  if(signature(value.context)!==JSON.stringify([stage.kind,stage.name,stage.rooms.map(m=>[m.sceneId,m.label,m.status])]))stage.conflict=true;
+  stage.sceneIds.push(scene.id);stage.rooms.find(m=>m.sceneId===value.nativeSceneId)?.sceneIds.push(scene.id);
+ }
+ const page=id=>{const sc=scenes.find(s=>s.id===id);return Number.isInteger(sc?.captureMeta?.nativeAssets?.page)?sc.captureMeta.nativeAssets.page:Infinity;};
+ for(const stage of stages.values()){
+  for(const room of stage.rooms)room.sceneIds.sort((a,b)=>page(a)-page(b)||a.localeCompare(b));
+  stage.coverage={catalogued:stage.rooms.length,imported:stage.rooms.filter(r=>r.sceneIds.length).length,missing:stage.rooms.filter(r=>!r.sceneIds.length&&r.status!=='unavailable').length,unavailable:stage.rooms.filter(r=>r.status==='unavailable').length};
+ }
+ return [...stages.values()];
+}
+function relatedWorlds(scene,scenes,worlds){
+ const key=nativeKey(scene),r=scene?.captureMeta?.nativeAssets,span=r?.world;
+ return worlds.filter(world=>{
+  if(world.tilesetSceneId===scene?.id)return true;
+  if(!key||!Number.isInteger(r.page)||!span)return false;
+  if(span.worldId&&world.id!==span.worldId)return false;
+  const tileset=scenes.find(s=>s.id===world.tilesetSceneId),other=tileset?.captureMeta?.nativeAssets,range=other?.world;
+  return nativeKey(tileset)===key&&range&&(!range.worldId||range.worldId===world.id)&&Number.isInteger(range.startPage)&&Number.isInteger(range.pageCount)&&range.pageCount>0&&span.segment===range.segment&&span.startPage===range.startPage&&span.pageCount===range.pageCount&&r.page>=range.startPage&&r.page<range.startPage+range.pageCount;
+ });
+}
+services.StageContext=Object.freeze({nativeKey,receipt,read,describe,relatedWorlds});
 })();
 /* Editable adaptations of investigated native resources. Bundles carry their
  * pixels and references; importing them never executes source code or needs a
@@ -16979,6 +17035,7 @@ function convert(session,selection={}){
  const ng=report.profile.id==='ninja-gaiden-us',sourceChr=patterns(session.chrBank(g.chrBank4KiB).bytes),chr=cp(sourceChr);
  let blank=chr.findIndex(t=>t.every(row=>row.every(v=>v===0)));
  if(blank<0){const used=new Set(g.tiles);blank=chr.findIndex((_t,i)=>!used.has(i));if(blank<0)fail('Padding requires a blank or unused pattern; no source pattern was discarded.');chr[blank]=Array.from({length:8},()=>Array(8).fill(0));}
+ const context=services.StageContext.receipt(report,decoded.scene);
  const native=decoded.scene,banks=ng?[native.spriteChrBank4KiB,native.backgroundChrBank4KiB]:[g.chrBank4KiB-1,g.chrBank4KiB],spritePal=ng?native.palettes.sprites:Array.from({length:4},(_,i)=>[g.nativePalette[16],...g.nativePalette.slice(17+i*4,20+i*4)]);
  let script=null,poses=[];
  if(selection.animationId){script=report.animations.find(a=>a.id===selection.animationId);if(!script)fail('The selected timed script is unavailable.');const context=scriptContext(script);if(!context.owner)fail(context.reason);for(const f of script.frames){const pose=report.poses.find(p=>p.owner===context.owner&&p.selector===f.pose);if(!pose)fail('A timed script references an unrecovered pose.');if(!poses.some(p=>p.id===pose.id))poses.push(pose);}}
@@ -17007,7 +17064,7 @@ function convert(session,selection={}){
    if((x&1)||(y&1)){const ox=x&~1,oy=y&~1,origin=oy*g.width+page*32+ox;if(g.paletteIds[origin]!==pal)fail('This scene needs sub-cell palettes that the project cannot represent.');}
    attr[ai]=(attr[ai]&~mask)|(pal<<shift);
   }
-  return makeScene({id:'native-scene-'+page,name:(native.label+' · page '+(page+1)).slice(0,120),nt,attr,pal:cp(g.palettes),sprPal:cp(spritePal),chr:cp(chr),sprChr:cp(sprChr),tileProps:Array(256).fill(0),oam:[],entities:[],links:[],sceneType:'static',scrollDir:'none',gravity:0,buildInclude:page===0,buildOrder:page,captureMeta:{nativeAssets:{version:1,source:cp(report.source),profile:report.profile.id,sceneId:native.id,animationId:script?.id||null,poseIds:poses.map(p=>p.id),spriteContext:script?scriptContext(script):null,page,contentX:page*256,originY:decoded.originY,contentHeight:g.height*8,limits:cp(limits)}}});
+  return makeScene({id:'native-scene-'+page,name:(native.label+' · page '+(page+1)).slice(0,120),nt,attr,pal:cp(g.palettes),sprPal:cp(spritePal),chr:cp(chr),sprChr:cp(sprChr),tileProps:Array(256).fill(0),oam:[],entities:[],links:[],sceneType:'static',scrollDir:'none',gravity:0,buildInclude:page===0,buildOrder:page,captureMeta:{nativeAssets:{version:1,source:cp(report.source),profile:report.profile.id,sceneId:native.id,spriteSceneId:sceneId,...(context?{context:cp(context)}:{}),animationId:script?.id||null,poseIds:poses.map(p=>p.id),spriteContext:script?scriptContext(script):null,page,contentX:page*256,originY:decoded.originY,contentHeight:g.height*8,limits:cp(limits)}}});
  });
  const worlds=services.GameREWorlds.adapt(scenes,decoded);
  limits.push('Worlds preserve the selected room layout at Y=0, split at page boundaries only if authoring limits require it. Collision stays unassigned; native connections remain evidence. Import does not change or enable World Runtime.');
@@ -17045,6 +17102,7 @@ function remap(assets,current){
  }
  out.metasprites.forEach(p=>p.sceneId=maps.scenes.get(p.sceneId));
  out.animations.forEach(a=>a.frames.forEach(f=>{if(f.sceneId)f.sceneId=maps.scenes.get(f.sceneId);if(f.metaspriteId)f.metaspriteId=maps.metasprites.get(f.metaspriteId);}));
+ for(const sc of out.scenes){const receipt=sc.captureMeta?.nativeAssets;if(receipt?.spriteSceneId)receipt.spriteSceneId=maps.scenes.get(receipt.spriteSceneId)||receipt.spriteSceneId;if(receipt?.world?.worldId)receipt.world.worldId=maps.worlds?.get(receipt.world.worldId)||receipt.world.worldId;}
  for(const w of out.worlds||[]){w.tilesetSceneId=maps.scenes.get(w.tilesetSceneId);for(const m of w.markers)if(m.targetWorldId)m.targetWorldId=maps.worlds.get(m.targetWorldId);}
  return out;
 }
@@ -17181,7 +17239,7 @@ function selectScene(){
   state.scene=state.session.scene(id);ui.selected.disabled=false;drawScene();drawPose();
   ui.details.textContent=JSON.stringify({entrance:s.entrance,areaStartCue:s.areaStartCue,timeCode:s.timeCode,header:s.header,enemies:s.enemies,lanterns:s.lanterns,commands:s.commands,connections:s.connections,execution:state.scene.execution,graphicsContext:state.scene.graphics?.context,limits:state.scene.limits},null,2);
   message('Decoded '+s.label+'. Source state is detached from the project and live emulator.');
- }catch(e){ui.map.width=ui.map.height=1;ui.mapCaption.textContent='No decoded output is available for this selection.';message(e.message,true);}
+ }catch(e){ui.map.width=ui.map.height=1;ui.mapCaption.textContent='No decoded output is available for this selection.';message(e.message,true);}finally{F.services.SceneContextUI?.refresh();}
 }
 function selectSceneById(id){
  const s=state.report?.scenes.find(s=>s.id===id);if(!s||s.status==='unavailable-slot')return false;
@@ -17323,7 +17381,7 @@ function mount(){
  ui={root,title,counts,status,tabs:tabButtons,panes,groups,scenes,mode,zoom,overlay,source,mapCaption,map,cell,details,actors,actorDetails:actorDetailsNode,scripts,poses,play:playButton,sprite,poseDetails,chr,chrCanvas,chrDetails,search,symbols,code,ram,coverage:coverageNode,locations,selected,catalog};
  for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation?.());document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 }
-F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,exportEditable,selectSceneById,getState:()=>({status:state.report?.status||'empty',sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
+F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,exportEditable,selectSceneById,getState:()=>({status:state.report?.status||'empty',profile:state.report?.profile.id||null,sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
 })();
 /* Portable resource imports are available before a ROM is loaded. */
 (()=>{
@@ -17452,8 +17510,9 @@ services.NativeEngineUI=Object.freeze({preview,importProject,edit,refresh});mess
 (()=>{
 'use strict';
 const services=window.Forge.services;
-let ui=null,group='',epoch=-1,renderKey='';
-const nativeKey=sc=>{const r=sc?.captureMeta?.nativeAssets;return r&&/^[a-f0-9]{64}$/.test(r.source?.sha256)&&typeof r.sceneId==='string'?r.source.sha256+':'+r.profile+':'+r.sceneId:null;};
+let ui=null,group='',epoch=-1,renderKey='',lastScene='',navigating=0,refreshing=false;
+const context=services.StageContext;
+const nativeKey=sc=>context.nativeKey(sc);
 const fail=message=>{throw Error('Scene context: '+message);};
 function describe(){
  const sc=S.scenes[S.activeScene],scenes=S.scenes.map(s=>({id:s.id,name:s.name})),groups=[{id:'',name:'All project scenes',sceneIds:scenes.map(s=>s.id)}];
@@ -17461,41 +17520,80 @@ function describe(){
  const recovered=new Map();
  for(const s of S.scenes){const key=nativeKey(s);if(!key)continue;if(!recovered.has(key)){const r=s.captureMeta.nativeAssets;recovered.set(key,{id:'native:'+key,name:'Recovered room: '+s.name.replace(/ · page \d+$/,''),sceneIds:[]});}recovered.get(key).sceneIds.push(s.id);}
  groups.push(...recovered.values());
- const poses=(S.metasprites||[]).filter(p=>p.sceneId===sc?.id),poseIds=new Set(poses.map(p=>p.id));
- const clips=(S.animations||[]).filter(a=>a.frames?.some(f=>f.metaspriteId?poseIds.has(f.metaspriteId):!f.sceneId||f.sceneId===sc?.id)).map(a=>({id:a.id,name:a.name,usesActiveScene:a.frames.some(f=>!f.metaspriteId&&!f.sceneId),sharedSceneIds:[...new Set(a.frames.flatMap(f=>f.metaspriteId?[(S.metasprites||[]).find(p=>p.id===f.metaspriteId)?.sceneId]:[f.sceneId]).filter(Boolean))]}));
- const worlds=(S.worlds||[]).filter(w=>w.tilesetSceneId===sc?.id).map(w=>({id:w.id,name:w.name}));
+ const stages=context.describe(S.scenes);groups.push(...stages.map(stage=>({id:stage.id,name:'Source '+(stage.kind==='native-area'?'area: ':'table: ')+stage.name,sceneIds:stage.sceneIds,disabled:stage.conflict})));
+ const spriteScene=S.scenes.find(s=>s.id===sc?.captureMeta?.nativeAssets?.spriteSceneId),resourceSceneIds=[sc?.id,...(spriteScene&&context.nativeKey(spriteScene)===context.nativeKey(sc)?[spriteScene.id]:[])];
+ const poses=(S.metasprites||[]).filter(p=>resourceSceneIds.includes(p.sceneId)),poseIds=new Set(poses.map(p=>p.id));
+ const clips=(S.animations||[]).filter(a=>a.frames?.some(f=>f.metaspriteId?poseIds.has(f.metaspriteId):!f.sceneId||resourceSceneIds.includes(f.sceneId))).map(a=>({id:a.id,name:a.name,usesActiveScene:a.frames.some(f=>!f.metaspriteId&&!f.sceneId),sharedSceneIds:[...new Set(a.frames.flatMap(f=>f.metaspriteId?[(S.metasprites||[]).find(p=>p.id===f.metaspriteId)?.sceneId]:[f.sceneId]).filter(Boolean))]}));
+ const worlds=context.relatedWorlds(sc,S.scenes,S.worlds||[]).map(w=>({id:w.id,name:w.name,tilesetSceneId:w.tilesetSceneId,usesActiveScene:w.tilesetSceneId===sc?.id}));
  const receipt=sc?.captureMeta?.nativeAssets,source=nativeKey(sc)?{sha256:receipt.source.sha256,name:receipt.source.name,profile:receipt.profile,sceneId:receipt.sceneId,page:receipt.page}:null;
- const loaded=services.GameREUI?.getState();
- return {scene:sc?{id:sc.id,name:sc.name}:null,scenes,groups,worlds,poses:poses.map(p=>({id:p.id,name:p.name})),clips,source,canOpenSource:!!source&&loaded?.sha256===source.sha256,
+ const loaded=services.GameREUI?.getState(),activeContext=context.read(sc),stage=stages.find(s=>s.id===activeContext?.id)||null;
+ const inspected=(S.scenes||[]).filter(s=>{const r=s.captureMeta?.nativeAssets;return context.nativeKey(s)&&r.source.sha256===loaded?.sha256&&r.profile===loaded?.profile&&r.sceneId===loaded?.selectedScene;});
+ return {resourceSceneIds,stages,stage,rooms:stage?.rooms||[],activeRoomId:stage?receipt.sceneId:null,canUseInspected:inspected.length>0,scene:sc?{id:sc.id,name:sc.name}:null,scenes,groups,worlds,poses:poses.map(p=>({id:p.id,name:p.name,sceneId:p.sceneId})),clips,source,canOpenSource:!!source&&loaded?.sha256===source.sha256&&loaded?.profile===source.profile,
   audioScope:'Project-wide Audio; scene/event-to-cue bindings are not recovered by this navigator.',nativeProject:!!S.nativeGame};
 }
-function selectScene(id){const index=S.scenes.findIndex(s=>s.id===id);if(index<0)fail('Scene is no longer present.');switchScene(index);refresh();return describe();}
-function selectGroup(id){const item=describe().groups.find(g=>g.id===id);if(!item)fail('Context is no longer present.');if(!item.sceneIds.length)fail('This World has no available tileset scene.');group=id;if(item.worldId)return selectWorld(item.worldId);if(!item.sceneIds.includes(S.scenes[S.activeScene]?.id))selectScene(item.sceneIds[0]);refresh();return describe();}
-function selectWorld(id){const w=(S.worlds||[]).find(w=>w.id===id);if(!w)fail('World is no longer present.');if(!S.scenes.some(s=>s.id===w.tilesetSceneId))fail('World tileset scene is unavailable.');selectScene(w.tilesetSceneId);Forge161.worlds.select(S.worlds.indexOf(w));refresh();return describe();}
+function navigation(fn){navigating++;try{return fn();}finally{navigating--;}}
+function syncWorld(){
+ const scene=S.scenes[S.activeScene],worlds=context.relatedWorlds(scene,S.scenes,S.worlds||[]),current=Forge161.worlds.current;
+ const world=worlds.find(w=>w.id===current?.id)||(worlds.length===1?worlds[0]:null);if(!world)return;
+ navigation(()=>{if(current?.id!==world.id)Forge161.worlds.select(S.worlds.indexOf(world));});
+ const receipt=scene?.captureMeta?.nativeAssets,range=receipt?.world;
+ if(range&&Number.isInteger(receipt.page)&&Number.isInteger(range.startPage)){Forge161.worlds.state.panX=Math.max(0,Math.min((world.widthScreens-1)*16,(receipt.page-range.startPage)*16));Forge161.worlds.state.panY=0;}
+ if(S.tab==='world')Forge161.worlds.render();Forge161.worlds.renderUI();
+}
+function selectScene(id){const index=S.scenes.findIndex(s=>s.id===id);if(index<0)fail('Scene is no longer present.');navigation(()=>switchScene(index));syncWorld();refresh();return describe();}
+function selectGroup(id){
+ const d=describe(),item=d.groups.find(g=>g.id===id);if(!item)fail('Context is no longer present.');if(item.disabled)fail('Source context receipts disagree. Inspect individual scenes before choosing this context.');if(!item.sceneIds.length)fail('This World has no available tileset scene.');
+ group=id;if(item.worldId)return selectWorld(item.worldId);if(!item.sceneIds.includes(S.scenes[S.activeScene]?.id))selectScene(item.sceneIds[0]);refresh();return describe();
+}
+function selectWorld(id,keepScene=false){
+ const w=(S.worlds||[]).find(w=>w.id===id);if(!w)fail('World is no longer present.');if(!S.scenes.some(s=>s.id===w.tilesetSceneId))fail('World tileset scene is unavailable.');
+ if(!keepScene)selectScene(w.tilesetSceneId);navigation(()=>Forge161.worlds.select(S.worlds.indexOf(w)));syncWorld();refresh();return describe();
+}
+function worldSelected(id){
+ if(navigating||!id)return;const w=(S.worlds||[]).find(w=>w.id===id);if(!w)return;
+ if(!context.relatedWorlds(S.scenes[S.activeScene],S.scenes,S.worlds||[]).some(item=>item.id===id)){if(!S.scenes.some(s=>s.id===w.tilesetSceneId))return;selectScene(w.tilesetSceneId);}
+ syncWorld();refresh();
+}
+function selectRoom(id){
+ const d=describe(),room=d.rooms.find(r=>r.sceneId===id);if(!room||d.stage?.conflict)fail('Room context is unavailable or conflicting.');if(!room.sceneIds.length)fail('This room has not been imported. Inspect its matching source before importing it.');
+ group=d.stage.id;selectScene(room.sceneIds.includes(d.scene?.id)?d.scene.id:room.sceneIds[0]);return describe();
+}
+function useInspectedRoom(){
+ const loaded=services.GameREUI?.getState(),matches=S.scenes.filter(s=>{const r=s.captureMeta?.nativeAssets;return context.nativeKey(s)&&r.source.sha256===loaded?.sha256&&r.profile===loaded?.profile&&r.sceneId===loaded?.selectedScene;});
+ if(!matches.length)fail('The inspected room has no matching imported scene.');const current=matches.find(s=>s.id===S.scenes[S.activeScene]?.id);selectScene((current||matches[0]).id);return describe();
+}
 function openAsset(kind,id){
- const d=describe();
- if(kind==='world'){if(!d.worlds.some(w=>w.id===id))fail('World does not use this scene as its tileset.');selectWorld(id);switchTab('world');}
+ const d=describe(),poseIds=new Set(d.poses.map(p=>p.id));
+ if(kind==='world'){if(!d.worlds.some(w=>w.id===id))fail('World does not use this scene as its tileset.');selectWorld(id,true);switchTab('world');}
  else if(kind==='pose'){if(!d.poses.some(p=>p.id===id))fail('Pose does not use this scene.');Forge163.metasprites.select(id);switchTab('metasprites');}
- else if(kind==='clip'){if(!d.clips.some(a=>a.id===id))fail('Animation has no reference to this scene.');anim_stopPreview();S._selAnim=S.animations.findIndex(a=>a.id===id);S._animFrame=Math.max(0,S.animations[S._selAnim].frames.findIndex(f=>f.metaspriteId?S.metasprites.some(p=>p.id===f.metaspriteId&&p.sceneId===d.scene.id):!f.sceneId||f.sceneId===d.scene.id));anim_updateSidebar();Forge164.frameEditor.refresh();switchTab('anim');}
+ else if(kind==='clip'){if(!d.clips.some(a=>a.id===id))fail('Animation has no reference to this scene.');anim_stopPreview();S._selAnim=S.animations.findIndex(a=>a.id===id);S._animFrame=Math.max(0,S.animations[S._selAnim].frames.findIndex(f=>f.metaspriteId?poseIds.has(f.metaspriteId):!f.sceneId||d.resourceSceneIds.includes(f.sceneId)));anim_updateSidebar();Forge164.frameEditor.refresh();switchTab('anim');}
  else if(kind==='actors'){Forge164.studio.open(d.scene.id);}
  else if(kind==='source'){if(!d.canOpenSource)fail('Open the matching investigated ROM in RE first.');if(!services.GameREUI.selectSceneById(d.source.sceneId))fail('Source scene is unavailable in the loaded catalog.');services.SpatialREUI.show();switchTab('disasm');}
  else if(['scene','chr','collision','audio'].includes(kind))switchTab(kind);
  else fail('Unsupported resource view.');
  refresh();return true;
 }
-function options(node,items,value,empty){node.replaceChildren();if(!items.length){const o=document.createElement('option');o.value='';o.textContent=empty;node.appendChild(o);}for(const item of items){const o=document.createElement('option');o.value=item.id;o.textContent=item.name;node.appendChild(o);}node.value=items.some(i=>i.id===value)?value:items[0]?.id||'';node.disabled=!items.length;}
+function options(node,items,value,empty){node.replaceChildren();if(!items.length){const o=document.createElement('option');o.value='';o.textContent=empty;node.appendChild(o);}for(const item of items){const o=document.createElement('option');o.value=item.id;o.textContent=item.name;o.disabled=!!item.disabled;node.appendChild(o);}node.value=items.some(i=>i.id===value)?value:items[0]?.id||'';node.disabled=!items.length;}
 function refresh(){
- if(!ui)return;const d=describe(),currentEpoch=services.ProjectStore.state.epoch;
- if(epoch!==currentEpoch){epoch=currentEpoch;group=d.source?'native:'+nativeKey(S.scenes[S.activeScene]):'';}
- let selected=d.groups.find(g=>g.id===group);if(!selected?.sceneIds.includes(d.scene?.id)){group='';selected=d.groups[0];}
+ if(!ui||refreshing)return;refreshing=true;
+ try{
+ const currentEpoch=services.ProjectStore.state.epoch,sceneId=S.scenes[S.activeScene]?.id;
+ if(!navigating&&(epoch!==currentEpoch||lastScene!==sceneId))syncWorld();
+ const d=describe();lastScene=sceneId;
+ if(epoch!==currentEpoch){epoch=currentEpoch;group=d.stage?.id||(d.source?'native:'+nativeKey(S.scenes[S.activeScene]):'');}
+ let selected=d.groups.find(g=>g.id===group);if(!selected?.sceneIds.includes(d.scene?.id)){group=d.stage?.id||'';selected=d.groups.find(g=>g.id===group)||d.groups[0];}
  const key=JSON.stringify({d,group});if(key===renderKey)return;renderKey=key;
- options(ui.group,d.groups,group);options(ui.scene,d.scenes.filter(s=>selected.sceneIds.includes(s.id)),d.scene?.id);
- options(ui.world,d.worlds,ui.world.value,'No World uses this tileset');ui.openWorld.disabled=!d.worlds.length;
- options(ui.pose,d.poses,ui.pose.value,'No pose uses this scene');ui.openPose.disabled=!d.poses.length;
+ options(ui.group,d.groups,group);
+ const room=d.rooms.find(r=>r.sceneId===d.activeRoomId),roomPages=group===d.stage?.id?room?.sceneIds:null;
+ options(ui.room,d.rooms.map(r=>({id:r.sceneId,name:r.label+(r.sceneIds.length?' · '+r.sceneIds.length+' imported page(s)':r.status==='unavailable'?' · unavailable native slot':' · not imported'),disabled:!r.sceneIds.length||r.status==='unavailable'})),d.activeRoomId,'No source context receipt');ui.room.disabled=!d.rooms.length||!!d.stage?.conflict;
+ options(ui.scene,d.scenes.filter(s=>(roomPages||selected.sceneIds).includes(s.id)),d.scene?.id);
+ options(ui.world,d.worlds,ui.world.value,'No related World');ui.openWorld.disabled=!d.worlds.length;
+ options(ui.pose,d.poses.map(p=>({...p,name:p.name+(p.sceneId!==d.scene?.id?' · source: '+(S.scenes.find(s=>s.id===p.sceneId)?.name||p.sceneId):'')})),ui.pose.value,'No pose uses this scene');ui.openPose.disabled=!d.poses.length;
  options(ui.clip,d.clips,ui.clip.value,'No animation references this scene');ui.openClip.disabled=!d.clips.length;
- ui.source.disabled=!d.canOpenSource;
- ui.summary.textContent='Scene resources · '+d.scene?.name+' · '+d.poses.length+' pose(s) · '+d.clips.length+' animation(s) · '+d.worlds.length+' World tileset use(s)';
- ui.notes.textContent=d.audioScope+(d.clips.some(a=>a.sharedSceneIds.some(id=>id!==d.scene.id))?' Animations can share resources across scenes.':'')+(d.clips.some(a=>a.usesActiveScene)?' Legacy tile frames without a source scene follow the active scene.':'')+(d.source?' Source: '+d.source.sceneId+' · SHA-256 '+d.source.sha256+(d.canOpenSource?' · matching RE source loaded.':' · open the matching ROM in RE to inspect its source.'):'')+(d.nativeProject?' Native project: only supported location fields can currently rebuild; this room is a reference view.':'');
+ ui.source.disabled=!d.canOpenSource;ui.inspected.disabled=!d.canUseInspected;
+ ui.summary.textContent='Scene resources · '+(d.stage?d.stage.name+' · ':'')+d.scene?.name+' · '+d.poses.length+' pose(s) · '+d.clips.length+' animation(s) · '+d.worlds.length+' World use(s)';
+ ui.notes.textContent=d.audioScope+(d.stage?' Source context: '+d.stage.coverage.imported+'/'+d.stage.coverage.catalogued+' catalogued rooms imported; '+d.stage.coverage.missing+' missing; '+d.stage.coverage.unavailable+' unavailable. Stage order, reachability and transitions remain unresolved.'+(d.stage.conflict?' Context receipts disagree; stage navigation is disabled.':''):'')+(d.clips.some(a=>a.sharedSceneIds.some(id=>id!==d.scene.id))?' Animations can share resources across scenes.':'')+(d.clips.some(a=>a.usesActiveScene)?' Legacy tile frames without a source scene follow the active scene.':'')+(d.worlds.some(w=>!w.usesActiveScene)?' World art still uses its declared tileset scene; page edits do not rebind or copy that tileset.':'')+(d.source?' Source: '+d.source.sceneId+' · SHA-256 '+d.source.sha256+(d.canOpenSource?' · matching RE source loaded.':' · open the matching ROM in RE to inspect its source.'):'')+(d.nativeProject?' Native project: only supported location fields can currently rebuild; this room is a reference view.':'');
+ }finally{refreshing=false;}
 }
 function mount(){
  const tabs=document.getElementById('tabBar');if(!tabs?.parentNode)return;
@@ -17503,18 +17601,20 @@ function mount(){
  const root=el('details','sceneContext');root.setAttribute('aria-label','Scene resource context');const summary=el('summary','sceneContextSummary','Scene resources');root.appendChild(summary);
  const controls=el('div');controls.className='context-controls';const field=(text,id)=>{const label=el('label',null,text),select=el('select',id);label.htmlFor=id;label.appendChild(select);controls.appendChild(label);return select;};
  const safe=fn=>()=>{try{fn();}catch(e){renderKey='';refresh();ui.notes.textContent=e.message;}};
- const contexts=field('World / recovered room','sceneContextGroup'),scene=field('Scene / page','sceneContextScene');contexts.onchange=safe(()=>selectGroup(contexts.value));scene.onchange=safe(()=>selectScene(scene.value));
+ const contexts=field('Stage / World / source context','sceneContextGroup');contexts.onchange=safe(()=>selectGroup(contexts.value));
+ const room=field('Room / native slot','sceneContextRoom');room.onchange=safe(()=>selectRoom(room.value));
+ const scene=field('Scene / page','sceneContextScene');scene.onchange=safe(()=>selectScene(scene.value));
  const button=(id,text,fn)=>{const b=el('button',id,text);b.type='button';b.onclick=safe(fn);controls.appendChild(b);return b;};
- const world=field('World tileset uses','sceneContextWorld'),openWorld=button('sceneContextOpenWorld','Open World',()=>openAsset('world',world.value));
- const pose=field('Sprite poses using this scene','sceneContextPose'),openPose=button('sceneContextOpenPose','Open pose',()=>openAsset('pose',pose.value));
+ const world=field('Related Worlds','sceneContextWorld'),openWorld=button('sceneContextOpenWorld','Open World',()=>openAsset('world',world.value));
+ const pose=field('Related sprite poses','sceneContextPose'),openPose=button('sceneContextOpenPose','Open pose',()=>openAsset('pose',pose.value));
  const clip=field('Animations referencing this scene','sceneContextClip'),openClip=button('sceneContextOpenClip','Open animation',()=>openAsset('clip',clip.value));
  for(const [kind,label]of [['scene','Scene'],['chr','CHR'],['collision','Collision'],['actors','Actors'],['audio','Audio (project)']])button('sceneContext-'+kind,label,()=>openAsset(kind));
- const source=button('sceneContextOpenSource','Open matching RE scene',()=>openAsset('source')),notes=el('p','sceneContextNotes');notes.setAttribute('role','status');root.append(controls,notes);
+ const source=button('sceneContextOpenSource','Open matching RE scene',()=>openAsset('source')),inspected=button('sceneContextUseInspected','Use inspected room',useInspectedRoom),notes=el('p','sceneContextNotes');notes.setAttribute('role','status');root.append(controls,notes);
  const style=el('style');style.textContent='#sceneContext{flex:1 0 100%;width:100%;max-width:100%;box-sizing:border-box;padding:6px 10px;border-top:1px solid var(--bdr);font:11px/1.5 system-ui;overflow-wrap:anywhere}#sceneContext summary{cursor:pointer;color:#a6e4d4}#sceneContext .context-controls{display:flex;flex-wrap:wrap;align-items:end;gap:6px;padding-top:6px}#sceneContext label{display:flex;flex-direction:column;flex:1 1 180px;min-width:0}#sceneContext select{width:100%;min-width:0}#sceneContext button,#sceneContext select{min-height:44px;font:inherit;background:var(--bg3);color:var(--txt);border:1px solid var(--bdr);border-radius:4px;padding:4px 8px}#sceneContextNotes{margin:5px 0;color:var(--dim)}';document.head.appendChild(style);
- tabs.parentNode.appendChild(root);ui={root,summary,group:contexts,scene,world,openWorld,pose,openPose,clip,openClip,source,notes};
+ tabs.parentNode.appendChild(root);ui={root,summary,group:contexts,room,scene,world,openWorld,pose,openPose,clip,openClip,source,inspected,notes};
  for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation());root.addEventListener('toggle',()=>{if(root.open)refresh();});refresh();
 }
-services.SceneContext=Object.freeze({describe,selectScene,selectGroup,selectWorld,openAsset});services.SceneContextUI=Object.freeze({refresh,changed:reason=>{if(/^(metasprite|animation|frame|world|nativeAssetImport|renameScene)/i.test(reason))refresh();}});mount();
+services.SceneContext=Object.freeze({describe,selectScene,selectGroup,selectWorld,selectRoom,useInspectedRoom,openAsset});services.SceneContextUI=Object.freeze({refresh,worldSelected,changed:reason=>{if(/^(metasprite|animation|frame|world|nativeAssetImport|renameScene)/i.test(reason))refresh();}});mount();
 })();
 
 /* Single current application bootstrap. */

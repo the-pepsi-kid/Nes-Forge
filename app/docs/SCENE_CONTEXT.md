@@ -1,14 +1,15 @@
-# Navigate scene resources
+# Navigate source contexts, rooms and pages
 
-This is a bounded context navigator over existing project assets, available in `context-cleanup-1`. Expand **Scene resources** below the toolbar.
+Expand **Scene resources** below the toolbar in stage-context-1.
 
-1. Choose **World / recovered room**. Worlds list their declared tileset scene; recovered rooms group pages by exact source hash, profile and native room ID. **All project scenes** remains available. A native room/context is not assumed to be a complete stage.
-2. Choose **Scene / page**. CHR, Scene, collision and Entity Studio use that canonical scene. Live edits are saved through the existing scene-switch operation.
-3. **Open World** opens a World that declares this scene as its tileset. A World whose tileset is missing cannot be selected through this navigator.
-4. Choose a related sprite pose or animation, then open it. Shared animation clips retain their other scene references. The animation opens at the first frame referencing the active scene; legacy tile frames without explicit sources follow the active scene. Navigation does not clone or rebind assets.
-5. **Audio (project)** opens the existing tracker. Scene/event-to-cue bindings are unresolved; the navigator does not choose a song, change timing, enable playback or import anything.
-6. **Open matching RE scene** works only when the exact source hash is already loaded in the native investigation catalog. Otherwise open that ROM in RE first. Navigation uses the receipt's native scene ID; it does not replace the investigated source or import resources.
+1. **Stage / World / source context** includes existing Worlds and recovered rooms. New native imports also offer their source **area** or **table context**. These source groupings do not establish complete playable stages, stage order or routes.
+2. **Room / native slot** shows the catalog membership saved at import. Imported rooms are selectable; missing rooms and unavailable native slots stay listed and disabled. The coverage text counts each category. Conflicting source receipts disable context/room selection; individual project scenes remain inspectable.
+3. **Scene / page** selects a canonical page of the chosen room. Scene, CHR, collision and Entity Studio use it. Live edits are saved by the existing scene switch. The existing Scene selector also updates context.
+4. A page with an exact imported World owner selects that World and pans to its page within the segment. **Open World** keeps the chosen page. The existing World dropdown follows its declared tileset if the current page does not belong to that World. World rendering still uses the declared tileset scene; editing another page does not rebind or copy it.
+5. Sprite poses and clips use the import's explicit canonical sprite owner, including on other pages. Shared animations retain their references; opening a clip selects a related frame. Repeated imports receive separate World and sprite-owner IDs. No resource is cloned by navigation.
+6. **Open matching RE scene** requires the matching source hash/profile already open in RE. Source inspection stays detached. **Use inspected room** explicitly returns to an already-imported matching native room, preserving the current page when it already belongs to that room. It does not import missing rooms or replace source state.
+7. **Audio (project)** opens the existing tracker without choosing music, changing timing or enabling a runtime. Scene/event-to-cue bindings remain unresolved.
 
-Save/reopen retains existing scenes, references and recovery receipts. Context groups are derived again; no new project fields or schema are introduced. A source-bearing native project retains its original native-build limits: only the four supported location fields currently encode back into the original game.
+Save/reopen preserves these optional source receipts and reconstructs the view. Ordinary projects stay schema 12; native source/recipe projects stay schema 13. Existing room-only receipts retain the earlier navigator and do not gain guessed stage membership. Context receipts document provenance, not authentication.
 
-Full shared Stage → Scene context, complete scene/event-to-Audio links, cross-scene dependency editing and new native encoders remain future work. Unknown relationships stay explicit.
+Native projects still rebuild only their supported location fields. Stage topology, directional collision, native art/Audio/behavior encoders and complete gameplay reconstruction remain future work.

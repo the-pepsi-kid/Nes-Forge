@@ -1,118 +1,48 @@
 {
-  "format": "NESForgeCandidateHandoff",
-  "version": 1,
-  "release": "2.0.0-alpha.11",
-  "candidate": "context-cleanup-1",
-  "schema": 13,
-  "ordinaryProjectSchema": 12,
-  "status": "review-candidate",
-  "branch": "implementation/context-cleanup-2026-10-20",
-  "parentCommit": "697a998e744c7794fae5d1063748e8d83d5ffe57",
+  "candidate": "stage-context-1",
+  "version": "2.0.0-alpha.11",
+  "status": "development-candidate",
+  "promoted": false,
+  "parentCommit": "c86b98aafd828f2f66b2f10ec068a726619ede45",
+  "branch": "implementation/stage-context-2026-10-20",
   "html": "app/mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f",
-  "changes": [
-    "Reconcile conflicting current governance headings and preserve all previous documents verbatim.",
-    "Navigate existing canonical Worlds, recovered room pages, poses and shared animation references through a derived scene context.",
-    "Require the matching investigated source hash before navigating to a native scene.",
-    "Retain ordinary schema 12, native schema 13, original tutorial/manuals and existing native encoder boundaries."
-  ],
-  "automatedResult": {
-    "mode": "durable-bounded-workers",
-    "passed": 2061,
-    "total": 2061,
-    "suiteCount": 118,
-    "retainedCases": 2046,
-    "retainedSuites": 116,
-    "newCases": 15,
-    "newSuites": 2,
-    "freshStandardSuitesRevalidated": 20,
-    "priorFailures": [
-      {
-        "name": "services167",
-        "error": "services167 process failed: Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/f11ca9349f0d/nes-forge/app/tests/services167.cjs /workspace/scratch/f11ca9349f0d/nes-forge/app/mainline/NES_Forge_2.0.0-alpha.11.html /workspace/scratch/f11ca9349f0d/nes-forge/reviews/context-cleanup-1/full-gate/services167.json\n; see ../reviews/context-cleanup-1/full-gate/services167.log",
-        "evidence": "reviews/context-cleanup-1/standard-concurrent-attempt",
-        "reason": "Two VM startup timeouts during concurrent execution; isolated unchanged suite passed 14/14."
-      },
-      {
-        "name": "gameplay-core190",
-        "error": "Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/f11ca9349f0d/nes-forge/app/tests/gameplay-core190.cjs /workspace/scratch/f11ca9349f0d/nes-forge/app/mainline/NES_Forge_2.0.0-alpha.11.html /workspace/scratch/f11ca9349f0d/nes-forge/reviews/context-cleanup-1/full-gate/gameplay-core190.json\n",
-        "at": "2026-10-20T07:07:24.951Z",
-        "evidence": "reviews/context-cleanup-1/durable-attempts/attempt-002-gameplay-core190"
-      },
-      {
-        "name": "gameplay-core190",
-        "error": "Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/f11ca9349f0d/nes-forge/app/tests/gameplay-core190.cjs /workspace/scratch/f11ca9349f0d/nes-forge/app/mainline/NES_Forge_2.0.0-alpha.11.html /workspace/scratch/f11ca9349f0d/nes-forge/reviews/context-cleanup-1/full-gate/gameplay-core190.json\n",
-        "at": "2026-10-20T07:09:39.910Z",
-        "evidence": "reviews/context-cleanup-1/durable-attempts/attempt-003-gameplay-core190"
-      }
-    ],
-    "executionRuns": [
-      {
-        "mode": "standard-runner",
-        "workers": 2,
-        "startedAt": "2026-10-20T06:56:20.157Z",
-        "finishedAt": "2026-10-20T07:00:46.452Z",
-        "completedSuites": 20
-      },
-      {
-        "mode": "pool",
-        "workers": 1,
-        "completedBefore": 20,
-        "startedAt": "2026-10-20T07:03:07.017Z"
-      },
-      {
-        "mode": "isolated-suite",
-        "workers": 1,
-        "completedBefore": 25,
-        "startedAt": "2026-10-20T07:08:21.954Z"
-      },
-      {
-        "mode": "pool",
-        "workers": 1,
-        "completedBefore": 25,
-        "startedAt": "2026-10-20T07:10:26.745Z"
-      }
-    ],
-    "summary": "reviews/context-cleanup-1/full-gate/Summary.json",
-    "summarySha256": "d240e25f61131ddca22c5f00d8e33e3525c09ab139d8ace57917bc4b9a7ef258",
-    "scope": "Every mandatory case is measured on unchanged final inputs. Not an uninterrupted standard-runner pass; recorded VM deadline failures and unchanged isolated retries are retained.",
-    "status": "passed"
+  "htmlSha256": "273d7b1cfaf68c968e7bb65551380f4416fa8362388046ff6d040e4036f1cd15",
+  "schemas": {
+    "ordinary": 12,
+    "native": 13,
+    "readCeiling": 13
   },
-  "browserEvidence": [
-    {
-      "report": "reviews/context-cleanup-1/Browser_Verification.json",
-      "passed": 14,
-      "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f"
-    },
-    {
-      "report": "reviews/context-cleanup-1/Native_Context_Verification.json",
-      "passed": 4,
-      "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f"
-    },
-    {
-      "report": "reviews/context-cleanup-1/Kit_Browser_Verification.json",
-      "passed": 10,
-      "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f"
-    }
+  "scope": [
+    "Explicit source area/table membership -> imported room -> canonical page",
+    "Exact imported World/segment and sprite-owner references, remapped on repeated imports",
+    "Existing Scene and World selectors coordinate context without resource cloning or rebinding",
+    "Missing/unavailable/conflicting source membership remains visible",
+    "Read-only source inspection with explicit return to an already imported matching room"
   ],
-  "parentEvidence": {
-    "report": "reviews/native-transition-edit-1",
-    "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
-    "passed": 2046,
-    "suiteCount": 116,
-    "mode": "durable-bounded-workers; retained evidence only"
-  },
   "limits": [
-    "Context groups derive from existing World references and recovered-room receipts; no universal Stage schema or complete source scene graph is introduced.",
-    "Audio remains project-wide; scene/event-to-cue bindings and native music/art encoders remain unfinished.",
-    "Native projects retain their four supported Zelda II location fields and reference-room boundary.",
-    "Physical Windows dialogs, phones/controllers, listening, hardware and owner acceptance remain separate."
+    "Native area/table membership is not complete Stage topology, stage order, route reachability or transition semantics",
+    "Audio remains project-wide; scene/event-to-cue bindings are unresolved",
+    "Older room-only receipts do not gain guessed stage membership",
+    "Native encoders remain limited to the four supported Zelda II location fields",
+    "No schema, gameplay template/capacity, CPU/APU/PPU or code-generator changes"
   ],
-  "promotion": "Unpromoted development checkpoint; no main merge, tag or prerelease publication.",
-  "publication": {
-    "status": "blocked-pending-owner-approval",
-    "reason": "Automatic approval review rejected pushing the new branch because this turn did not explicitly authorize publication. Local commits and downloadable artifacts remain available."
+  "verification": {
+    "status": "in-progress",
+    "requiredRetainedSuites": 118,
+    "retainedCaseCount": 2061,
+    "expectedSuiteCount": 120,
+    "expectedCaseCount": 2087,
+    "freshResults": "reviews/stage-context-1/Verification.json",
+    "historicalResultsDoNotCertifyThisCandidate": true
   },
-  "sourceImplementationCommit": "ce7548d2f06c31b56b539979003e86b78eabfb5d",
-  "sourceBundle": "Included in the documented kit under Developer; source restoration measured separately."
+  "sourcePreservation": {
+    "delta": "app/tests/fixtures/stage-context-source-delta.json",
+    "protectedPredecessorFiles": 318,
+    "parentHtmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f"
+  },
+  "distribution": {
+    "privateRomsIncluded": false,
+    "sourceBearingProjectsIncluded": false,
+    "previousKit": "tester-kit/context-cleanup-1"
+  }
 }

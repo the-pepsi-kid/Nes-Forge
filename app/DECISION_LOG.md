@@ -1,9 +1,9 @@
-# D068 — Context navigation and documentation reconciliation
+# D069 — Bounded source Stage context
 
-October 20, 2026 UTC. Owner instruction: “Alright let's continue and do some clean up as well where the gaps you mentioned are.”
+October 20, 2026. Owner instruction: Continue with shared Stage → Scene context following the published cleanup checkpoint.
 
-Continue from the exact native-transition-edit-1 source. Replace conflicting current headings with one current status, retain all earlier documents verbatim as history, verify applicable gaps, and connect existing asset relationships in a bounded context navigator.
+Preserve explicit native area/table membership in existing import receipts, including missing/unavailable members. Record and remap import-local World and sprite owner IDs. Reuse canonical project asset references, current Scene/World selection and project lifecycle owners; do not introduce a second Stage store or infer stage order, route reachability, transitions, collision semantics or Audio bindings.
 
-No second project model or schema, new encoder, native behavior translation, release promotion or main merge follows from this increment. The existing source-controlled workflow and compatibility gates remain binding. Current measured evidence is separate from the retained 2,046-case parent result.
+Source inspection remains read-only. A separate explicit return action selects an already-imported matching room. Preserve all predecessor cases and complete source reversibility, then record fresh actual-browser and native no-edit build evidence.
 
-[Earlier decisions D001–D067](docs/history/context-cleanup-1/DECISION_LOG.md), unchanged.
+[Previous decisions through D068](docs/history/stage-context-1/DECISION_LOG.md).

@@ -1,11 +1,15 @@
 # Current architecture contract
 
-Current candidate: **2.0.0-alpha.11 / context-cleanup-1**, an unpromoted development checkpoint based on `697a998e744c7794fae5d1063748e8d83d5ffe57`. Ordinary projects write schema **12**; projects containing `nativeGame` write schema **13**. See [CURRENT_STATUS.md](CURRENT_STATUS.md) for current identity, evidence and scope.
+**2.0.0-alpha.11 / stage-context-1 · unpromoted development checkpoint**
 
-ProjectStore owns project lifecycle, serialization and mutations. Existing asset IDs/references remain authoritative. `SceneContext.describe` reads scene/World/metasprite/animation relationships and existing recovery receipts; navigation uses the existing scene, World, pose, animation and Entity Studio entry points. It owns no parallel asset registry, persisted Stage model, compiler, emulator or audio model.
+StageContext derives native area/table membership only from explicit adapter fields. It validates and describes detached catalog snapshots stored in existing nativeAssets receipts. Source SHA-256, native profile and context ID partition groups; conflicting snapshots disable Stage/room navigation. Missing/unavailable native members are counted without guessing imports or routes.
 
-`SceneContextUI` refreshes through the existing scene-selector and ProjectStore lifecycle presentation hooks. It never changes audio orders, timing, runtime enablement or gameplay bindings. Shared assets remain shared. Invalid IDs and unmatched source hashes refuse source navigation. Source receipts are provenance, not authentication.
+GameREAssets owns detached conversion and remaps optional spriteSceneId and world.worldId with the same canonical scene/World ID maps. GameREWorlds records exact segment ownership at conversion. These are provenance/reference fields, not executable declarations or authentication.
 
-`NativeRecords` remains source-independent; `NativeEngineFormat` remains the revision-bound Zelda II adapter. NativeEngineProject owns native validation/encoding, ProjectStore owns transactions and BuildGraph/RuntimeCompiler own dispatch. Ordinary schema 12 and native schema 13 retain their meanings. No native encoder coverage expands.
+SceneContext reads those relationships. Scene selection uses switchScene; World selection uses Forge161.worlds.select and its presentation state. A reentrancy guard coordinates existing selector entry points. The view may pan a selected World to a referenced page, but never changes its tileset reference, art, geometry, Audio or runtime. Shared sprites remain on their explicit canonical owner. Ambiguous legacy World uses are presented rather than silently rebound.
 
-[Preserved architecture contracts](docs/history/context-cleanup-1/ARCHITECTURE_CONTRACT.md) continue to govern protected behavior; older candidate/schema headings describe their historical checkpoint.
+GameRE inspection remains detached and read-only. Use inspected room explicitly navigates only to an existing project scene with matching source hash, native profile and native scene ID. It imports nothing. Project lifecycle changes reconstruct context from receipts and clear stale selections.
+
+ProjectStore, NativeEngineProject, NativeEngineFormat and the shared CPU/APU/PPU retain their previous ownership and validation. Ordinary projects write schema **12**. Native source/recipe projects write schema **13**; supported read ceiling remains 13. Native encoding still supports only the four verified Zelda II location fields. Five gameplay templates, 12 actor slots and 64 persistent bytes retain their existing contracts.
+
+[Previous architecture contract](docs/history/stage-context-1/ARCHITECTURE_CONTRACT.md).

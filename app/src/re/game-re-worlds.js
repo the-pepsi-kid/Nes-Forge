@@ -24,7 +24,7 @@ function adapt(scenes,decoded){
   for(let page=start;page<end;page++){
    const sc=scenes[page];sc.metatiles=cp([...defs.values()]);sc.metaMap=cells[page].map(c=>c?defs.get(c.key).id:-1);
    for(let y=0;y<15;y++)for(let x=0;x<16;x++)map[y*cols+(page-start)*16+x]=sc.metaMap[y*16+x];
-   sc.captureMeta.nativeAssets.world={segment:index,startPage:start,pageCount:width,contentWidthPixels:Math.min(width*256,g.width*8-start*256),contentHeightPixels:g.height*8,geometry:'initial-art-layout',collision:'unassigned',connections:'reference-only'};
+   sc.captureMeta.nativeAssets.world={worldId:'native-world-'+index,segment:index,startPage:start,pageCount:width,contentWidthPixels:Math.min(width*256,g.width*8-start*256),contentHeightPixels:g.height*8,geometry:'initial-art-layout',collision:'unassigned',connections:'reference-only'};
   }
   segments.push({id:'native-world-'+index,name:(decoded.scene.label+(start||end<scenes.length?' · segment '+(index+1):'')).slice(0,100),tilesetSceneId:scenes[start].id,widthScreens:width,heightScreens:1,map,rooms:[{id:'native-room-'+index,name:'Recovered room geometry',x:0,y:0,w:Math.min(cols,Math.ceil(g.width/2)-start*16),h:rows}],markers:[],cameraRegions:[]});
   start=end;

@@ -24,6 +24,7 @@ function convert(session,selection={}){
  const ng=report.profile.id==='ninja-gaiden-us',sourceChr=patterns(session.chrBank(g.chrBank4KiB).bytes),chr=cp(sourceChr);
  let blank=chr.findIndex(t=>t.every(row=>row.every(v=>v===0)));
  if(blank<0){const used=new Set(g.tiles);blank=chr.findIndex((_t,i)=>!used.has(i));if(blank<0)fail('Padding requires a blank or unused pattern; no source pattern was discarded.');chr[blank]=Array.from({length:8},()=>Array(8).fill(0));}
+ const context=services.StageContext.receipt(report,decoded.scene);
  const native=decoded.scene,banks=ng?[native.spriteChrBank4KiB,native.backgroundChrBank4KiB]:[g.chrBank4KiB-1,g.chrBank4KiB],spritePal=ng?native.palettes.sprites:Array.from({length:4},(_,i)=>[g.nativePalette[16],...g.nativePalette.slice(17+i*4,20+i*4)]);
  let script=null,poses=[];
  if(selection.animationId){script=report.animations.find(a=>a.id===selection.animationId);if(!script)fail('The selected timed script is unavailable.');const context=scriptContext(script);if(!context.owner)fail(context.reason);for(const f of script.frames){const pose=report.poses.find(p=>p.owner===context.owner&&p.selector===f.pose);if(!pose)fail('A timed script references an unrecovered pose.');if(!poses.some(p=>p.id===pose.id))poses.push(pose);}}
@@ -52,7 +53,7 @@ function convert(session,selection={}){
    if((x&1)||(y&1)){const ox=x&~1,oy=y&~1,origin=oy*g.width+page*32+ox;if(g.paletteIds[origin]!==pal)fail('This scene needs sub-cell palettes that the project cannot represent.');}
    attr[ai]=(attr[ai]&~mask)|(pal<<shift);
   }
-  return makeScene({id:'native-scene-'+page,name:(native.label+' · page '+(page+1)).slice(0,120),nt,attr,pal:cp(g.palettes),sprPal:cp(spritePal),chr:cp(chr),sprChr:cp(sprChr),tileProps:Array(256).fill(0),oam:[],entities:[],links:[],sceneType:'static',scrollDir:'none',gravity:0,buildInclude:page===0,buildOrder:page,captureMeta:{nativeAssets:{version:1,source:cp(report.source),profile:report.profile.id,sceneId:native.id,animationId:script?.id||null,poseIds:poses.map(p=>p.id),spriteContext:script?scriptContext(script):null,page,contentX:page*256,originY:decoded.originY,contentHeight:g.height*8,limits:cp(limits)}}});
+  return makeScene({id:'native-scene-'+page,name:(native.label+' · page '+(page+1)).slice(0,120),nt,attr,pal:cp(g.palettes),sprPal:cp(spritePal),chr:cp(chr),sprChr:cp(sprChr),tileProps:Array(256).fill(0),oam:[],entities:[],links:[],sceneType:'static',scrollDir:'none',gravity:0,buildInclude:page===0,buildOrder:page,captureMeta:{nativeAssets:{version:1,source:cp(report.source),profile:report.profile.id,sceneId:native.id,spriteSceneId:sceneId,...(context?{context:cp(context)}:{}),animationId:script?.id||null,poseIds:poses.map(p=>p.id),spriteContext:script?scriptContext(script):null,page,contentX:page*256,originY:decoded.originY,contentHeight:g.height*8,limits:cp(limits)}}});
  });
  const worlds=services.GameREWorlds.adapt(scenes,decoded);
  limits.push('Worlds preserve the selected room layout at Y=0, split at page boundaries only if authoring limits require it. Collision stays unassigned; native connections remain evidence. Import does not change or enable World Runtime.');
@@ -90,6 +91,7 @@ function remap(assets,current){
  }
  out.metasprites.forEach(p=>p.sceneId=maps.scenes.get(p.sceneId));
  out.animations.forEach(a=>a.frames.forEach(f=>{if(f.sceneId)f.sceneId=maps.scenes.get(f.sceneId);if(f.metaspriteId)f.metaspriteId=maps.metasprites.get(f.metaspriteId);}));
+ for(const sc of out.scenes){const receipt=sc.captureMeta?.nativeAssets;if(receipt?.spriteSceneId)receipt.spriteSceneId=maps.scenes.get(receipt.spriteSceneId)||receipt.spriteSceneId;if(receipt?.world?.worldId)receipt.world.worldId=maps.worlds?.get(receipt.world.worldId)||receipt.world.worldId;}
  for(const w of out.worlds||[]){w.tilesetSceneId=maps.scenes.get(w.tilesetSceneId);for(const m of w.markers)if(m.targetWorldId)m.targetWorldId=maps.worlds.get(m.targetWorldId);}
  return out;
 }

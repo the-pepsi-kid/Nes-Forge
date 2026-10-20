@@ -50,7 +50,7 @@ function selectScene(){
   state.scene=state.session.scene(id);ui.selected.disabled=false;drawScene();drawPose();
   ui.details.textContent=JSON.stringify({entrance:s.entrance,areaStartCue:s.areaStartCue,timeCode:s.timeCode,header:s.header,enemies:s.enemies,lanterns:s.lanterns,commands:s.commands,connections:s.connections,execution:state.scene.execution,graphicsContext:state.scene.graphics?.context,limits:state.scene.limits},null,2);
   message('Decoded '+s.label+'. Source state is detached from the project and live emulator.');
- }catch(e){ui.map.width=ui.map.height=1;ui.mapCaption.textContent='No decoded output is available for this selection.';message(e.message,true);}
+ }catch(e){ui.map.width=ui.map.height=1;ui.mapCaption.textContent='No decoded output is available for this selection.';message(e.message,true);}finally{F.services.SceneContextUI?.refresh();}
 }
 function selectSceneById(id){
  const s=state.report?.scenes.find(s=>s.id===id);if(!s||s.status==='unavailable-slot')return false;
@@ -192,5 +192,5 @@ function mount(){
  ui={root,title,counts,status,tabs:tabButtons,panes,groups,scenes,mode,zoom,overlay,source,mapCaption,map,cell,details,actors,actorDetails:actorDetailsNode,scripts,poses,play:playButton,sprite,poseDetails,chr,chrCanvas,chrDetails,search,symbols,code,ram,coverage:coverageNode,locations,selected,catalog};
  for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation?.());document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 }
-F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,exportEditable,selectSceneById,getState:()=>({status:state.report?.status||'empty',sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
+F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,exportEditable,selectSceneById,getState:()=>({status:state.report?.status||'empty',profile:state.report?.profile.id||null,sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
 })();
