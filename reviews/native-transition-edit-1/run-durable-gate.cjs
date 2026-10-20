@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,'../..'),app=path.join(root,'app'),out=path.jo
 // Give it the real candidate path, then restore this supervisor's command.
 const originalArgv=process.argv;process.argv=[process.execPath,path.join(app,'tests/run_candidate.cjs'),html,out];
 const gate=require('../../app/tests/run_candidate.cjs'),jobs=gate.jobs();process.argv=originalArgv;
-const sourceCommit='f3fbad4cf39d72ff2ccff6069aa52f6a6be8855f',expectedHash='1530c4ccbd1899aa0ba304d241b2b3c9d7ba79689380c91e13e7020fac3560ad';
+const sourceCommit=cp.execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),expectedHash='1530c4ccbd1899aa0ba304d241b2b3c9d7ba79689380c91e13e7020fac3560ad';
 const retained=read(path.join(app,'tests/retained-native-world-suite-counts.json'));assert.equal(jobs.length,116);assert.deepEqual(jobs.slice(0,114).map(j=>j[0]),Object.keys(retained));assert.equal(Object.values(retained).reduce((a,b)=>a+b,0),2031);assert.equal(new Set(jobs.map(j=>j[0])).size,116);
 function write(file,value){fs.mkdirSync(path.dirname(file),{recursive:true});const tmp=file+'.tmp';fs.writeFileSync(tmp,JSON.stringify(value,null,2)+'\n');fs.renameSync(tmp,file);}
 function inventory(){const result=[];function walk(dir){for(const item of fs.readdirSync(dir,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))){const p=path.join(dir,item.name),name=path.relative(app,p).split(path.sep).join('/');if(name==='test-results'||name==='SHA256SUMS.txt')continue;if(item.isDirectory())walk(p);else if(item.isFile())result.push({path:name,bytes:fs.statSync(p).size,sha256:hash(p)});else throw Error('Unexpected non-file static input: '+name);}}walk(app);return result;}
