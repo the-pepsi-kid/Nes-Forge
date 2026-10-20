@@ -12,7 +12,7 @@ function option(select,value,text){const o=el('option',null,text);o.value=String
 function message(text,error=false){ui.status.textContent=text;ui.status.dataset.error=String(error);}
 function pause(){if(state.timer!==null)clearInterval(state.timer);state.timer=null;if(ui)ui.play.textContent='Play native script';}
 function clear(){
- pause();state.token++;state.session=state.report=state.scene=state.animation=state.pose=state.analysis=null;
+ pause();state.token++;state.session=state.report=state.scene=state.animation=state.pose=state.analysis=null;F.services.SceneContextUI?.refresh();
  if(ui){ui.root.hidden=true;for(const s of [ui.scenes,ui.groups,ui.actors,ui.scripts,ui.poses,ui.symbols])s.replaceChildren();ui.details.textContent='';ui.cell.textContent='';ui.code.textContent='';ui.coverage.textContent='';ui.selected.disabled=ui.catalog.disabled=true;}
 }
 function showPane(name){pause();for(const [key,pane]of Object.entries(ui.panes))pane.hidden=key!==name;for(const b of ui.tabs)b.classList.toggle('selected',b.dataset.pane===name);}
@@ -51,6 +51,11 @@ function selectScene(){
   ui.details.textContent=JSON.stringify({entrance:s.entrance,areaStartCue:s.areaStartCue,timeCode:s.timeCode,header:s.header,enemies:s.enemies,lanterns:s.lanterns,commands:s.commands,connections:s.connections,execution:state.scene.execution,graphicsContext:state.scene.graphics?.context,limits:state.scene.limits},null,2);
   message('Decoded '+s.label+'. Source state is detached from the project and live emulator.');
  }catch(e){ui.map.width=ui.map.height=1;ui.mapCaption.textContent='No decoded output is available for this selection.';message(e.message,true);}
+}
+function selectSceneById(id){
+ const s=state.report?.scenes.find(s=>s.id===id);if(!s||s.status==='unavailable-slot')return false;
+ ui.groups.value=s.group;ui.scenes.replaceChildren();for(const item of state.report.scenes)if(item.group===s.group)option(ui.scenes,item.id,item.label+(item.status==='unavailable-slot'?' · unavailable':''));
+ ui.scenes.value=id;selectScene();showPane('scenes');return state.scene?.scene.id===id;
 }
 function inspectCell(event){
  const d=state.scene;if(!d)return;const rect=ui.map.getBoundingClientRect(),x=Math.floor((event.clientX-rect.left)*ui.map.width/rect.width/16),y=Math.floor((event.clientY-rect.top)*ui.map.height/rect.height/16);
@@ -158,6 +163,7 @@ function openBytes(bytes,name){
   ui.scripts.disabled=ui.play.disabled=!state.report.animations.length;ui.search.value='';ui.mode.value='art';ui.zoom.value='1';ui.overlay.checked=false;
   state.pose=state.report.poses[0]||null;listScenes();actorDetails();drawChr();listSymbols();coverage();showPane('scenes');
   // Reuse the existing physical disassembler, with explicit native bank maps.
+  F.services.SceneContextUI?.refresh();
   if(F.services.REAnalysis)void F.services.REAnalysis.open(bytes,{name}).then(analysis=>{if(token!==state.token)return;state.analysis=analysis;showCode();}).catch(()=>{});
   return true;
  }catch(e){clear();ui.root.hidden=false;message(e.message,true);return false;}
@@ -186,5 +192,5 @@ function mount(){
  ui={root,title,counts,status,tabs:tabButtons,panes,groups,scenes,mode,zoom,overlay,source,mapCaption,map,cell,details,actors,actorDetails:actorDetailsNode,scripts,poses,play:playButton,sprite,poseDetails,chr,chrCanvas,chrDetails,search,symbols,code,ram,coverage:coverageNode,locations,selected,catalog};
  for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation?.());document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 }
-F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,exportEditable,getState:()=>({status:state.report?.status||'empty',sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
+F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,exportEditable,selectSceneById,getState:()=>({status:state.report?.status||'empty',sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
 })();

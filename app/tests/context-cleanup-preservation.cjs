@@ -1,0 +1,4 @@
+'use strict';
+const fs=require('fs'),path=require('path'),crypto=require('crypto'),preservation=require('./context-cleanup-preservation-lib.cjs');
+const html=path.resolve(process.argv[2]||path.join(__dirname,'../mainline/NES_Forge_2.0.0-alpha.11.html'));preservation.verifyParent();require('./native-transition-preservation-lib.cjs').verifyParent();
+const results=[{name:'Exact parent HTML and all 116 predecessor suite inventories remain reconstructible',passed:true},{name:'Native transition preservation continues through the new outer source delta',passed:true}],report={suite:'context-cleanup-preservation',htmlSha256:crypto.createHash('sha256').update(fs.readFileSync(html)).digest('hex'),passed:2,total:2,failed:0,results},out=process.env.FORGE_TEST_REPORT||process.argv[3];if(out)fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');console.log('2/2 context cleanup preservation checks passed');

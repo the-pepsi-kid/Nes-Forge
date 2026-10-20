@@ -140,6 +140,7 @@ function refresh(){
   Forge.services.AudioUI?.refresh();
   Forge.services.GameplayUI?.refresh(true);
   Forge.services.NativeEngineUI?.refresh();
+  Forge.services.SceneContextUI?.refresh();
 }
 function commit(prepared,options={}){
   if(!preparedLoads.has(prepared))fail('ProjectStore.commit requires a prepared project');

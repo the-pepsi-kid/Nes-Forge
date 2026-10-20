@@ -1383,6 +1383,7 @@ function buildSceneSel(){
       sel.appendChild(opt);
     });
   }
+  window.Forge?.services?.SceneContextUI?.refresh();
   // Thumbnail browser
   const browser=document.getElementById('sceneBrowser');
   if(!browser)return;
@@ -8730,7 +8731,7 @@ F.project={create,openRom,classifyRom,replaceProject};
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Native Engine Edit Roundtrip',maturity:'alpha',candidate:'native-transition-edit-1',schema:13,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Scene Resource Context',maturity:'alpha',candidate:'context-cleanup-1',schema:13,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;
@@ -9061,6 +9062,7 @@ function refresh(){
   Forge.services.AudioUI?.refresh();
   Forge.services.GameplayUI?.refresh(true);
   Forge.services.NativeEngineUI?.refresh();
+  Forge.services.SceneContextUI?.refresh();
 }
 function commit(prepared,options={}){
   if(!preparedLoads.has(prepared))fail('ProjectStore.commit requires a prepared project');
@@ -11522,6 +11524,7 @@ services.EmulatorTimeline=Object.freeze({saveCheckpoint,saveOwnedCheckpoint,rest
     const d=document.getElementById('sideDocs');if(!d)return;
     d.innerHTML=`<div class="doc"><h2>NES Forge ${R.version} — ${R.name}</h2>
 <p>A standalone visual NES editor, assembler, ROM builder and experimental emulator. <b>Alpha · Roadmap Workbench candidate.</b> Work through the existing tabs. Examples are ordinary editable project files included in the release package.</p>
+<h3>Scene resources</h3><p>Expand Scene resources below the toolbar. Choose a World or recovered room, then a scene/page. CHR, collision and actor views use that canonical scene. Open a related World, pose or animation explicitly; shared animations retain their other scene references. Open matching RE scene requires the same source hash in the investigated catalog. Audio remains project-wide and native scene-to-cue bindings are unresolved. This navigator adds no Stage schema, native encoder or automatic gameplay conversion.</p>
 <h3>Ninja Gaiden and Zelda II investigation</h3><p>RE / DISASM → Open spatial RE workbench now includes connected native scene art, object records, actor parameter/dispatch tables, CHR banks, source labels, RAM leads and coverage gaps for the two investigated revisions. Ninja Gaiden includes shared player/enemy/projectile scripts and poses. Zelda II includes native side-view construction and Link pose/facing output; animation timing and full collision/AI remain unresolved. Inspection stays detached and exports source-scoped evidence. Prepare editable assets previews a self-contained bundle with original initial-art pixels and palettes, paged scene layouts, shared metatile libraries, editable room worlds, selected poses and recovered Ninja script update ticks. Import into current project appends these in one Undo step; Download standalone project opens independently. Open editable resource bundle accepts .nfassets.json without the ROM. Open imported World jumps to the new room map; coverage identifies unassigned collision and reference-only native connections. Recover / import audio opens the same RE ROM in the Audio library without replacing the live emulator. Preview a finite supported music or single-channel SFX transcription, then Import into tracker and save the ordinary project to preserve both spatial and audio assets. DPCM, short-mode noise and native gameplay triggers are not transcribed. Spatial bundles do not include the separately imported audio. Untimed Zelda poses stay untimed, and collision, AI, physics and code remain reference evidence. The first imported page joins the build set; additional pages start excluded, and ROM capacity limits still apply. Zelda II visible PPU address reloads now update both scanline rendering and its capture trace.</p>
 <h3>Native engine edit/build</h3><p>RE → Open spatial RE workbench → choose Zelda II → Prepare native edit/build project → Import native game as new project. This replaces the workspace with preserved original ROM bytes, an editable location recipe and one reference room World. Build &amp; Run uses the native banked engine. An unedited build is byte-identical; supported X/Y, scene-selector and entry-code edits preserve every other byte and packed flag. Use the native location controls, Undo/Redo and ordinary Save Project As. Native project schema 13 prevents older editors from discarding the recipe. Ordinary projects retain schema 12, existing recipe identities and generated ROM bytes. Edits to reference art or generic runtime settings block the native build until an encoder exists. This bounded milestone does not reconstruct the entire game or provide reusable movement-rule compilation. The source-independent fixed-size packed-record codec is reusable in fresh projects; the Zelda location layout is an engine adapter.</p>
 <h3>Start, open and recover</h3><p>A fresh workspace starts with one blank scene. New Project creates a blank fixed room with the existing single-room build settings. Open Project loads a complete JSON or ZIP project. Browser recovery remains available through Restore / Dismiss; it is protected while being checked or awaiting your choice. New Project and Open Forge ROM have undoable replacement boundaries. A normal project open starts a new history.</p>
@@ -17140,7 +17143,7 @@ function option(select,value,text){const o=el('option',null,text);o.value=String
 function message(text,error=false){ui.status.textContent=text;ui.status.dataset.error=String(error);}
 function pause(){if(state.timer!==null)clearInterval(state.timer);state.timer=null;if(ui)ui.play.textContent='Play native script';}
 function clear(){
- pause();state.token++;state.session=state.report=state.scene=state.animation=state.pose=state.analysis=null;
+ pause();state.token++;state.session=state.report=state.scene=state.animation=state.pose=state.analysis=null;F.services.SceneContextUI?.refresh();
  if(ui){ui.root.hidden=true;for(const s of [ui.scenes,ui.groups,ui.actors,ui.scripts,ui.poses,ui.symbols])s.replaceChildren();ui.details.textContent='';ui.cell.textContent='';ui.code.textContent='';ui.coverage.textContent='';ui.selected.disabled=ui.catalog.disabled=true;}
 }
 function showPane(name){pause();for(const [key,pane]of Object.entries(ui.panes))pane.hidden=key!==name;for(const b of ui.tabs)b.classList.toggle('selected',b.dataset.pane===name);}
@@ -17179,6 +17182,11 @@ function selectScene(){
   ui.details.textContent=JSON.stringify({entrance:s.entrance,areaStartCue:s.areaStartCue,timeCode:s.timeCode,header:s.header,enemies:s.enemies,lanterns:s.lanterns,commands:s.commands,connections:s.connections,execution:state.scene.execution,graphicsContext:state.scene.graphics?.context,limits:state.scene.limits},null,2);
   message('Decoded '+s.label+'. Source state is detached from the project and live emulator.');
  }catch(e){ui.map.width=ui.map.height=1;ui.mapCaption.textContent='No decoded output is available for this selection.';message(e.message,true);}
+}
+function selectSceneById(id){
+ const s=state.report?.scenes.find(s=>s.id===id);if(!s||s.status==='unavailable-slot')return false;
+ ui.groups.value=s.group;ui.scenes.replaceChildren();for(const item of state.report.scenes)if(item.group===s.group)option(ui.scenes,item.id,item.label+(item.status==='unavailable-slot'?' · unavailable':''));
+ ui.scenes.value=id;selectScene();showPane('scenes');return state.scene?.scene.id===id;
 }
 function inspectCell(event){
  const d=state.scene;if(!d)return;const rect=ui.map.getBoundingClientRect(),x=Math.floor((event.clientX-rect.left)*ui.map.width/rect.width/16),y=Math.floor((event.clientY-rect.top)*ui.map.height/rect.height/16);
@@ -17286,6 +17294,7 @@ function openBytes(bytes,name){
   ui.scripts.disabled=ui.play.disabled=!state.report.animations.length;ui.search.value='';ui.mode.value='art';ui.zoom.value='1';ui.overlay.checked=false;
   state.pose=state.report.poses[0]||null;listScenes();actorDetails();drawChr();listSymbols();coverage();showPane('scenes');
   // Reuse the existing physical disassembler, with explicit native bank maps.
+  F.services.SceneContextUI?.refresh();
   if(F.services.REAnalysis)void F.services.REAnalysis.open(bytes,{name}).then(analysis=>{if(token!==state.token)return;state.analysis=analysis;showCode();}).catch(()=>{});
   return true;
  }catch(e){clear();ui.root.hidden=false;message(e.message,true);return false;}
@@ -17314,7 +17323,7 @@ function mount(){
  ui={root,title,counts,status,tabs:tabButtons,panes,groups,scenes,mode,zoom,overlay,source,mapCaption,map,cell,details,actors,actorDetails:actorDetailsNode,scripts,poses,play:playButton,sprite,poseDetails,chr,chrCanvas,chrDetails,search,symbols,code,ram,coverage:coverageNode,locations,selected,catalog};
  for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation?.());document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 }
-F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,exportEditable,getState:()=>({status:state.report?.status||'empty',sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
+F.services.GameRE=api;F.services.GameREUI=Object.freeze({mount,openBytes,clear,pause,exportData,exportEditable,selectSceneById,getState:()=>({status:state.report?.status||'empty',sha256:state.report?.source.sha256||null,scenes:state.report?.scenes.length||0,selectedScene:state.scene?.scene.id||null,playing:state.timer!==null})});mount();
 })();
 /* Portable resource imports are available before a ROM is loaded. */
 (()=>{
@@ -17438,6 +17447,74 @@ function refresh(){
  }catch(e){message(e.message,true);}
 }
 services.NativeEngineUI=Object.freeze({preview,importProject,edit,refresh});message('Choose Zelda II above, then prepare a native edit/build project.');refresh();
+})();
+/* A navigation view over canonical assets. No Stage store, schema or encoder. */
+(()=>{
+'use strict';
+const services=window.Forge.services;
+let ui=null,group='',epoch=-1,renderKey='';
+const nativeKey=sc=>{const r=sc?.captureMeta?.nativeAssets;return r&&/^[a-f0-9]{64}$/.test(r.source?.sha256)&&typeof r.sceneId==='string'?r.source.sha256+':'+r.profile+':'+r.sceneId:null;};
+const fail=message=>{throw Error('Scene context: '+message);};
+function describe(){
+ const sc=S.scenes[S.activeScene],scenes=S.scenes.map(s=>({id:s.id,name:s.name})),groups=[{id:'',name:'All project scenes',sceneIds:scenes.map(s=>s.id)}];
+ for(const w of S.worlds||[])groups.push({id:'world:'+w.id,name:'World: '+w.name,worldId:w.id,sceneIds:S.scenes.filter(s=>s.id===w.tilesetSceneId).map(s=>s.id)});
+ const recovered=new Map();
+ for(const s of S.scenes){const key=nativeKey(s);if(!key)continue;if(!recovered.has(key)){const r=s.captureMeta.nativeAssets;recovered.set(key,{id:'native:'+key,name:'Recovered room: '+s.name.replace(/ · page \d+$/,''),sceneIds:[]});}recovered.get(key).sceneIds.push(s.id);}
+ groups.push(...recovered.values());
+ const poses=(S.metasprites||[]).filter(p=>p.sceneId===sc?.id),poseIds=new Set(poses.map(p=>p.id));
+ const clips=(S.animations||[]).filter(a=>a.frames?.some(f=>f.metaspriteId?poseIds.has(f.metaspriteId):!f.sceneId||f.sceneId===sc?.id)).map(a=>({id:a.id,name:a.name,usesActiveScene:a.frames.some(f=>!f.metaspriteId&&!f.sceneId),sharedSceneIds:[...new Set(a.frames.flatMap(f=>f.metaspriteId?[(S.metasprites||[]).find(p=>p.id===f.metaspriteId)?.sceneId]:[f.sceneId]).filter(Boolean))]}));
+ const worlds=(S.worlds||[]).filter(w=>w.tilesetSceneId===sc?.id).map(w=>({id:w.id,name:w.name}));
+ const receipt=sc?.captureMeta?.nativeAssets,source=nativeKey(sc)?{sha256:receipt.source.sha256,name:receipt.source.name,profile:receipt.profile,sceneId:receipt.sceneId,page:receipt.page}:null;
+ const loaded=services.GameREUI?.getState();
+ return {scene:sc?{id:sc.id,name:sc.name}:null,scenes,groups,worlds,poses:poses.map(p=>({id:p.id,name:p.name})),clips,source,canOpenSource:!!source&&loaded?.sha256===source.sha256,
+  audioScope:'Project-wide Audio; scene/event-to-cue bindings are not recovered by this navigator.',nativeProject:!!S.nativeGame};
+}
+function selectScene(id){const index=S.scenes.findIndex(s=>s.id===id);if(index<0)fail('Scene is no longer present.');switchScene(index);refresh();return describe();}
+function selectGroup(id){const item=describe().groups.find(g=>g.id===id);if(!item)fail('Context is no longer present.');if(!item.sceneIds.length)fail('This World has no available tileset scene.');group=id;if(item.worldId)return selectWorld(item.worldId);if(!item.sceneIds.includes(S.scenes[S.activeScene]?.id))selectScene(item.sceneIds[0]);refresh();return describe();}
+function selectWorld(id){const w=(S.worlds||[]).find(w=>w.id===id);if(!w)fail('World is no longer present.');if(!S.scenes.some(s=>s.id===w.tilesetSceneId))fail('World tileset scene is unavailable.');selectScene(w.tilesetSceneId);Forge161.worlds.select(S.worlds.indexOf(w));refresh();return describe();}
+function openAsset(kind,id){
+ const d=describe();
+ if(kind==='world'){if(!d.worlds.some(w=>w.id===id))fail('World does not use this scene as its tileset.');selectWorld(id);switchTab('world');}
+ else if(kind==='pose'){if(!d.poses.some(p=>p.id===id))fail('Pose does not use this scene.');Forge163.metasprites.select(id);switchTab('metasprites');}
+ else if(kind==='clip'){if(!d.clips.some(a=>a.id===id))fail('Animation has no reference to this scene.');anim_stopPreview();S._selAnim=S.animations.findIndex(a=>a.id===id);S._animFrame=Math.max(0,S.animations[S._selAnim].frames.findIndex(f=>f.metaspriteId?S.metasprites.some(p=>p.id===f.metaspriteId&&p.sceneId===d.scene.id):!f.sceneId||f.sceneId===d.scene.id));anim_updateSidebar();Forge164.frameEditor.refresh();switchTab('anim');}
+ else if(kind==='actors'){Forge164.studio.open(d.scene.id);}
+ else if(kind==='source'){if(!d.canOpenSource)fail('Open the matching investigated ROM in RE first.');if(!services.GameREUI.selectSceneById(d.source.sceneId))fail('Source scene is unavailable in the loaded catalog.');services.SpatialREUI.show();switchTab('disasm');}
+ else if(['scene','chr','collision','audio'].includes(kind))switchTab(kind);
+ else fail('Unsupported resource view.');
+ refresh();return true;
+}
+function options(node,items,value,empty){node.replaceChildren();if(!items.length){const o=document.createElement('option');o.value='';o.textContent=empty;node.appendChild(o);}for(const item of items){const o=document.createElement('option');o.value=item.id;o.textContent=item.name;node.appendChild(o);}node.value=items.some(i=>i.id===value)?value:items[0]?.id||'';node.disabled=!items.length;}
+function refresh(){
+ if(!ui)return;const d=describe(),currentEpoch=services.ProjectStore.state.epoch;
+ if(epoch!==currentEpoch){epoch=currentEpoch;group=d.source?'native:'+nativeKey(S.scenes[S.activeScene]):'';}
+ let selected=d.groups.find(g=>g.id===group);if(!selected?.sceneIds.includes(d.scene?.id)){group='';selected=d.groups[0];}
+ const key=JSON.stringify({d,group});if(key===renderKey)return;renderKey=key;
+ options(ui.group,d.groups,group);options(ui.scene,d.scenes.filter(s=>selected.sceneIds.includes(s.id)),d.scene?.id);
+ options(ui.world,d.worlds,ui.world.value,'No World uses this tileset');ui.openWorld.disabled=!d.worlds.length;
+ options(ui.pose,d.poses,ui.pose.value,'No pose uses this scene');ui.openPose.disabled=!d.poses.length;
+ options(ui.clip,d.clips,ui.clip.value,'No animation references this scene');ui.openClip.disabled=!d.clips.length;
+ ui.source.disabled=!d.canOpenSource;
+ ui.summary.textContent='Scene resources · '+d.scene?.name+' · '+d.poses.length+' pose(s) · '+d.clips.length+' animation(s) · '+d.worlds.length+' World tileset use(s)';
+ ui.notes.textContent=d.audioScope+(d.clips.some(a=>a.sharedSceneIds.some(id=>id!==d.scene.id))?' Animations can share resources across scenes.':'')+(d.clips.some(a=>a.usesActiveScene)?' Legacy tile frames without a source scene follow the active scene.':'')+(d.source?' Source: '+d.source.sceneId+' · SHA-256 '+d.source.sha256+(d.canOpenSource?' · matching RE source loaded.':' · open the matching ROM in RE to inspect its source.'):'')+(d.nativeProject?' Native project: only supported location fields can currently rebuild; this room is a reference view.':'');
+}
+function mount(){
+ const tabs=document.getElementById('tabBar');if(!tabs?.parentNode)return;
+ const el=(tag,id,text)=>{const n=document.createElement(tag);if(id)n.id=id;if(text!==undefined)n.textContent=text;return n;};
+ const root=el('details','sceneContext');root.setAttribute('aria-label','Scene resource context');const summary=el('summary','sceneContextSummary','Scene resources');root.appendChild(summary);
+ const controls=el('div');controls.className='context-controls';const field=(text,id)=>{const label=el('label',null,text),select=el('select',id);label.htmlFor=id;label.appendChild(select);controls.appendChild(label);return select;};
+ const safe=fn=>()=>{try{fn();}catch(e){renderKey='';refresh();ui.notes.textContent=e.message;}};
+ const contexts=field('World / recovered room','sceneContextGroup'),scene=field('Scene / page','sceneContextScene');contexts.onchange=safe(()=>selectGroup(contexts.value));scene.onchange=safe(()=>selectScene(scene.value));
+ const button=(id,text,fn)=>{const b=el('button',id,text);b.type='button';b.onclick=safe(fn);controls.appendChild(b);return b;};
+ const world=field('World tileset uses','sceneContextWorld'),openWorld=button('sceneContextOpenWorld','Open World',()=>openAsset('world',world.value));
+ const pose=field('Sprite poses using this scene','sceneContextPose'),openPose=button('sceneContextOpenPose','Open pose',()=>openAsset('pose',pose.value));
+ const clip=field('Animations referencing this scene','sceneContextClip'),openClip=button('sceneContextOpenClip','Open animation',()=>openAsset('clip',clip.value));
+ for(const [kind,label]of [['scene','Scene'],['chr','CHR'],['collision','Collision'],['actors','Actors'],['audio','Audio (project)']])button('sceneContext-'+kind,label,()=>openAsset(kind));
+ const source=button('sceneContextOpenSource','Open matching RE scene',()=>openAsset('source')),notes=el('p','sceneContextNotes');notes.setAttribute('role','status');root.append(controls,notes);
+ const style=el('style');style.textContent='#sceneContext{flex:1 0 100%;width:100%;max-width:100%;box-sizing:border-box;padding:6px 10px;border-top:1px solid var(--bdr);font:11px/1.5 system-ui;overflow-wrap:anywhere}#sceneContext summary{cursor:pointer;color:#a6e4d4}#sceneContext .context-controls{display:flex;flex-wrap:wrap;align-items:end;gap:6px;padding-top:6px}#sceneContext label{display:flex;flex-direction:column;flex:1 1 180px;min-width:0}#sceneContext select{width:100%;min-width:0}#sceneContext button,#sceneContext select{min-height:44px;font:inherit;background:var(--bg3);color:var(--txt);border:1px solid var(--bdr);border-radius:4px;padding:4px 8px}#sceneContextNotes{margin:5px 0;color:var(--dim)}';document.head.appendChild(style);
+ tabs.parentNode.appendChild(root);ui={root,summary,group:contexts,scene,world,openWorld,pose,openPose,clip,openClip,source,notes};
+ for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation());refresh();
+}
+services.SceneContext=Object.freeze({describe,selectScene,selectGroup,selectWorld,openAsset});services.SceneContextUI=Object.freeze({refresh});mount();
 })();
 
 /* Single current application bootstrap. */
