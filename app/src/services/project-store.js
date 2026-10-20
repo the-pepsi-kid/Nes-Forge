@@ -15,6 +15,7 @@ const portableCompletions=new WeakSet();
 let recoveryWrite=Promise.resolve(),checkPromise=null;
 let projectEditActive=false;
 const fail=message=>{throw Error(message);};
+S.nativeGame=null;
 function status(message){
   if(Forge.release?.updateStatus)return Forge.release.updateStatus(message);
   const el=$('forge15State');if(!el)return;
@@ -39,6 +40,7 @@ function capture(options={}){
     mapper:S.mapper,mirroring:S.mirroring,hasSRAM:S.hasSRAM,prgBanks:S.prgBanks,chrBanks:S.chrBanks,
     packScenes:S.packScenes!==false,projectName:S.projectName,
     importedRom:S.importedRom?bytesToBase64(S.importedRom):null,
+    ...(S.nativeGame?{nativeGame:cp(S.nativeGame)}:{}),
     selTile:S.selTile,editTile:S.editTile,selSprite:S.selSprite,selEntity:S.selEntity,chrBank:S.chrBank,
     _selAnim:S._selAnim||0,_animFrame:S._animFrame||0,gameplay:Forge165.config.get(),worldRuntime:Forge.services.WorldConfig.get(),audioRuntime:Forge.services.AudioConfig.get(),gameplayCore:cp(S.gameplayCore||Forge.services.GameplayModel.defaults())});
 }
@@ -108,6 +110,7 @@ function prepareLoad(input){
   const gameplayCore=Forge.services.GameplayModel.normalize(d.gameplayCore);Forge.services.GameplayModel.validateProject(gameplayCore,d,{references:true,executable:false});
   const rom=typeof d.importedRom==='string'?base64ToBytes(d.importedRom):Array.isArray(d.importedRom)?Uint8Array.from(d.importedRom):null;
   if(rom)parseRomHeader(rom);
+  if(d.nativeGame!==undefined)Forge.services.NativeEngineProject.validate(d);
   let frames=d.metasprites||[];
   if(d.version===6)Forge163.persistence.validate(frames,d.animations||[],d.scenes,{references:false});
   else if((d.version||0)<6&&frames.length){
@@ -135,6 +138,7 @@ function refresh(){
   Forge.services.WorldUI?.refresh(true);
   Forge.services.AudioUI?.refresh();
   Forge.services.GameplayUI?.refresh(true);
+  Forge.services.NativeEngineUI?.refresh();
 }
 function commit(prepared,options={}){
   if(!preparedLoads.has(prepared))fail('ProjectStore.commit requires a prepared project');
@@ -146,6 +150,7 @@ function commit(prepared,options={}){
   }
   state.epoch++;state.lastIntent=options.intent||(options.history?'history':options.sync?'sync':'open');
   S.scenes=p.scenes;S.activeScene=p.active;S.importedRom=p.rom;S.allChrBanks=p.chrBanks;S.chrBankIdx=0;
+  S.nativeGame=d.nativeGame?cp(d.nativeGame):null;
   S.asmSource=String(d.asmSource||'');$('codeInput').value=S.asmSource;S.asmBinary=null;S.asmErrors=[];S.asmSymbols={};S._asmWrites=null;
   S.instruments=p.instruments;S.patterns=p.patterns;S.orderList=(d.orderList?.length?d.orderList:[[0,0,0,0,0]]).map(row=>Array.from({length:5},(_,ch)=>clamp(row[ch],0,p.patterns.length-1)));
   S.tempo=clamp(d.tempo,30,300,150);S.speed=clamp(d.speed,1,15,6);S.audRows=clamp(d.audRows,16,128,64);S.sfx=cp(p.sfx);
@@ -203,6 +208,12 @@ function runEdit(kind,options,prepare){
     for(const refreshUI of edit.refresh||[])try{refreshUI();}catch(error){warnings.push('display refresh: '+(error.message||String(error)));}
     return {applied:true,...edit.result,warnings};
   }finally{projectEditActive=false;}
+}
+function applyNativeGameEdit(value,options={}){
+  return runEdit('native game',options,candidate=>{
+    const next=Forge.services.NativeEngineProject.edit(candidate,value);
+    return {effective:JSON.stringify(next)!==JSON.stringify(candidate.nativeGame),values:{nativeGame:next},intent:'nativeGameEdit',refresh:[()=>Forge.services.NativeEngineUI?.refresh()]};
+  });
 }
 function applySettingsEdit(changes,options={}){
   return runEdit('settings',options,candidate=>{
@@ -412,7 +423,7 @@ async function dismissRecovery(){
     recoveryPhase('ready');status();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applyNativeGameEdit,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};

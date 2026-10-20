@@ -32,7 +32,7 @@ function remapBuildScenes(entries,scenes){
   });
   return {scenes:copies,map};
 }
-function backendFor(snapshot){return snapshot.worldRuntime?.enabled?'world':snapshot.gameplay?.mode==='single-room'?'single-room':snapshot.asmSource.trim()&&snapshot.packScenes===false?'unpacked-custom':'packed';}
+function backendFor(snapshot){return snapshot.nativeGame?'native-engine':snapshot.worldRuntime?.enabled?'world':snapshot.gameplay?.mode==='single-room'?'single-room':snapshot.asmSource.trim()&&snapshot.packScenes===false?'unpacked-custom':'packed';}
 function plan(options={}){
   if(!services.ProjectStore?.prepareSnapshot)throw Error('ProjectStore preparation is required before building.');
   return planSource(services.ProjectStore.prepareSnapshot({intent:'build'}),options);
@@ -40,6 +40,7 @@ function plan(options={}){
 function planDetached(project,options={}){
   if(!services.ProjectStore?.prepareLoad)throw Error('ProjectStore validation is required before detached building.');
   const source=services.ProjectStore.prepareLoad(project).data;
+  if(source.nativeGame)return planSource(source,{});
   if(source.version!==services.ProjectStore.schema)throw Error('Detached builds require the current project schema.');
   if(typeof source.asmSource!=='string'||source.asmSource.trim())throw Error('Detached builds require generated Forge code; custom assembly remains live-only.');
   const backend=backendFor(source);
@@ -49,6 +50,11 @@ function planDetached(project,options={}){
 }
 function planSource(source,options){
   const backend=options.backend||backendFor(source);
+  if(source.nativeGame){
+    if(backend!=='native-engine')throw Error('Native projects must use their native engine backend.');
+    services.NativeEngineProject.validate(source,{build:true});
+    const p={source,backend,profile:{id:source.nativeGame.profile,mapper:1},phases:['prepare-snapshot','native-validation'],diagnostics:[]};completedPlans.add(p);return p;
+  }
   if(!['packed','unpacked-custom','single-room','world'].includes(backend))throw Error('Unsupported build backend: '+backend);
   const gameplayCore=backend==='world'?null:services.GameplayCompiler.plan(source,{backend});
   if(backend==='world'){const p=services.WorldCompiler.plan(source,gameplayCore);completedPlans.add(p);return p;}
@@ -185,7 +191,8 @@ function compile(input){
   const p=completedPlans.has(input)?input:BuildGraph.plan(input||{});
   if(p.compiled)throw Error('A build graph is single-use. Prepare a new graph before compiling again.');
   p.compiled=true;
-  let result=p.backend==='world'?services.WorldCompiler.compile(p):emitNrom(p);if(p.backend==='single-room')result=emitGameplay(p,result);
+  let result=p.backend==='native-engine'?services.NativeEngineProject.build(p.source):p.backend==='world'?services.WorldCompiler.compile(p):emitNrom(p);if(p.backend==='single-room')result=emitGameplay(p,result);
+  if(p.backend==='native-engine'){p.phases.push('native-encode');p.diagnostics.push(...result.diagnostics);}
   p.phases.push('artifact');
   const diagnostics=p.diagnostics.map(d=>d.code==='placement-pending'?diagnostic('info','placement-complete','Metadata allocated at $'+result.metadata.extensionAddress.toString(16).toUpperCase()+' with code and reserved data preserved.','allocation'):d);
   return {...result,backend:p.backend,profile:p.profile,diagnostics,phases:[...p.phases],plan:p};
@@ -201,7 +208,7 @@ function build(options){
   const log=(message,kind='bl-ok')=>{if(!blog)return;const row=document.createElement('div');row.className=kind;row.textContent=message;blog.appendChild(row);};
   try{
     const artifact=RuntimeCompiler.compile(options),rom=RuntimeCompiler.commit(artifact);
-    log('Built '+(artifact.backend==='world'?'World Runtime':artifact.backend==='single-room'?'First Playable Room':artifact.backend==='unpacked-custom'?'unpacked custom NROM':'packed NROM')+': '+artifact.metadata.prgSize/1024+' KB PRG + 8 KB CHR • '+rom.length+' bytes.');
+    log('Built '+(artifact.backend==='native-engine'?'preserved native engine':artifact.backend==='world'?'World Runtime':artifact.backend==='single-room'?'First Playable Room':artifact.backend==='unpacked-custom'?'unpacked custom NROM':'packed NROM')+': '+artifact.metadata.prgSize/1024+' KB PRG + '+(artifact.metadata.chrSize||8192)/1024+' KB CHR • '+rom.length+' bytes.');
     for(const entry of artifact.diagnostics)log(entry.message,entry.severity==='warning'?'bl-warn':'bl-ok');
     if(artifact.gameplay){log('Left/Right: move · A: jump · B: attack · Start: restart.');for(const warning of artifact.gameplay.spec.warnings||[])log(warning,'bl-warn');}
     if(artifact.world)log('Left/Right: move · A: jump · B: attack animation · Up: enter linked marker · Start: restart.');
@@ -215,7 +222,7 @@ function build(options){
 }
 const BuildGraph=services.BuildGraph={profile,phaseOrder,selectedSceneEntries,plan,planDetached,preflight,lastDiagnostics:[],
   ownership:'Live capture or detached validation prepares the source. Generated plans pass copied sources to existing codecs once; custom assembly is live-only.'};
-const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world']),compile,compileDetached:(project,options)=>compile(planDetached(project,options)),commit,build,lastArtifact:null};
+const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world','native-engine']),compile,compileDetached:(project,options)=>compile(planDetached(project,options)),commit,build,lastArtifact:null};
 // These assignments replace active routes; no previous planner/builder is called.
 buildNesRom=build;
 window.forge15_preflight=preflight;

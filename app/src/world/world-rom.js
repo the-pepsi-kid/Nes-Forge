@@ -82,7 +82,7 @@ function decompress(bytes,expectedLength){
   if(at!==bytes.length)fail('compressed source has trailing data');return output;
 }
 function validateSource(source){
-  if(!source||typeof source!=='object'||Array.isArray(source)||source.format!=='NESForge'||![10,11,12].includes(source.version))fail('authoring source requires supported project schema 10, 11, or 12');
+  if(!source||typeof source!=='object'||Array.isArray(source)||source.format!=='NESForge'||![10,11,12,13].includes(source.version))fail('authoring source requires supported project schema 10, 11, 12, or 13');
   if(source.importedRom!==null)fail('embedded source must omit original ROM bytes');
   if(source.worldRuntime?.enabled!==true)fail('authoring source does not enable world runtime');
   if(source.mapper!==0)fail('authoring source must target mapper 0');
@@ -127,7 +127,7 @@ function decodeSourceRecord(record,context={}){
   if(!(record instanceof Uint8Array)||record.length<RECORD_HEADER||!hasMagic(record,0,'WG17'))fail('missing or truncated WG17 authoring record');
   if(record[4]!==FORMAT)fail('unsupported WG17 source record version '+record[4]);
   if(record[5]!==1||u16(record,6)!==RECORD_HEADER)fail('unsupported source compression/header format');
-  const schema=u16(record,56);if(record[54]!==LAYOUT||record[55]!==0||![10,11,12].includes(schema)||u16(record,58)!==0)fail('unsupported source schema/layout or nonzero reserved fields');
+  const schema=u16(record,56);if(record[54]!==LAYOUT||record[55]!==0||![10,11,12,13].includes(schema)||u16(record,58)!==0)fail('unsupported source schema/layout or nonzero reserved fields');
   if(crc32(record.subarray(0,60))!==u32(record,60))fail('source header checksum mismatch');
   const decodedLength=u32(record,8),payloadLength=u32(record,12),engineLength=u32(record,16),codeEnd=u16(record,20),dataEnd=u16(record,22);
   const worldCount=count(record[30]),flags=record[31],address=u16(record,52),vectors=[u16(record,24),u16(record,26),u16(record,28)];

@@ -23,7 +23,8 @@ function audioShape(p){
  p.sfx.forEach(s=>{int(s.pattern,0,p.patterns.length-1,'SFX pattern');int(s.channel,0,3,'SFX channel');int(s.startRow,0,p.audRows-1,'SFX start');int(s.endRow,s.startRow,p.audRows-1,'SFX end');});
 }
 function validate(project){
- if(!project||project.format!=='NESForge'||project.version!==12)fail('Use a canonical schema 12 Forge project; open and save older projects first');
+ if(!project||project.format!=='NESForge'||![12,13].includes(project.version))fail('Use a canonical schema 12 Forge project; open and save older projects first');
+ if(project.nativeGame!==undefined)fail('Native engine projects require their verified native editors; mashup encoders are not available.');
  if(!Array.isArray(project.scenes)||!project.scenes.length||project.scenes.length>64)fail('Expected 1–64 scenes');int(project.activeScene,0,project.scenes.length-1,'Active scene');
  for(const [index,s]of project.scenes.entries()){
   if(typeof s.id!=='string'||!s.id||s.id.length>200)fail('Every scene needs a bounded stable ID');bank(s.chr,'Background CHR');bank(s.sprChr,'Sprite CHR');int(s.bgColor,0,63,'Background color');palette(s.pal,'Background palettes',s.bgColor);palette(s.sprPal,'Sprite palettes',s.bgColor);

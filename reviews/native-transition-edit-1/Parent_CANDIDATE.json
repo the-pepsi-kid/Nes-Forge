@@ -1,0 +1,107 @@
+{
+  "format": "NESForgeCandidateHandoff",
+  "version": 1,
+  "release": "2.0.0-alpha.11",
+  "candidate": "native-world-import-1",
+  "schema": 12,
+  "status": "review-candidate",
+  "branch": "implementation/native-world-import-2026-10-19",
+  "parentCommit": "f11a797bc71b62464d7e485fca5cfd4c5e1be02a",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1",
+  "changes": [
+    "Editable room worlds and shared visual metatile libraries preserve selected recovered room geometry at Y=0, with exact source-pixel checks.",
+    "V2 spatial bundles include World records; v1 remains readable. Transactional append remaps World and tileset/marker references; worlds, scenes and composer assets share one Undo.",
+    "Recover / import audio bridges the selected RE ROM into the existing Audio library without replacing the live emulator. Finite supported music and single-channel SFX transcriptions remain separately previewed/imported and save with the worlds in an ordinary project.",
+    "Coverage UI explains unassigned collision, unconverted entities/AI/native links, untimed poses, separate audio and existing ROM linker limits."
+  ],
+  "automatedResult": {
+    "status": "passed",
+    "suiteCount": 114,
+    "passed": 2031,
+    "total": 2031,
+    "retainedSuites": 112,
+    "retainedCases": 2010,
+    "addedCases": 21,
+    "summary": "app/test-results/candidate/Summary.json",
+    "node": "v22.23.3",
+    "workers": 1
+  },
+  "browserEvidence": [
+    {
+      "report": "reviews/native-world-import-1/Browser_Verification.json",
+      "passed": 22,
+      "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1"
+    },
+    {
+      "report": "reviews/native-world-import-1/browser/Report.json",
+      "passed": 20,
+      "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1"
+    }
+  ],
+  "nativeResourceImport": {
+    "guide": "app/docs/NATIVE_RESOURCE_IMPORT.md",
+    "verification": "reviews/native-world-import-1/ROM_Verification.json",
+    "ninjaRooms": 48,
+    "zeldaAvailableViews": 561,
+    "zeldaUnavailableSlots": 6,
+    "ninjaImportableScripts": 80,
+    "ninjaPartialScripts": [
+      15,
+      16,
+      89
+    ],
+    "ninjaPoses": 202,
+    "zeldaUntimedLinkPoses": 30,
+    "comparedBackgroundPixels": 111935488,
+    "formats": [
+      "NESForgeNativeAssets v2 (v1 readable)",
+      "NESForge project schema 12"
+    ],
+    "completeGameRecovery": false,
+    "unknownEngineRecognition": false,
+    "editableRoomWorlds": 609,
+    "worldComparedPixels": 111935488,
+    "audioBridgeVerification": "reviews/native-world-import-1/Browser_Verification.json"
+  },
+  "retainedExamples": {
+    "files": 58,
+    "byteIdentical": 52,
+    "receiptIdentityOnlyChanges": 6,
+    "unchangedRomFiles": 15,
+    "unchangedProjects": 19,
+    "unchangedRecipes": 6,
+    "evidence": "reviews/native-world-import-1/Example_Regeneration.json"
+  },
+  "preservedParent": {
+    "candidate": "native-game-import-1",
+    "commit": "f11a797bc71b62464d7e485fca5cfd4c5e1be02a",
+    "htmlSha256": "cf2eb17d33d8ce63067ae04bcb7de082026300bea2bf90670414f65217b2649e",
+    "suiteCount": 112,
+    "cases": 2010,
+    "protectedFiles": 301,
+    "reference": "app/docs/history/native-game-import-1/Reference_Inventory.json",
+    "method": "Exact source/test reversal reproduces the frozen parent, all protected inventories and every earlier preservation boundary. No CPU/APU/PPU, runtime compiler or world codec change."
+  },
+  "parentManifest": "reviews/native-world-import-1/Parent_CANDIDATE.json",
+  "fullGateAttempts": {
+    "first": "reviews/native-world-import-1/initial-full-gate/Summary.json",
+    "second": "reviews/native-world-import-1/second-full-gate/Summary.json",
+    "completed": "app/test-results/candidate/Summary.json"
+  },
+  "historicalKit": {
+    "path": "tester-kit/ninja-zelda-re-1/NF_Ninja_Zelda_RE.zip",
+    "candidate": "ninja-zelda-re-1",
+    "containsNewImporter": false
+  },
+  "limits": [
+    "Collision stays unassigned; native links, spawn records, physics, AI and gameplay triggers are not converted into executable behavior. Only the selected room is adapted; this is not a connected full-game reconstruction.",
+    "World and scene art preserve the initial recovered layout with native Y origins recorded. Existing World/ROM/atlas capacities and the requirement to link every world-used metatile in its included tileset scene still apply. Some imported rooms need authoring before ROM export.",
+    "Audio is a separate finite transcription/import transaction and is not embedded in spatial bundles. Music replaces global order/tempo/speed and can change existing SFX timing. Single-channel SFX only; DPCM and short-mode noise are not transcribed. No full-song, native-loop, audible or hardware equivalence claim.",
+    "Known exact revisions only. Zelda poses remain untimed; Ninja scripts 15/16/89 remain partial. Native state cadence and gameplay animation/audio bindings remain unresolved.",
+    "Headless Linux Chromium direct-file checks include both games, actual World paint and audio controls, Undo/Redo and project reopen. No physical Windows/mobile/controller acceptance claim."
+  ],
+  "promotion": "Standalone HTML development candidate on its own branch. No new kit, beta promotion or main-branch merge.",
+  "payloadChecksums": 7315,
+  "packageFiles": 7316
+}

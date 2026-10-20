@@ -55,7 +55,7 @@ function projectState(h){return h.json('({project:projectData(),undo:undoStack,r
 function buildFails(project,pattern){const h=fresh(project);h.run('window._lastBuiltRom=new Uint8Array([1,2,3])');assert.equal(h.run('buildNesRom()',30000),null);assert.equal(h.run('window._lastBuiltRom'),null);assert.match(h.errors.at(-1)||'',pattern);}
 
 test('Schema 12 preserves Audio Runtime and stable SFX references while schema 10 migrates disabled',()=>{
- const p=withAudio(),h=fresh(p),saved=h.json('projectData()');assert.equal(saved.version,12);assert.equal(saved.foundation,'2.0.0-alpha.11');assert.deepEqual(saved.audioRuntime,p.audioRuntime);assert.deepEqual(saved.sfx,p.sfx);
+ const p=withAudio(),h=fresh(p),saved=h.json('projectData()');assert.equal(saved.version,13);assert.equal(saved.foundation,'2.0.0-alpha.11');assert.deepEqual(saved.audioRuntime,p.audioRuntime);assert.deepEqual(saved.sfx,p.sfx);
  h.context.saved180=saved;h.run('db_deserializeState(JSON.stringify(saved180))');assert.deepEqual(h.json('S.audioRuntime'),p.audioRuntime);assert.deepEqual(h.json('S.sfx'),p.sfx);
  const old=clone(p);old.version=10;old.foundation='1.7';delete old.audioRuntime;delete old.sfx;h.context.old180=old;h.run('db_deserializeState(old180)');assert.deepEqual(h.json('S.audioRuntime'),{enabled:false,musicEnabled:true});assert.deepEqual(h.json('S.sfx'),[]);
 });
@@ -101,7 +101,7 @@ test('World sound event starts the same SFX representation and finishes within f
  frames(h,'world',1,['KeyX']);frames(h,'world',1,[]);until(h,'world',()=>audioValue(h,'sfxActive')!==0,20);assert.equal(apu(h,2),timer&255);until(h,'world',()=>audioValue(h,'sfxActive')===0,20);assert.equal(apu(h,0),0x30);assert.equal(h.run('emu.opsMissed'),0);metrics.worldCodeEnd=h.context.artifact180.world.codeEnd;
 });
 test('World ROM round trip preserves schema 12 Audio authoring and older 1.7 rejects it atomically',()=>{
- const p=forBackend('world'),h=compile(p),rom=Uint8Array.from(h.context.rom180),inspection=h.context.Forge.services.WorldRom.inspect(rom);assert.equal(inspection.record.schema,12);assert.deepEqual(JSON.parse(JSON.stringify(inspection.source.audioRuntime)),p.audioRuntime);assert.deepEqual(JSON.parse(JSON.stringify(inspection.source.sfx)),p.sfx);
+ const p=forBackend('world'),h=compile(p),rom=Uint8Array.from(h.context.rom180),inspection=h.context.Forge.services.WorldRom.inspect(rom);assert.equal(inspection.record.schema,13);assert.deepEqual(JSON.parse(JSON.stringify(inspection.source.audioRuntime)),p.audioRuntime);assert.deepEqual(JSON.parse(JSON.stringify(inspection.source.sfx)),p.sfx);
  h.context.roundtrip180=rom;assert.equal(h.run('Forge166.project.openRom(roundtrip180,"Audio World.nes")',30000),true);assert.deepEqual(h.json('S.audioRuntime'),p.audioRuntime);assert.deepEqual(h.json('S.sfx'),p.sfx);
  const old=loadForge(baseline);old.context.audioWorld180=rom;const before=old.json('({project:projectData(),undo:undoStack,redo:redoStack,id:S.projectId,loaded:emu.loaded})');assert.throws(()=>old.run('Forge166.project.openRom(audioWorld180,"Too new.nes")',30000),/schema|source|unsupported/i);assert.deepEqual(old.json('({project:projectData(),undo:undoStack,redo:redoStack,id:S.projectId,loaded:emu.loaded})'),before);
 });

@@ -1,3 +1,5 @@
+Current development checkpoint: **native-transition-edit-1** on `implementation/native-transition-edit-2026-10-20`. Native Zelda II source/recipe preservation and supported location-field edits now have a native build path. Read [the native edit/build tutorial](docs/NATIVE_ENGINE_EDIT_BUILD.md). Full 1:1 game translation and generic movement-rule compilation remain unfinished; this is work toward the next alpha, not its promotion. The previous verified checkpoint below remains historical evidence.
+
 Current candidate **native-world-import-1** adds recovered room World maps and a same-ROM RE → Audio import entry point. See [NATIVE_RESOURCE_IMPORT.md](docs/NATIVE_RESOURCE_IMPORT.md) for the single-HTML workflow, v1/v2 bundle compatibility and limits.
 
 # Native Resource Import checkpoint

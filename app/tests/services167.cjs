@@ -21,7 +21,7 @@ test('Public build and preflight routes have one authoritative service owner',()
   for(const api of [h.context.Forge15.build,h.context.Forge16.build]){assert.equal(api.plan,s.BuildGraph.plan);assert.equal(api.preflight,s.BuildGraph.preflight);}
   assert.equal(h.context.Forge15.build.showPreflight,s.BuildGraph.preflight);
   assert.equal(h.context.forge15_preflight,s.BuildGraph.preflight);assert.equal(h.get('forge15PreflightBtn').onclick,s.BuildGraph.preflight);
-  assert.deepEqual(Array.from(s.RuntimeCompiler.backends),['packed','unpacked-custom','single-room','world']);
+  assert.deepEqual(Array.from(s.RuntimeCompiler.backends),['packed','unpacked-custom','single-room','world','native-engine']);
 });
 test('Preflight links one prepared project exactly once; compiling that plan does not relink or publish',()=>{
   const h=fresh('packed-world-assets-reordered'),s=h.context.Forge.services,spies=graphSpies(h);
@@ -66,15 +66,15 @@ test('Failed compile clears published artifacts and does not run/export a stale 
 });
 
 test('ReleaseInfo owns current version/schema and production has no embedded Scout starter',()=>{
-  const h=fresh();assert.equal(h.context.Forge.release.version,'2.0.0-alpha.11');assert.equal(h.context.Forge.release.schema,12);
-  assert.match(h.context.document.title,/2\.0\.0-alpha\.11.*Native Room Worlds/);assert.equal(h.context.Forge.release.candidate,'native-world-import-1');
-  assert.equal(h.run('projectData().version'),12);assert.equal(h.run('projectData().foundation'),'2.0.0-alpha.11');
+  const h=fresh();assert.equal(h.context.Forge.release.version,'2.0.0-alpha.11');assert.equal(h.context.Forge.release.schema,13);
+  assert.match(h.context.document.title,/2\.0\.0-alpha\.11.*Native Engine Edit Roundtrip/);assert.equal(h.context.Forge.release.candidate,'native-transition-edit-1');
+  assert.equal(h.run('projectData().version'),13);assert.equal(h.run('projectData().foundation'),'2.0.0-alpha.11');
   assert.doesNotMatch(h.html,/const\s+STARTER\s*=/);assert.doesNotMatch(h.html,/const\s+SCOUT_STARTER\s*=/);
 });
 test('Current Tech Docs render through one owner without accumulating historical sections',()=>{
   const h=fresh(),docs=h.context.Forge.services.Documentation;assert.equal(h.run('renderDocs'),docs.render);
   h.run('renderDocs()');const first=h.get('sideDocs').innerHTML;h.run('renderDocs();renderDocs()');assert.equal(h.get('sideDocs').innerHTML,first);
-  assert.match(first,/2\.0\.0-alpha\.11/);assert.match(first,/Native Room Worlds/);assert.match(first,/Gameplay Core/);assert.match(first,/Audio Runtime/);assert.match(first,/World Runtime/);
+  assert.match(first,/2\.0\.0-alpha\.11/);assert.match(first,/Native Engine Edit Roundtrip/);assert.match(first,/Gameplay Core/);assert.match(first,/Audio Runtime/);assert.match(first,/World Runtime/);
   assert.doesNotMatch(first,/<h[1-6][^>]*>\s*(?:NES Forge\s+)?1\.[0-5][^<]*<\/h/i);
   for(const term of ['World','Audio','Live','Save','Capture','Source workspace','Checkpoints','BEHAVIOR GRAPH','Export MIDI'])assert.match(first,new RegExp(term,'i'),'Current reference documents '+term);
 });

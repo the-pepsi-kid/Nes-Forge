@@ -1,3 +1,5 @@
+Current development checkpoint: **native-transition-edit-1** on `implementation/native-transition-edit-2026-10-20`. Native Zelda II source/recipe preservation and supported location-field edits now have a native build path. Read [the native edit/build tutorial](app/docs/NATIVE_ENGINE_EDIT_BUILD.md). Full 1:1 game translation and generic movement-rule compilation remain unfinished; this is work toward the next alpha, not its promotion. The previous verified checkpoint below remains historical evidence.
+
 # NES Forge — Native Room Worlds
 
 Current development candidate: **native-world-import-1**, on [`implementation/native-world-import-2026-10-19`](https://github.com/the-pepsi-kid/Nes-Forge/tree/implementation/native-world-import-2026-10-19). Use the [standalone HTML](app/mainline/NES_Forge_2.0.0-alpha.11.html) for this update; no new review ZIP is packaged.
