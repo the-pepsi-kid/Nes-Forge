@@ -1,0 +1,18 @@
+﻿Area,Control_or_workflow,Purpose,Limits,Source_document
+AUDIO,Export Score Data → Export MIDI / Export MusicXML,Export supported ordered four-channel score,Conversion omits native timbre/SFX/bindings; native Save As remains necessary,AUDIO_INTERCHANGE.md
+AUDIO,Tap note cell / piano-key entry,Enter existing tracker notes with a phone keyboard,Requires instrument; committed input only; keyboard behavior is device-dependent,MOBILE_KEYBOARD.md
+AUDIO,Volume Envelope / Arpeggio Envelope,Paint existing envelope points using touch or pen,One undoable stroke; existing canonical instrument model,AUDIO_ADAPTIVE_GUIDE.md
+CODE,Open source workspace,Open independent multi-file source document,Separate from active Forge project and its ordinary JSON backup,SOURCE_WORKSPACE.md
+SOURCE WORKSPACE,Open multi-file example,Load supported Forge source example,No graphical output by design; reset reads byte 70 into RAM $0000,SOURCE_WORKSPACE.md
+SOURCE WORKSPACE,Build source ROM,Assemble supported forge-6502-v1 mapper-0 program,Not translation/linking of arbitrary foreign engines; explicit download/load required,SOURCE_WORKSPACE.md
+SOURCE WORKSPACE,Save source workspace / Open saved source workspace,Save/restore .nesforge-source.json with current and original files,Ordinary project JSON does not preserve this workspace,SOURCE_WORKSPACE.md
+SOURCE WORKSPACE,Export source ZIP,Export workspace JSON plus current/original file trees,Extract and open workspace JSON; direct ZIP import is outside initial profile,SOURCE_WORKSPACE.md
+SOURCE WORKSPACE,Analyze source,Inspect supplied source tree and literal dependency evidence,Does not execute scripts or establish assembly/linking/migration success,SOURCE_INTAKE.md
+SOURCE WORKSPACE,Export intake report JSON,Save current source-intake evidence,Report is not source backup; incomplete coverage remains explicit,SOURCE_INTAKE.md
+SCENE → Seeded mashup,Use current project / Preview mashup / Apply mashup,Preview and apply compatible authored asset choices,Exact base/donors required for recipe; no arbitrary ROM-engine mixing,SEEDED_MASHUP.md
+SCENE → Movement rules,Use current project / Preview rules / Apply rules,Preview/apply bounded movement parameters,Compatible generated runtime must already be enabled; does not certify solvability,MOVEMENT_RULES.md
+RE / DISASM,Discover recovery methods,Find registered inspection/conversion routes,Support is a declared structural subset; unsupported inputs retain refusals,RECOVERY_METHODS.md
+RE / DISASM,Preview background / Import as new scene,Convert supported native static background into editable scene,Does not infer original actors/collision/music; import initially excluded from build,NATIVE_BACKGROUND_RECOVERY.md
+RE / DISASM,Find maps / Preview map,Inspect supported native command-metatile map conversion,Initial static Empty/Solid subset; authored test player is adaptation,NATIVE_MAP_RECOVERY.md
+RE / DISASM native Audio,Find SFX / preview / import,Convert supported native single-pulse SFX to canonical Audio resources,Requires compatible tempo 150 speed 1; native mixing/triggers not recovered,NATIVE_SFX_IMPORT.md
+EMULATOR / Play,Performance diagnostics,"Inspect completed FPS, frame time, queued sound, gaps, resyncs, backlog, discards",Queue is not speaker latency; source tests do not prove phone performance,MOBILE_PLAYBACK.md

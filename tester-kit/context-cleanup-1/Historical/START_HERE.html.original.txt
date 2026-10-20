@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Start NES Forge alpha.11: make a small NES game, build it, save and reopen it, then explore the optional tests.">
+  <title>Start here · NES Forge Alpha Test Kit RC3</title>
+  <style>
+    :root{--bg:#111820;--surface:#19232d;--surface2:#202d38;--line:#354652;--text:#eff3f2;--muted:#b6c7cc;--mint:#9ee1c8;--yellow:#f6ce72;--ink:#11221d;--radius:14px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 95% 0,rgba(93,141,138,.12),transparent 40%),var(--bg);color:var(--text);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    a{color:var(--mint);text-underline-offset:4px}a:hover{color:white}a:focus-visible{outline:3px solid var(--yellow);outline-offset:5px;border-radius:3px}p{margin:0 0 16px}h1,h2,h3{line-height:1.15;letter-spacing:-.035em;margin:0}h2{font-size:26px}h3{font-size:19px}strong{font-weight:650}code{font: .9em ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+    .skip{position:absolute;left:16px;top:-70px;padding:8px 12px;background:var(--mint);color:var(--ink);z-index:5}.skip:focus{top:12px}
+    .page{width:min(1120px,calc(100% - 48px));margin:0 auto}.masthead{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:30px 0;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:13px;font-weight:800;letter-spacing:.1em;font-size:15px}.mark{display:grid;place-items:center;width:40px;height:40px;background:var(--mint);color:var(--ink);font:800 18px/1 ui-monospace,monospace;box-shadow:5px 5px 0 #354c47}.edition{color:var(--muted);font-size:13px;text-align:right}.edition span{display:block}
+    .hero{padding:58px 0 38px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.8fr);gap:46px;align-items:center}.eyebrow{color:var(--mint);font:700 11px/1.4 ui-monospace,monospace;text-transform:uppercase;letter-spacing:.15em;margin-bottom:18px}h1{font-size:clamp(38px,5.8vw,66px);max-width:740px;font-weight:760}.lede{font-size:19px;color:var(--muted);max-width:660px;margin:22px 0 25px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:15px}.button{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;min-height:49px;border:1px solid var(--line);border-radius:7px;text-decoration:none;font-size:15px;font-weight:700}.button.primary{background:var(--mint);color:var(--ink);border-color:var(--mint)}.button.primary:hover{background:#c1f1de}.button.secondary{background:var(--surface2);color:var(--text)}.button.secondary:hover{background:#2d414b}.small{font-size:13px;color:var(--muted)}.hero .small{margin:0}.status-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:25px}.status-label{display:inline-block;font-size:11px;font-weight:750;letter-spacing:.09em;text-transform:uppercase;color:var(--yellow);margin-bottom:12px}.status-card h2{font-size:27px}.status-card p{color:var(--muted);font-size:14px;margin:13px 0 18px}.status-card dl{margin:0;border-top:1px solid var(--line);padding-top:16px}.status-card dl div{display:flex;justify-content:space-between;gap:18px;font-size:13px;margin-top:7px}.status-card dt{color:var(--muted)}.status-card dd{margin:0;font-weight:600;text-align:right}.status-card a{font-size:13px}
+    .extract{display:grid;grid-template-columns:34px minmax(0,1fr);gap:13px;padding:19px 23px;border:1px solid #716243;border-radius:var(--radius);background:rgba(246,206,114,.06);margin-bottom:48px}.extract .number{background:var(--yellow);color:#282011}.extract p{margin:0;color:var(--muted);font-size:14px}.extract strong{color:var(--text)}.number{width:30px;height:30px;display:grid;place-items:center;border-radius:6px;font:700 13px/1 ui-monospace,monospace;flex:none;background:#30483f;color:var(--mint)}
+    .section-top{display:flex;align-items:end;justify-content:space-between;gap:25px;margin-bottom:23px}.section-top p{font-size:14px;color:var(--muted);margin:0;max-width:440px}.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:0;padding:0;list-style:none}.step{border-top:2px solid var(--line);padding-top:19px}.step h3{margin:15px 0 11px}.step p{font-size:14px;color:var(--muted);margin:0}.step strong{color:var(--text)}.workshop-note{color:var(--muted);font-size:14px;padding:20px 0 0;max-width:920px;margin-bottom:0}
+    .resources{margin-top:48px;padding-top:38px;border-top:1px solid var(--line)}.resource-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.resource{padding:23px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}.resource p{color:var(--muted);font-size:14px;margin:10px 0 15px}.links{display:flex;flex-wrap:wrap;gap:9px 19px;font-size:14px;font-weight:600}.resource .category{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:11px}
+    .evidence{margin-top:38px;padding:28px;border-left:3px solid var(--yellow);background:#18232b;border-radius:0 var(--radius) var(--radius) 0}.evidence h2{font-size:23px}.evidence ul{margin:18px 0 0;padding-left:21px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px 36px}.evidence li{font-size:14px;color:var(--muted);padding-left:3px}.evidence strong{color:var(--text)}.evidence .small{margin:17px 0 0}
+    footer{padding:28px 0 34px;margin-top:24px;display:flex;justify-content:space-between;gap:25px;align-items:start;color:var(--muted);font-size:12px}footer p{margin:0;max-width:720px}footer a{white-space:nowrap}
+    @media(max-width:800px){.hero{grid-template-columns:1fr;gap:26px;padding-top:38px}.status-card{max-width:none}.steps{grid-template-columns:repeat(2,minmax(0,1fr));gap:25px}.section-top{display:block}.section-top p{margin-top:12px}.resource-grid{grid-template-columns:1fr}.evidence ul{grid-template-columns:1fr}}
+    @media(max-width:460px){.page{width:calc(100% - 30px)}.masthead{align-items:start;padding:24px 0}.brand{font-size:12px}.edition{font-size:11px}.mark{width:32px;height:32px;font-size:15px}.hero{padding-top:30px}.lede{font-size:17px}.actions{display:grid}.steps{grid-template-columns:1fr}.step{display:grid;grid-template-columns:30px 1fr;column-gap:14px}.step .number{grid-row:1/3}.step h3{margin:0 0 9px}.step p{grid-column:2}.extract{padding:17px 14px}.evidence{padding:22px 18px}footer{display:block}footer a{display:inline-block;margin-top:12px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+    @media print{body{background:white;color:#17232c;font-size:11pt}.page{width:100%}.masthead,.hero{padding-top:15px}.hero{grid-template-columns:1.5fr 1fr;gap:20px}h1{font-size:33pt}.lede{font-size:12pt}.status-card,.resource,.evidence,.extract{background:white;color:#17232c;border-color:#aaa}.eyebrow,.status-label,a{color:#135b49}.small,.lede,.status-card p,.status-card dt,.extract p,.step p,.workshop-note,.section-top p,.resource p,.resource .category,.evidence li,footer{color:#394955}.extract strong,.step strong,.evidence strong{color:#17232c}.button.primary,.button.secondary{color:#17232c;background:white;border-color:#667}.steps{grid-template-columns:repeat(2,1fr)}.resource-grid{grid-template-columns:repeat(2,1fr)}.resource,.evidence,.status-card{break-inside:avoid}.evidence ul{grid-template-columns:repeat(2,1fr)}.resources{margin-top:28px;padding-top:24px}.skip{display:none}footer{padding-bottom:0}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#start">Skip to getting started</a>
+  <div class="page">
+    <header class="masthead">
+      <div class="brand"><span class="mark" aria-hidden="true">NF</span><span>NES FORGE</span></div>
+      <div class="edition"><span>Alpha test kit · RC3</span><span>2.0.0-alpha.11 · audio-tool-import-1</span></div>
+    </header>
+    <main id="start">
+      <section class="hero" aria-labelledby="welcome">
+        <div>
+          <p class="eyebrow">NES / 8-bit / 6502</p>
+          <h1 id="welcome">Build, play,<br>save, reopen.</h1>
+          <p class="lede">Make your first small NES game from a blank project. Keep the tutorial beside Forge, follow each checkpoint, and tell us where the experience needs work.</p>
+          <div class="actions">
+            <a class="button primary" href="NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a>
+            <a class="button secondary" href="Tutorial.html" target="_blank" rel="noopener">Open the tutorial ↗</a>
+          </div>
+          <p class="small">Opens in separate tabs. Arrange them side by side, or use the <a href="Tutorial.pdf" target="_blank" rel="noopener">printable tutorial</a>.</p>
+        </div>
+        <aside class="status-card" aria-labelledby="status-title">
+          <span class="status-label">Pre-release alpha</span>
+          <h2 id="status-title">Make something.<br>Tell us how it goes.</h2>
+          <p>Start with the guided desktop session. Save your project at each checkpoint and record anything that prevents you from continuing.</p>
+          <dl>
+            <div><dt>App version</dt><dd>2.0.0-alpha.11</dd></div>
+            <div><dt>Candidate</dt><dd>audio-tool-import-1</dd></div>
+            <div><dt>Guide edition</dt><dd>Current workspace guide</dd></div>
+          </dl>
+          <p><a href="KNOWN_LIMITS.html">Read the scope and known limitations →</a></p>
+        </aside>
+      </section>
+
+      <div class="extract" role="note">
+        <span class="number" aria-hidden="true">!</span>
+        <p><strong>Extract the entire ZIP before opening anything.</strong> On Windows, use a short folder such as <code>C:\NF\AlphaTest</code>. Keep its files and folders together, then open <code>START_HERE.html</code> in a normal browser. Preview panes and mobile file viewers may not run the app correctly. If local-file access is blocked, ask the kit sender for a hosted copy of this same build and report the issue.</p>
+      </div>
+
+      <section aria-labelledby="first-session">
+        <div class="section-top">
+          <h2 id="first-session">Your first session</h2>
+          <p>Start on a desktop or laptop with a mouse and keyboard. The phone exercise is optional.</p>
+        </div>
+        <ol class="steps">
+          <li class="step"><span class="number" aria-hidden="true">01</span><h3>Begin with a blank project</h3><p>Preserve any restored work using <strong>Save Project As…</strong>, then choose <strong>New Project</strong>. The tutorial starts with your own artwork.</p></li>
+          <li class="step"><span class="number" aria-hidden="true">02</span><h3>Follow the checkpoints</h3><p>Draw terrain and a tiny character, assemble a two-screen World, then use <strong>Build &amp; Run</strong>. Keep the app and tutorial visible together.</p></li>
+          <li class="step"><span class="number" aria-hidden="true">03</span><h3>Save and prove recovery</h3><p>Use <strong>Save Project As…</strong> for native JSON checkpoints. Confirm the file exists, reopen it with <strong>Open Project</strong>, and build again. Keep the generated <strong>.nes</strong> too.</p></li>
+          <li class="step"><span class="number" aria-hidden="true">04</span><h3>Optional: try the phone</h3><p>Load your ROM in <strong>EMULATOR</strong>, choose <strong>Run</strong> and <strong>Play view</strong>, then test touch and interruptions. Record the phone, browser, ROM, and any lag. Mark this check “Not tested” if you skip it.</p></li>
+        </ol>
+        <p class="workshop-note">The workshop lives in the documentation and is performed in the normal NES Forge application. Browser <strong>Save</strong> stores a local browser copy; your portable JSON checkpoint is the backup to keep. The first tutorial ROM is deliberately silent, so use a ROM with known sound for audio testing.</p>
+      </section>
+
+      <section class="resources" aria-labelledby="kit-guides">
+        <div class="section-top"><h2 id="kit-guides">Keep these guides nearby</h2><p>Start with the game or music tutorial. Use the current workspace guide to look up controls and workflows.</p></div>
+        <div class="resource-grid">
+          <article class="resource"><span class="category">Current guide</span><h3>Every workspace, explained</h3><p>Projects and play, art and scenes, Gameplay and World, Audio, RE and code. Control explanations, practical steps, expected results and limits.</p><div class="links"><a href="Guide.html" target="_blank" rel="noopener">Open user guide</a><a href="Reference/Current_Feature_Guides.html" target="_blank" rel="noopener">Feature reference</a></div></article>
+          <article class="resource"><span class="category">Make music</span><h3>Your first sound project</h3><p>Start in AUDIO, add instruments and notes, listen, save and reopen. Learn how imports, SFX and ROM playback fit the same Forge project.</p><div class="links"><a href="Guides/Audio.html" target="_blank" rel="noopener">Compose from scratch</a></div></article>
+          <article class="resource"><span class="category">First session</span><h3>Your first NES game</h3><p>A blank-project route through terrain, character art, a playable World, and save/reopen checkpoints.</p><div class="links"><a href="Tutorial.html" target="_blank" rel="noopener">Read tutorial</a><a href="Tutorial.pdf" target="_blank" rel="noopener">Tutorial PDF</a></div></article>
+          <article class="resource"><span class="category">Full guide</span><h3>Workshop and manual</h3><p>The preserved 1.9.0 World workshop, larger characters, Gameplay Core and Audio chapters, with alpha.11 update notes. Use the current workspace chapters for updated control behavior.</p><div class="links"><a href="Manual.html" target="_blank" rel="noopener">Read manual</a><a href="Manual.pdf" target="_blank" rel="noopener">Manual PDF</a></div></article>
+          <article class="resource"><span class="category">Look up a control</span><h3>Operator reference</h3><p>Look up tabs, buttons, fields and settings in the preserved 1.9.0 reference, with alpha.11 update notes. Use the current workspace chapters for current features and corrections.</p><div class="links"><a href="Reference/Operator_Reference.html" target="_blank" rel="noopener">Read reference</a><a href="Reference/Operator_Reference.pdf" target="_blank" rel="noopener">Reference PDF</a></div></article>
+          <article class="resource"><span class="category">Review and report</span><h3>Record what happened</h3><p>Follow a repeatable review, capture a useful issue report, and investigate mobile lag with a consistent device and ROM.</p><div class="links"><a href="Reference/Reviewer_Checklist.html" target="_blank" rel="noopener">Reviewer checklist</a><a href="Reference/Mobile_Performance_Triage.html" target="_blank" rel="noopener">Mobile performance triage</a><a href="Feedback_Template.txt" target="_blank" rel="noopener">Feedback template</a></div></article>
+          <article class="resource"><span class="category">After the tutorial</span><h3>Keep building</h3><p>Try larger character art and the optional Scout example once you have saved and reopened your first project.</p><div class="links"><a href="NEXT_STEPS.html" target="_blank" rel="noopener">Optional next steps</a></div></article>
+          <article class="resource"><span class="category">Know this build</span><h3>Scope and limitations</h3><p>Check the supported gameplay and recovery features, and read the known export warning before trying optional paths.</p><div class="links"><a href="KNOWN_LIMITS.html" target="_blank" rel="noopener">Known limitations</a><a href="SOURCE_RECORD.json" target="_blank" rel="noopener">Build record</a></div></article>
+        </div>
+      </section>
+
+      <section class="evidence" aria-labelledby="evidence-title">
+        <h2 id="evidence-title">Before you explore</h2>
+        <ul>
+          <li><strong>Keep a portable project backup.</strong> Save native JSON and confirm the file exists. A generated ROM or diagnostic report cannot replace your editable project.</li>
+          <li><strong>Check that exports really arrive.</strong> Source Workspace can say “Export requested” even when a save is busy or fails. Confirm the file before reporting success.</li>
+          <li><strong>Audio and device tests are optional.</strong> The first tutorial ROM is silent. Use a ROM with known sound for audio testing, and record the device and browser you used.</li>
+          <li><strong>Recovery has a defined scope.</strong> Source intake and ROM recovery support limited profiles. They do not promise to recover or rebuild every NES game.</li>
+        </ul>
+        <p class="small">Use the <a href="Feedback_Template.txt">feedback template</a> to record the exact step, expected result and actual result. Submit it through <a href="https://github.com/the-pepsi-kid/Nes-Forge/issues">GitHub Issues</a>, or return it through the channel that supplied the kit. GitHub issues are public; nothing is submitted automatically.</p>
+      </section>
+    </main>
+    <footer>
+      <p>NES Forge 2.0.0-alpha.11 · audio-tool-import-1 · Alpha Test Kit RC3.<br>Read the <a href="SOURCE_RECORD.json">build record</a> for the exact application identity and guide history.</p>
+      <a href="#start">Back to start ↑</a>
+    </footer>
+  </div>
+</body>
+</html>

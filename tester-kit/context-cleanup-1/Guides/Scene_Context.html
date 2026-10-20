@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge — Scene resources</title><link rel="stylesheet" href="../style.css"></head><body><main><h1>Navigate scene resources</h1>
+<p>This is a bounded context navigator over existing project assets, available in <code>context-cleanup-1</code>. Expand <strong>Scene resources</strong> below the toolbar.</p>
+<ol>
+<li>Choose <strong>World / recovered room</strong>. Worlds list their declared tileset scene; recovered rooms group pages by exact source hash, profile and native room ID. <strong>All project scenes</strong> remains available. A native room/context is not assumed to be a complete stage.</li>
+<li>Choose <strong>Scene / page</strong>. CHR, Scene, collision and Entity Studio use that canonical scene. Live edits are saved through the existing scene-switch operation.</li>
+<li><strong>Open World</strong> opens a World that declares this scene as its tileset. A World whose tileset is missing cannot be selected through this navigator.</li>
+<li>Choose a related sprite pose or animation, then open it. Shared animation clips retain their other scene references. The animation opens at the first frame referencing the active scene; legacy tile frames without explicit sources follow the active scene. Navigation does not clone or rebind assets.</li>
+<li><strong>Audio (project)</strong> opens the existing tracker. Scene/event-to-cue bindings are unresolved; the navigator does not choose a song, change timing, enable playback or import anything.</li>
+<li><strong>Open matching RE scene</strong> works only when the exact source hash is already loaded in the native investigation catalog. Otherwise open that ROM in RE first. Navigation uses the receipt&#x27;s native scene ID; it does not replace the investigated source or import resources.</li>
+</ol>
+<p>Save/reopen retains existing scenes, references and recovery receipts. Context groups are derived again; no new project fields or schema are introduced. A source-bearing native project retains its original native-build limits: only the four supported location fields currently encode back into the original game.</p>
+<p>Full shared Stage → Scene context, complete scene/event-to-Audio links, cross-scene dependency editing and new native encoders remain future work. Unknown relationships stay explicit.</p>
+<p>Selections made through Scene resources follow the relationships described above. Existing World and native-workbench selectors remain independently usable; full synchronization of every selector and source context remains unfinished.</p></main></body></html>

@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Integrated RE example —
+Native Room v1 · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Guide.html">User guide</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#integrated-re-example--native-room-v1">Integrated RE example —
+Native Room v1</a><a class="level2" href="#what-this-example-proves">What this example proves</a><a class="level2" href="#first-walkthrough">First walkthrough</a><a class="level2" href="#collision-editing-and-per-cell-differences">Collision editing
+and per-cell differences</a><a class="level2" href="#revisit-frames-during-analysis">Revisit frames during
+analysis</a><a class="level2" href="#project-json-and-evidence-json">Project JSON and evidence
+JSON</a><a class="level2" href="#supported-input-contract">Supported input contract</a><a class="level2" href="#verification-and-remaining-acceptance">Verification and
+remaining acceptance</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../../Guide.html">current user guide</a> for current operator instructions.</p></blockquote><h1 id="integrated-re-example--native-room-v1">Integrated RE example —
+Native Room v1</h1>
+<p>This alpha slice takes a supported, independently authored NES ROM
+through <strong>analysis → editable Forge project → edit → build →
+play</strong> inside NES Forge. Current candidate: <strong>1.9.0 Alpha /
+<code>re-analysis-1a</code></strong>, retaining the D048 bridge
+alongside separate general binary analysis, schema <strong>12</strong>.
+The supplied example is
+<code>examples/RE_Bridge_Room/Bridge_Room.nes</code>.</p>
+<p>For engine-independent inspection of another ROM or a raw 6502
+binary, use <strong>GENERAL ROM ANALYSIS</strong> in the same tab; see
+<code>RE_ANALYSIS.md</code>. Its <strong>Open for analysis</strong>
+action does not require this profile. This document describes only the
+separate <strong>RECOVER EDITABLE PROJECT</strong> workflow.</p>
+<h2 id="what-this-example-proves">What this example proves</h2>
+<p>The input has its own 6502 machine code, native room/collision tables
+and simple Pulse 1 driver. It contains no embedded Forge project JSON.
+The bridge recognizes its engine fingerprint and reads its native binary
+structures. It does not read an existing Forge project back out of the
+ROM.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Recovered content</th>
+<th>Editable destination</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Background and sprite CHR</td>
+<td>CHR / sprite bank</td>
+<td>256 tiles in each bank; static NROM</td>
+</tr>
+<tr class="even">
+<td>Nametable, attributes and palettes</td>
+<td>SCENE / palettes</td>
+<td>One fixed 256×240 room</td>
+</tr>
+<tr class="odd">
+<td>960 collision cells</td>
+<td>COLLISION; metatile overrides when necessary</td>
+<td>Only decoded Empty (0) and Solid (1)</td>
+</tr>
+<tr class="even">
+<td>Player art and spawn</td>
+<td>Scene entity / animation bindings</td>
+<td>Converted to the existing Forge sideview player</td>
+</tr>
+<tr class="odd">
+<td>Sixteen pulse timer rows</td>
+<td>AUDIO tracker and instrument</td>
+<td>Pulse 1, constant duty/volume, 12 frames per row in this
+fixture</td>
+</tr>
+<tr class="even">
+<td>Original ROM bytes</td>
+<td>Run Original ROM / native project backup</td>
+<td>Preserved separately from generated builds</td>
+</tr>
+</tbody>
+</table></div>
+<p>The original game only supports left/right movement. Forge's rebuilt
+version adds its existing jump and attack animation states. The attack
+has no damage hitboxes or sound. Reserved fixture configuration bytes
+supply the adapted jump/gravity/fall settings; they do not establish
+original-engine behavior. The source fixture has no SFX, so this slice
+does not recover SFX.</p>
+<p>This is one format-specific recovery profile, not arbitrary
+commercial-game reconstruction. Different engines, compressed maps,
+extra rooms, other sound drivers, NESmaker projects, ASM scripts and Lua
+APIs are unsupported by this bridge. A recovered graphics tile does not
+by itself reveal collision or game logic. Rebuilds use Forge runtime
+code and are not byte-identical recreations of the input ROM.</p>
+<h2 id="first-walkthrough">First walkthrough</h2>
+<p>The steps below use the ordinary editor and are easiest to review on
+desktop with a keyboard. They are a requested acceptance walkthrough,
+not a claim that real-browser testing has already passed. Save any
+project you want to retain before trying a new example. Import also
+supports Undo.</p>
+<ol type="1">
+<li>Open <code>mainline/NES_Forge_1.9.0_Gameplay_Core.html</code>. In
+<strong>EMULATOR</strong>, use <strong>Load ROM</strong> to load
+<code>Bridge_Room.nes</code>, then press <strong>Run</strong>. Observe
+the room, horizontal player movement, wall blocking and melody. Stop
+playback after looking at the original.</li>
+<li>Open <strong>RE / DISASM</strong>. Find <strong>RECOVER EDITABLE
+PROJECT</strong>, use <strong>Choose ROM</strong> to select the same
+file, then press <strong>Preview editable recovery</strong>. Choosing a
+file alone does not replace the project.</li>
+<li>Review the room preview, raw background CHR, counts and limitations.
+<strong>Show recovered solid collision</strong> overlays the actual
+decoded solid cells in pink. The source SHA-256 identifies the exact
+inspected ROM. Analysis remains separate from the active editor
+project.</li>
+<li>Press <strong>Import as new project</strong>. Forge opens the
+recovered room in <strong>SCENE</strong>. <strong>CHR SHEET</strong>,
+<strong>COLLISION</strong>, <strong>METATILES</strong>,
+<strong>ANIM</strong> and <strong>AUDIO</strong> contain ordinary
+authoring data. Alternatively, use <strong>Download Forge project
+JSON</strong> and open that file through the regular project opener. The
+inspection report is not that project file.</li>
+<li>Use the existing <strong>Build &amp; Run</strong> action. Move right
+toward the wall and confirm it blocks the player. Left/right work in
+both engines; jump and attack animation controls belong to the adapted
+Forge build. For comparison, <strong>Run Original ROM</strong> always
+uses the preserved input bytes.</li>
+<li>Stop the emulator and open <strong>COLLISION</strong>. Under
+<strong>Active Property</strong>, choose <strong>0 - Empty
+(passable)</strong>, then click a visible wall tile in the scene to
+assign that property to its tile index. Rebuild and verify that the
+player can pass through the wall. This changes every placement of that
+tile. Undo the collision edit, rebuild and verify blocking returns. Stay
+with properties 0 and 1: the current single-room compiler rejects
+Platform/Ladder/Hazard and other unimplemented values.</li>
+<li>Open <strong>CHR SHEET</strong>, choose the background bank and a
+visible wall tile, change one pixel, and rebuild. Confirm the wall art
+changes. Changing pixel art preserves the separate collision property;
+changing which tile is placed can change the applicable collision. Undo
+the art edit if you want the original appearance back.</li>
+<li>Open <strong>AUDIO</strong>. Select a row in the <strong>Pulse
+1</strong> column, then press a note-entry key such as
+<strong>Z</strong> to replace that row's note. Keep the recovered
+instrument selected. Rebuild and listen for the changed note. Tracker
+preview is separate from generated-ROM playback, so verify with
+<strong>Build &amp; Run</strong> as well. The current environment's
+automated tests inspect APU output; actual speaker output still needs
+your browser observation.</li>
+<li>Use <strong>Save Project As</strong> to save native project JSON.
+Open that saved project and rebuild. Confirm room art, collision, music
+and <strong>Run Original ROM</strong> remain available. Downloaded
+inspection evidence cannot substitute for this authoring backup.</li>
+</ol>
+<p>If the wall and floor use different tile IDs, editing the wall leaves
+the floor alone. If you select a tile shared by several parts of the
+room, its property applies to all those placements. Use Undo to restore
+the prior state before continuing.</p>
+<h2 id="collision-editing-and-per-cell-differences">Collision editing
+and per-cell differences</h2>
+<p>For the supplied base fixture, collision is consistent per graphical
+tile, so the bridge uses the normal <strong>COLLISION</strong>
+tile-property workflow. It also supplies recovered metatile definitions
+as reusable assets without unnecessarily linking every cell.</p>
+<p>A supported data variant may reuse one CHR tile with different
+collision at different placements. The bridge then links only the
+necessary 16×16 cells to metatile definitions whose four collision
+quadrants preserve the decoded values. The evidence report identifies
+<code>collisionMode</code> and <code>linkedCollisionCells</code>; those
+counts describe 16×16 override cells. Editing a raw tile property cannot
+override a linked metatile's quadrants.</p>
+<p>For an overridden cell, use <strong>METATILES</strong> and its
+<strong>COLLISION QUADRANTS</strong> controls. On desktop, right-click
+the cell to select its linked definition; the library/Brush selector
+provides another selection route. Edit TL/TR/BL/BR or choose a value and
+<strong>Set all 4</strong>. Every placement linked to that definition
+shares the edit. Keep values at Empty or Solid for this backend. Do not
+regenerate/relink the library to prove recovery: the imported canonical
+data already carries the native collision values.</p>
+<h2 id="revisit-frames-during-analysis">Revisit frames during
+analysis</h2>
+<p>The current candidate retains <strong>Playback tools</strong> in the
+emulator. Enable <strong>Record history</strong> before playing the
+section you want to examine. Back/Forward and 60-frame batch controls
+let you restore retained emulator frames or advance muted at the live
+edge. Navigation ends paused with neutral controls; capture/readouts
+correspond to the restored state. The actual retained range is bounded
+by state count and serialized size. See
+<code>docs/EMULATOR_NAVIGATION.md</code> before using it for
+comparisons.</p>
+<p>Frame history supports analysis but does not discover
+scene/collision/audio formats automatically. The decoder above remains
+limited to Native Room v1. Starting playback or manually executing from
+the past discards the former future; recorded history is temporary and
+is not included in project JSON.</p>
+<h2 id="project-json-and-evidence-json">Project JSON and evidence
+JSON</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Action</th>
+<th>Result</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Import as new project</td>
+<td>Undoable replacement with native Forge data</td>
+<td>Edit/build immediately</td>
+</tr>
+<tr class="even">
+<td>Download Forge project JSON</td>
+<td><code>NESForge</code>, schema 12</td>
+<td>Normal project opening, editing and backup</td>
+</tr>
+<tr class="odd">
+<td>Download inspection report (recovery panel)</td>
+<td><code>NESForgeRERecovery</code>, version 1</td>
+<td>Review source identity, decoded spans/counts and limitations</td>
+</tr>
+<tr class="even">
+<td>Save Project As after editing</td>
+<td>Current native Forge project</td>
+<td>Retain subsequent changes and original-ROM backup</td>
+</tr>
+</tbody>
+</table></div>
+<p>The general-analysis panel exports <code>NESForgeREInspection</code>
+version 2. Older separate inspector reports use
+<code>NESForgeREInspection</code> version 1 (or
+<code>NESForgeREPreviewEvidence</code>). They also describe evidence
+rather than scenes. The regular project loader now recognizes these
+report formats and explains the distinction instead of reporting only
+“expected 1–64 scenes.” Invalid report imports do not change the current
+project.</p>
+<h2 id="supported-input-contract">Supported input contract</h2>
+<p>The profile requires standard iNES mapper 0, 32 KiB PRG, 8 KiB CHR,
+horizontal mirroring, no trainer/header extensions, exact declared
+length, and recognized engine code/vectors. Data variations are accepted
+only within the documented native structures and current canonical
+capability. Invalid collision, unsupported palette aliases, unsupported
+envelope/sweep settings, ambiguous pulse periods and invalid player
+configurations reject before transfer.</p>
+<p>The bridge copies bytes before hashing; changing the caller's buffer
+cannot alter the inspected snapshot. Evidence includes source SHA-256,
+engine identity, file offsets and applicable CPU addresses for the
+native data spans. No background analysis commits to the editor. Import
+performs detached validation again and calls the existing undoable
+project-replacement service. The current project schema and compiler
+remain unchanged.</p>
+<h2 id="verification-and-remaining-acceptance">Verification and
+remaining acceptance</h2>
+<p>Run the complete candidate gate from a clean extraction:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> tools/bundle.py <span class="at">--check</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">node</span> tests/run_all.cjs</span></code></pre></div>
+<p>All 35 prior navigation/bridge/legacy suites remain mandatory
+alongside the new general-analysis suites. The current runner and
+matching <code>Summary.json</code> define the complete gate. Four
+records in <code>test-results/candidate/</code> cover the retained
+recovery slice:</p>
+<ul>
+<li><code>re-bridge-model.json</code>: supported native decoding,
+rejection boundaries, copied evidence/project isolation and canonical
+transfer.</li>
+<li><code>re-bridge-ui.json</code>: Analyze/import/export handlers,
+state guards and separation from the editor.</li>
+<li><code>re-bridge-runtime.json</code>: original ROM and adapted
+rebuild execution, collision/art/music edits and native-project
+reload.</li>
+<li><code>re-report-import.json</code>: actionable inspection-report
+rejection and atomic project state.</li>
+</ul>
+<p>Read <code>Summary.json</code>, each actual report,
+<code>build-inputs.json</code> and
+<code>checkpoints/re-analysis-1a-clean-extraction/Reproduction.json</code>
+for measured results and exact identity. A file's existence alone does
+not establish a pass. The historical re-navigation-1 result was 788/788
+across 35 suites and does not certify this candidate.</p>
+<p>Browser walkthrough remains pending because the current Chromium
+executable is unavailable. Mock-DOM and bundled-emulator tests do not
+establish visual layout, native file pickers, speakers, physical
+controllers, mobile performance or independent NES hardware behavior.
+Record those observations using <code>docs/BROWSER_QA.md</code>. General
+RE support and release promotion remain separate decisions.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

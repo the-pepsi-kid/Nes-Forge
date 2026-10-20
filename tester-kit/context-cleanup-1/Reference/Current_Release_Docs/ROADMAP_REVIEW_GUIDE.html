@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Preserved
+Roadmap Workbench workflows in alpha.7 · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Guide.html">User guide</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#preserved-roadmap-workbench-workflows-in-alpha7">Preserved
+Roadmap Workbench workflows in alpha.7</a><a class="level2" href="#1-audio-interchange-and-built-in-workshop">1. Audio interchange
+and built-in workshop</a><a class="level2" href="#2-native-graphics-recovery">2. Native graphics recovery</a><a class="level2" href="#3-checkpoints-input-scripts-and-reversible-ram">3. Checkpoints,
+input scripts and reversible RAM</a><a class="level2" href="#4-canonical-behavior-graph">4. Canonical Behavior graph</a><a class="level2" href="#5-multi-file-source-workspace">5. Multi-file source
+workspace</a><a class="level2" href="#6-separate-local-hosted-draft">6. Separate local hosted
+draft</a><a class="level2" href="#acceptance-record">Acceptance record</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../../Guide.html">current user guide</a> for current operator instructions.</p></blockquote><h1 id="preserved-roadmap-workbench-workflows-in-alpha7">Preserved
+Roadmap Workbench workflows in alpha.7</h1>
+<p>For the new native Audio investigation workflow, first read
+<code>NATIVE_AUDIO_INVESTIGATION.md</code>. The following workflows were
+introduced in alpha.6 and remain available.</p>
+<p>Use the application in
+<code>mainline/NES_Forge_2.0.0-alpha.7.html</code>. Preserve a portable
+project backup before reviewing. Each workflow below identifies a
+visible control, expected result and its boundary. This guide
+supplements the manual; it does not claim that the full manual or PDF
+editions have been updated.</p>
+<h2 id="1-audio-interchange-and-built-in-workshop">1. Audio interchange
+and built-in workshop</h2>
+<p>Open <strong>AUDIO → Audio workshop examples</strong>. Choose
+Four-note melody or Four NES channels and click <strong>Add example to
+this project</strong>. Confirm the music-order replacement. Existing
+patterns and SFX remain. Play, edit a note, Undo/Redo, and Save Project
+As/reopen. Runtime settings remain as you set them.</p>
+<p>Use <strong>Export MIDI</strong> or <strong>Export MusicXML</strong>
+near the score imports. Read the conversion warnings and complete the
+ordinary Save As flow. Import the result into a project copy and compare
+channels, row timing, cuts, volume and silence. Importing a short score
+into larger existing patterns can add silent padding, which is reported;
+it must not extend the final note. Instrument envelopes, pulse duty, SFX
+definitions/bindings and gameplay are not complete backups in these
+score files. Project JSON remains the complete authoring backup.</p>
+<p>For a compiled-ROM test, use the included Pulse_Triangle project or a
+project with valid SFX bindings. Enable <strong>Compile Audio
+Runtime</strong> and build. If an existing animation references a
+missing SFX, define that SFX or deliberately remove its sound event; the
+workshop does not silently change animation bindings. Listen to preview
+and rebuilt ROM in an independent emulator. Test on the reported phone
+separately from desktop.</p>
+<p>Expected: editable notes survive project persistence; exported
+supported score timing/channels survive reimport; cancelled export
+changes nothing. See AUDIO_INTERCHANGE.md for precise omissions and
+refusals.</p>
+<h2 id="2-native-graphics-recovery">2. Native graphics recovery</h2>
+<p>Open <strong>RE / DISASM → General ROM Analysis</strong> and select a
+ROM with CHR ROM. Expand <strong>Raw CHR patterns</strong>, select the
+tile page, then <strong>Preview native tile import → Import as new tile
+sheet</strong>. Open CHR, edit a tile, Save Project As/reopen, and
+return to <strong>Download active sheet CHR</strong>. Export recovery
+evidence as well.</p>
+<p>Expected: the new sheet has source SHA-256, physical bank/ranges and
+stable IDs; old scenes remain; Undo removes it and Redo restores it. The
+sheet is excluded from game builds by default. The grayscale palette and
+sheet layout are generated authoring aids. Source palettes, map layout,
+collision, audio and gameplay are unknown. CHR RAM/compressed graphics
+need another method.</p>
+<h2 id="3-checkpoints-input-scripts-and-reversible-ram">3. Checkpoints,
+input scripts and reversible RAM</h2>
+<p>Load a supported ROM in EMULATOR, pause, then open the RE runtime
+<strong>Checkpoints and reversible experiments</strong> panel. Save a
+named checkpoint. Run a short input script, restore, and repeat. The
+same checkpoint and inputs should produce the same machine outcome.
+Cancel a longer script; it stops paused, preserving already executed
+frames.</p>
+<p>For a RAM experiment, use a RAM address whose meaning you have
+investigated. Apply a byte change, observe, then <strong>Restore
+experiment</strong>. Restore rewinds the complete machine, not just the
+edited byte. <strong>Keep emulator state</strong> leaves the current
+state only in this emulator session. I/O, ROM and mapper-register writes
+are refused. Reset/ROM replacement clears session checkpoints. No
+address is automatically labelled health, stage or enemy state.</p>
+<h2 id="4-canonical-behavior-graph">4. Canonical Behavior graph</h2>
+<p>Open the existing Gameplay Core controls and expand <strong>BEHAVIOR
+GRAPH</strong> below template controls. Select a Behavior/state, add a
+state/transition, edit typed conditions/actions, and use the order
+controls. Use a diagnostic to navigate to its referenced record.
+Existing typed tables must show the same data immediately. Undo/Redo and
+Save Project As/reopen should preserve the graph because it edits the
+same canonical records. Compile a supported transition and test it in
+the ROM.</p>
+<p>This adds no new runtime operation, Actor template, persistent memory
+or schema. The current five templates and execution budgets remain the
+selected profile.</p>
+<h2 id="5-multi-file-source-workspace">5. Multi-file source
+workspace</h2>
+<p>Open <strong>CODE → Open source workspace → Open multi-file example →
+Build source ROM</strong>. Download and load that ROM in EMULATOR. It
+intentionally has no graphics; its CPU puts decimal 70 in RAM $0000 and
+loops. Import your own files/folder, select the entry and CHR source,
+edit, rebuild and export the source workspace. Original imported bytes
+remain preserved in JSON/ZIP exports. Save this workspace separately
+before closing the page.</p>
+<p>Only the declared Forge-6502 dialect and NROM profile are supported.
+Includes/incbin resolve inside the workspace. Lua and
+NESmaker/ca65-specific translation are not implemented. Builds do not
+replace the active Forge project or automatically combine generated
+gameplay/Audio Runtime with external code. Editing during an
+asynchronous replacement import must preserve the edit and reject the
+stale replacement.</p>
+<h2 id="6-separate-local-hosted-draft">6. Separate local hosted
+draft</h2>
+<p>Read hosted/README.md. From the extracted application directory run
+<code>node hosted/server.cjs --data ./forge-hosted-data --port 8787</code>,
+then open its loopback URL in two browser tabs. Follow the two-client
+pickup, transfer, replay and restart checklist. Stop the server when
+finished. Its ordinary-item authority is separate from cartridge
+execution; there is no wallet, public hosting or NES projection
+claim.</p>
+<h2 id="acceptance-record">Acceptance record</h2>
+<p>For each workflow record application SHA-256, OS/browser/version,
+exact input file/hash, actions, expected/actual result and screenshot or
+exported output. Mark not-run checks as not run. Report regression,
+usability and unsupported-feature findings separately. The packaged
+full-gate Summary is automated evidence; blocked browser records and
+earlier alpha.5 owner feedback do not certify alpha.7 rendering,
+listening or hardware behavior.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

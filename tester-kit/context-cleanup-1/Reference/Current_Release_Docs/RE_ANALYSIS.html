@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>General ROM and
+6502 binary analysis — Alpha · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Guide.html">User guide</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#general-rom-and-6502-binary-analysis--alpha">General ROM and
+6502 binary analysis — Alpha</a><a class="level2" href="#october-1-picker-repair-and-remaining-gap">October 1 picker
+repair and remaining gap</a><a class="level2" href="#first-walkthrough">First walkthrough</a><a class="level2" href="#use-a-rom-already-loaded-in-the-emulator">Use a ROM already
+loaded in the emulator</a><a class="level2" href="#what-each-address-means">What each address means</a><a class="level2" href="#formats-and-instruction-interpretation">Formats and instruction
+interpretation</a><a class="level2" href="#inspect-physical-chr-patterns">Inspect physical CHR
+patterns</a><a class="level2" href="#bounded-work-and-resource-limits">Bounded work and resource
+limits</a><a class="level2" href="#analysis-playback-and-recovery">Analysis, playback and
+recovery</a><a class="level2" href="#export-and-verification">Export and verification</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../../Guide.html">current user guide</a> for current operator instructions.</p></blockquote><h1 id="general-rom-and-6502-binary-analysis--alpha">General ROM and
+6502 binary analysis — Alpha</h1>
+<p>Candidate <strong>1.9.0 Alpha / <code>re-runtime-1</code></strong>
+adds static analysis that is independent of the game engine,
+editable-recovery profile and emulator. Open a ROM or raw binary in
+<strong>RE / DISASM → GENERAL ROM ANALYSIS</strong>. You do not need to
+load it in EMULATOR or create a project first.</p>
+<p>The analysis layer accepts byte files regardless of engine, subject
+to the stated resource limits. It can inspect a binary whose hardware
+the emulator does not support. It cannot infer which hardware or CPU
+variant an arbitrary file needs, prove which bytes execute as code, or
+reconstruct every game's scenes, collision and audio automatically.
+NES/Famicom remains Forge's executable game target.</p>
+<h2 id="october-1-picker-repair-and-remaining-gap">October 1 picker
+repair and remaining gap</h2>
+<p>In <code>re-analysis-1</code>, the general file input inherited the
+global <code>input[type=file]{display:none}</code> rule and had no
+visibility override. The recovery input explicitly used
+<code>display:block</code>, so that separate picker was visible. The
+retained <code>re-analysis-1a</code> repair applies a local visible
+layout to the general input. The VM test's synthetic
+<code>getComputedStyle</code> always returned <code>block</code>, and
+direct file injection did not exercise a visible picker; those checks
+missed the defect. The browser test now requires actual visibility and a
+click that opens the file chooser. Its recorded result remains
+authoritative; a blocked browser launch is not a passed picker test.</p>
+<p>The owner's requested result remains incomplete: there is no
+advance-stage command, health/enemy control, or general native
+scene/collision/audio recovery. EMULATOR loading does not initiate the
+independent analysis session. Existing frame/scene captures describe
+observed rendering, not decoded native scene, collision or music
+structures. Correcting this picker makes static inspection reachable; it
+does not establish those missing capabilities.</p>
+<p>The owner subsequently supplied Pepsi and reported all six
+static/recovery/preservation checks successful. Current
+runtime-investigation acceptance uses that exact ROM for a
+title-to-selection transition and credit change, with Bridge Room for
+positive sound activity; see <code>RE_RUNTIME_CHECKLIST.txt</code>. A
+prior Bridge Room-only recovery pass cannot establish general recovery
+for another game.</p>
+<h2 id="first-walkthrough">First walkthrough</h2>
+<ol type="1">
+<li>Open <code>mainline/NES_Forge_1.9.0_Gameplay_Core.html</code>, then
+select <strong>RE / DISASM</strong>. In <strong>GENERAL ROM
+ANALYSIS</strong>, use <strong>Choose ROM or binary</strong> to select a
+file of any extension, then press <strong>Open for analysis</strong>.
+This does not replace the editor project or load/run a ROM in the
+emulator.</li>
+<li>Read the source identity and capability summary. A recognized NES
+container supplies header and physical-span information. An unknown
+engine is allowed. A malformed or unrecognized container retains
+raw-byte inspection with a diagnostic instead of fabricated banks or
+vectors.</li>
+<li>In the analysis workspace, enter a <strong>File offset</strong> and
+<strong>Range bytes</strong>, then press <strong>View range</strong>. A
+plain number is decimal; <code>$</code> or <code>0x</code> selects
+hexadecimal. The hex and instruction views describe the selected
+original-file bytes, displaying up to 512 bytes per page. Use
+<strong>Previous 512 bytes</strong> and <strong>Next 512 bytes</strong>
+to page through the range. Each page begins decoding at its first byte;
+page boundaries are not verified instruction boundaries.</li>
+<li>Choose the intended <strong>CPU variant</strong>:
+<strong>6502</strong> or <strong>2A03</strong>. Both decode official
+opcodes in this slice. Other/unofficial opcodes and truncated
+instructions remain visible as <code>.byte</code>. An instruction
+listing is a candidate interpretation of bytes, not a declaration that
+the span is executable code.</li>
+<li>If you know where a span maps into CPU memory, enter its <strong>CPU
+origin</strong> and a <strong>Bank label</strong>, then use <strong>Save
+mapping</strong>. Leave the origin blank when it is unknown. Select a
+saved mapping and use <strong>Go to mapping</strong> to revisit it.
+Separate bank mappings may use the same CPU addresses; the file offsets
+and labels keep them distinct.</li>
+<li>Enter a hex-byte pattern, such as <code>A9 01 8D</code>, and press
+<strong>Search</strong>. The search yields between 1 MiB chunks,
+stopping on completion, cancellation or 256 results. If capped,
+<strong>Search from file offset</strong> advances to the continuation
+point; press Search again to continue. Reset that field to
+<code>0</code> for a new full-file search. Review its status/results.
+Select a match and use <strong>Go to result</strong> to inspect that
+physical location. <strong>Cancel search</strong> stops pending work. A
+match locates bytes; it does not establish a routine's meaning.</li>
+<li>Record a finding with an annotation's offset, length,
+<strong>Label</strong> and <strong>Comment</strong>, then choose
+<strong>Save annotation</strong>. Label uncertain ideas as hypotheses.
+These records are user-supplied evidence, not recovered source
+symbols.</li>
+<li>Use <strong>Download inspection + notes</strong> to export the file
+identity, report, saved mappings and annotations. The result is
+<code>NESForgeREInspection</code> version 2, an evidence document. It is
+not a Forge project and does not replace <strong>Save Project
+As</strong> for authoring backup.</li>
+<li>Use <strong>Show emulator disassembly</strong> / <strong>Show
+general analysis</strong> to switch workspaces when needed.
+Loading/running a ROM in EMULATOR and previewing editable recovery
+remain separate actions with their own capability limits.</li>
+</ol>
+<p>Two small supplied binaries make the first checks reproducible:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Input</th>
+<th>Actions</th>
+<th>Expected observation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>examples/RE_Analysis/raw_counter.bin</code></td>
+<td>View file offset <code>0</code>, length <code>14</code>, CPU origin
+<code>$4000</code>; search <code>C6 10 D0 FC</code> from
+<code>0</code></td>
+<td>Raw inspection works without a NES header; matching bytes begin at
+file offset <code>$000004</code></td>
+</tr>
+<tr class="even">
+<td><code>examples/RE_Analysis/overlapping_banks.bin</code></td>
+<td>Save file offset <code>0</code>, length <code>16</code>, CPU origin
+<code>$8000</code>, label <code>Bank A</code>; then offset
+<code>16</code>, length <code>16</code>, same origin, label
+<code>Bank B</code></td>
+<td>Separate mappings share CPU <code>$8000</code>; their first
+instructions differ (<code>LDA #$01</code> and
+<code>LDA #$02</code>)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The <code>$4000</code> mapping is deliberately a user assumption
+outside a normal NES cartridge PRG window. These inputs test analysis,
+not emulator execution. Keep both bank mappings in the exported
+evidence; a repeated CPU address does not mean the original bytes are
+the same.</p>
+<p>For a first comparison, inspect
+<code>examples/RE_Bridge_Room/Bridge_Room.nes</code> here, then use
+<strong>RECOVER EDITABLE PROJECT → Preview editable recovery</strong> on
+the same file. General analysis exposes bytes and evidence; the
+known-profile decoder reconstructs the room, collision and music. See
+<code>RE_BRIDGE.md</code> for that separate edit/build/play tutorial.
+Try an unknown-engine file next: general inspection should remain
+available even when editable recovery rejects it.</p>
+<h2 id="use-a-rom-already-loaded-in-the-emulator">Use a ROM already
+loaded in the emulator</h2>
+<p><strong>RUNTIME INVESTIGATION → Use emulator ROM for
+analysis</strong> copies the currently loaded ROM into this static
+workspace without another file selection or game reset. This is an
+explicit action; simply loading EMULATOR does not replace the inspected
+file. The runtime UI checks the ROM hash before navigating from an
+observed instruction/write into static code. See
+<code>RE_RUNTIME.md</code> for trace, memory comparison and watch
+workflows. Static analysis remains usable without playback or a
+supported emulator mapper.</p>
+<h2 id="what-each-address-means">What each address means</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Location</th>
+<th>Meaning</th>
+<th>Evidence boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>File offset</td>
+<td>Position in the original file, including any header/trainer
+bytes</td>
+<td>Stable physical identity for search, notes and byte spans</td>
+</tr>
+<tr class="even">
+<td>Parsed PRG/CHR span</td>
+<td>Physical span declared by a recognized, valid NES container</td>
+<td>Describes the file layout, not the currently selected runtime
+bank</td>
+</tr>
+<tr class="odd">
+<td>Static NROM CPU mapping</td>
+<td>Fixed mapping derivable from the supported mapper-0 layout</td>
+<td>Header-derived; no execution observed</td>
+</tr>
+<tr class="even">
+<td>User CPU mapping</td>
+<td>A chosen file span mapped to a CPU origin with a bank label</td>
+<td>User assumption; may overlap another bank's CPU range</td>
+</tr>
+<tr class="odd">
+<td>Disassembly address</td>
+<td>CPU location under a stated mapping, when present</td>
+<td>Does not prove that the instruction executes</td>
+</tr>
+</tbody>
+</table></div>
+<p>A ROM can contain multiple banks mapped to the same CPU address at
+different times. Unknown mapper state stays unknown. The analyzer does
+not treat a physical PRG position as a unique runtime address, read
+vectors from an assumed bank or claim to observe bank switching. File
+offsets remain available even when CPU mapping is absent.</p>
+<h2 id="formats-and-instruction-interpretation">Formats and instruction
+interpretation</h2>
+<p>Valid recognized <strong>iNES and NES 2.0</strong> layouts provide
+bounded physical PRG/CHR spans and container diagnostics. Known static
+NROM layouts can supply fixed mappings and vectors. Other mapper layouts
+retain physical inspection and permit explicit user mappings; this
+feature adds no mapper emulation.</p>
+<p>Unknown formats, unsupported header details, malformed/truncated
+headers or inconsistent declared sizes do not require a successful NES
+parse to expose raw bytes. The report describes the limitation and falls
+back to raw analysis. A filename extension does not establish a platform
+or engine. Choosing raw analysis does not repair the file or make it
+executable.</p>
+<p>The implemented instruction choices are <strong>NMOS 6502</strong>
+and <strong>NES 2A03</strong>, using the 151 official opcodes. The CPU
+choice is recorded with the interpretation. Unofficial opcodes and
+end-of-range truncation cannot silently become another CPU's
+instructions. Unsupported byte sequences use <code>.byte</code>; a
+truncated instruction is not completed with bytes outside the requested
+disassembly page. Unsupported CPU-variant selections are rejected rather
+than silently decoded as 6502. This is not a 65C02 or 65C816 decoder,
+and selecting a variant does not emulate it.</p>
+<p>Static decoding does not separate code from data reliably by itself.
+A tile, compressed stream or pointer table can resemble instructions.
+Notes should distinguish direct file evidence, user assumptions and
+later runtime observations. The analyzer does not recover original
+comments, source filenames, symbol names or assembler project
+structure.</p>
+<h2 id="inspect-physical-chr-patterns">Inspect physical CHR
+patterns</h2>
+<p>For a recognized NES container with CHR ROM, open <strong>Raw CHR
+patterns · grayscale</strong>. The preview displays up to 256 physical
+8×8 tiles per page. <strong>Previous 256 tiles</strong> and <strong>Next
+256 tiles</strong> page through the file's CHR data; the status
+identifies the tile indices and original-file offsets.</p>
+<p>Grayscale represents the four 2-bit pattern values, not the game's
+actual palette. This preview does not infer scene placement, collision,
+animations, active PPU banks or which tiles a game uses. An unsupported
+mapper can still have inspectable physical CHR ROM. A CHR-RAM cartridge
+has no stored runtime pattern contents to preview here. Raw files
+without a recognized CHR layout retain byte inspection; the tool does
+not invent a CHR offset for them.</p>
+<h2 id="bounded-work-and-resource-limits">Bounded work and resource
+limits</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Operation</th>
+<th>Implemented model limit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Input file</td>
+<td>Up to 64 MiB; larger files receive a size-limit error</td>
+</tr>
+<tr class="even">
+<td>UI view</td>
+<td>512 bytes per page; a selected range may span the file or a valid
+mapped CPU window</td>
+</tr>
+<tr class="odd">
+<td>CHR preview</td>
+<td>Up to 256 physical tiles per page, only where a recognized container
+identifies CHR ROM</td>
+</tr>
+<tr class="even">
+<td>One raw-byte read</td>
+<td>Up to 64 KiB</td>
+</tr>
+<tr class="odd">
+<td>One disassembly range</td>
+<td>Up to 4 KiB</td>
+</tr>
+<tr class="even">
+<td>Search pattern</td>
+<td>1–256 bytes</td>
+</tr>
+<tr class="odd">
+<td>One search batch</td>
+<td>Up to 1 MiB scanned and up to 256 matches</td>
+</tr>
+<tr class="even">
+<td>Explicit mapping</td>
+<td>Must fit the source file and CPU address space
+<code>$0000</code>–<code>$FFFF</code>; up to 128 saved mappings per
+inspection</td>
+</tr>
+<tr class="odd">
+<td>Annotations</td>
+<td>Up to 256 per inspection; 160 characters per label and 2,000 per
+comment</td>
+</tr>
+</tbody>
+</table></div>
+<p>These limits bound work and output; they are not engine allowlists.
+Search is chunked, with continuation offsets that preserve matches
+across batch boundaries. A bounded result batch is not evidence that no
+later match exists. A capped search updates its start offset so Search
+can continue. Selecting a different pattern does not reset the start
+automatically; set it to <code>0</code> to scan from the beginning.
+Empty files can show identity/evidence, but have no bytes to view,
+search, map or annotate. Every range must remain inside the file;
+rejected inputs must not silently wrap or read fabricated bytes.</p>
+<p>The source bytes are copied before asynchronous identity work.
+Subsequent changes to a caller's buffer cannot alter the inspected
+snapshot. Analysis, saved mappings and notes remain in the session until
+another file successfully opens or the page closes. Export before
+switching files if you need to keep them. This slice exports evidence
+but does not reimport saved inspection reports or notes. An inspection
+export is not a patched ROM or an executable build.</p>
+<h2 id="analysis-playback-and-recovery">Analysis, playback and
+recovery</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Workflow</th>
+<th>Available now</th>
+<th>Separate limits</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>General static analysis</td>
+<td>File identity, container diagnostics, raw bytes, physical CHR
+preview, official-6502 interpretation, search, explicit mappings and
+notes</td>
+<td>No execution or automatic game semantics</td>
+</tr>
+<tr class="even">
+<td>Existing emulator</td>
+<td>Run supported NES ROMs, ordinary disassembly/readouts and temporary
+frame history</td>
+<td>Existing mapper, timing and platform support</td>
+</tr>
+<tr class="odd">
+<td>Editable recovery</td>
+<td>Native Room v1 profile used by Bridge Room</td>
+<td>Requires recognized structures and supported decoded data</td>
+</tr>
+<tr class="even">
+<td>Runtime investigation</td>
+<td>Integrated read-only tools</td>
+<td>RAM comparisons, named write watches, executed-code/PPU/APU
+observations and checked source links; see
+<code>RE_RUNTIME.md</code></td>
+</tr>
+<tr class="odd">
+<td>Gameplay-aware manipulation</td>
+<td>Future work</td>
+<td>Breakpoints, input replay and verified stage/health/enemy commands
+are not implemented</td>
+</tr>
+</tbody>
+</table></div>
+<p>Forward frame stepping advances normal simulation with neutral input.
+Timed damage, enemy defeat or a transition can still occur through the
+game's own logic, but Forward provides no command to force a chosen
+stage, damage event or enemy defeat. Those commands would require
+game-specific state and routine knowledge. For now, play through an
+event with normal controls while recording history, then pause and
+revisit the retained frames. See
+<code>EMULATOR_NAVIGATION.md</code>.</p>
+<p>Changing a health byte or stage number would not necessarily invoke
+all associated game logic. A future debugger must discover and verify
+the relevant relationships before offering named actions. The
+static/runtime investigation candidate does not patch live memory,
+original ROM bytes or canonical project records.</p>
+<h2 id="export-and-verification">Export and verification</h2>
+<p><strong>Download inspection + notes</strong> produces
+<code>NESForgeREInspection</code> version 2 with source identity and
+evidence. Recovery's <strong>Download inspection report</strong>
+produces <code>NESForgeRERecovery</code> version 1. Recovery's
+<strong>Download Forge project JSON</strong> produces the editable
+schema-12 authoring project. The normal project opener rejects
+inspection evidence with an explanation; these files are not
+interchangeable.</p>
+<p>Run <code>python3 tools/bundle.py --check</code> and
+<code>node tests/run_all.cjs</code> from a clean extraction. All 38
+previous suites remain required alongside the three
+runtime-investigation suites, for 41 required suites. Use the current
+runner, matching <code>test-results/candidate/Summary.json</code>,
+<code>build-inputs.json</code> and
+<code>checkpoints/re-runtime-1-clean-extraction/Reproduction.json</code>
+for the complete suite list, measured results and exact artifact
+identity. Historical totals do not certify changed bytes.</p>
+<p>Browser acceptance remains separate. Use <code>BROWSER_QA.md</code>
+to record actual opening, narrow-screen layout, literal text rendering,
+cancellation, download behavior and separation from editor/emulator
+state. A blocked browser attempt or VM-only test is not a successful
+visual walkthrough. Owner acceptance and release promotion remain
+pending.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

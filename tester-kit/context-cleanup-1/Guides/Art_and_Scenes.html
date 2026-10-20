@@ -1,0 +1,1195 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Art, scenes, sprites and
+animation · NES Forge alpha.11</title><link rel="stylesheet" href="../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../START_HERE.html">Start here</a><a href="../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../Guide.html">User guide</a><a href="../Tutorial.html">Tutorial</a><a href="../Manual.html">Manual</a><a href="../Reference/Operator_Reference.html">Controls</a><a href="../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#art-scenes-sprites-and-animation">Art, scenes, sprites and
+animation</a><a class="level2" href="#what-each-asset-means">What each asset means</a><a class="level2" href="#tutorial-draw-terrain-and-make-a-reusable-block">Tutorial: draw
+terrain and make a reusable block</a><a class="level2" href="#chr-sheet-drawing-and-reuse">CHR SHEET: drawing and reuse</a><a class="level2" href="#scene-and-attr-map-painting-and-scene-settings">SCENE and ATTR
+MAP: painting and scene settings</a><a class="level2" href="#metatiles-and-collision-two-related-collision-stores">METATILES
+and COLLISION: two related collision stores</a><a class="level2" href="#tutorial-make-a-character-pose-animate-it-and-bind-it">Tutorial:
+make a character pose, animate it and bind it</a><a class="level2" href="#sprites-scene-placements-and-source-art">SPRITES: scene
+placements and source art</a><a class="level2" href="#metasprites-reusable-poses">METASPRITES: reusable poses</a><a class="level2" href="#anim-timing-contact-areas-and-events">ANIM: timing, contact
+areas and events</a><a class="level2" href="#scene-entities-and-entity-studio">Scene entities and ENTITY
+STUDIO</a><a class="level2" href="#bringing-artwork-in-from-files">Bringing artwork in from
+files</a><a class="level2" href="#troubleshooting-and-saved-checkpoints">Troubleshooting and saved
+checkpoints</a><a class="level2" href="#maintainer-audit-trail">Maintainer audit trail</a></aside><main id="guide"><h1 id="art-scenes-sprites-and-animation">Art, scenes, sprites and
+animation</h1>
+<p>This guide covers the current <strong>2.0.0-alpha.11 /
+audio-tool-import-1</strong> editor. You can draw original NES artwork,
+assemble reusable terrain and character poses, animate them, and connect
+those assets to a supported generated game. The tabs share project data,
+so a change to a source tile can intentionally change many
+appearances.</p>
+<p>Start with <a href="Projects_and_Play.html">Projects and play</a> for
+opening and saving a project. Continue with <a
+href="Gameplay_and_World.html">Gameplay and World</a> when your terrain
+and character are ready to run. <a href="Audio.html">Audio</a> explains
+music, SFX and sound-event bindings; <a href="RE_and_Code.html">RE and
+code</a> covers recovered art and native source.</p>
+<h2 id="what-each-asset-means">What each asset means</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Asset</th>
+<th>What it stores</th>
+<th>Where you use it</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CHR tile</td>
+<td>An 8×8 grid of pixel values 0–3. It has no independent RGB
+colors.</td>
+<td>Background tiles in SCENE/METATILES or sprite pieces in
+SPRITES/METASPRITES.</td>
+</tr>
+<tr class="even">
+<td>Palette</td>
+<td>Four NES color entries per row. Background and sprite rows are
+separate.</td>
+<td>A placement chooses a row; changing a row's color changes its uses.
+Sprite pixel value 0 is transparent.</td>
+</tr>
+<tr class="odd">
+<td>Scene</td>
+<td>A 256×240 background, its CHR and palettes, scene sprites, collision
+table and scene entities.</td>
+<td>A room/source asset, the scene viewer, or the source tileset for a
+World.</td>
+</tr>
+<tr class="even">
+<td>Metatile</td>
+<td>Four background tiles, one palette row, four collision quadrants and
+descriptive metadata.</td>
+<td>Linked 16×16 placements in SCENE and terrain cells in WORLD.</td>
+</tr>
+<tr class="odd">
+<td>Scene sprite</td>
+<td>A positioned OAM-style sprite with tile, palette, flips and
+priority.</td>
+<td>A static scene composition or the input to Capture scene OAM.</td>
+</tr>
+<tr class="even">
+<td>Metasprite</td>
+<td>A named reusable pose made of sprite pieces, with a source scene and
+origin.</td>
+<td>ANIM frames. Pieces still reference the source scene's sprite
+CHR/palettes.</td>
+</tr>
+<tr class="odd">
+<td>Animation</td>
+<td>Ordered frames with durations, optional contact areas and
+frame-entry events.</td>
+<td>ENTITY STUDIO bindings and the supported game runtime.</td>
+</tr>
+<tr class="even">
+<td>Scene entity</td>
+<td>A placed Player, Enemy, NPC or other authored scene object.</td>
+<td>ENTITY STUDIO and retained Player/Target configuration. Gameplay
+Core actors use a separate model.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Duplicating a metatile or metasprite copies its definition; it does
+<strong>not</strong> create independent CHR pixels. To change pixels for
+one variant, copy the source tile to a different tile slot and point the
+variant at that slot. A duplicated scene has independent scene art, but
+existing project-level assets retain their explicit source-scene
+references.</p>
+<p>Coordinates begin at zero. SCENE background tile coordinates are 8×8
+units; METATILES cells are 16×16 units. Entity/sprite fields use pixels.
+Labels such as <code>$10</code> are hexadecimal: enter
+<strong>16</strong> in an ordinary numeric tile field; <code>$FF</code>
+means <strong>255</strong>.</p>
+<h2 id="tutorial-draw-terrain-and-make-a-reusable-block">Tutorial: draw
+terrain and make a reusable block</h2>
+<p><strong>Goal:</strong> make a visible ground tile, turn it into a
+solid metatile, and prove that linked placements update together. This
+does not require a ROM or imported starter project.</p>
+<ol type="1">
+<li>Save any work you already have, then choose <strong>New
+Project</strong>. The initial scene is <strong>My First Room</strong>.
+Leave <strong>CODE</strong> empty.</li>
+<li>Open <strong>CHR SHEET → BG Bank ($0000)</strong>. Choose tile
+<strong>$01</strong> and leave tile <strong>$00</strong> blank.</li>
+<li>In <strong>Editing Tile</strong>, choose pixel color 2, 3 or 4, then
+click/drag on the enlarged tile to draw a brick. The keyboard keys
+<strong>1–4</strong> select pixel values <strong>0–3</strong>.</li>
+<li>If the colors are indistinguishable, select a row in <strong>Preview
+Palette</strong>, select the color slot, then use its <strong>✎</strong>
+button to choose an NES color. This edits the actual palette.
+<strong>Color preview → Selected palette</strong> only changes the
+preview context.</li>
+<li>Open <strong>COLLISION</strong>, select <strong>1 - Solid (blocks
+all)</strong> under <strong>Active Property</strong>, then click tile
+<strong>$01</strong> in <strong>Tile Assignments</strong>. Leave
+<code>$00</code> Empty.</li>
+<li>Return to <strong>CHR SHEET</strong>, choose the BG tile
+<code>$01</code>, then open <strong>SCENE</strong>. Paint the top-left
+four tile positions: <strong>(0,0), (1,0), (0,1), (1,1)</strong>. The
+status bar reports tile coordinates as you point at the canvas. This
+makes one complete 16×16 sample.</li>
+<li>Open <strong>METATILES</strong>. Set <strong>Tool → Select
+cells</strong>, click the top-left sample, then choose <strong>+ From
+Selected Cell</strong>. Name the definition <strong>Solid Block</strong>
+and, optionally, set <strong>Category</strong> to
+<code>terrain</code>.</li>
+<li>Inspect <strong>CHR QUADRANTS</strong>: TL, TR, BL and BR should all
+be <strong>1</strong>. Inspect <strong>COLLISION QUADRANTS</strong>: all
+should be <strong>Solid</strong>. The collision was copied from the
+source tiles when the definition was created. You can also select
+<strong>Solid</strong> beside <strong>Set all 4</strong>, then click
+that button.</li>
+<li>Set <strong>Tool → Paint metatile</strong> and paint two more cells.
+Change the definition's <strong>Palette</strong> to another row, or
+change one CHR quadrant. Every linked placement should update. Use
+<strong>Undo</strong> to return to the desired block.</li>
+<li>Choose <strong>Save Project As…</strong>, complete the save, and
+later reopen that file with <strong>Open Project</strong>. The named
+definition, collision and linked cells should return.</li>
+</ol>
+<p><strong>Expected result:</strong> one scene-local library definition
+and several linked placements. The library card's placement count
+describes scene placements. Existing World maps use the same definition
+through their selected source scene, but raw SCENE painting does not
+populate an already-authored World map.</p>
+<p>For a ground surface with air above it, use <strong>TL=0, TR=0, BL=1,
+BR=1</strong>, with <strong>Empty, Empty, Solid, Solid</strong>
+collision. To keep a sample from seeding a new World's initial map,
+select that scene cell and choose <strong>Detach Selected Cell</strong>.
+This retains the library definition and current pixels while breaking
+the scene link. Continue in <a href="Gameplay_and_World.html">Gameplay
+and World</a> to place terrain and select a Player.</p>
+<p>To see only the artwork in a generated ROM, open <strong>SCENE →
+Gameplay</strong>, select <strong>Scene viewer / custom
+assembly</strong>, keep CODE empty and build the selected scene set.
+<strong>New Project</strong> initially selects the single-room gameplay
+mode; that mode needs a configured Player and is not ready simply
+because the artwork exists. See <a
+href="Projects_and_Play.html">Projects and play</a> for the build
+controls.</p>
+<h2 id="chr-sheet-drawing-and-reuse">CHR SHEET: drawing and reuse</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>What it does and when to use it</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>BG Bank ($0000)</strong> / <strong>Sprite Bank
+($1000)</strong></td>
+<td>Selects the active scene's background or sprite source tiles.
+Drawing in the wrong bank changes a different asset.</td>
+</tr>
+<tr class="even">
+<td>Tile sheet / arrow keys</td>
+<td>Click a tile to edit it. Arrow keys navigate the normal 256-tile
+sheet. Expanded capture atlases have a separate page selector.</td>
+</tr>
+<tr class="odd">
+<td><strong>Editing Tile</strong> pixel canvas</td>
+<td>Paints the selected tile's 8×8 pixel values. Every reference to that
+source tile sees the edit.</td>
+</tr>
+<tr class="even">
+<td><strong>Pixel Color (1–4)</strong></td>
+<td>Chooses pixel value 0, 1, 2 or 3. In Sprite Bank, value 0 appears as
+a transparency checkerboard.</td>
+</tr>
+<tr class="odd">
+<td><strong>Clear Tile</strong></td>
+<td>Replaces all pixels in the selected tile with zero. This also clears
+every appearance using that source tile.</td>
+</tr>
+<tr class="even">
+<td><strong>Copy Tile</strong> / <strong>Paste Tile</strong></td>
+<td>Copies pixels to Forge's tile clipboard; Paste overwrites the
+selected destination slot. Use a different slot for an independent
+drawing.</td>
+</tr>
+<tr class="odd">
+<td><strong>Color preview → Scene colors (auto)</strong></td>
+<td>Uses each tile's scene usage to choose an appearance. One tile can
+legitimately appear with multiple palette rows.</td>
+</tr>
+<tr class="even">
+<td><strong>Color preview → Selected palette</strong></td>
+<td>Previews the sheet and pixel editor using the selected row. It does
+not repaint existing scene placements.</td>
+</tr>
+<tr class="odd">
+<td><strong>Color preview → Pixel values (grayscale)</strong></td>
+<td>Displays raw 0–3 values without palette colors. Useful for spotting
+shape differences. Palette-edit pencils are disabled in this diagnostic
+mode.</td>
+</tr>
+<tr class="even">
+<td><strong>Tile appearance</strong></td>
+<td>Appears when the selected tile has multiple scene appearances;
+choose which palette/state to inspect. This is a preview choice.</td>
+</tr>
+<tr class="odd">
+<td><strong>Captured palette state</strong></td>
+<td>In manual preview of a capture with multiple palette states, selects
+the state used for preview.</td>
+</tr>
+<tr class="even">
+<td><strong>Preview Palette</strong> rows, swatches and
+<strong>✎</strong></td>
+<td>Row/swatch selection chooses a preview row and pixel value. The
+pencil edits an actual NES palette entry.</td>
+</tr>
+<tr class="odd">
+<td><strong>TILE USAGE MAP</strong></td>
+<td>Reports the most-used source tiles numerically. These are
+diagnostics, not a guarantee that the full ROM fits.</td>
+</tr>
+<tr class="even">
+<td><strong>Highlight in Scene</strong> / <strong>Auto-track</strong> /
+mini-scene</td>
+<td>Finds placements of the selected tile. Auto-track updates the result
+as selection changes. Sprite Bank searches active scene OAM.</td>
+</tr>
+<tr class="odd">
+<td><strong>ROM CHR Banks</strong>, <strong>→ BG</strong>, <strong>→
+Spr</strong></td>
+<td>When available after ROM import, select a retained ROM bank, then
+explicitly copy it into the active scene's BG or Sprite source.
+Selecting the bank alone does not apply it. Applying replaces that
+source bank and affects existing references.</td>
+</tr>
+<tr class="even">
+<td><strong>Captured atlas page</strong> / source hint</td>
+<td>Browses capture atlases larger than 256 tiles and shows
+native-source information where available. An atlas ID above
+<code>$FF</code> is not automatically a buildable NROM tile index.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Palette changes versus tile changes:</strong> CHR stores
+shapes; a palette supplies colors. A palette pencil may therefore
+recolor many different tiles. The background's universal color
+participates in NES background-color behavior; it is not four unrelated
+transparent colors. Use <strong>Undo</strong> if a palette edit affects
+more artwork than intended.</p>
+<h2 id="scene-and-attr-map-painting-and-scene-settings">SCENE and ATTR
+MAP: painting and scene settings</h2>
+<p>The active scene is selected by the top <strong>Scene</strong> menu
+or the sidebar thumbnails. Top scene buttons provide <strong>New scene
+(+)</strong>, <strong>Duplicate scene</strong>, <strong>Delete
+scene</strong> and <strong>Rename scene</strong>; their tooltips
+identify the icon buttons. The editor retains at least one scene and
+supports up to 64. Scene deletion can leave references in other assets
+needing repair; save a checkpoint before reorganizing source scenes.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose and effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SCENE canvas</td>
+<td>Click/drag paints the selected 8×8 BG tile and palette row.
+Right-click eyedrops both. A selected entity tool places entities
+instead; press <strong>Escape</strong> to leave placement mode. Clicking
+an existing entity selects/drags it.</td>
+</tr>
+<tr class="even">
+<td><strong>Selected Tile</strong></td>
+<td>Shows the current raw tile brush and its scene usage. Choose a new
+brush in CHR SHEET.</td>
+</tr>
+<tr class="odd">
+<td><strong>Palette Selector</strong></td>
+<td>Chooses the background row used when painting. Its pencils edit the
+owning scene's palette data.</td>
+</tr>
+<tr class="even">
+<td><strong>METATILE BRUSH</strong> / <strong>Enable 16×16
+Brush</strong></td>
+<td>Chooses and paints complete linked metatiles. Right-click eyedrops a
+linked definition. Toggle it off, or press Escape, to return to raw tile
+painting.</td>
+</tr>
+<tr class="odd">
+<td><strong>LIVE STATS</strong></td>
+<td>Shows tile reuse, unique/free tiles and related scene counts. Run
+build preflight for actual output capacity.</td>
+</tr>
+<tr class="even">
+<td><strong>ATTR EDITOR</strong></td>
+<td>Cycles a 16×16 quadrant through P0→P1→P2→P3. All four 8×8 tiles in
+that quadrant share the row. A raw palette change can detach a linked
+metatile if it no longer matches its definition.</td>
+</tr>
+<tr class="odd">
+<td><strong>ATTR MAP</strong> canvas</td>
+<td>Shows palette assignments with 32×32 attribute boundaries.
+Left-click a quadrant to cycle its palette. The scene ATTR EDITOR and
+this view edit the same attributes.</td>
+</tr>
+<tr class="even">
+<td>Top <strong>Grid</strong>, <strong>Attr</strong>,
+<strong>Meta</strong>, <strong>Zoom</strong></td>
+<td>Changes drawing overlays or display scale where applicable. These
+controls do not add gameplay behavior.</td>
+</tr>
+<tr class="odd">
+<td><strong>Type</strong></td>
+<td>Stores Side-View, Top-Down or Static Screen scene intent. Selecting
+Top-Down does not install a top-down game engine.</td>
+</tr>
+<tr class="even">
+<td><strong>Scroll</strong></td>
+<td>Stores None, Horizontal, Vertical or Both. Current World gameplay
+uses screen transitions; this dropdown alone does not enable smooth
+scrolling.</td>
+</tr>
+<tr class="odd">
+<td><strong>BG Color</strong></td>
+<td>Sets an NES color index from 0–63 for the scene background.</td>
+</tr>
+<tr class="even">
+<td>Scene <strong>Gravity</strong></td>
+<td>Stores None, Down, Heavy or Up metadata. The generated Player's
+actual physics are configured in Gameplay/World Runtime.</td>
+</tr>
+<tr class="odd">
+<td><strong>Build</strong> / <strong>Order</strong></td>
+<td>Includes the scene in the retained viewer/single-room build set and
+chooses its order. World Runtime follows its own saved world/player
+dependencies.</td>
+</tr>
+<tr class="even">
+<td><strong>CAMERA / VIEW → Show</strong></td>
+<td>Toggles the scene camera overlay.</td>
+</tr>
+<tr class="odd">
+<td><strong>View X / View Y / View W / View H</strong></td>
+<td>Stores scene view position and dimensions. These are separate from
+WORLD Camera Regions.</td>
+</tr>
+<tr class="even">
+<td><strong>Follow</strong></td>
+<td>Stores which scene entity the authored camera references, or None.
+It is not a universal camera runtime switch.</td>
+</tr>
+<tr class="odd">
+<td><strong>H Border / V Border</strong></td>
+<td>Stores camera border margins. The generated mode still validates its
+own camera restrictions.</td>
+</tr>
+<tr class="even">
+<td><strong>SCENE LINKS</strong></td>
+<td>Displays links derived from scene Door entities. World Entrance/Exit
+links are authored separately in WORLD.</td>
+</tr>
+</tbody>
+</table></div>
+<p>In <strong>Build Scene Set</strong> in the shared lower sidebar
+(visible from CODE, SCENE and other tabs), each scene has an inclusion
+checkbox and numeric build order. <strong>Include first 7</strong>
+selects the first seven workspace scenes; <strong>Preflight
+Build</strong> checks the selected output path. The retained NROM scene
+viewer supports at most seven selected scenes and constrained shared
+BG/Sprite tile banks. A scene can remain editable and saved while
+excluded from that ROM. A door to an excluded build scene is a reference
+error to resolve.</p>
+<p>For native raster captures, <strong>VERIFIED RUNTIME CAPTURE</strong>
+shows fidelity recorded at capture time, the retained palette states,
+<strong>Preserve captured PPU sprite clipping / grayscale</strong>, and
+<strong>Create lossless static copy</strong>. Editing the capture
+intentionally changes its image; the old fidelity record is not a new
+test of your edits. A lossless static conversion can be refused when the
+frame cannot be represented by a conventional static NES background. See
+<a href="RE_and_Code.html">RE and code</a> for capture choices and
+recovery boundaries.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Capture or conversion</th>
+<th>What the result means for artwork</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Capture Runtime Scene</strong> / <strong>Hybrid
+Capture</strong></td>
+<td>Current native capture paths preserve source tiles, scanline
+placement/palettes and separate sprites from a completed emulator frame.
+They validate background and composite pixels before insertion. This
+fidelity is relative to the bundled emulator.</td>
+</tr>
+<tr class="even">
+<td><strong>Bake Visible Frame</strong></td>
+<td>Converts the visible image into a constrained background and
+flattens the sprites into it. It can approximate colors or tiles; it
+does not retain separate editable sprite objects.</td>
+</tr>
+<tr class="odd">
+<td><strong>Raw Nametable</strong></td>
+<td>Inspects unscrolled end-of-frame memory. It is not a promise to
+match the visible scrolled picture.</td>
+</tr>
+<tr class="even">
+<td><strong>Create lossless static copy</strong></td>
+<td>Attempts to turn an existing native capture into a conventional
+static scene while preserving its image. It refuses unrepresentable
+raster effects instead of silently treating a bake as lossless.</td>
+</tr>
+</tbody>
+</table></div>
+<p>For reusable terrain from a capture, keep the original captured
+scene, create its static copy, inspect that copy, and then use METATILES
+there. <strong>New Scene</strong> is a capture destination;
+<strong>Replace Current</strong> overwrites the destination's captured
+fields. Partial <strong>Merge Fields</strong> is refused for raster
+captures because partial transfer would break their linked assets.</p>
+<h2 id="metatiles-and-collision-two-related-collision-stores">METATILES
+and COLLISION: two related collision stores</h2>
+<p><strong>COLLISION</strong> assigns a property to a BG CHR tile in the
+active scene. All raw scene occurrences of that tile share the property.
+<strong>METATILES</strong> stores four independent collision quadrants
+in each reusable definition. Creating a definition samples the tile
+properties at that time; later edits to the tile collision table do not
+rewrite those saved quadrants. When tuning World terrain, edit the
+metatile collision fields.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose and effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Analyze Scene → Library</strong></td>
+<td>Scans static 16×16 cells, reuses matching definitions and creates
+missing definitions without changing visible pixels. Existing named
+matches are retained.</td>
+</tr>
+<tr class="even">
+<td><strong>+ From Selected Cell</strong></td>
+<td>Creates or reuses the selected scene sample's tiles, palette and
+collision as a definition, and links that cell.</td>
+</tr>
+<tr class="odd">
+<td><strong>Relink Matches</strong></td>
+<td>Relinks matching scene cells using tiles, palette and collision;
+nonmatching cells remain unlinked.</td>
+</tr>
+<tr class="even">
+<td><strong>Tool: Select cells / Paint metatile</strong></td>
+<td>Selects a sample for inspection, or paints the chosen definition.
+Right-click on a linked cell selects its definition.</td>
+</tr>
+<tr class="odd">
+<td><strong>Brush</strong> / library cards</td>
+<td>Chooses the definition. Cards show scene placement counts; the
+status reports the selected cell and linked/unlinked state.</td>
+</tr>
+<tr class="even">
+<td><strong>Show metatile collision overlay</strong></td>
+<td>Displays the four collision classifications over scene cells. It
+does not change collision.</td>
+</tr>
+<tr class="odd">
+<td><strong>Name / Category</strong></td>
+<td>Describes the asset for authoring. Its numeric ID remains the
+reference identity.</td>
+</tr>
+<tr class="even">
+<td><strong>Palette / CHR QUADRANTS TL, TR, BL, BR</strong></td>
+<td>Edits the definition's palette row and four tile references. Linked
+scene placements update, and Worlds using that definition render the
+revised asset.</td>
+</tr>
+<tr class="odd">
+<td><strong>Capture Selected Cell → Definition</strong></td>
+<td>Replaces the selected definition from a scene sample, affecting all
+references to that definition.</td>
+</tr>
+<tr class="even">
+<td><strong>Duplicate</strong></td>
+<td>Makes a separate definition with copied references. Use it before
+making one terrain variant.</td>
+</tr>
+<tr class="odd">
+<td><strong>Delete</strong></td>
+<td>Removes the definition. Scene appearances stay but their links
+detach; World references are reconciled by World authoring. Inspect your
+maps and use Undo if unintended.</td>
+</tr>
+<tr class="even">
+<td><strong>COLLISION QUADRANTS</strong> / <strong>Set all
+4</strong></td>
+<td>Sets each quadrant, or sets all four to the chosen property in one
+operation.</td>
+</tr>
+<tr class="odd">
+<td><strong>SEMANTIC FLAGS</strong></td>
+<td>Stores Foreground, Destructible, Animated and Interactive flags.
+Checking them alone does not create those behaviors in the generated
+game.</td>
+</tr>
+<tr class="even">
+<td><strong>Detach Selected Cell</strong></td>
+<td>Breaks only the selected scene cell's link while retaining its
+visible tiles and palette.</td>
+</tr>
+<tr class="odd">
+<td><strong>COLLISION → Active Property</strong></td>
+<td>Chooses Empty, Solid, Platform, Ladder, Hazard, Water, Slope Left or
+Slope Right. These are authorable classifications; runtime support is
+narrower.</td>
+</tr>
+<tr class="even">
+<td><strong>COLLISION → Tile Assignments</strong> / scene canvas</td>
+<td>Assigns the current property to a tile; clicking its occurrence on
+the collision canvas edits that tile's property too.</td>
+</tr>
+<tr class="odd">
+<td>Collision legend and statistics</td>
+<td>Explain overlay colors and report Solid/Platform/Hazard tile
+counts.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Current output boundary:</strong> World Runtime executes
+<strong>Empty and Solid</strong> terrain and refuses other collision
+values in used metatiles. A red Hazard label, a Platform label or an
+Animated flag is not sufficient to generate the corresponding mechanic.
+The metatile library supports up to <strong>255 definitions (IDs
+0–254)</strong> per scene. Exact raster captures require a static copy
+before metatile authoring. Unused authoring definitions can remain in
+the project while being omitted from ROM metadata.</p>
+<h2 id="tutorial-make-a-character-pose-animate-it-and-bind-it">Tutorial:
+make a character pose, animate it and bind it</h2>
+<p><strong>Goal:</strong> make a reusable two-piece pose and inspect its
+animation on a scene Player. Previewing it is separate from selecting a
+runnable gameplay mode.</p>
+<ol type="1">
+<li>In <strong>CHR SHEET → Sprite Bank ($1000)</strong>, draw a head in
+<code>$01</code> and a body in <code>$02</code>. Leave pixel value 0
+around the shapes for transparency. Choose visible colors with the
+sprite palette pencils.</li>
+<li>Open <strong>METASPRITES → + New frame</strong>. Name it
+<strong>Hero idle</strong>. Set <strong>Source scene</strong> to the
+scene containing the art, and <strong>Sprite size</strong> to <strong>8
+× 8</strong>.</li>
+<li>In <strong>SOURCE SPRITE CHR</strong>, choose tile <code>$01</code>,
+click <strong>+ Piece</strong>, and set that piece's <strong>X=0,
+Y=0</strong>. Choose <code>$02</code>, add another piece and set
+<strong>X=0, Y=8</strong>. Double-clicking a source tile also adds a
+piece.</li>
+<li>Click <strong>Set origin at feet</strong>. For this 8×16
+composition, the origin becomes the bottom center, <strong>X=4,
+Y=16</strong>. Click <strong>Fit frame</strong> if needed. The cyan
+cross marks the anchor that later placements use.</li>
+<li>Choose <strong>Duplicate</strong>, name the copy <strong>Hero
+step</strong>, then move its bottom piece one pixel to the right. The
+poses now have independent positions but still share their source tile
+pixels. Keep the same origin so the character does not jump between
+poses.</li>
+<li>Open <strong>ANIM → + Add Animation</strong>. Name it <strong>Hero
+idle loop</strong>, set <strong>State</strong> to idle and keep
+<strong>Loop</strong> checked. Select its first frame, choose
+<strong>Frame source → Metasprite</strong>, choose <strong>Hero
+idle</strong>, and set <strong>Duration</strong> to
+<strong>8</strong>.</li>
+<li>Click <strong>+ Frame</strong>. It copies the selected frame,
+including contacts/events if present. Change this frame's metasprite to
+<strong>Hero step</strong> and its duration to <strong>8</strong>. Click
+<strong>Play</strong>, then <strong>Stop</strong>.</li>
+<li>Open <strong>ENTITY STUDIO</strong>. Select the source scene. Under
+<strong>PLACE AN ENTITY</strong>, choose <strong>Player</strong>, enter
+a position such as <strong>X=128, Y=120</strong>, and click <strong>Add
+at X / Y</strong>.</li>
+<li>Under <strong>STATES</strong>, enter <code>idle</code>, select
+<strong>Hero idle loop</strong>, and click <strong>Assign
+state</strong>. Select idle as <strong>Default state</strong>. Click
+<strong>Play</strong>, <strong>Tick +1</strong>, or a frame timeline
+button to inspect it.</li>
+<li>Save with <strong>Save Project As…</strong>. Reopen the JSON and
+confirm the named poses, animation frames and Player binding remain
+present.</li>
+</ol>
+<p><strong>Expected result:</strong> the Player's preview alternates two
+poses around one anchor. To make a playable game, configure the Player,
+required state bindings, collision/body and build mode in <a
+href="Gameplay_and_World.html">Gameplay and World</a>. A default
+<code>idle</code> binding alone does not meet every generated gameplay
+profile's requirements.</p>
+<h2 id="sprites-scene-placements-and-source-art">SPRITES: scene
+placements and source art</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose and effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>+ Add Sprite</strong></td>
+<td>Adds a scene OAM entry. The editor allows up to 64 entries.</td>
+</tr>
+<tr class="even">
+<td>Canvas / <strong>OAM Slots</strong></td>
+<td>Click an existing sprite or list entry to select it; drag to move.
+Clicking empty canvas places a sprite. Right-click a sprite deletes it.
+Arrow keys nudge; Shift uses 8-pixel steps.</td>
+</tr>
+<tr class="odd">
+<td><strong>Delete Selected</strong> / Delete or Backspace</td>
+<td>Removes the selected scene sprite. Its source CHR tile remains
+available.</td>
+</tr>
+<tr class="even">
+<td><strong>Tile / X / Y / Palette</strong></td>
+<td>Chooses source art, screen position and SP0–SP3 palette. Normal
+fields accept X=0–255 and Y=0–239. Build validation can be stricter at
+hardware boundaries.</td>
+</tr>
+<tr class="odd">
+<td><strong>FlipH / FlipV / Behind</strong></td>
+<td>Stores horizontal/vertical flip and priority behind opaque
+background pixels.</td>
+</tr>
+<tr class="even">
+<td><strong>Size / Bottom</strong></td>
+<td>Chooses an 8×8 or normalized 8×16 source sprite; Bottom selects the
+second tile for 8×16. Do not assume arbitrary source pairs will consume
+the same resources in every output backend.</td>
+</tr>
+<tr class="odd">
+<td><strong>Draw Sprite Tile</strong>, colors 1–4, <strong>Clear
+Tile</strong></td>
+<td>Edits the source tile used by the selected sprite. These are the
+same pixels as CHR SHEET's Sprite Bank.</td>
+</tr>
+<tr class="even">
+<td><strong>Open in CHR Sheet ›</strong></td>
+<td>Opens the selected sprite tile in the CHR editor.</td>
+</tr>
+<tr class="odd">
+<td><strong>Sprite CHR Picker</strong></td>
+<td>Chooses a tile for the selected scene sprite.</td>
+</tr>
+<tr class="even">
+<td><strong>Sprite Palettes</strong> and pencils</td>
+<td>Selects/edits source sprite colors, affecting other users of the
+same row.</td>
+</tr>
+<tr class="odd">
+<td>Scanline warning</td>
+<td>Reports rows with more than eight sprites. Transparent pixels still
+consume sprite slots.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Scene sprite Y is a screen coordinate; ROM OAM encodes a hardware
+offset. The packed scene builder rejects placements it cannot represent,
+including problematic top-row sprites. Correct the placement rather than
+treating the editor preview as proof of output validity.</p>
+<h2 id="metasprites-reusable-poses">METASPRITES: reusable poses</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose and effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Frame</strong> / <strong>+ New frame</strong></td>
+<td>Selects or creates a reusable pose. The library permits up to 256
+frames and 128 authored pieces per frame; those authoring limits exceed
+the NES display budget.</td>
+</tr>
+<tr class="even">
+<td><strong>Capture scene OAM</strong></td>
+<td>Copies the active scene's sprite arrangement into a reusable pose,
+keeping references to that scene's art. Mixed source sizes are
+normalized into 8×8 pieces.</td>
+</tr>
+<tr class="odd">
+<td><strong>Duplicate / Mirror copy / Delete</strong></td>
+<td>Copies a pose, makes a mirrored copy around its origin, or removes
+it. Deleting a referenced pose leaves a missing animation reference to
+fix.</td>
+</tr>
+<tr class="even">
+<td><strong>Export frames</strong></td>
+<td>Saves frame data for interchange/inspection. Use the complete native
+project for a backup with source scenes.</td>
+</tr>
+<tr class="odd">
+<td><strong>Name / Source scene / Sprite size</strong></td>
+<td>Names the pose, chooses its source CHR/palettes, and chooses global
+8×8 or 8×16 interpretation for its pieces.</td>
+</tr>
+<tr class="even">
+<td><strong>Origin X / Y / Set origin at feet</strong></td>
+<td>Defines the anchor. Placement subtracts the origin from piece
+coordinates; feet sets the bottom-center anchor from current
+bounds.</td>
+</tr>
+<tr class="odd">
+<td><strong>+ Piece</strong> / source sheet</td>
+<td>Adds the current source tile as a piece. Click the sheet to select a
+brush; double-click to add it.</td>
+</tr>
+<tr class="even">
+<td>Piece list / <strong>Duplicate piece / Remove</strong></td>
+<td>Selects, copies or deletes a piece.</td>
+</tr>
+<tr class="odd">
+<td><strong>Earlier / Later</strong></td>
+<td>Changes piece OAM order. Earlier pieces win overlapping sprite
+pixels and receive priority in the hardware-limit preview.</td>
+</tr>
+<tr class="even">
+<td><strong>Tile / lower / X / Y / Palette</strong></td>
+<td>Sets a piece's source tile(s), pixel position and source sprite
+palette. Coordinate/origin bounds are −2048 to 2047.</td>
+</tr>
+<tr class="odd">
+<td><strong>Flip H / Flip V / Behind BG</strong></td>
+<td>Stores per-piece attributes. The isolated transparent preview has no
+background against which to show Behind BG.</td>
+</tr>
+<tr class="even">
+<td><strong>Mirror X at origin / Mirror Y at origin</strong></td>
+<td>Mirrors only the selected piece's position and orientation around
+the frame origin.</td>
+</tr>
+<tr class="odd">
+<td>Canvas / <strong>Snap</strong></td>
+<td>Drag a piece with 1-pixel or 8-pixel snapping. Arrows move 1 pixel;
+Shift moves 8. Delete removes the selected piece.</td>
+</tr>
+<tr class="even">
+<td><strong>Fit frame / Zoom / Grid / Boxes</strong></td>
+<td>Changes only the composer view and overlays.</td>
+</tr>
+<tr class="odd">
+<td><strong>Hardware limits / HARDWARE BUDGET</strong></td>
+<td>Previews the first 64 OAM pieces and eight intersecting sprites per
+scanline; reports source/pair issues. Multiple runtime actors share
+these budgets.</td>
+</tr>
+</tbody>
+</table></div>
+<p>An 8×16 frame uses two tile references per piece. Hardware pairing
+and final CHR packing depend on the selected build path; World
+compilation, for example, can expand a source pair into two 8×8 output
+pieces. Follow the build's resource diagnostics rather than assuming the
+authoring preview is an exact whole-game budget.</p>
+<h2 id="anim-timing-contact-areas-and-events">ANIM: timing, contact
+areas and events</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose and effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>+ Add Animation</strong> / animation list</td>
+<td>Creates or selects an animation.</td>
+</tr>
+<tr class="even">
+<td><strong>Name / State</strong></td>
+<td>Names the asset and selects its descriptive
+idle/walk/run/jump/fall/attack/hurt/custom category. Entity binding
+names are assigned separately.</td>
+</tr>
+<tr class="odd">
+<td><strong>Loop / Flip on reverse</strong></td>
+<td>Chooses repeating playback and reversed-facing art where supported.
+Flip does not create a separate pose asset.</td>
+</tr>
+<tr class="even">
+<td>Timeline / <strong>+ Frame / - Frame</strong></td>
+<td>Selects, duplicates the selected frame into a new step, or removes a
+step. Contacts and events are copied with an added frame.</td>
+</tr>
+<tr class="odd">
+<td><strong>Frame source / Metasprite / Tile $</strong></td>
+<td>Chooses a reusable metasprite or a legacy single-tile frame. Tile
+input is disabled for a metasprite source; its previous legacy value is
+retained. The source note identifies the scene or a missing
+reference.</td>
+</tr>
+<tr class="even">
+<td><strong>Duration</strong></td>
+<td>Sets 1–255 ticks per frame; one preview tick is 1/60 second.</td>
+</tr>
+<tr class="odd">
+<td><strong>Play / Stop</strong></td>
+<td>Starts/stops animation preview. Leaving the workspace stops
+playback.</td>
+</tr>
+<tr class="even">
+<td><strong>Frame contact areas → Select / move</strong></td>
+<td>Selects an area to drag or edit. Drag its lower-right square to
+resize.</td>
+</tr>
+<tr class="odd">
+<td><strong>Draw hit / Draw hurt / + Hit / + Hurt</strong></td>
+<td>Draws or adds red attack/hit and green vulnerable/hurt areas on the
+selected frame.</td>
+</tr>
+<tr class="even">
+<td>Area list; <strong>Name / X / Y / Width / Height</strong></td>
+<td>Selects and precisely edits an area relative to the frame origin.
+Arrows nudge, Shift uses 8 pixels, Escape cancels a drag.</td>
+</tr>
+<tr class="odd">
+<td><strong>Delete area / Show areas</strong></td>
+<td>Removes an area or toggles its overlay. Up to 16 hit and 16 hurt
+areas are stored per frame.</td>
+</tr>
+<tr class="even">
+<td><strong>Frame-entry events → New event type / + Event</strong></td>
+<td>Adds an ordered event marker: attack start, attack end, footstep,
+sound or custom.</td>
+</tr>
+<tr class="odd">
+<td>Event list; <strong>Type / Name / Value</strong></td>
+<td>Selects and edits a marker. Up to 16 events are stored per frame;
+names and values allow up to 255 UTF-8 bytes.</td>
+</tr>
+<tr class="even">
+<td><strong>↑ Earlier / ↓ Later / Delete event</strong></td>
+<td>Reorders or removes events on that frame.</td>
+</tr>
+<tr class="odd">
+<td><strong>Open Metasprite Composer</strong></td>
+<td>Opens METASPRITES to edit the reusable pose assets.</td>
+</tr>
+</tbody>
+</table></div>
+<p>A contact area or event becomes gameplay only if the selected runtime
+consumes it. ENTITY STUDIO logs frame-entry markers for inspection; it
+does not play sound or apply damage. Supported generated runtimes can
+execute linked <strong>sound</strong> events when Audio Runtime is
+enabled. Use the SFX ID and the binding instructions in <a
+href="Audio.html">Audio</a>. World Runtime's attack contacts/custom
+events remain authoring data; do not infer combat behavior from the red
+box alone.</p>
+<p>To inspect an event: select an animation frame, choose
+<strong>custom</strong>, click <strong>+ Event</strong>, set
+<strong>Name</strong> to <code>pose-check</code>, then preview that
+bound animation in ENTITY STUDIO. <strong>Restart</strong> and
+<strong>Tick +1</strong> let you check when the log records entry into
+the frame. Use <strong>Clear log</strong> to reset only the preview log;
+it does not delete markers from the animation.</p>
+<h2 id="scene-entities-and-entity-studio">Scene entities and ENTITY
+STUDIO</h2>
+<p>In SCENE, choose an entity toolbar type and click to place it. Click
+the same tool again or press Escape to stop placing. <strong>Placed
+Entities</strong> selects existing objects; <strong>Entity
+Properties</strong> edits the selection, and <strong>Open Entity
+Studio</strong> opens its bindings. <strong>Delete Entity</strong>
+removes it and can invalidate a configured Player/Target reference.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Scene entity properties</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Common <strong>Type / Name / X / Y / Sprite</strong></td>
+<td>Sets category, name, position and optional sprite tile. Sprite
+<strong>−1</strong> uses the editor icon. An editor icon is not
+generated game art.</td>
+</tr>
+<tr class="even">
+<td><strong>Player / Spawn Point</strong></td>
+<td>Scene authoring markers used where the chosen runtime explicitly
+references them. World start/spawn markers have their own controls.</td>
+</tr>
+<tr class="odd">
+<td><strong>Enemy → Variant / Dir / Speed</strong></td>
+<td>Stores Walker/Flyer/Jumper/Shooter/Boss classification, facing and
+speed metadata. These labels do not generate five enemy systems by
+themselves.</td>
+</tr>
+<tr class="even">
+<td><strong>NPC → Dialog / Facing</strong></td>
+<td>Stores text and facing intent; no general dialog engine is
+implied.</td>
+</tr>
+<tr class="odd">
+<td><strong>Item → Item</strong></td>
+<td>Stores Coin/Heart/Key/Powerup/1UP/Custom classification. Gameplay
+Core collectables are authored separately.</td>
+</tr>
+<tr class="even">
+<td><strong>Door → To Scene / To X / To Y</strong></td>
+<td>Defines a legacy scene destination and populates SCENE LINKS. World
+traversal uses World entrance/exit links.</td>
+</tr>
+<tr class="odd">
+<td><strong>Platform → Width / Move / Range</strong></td>
+<td>Stores platform geometry/movement intent. It does not automatically
+enable moving-platform execution.</td>
+</tr>
+<tr class="even">
+<td><strong>Trigger → Action / Value</strong></td>
+<td>Stores dialog/cutscene/sound/flag/custom metadata. Use an
+implemented gameplay or audio binding route for an executing
+effect.</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>ENTITY STUDIO control</th>
+<th>Purpose and effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Scene / Entity</strong></td>
+<td>Chooses the existing scene entity being edited. This list is
+separate from Gameplay Core Actor Instances.</td>
+</tr>
+<tr class="even">
+<td><strong>Edit in scene / Edit animation</strong></td>
+<td>Navigates to the selected entity or the currently resolved
+animation.</td>
+</tr>
+<tr class="odd">
+<td><strong>State name / Animation / Assign state</strong></td>
+<td>Creates or updates a binding. Names start with a lowercase letter
+and use lowercase letters, digits, underscores or hyphens; up to 16
+states. Reusing a name changes that assignment.</td>
+</tr>
+<tr class="even">
+<td>Binding rows / <strong>Remove</strong></td>
+<td>Shows and removes state-to-animation mappings.</td>
+</tr>
+<tr class="odd">
+<td><strong>Default state / Default facing</strong></td>
+<td>Saves the entity's initial binding/facing.</td>
+</tr>
+<tr class="even">
+<td>Preview <strong>State / Facing</strong></td>
+<td>Chooses the state and temporary direction to inspect. Temporary
+preview facing does not replace Default facing.</td>
+</tr>
+<tr class="odd">
+<td><strong>Play / Pause / Restart / Tick +1</strong></td>
+<td>Runs, pauses, restarts or advances animation preview by one
+1/60-second tick. No game simulation executes here.</td>
+</tr>
+<tr class="even">
+<td><strong>Timeline</strong> slider / frame buttons</td>
+<td>Scrubs by tick or jumps to a frame's start.</td>
+</tr>
+<tr class="odd">
+<td><strong>Boxes / Labels</strong></td>
+<td>Toggles preview contact areas and labels.</td>
+</tr>
+<tr class="even">
+<td><strong>FRAME-ENTRY EVENTS / Clear log</strong></td>
+<td>Shows the latest 200 preview event entries or clears the preview
+log.</td>
+</tr>
+<tr class="odd">
+<td><strong>PLACE AN ENTITY → Type / Scene X / Y / Add at X /
+Y</strong></td>
+<td>Creates a scene entity at exact typed coordinates.</td>
+</tr>
+<tr class="even">
+<td><strong>Place in scene</strong></td>
+<td>Switches to SCENE with the chosen placement tool so you can click a
+location.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="bringing-artwork-in-from-files">Bringing artwork in from
+files</h2>
+<p><strong>Upload Image</strong> decodes an image, scales it to
+<strong>256×240</strong> without smoothing, and converts it into a
+<strong>new scene</strong> using the current background palettes. It is
+a scene-image conversion, not a lossless sprite-sheet importer. Colors
+and shapes can change because NES palettes and the 256-tile conversion
+budget are constrained; the conversion records changed pixels and
+approximated tiles. Keep the original image separately.</p>
+<p>For a predictable image trial:</p>
+<ol type="1">
+<li>Save your project, then prepare a 256×240 image with simple repeated
+shapes and few colors.</li>
+<li>Choose the intended BG palette colors in Forge before
+importing.</li>
+<li>Click <strong>Upload Image</strong> and select the file. Inspect the
+new scene, its CHR and palette assignments.</li>
+<li>Check the conversion result and correct the artwork if needed. Use
+<strong>Analyze Scene → Library</strong> only after you want those
+converted cells to become reusable terrain.</li>
+<li>Save the editable project. A successful import does not prove the
+converted scene will fit every multi-scene ROM build.</li>
+</ol>
+<p><strong>Load .zip Pack</strong> gives <code>project.json</code>
+priority when present, restoring the complete project. A supported raw
+asset pack needs a BG CHR file of at least 4,096 bytes; optional
+recognized companions include <code>sprites.chr</code>,
+<code>palettes.pal</code>, <code>sprite_palettes.pal</code>,
+<code>nametable.bin</code> (960 or 1,024 bytes),
+<code>attributes.bin</code> (64 bytes), <code>oam.bin</code>, or
+<code>scenes.json</code>. This restores a project/asset pack; it is not
+an arbitrary graphics-tool project importer. Save your current project
+first. Use <a href="Projects_and_Play.html">Projects and play</a> for
+archive and native-save details.</p>
+<p><strong>Import ROM</strong> and emulator captures are different from
+image conversion. A foreign cartridge's art may require a particular
+mapper/bank/runtime state, and recovered pixels do not establish
+recovered game behavior. Follow <a href="RE_and_Code.html">RE and
+code</a> before choosing a recovery route.</p>
+<h2 id="troubleshooting-and-saved-checkpoints">Troubleshooting and saved
+checkpoints</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Symptom</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Painting changes several copies of a tile</td>
+<td>They reference the same CHR slot. Copy the drawing to a new slot and
+change only the desired definition/placement.</td>
+</tr>
+<tr class="even">
+<td>The sprite is invisible</td>
+<td>Check Sprite Bank, nonzero pixels, the selected SP palette, the
+piece's source scene, tile index and position. Pixel 0 is
+transparent.</td>
+</tr>
+<tr class="odd">
+<td>A metatile change does not update one scene cell</td>
+<td>It may have detached after a raw tile/attribute edit. Select it and
+inspect linked/unlinked status; use Relink Matches when the content
+matches.</td>
+</tr>
+<tr class="even">
+<td>World collision differs from COLLISION</td>
+<td>World uses metatile quadrant collision. Inspect the used definition
+in METATILES.</td>
+</tr>
+<tr class="odd">
+<td>A pose jumps between animation frames</td>
+<td>Align each pose's origin; use the same feet anchor convention.</td>
+</tr>
+<tr class="even">
+<td>An animation shows a missing reference</td>
+<td>Restore or reassign the deleted metasprite/source scene. Renaming an
+asset is different from deleting its identity.</td>
+</tr>
+<tr class="odd">
+<td>Art exists in the editor but not the ROM</td>
+<td>Check selected build mode, Build Scene Set or World dependencies,
+entity bindings and build diagnostics. Rebuild after editing; the
+already-running ROM does not update itself.</td>
+</tr>
+<tr class="even">
+<td>The build refuses a capture or crowded sprite frame</td>
+<td>Read the exact resource/fidelity error. Reduce assets or use a
+supported static representation; preview success alone does not
+establish hardware capacity.</td>
+</tr>
+<tr class="odd">
+<td>A reopened project lost work</td>
+<td>Confirm that you completed the actual Save As/download and reopened
+that JSON, not only a ROM or standalone frame export. Browser Save/Load
+is a separate store.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Useful checkpoint names are <code>terrain-drawn.nesforge.json</code>,
+<code>terrain-linked.nesforge.json</code>, and
+<code>character-bound.nesforge.json</code>. Save Project As/complete
+Export keeps the native editable assets and references; a compiled ROM
+can omit unused assets and is not your only source backup.</p>
+<h2 id="maintainer-audit-trail">Maintainer audit trail</h2>
+<p>This guide was checked against the source included in candidate
+<strong>audio-tool-import-1</strong>. The preserved historical manual
+remains available; current behavior takes precedence over old version
+banners or superseded inline hints. This source audit does not, by
+itself, claim a fresh browser replay of every interaction above.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Source location</th>
+<th>Guidance checked</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>app/src/shell-prefix.html</code></td>
+<td>Static CHR, Scene, Sprite, Collision and Animation labels.</td>
+</tr>
+<tr class="even">
+<td><code>app/src/legacy/00-editor.js</code>,
+<code>02-interaction-bootstrap.js</code></td>
+<td>Scene ownership, paint/eyedrop, palette/attribute editing, tile
+clipboard, entity fields, sprite controls, image conversion, ZIP
+recognition and shortcuts.</td>
+</tr>
+<tr class="odd">
+<td><code>app/src/legacy/03-runtime-capture.js</code>,
+<code>04-saveas-chr.js</code></td>
+<td>Native atlas/capture controls, static-copy boundary, actual CHR
+preview semantics and Save As.</td>
+</tr>
+<tr class="even">
+<td><code>app/src/legacy/05-foundation.js</code>,
+<code>06-integration.js</code></td>
+<td>Build inclusion/order, camera X/Y/Follow, manual 8×16 scene
+sprites.</td>
+</tr>
+<tr class="odd">
+<td><code>app/src/legacy/07-metatiles.js</code>,
+<code>08-world.js</code></td>
+<td>Definition identity, sampling/propagation, detached cells, collision
+stores and World reference reconciliation.</td>
+</tr>
+<tr class="even">
+<td><code>app/src/legacy/13-metasprites.js</code> through
+<code>19-entity-codec.js</code></td>
+<td>Composer, frame sources, contacts/events, binding validation,
+preview and persistence.</td>
+</tr>
+<tr class="odd">
+<td><code>app/src/legacy/21-config165.js</code>,
+<code>26-project166.js</code>;
+<code>app/src/world/world-compiler.js</code></td>
+<td>Fresh-project defaults, required gameplay references, current World
+collision/animation/output limits.</td>
+</tr>
+<tr class="even">
+<td><code>app/src/audio/audio-ui.js</code>,
+<code>app/src/services/documentation.js</code></td>
+<td>Current runtime sound handoff and current documentation
+ownership.</td>
+</tr>
+<tr class="odd">
+<td><code>tester-kit/alpha11-review-1/Manual.md</code>,
+<code>Reference/Operator_Reference.md</code></td>
+<td>Existing workshop intent and retained control descriptions,
+reconciled with the active source.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../START_HERE.html">Back to start</a></p></main></div></body></html>

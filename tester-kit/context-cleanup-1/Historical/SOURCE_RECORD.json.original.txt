@@ -1,0 +1,27 @@
+{
+  "status": "ALPHA_TEST_KIT_RELEASE_CANDIDATE_3",
+  "created_utc": "2026-10-19",
+  "version": "NES Forge 2.0.0-alpha.11 / audio-tool-import-1",
+  "project_schema": 12,
+  "source_commit": "ffb57eab61d2e69ae0b92838c7b55748423b3140",
+  "app": {
+    "path": "NES_Forge.html",
+    "sha256": "1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d"
+  },
+  "evidence": {
+    "app_full_gate": "1872/1872 cases in 97 suites; retained exact app evidence at source commit ffb57eab61d2e69ae0b92838c7b55748423b3140",
+    "app_browser": "10/10 audio-tool-import browser checks; file chooser, conversion, Undo/Redo, portable save/reopen, generated APU pitch change and phone viewport. Not native OS-dialog, physical phone, listening or hardware acceptance.",
+    "documentation": "See DOCUMENTATION_REVIEW.json in the source checkout; separate from application tests.",
+    "owner_tutorial": "Full first-game owner walkthrough remains pending for this exact app.",
+    "mobile_listening_controller_hardware": "Not established for this exact app.",
+    "current_audio_tutorial": "12/12 headless Chromium checks: visible blank-project authoring, Play/Stop, edit/Undo, downloaded JSON and file-chooser reopen, viewer runtime build and downloaded ROM. Controlled emitted 6502/APU observations verify four pitches, cut and repeat; no listening or full-game timing claim."
+  },
+  "included_examples": {
+    "Scout_Gameplay_Core_2.0.0-alpha.11.nes": "7814bf08504653d3f23964d7c0a654a936b051bf5aadbbf92c4a2eeaf726f4a2",
+    "Scout_Gameplay_Core_2.0.0-alpha.11.nesforge.json": "f1e6703d9b23f9e716f421f98dd51c6a14faf0021f7bc5eba0d851b1e5db241b",
+    "Scout_Gameplay_Preview.png": "c1f42ce5b63d1f86960e5bb204831faa72e6f80e0cfb07aadf2169af31787297"
+  },
+  "notes": "One source build only; historical old-kit results are not transferred. No third-party game ROM or source-history ZIP is included.",
+  "documentation_revision": "RC3 / user-guide-1: current workspace chapters, from-scratch Audio tutorial, preserved original design and historical material.",
+  "historical_reference": "Original 1.9.0 chapters, 439 control rows, screenshots and historical source copies remain labeled and preserved. Current Guide chapters take precedence."
+}

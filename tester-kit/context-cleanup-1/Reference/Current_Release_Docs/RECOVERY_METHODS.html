@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Discover recovery methods · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Guide.html">User guide</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#discover-recovery-methods">Discover recovery methods</a><a class="level2" href="#reading-the-results">Reading the results</a><a class="level2" href="#open-the-appropriate-tools">Open the appropriate tools</a><a class="level2" href="#source-changes-cancellation-and-evidence">Source changes,
+cancellation and evidence</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../../Guide.html">current user guide</a> for current operator instructions.</p></blockquote><h1 id="discover-recovery-methods">Discover recovery methods</h1>
+<p>Open <strong>RE / DISASM → General ROM Analysis</strong>, choose a
+ROM or binary, and select <strong>Open for analysis</strong>. In the
+analysis workspace, <strong>Available recovery methods → Discover
+recovery methods</strong> checks the installed methods against that
+exact original file. The report shows its filename, byte length and
+SHA-256 identity.</p>
+<p>Discovery reads source bytes. It does not import assets, replace
+scenes, change project history, run a ROM, reset the emulator, or reset
+native Audio edits. It also does not establish that the entire ROM is
+understood.</p>
+<h2 id="reading-the-results">Reading the results</h2>
+<ul>
+<li><strong>supported</strong>: this method recognizes the relevant
+structure. Each later operation still checks its own requirements.</li>
+<li><strong>unknown</strong>: the bounded check could not establish this
+profile.</li>
+<li><strong>unsupported</strong>: a declared requirement is outside this
+method's capabilities.</li>
+<li><strong>ambiguous</strong>: the available evidence does not select
+one safe interpretation.</li>
+<li><strong>invalid</strong>: the method's required structure is
+malformed or inconsistent.</li>
+</ul>
+<p>Read the reason, operation list and limits for each result. In
+particular, recognizing the supported FamiTone2 driver does
+<strong>not</strong> prove that every subsong or excerpt can become an
+editable AUDIO score. Preview the chosen excerpt to see its conversion
+support, tuning, timing and envelope differences.</p>
+<p>The initial shared catalog contains physical CHR-ROM recovery and the
+supported FamiTone2 native Audio profile. It is a shared discovery
+interface for those existing methods; it adds no universal map,
+collision, gameplay, compressed graphics or audio-engine decoder.
+General physical-byte analysis remains available when no recovery method
+recognizes the source.</p>
+<p>The included <code>examples/RE_Bridge_Room/Bridge_Room.nes</code> is
+a physical-CHR example. The included
+<code>examples/RE_Native_Audio/HonkeyPong-reproduced.nes</code> is a
+native-Audio example: its supported FamiTone2 structure is recognized,
+while physical-CHR recovery is unsupported because General Analysis does
+not trust its nonzero reserved header byte. These are independent method
+decisions, not a whole-ROM supported/unsupported label.</p>
+<h2 id="open-the-appropriate-tools">Open the appropriate tools</h2>
+<p><strong>Open tile recovery tools</strong> expands the existing Raw
+CHR section and focuses <strong>Preview native tile import</strong>.
+Press that preview control separately. Importing the preview creates a
+new editable tile sheet only after you select <strong>Import as new tile
+sheet</strong>. The source palette, scene layout, collision and bank
+visibility remain unknown.</p>
+<p><strong>Open native Audio tools</strong> reveals the existing native
+Audio inspector. It does not press <strong>Analyze current ROM</strong>.
+If you already have an edited native ROM copy, it remains intact. Export
+that copy before choosing <strong>Analyze current ROM</strong> again:
+analysis starts a new native session from the original file opened for
+general analysis.</p>
+<p><strong>Open AUDIO transcription tools</strong> reveals the existing
+transcription section. First analyze the native source and select a
+subsong, then choose <strong>Preview import to AUDIO</strong>. With an
+existing current native session, transcription uses that session's
+current edited ROM bytes. Discovery always describes the original opened
+source; the native-copy notice and transcription preview identify the
+edited copy separately. Conversion remains an explicit preview and
+confirmation step.</p>
+<h2 id="source-changes-cancellation-and-evidence">Source changes,
+cancellation and evidence</h2>
+<p>Selecting another file invalidates the discovery results immediately,
+even before it is opened. Complete <strong>Open for analysis</strong>,
+then discover again. A source change during discovery prevents its older
+results from appearing. <strong>Cancel discovery</strong> prevents
+pending results from being published; trusted synchronous probes finish
+their bounded current step before cancellation can take effect.</p>
+<p><strong>Download method evidence</strong> uses the existing Save As
+workflow. It exports the original-source identity, method recognition
+results, declared capabilities, evidence and limits. The JSON is a
+historical inspection report; it is not an importable project, saved
+native edit session, or guarantee that an asset will convert. It
+contains no ROM image or project snapshot. Save cancellation or a busy
+Save As dialog leaves the current results available.</p>
+<p>Keyboard input remains owned by these controls. Discovery and routing
+are distinct from emulator controls, including touch and connected
+gamepads.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

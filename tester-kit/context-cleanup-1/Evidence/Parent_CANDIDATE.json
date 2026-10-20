@@ -1,0 +1,165 @@
+{
+  "format": "NESForgeCandidateHandoff",
+  "version": 1,
+  "release": "2.0.0-alpha.11",
+  "candidate": "native-transition-edit-1",
+  "schema": 13,
+  "ordinaryProjectSchema": 12,
+  "status": "review-candidate",
+  "branch": "implementation/native-transition-edit-2026-10-20",
+  "parentCommit": "a3fe5d21781059e983fdfb182b28e16e9b5e0c65",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
+  "standaloneDownload": "reviews/native-transition-edit-1/NES_Forge_Native_Transition_Edit_1.html",
+  "changes": [
+    "Preserve the complete supported Zelda II source ROM and native location edit recipe in native schema-13 projects.",
+    "Ordinary Build & Run uses a native backend: no-edit output matches every source byte; verified location field edits change only their declared packed bytes.",
+    "Source-independent packed records preserve flags/unknown bytes and validate masks, bounds and edit permissions; exercised in a fresh project without the source ROM.",
+    "Native location controls have one-step Undo/Redo, project save/open and an in-app/tutorial guide. Ordinary generated projects retain schema 12, their exact recipe identities and byte-identical example ROMs."
+  ],
+  "automatedResult": {
+    "status": "passed",
+    "suiteCount": 116,
+    "passed": 2046,
+    "total": 2046,
+    "retainedSuites": 114,
+    "retainedCases": 2031,
+    "addedCases": 15,
+    "summary": "app/test-results/candidate/Summary.json",
+    "node": "v22.23.3",
+    "workers": 4,
+    "executionRuns": [
+      {
+        "mode": "initial-pool",
+        "workers": 4,
+        "afterCompletedSuites": 1,
+        "collectionStartedAt": "2026-10-20T03:41:41.223Z"
+      },
+      {
+        "mode": "isolated-suite",
+        "workers": 1,
+        "completedBefore": 41,
+        "startedAt": "2026-10-20T03:50:06.685Z"
+      },
+      {
+        "mode": "isolated-suite",
+        "workers": 1,
+        "completedBefore": 41,
+        "startedAt": "2026-10-20T03:51:20.631Z"
+      },
+      {
+        "mode": "isolated-suite",
+        "workers": 1,
+        "completedBefore": 42,
+        "startedAt": "2026-10-20T03:52:25.576Z"
+      },
+      {
+        "mode": "pool",
+        "workers": 2,
+        "completedBefore": 43,
+        "startedAt": "2026-10-20T03:54:29.285Z"
+      },
+      {
+        "mode": "isolated-suite",
+        "workers": 1,
+        "completedBefore": 46,
+        "startedAt": "2026-10-20T03:56:57.166Z"
+      },
+      {
+        "mode": "pool",
+        "workers": 2,
+        "completedBefore": 47,
+        "startedAt": "2026-10-20T03:57:06.623Z"
+      }
+    ],
+    "executionMode": "durable-bounded-workers",
+    "recoveredMeasuredSuites": 0,
+    "orchestration": "reviews/native-transition-edit-1/Gate_Orchestration_Verification.json",
+    "note": "All mandatory suites freshly measured on unchanged frozen app inputs after reserving schema 13 for native projects and preserving ordinary schema-12 identities. Resumable supervision uses up to four bounded workers; each invocation and unchanged-deadline retry is recorded; this does not claim an uninterrupted standard-runner execution."
+  },
+  "browserEvidence": [
+    {
+      "report": "reviews/native-transition-edit-1/Browser_Verification.json",
+      "passed": 8,
+      "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73"
+    },
+    {
+      "report": "reviews/native-transition-edit-1/Retained_Import_Browser_Verification.json",
+      "passed": 22,
+      "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73"
+    }
+  ],
+  "nativeEvidence": {
+    "report": "reviews/native-transition-edit-1/Native_Verification.json",
+    "checks": 12,
+    "staticLocations": 248,
+    "transientReadOnlySlots": 4,
+    "completeSourceBytes": 262160,
+    "noEditOutputIdentity": true,
+    "completeGameRecovery": false,
+    "genericMovementRuleCompilation": false
+  },
+  "guide": "app/docs/NATIVE_ENGINE_EDIT_BUILD.md",
+  "preservedParent": {
+    "candidate": "native-transition-edit-1",
+    "status": "passed",
+    "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
+    "parentCommit": "a3fe5d21781059e983fdfb182b28e16e9b5e0c65",
+    "parentHtmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1",
+    "retainedSuites": 114,
+    "retainedCases": 2031,
+    "protectedFiles": 307,
+    "changedProductionParts": [
+      "src/mashup/mashup-model.js",
+      "src/re/game-re-native.js",
+      "src/re/spatial-re-ui.js",
+      "src/services/build-services.js",
+      "src/services/documentation.js",
+      "src/services/project-store.js",
+      "src/services/release-info.js",
+      "src/world/world-rom.js"
+    ],
+    "addedParts": [
+      "src/re/native-engine-format.js",
+      "src/re/native-engine-project.js",
+      "src/re/native-engine-ui.js",
+      "src/re/native-records.js"
+    ],
+    "method": "Exact reversal reconstructs the parent application and all protected test inventories. CPU/APU/PPU, generated engine emitters and world geometry codec remain unchanged. World ROM source-schema and mashup validation accept ordinary schema-13 projects; native backend dispatch, native project lifecycle, UI and allowed location-span recognition are explicit changes."
+  },
+  "parentManifest": "reviews/native-transition-edit-1/Parent_CANDIDATE.json",
+  "exampleEvidence": {
+    "report": "reviews/native-transition-edit-1/Example_Receipt_Verification.json",
+    "rebuiltSavedProjects": 14,
+    "changedProjects": 0,
+    "changedRecipes": 0,
+    "changedRoms": 0,
+    "note": "All 14 saved examples rebuild byte-identical whole ROMs. Original projects, recipes, source evidence and ROM artifacts remain unchanged; six HTML identity receipts are refreshed.",
+    "recipeReport": "reviews/native-transition-edit-1/Recipe_Compatibility_Verification.json",
+    "actualShippedUiRecipes": 6
+  },
+  "fullGateAttempts": {
+    "first": "reviews/native-transition-edit-1/initial-full-gate/Summary.json",
+    "interrupted": "reviews/native-transition-edit-1/interrupted-full-gate/Interruption.json",
+    "secondInterrupted": "reviews/native-transition-edit-1/second-interrupted-full-gate/Interruption.json",
+    "isolatedRegression": "reviews/native-transition-edit-1/Isolated_Regression_Verification.json",
+    "isolatedNativeAuthoring": "reviews/native-transition-edit-1/Isolated_Native_Authoring_Verification.json",
+    "supersededBeforeExampleRefresh": "reviews/native-transition-edit-1/pre-example-refresh-gate/Invalidation.json",
+    "supersededGlobalSchema13": "reviews/native-transition-edit-1/superseded-global-schema13/Invalidation.json",
+    "supersededSchemaCeilingTests": "reviews/native-transition-edit-1/superseded-schema-ceiling-test/Invalidation.json",
+    "supersededExportTargetAudit": "reviews/native-transition-edit-1/superseded-export-target-audit/Invalidation.json",
+    "supersededNativeFixture": "reviews/native-transition-edit-1/superseded-native-schema-fixture/Invalidation.json",
+    "durableState": "reviews/native-transition-edit-1/Durable_Gate_State.json",
+    "completed": "app/test-results/candidate/Summary.json"
+  },
+  "limits": [
+    "One verified Zelda II engine adapter; unknown games/revisions remain inspectable without invented native support.",
+    "Only native location X/Y, scene-selector and packed entry-code edits have encoders. Special unresolved scene contexts and unavailable destinations are refused. Coordinates/entry edits can still produce unreachable or unsafe locations; terrain/icons are separate data.",
+    "One reference room World is adapted; this is not the assembled overworld, complete scene graph or full game translation. Generic art, World, tracker or runtime changes are saved but block native builds until encoders exist.",
+    "Original native logic remains source-bound. Generic movement-mode components, complete route conditions/return state, collision, AI, combat, progression and remaining native encoders are unfinished.",
+    "No private ROM or generated native project is distributed. Checks use the shared CPU core on an independent bounded bus and headless Chromium; no hardware, physical Windows or listening acceptance."
+  ],
+  "promotion": "Development checkpoint toward the next alpha. Existing alpha.11 release number retained; no alpha promotion, beta claim, new kit or main merge.",
+  "payloadChecksums": 7335,
+  "packageFiles": 7336
+}

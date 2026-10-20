@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Native sound effects into
+AUDIO · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Guide.html">User guide</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#native-sound-effects-into-audio">Native sound effects into
+AUDIO</a><a class="level2" href="#start-with-the-included-projects">Start with the included
+projects</a><a class="level2" href="#recover-an-effect">Recover an effect</a><a class="level2" href="#supported-subset-and-differences">Supported subset and
+differences</a><a class="level2" href="#shared-ownership-and-evidence">Shared ownership and
+evidence</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../../Guide.html">current user guide</a> for current operator instructions.</p></blockquote><h1 id="native-sound-effects-into-audio">Native sound effects into
+AUDIO</h1>
+<p>This bounded FamiTone2 conversion turns a supported single-pulse
+native sound effect into ordinary editable Forge patterns, instruments
+and an SFX definition. It uses the currently analyzed ROM copy,
+including native edits. The original ROM, emulator, music order, tempo,
+runtime settings and animation bindings remain unchanged by import.</p>
+<h2 id="start-with-the-included-projects">Start with the included
+projects</h2>
+<p>Open a project in <code>examples/RE_Native_SFX/</code> with
+<strong>Open Project</strong>, then <strong>Build &amp; Run</strong>.
+The examples use Scout's existing World runtime and an explicitly
+authored B/attack sound binding:</p>
+<ul>
+<li><code>HonkeyPong_SFX_0.nesforge.json</code> uses recovered native
+effect 0.</li>
+<li><code>HonkeyPong_SFX_1.nesforge.json</code> uses recovered native
+effect 1.</li>
+<li><code>HonkeyPong_SFX_0_Edited.nesforge.json</code> raises the first
+effect's authored notes by one semitone.</li>
+</ul>
+<p>The paired <code>.nes</code> files are generated Forge ROMs. These
+projects demonstrate an adaptation; Scout's movement, attack binding and
+game are not recovered from HonkeyPong. The original input and its
+source/license checkpoints remain under
+<code>examples/RE_Native_Audio/</code>.</p>
+<h2 id="recover-an-effect">Recover an effect</h2>
+<ol type="1">
+<li>Use <strong>RE / DISASM → General ROM Analysis</strong> to open
+<code>examples/RE_Native_Audio/HonkeyPong-reproduced.nes</code> for
+analysis.</li>
+<li>In the native FamiTone2 Audio panel, choose <strong>Analyze current
+ROM</strong>.</li>
+<li>In the sound-effect section, choose <strong>Find SFX</strong>,
+select an effect, then preview its transcription. Unsupported effects
+retain their refusal reasons.</li>
+<li>Review source identity, duration, timer differences and adaptation
+notes. Acknowledge the conversion differences, then import the SFX and
+confirm.</li>
+<li>Inspect the appended pattern, instruments and SFX definition in
+<strong>AUDIO</strong>. Import does not start playback or create an
+animation binding. Bind the SFX through the existing authoring controls
+when you want a gameplay trigger.</li>
+<li>Use ordinary <strong>Save Project As</strong>, reopen and rebuild.
+One project <strong>Undo</strong> removes the import;
+<strong>Redo</strong> restores it.</li>
+</ol>
+<p>The current project must already use <strong>tempo 150 and speed
+1</strong>, making one tracker row one NTSC video frame. An incompatible
+project is refused without changing its music timing. Use a separate
+included project to experiment at this timing; changing the tempo of an
+existing song is an independent authoring decision. Runtime Audio
+settings remain as you set them, and a complete build still checks total
+ROM capacity.</p>
+<h2 id="supported-subset-and-differences">Supported subset and
+differences</h2>
+<p>The existing structural driver decoder discovers statically
+referenced effects. Conversion checks actual register streams, without
+relying on a filename, ROM hash or known effect ID. The included
+original effects 0 and 1 each use one pulse channel for 12 audible
+frames. Effect 2 uses two pulse channels and is refused by this initial
+subset.</p>
+<p>Only one fully known pulse channel, supported
+constant-volume/length-halt controls, proven timer bounds and a stream
+that fits one current tracker pattern plus its terminal cut can convert.
+PAL, other channel kinds, multichannel effects, unknown required state,
+unsupported controls, invalid timers and excessive duration or project
+capacity are refused. Missing effects are not inferred from unreferenced
+bytes.</p>
+<p>Native timer periods are mapped to the nearest existing Forge pitch
+and the measured difference is reported. Volume and duty changes become
+ordinary canonical rows and instruments. The native final buffer mix is
+retained for its last frame; a following terminal row ends the Forge
+effect. Pulse phase and high-register writes can differ because the
+existing Forge driver retriggers differently.</p>
+<p>Native FamiTone2 mixing chooses between music and effect buffers by
+its own channel rules. Forge's existing single-SFX runtime temporarily
+owns one channel, then resumes its saved music state. This conversion
+does not recreate native mixing, simultaneous effect streams, call
+timing, original game triggers or waveform equivalence. Imported effects
+use the same supported Forge runtime as authored effects.</p>
+<h2 id="shared-ownership-and-evidence">Shared ownership and
+evidence</h2>
+<p>Music and SFX imports share the native Audio import service.
+ProjectStore owns their validated Audio-only transaction and Undo.
+Native music retains its established finite-score behavior; SFX import
+appends resources while preserving the existing collection prefixes,
+music order, tempo/speed, settings and bindings. Duplicate source-effect
+IDs are refused instead of replacing an existing effect.</p>
+<p>Changing the ROM copy, selection, project or options invalidates a
+staged preview. Import revalidates source identity, conversion and
+project state. Cancellation, unsupported input and failed validation
+leave the project intact. Evidence downloads are historical conversion
+reports, separate from editable project files and native ROM-copy
+exports.</p>
+<p>The current automated Summary and clean-extraction proof identify the
+exact tested application. Original-driver and generated-ROM CPU/APU
+comparisons establish logical timing, volume, duty and measured pitch
+behavior for this subset. Browser layout/downloads, speaker listening,
+independent-emulator audio, phones/controllers and physical NES
+acceptance remain separately unverified until performed.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

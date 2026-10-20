@@ -1,0 +1,5050 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge operator reference · NES Forge alpha.11</title><link rel="stylesheet" href="../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../START_HERE.html">Start here</a><a href="../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../Guide.html">User guide</a><a href="../Tutorial.html">Tutorial</a><a href="../Manual.html">Manual</a><a href="../Reference/Operator_Reference.html">Controls</a><a href="../Feedback_Template.txt">Feedback</a><a href="Operator_Reference.pdf">Printable PDF</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#nes-forge-operator-reference">NES Forge operator reference</a><a class="level1" href="#preserved-190-operator-reference">Preserved 1.9.0 operator
+reference</a><a class="level1" href="#nes-forge-190---complete-operator-reference">NES Forge 1.9.0 -
+Complete Operator Reference</a><a class="level2" href="#how-to-read-the-tables">How to read the tables</a><a class="level2" href="#global-ui-map">Global UI map</a><a class="level2" href="#the-mental-model-in-one-page">The mental model in one page</a><a class="level1" href="#complete-control-reference">Complete control reference</a><a class="level2" href="#global-toolbar">GLOBAL TOOLBAR</a><a class="level2" href="#project-bar">PROJECT BAR</a><a class="level2" href="#scene">SCENE</a><a class="level2" href="#scene--gameplay-retained-single-room">SCENE &gt; GAMEPLAY
+(RETAINED SINGLE-ROOM)</a><a class="level2" href="#chr-sheet">CHR SHEET</a><a class="level2" href="#metatiles">METATILES</a><a class="level2" href="#world">WORLD</a><a class="level2" href="#world--world-runtime">WORLD &gt; WORLD RUNTIME</a><a class="level2" href="#attr-map">ATTR MAP</a><a class="level2" href="#sprites">SPRITES</a><a class="level2" href="#metasprites">METASPRITES</a><a class="level2" href="#anim">ANIM</a><a class="level2" href="#entity-studio">ENTITY STUDIO</a><a class="level2" href="#gameplay-core">GAMEPLAY CORE</a><a class="level2" href="#audio">AUDIO</a><a class="level2" href="#collision">COLLISION</a><a class="level2" href="#code">CODE</a><a class="level2" href="#emulator">EMULATOR</a><a class="level2" href="#disasm">DISASM</a><a class="level2" href="#tech-docs">TECH DOCS</a><a class="level2" href="#saving--file-formats">SAVING / FILE FORMATS</a><a class="level1" href="#cross-tab-effect-matrix">Cross-tab effect matrix</a><a class="level1" href="#build-run-import-and-save-which-button-should-i-use">Build, run,
+import, and save: which button should I use?</a><a class="level1" href="#keyboard-and-mouse-reference">Keyboard and mouse reference</a><a class="level1" href="#limits-that-are-easy-to-misread-as-bugs">Limits that are easy to
+misread as bugs</a><a class="level1" href="#troubleshooting-by-symptom">Troubleshooting by symptom</a><a class="level1" href="#source-and-verification-note">Source and verification note</a></aside><main id="guide"><blockquote>
+<p><strong>Current instructions:</strong> Start with the <a
+href="../Guide.html">current user guide</a> and its five workspace
+chapters. They cover the included audio-tool-import-1 application and
+take precedence over preserved historical chapters, control rows and
+version claims below. Use them for composing from scratch, current
+imports, save formats and supported recovery.</p>
+</blockquote>
+<h1 id="nes-forge-operator-reference">NES Forge operator reference</h1>
+<p><strong>Historical 1.9.0 control tables, with an alpha.11 usage
+layer</strong></p>
+<p>Read <a href="Alpha11_Updates.html">Alpha.11 usage updates</a> for
+current Audio export, source workspace builds, source intake, mashups,
+movement rules and declared recovery routes. These restored tables
+retain the original detailed control coverage. They are not a complete
+inventory of every alpha.11 control.</p>
+<p>The active kit application is <strong>2.0.0-alpha.11 /
+audio-tool-import-1</strong>, schema 12. Its SHA-256 is
+<code>1fd884cdc1b568b72e3bc777ef3a0b1a926b6020e8b143d8110a9a9001dc821d</code>.
+Older identities, dates, claims and screenshots below describe the
+original 1.9.0 edition.</p>
+<ul>
+<li><a href="Control_Index.csv">Control_Index.csv</a>: all <strong>439
+original baseline rows</strong>, preserved unchanged.</li>
+<li><a href="Alpha11_Controls.csv">Alpha11_Controls.csv</a>: selected
+additions and updated workflows, with source-document references; not an
+exhaustive current inventory.</li>
+<li><a href="../Manual.html">Manual</a>: full historical workshop plus
+current reading notes.</li>
+<li><a href="Reviewer_Checklist.html">Reviewer Checklist</a> and <a
+href="Mobile_Performance_Triage.html">Mobile Performance Triage</a>:
+updated review paths.</li>
+<li><a href="../Feedback_Template.txt">Feedback_Template.txt</a>: report
+a control or documentation mismatch.</li>
+</ul>
+<p><strong>Current corrections:</strong> MusicXML/MIDI score export now
+exists. Source Workspace can assemble the supported
+<code>forge-6502-v1</code> mapper-0 profile through <strong>Build source
+ROM</strong>; <strong>Analyze source</strong> is its separate diagnostic
+workflow. Source workspace JSON, native editor project JSON and analysis
+reports have different save purposes. Expanded Play now exposes current
+performance diagnostics. The two screenshots and all original table rows
+below remain historical references.</p>
+<hr />
+<h1 id="preserved-190-operator-reference">Preserved 1.9.0 operator
+reference</h1>
+<blockquote>
+<p><strong>Historical chapter scope.</strong> All version-specific
+statements below belong to September 30, 2026. Current notes above
+override them. Verbatim source is retained in
+<code>Historical/Documentation_Source/</code>; this reading copy repairs
+links and marks known obsolete statements.</p>
+</blockquote>
+<h1 id="nes-forge-190---complete-operator-reference">NES Forge 1.9.0 -
+Complete Operator Reference</h1>
+<p><strong>Control-by-control reference · 1.9.0 Gameplay Core — Alpha /
+mobile-play-1 · September 30, 2026</strong></p>
+<p><strong>Application source package:</strong>
+<code>NES_Forge_1.9.0_Alpha_Mobile_Play_Candidate.zip</code><br />
+<strong>Source package SHA-256:</strong>
+<code>aa734c7e734adea8c4821ac57ec2297d105cb1a5e9813635a0a52ad9f2f77088</code><br />
+<strong>Application SHA-256:</strong>
+<code>e7c75ccd43007c46b5e0336105f6551f4b6183cc39730802cd1fba226eb7fe12</code></p>
+<p><strong>Historical identity:</strong> These hashes identify the
+application/source in the original September 30 kit, which is retained
+separately. This kit's root <code>NES_Forge.html</code> is alpha.11; see
+the current identity above. The old application/source ZIP is not
+duplicated in this kit.</p>
+<blockquote>
+<p><strong>Historical September 2026 status:</strong> The original 1.9.0
+package was a functional alpha candidate. Its September 28 automated run
+passed 702/702 checks in 28 suites; this is not evidence for the current
+alpha.11 application. On September 30 the owner reported that
+touchscreen controls work on mobile, and also reported audio/video lag.
+Physical controllers remain untested; the device, browser/version, ROM
+and performance measurements for that report have not been recorded.
+This documentation update neither fixes performance nor establishes
+broad device compatibility.</p>
+</blockquote>
+<h2 id="how-to-read-the-tables">How to read the tables</h2>
+<ul>
+<li><strong>Project data</strong> means the control changes saved
+authoring data.</li>
+<li><strong>Editor view/selection</strong> changes what you see or what
+will be edited, without itself changing project semantics.</li>
+<li><strong>Build output</strong> creates or changes an external
+ROM/package.</li>
+<li><strong>Runtime</strong> means the compiled game/emulator behavior
+is affected when the selected runtime supports that capability.</li>
+<li>A control can be authorable but still be unsupported by the current
+generated runtime profile; in that case executable builds should reject
+it rather than silently ignore it.</li>
+</ul>
+<h2 id="global-ui-map">Global UI map</h2>
+<p><img src="../images/toolbar-callouts.png"
+alt="Top toolbar callouts" /></p>
+<p><em>Historical toolbar illustration from the corrected Gameplay Core
+reference. It locates the existing editor controls; Mobile Play controls
+added afterward are documented below.</em></p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">#</th>
+<th>Area</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td>Grid / Attr / Meta overlays</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td>Global canvas Zoom</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td>Upload Image</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4</td>
+<td>Load .zip Pack</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td>Export project ZIP</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">6</td>
+<td>Build .NES ROM</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">7</td>
+<td>Build &amp; Run</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">8</td>
+<td>Import ROM</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">9</td>
+<td>Clean Cache</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">10</td>
+<td>Active Scene selector</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">11</td>
+<td>Scene add / duplicate / delete / rename</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">12</td>
+<td>Undo / Redo / Copy</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">13</td>
+<td>Paste</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">14</td>
+<td>New Project</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">15</td>
+<td>Project identity + Save / Load / Save Project As / Open Project</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">16</td>
+<td>Open Forge ROM</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">17</td>
+<td>Gameplay shortcut</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">18</td>
+<td>SCENE sidebar / Gameplay details</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-mental-model-in-one-page">The mental model in one page</h2>
+<pre class="text"><code>BACKGROUND: CHR SHEET -&gt; METATILES -&gt; WORLD -&gt; World Runtime -&gt; ROM
+CHARACTER:  SPRITE CHR -&gt; METASPRITES -&gt; ANIM -&gt; ENTITY STUDIO -&gt; retained Player runtime
+GAMEPLAY:   Actor Definition -&gt; Actor Instance -&gt; Behavior table -&gt; Gameplay Core compiler -&gt; Runtime Actor
+AUDIO:      Tracker / MIDI / MusicXML -&gt; NES Forge Audio -&gt; AudioCompiler -&gt; APU runtime
+DEBUG:      Build &amp; Run -&gt; EMULATOR -&gt; Capture / DISASM / diagnostics</code></pre>
+<h3 id="key-separation-rules">Key separation rules</h3>
+<ol type="1">
+<li><strong>Scene is not World.</strong> A Scene owns source
+graphics/palettes/legacy entity data; a World places metatiles across
+many screens.</li>
+<li><strong>Legacy Entity is not Gameplay Core Actor Instance.</strong>
+They coexist in 1.9.0 for compatibility.</li>
+<li><strong>Metasprite is not Animation.</strong> Metasprite is one
+composed pose; Animation sequences poses over time.</li>
+<li><strong>Entity Studio state is not Gameplay Core behavior
+state.</strong> Entity Studio binds visual animation states to legacy
+Scene entities.</li>
+<li><strong>Build &amp; Run is not Run Original.</strong> Build &amp;
+Run compiles current edits; Run Original runs preserved imported ROM
+bytes.</li>
+<li><strong>Authorable is not necessarily executable in every
+profile.</strong> The current Gameplay Core NROM profile rejects
+unsupported operations.</li>
+<li><strong>ROM is not your only source backup.</strong> Save JSON/ZIP
+projects.</li>
+</ol>
+<h1 id="complete-control-reference">Complete control reference</h1>
+<h2 id="global-toolbar">GLOBAL TOOLBAR</h2>
+<p>The global toolbar is always about context, importing, building,
+Scene selection, and editor history. Build controls act on the current
+project; they do not implicitly save it first.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Grid</td>
+<td>checkbox</td>
+<td>Shows/hides the editor grid overlay on applicable canvas views.</td>
+<td>Editor view only</td>
+<td>Scene/CHR/other canvas views</td>
+<td>Does not change saved tile data.</td>
+</tr>
+<tr class="even">
+<td>Attr</td>
+<td>checkbox</td>
+<td>Shows/hides attribute/palette-zone overlay where applicable.</td>
+<td>Editor view only</td>
+<td>SCENE</td>
+<td>Overlay only; palette data is edited elsewhere.</td>
+</tr>
+<tr class="odd">
+<td>Meta</td>
+<td>checkbox</td>
+<td>Shows/hides metatile-oriented overlay where applicable.</td>
+<td>Editor view only</td>
+<td>SCENE/METATILES</td>
+<td>Does not create metatile definitions.</td>
+</tr>
+<tr class="even">
+<td>Zoom 2x / 3x / 4x</td>
+<td>select</td>
+<td>Changes canvas rendering scale for applicable editor views.</td>
+<td>Editor view only</td>
+<td>Most canvas tabs</td>
+<td>World and Metasprite Composer have their own zoom controls.</td>
+</tr>
+<tr class="odd">
+<td>Upload Image</td>
+<td>button</td>
+<td>Imports an image, resizes/quantizes it to a 256x240 NES scene, and
+adds it as a new Scene.</td>
+<td>Project data</td>
+<td>SCENE, CHR, palettes</td>
+<td>Conversion is constrained by NES tile/palette limits; imported image
+is not automatically a World.</td>
+</tr>
+<tr class="even">
+<td>Load .zip Pack</td>
+<td>button</td>
+<td>Loads a NES Forge ZIP. If project.json exists, restores the project;
+otherwise imports supported binary asset-pack files.</td>
+<td>Project data</td>
+<td>Project/CHR/scenes/assets</td>
+<td>Do not confuse with Open Project JSON or Import ROM.</td>
+</tr>
+<tr class="odd">
+<td>Export...</td>
+<td>button</td>
+<td>Creates a portable .nesforge.zip package containing project.json and
+binary assets.</td>
+<td>External file</td>
+<td>All domains</td>
+<td>Primary portable ZIP backup/export; not the same as building a
+ROM.</td>
+</tr>
+<tr class="even">
+<td>Build .NES ROM</td>
+<td>button</td>
+<td>Compiles the current edited project using the selected runtime/build
+mode and Save As flow.</td>
+<td>Build output</td>
+<td>CODE, WORLD Runtime, Gameplay, Audio</td>
+<td>A successful build only includes capabilities supported by the
+selected runtime profile.</td>
+</tr>
+<tr class="odd">
+<td>Build &amp; Run</td>
+<td>button</td>
+<td>Builds the current edited project, loads the newly built ROM into
+the bundled emulator, and runs it.</td>
+<td>Build + runtime</td>
+<td>EMULATOR</td>
+<td>Never silently runs an old imported ROM.</td>
+</tr>
+<tr class="even">
+<td>Import ROM</td>
+<td>button</td>
+<td>Imports/preserves an existing .nes ROM and exposes
+capture/extraction workflows.</td>
+<td>Project + imported original</td>
+<td>EMULATOR, CHR, Capture</td>
+<td>Import does not imply full editable source recovery.</td>
+</tr>
+<tr class="odd">
+<td>Clean Cache</td>
+<td>button</td>
+<td>Clears recovery data and temporary audio/runtime cache and stops
+transient playback.</td>
+<td>Browser recovery/temp state</td>
+<td>Autosave recovery, Audio, Emulator</td>
+<td>Saved IndexedDB projects and the open workspace are preserved.</td>
+</tr>
+<tr class="even">
+<td>Scene selector</td>
+<td>select</td>
+<td>Switches the active authoring Scene.</td>
+<td>Editor selection</td>
+<td>SCENE, CHR source, ENTITY STUDIO</td>
+<td>Changing active Scene does not change the configured World Runtime
+start World/player automatically.</td>
+</tr>
+<tr class="odd">
+<td>+ Scene</td>
+<td>button</td>
+<td>Creates a new Scene.</td>
+<td>Project data</td>
+<td>SCENE</td>
+<td>A new Scene does not automatically contain metatiles or become a
+World.</td>
+</tr>
+<tr class="even">
+<td>Duplicate Scene</td>
+<td>button</td>
+<td>Creates an independent copy of the active Scene.</td>
+<td>Project data</td>
+<td>SCENE/assets</td>
+<td>Useful before destructive experimentation.</td>
+</tr>
+<tr class="odd">
+<td>Delete Scene</td>
+<td>button</td>
+<td>Deletes the active Scene after validation/confirmation.</td>
+<td>Project data</td>
+<td>World/asset references</td>
+<td>Referenced assets may make deletion invalid or create
+missing-reference errors.</td>
+</tr>
+<tr class="even">
+<td>Rename Scene</td>
+<td>button</td>
+<td>Renames the active Scene.</td>
+<td>Project data</td>
+<td>Scene selectors throughout app</td>
+<td>Name is presentation; stable IDs carry references.</td>
+</tr>
+<tr class="odd">
+<td>Undo</td>
+<td>button / Ctrl+Z</td>
+<td>Restores the previous editor snapshot.</td>
+<td>Project/editor history</td>
+<td>Most authoring domains</td>
+<td>Some browser/file actions are outside undo history.</td>
+</tr>
+<tr class="even">
+<td>Redo</td>
+<td>button / Ctrl+Shift+Z</td>
+<td>Reapplies an undone snapshot when available.</td>
+<td>Project/editor history</td>
+<td>Most authoring domains</td>
+<td>May be shown on later UI layer even if base shell only contains
+Undo.</td>
+</tr>
+<tr class="odd">
+<td>Copy</td>
+<td>button / Ctrl+C</td>
+<td>Copies the currently selected tile in tile-oriented contexts.</td>
+<td>Clipboard inside app</td>
+<td>CHR/SCENE</td>
+<td>Not a general project-object copy operation.</td>
+</tr>
+<tr class="even">
+<td>Paste</td>
+<td>button / Ctrl+V</td>
+<td>Pastes the copied tile into the selected tile slot/context.</td>
+<td>Project data</td>
+<td>CHR/SCENE</td>
+<td>Disabled until an internal tile copy exists.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="project-bar">PROJECT BAR</h2>
+<p>Project lifecycle controls are deliberately separate from ROM
+import/build controls. Treat portable JSON/ZIP as your editable source
+backup.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>New Project</td>
+<td>button</td>
+<td>Replaces the workspace with a blank project using the normal
+authoring tools.</td>
+<td>Project lifecycle</td>
+<td>All tabs</td>
+<td>Undoable in the current workflow; does not load a hidden starter
+game.</td>
+</tr>
+<tr class="even">
+<td>Project name</td>
+<td>status</td>
+<td>Shows the current project identity/name.</td>
+<td>Editor status</td>
+<td>Save/Load</td>
+<td>Project name is not a ROM title field.</td>
+</tr>
+<tr class="odd">
+<td>Save</td>
+<td>button</td>
+<td>Saves the complete project to browser IndexedDB.</td>
+<td>Browser storage</td>
+<td>Load</td>
+<td>Browser-local storage is not a portable backup.</td>
+</tr>
+<tr class="even">
+<td>Load</td>
+<td>button</td>
+<td>Opens the browser-saved project list and restores a selected
+IndexedDB project.</td>
+<td>Browser storage -&gt; project</td>
+<td>Save</td>
+<td>Different browser/profile may not have the same saves.</td>
+</tr>
+<tr class="odd">
+<td>Save Project As…</td>
+<td>button</td>
+<td>Writes a complete portable project JSON through native Save As or
+explicit browser fallback.</td>
+<td>External file</td>
+<td>Open Project</td>
+<td>Best portable editable backup; cancellation does not silently
+download.</td>
+</tr>
+<tr class="even">
+<td>Open Project</td>
+<td>button</td>
+<td>Loads a portable NES Forge project JSON.</td>
+<td>Project lifecycle</td>
+<td>Save Project As</td>
+<td>Schema validation occurs before replacement.</td>
+</tr>
+<tr class="odd">
+<td>Open Forge ROM</td>
+<td>button</td>
+<td>Opens a supported NES Forge-generated ROM as an editable project
+when source envelope/metadata supports it.</td>
+<td>Project lifecycle</td>
+<td>World WG17 / generated ROM formats</td>
+<td>World ROM source recovery is more complete than current single-room
+source recovery.</td>
+</tr>
+<tr class="even">
+<td>Gameplay</td>
+<td>button</td>
+<td>Switches to SCENE and opens the Gameplay details containing retained
+single-room configuration and Gameplay Core tables.</td>
+<td>Editor navigation</td>
+<td>SCENE, GAMEPLAY CORE</td>
+<td>Gameplay Core is a SCENE details panel, not a top-level tab.</td>
+</tr>
+<tr class="odd">
+<td>Recovery: Restore</td>
+<td>banner button</td>
+<td>Restores a discovered autosave/recovery snapshot.</td>
+<td>Project lifecycle</td>
+<td>Autosave</td>
+<td>Autosave stays held until Restore or Dismiss is chosen.</td>
+</tr>
+<tr class="even">
+<td>Recovery: Dismiss</td>
+<td>banner button</td>
+<td>Discards/ignores the pending recovery snapshot and resumes normal
+autosave behavior.</td>
+<td>Browser recovery</td>
+<td>Autosave</td>
+<td>Use deliberately if current workspace should win.</td>
+</tr>
+<tr class="odd">
+<td>Load Project modal Close</td>
+<td>button</td>
+<td>Closes the browser project list without loading a project.</td>
+<td>Editor view</td>
+<td>Load</td>
+<td>No data change.</td>
+</tr>
+<tr class="even">
+<td>Drag-and-drop overlay</td>
+<td>drop target</td>
+<td>Accepts images, .zip packs, .nes ROMs, and .json projects and routes
+them to the matching importer.</td>
+<td>Depends on file type</td>
+<td>Global imports</td>
+<td>Use dedicated buttons when you want the operation to be
+unambiguous.</td>
+</tr>
+<tr class="odd">
+<td>Tab context menu: Open in new tab</td>
+<td>context command</td>
+<td>Opens the selected editor view in another browser tab.</td>
+<td>Editor view</td>
+<td>Cross-tab sync</td>
+<td>Middle-click is the shortcut.</td>
+</tr>
+<tr class="even">
+<td>Tab context menu: Open all views in tabs</td>
+<td>context command</td>
+<td>Opens the supported editor views in separate tabs.</td>
+<td>Editor view</td>
+<td>Cross-tab sync</td>
+<td>Browser popup policy may limit this.</td>
+</tr>
+<tr class="odd">
+<td>Tab context menu: Detach as popup</td>
+<td>context command</td>
+<td>Opens a selected view in a dedicated popup window.</td>
+<td>Editor view</td>
+<td>Cross-tab sync</td>
+<td>Popup blockers may apply.</td>
+</tr>
+<tr class="even">
+<td>Sync dot</td>
+<td>status</td>
+<td>Shows whether linked NES Forge tabs are connected for live
+editor-state synchronization.</td>
+<td>Editor status</td>
+<td>Detached/multi-tab views</td>
+<td>Not network multiplayer; browser-local editor synchronization.</td>
+</tr>
+<tr class="odd">
+<td>Bottom status bar</td>
+<td>status fields</td>
+<td>Shows issue status, selected Tile, usage, Palette, Position, Zone,
+Undo count, clipboard, unique/free tile counts, and metatile
+status.</td>
+<td>Editor diagnostics</td>
+<td>Most tabs</td>
+<td>Values are context-dependent.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="scene">SCENE</h2>
+<p>SCENE is the active Scene authoring workspace: raw 8x8 background
+painting, palettes/attributes, legacy Scene entities, camera metadata,
+and the host for Gameplay configuration. It is not the same thing as
+WORLD.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Main scene canvas</td>
+<td>canvas</td>
+<td>Paints the active Scene background in 8x8 tiles; drag paints
+continuously; right-click eyedrops tile and palette.</td>
+<td>Project data + editor</td>
+<td>CHR, palettes, metatiles</td>
+<td>Scene is a source/room asset; it is not automatically a multi-screen
+World.</td>
+</tr>
+<tr class="even">
+<td>Scene browser</td>
+<td>list</td>
+<td>Selects scenes and shows scene thumbnails/status.</td>
+<td>Editor selection</td>
+<td>Global Scene selector</td>
+<td>Selection does not alter saved runtime configuration
+references.</td>
+</tr>
+<tr class="odd">
+<td>Metatile Brush selector</td>
+<td>select</td>
+<td>Chooses a scene-local 16x16 metatile definition for Scene
+painting.</td>
+<td>Editor selection</td>
+<td>METATILES</td>
+<td>Empty until the active Scene owns a Metatile Library.</td>
+</tr>
+<tr class="even">
+<td>Enable 16x16 Brush</td>
+<td>button/toggle</td>
+<td>Switches Scene painting from raw 8x8 tiles to complete linked
+metatiles.</td>
+<td>Editor mode</td>
+<td>METATILES</td>
+<td>Raw edits to a linked cell can detach that cell if it no longer
+matches.</td>
+</tr>
+<tr class="odd">
+<td>Selected Tile preview</td>
+<td>preview/status</td>
+<td>Shows selected BG tile and usage count.</td>
+<td>Editor status</td>
+<td>CHR SHEET</td>
+<td>Selection is used by raw Scene painting.</td>
+</tr>
+<tr class="even">
+<td>Palette row labels P0-P3</td>
+<td>selector</td>
+<td>Selects active background palette row.</td>
+<td>Editor selection</td>
+<td>Scene paint/CHR preview</td>
+<td>Palette row is part of attribute data.</td>
+</tr>
+<tr class="odd">
+<td>Palette swatches</td>
+<td>selector</td>
+<td>Selects one of four pixel colors within the active palette.</td>
+<td>Editor selection</td>
+<td>CHR pixel editor</td>
+<td>Color 0 participates in NES universal-background behavior.</td>
+</tr>
+<tr class="even">
+<td>Palette edit pencil</td>
+<td>button</td>
+<td>Opens NES palette color picker for the selected palette entry.</td>
+<td>Project palette data</td>
+<td>Scene, CHR, metatiles</td>
+<td>Changes every use of that palette entry in the owning Scene
+context.</td>
+</tr>
+<tr class="odd">
+<td>Live Stats</td>
+<td>status</td>
+<td>Shows unique tiles, free slots, metatiles, 1x/2x tile counts, reuse
+ratio.</td>
+<td>Diagnostics</td>
+<td>Build capacity planning</td>
+<td>Informational, not a compiler guarantee.</td>
+</tr>
+<tr class="even">
+<td>ATTR Editor cells</td>
+<td>grid</td>
+<td>Cycles palette assignment 0-&gt;1-&gt;2-&gt;3 for attribute
+quadrants.</td>
+<td>Project attribute data</td>
+<td>ATTR MAP, rendering</td>
+<td>Editing attributes can detach linked metatile cells whose palette no
+longer matches.</td>
+</tr>
+<tr class="odd">
+<td>Scene Type: Side-View</td>
+<td>select option</td>
+<td>Marks Scene as side-view authoring metadata.</td>
+<td>Project data</td>
+<td>Gameplay/runtime validation</td>
+<td>Used by retained platformer/World assumptions where applicable.</td>
+</tr>
+<tr class="even">
+<td>Scene Type: Top-Down</td>
+<td>select option</td>
+<td>Marks Scene as top-down authoring metadata.</td>
+<td>Project data</td>
+<td>Future/runtime metadata</td>
+<td>Current World Gameplay profile is not a universal top-down
+engine.</td>
+</tr>
+<tr class="odd">
+<td>Scene Type: Static Screen</td>
+<td>select option</td>
+<td>Marks Scene as a static-screen type.</td>
+<td>Project data</td>
+<td>Viewer/metadata</td>
+<td>Does not automatically disable all camera metadata.</td>
+</tr>
+<tr class="even">
+<td>Scroll: None</td>
+<td>select option</td>
+<td>Stores no-scroll scene intent.</td>
+<td>Project data</td>
+<td>Single-room validation</td>
+<td>Single-room platformer requires no scrolling.</td>
+</tr>
+<tr class="odd">
+<td>Scroll: Horizontal / Vertical / Both</td>
+<td>select options</td>
+<td>Stores scene scrolling intent.</td>
+<td>Project data</td>
+<td>Metadata/future runtime profiles</td>
+<td>Current 1.9 World Runtime uses screen transitions, not smooth
+scrolling.</td>
+</tr>
+<tr class="even">
+<td>BG Color 0-63</td>
+<td>number</td>
+<td>Sets Scene background NES palette index.</td>
+<td>Project palette/runtime data</td>
+<td>Scene render/build</td>
+<td>Must be valid NES palette index.</td>
+</tr>
+<tr class="odd">
+<td>Gravity: None / Down / Heavy / Up</td>
+<td>select</td>
+<td>Stores legacy Scene gravity metadata.</td>
+<td>Project data</td>
+<td>Legacy/runtime metadata</td>
+<td>Gameplay Core Physics is not simply this Scene dropdown.</td>
+</tr>
+<tr class="even">
+<td>Entity placement toolbar</td>
+<td>buttons</td>
+<td>Chooses a legacy Scene entity/object type, then places it on the
+Scene canvas.</td>
+<td>Project legacy entity data</td>
+<td>ENTITY STUDIO, retained Player path</td>
+<td>Legacy Scene entities and Gameplay Core Actor Instances are
+different models.</td>
+</tr>
+<tr class="odd">
+<td>Placed Entities list</td>
+<td>list</td>
+<td>Selects existing legacy Scene entities.</td>
+<td>Editor selection</td>
+<td>Entity Properties / ENTITY STUDIO</td>
+<td>Does not list generic Gameplay Core Actor Instances.</td>
+</tr>
+<tr class="even">
+<td>Entity Properties</td>
+<td>form</td>
+<td>Edits type-specific legacy entity values and position.</td>
+<td>Project legacy entity data</td>
+<td>ENTITY STUDIO / retained runtimes</td>
+<td>Semantics vary by entity type.</td>
+</tr>
+<tr class="odd">
+<td>Delete Entity</td>
+<td>button</td>
+<td>Deletes selected legacy Scene entity.</td>
+<td>Project data</td>
+<td>Entity bindings/runtime refs</td>
+<td>Can invalidate configured Player/Target references.</td>
+</tr>
+<tr class="even">
+<td>Camera/View Show</td>
+<td>checkbox</td>
+<td>Shows/hides authored view/camera bounds on the Scene canvas.</td>
+<td>Editor view</td>
+<td>View W/H/Borders</td>
+<td>Does not alter World camera regions.</td>
+</tr>
+<tr class="odd">
+<td>View W / H</td>
+<td>numbers</td>
+<td>Sets authored Scene viewport width/height metadata.</td>
+<td>Project data</td>
+<td>Single-room/camera metadata</td>
+<td>World Runtime uses its own screen/camera model.</td>
+</tr>
+<tr class="even">
+<td>H Border / V Border</td>
+<td>numbers</td>
+<td>Sets authored camera border margins.</td>
+<td>Project data</td>
+<td>Scene camera metadata</td>
+<td>Not the same as World Camera Region mode.</td>
+</tr>
+<tr class="odd">
+<td>Scene Links list</td>
+<td>list</td>
+<td>Shows legacy Scene links created by Door/Exit entities.</td>
+<td>Project data</td>
+<td>Legacy viewer/scene navigation metadata</td>
+<td>World Entrances/Exits are separate and live in WORLD.</td>
+</tr>
+<tr class="even">
+<td>Gameplay disclosure</td>
+<td>details</td>
+<td>Opens retained single-room configuration and the 1.9 Gameplay Core
+authoring tables.</td>
+<td>Editor navigation</td>
+<td>Single-room + GAMEPLAY CORE</td>
+<td>World Runtime, when enabled, supersedes the saved viewer/single-room
+mode.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="scene-cross-tab-effects">SCENE cross-tab effects</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Change in SCENE</th>
+<th>Where it appears next</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Raw BG tile paint</td>
+<td>SCENE, ATTR/META analyses, viewer/custom builds; WORLD only if you
+rebuild/use metatile definitions rather than assuming raw Scene paint
+changes an existing World map</td>
+</tr>
+<tr class="even">
+<td>Palette/ATTR edit</td>
+<td>SCENE render, CHR contextual appearance, metatile
+matching/linked-cell integrity</td>
+</tr>
+<tr class="odd">
+<td>Legacy Player entity</td>
+<td>ENTITY STUDIO and retained Player selectors in single-room/World
+Runtime</td>
+</tr>
+<tr class="even">
+<td>Gameplay details</td>
+<td>Retained single-room config and Gameplay Core compiler inputs</td>
+</tr>
+<tr class="odd">
+<td>Camera/View metadata</td>
+<td>Scene viewer/single-room metadata; not the same as WORLD Camera
+Regions</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="scene--gameplay-retained-single-room">SCENE &gt; GAMEPLAY
+(RETAINED SINGLE-ROOM)</h2>
+<p>These are the retained historical viewer/single-room settings. World
+Runtime disables them when enabled. Gameplay Core tables live in the
+same SCENE Gameplay details but are a separate canonical actor
+model.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ROM mode</td>
+<td>select</td>
+<td>Chooses Scene viewer/custom assembly or Single-room platformer for
+the retained build path.</td>
+<td>Project build config</td>
+<td>CODE, Build &amp; Run</td>
+<td>World Runtime overrides these controls while enabled.</td>
+</tr>
+<tr class="even">
+<td>Playable room</td>
+<td>select</td>
+<td>Chooses the Scene used by the single-room platformer.</td>
+<td>Project build config</td>
+<td>Legacy entities/art</td>
+<td>Must satisfy sideview/no-scroll/fixed-view requirements.</td>
+</tr>
+<tr class="odd">
+<td>Player</td>
+<td>select</td>
+<td>Chooses a legacy Player entity in the playable room.</td>
+<td>Project build config</td>
+<td>ENTITY STUDIO animation binding</td>
+<td>Retained Player executor is not generic Gameplay Core runtime
+unification.</td>
+</tr>
+<tr class="even">
+<td>Training target</td>
+<td>select</td>
+<td>Chooses optional Enemy/NPC target for the historical playable-room
+slice.</td>
+<td>Project build config</td>
+<td>Retained runtime</td>
+<td>Not a generalized enemy system.</td>
+</tr>
+<tr class="odd">
+<td>Move speed</td>
+<td>number 1-4</td>
+<td>Player horizontal speed in pixels per 60 Hz tick.</td>
+<td>Project runtime config</td>
+<td>Player movement</td>
+<td>Only current retained single-room/World Player executor.</td>
+</tr>
+<tr class="even">
+<td>Jump speed</td>
+<td>number 1-12</td>
+<td>Initial jump velocity.</td>
+<td>Project runtime config</td>
+<td>Player movement</td>
+<td>Pixel/tick convention.</td>
+</tr>
+<tr class="odd">
+<td>Gravity</td>
+<td>number 1-3</td>
+<td>Downward acceleration per tick squared.</td>
+<td>Project runtime config</td>
+<td>Player movement</td>
+<td>Different from Scene Gravity dropdown metadata.</td>
+</tr>
+<tr class="even">
+<td>Maximum fall</td>
+<td>number 1-8</td>
+<td>Caps downward velocity.</td>
+<td>Project runtime config</td>
+<td>Player movement</td>
+<td>Current generated profile bound.</td>
+</tr>
+<tr class="odd">
+<td>Body width</td>
+<td>number 2-32 even</td>
+<td>Sets Player collision-body width.</td>
+<td>Project runtime config</td>
+<td>Solid collision</td>
+<td>Even width required.</td>
+</tr>
+<tr class="even">
+<td>Body height</td>
+<td>number 2-48</td>
+<td>Sets Player collision-body height.</td>
+<td>Project runtime config</td>
+<td>Solid collision</td>
+<td>Feet/center conventions matter for placement.</td>
+</tr>
+<tr class="odd">
+<td>Build &amp; Play</td>
+<td>button</td>
+<td>Builds and launches the selected retained mode.</td>
+<td>Build + runtime</td>
+<td>Build &amp; Run</td>
+<td>Disabled if configuration validation fails or World Runtime is
+selected.</td>
+</tr>
+<tr class="even">
+<td>Edit room</td>
+<td>button</td>
+<td>Navigates to the configured playable Scene.</td>
+<td>Editor navigation</td>
+<td>SCENE</td>
+<td>No data change.</td>
+</tr>
+<tr class="odd">
+<td>Bind animations</td>
+<td>button</td>
+<td>Opens ENTITY STUDIO for the selected retained Player.</td>
+<td>Editor navigation</td>
+<td>ENTITY STUDIO</td>
+<td>Player typically needs idle/walk/attack; attack nonlooping in
+current retained gameplay checks.</td>
+</tr>
+<tr class="even">
+<td>Status/help</td>
+<td>status</td>
+<td>Explains validation results and whether World Runtime has superseded
+this mode.</td>
+<td>Diagnostics</td>
+<td>CODE/WORLD</td>
+<td>Do not interpret green references-only validation as proof of final
+ROM capacity.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="chr-sheet">CHR SHEET</h2>
+<p>CHR SHEET edits 8x8 pattern data. The same source tile may be reused
+in many higher-level assets, so editing one tile can intentionally
+update many appearances.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>BG Bank ($0000)</td>
+<td>button</td>
+<td>Edits the Scene background CHR set used by
+nametables/metatiles.</td>
+<td>Project CHR data</td>
+<td>SCENE, METATILES</td>
+<td>BG and Sprite source banks are separate authoring arrays.</td>
+</tr>
+<tr class="even">
+<td>Sprite Bank ($1000)</td>
+<td>button</td>
+<td>Edits the Scene sprite CHR set.</td>
+<td>Project CHR data</td>
+<td>SPRITES, METASPRITES</td>
+<td>Used by sprite/metasprite art.</td>
+</tr>
+<tr class="odd">
+<td>ROM CHR Banks selector</td>
+<td>select</td>
+<td>Selects a physical/logical CHR bank from an imported ROM when
+available.</td>
+<td>Editor/import state</td>
+<td>Import ROM</td>
+<td>Only visible after relevant ROM import/capture.</td>
+</tr>
+<tr class="even">
+<td>-&gt; BG</td>
+<td>button</td>
+<td>Copies selected imported ROM CHR bank into the active Scene BG CHR
+source.</td>
+<td>Project CHR data</td>
+<td>SCENE/METATILES</td>
+<td>This is an explicit import into project assets.</td>
+</tr>
+<tr class="odd">
+<td>-&gt; Spr</td>
+<td>button</td>
+<td>Copies selected imported ROM CHR bank into active Scene sprite CHR
+source.</td>
+<td>Project CHR data</td>
+<td>SPRITES/METASPRITES</td>
+<td>Explicit import.</td>
+</tr>
+<tr class="even">
+<td>CHR sheet tile grid</td>
+<td>canvas</td>
+<td>Selects an 8x8 tile for editing.</td>
+<td>Editor selection</td>
+<td>Tile editor</td>
+<td>Arrow keys move selection.</td>
+</tr>
+<tr class="odd">
+<td>8x8 pixel editor</td>
+<td>canvas</td>
+<td>Paints 2-bit pixel indices 0-3 in selected tile.</td>
+<td>Project CHR data</td>
+<td>All references to that tile</td>
+<td>Changing a source tile updates all assets that reference it.</td>
+</tr>
+<tr class="even">
+<td>Pixel Color 1-4</td>
+<td>palette selector / keys 1-4</td>
+<td>Chooses pixel index used by the tile editor.</td>
+<td>Editor selection</td>
+<td>8x8 editor</td>
+<td>These are palette indices, not independent RGB colors.</td>
+</tr>
+<tr class="odd">
+<td>Clear Tile</td>
+<td>button</td>
+<td>Sets selected tile pixels to zero.</td>
+<td>Project CHR data</td>
+<td>All uses of tile</td>
+<td>Undoable.</td>
+</tr>
+<tr class="even">
+<td>Copy Tile</td>
+<td>button</td>
+<td>Copies selected tile pixels to internal clipboard.</td>
+<td>Editor clipboard</td>
+<td>Paste Tile</td>
+<td>No source change.</td>
+</tr>
+<tr class="odd">
+<td>Paste Tile</td>
+<td>button</td>
+<td>Overwrites selected tile with copied pixels.</td>
+<td>Project CHR data</td>
+<td>All uses of destination tile</td>
+<td>Undoable.</td>
+</tr>
+<tr class="even">
+<td>Preview Palette mode: Scene colors (auto)</td>
+<td>select option</td>
+<td>Previews tile using dominant/current Scene usage context.</td>
+<td>Editor preview</td>
+<td>CHR contexts</td>
+<td>Preview only; does not duplicate or recolor the tile data.</td>
+</tr>
+<tr class="odd">
+<td>Preview Palette mode: Selected palette</td>
+<td>select option</td>
+<td>Forces chosen palette row for preview.</td>
+<td>Editor preview</td>
+<td>Palette editor</td>
+<td>Preview only.</td>
+</tr>
+<tr class="even">
+<td>Preview Palette mode: Pixel values</td>
+<td>select option</td>
+<td>Shows raw pixel-index diagnostic colors.</td>
+<td>Editor preview</td>
+<td>CHR debugging</td>
+<td>Not an NES palette appearance.</td>
+</tr>
+<tr class="odd">
+<td>Appearance/context selector</td>
+<td>select</td>
+<td>Chooses among alternate Scene appearances when a reused tile appears
+with multiple palettes/masks.</td>
+<td>Editor preview</td>
+<td>Runtime capture contexts</td>
+<td>Does not mutate project palette assignment.</td>
+</tr>
+<tr class="even">
+<td>Tile Usage Map</td>
+<td>visualization</td>
+<td>Shows frequency/placement usage of CHR tile indices.</td>
+<td>Diagnostics</td>
+<td>Capacity/reuse decisions</td>
+<td>Counts depend on active Scene.</td>
+</tr>
+<tr class="odd">
+<td>Highlight in Scene</td>
+<td>button</td>
+<td>Finds selected tile in Scene and highlights placements.</td>
+<td>Editor navigation</td>
+<td>SCENE</td>
+<td>Does not change tiles.</td>
+</tr>
+<tr class="even">
+<td>Auto-track</td>
+<td>checkbox</td>
+<td>Automatically refreshes Find in Scene when selected tile
+changes.</td>
+<td>Editor behavior</td>
+<td>CHR selection</td>
+<td>Can be turned off when manually inspecting results.</td>
+</tr>
+<tr class="odd">
+<td>Find mini-scene</td>
+<td>canvas</td>
+<td>Shows selected tile placements; click a position to jump to that
+tile in SCENE.</td>
+<td>Editor navigation</td>
+<td>SCENE</td>
+<td>Jump selects tile and switches tab.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="metatiles">METATILES</h2>
+<p>METATILES owns reusable Scene-local 16x16 terrain definitions and
+quadrant collision. It links raw CHR/palette data upward into WORLD
+authoring.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Analyze Scene -&gt; Library</td>
+<td>button</td>
+<td>Scans static Scene 2x2 tile cells and creates/reuses 16x16 metatile
+definitions without changing visible pixels.</td>
+<td>Project metatile data</td>
+<td>SCENE/WORLD</td>
+<td>Exact raster captures are read-only; make a lossless static copy
+first.</td>
+</tr>
+<tr class="even">
+<td>+ From Selected Cell</td>
+<td>button</td>
+<td>Creates a metatile definition from the currently selected 16x16
+Scene cell.</td>
+<td>Project metatile data</td>
+<td>SCENE brush/WORLD palette</td>
+<td>Useful for hand-built samples.</td>
+</tr>
+<tr class="odd">
+<td>Relink Matches</td>
+<td>button</td>
+<td>Reattaches matching raw Scene cells to existing metatile
+definitions.</td>
+<td>Project metatile links</td>
+<td>SCENE/WORLD</td>
+<td>Matches are based on definition content.</td>
+</tr>
+<tr class="even">
+<td>Tool: Select cells</td>
+<td>select option</td>
+<td>Selects 16x16 cells for inspection/editing rather than
+painting.</td>
+<td>Editor mode</td>
+<td>Selected cell actions</td>
+<td>No data change until an edit action.</td>
+</tr>
+<tr class="odd">
+<td>Tool: Paint metatile</td>
+<td>select option</td>
+<td>Paints chosen metatile onto Scene cells.</td>
+<td>Project Scene + links</td>
+<td>SCENE data</td>
+<td>Writes underlying nametable/attributes while preserving metatile
+identity.</td>
+</tr>
+<tr class="even">
+<td>Brush</td>
+<td>select</td>
+<td>Chooses the metatile ID used by paint tool.</td>
+<td>Editor selection</td>
+<td>Scene/metatile painting</td>
+<td>Scene-local library only.</td>
+</tr>
+<tr class="odd">
+<td>Show metatile collision overlay</td>
+<td>checkbox</td>
+<td>Shows quadrant collision classifications over the metatile
+view.</td>
+<td>Editor view</td>
+<td>Collision quadrants</td>
+<td>Display only.</td>
+</tr>
+<tr class="even">
+<td>Library cards</td>
+<td>selection</td>
+<td>Selects a metatile definition and shows usage count.</td>
+<td>Editor selection</td>
+<td>Selected Metatile form</td>
+<td>Definition edits propagate to linked placements.</td>
+</tr>
+<tr class="odd">
+<td>Name</td>
+<td>text</td>
+<td>Renames selected metatile.</td>
+<td>Project data</td>
+<td>WORLD brush labels</td>
+<td>Stable numeric/internal ID remains reference identity.</td>
+</tr>
+<tr class="even">
+<td>Category</td>
+<td>text</td>
+<td>Stores authoring category/tag for selected metatile.</td>
+<td>Project metadata</td>
+<td>Palette/search organization</td>
+<td>No direct runtime behavior by itself.</td>
+</tr>
+<tr class="odd">
+<td>Palette P0-P3</td>
+<td>select</td>
+<td>Sets palette row used by the whole metatile definition.</td>
+<td>Project metatile/palette data</td>
+<td>Render/build</td>
+<td>NES attribute constraints apply.</td>
+</tr>
+<tr class="even">
+<td>TL / TR / BL / BR CHR fields</td>
+<td>number inputs</td>
+<td>Sets the four 8x8 BG tile references making the 16x16 metatile.</td>
+<td>Project metatile data</td>
+<td>Scene/World rendering</td>
+<td>Edits every linked placement.</td>
+</tr>
+<tr class="odd">
+<td>Capture Selected Cell -&gt; Definition</td>
+<td>button</td>
+<td>Overwrites selected metatile definition from selected Scene
+cell.</td>
+<td>Project metatile data</td>
+<td>All linked placements</td>
+<td>Use carefully: changes every placement linked to definition.</td>
+</tr>
+<tr class="even">
+<td>Duplicate</td>
+<td>button</td>
+<td>Creates a new independent metatile definition copied from
+selected.</td>
+<td>Project metatile data</td>
+<td>Library</td>
+<td>Best way to branch one tile into a variation.</td>
+</tr>
+<tr class="odd">
+<td>Delete</td>
+<td>button</td>
+<td>Deletes selected metatile definition and reconciles references where
+applicable.</td>
+<td>Project data</td>
+<td>World/Scene links</td>
+<td>World references may be cleared/reconciled; use Undo if
+accidental.</td>
+</tr>
+<tr class="even">
+<td>Collision TL/TR/BL/BR</td>
+<td>selects</td>
+<td>Assigns collision property independently to four 8x8 quadrants.</td>
+<td>Project metatile collision</td>
+<td>World Runtime collision</td>
+<td>Current generated runtime primarily executes Empty/Solid
+semantics.</td>
+</tr>
+<tr class="odd">
+<td>Collision All + Set all 4</td>
+<td>select + button</td>
+<td>Sets all four collision quadrants to one property in one
+action.</td>
+<td>Project metatile collision</td>
+<td>Runtime collision</td>
+<td>Useful for fully solid/empty blocks.</td>
+</tr>
+<tr class="even">
+<td>Semantic flags</td>
+<td>checkboxes</td>
+<td>Stores metatile semantic flags such as
+Foreground/Destructible/Animated/Interactive where available.</td>
+<td>Project metadata</td>
+<td>Future/gameplay tooling</td>
+<td>Presence in authoring data does not guarantee current runtime
+execution.</td>
+</tr>
+<tr class="odd">
+<td>Detach Selected Cell</td>
+<td>button</td>
+<td>Breaks the selected Scene cell’s link to its metatile definition
+while preserving current appearance.</td>
+<td>Project Scene/metatile links</td>
+<td>SCENE</td>
+<td>Use before making a one-off raw edit.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="metatiles-workflow-relationship">METATILES workflow
+relationship</h3>
+<p><code>CHR tiles + palette + quadrant collision -&gt; Metatile definition -&gt; SCENE linked placement and WORLD brush -&gt; World Runtime terrain/collision</code></p>
+<p>A definition edit intentionally changes every linked placement.
+Duplicate first when you need a variant; Detach Selected Cell when only
+one Scene sample should diverge.</p>
+<h2 id="world">WORLD</h2>
+<p>WORLD owns large multi-screen metatile maps, Rooms, markers, camera
+regions, and the World Runtime configuration. It references a Scene as
+its tileset source rather than copying a second independent CHR
+library.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>World selector</td>
+<td>select</td>
+<td>Chooses active project-level World.</td>
+<td>Editor selection</td>
+<td>World tools/runtime config</td>
+<td>World is distinct from Scene.</td>
+</tr>
+<tr class="even">
+<td>+ World</td>
+<td>button</td>
+<td>Creates a new World using a Scene that has a metatile library.</td>
+<td>Project World data</td>
+<td>METATILES</td>
+<td>If active Scene has no metatiles, current UI prefers a compatible
+tileset Scene or prompts recovery.</td>
+</tr>
+<tr class="odd">
+<td>Duplicate World</td>
+<td>button</td>
+<td>Copies World map/regions/markers into an independent World.</td>
+<td>Project data</td>
+<td>World links</td>
+<td>Stable IDs are regenerated/remapped as required.</td>
+</tr>
+<tr class="even">
+<td>Delete World</td>
+<td>button</td>
+<td>Deletes active World.</td>
+<td>Project data</td>
+<td>Runtime start/marker links</td>
+<td>Can invalidate runtime or entrance references.</td>
+</tr>
+<tr class="odd">
+<td>Name</td>
+<td>text</td>
+<td>Renames active World.</td>
+<td>Project data</td>
+<td>Selectors</td>
+<td>Stable ID preserves links.</td>
+</tr>
+<tr class="even">
+<td>Tileset Scene</td>
+<td>select</td>
+<td>Chooses the Scene whose metatile/CHR/palette library renders this
+World.</td>
+<td>Project data</td>
+<td>METATILES/CHR</td>
+<td>Changing tileset must be deliberate; unresolved IDs are
+preserved/reported rather than silently destroyed in corrected
+workflows.</td>
+</tr>
+<tr class="odd">
+<td>Width / Height screens</td>
+<td>number 1-16</td>
+<td>Sets World size in NES screens; underlying map is 16x15 metatile
+cells per screen.</td>
+<td>Project World data</td>
+<td>World canvas/runtime</td>
+<td>Large maps are subject to build/runtime capacity.</td>
+</tr>
+<tr class="even">
+<td>View arrows</td>
+<td>buttons</td>
+<td>Pans the editor viewport by one screen left/right/up/down.</td>
+<td>Editor view</td>
+<td>World canvas</td>
+<td>Does not move World content.</td>
+</tr>
+<tr class="odd">
+<td>World Zoom 1x/2x/3x</td>
+<td>select</td>
+<td>Changes World editor canvas scale.</td>
+<td>Editor view</td>
+<td>World canvas</td>
+<td>Separate from global canvas zoom.</td>
+</tr>
+<tr class="even">
+<td>Basic Metatile Brush</td>
+<td>select</td>
+<td>Chooses metatile used for World paint.</td>
+<td>Editor selection</td>
+<td>World paint tools</td>
+<td>Requires chosen Tileset Scene to have metatiles.</td>
+</tr>
+<tr class="odd">
+<td>Use [scene] / Open METATILES recovery</td>
+<td>buttons</td>
+<td>Recovers from a zero-metatile tileset by selecting a compatible
+Scene or opening the library editor.</td>
+<td>Editor/project configuration</td>
+<td>METATILES</td>
+<td>Prevents blank brush confusion.</td>
+</tr>
+<tr class="even">
+<td>+ Current Screen room</td>
+<td>button</td>
+<td>Creates a 16x15-cell Room rectangle covering current viewport
+screen.</td>
+<td>Project World data</td>
+<td>Gameplay Core Room scope</td>
+<td>Rooms are authoring/gameplay scope boundaries; not merely
+decoration.</td>
+</tr>
+<tr class="odd">
+<td>+ Entrance / + Spawn / + Exit</td>
+<td>buttons</td>
+<td>Adds World markers near the current screen center.</td>
+<td>Project World data</td>
+<td>World Runtime navigation/start</td>
+<td>Linked Entrance/Exit needs both Target World and Target Marker.</td>
+</tr>
+<tr class="even">
+<td>+ Current Screen Region</td>
+<td>button</td>
+<td>Creates a camera region covering current screen.</td>
+<td>Project World camera data</td>
+<td>World Runtime camera selection</td>
+<td>Mode controls follow/locked/horizontal/vertical behavior where
+supported.</td>
+</tr>
+<tr class="odd">
+<td>Tool: Select</td>
+<td>tool button</td>
+<td>Selects/moves/resizes Rooms/Cameras, selects markers, or drags a
+rectangular map region.</td>
+<td>Editor mode</td>
+<td>Inspector/region actions</td>
+<td>Lower-right cell acts as resize handle for Room/Camera.</td>
+</tr>
+<tr class="even">
+<td>Tool: Paint</td>
+<td>tool button</td>
+<td>Paints selected metatile across World cells.</td>
+<td>Project World map</td>
+<td>World Runtime terrain</td>
+<td>Left-drag; right-click eyedrops.</td>
+</tr>
+<tr class="odd">
+<td>Tool: Erase</td>
+<td>tool button</td>
+<td>Sets World cells to empty/unpainted.</td>
+<td>Project World map</td>
+<td>Runtime terrain</td>
+<td>Undoable.</td>
+</tr>
+<tr class="even">
+<td>Tool: Fill</td>
+<td>tool button</td>
+<td>Flood-fills contiguous matching cells with current brush.</td>
+<td>Project World map</td>
+<td>Runtime terrain</td>
+<td>Use carefully on large regions.</td>
+</tr>
+<tr class="odd">
+<td>Tool: Rect</td>
+<td>tool button</td>
+<td>Drag-paints a rectangle with current metatile.</td>
+<td>Project World map</td>
+<td>Runtime terrain</td>
+<td>Faster room/block painting.</td>
+</tr>
+<tr class="even">
+<td>Tool: Room</td>
+<td>tool button</td>
+<td>Drag-creates a Room rectangle.</td>
+<td>Project World data</td>
+<td>Room persistence / authoring scope</td>
+<td>Room is a scoped object with ID/name/bounds.</td>
+</tr>
+<tr class="odd">
+<td>Tool: Entrance / Spawn / Exit</td>
+<td>tool buttons</td>
+<td>Click-places the corresponding marker at a World cell.</td>
+<td>Project World data</td>
+<td>Runtime start/transitions</td>
+<td>Marker coordinates are metatile-cell coordinates in current
+authoring model.</td>
+</tr>
+<tr class="even">
+<td>Tool: Camera</td>
+<td>tool button</td>
+<td>Drag-creates a Camera Region.</td>
+<td>Project World camera data</td>
+<td>Runtime camera selection</td>
+<td>Runtime profile remains screen-transition oriented.</td>
+</tr>
+<tr class="odd">
+<td>Metatile search</td>
+<td>text</td>
+<td>Filters the visual World metatile palette by name/category/ID.</td>
+<td>Editor view</td>
+<td>Palette</td>
+<td>Does not alter library.</td>
+</tr>
+<tr class="even">
+<td>Favorites-only star</td>
+<td>toggle</td>
+<td>Filters palette to favorited metatiles.</td>
+<td>Editor preference/session</td>
+<td>Palette</td>
+<td>Favorites are authoring convenience, not runtime data.</td>
+</tr>
+<tr class="odd">
+<td>Palette metatile card</td>
+<td>button/card</td>
+<td>Selects a brush; star toggles favorite.</td>
+<td>Editor selection</td>
+<td>Paint/Rect/Fill</td>
+<td>Selecting may switch tool to Paint.</td>
+</tr>
+<tr class="even">
+<td>Region Copy</td>
+<td>button</td>
+<td>Copies selected rectangular World cells to World clipboard.</td>
+<td>Editor clipboard</td>
+<td>Region Paste</td>
+<td>Selection must exist.</td>
+</tr>
+<tr class="odd">
+<td>Region Paste</td>
+<td>button</td>
+<td>Pastes copied World region at selected/target location.</td>
+<td>Project World map</td>
+<td>World runtime</td>
+<td>Preserves metatile IDs subject to target bounds.</td>
+</tr>
+<tr class="even">
+<td>Region Clear</td>
+<td>button</td>
+<td>Clears selected World region.</td>
+<td>Project World map</td>
+<td>World runtime</td>
+<td>Undoable.</td>
+</tr>
+<tr class="odd">
+<td>Minimap / Overview</td>
+<td>canvas</td>
+<td>Shows entire World and jumps editor viewport when clicked.</td>
+<td>Editor navigation</td>
+<td>World view</td>
+<td>Not a runtime minimap asset.</td>
+</tr>
+<tr class="even">
+<td>Room inspector: Name/X/Y/W/H</td>
+<td>form</td>
+<td>Edits selected Room identity label and bounds.</td>
+<td>Project World data</td>
+<td>Gameplay Core Room placement/persistence</td>
+<td>Coordinates/sizes are clamped to World bounds.</td>
+</tr>
+<tr class="odd">
+<td>Delete room</td>
+<td>button</td>
+<td>Removes selected Room.</td>
+<td>Project World data</td>
+<td>Gameplay references</td>
+<td>May invalidate Actor/persistent owner references.</td>
+</tr>
+<tr class="even">
+<td>Camera inspector: Name/X/Y/W/H</td>
+<td>form</td>
+<td>Edits selected Camera Region.</td>
+<td>Project World data</td>
+<td>World runtime camera</td>
+<td>Bounds clamped.</td>
+</tr>
+<tr class="odd">
+<td>Camera Mode: follow/locked/horizontal/vertical</td>
+<td>select</td>
+<td>Sets selected Camera Region mode.</td>
+<td>Project runtime metadata</td>
+<td>World runtime</td>
+<td>Current engine is screen-transition; modes are still canonical World
+data.</td>
+</tr>
+<tr class="even">
+<td>Delete camera</td>
+<td>button</td>
+<td>Removes selected Camera Region.</td>
+<td>Project data</td>
+<td>World runtime</td>
+<td>Undoable.</td>
+</tr>
+<tr class="odd">
+<td>Marker Kind</td>
+<td>select</td>
+<td>Changes marker among entrance/spawn/exit.</td>
+<td>Project World data</td>
+<td>Runtime navigation</td>
+<td>Changing type can alter how it is used by runtime selection.</td>
+</tr>
+<tr class="even">
+<td>Marker Name / X / Y</td>
+<td>form</td>
+<td>Edits marker label and location.</td>
+<td>Project World data</td>
+<td>World runtime</td>
+<td>Location clamped to World grid.</td>
+</tr>
+<tr class="odd">
+<td>Target World</td>
+<td>select</td>
+<td>Sets destination World for Entrance/Exit.</td>
+<td>Project World links</td>
+<td>World Runtime</td>
+<td>Changing target World clears incompatible target marker
+selection.</td>
+</tr>
+<tr class="even">
+<td>Target Marker</td>
+<td>select</td>
+<td>Sets destination Spawn or Entrance marker in the selected target
+World. Exit is not a valid destination in the current runtime.</td>
+<td>Project World links</td>
+<td>World Runtime</td>
+<td>Both destination fields required for runtime link.</td>
+</tr>
+<tr class="odd">
+<td>Delete marker</td>
+<td>button</td>
+<td>Removes selected marker.</td>
+<td>Project data</td>
+<td>Start/links</td>
+<td>May invalidate start marker or links.</td>
+</tr>
+<tr class="even">
+<td>Build Status</td>
+<td>status</td>
+<td>Shows World map/metatile usage and build/runtime warnings.</td>
+<td>Diagnostics</td>
+<td>Build</td>
+<td>Current viewer/runtime limitations are surfaced here.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="world-workflow-relationship">WORLD workflow relationship</h3>
+<p><code>Tileset Scene -&gt; Metatile Library -&gt; World map -&gt; Rooms/Markers/Cameras -&gt; World Runtime config -&gt; BuildGraph -&gt; ROM</code></p>
+<p>Gameplay Core Room/World placements and persistent-variable owners
+depend on stable WORLD/Room IDs, so deleting or retargeting those
+objects can invalidate gameplay references.</p>
+<h2 id="world--world-runtime">WORLD &gt; WORLD RUNTIME</h2>
+<p>World Runtime turns authored WORLD data into the generated
+multi-screen runtime. Current 1.9.0 behavior is screen-transition based
+rather than smooth scrolling.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Build this project as World Runtime</td>
+<td>checkbox</td>
+<td>Makes World Runtime the generated runtime mode for Build/Build &amp;
+Run.</td>
+<td>Project build config</td>
+<td>WorldCompiler/RuntimeCompiler</td>
+<td>Supersedes saved viewer/single-room config while enabled.</td>
+</tr>
+<tr class="even">
+<td>Start world</td>
+<td>select</td>
+<td>Chooses World loaded at game start.</td>
+<td>Project runtime config</td>
+<td>Start marker</td>
+<td>Must be reachable/valid.</td>
+</tr>
+<tr class="odd">
+<td>Start marker</td>
+<td>select</td>
+<td>Chooses Spawn/Entrance marker used as initial Player location.</td>
+<td>Project runtime config</td>
+<td>World marker data</td>
+<td>Source Scene Player X/Y is not the runtime start location.</td>
+</tr>
+<tr class="even">
+<td>Player source scene</td>
+<td>select</td>
+<td>Chooses Scene containing the legacy Player entity/art source.</td>
+<td>Project runtime config</td>
+<td>ENTITY STUDIO/animations</td>
+<td>Source assets must be linkable.</td>
+</tr>
+<tr class="odd">
+<td>Player</td>
+<td>select</td>
+<td>Chooses bound legacy Player entity.</td>
+<td>Project runtime config</td>
+<td>ENTITY STUDIO</td>
+<td>Retained compatibility executor.</td>
+</tr>
+<tr class="even">
+<td>Move speed / Jump speed / Gravity / Maximum fall</td>
+<td>numbers</td>
+<td>Controls retained Player movement in World Runtime.</td>
+<td>Project runtime config</td>
+<td>World runtime</td>
+<td>NES/pixel-per-tick bounds enforced.</td>
+</tr>
+<tr class="odd">
+<td>Body width / Body height</td>
+<td>numbers</td>
+<td>Controls retained Player collision body.</td>
+<td>Project runtime config</td>
+<td>Metatile solid collision</td>
+<td>Body sizes must remain within profile bounds.</td>
+</tr>
+<tr class="even">
+<td>Build &amp; Run</td>
+<td>button</td>
+<td>Builds and launches World Runtime with current configuration.</td>
+<td>Build + runtime</td>
+<td>EMULATOR</td>
+<td>Preflight validates reachable worlds/resources/capacity.</td>
+</tr>
+<tr class="odd">
+<td>Runtime status</td>
+<td>status</td>
+<td>Shows configuration validation/errors and control hints.</td>
+<td>Diagnostics</td>
+<td>Build</td>
+<td>Does not replace final compiler validation.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="attr-map">ATTR MAP</h2>
+<p>ATTR MAP displays the full-map palette zones. In the current app,
+left-clicking a 16×16 quadrant cycles its palette with Undo support. The
+SCENE ATTR EDITOR also edits attributes. See the current <a
+href="../Guides/Art_and_Scenes.html">Art and scenes guide</a>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Attribute visualization canvas</td>
+<td>canvas/view</td>
+<td>Displays palette assignment across the active Scene, color-coded by
+P0-P3 with 32x32 attribute boundaries.</td>
+<td>Editor visualization</td>
+<td>SCENE ATTR EDITOR</td>
+<td>Current authoritative editing is the SCENE ATTR Editor; treat this
+tab primarily as inspection.</td>
+</tr>
+<tr class="even">
+<td>Palette zone counts</td>
+<td>status</td>
+<td>Counts Scene cells assigned to palette rows 0-3.</td>
+<td>Diagnostics</td>
+<td>Palette planning</td>
+<td>Informational.</td>
+</tr>
+<tr class="odd">
+<td>Global Attr overlay</td>
+<td>top checkbox</td>
+<td>When applicable, overlays attribute information on other canvas
+views.</td>
+<td>Editor view</td>
+<td>SCENE</td>
+<td>Separate from this full-map visualization.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="sprites">SPRITES</h2>
+<p>SPRITES edits Scene OAM-style sprite entries and the source sprite
+CHR/palettes used by composed frames.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>+ Add Sprite</td>
+<td>button</td>
+<td>Creates a new hardware-style OAM sprite entry in the active
+Scene.</td>
+<td>Project OAM data</td>
+<td>METASPRITES capture, viewer/runtime</td>
+<td>NES has 64 OAM slots; current editor warns on limits.</td>
+</tr>
+<tr class="even">
+<td>OAM Slots list</td>
+<td>list</td>
+<td>Selects and orders/inspects Scene sprite entries.</td>
+<td>Editor selection</td>
+<td>Sprite properties</td>
+<td>Lower OAM index affects overlap priority.</td>
+</tr>
+<tr class="odd">
+<td>Delete Selected</td>
+<td>button</td>
+<td>Deletes selected Scene OAM sprite.</td>
+<td>Project data</td>
+<td>Metasprite capture/source</td>
+<td>Undoable.</td>
+</tr>
+<tr class="even">
+<td>Sprite canvas click</td>
+<td>canvas interaction</td>
+<td>Places/selects a sprite on Scene; drag moves it; right-click deletes
+in the Sprite view.</td>
+<td>Project OAM data</td>
+<td>Scene sprite composition</td>
+<td>Arrow keys nudge selected sprite.</td>
+</tr>
+<tr class="odd">
+<td>Tile</td>
+<td>number 0-255</td>
+<td>Sets selected sprite CHR tile.</td>
+<td>Project OAM data</td>
+<td>Sprite CHR</td>
+<td>8x16 mode may involve lower tile pairing.</td>
+</tr>
+<tr class="even">
+<td>X / Y</td>
+<td>number 0-255 / 0-239</td>
+<td>Sets selected sprite screen position.</td>
+<td>Project OAM data</td>
+<td>Rendering/build</td>
+<td>NES OAM stored Y has hardware offset on export.</td>
+</tr>
+<tr class="odd">
+<td>Palette SP0-SP3</td>
+<td>select</td>
+<td>Chooses one of four sprite palettes.</td>
+<td>Project OAM data</td>
+<td>Sprite render/build</td>
+<td>Separate from BG palettes.</td>
+</tr>
+<tr class="even">
+<td>FlipH / FlipV</td>
+<td>checkboxes</td>
+<td>Sets NES sprite flip attribute bits.</td>
+<td>Project OAM data</td>
+<td>Render/build</td>
+<td>8x16 vertical flip swaps pair order appropriately in composed
+tooling.</td>
+</tr>
+<tr class="odd">
+<td>Behind</td>
+<td>checkbox</td>
+<td>Sets sprite priority behind nontransparent background.</td>
+<td>Project OAM data</td>
+<td>Render/build</td>
+<td>NES priority semantics.</td>
+</tr>
+<tr class="even">
+<td>Draw Sprite Tile pixel editor</td>
+<td>canvas</td>
+<td>Edits selected sprite CHR tile pixels directly.</td>
+<td>Project sprite CHR</td>
+<td>All uses of tile</td>
+<td>Same source data visible from CHR SHEET Sprite Bank.</td>
+</tr>
+<tr class="odd">
+<td>Clear Tile</td>
+<td>button</td>
+<td>Clears selected sprite CHR tile.</td>
+<td>Project CHR data</td>
+<td>All references</td>
+<td>Undoable.</td>
+</tr>
+<tr class="even">
+<td>Open in CHR Sheet</td>
+<td>button</td>
+<td>Navigates to CHR SHEET with sprite bank/tile selected.</td>
+<td>Editor navigation</td>
+<td>CHR SHEET</td>
+<td>No data change.</td>
+</tr>
+<tr class="odd">
+<td>Sprite CHR Picker</td>
+<td>grid</td>
+<td>Chooses tile used by selected/next sprite.</td>
+<td>Editor selection</td>
+<td>OAM Sprite</td>
+<td>Source Scene sprite bank.</td>
+</tr>
+<tr class="even">
+<td>Sprite Palettes</td>
+<td>palette editor</td>
+<td>Edits Scene sprite palette rows.</td>
+<td>Project palette data</td>
+<td>Sprites/Metasprites</td>
+<td>Changes all uses of palette entry.</td>
+</tr>
+<tr class="odd">
+<td>Hardware warnings</td>
+<td>status</td>
+<td>Warns about OAM/scanline limits such as more than 8 sprites on a
+scanline.</td>
+<td>Diagnostics</td>
+<td>Build/render planning</td>
+<td>Warnings are frame-local; multiple metasprite actors share hardware
+budget at runtime.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="metasprites">METASPRITES</h2>
+<p>METASPRITES builds reusable multi-piece sprite frames from source
+Scene sprite CHR. It is the pose/composition layer below ANIM.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>+ Piece</td>
+<td>button</td>
+<td>Adds a sprite piece to the selected reusable frame using current CHR
+brush.</td>
+<td>Project metasprite data</td>
+<td>ANIM</td>
+<td>One piece corresponds to one OAM slot in 8x8 or one 8x16 pair
+slot.</td>
+</tr>
+<tr class="even">
+<td>Fit frame</td>
+<td>button</td>
+<td>Adjusts composer view so the current frame bounds fit the
+canvas.</td>
+<td>Editor view</td>
+<td>Composer</td>
+<td>No data change.</td>
+</tr>
+<tr class="odd">
+<td>Zoom 0.25x-8x</td>
+<td>select</td>
+<td>Changes composer scale.</td>
+<td>Editor view</td>
+<td>Composer canvas</td>
+<td>Does not alter stored coordinates.</td>
+</tr>
+<tr class="even">
+<td>Snap 1px / 8px</td>
+<td>select</td>
+<td>Sets drag movement grid for pieces.</td>
+<td>Editor interaction</td>
+<td>Piece positioning</td>
+<td>Coordinates are still stored in pixels.</td>
+</tr>
+<tr class="odd">
+<td>Grid</td>
+<td>checkbox</td>
+<td>Shows/hides composer grid.</td>
+<td>Editor view</td>
+<td>Canvas</td>
+<td>No project change.</td>
+</tr>
+<tr class="even">
+<td>Boxes</td>
+<td>checkbox</td>
+<td>Shows/hides piece bounds/selection boxes.</td>
+<td>Editor view</td>
+<td>Canvas</td>
+<td>No project change.</td>
+</tr>
+<tr class="odd">
+<td>Hardware limits</td>
+<td>checkbox</td>
+<td>Previews first 64 OAM pieces and eight sprites/scanline
+constraints.</td>
+<td>Editor simulation</td>
+<td>Hardware budget</td>
+<td>Diagnostic approximation for this frame; multiple runtime actors
+share limits.</td>
+</tr>
+<tr class="even">
+<td>Frame selector</td>
+<td>select</td>
+<td>Chooses reusable metasprite frame.</td>
+<td>Editor selection</td>
+<td>ANIM frame source</td>
+<td>Frames are project assets with stable IDs.</td>
+</tr>
+<tr class="odd">
+<td>+ New frame</td>
+<td>button</td>
+<td>Creates empty reusable metasprite frame.</td>
+<td>Project data</td>
+<td>ANIM</td>
+<td>Choose source Scene/sprite mode.</td>
+</tr>
+<tr class="even">
+<td>Capture scene OAM</td>
+<td>button</td>
+<td>Builds a metasprite frame from active/source Scene OAM
+arrangement.</td>
+<td>Project metasprite data</td>
+<td>SPRITES</td>
+<td>Useful for converting a composed Scene sprite into reusable
+frame.</td>
+</tr>
+<tr class="odd">
+<td>Duplicate</td>
+<td>button</td>
+<td>Copies selected frame independently.</td>
+<td>Project data</td>
+<td>Animation pose variations</td>
+<td>Preserves pieces/source.</td>
+</tr>
+<tr class="even">
+<td>Mirror copy</td>
+<td>button</td>
+<td>Creates mirrored copy of selected frame.</td>
+<td>Project data</td>
+<td>Left/right pose authoring</td>
+<td>Uses origin as mirror reference.</td>
+</tr>
+<tr class="odd">
+<td>Delete</td>
+<td>button</td>
+<td>Deletes selected metasprite frame.</td>
+<td>Project data</td>
+<td>ANIM references</td>
+<td>Referenced animations may become invalid.</td>
+</tr>
+<tr class="even">
+<td>Export frames</td>
+<td>button</td>
+<td>Exports metasprite frame data for external/reference use.</td>
+<td>External file</td>
+<td>Metasprite library</td>
+<td>Project Save/Export remains authoritative backup.</td>
+</tr>
+<tr class="odd">
+<td>Name</td>
+<td>text</td>
+<td>Renames frame.</td>
+<td>Project data</td>
+<td>ANIM selectors</td>
+<td>Stable ID remains reference.</td>
+</tr>
+<tr class="even">
+<td>Source scene</td>
+<td>select</td>
+<td>Chooses Scene supplying sprite CHR/palettes.</td>
+<td>Project asset reference</td>
+<td>SPRITES/CHR</td>
+<td>Edits to source art update every frame using it.</td>
+</tr>
+<tr class="odd">
+<td>Sprite size 8x8 / 8x16</td>
+<td>select</td>
+<td>Chooses NES hardware sprite-size interpretation for frame
+pieces.</td>
+<td>Project metasprite data</td>
+<td>Build/OAM linking</td>
+<td>8x16 has pair and hardware-size rules.</td>
+</tr>
+<tr class="even">
+<td>Origin X / Y</td>
+<td>numbers</td>
+<td>Defines frame anchor; piece placement is relative to this
+origin.</td>
+<td>Project metasprite data</td>
+<td>ANIM/Entity placement</td>
+<td>Origin is essential for consistent pose alignment.</td>
+</tr>
+<tr class="odd">
+<td>Set origin at feet</td>
+<td>button</td>
+<td>Moves frame origin to calculated feet/bottom anchor.</td>
+<td>Project data</td>
+<td>Animation/player placement</td>
+<td>Useful for side-view characters.</td>
+</tr>
+<tr class="even">
+<td>Hardware Budget</td>
+<td>status</td>
+<td>Reports piece count, scanline pressure, and related warnings.</td>
+<td>Diagnostics</td>
+<td>NES constraints</td>
+<td>Not a guarantee for multiple simultaneous actors.</td>
+</tr>
+<tr class="odd">
+<td>Pieces OAM order list</td>
+<td>list/buttons</td>
+<td>Selects a piece and displays OAM order.</td>
+<td>Editor selection</td>
+<td>Earlier/Later</td>
+<td>Earlier OAM index wins overlapping sprite pixels.</td>
+</tr>
+<tr class="even">
+<td>Duplicate piece</td>
+<td>button</td>
+<td>Copies selected piece.</td>
+<td>Project data</td>
+<td>Frame geometry</td>
+<td>Undoable.</td>
+</tr>
+<tr class="odd">
+<td>Remove piece</td>
+<td>button</td>
+<td>Deletes selected piece.</td>
+<td>Project data</td>
+<td>Frame geometry</td>
+<td>Undoable.</td>
+</tr>
+<tr class="even">
+<td>Earlier / Later</td>
+<td>buttons</td>
+<td>Moves selected piece in OAM ordering.</td>
+<td>Project data</td>
+<td>Sprite overlap priority</td>
+<td>Also affects budget ordering.</td>
+</tr>
+<tr class="odd">
+<td>Tile / lower</td>
+<td>numbers</td>
+<td>Sets top tile and lower tile in 8x16 mode.</td>
+<td>Project data</td>
+<td>Sprite CHR</td>
+<td>8x8 mode effectively uses top tile.</td>
+</tr>
+<tr class="even">
+<td>Piece X / Y</td>
+<td>numbers</td>
+<td>Sets piece position relative to frame coordinate system.</td>
+<td>Project data</td>
+<td>Frame bounds</td>
+<td>Range supports off-origin composition.</td>
+</tr>
+<tr class="odd">
+<td>Palette 0-3</td>
+<td>select</td>
+<td>Sets sprite palette for piece.</td>
+<td>Project data</td>
+<td>Source Scene sprite palettes</td>
+<td>Palette data comes from source Scene.</td>
+</tr>
+<tr class="even">
+<td>Flip H / Flip V / Behind BG</td>
+<td>checkboxes</td>
+<td>Sets per-piece OAM attributes.</td>
+<td>Project data</td>
+<td>Rendering/build</td>
+<td>Behind BG meaningful against actual scene background.</td>
+</tr>
+<tr class="odd">
+<td>Mirror X at origin / Mirror Y at origin</td>
+<td>buttons</td>
+<td>Mirrors selected piece position/orientation around frame
+origin.</td>
+<td>Project data</td>
+<td>Pose creation</td>
+<td>Different from creating full Mirror copy frame.</td>
+</tr>
+<tr class="even">
+<td>Source Sprite CHR sheet</td>
+<td>canvas</td>
+<td>Click chooses tile brush; double-click adds selected tile as a new
+piece.</td>
+<td>Editor selection + project on double-click</td>
+<td>SPRITES/CHR</td>
+<td>Color 0 is transparent.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="anim">ANIM</h2>
+<p>ANIM sequences legacy tiles or metasprite frames, stores durations,
+frame contact areas, and ordered frame-entry events.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>+ Add Animation</td>
+<td>button</td>
+<td>Creates a new animation asset.</td>
+<td>Project animation data</td>
+<td>ENTITY STUDIO</td>
+<td>Animation frames can use legacy tiles or metasprites.</td>
+</tr>
+<tr class="even">
+<td>Animation list</td>
+<td>list</td>
+<td>Selects animation for editing.</td>
+<td>Editor selection</td>
+<td>Animation properties</td>
+<td>Stable animation IDs are used by bindings.</td>
+</tr>
+<tr class="odd">
+<td>Name</td>
+<td>text</td>
+<td>Renames animation.</td>
+<td>Project data</td>
+<td>ENTITY STUDIO/Game references</td>
+<td>ID remains stable.</td>
+</tr>
+<tr class="even">
+<td>State</td>
+<td>select</td>
+<td>Stores descriptive state category:
+idle/walk/run/jump/fall/attack/hurt/custom.</td>
+<td>Project animation metadata</td>
+<td>Entity binding/templates</td>
+<td>Binding can use custom lowercase state names independently.</td>
+</tr>
+<tr class="odd">
+<td>Loop</td>
+<td>checkbox</td>
+<td>Controls whether preview/runtime binding loops after final
+frame.</td>
+<td>Project animation data</td>
+<td>Runtime animation</td>
+<td>Current retained attack generally needs nonlooping behavior.</td>
+</tr>
+<tr class="even">
+<td>Flip on reverse</td>
+<td>checkbox</td>
+<td>Allows reversed-facing playback to flip composed art where
+supported.</td>
+<td>Project animation data</td>
+<td>ENTITY STUDIO facing</td>
+<td>Does not create a separate mirrored frame asset.</td>
+</tr>
+<tr class="odd">
+<td>Timeline frame buttons</td>
+<td>timeline</td>
+<td>Selects animation frame; displays duration/source/event counts.</td>
+<td>Editor selection</td>
+<td>Frame editor</td>
+<td>Click chooses frame.</td>
+</tr>
+<tr class="even">
+<td>+ Frame / - Frame</td>
+<td>buttons</td>
+<td>Adds/removes animation frames.</td>
+<td>Project animation data</td>
+<td>Runtime playback</td>
+<td>Duplicated/added frame source can then be configured.</td>
+</tr>
+<tr class="odd">
+<td>Frame source: Legacy tile</td>
+<td>select option</td>
+<td>Uses one sprite tile index for the animation frame.</td>
+<td>Project animation data</td>
+<td>Source Scene sprite CHR</td>
+<td>Simpler historical path.</td>
+</tr>
+<tr class="even">
+<td>Frame source: Metasprite</td>
+<td>select option</td>
+<td>Uses reusable METASPRITES frame.</td>
+<td>Project animation data</td>
+<td>METASPRITES</td>
+<td>Preferred for multi-piece characters/objects.</td>
+</tr>
+<tr class="odd">
+<td>Metasprite</td>
+<td>select</td>
+<td>Chooses composed frame when Frame source is Metasprite.</td>
+<td>Project reference</td>
+<td>METASPRITES</td>
+<td>Missing referenced metasprite is reported.</td>
+</tr>
+<tr class="even">
+<td>Tile $</td>
+<td>number</td>
+<td>Sets legacy sprite tile index when Frame source is Legacy tile.</td>
+<td>Project animation data</td>
+<td>Sprite CHR</td>
+<td>Disabled while metasprite source is selected.</td>
+</tr>
+<tr class="odd">
+<td>Duration</td>
+<td>number 1-255</td>
+<td>Sets frame duration in 60 Hz ticks/frames.</td>
+<td>Project animation data</td>
+<td>Preview/runtime</td>
+<td>Entity Studio uses one tick = 1/60 second.</td>
+</tr>
+<tr class="even">
+<td>Preview Play / Stop</td>
+<td>buttons</td>
+<td>Starts/stops animation preview.</td>
+<td>Editor preview</td>
+<td>ANIM canvas</td>
+<td>Leaving ANIM stops preview.</td>
+</tr>
+<tr class="odd">
+<td>Frame contact tool: Select / move</td>
+<td>button</td>
+<td>Selects and manipulates hit/hurt areas on selected frame.</td>
+<td>Editor mode</td>
+<td>Frame contact areas</td>
+<td>Contact boxes are authoring data; execution depends on runtime
+capability.</td>
+</tr>
+<tr class="even">
+<td>Draw hit</td>
+<td>button</td>
+<td>Drag-creates red attack/hit area on selected frame.</td>
+<td>Project animation data</td>
+<td>Future/richer combat</td>
+<td>1.9.0 current generic NROM profile does not provide full hitbox
+combat.</td>
+</tr>
+<tr class="odd">
+<td>Draw hurt</td>
+<td>button</td>
+<td>Drag-creates green vulnerable/hurt area.</td>
+<td>Project animation data</td>
+<td>Future/richer combat</td>
+<td>Same runtime caveat.</td>
+</tr>
+<tr class="even">
+<td>+ Hit / + Hurt</td>
+<td>buttons</td>
+<td>Adds default contact area without drag.</td>
+<td>Project animation data</td>
+<td>Contact area list</td>
+<td>Up to 16 of each kind per frame.</td>
+</tr>
+<tr class="odd">
+<td>Contact area list</td>
+<td>select</td>
+<td>Selects hit/hurt area for exact field editing.</td>
+<td>Editor selection</td>
+<td>Area fields</td>
+<td>Selection is frame-specific.</td>
+</tr>
+<tr class="even">
+<td>Area Name / X / Y / Width / Height</td>
+<td>form</td>
+<td>Edits selected contact area in pixels relative to sprite
+origin.</td>
+<td>Project animation data</td>
+<td>Contact rendering/runtime</td>
+<td>Arrow keys nudge; Shift = 8 px; Delete removes; Escape cancels
+drag.</td>
+</tr>
+<tr class="odd">
+<td>Delete area</td>
+<td>button</td>
+<td>Removes selected hit/hurt area.</td>
+<td>Project data</td>
+<td>Animation frame</td>
+<td>Undoable.</td>
+</tr>
+<tr class="even">
+<td>Show areas</td>
+<td>checkbox</td>
+<td>Shows/hides frame contact boxes in editor preview.</td>
+<td>Editor view</td>
+<td>ANIM</td>
+<td>No project semantic change.</td>
+</tr>
+<tr class="odd">
+<td>New event type</td>
+<td>select</td>
+<td>Chooses frame-entry event type to add.</td>
+<td>Editor selection</td>
+<td>+ Event</td>
+<td>Available types defined by current model; custom supported.</td>
+</tr>
+<tr class="even">
+<td>+ Event</td>
+<td>button</td>
+<td>Adds ordered marker emitted when selected frame begins.</td>
+<td>Project animation data</td>
+<td>ENTITY STUDIO event log / Audio runtime sound events where
+supported</td>
+<td>Events do not automatically execute damage/sound in the ANIM
+preview.</td>
+</tr>
+<tr class="odd">
+<td>Event list</td>
+<td>select</td>
+<td>Selects ordered frame-entry event.</td>
+<td>Editor selection</td>
+<td>Event fields</td>
+<td>Max 16 per frame.</td>
+</tr>
+<tr class="even">
+<td>Event Type / Name / Value</td>
+<td>form</td>
+<td>Edits selected event payload.</td>
+<td>Project animation data</td>
+<td>Runtime/event consumers</td>
+<td>Runtime support varies by event type.</td>
+</tr>
+<tr class="odd">
+<td>Earlier / Later</td>
+<td>buttons</td>
+<td>Reorders selected frame-entry event.</td>
+<td>Project data</td>
+<td>Event emission order</td>
+<td>Order can matter to consumers.</td>
+</tr>
+<tr class="even">
+<td>Delete event</td>
+<td>button</td>
+<td>Removes selected event.</td>
+<td>Project data</td>
+<td>Animation frame</td>
+<td>Undoable.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="entity-studio">ENTITY STUDIO</h2>
+<p>ENTITY STUDIO binds animations to legacy Scene entities and previews
+pose/state playback. It is not the Gameplay Core behavior state
+machine.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>State</td>
+<td>select</td>
+<td>Chooses bound animation state to preview for selected legacy Scene
+entity.</td>
+<td>Editor preview</td>
+<td>Animation bindings</td>
+<td>This is preview/binding state, not Gameplay Core behavior
+state.</td>
+</tr>
+<tr class="even">
+<td>Play / Pause</td>
+<td>button</td>
+<td>Runs/stops animation-state preview.</td>
+<td>Editor preview</td>
+<td>Timeline/events</td>
+<td>No gameplay logic executes here.</td>
+</tr>
+<tr class="odd">
+<td>Restart</td>
+<td>button</td>
+<td>Restarts preview from tick/frame zero.</td>
+<td>Editor preview</td>
+<td>Timeline</td>
+<td>No project change.</td>
+</tr>
+<tr class="even">
+<td>Tick +1</td>
+<td>button</td>
+<td>Advances preview one 1/60-second tick.</td>
+<td>Editor preview</td>
+<td>Frame entry events</td>
+<td>Useful for event timing inspection.</td>
+</tr>
+<tr class="odd">
+<td>Facing Right / Left</td>
+<td>select</td>
+<td>Temporarily previews bound animation facing.</td>
+<td>Editor preview</td>
+<td>Flip-on-reverse</td>
+<td>Separate from saved default facing below.</td>
+</tr>
+<tr class="even">
+<td>Boxes</td>
+<td>checkbox</td>
+<td>Shows/hides frame hit/hurt boxes in preview.</td>
+<td>Editor view</td>
+<td>ANIM data</td>
+<td>No runtime execution here.</td>
+</tr>
+<tr class="odd">
+<td>Labels</td>
+<td>checkbox</td>
+<td>Shows/hides overlay labels in preview.</td>
+<td>Editor view</td>
+<td>Preview</td>
+<td>No data change.</td>
+</tr>
+<tr class="even">
+<td>Timeline range</td>
+<td>slider</td>
+<td>Scrubs preview tick through current animation.</td>
+<td>Editor preview</td>
+<td>Frame timeline</td>
+<td>No data change.</td>
+</tr>
+<tr class="odd">
+<td>Frame timeline buttons</td>
+<td>buttons</td>
+<td>Jump preview to start of selected animation frame.</td>
+<td>Editor preview</td>
+<td>Animation</td>
+<td>Shows duration/events.</td>
+</tr>
+<tr class="even">
+<td>Clear log</td>
+<td>button</td>
+<td>Clears preview frame-entry event log.</td>
+<td>Editor preview log</td>
+<td>Events</td>
+<td>No project data change.</td>
+</tr>
+<tr class="odd">
+<td>Scene</td>
+<td>select</td>
+<td>Chooses Scene containing legacy entities.</td>
+<td>Editor selection</td>
+<td>Entity selector</td>
+<td>Gameplay Core Actor Instances are separate.</td>
+</tr>
+<tr class="even">
+<td>Entity</td>
+<td>select</td>
+<td>Chooses legacy Scene entity whose animation bindings/defaults are
+edited.</td>
+<td>Editor selection</td>
+<td>Bindings</td>
+<td>Player in retained runtime is configured here.</td>
+</tr>
+<tr class="odd">
+<td>Edit in scene</td>
+<td>button</td>
+<td>Navigates to selected Scene/entity.</td>
+<td>Editor navigation</td>
+<td>SCENE</td>
+<td>No data change.</td>
+</tr>
+<tr class="even">
+<td>Edit animation</td>
+<td>button</td>
+<td>Navigates to currently bound animation in ANIM.</td>
+<td>Editor navigation</td>
+<td>ANIM</td>
+<td>Requires binding/selection.</td>
+</tr>
+<tr class="odd">
+<td>Binding rows + Remove</td>
+<td>list/buttons</td>
+<td>Shows state -&gt; animation mappings and removes selected
+mappings.</td>
+<td>Project legacy entity data</td>
+<td>Retained Player runtime</td>
+<td>Bindings are saved on legacy entity.</td>
+</tr>
+<tr class="even">
+<td>State name</td>
+<td>text</td>
+<td>Names animation state binding, e.g. idle/walk/attack.</td>
+<td>Project entity binding</td>
+<td>Assign state</td>
+<td>Lowercase letters/digits/_/-; up to 16 states.</td>
+</tr>
+<tr class="odd">
+<td>Animation</td>
+<td>select</td>
+<td>Chooses animation asset assigned to state name.</td>
+<td>Project entity binding</td>
+<td>ANIM</td>
+<td>Reusing state name updates assignment.</td>
+</tr>
+<tr class="even">
+<td>Assign state</td>
+<td>button</td>
+<td>Creates/updates state binding on selected entity.</td>
+<td>Project entity binding</td>
+<td>Retained runtime</td>
+<td>Does not create Gameplay Core state-table behavior.</td>
+</tr>
+<tr class="odd">
+<td>Default state</td>
+<td>select</td>
+<td>Chooses animation state used when entity begins preview/runtime
+context.</td>
+<td>Project entity binding</td>
+<td>Retained Player</td>
+<td>Must reference assigned state.</td>
+</tr>
+<tr class="even">
+<td>Default facing</td>
+<td>select</td>
+<td>Stores Right/Left default facing for entity.</td>
+<td>Project entity data</td>
+<td>Retained Player</td>
+<td>Preview-facing control is temporary.</td>
+</tr>
+<tr class="odd">
+<td>Place Entity Type</td>
+<td>select</td>
+<td>Chooses legacy entity type to create.</td>
+<td>Editor selection</td>
+<td>Add/Place</td>
+<td>Legacy entity system.</td>
+</tr>
+<tr class="even">
+<td>Scene X / Y</td>
+<td>numbers</td>
+<td>Sets exact coordinates for new legacy entity.</td>
+<td>Editor input</td>
+<td>Add at X/Y</td>
+<td>0-255 / 0-239 bounds.</td>
+</tr>
+<tr class="odd">
+<td>Add at X / Y</td>
+<td>button</td>
+<td>Creates legacy entity at typed coordinates.</td>
+<td>Project entity data</td>
+<td>SCENE/Bindings</td>
+<td>Does not enter click-placement mode.</td>
+</tr>
+<tr class="even">
+<td>Place in scene</td>
+<td>button</td>
+<td>Switches to SCENE placement workflow for chosen entity type.</td>
+<td>Editor mode</td>
+<td>SCENE</td>
+<td>Click scene to place.</td>
+</tr>
+<tr class="odd">
+<td>Frame-entry event log</td>
+<td>status list</td>
+<td>Logs events when preview enters frames; latest 200 entries
+retained.</td>
+<td>Editor diagnostics</td>
+<td>ANIM events</td>
+<td>No attack, damage, or sound runs in Entity Studio preview.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="gameplay-core">GAMEPLAY CORE</h2>
+<p>Gameplay Core is the 1.9.0 generalized actor/behavior authoring
+panel. Templates create ordinary editable canonical records. The current
+mapper-0 generated profile executes only a bounded subset of the wider
+canonical operation vocabulary.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Enable canonical Gameplay Core</td>
+<td>checkbox</td>
+<td>Enables generalized 1.9.0 Actor/Behavior data for applicable
+generated runtimes.</td>
+<td>Project gameplay config</td>
+<td>RuntimeCompiler</td>
+<td>Does not convert legacy Player/Target records destructively.</td>
+</tr>
+<tr class="even">
+<td>Placement kind: Scene / Room / World</td>
+<td>select</td>
+<td>Chooses where newly created templates/instances/variables are
+authored.</td>
+<td>Editor authoring context</td>
+<td>Placement selector</td>
+<td>Room/World placement is important for scoped persistence and
+reachable World compilation.</td>
+</tr>
+<tr class="odd">
+<td>Placement selector</td>
+<td>select</td>
+<td>Chooses actual Scene, World, or Room matching placement kind.</td>
+<td>Editor authoring context</td>
+<td>Add template/New Instance/New variable</td>
+<td>Stable IDs are stored, not display names.</td>
+</tr>
+<tr class="even">
+<td>Template selector</td>
+<td>select</td>
+<td>Chooses one of five 1.9.0 recipes: Sideview Player, Ground Patrol
+Enemy, Stationary Contact Hazard, Collectible Pickup, Switch +
+Door.</td>
+<td>Editor selection</td>
+<td>Add template</td>
+<td>Templates generate ordinary canonical records; there is no template
+runtime engine.</td>
+</tr>
+<tr class="odd">
+<td>Add template</td>
+<td>button</td>
+<td>Adds Actor Definition, Behavior, Actor Instance and any declared
+variables/bindings required by chosen recipe.</td>
+<td>Project gameplay data</td>
+<td>All Gameplay Core tables</td>
+<td>Five-template 1.9.0 limit is intentional.</td>
+</tr>
+<tr class="even">
+<td>Gameplay Core status</td>
+<td>status</td>
+<td>Shows enabled/disabled and counts/validation messages including
+persistent profile usage.</td>
+<td>Diagnostics</td>
+<td>Compiler</td>
+<td>Executable profile validation still occurs at build.</td>
+</tr>
+<tr class="odd">
+<td>New Actor Definition</td>
+<td>button</td>
+<td>Creates reusable Actor Definition asset.</td>
+<td>Project gameplay data</td>
+<td>Instances/components/behavior</td>
+<td>Definition is archetype, not placement.</td>
+</tr>
+<tr class="even">
+<td>Actor Definition table</td>
+<td>table</td>
+<td>Lists ID/name/behavior and selects a definition for typed
+editing.</td>
+<td>Editor selection + project data</td>
+<td>Components/parameters</td>
+<td>Stable ID is reference identity.</td>
+</tr>
+<tr class="odd">
+<td>Definition Name</td>
+<td>text</td>
+<td>Renames selected Actor Definition.</td>
+<td>Project data</td>
+<td>Selectors</td>
+<td>Does not change stable ID.</td>
+</tr>
+<tr class="even">
+<td>Definition Behavior</td>
+<td>select</td>
+<td>Binds canonical Behavior Definition to Actor Definition.</td>
+<td>Project data</td>
+<td>State table/runtime</td>
+<td>Missing behavior reference fails validation.</td>
+</tr>
+<tr class="odd">
+<td>Remove Definition</td>
+<td>button</td>
+<td>Deletes Actor Definition.</td>
+<td>Project data</td>
+<td>Actor Instances</td>
+<td>References must be repaired/removed first.</td>
+</tr>
+<tr class="even">
+<td>New Actor Instance</td>
+<td>button</td>
+<td>Creates a placed instance of an Actor Definition at current
+placement context.</td>
+<td>Project gameplay data</td>
+<td>Runtime Actor generation</td>
+<td>Instance has own stable ID and overrides/bindings.</td>
+</tr>
+<tr class="odd">
+<td>Instance Definition</td>
+<td>select</td>
+<td>Chooses reusable Actor Definition for selected instance.</td>
+<td>Project reference</td>
+<td>Runtime compilation</td>
+<td>Changing it changes capabilities/defaults inherited by
+instance.</td>
+</tr>
+<tr class="even">
+<td>Instance Placement</td>
+<td>Scene/Room/World selects</td>
+<td>Edits instance spatial/scope owner.</td>
+<td>Project gameplay placement</td>
+<td>World reachability/persistence</td>
+<td>Room placement must resolve a real authored Room.</td>
+</tr>
+<tr class="odd">
+<td>Instance X / Y</td>
+<td>numbers</td>
+<td>Sets authored actor coordinates.</td>
+<td>Project gameplay placement</td>
+<td>Generated runtime</td>
+<td>Coordinate interpretation depends on placement/runtime path.</td>
+</tr>
+<tr class="even">
+<td>Instance Facing</td>
+<td>select</td>
+<td>Sets authored initial facing.</td>
+<td>Project gameplay data</td>
+<td>Rendering/behavior inputs where supported</td>
+<td>Current generic profile capabilities are bounded.</td>
+</tr>
+<tr class="odd">
+<td>Overrides table</td>
+<td>typed table</td>
+<td>Overrides Actor Definition parameters for one instance.</td>
+<td>Project gameplay data</td>
+<td>Behavior/component consumers</td>
+<td>Does not mutate definition/defaults or sibling instances.</td>
+</tr>
+<tr class="even">
+<td>Add binding</td>
+<td>button</td>
+<td>Adds explicit Actor Instance -&gt; persistent-variable binding.</td>
+<td>Project gameplay data</td>
+<td>PersistenceBinding</td>
+<td>Instance binding is authoritative; component mirror fields are not
+independent truth.</td>
+</tr>
+<tr class="odd">
+<td>Persistence bindings table</td>
+<td>table</td>
+<td>Maps declared variable IDs to named purposes on selected Actor
+Instance.</td>
+<td>Project gameplay data</td>
+<td>Room/World persistence</td>
+<td>Runtime Actor memory is not automatically persisted.</td>
+</tr>
+<tr class="even">
+<td>Add parameter</td>
+<td>button</td>
+<td>Adds typed default parameter to selected Actor Definition.</td>
+<td>Project gameplay data</td>
+<td>Behavior operation parameter references</td>
+<td>Supported types: boolean, uint, int, enum, text, asset.</td>
+</tr>
+<tr class="odd">
+<td>Parameter ID / Type / Default / Bounds-or-enum</td>
+<td>typed row</td>
+<td>Defines reusable bounded authoring parameter.</td>
+<td>Project gameplay data</td>
+<td>Instance overrides/operations</td>
+<td>Validation enforces type/range/reference rules.</td>
+</tr>
+<tr class="even">
+<td>Add component</td>
+<td>button</td>
+<td>Adds typed capability/data component to selected Actor
+Definition.</td>
+<td>Project gameplay data</td>
+<td>Compiler/runtime profile</td>
+<td>Component presence does not guarantee selected runtime executes
+every capability.</td>
+</tr>
+<tr class="odd">
+<td>Component Type</td>
+<td>select</td>
+<td>Chooses Transform, Spawn, Render, Animation, Physics, Collider,
+Input, Health, ContactDamage, Behavior, Pickup, Switch, Door,
+PersistenceBinding.</td>
+<td>Project gameplay data</td>
+<td>Runtime profile</td>
+<td>1.9.1 component families are intentionally absent.</td>
+</tr>
+<tr class="even">
+<td>Component Enabled</td>
+<td>checkbox</td>
+<td>Enables/disables component capability.</td>
+<td>Project gameplay data</td>
+<td>Compiler/runtime</td>
+<td>Corrected candidate treats disabled Behavior as inert rather than
+executing anyway.</td>
+</tr>
+<tr class="odd">
+<td>Render: sourceSceneId / tile / palette / behind</td>
+<td>typed fields</td>
+<td>Defines simple generic Actor visual source in current profile.</td>
+<td>Project gameplay data</td>
+<td>Generated generic actor renderer</td>
+<td>Generic actor rendering is not the same as retained multi-piece
+Player/metasprite path.</td>
+</tr>
+<tr class="even">
+<td>Collider: width / height</td>
+<td>typed fields</td>
+<td>Defines Actor collision dimensions.</td>
+<td>Project gameplay data</td>
+<td>Overlap/contact calculations</td>
+<td>Current profile range 1-64.</td>
+</tr>
+<tr class="odd">
+<td>Input: adapter=legacyPlayer</td>
+<td>typed field</td>
+<td>Marks retained Sideview Player compatibility binding.</td>
+<td>Project compatibility data</td>
+<td>Retained Player executor</td>
+<td>Not generic-runtime Player unification.</td>
+</tr>
+<tr class="even">
+<td>Health: maximum</td>
+<td>typed field</td>
+<td>Sets bounded byte maximum health.</td>
+<td>Project gameplay data</td>
+<td>Runtime health array</td>
+<td>Corrected validation rejects out-of-range &gt;255 instead of byte
+wrapping.</td>
+</tr>
+<tr class="odd">
+<td>ContactDamage values</td>
+<td>typed fields/status</td>
+<td>Mirrors/represents contact-damage capability; authoritative behavior
+action values must remain clear in UI.</td>
+<td>Project gameplay data</td>
+<td>contactDamage action</td>
+<td>Avoid conflicting fields that look authoritative when compiler uses
+behavior action operands.</td>
+</tr>
+<tr class="even">
+<td>New Behavior</td>
+<td>button</td>
+<td>Creates canonical state-table Behavior Definition with initial
+state.</td>
+<td>Project gameplay data</td>
+<td>Actor Definitions</td>
+<td>Behavior is separate reusable asset.</td>
+</tr>
+<tr class="odd">
+<td>Behavior selector / Name / Remove</td>
+<td>controls</td>
+<td>Selects, renames, or deletes Behavior Definition.</td>
+<td>Project gameplay data</td>
+<td>Definitions</td>
+<td>Deleting referenced behavior invalidates build.</td>
+</tr>
+<tr class="even">
+<td>Add behavior parameter</td>
+<td>button</td>
+<td>Adds typed parameter local to Behavior Definition.</td>
+<td>Project gameplay data</td>
+<td>Operation parameter references</td>
+<td>Same bounded type model.</td>
+</tr>
+<tr class="odd">
+<td>Add state</td>
+<td>button</td>
+<td>Creates canonical state record with ordered onEnter/onTick/onExit
+lists.</td>
+<td>Project behavior data</td>
+<td>Evaluator/compiler</td>
+<td>At least one state needed for useful behavior.</td>
+</tr>
+<tr class="even">
+<td>Initial state</td>
+<td>select</td>
+<td>Chooses Behavior state used when Runtime Actor
+initializes/reconstructs.</td>
+<td>Project behavior data</td>
+<td>Runtime actor lifecycle</td>
+<td>Transient current state is not a persistent variable unless
+explicitly modeled.</td>
+</tr>
+<tr class="odd">
+<td>State Name / Remove</td>
+<td>controls</td>
+<td>Renames/removes selected state.</td>
+<td>Project behavior data</td>
+<td>Transitions</td>
+<td>Removing referenced state requires transition repair.</td>
+</tr>
+<tr class="even">
+<td>onEnter / onTick / onExit Add action</td>
+<td>typed operation controls</td>
+<td>Adds ordered actions executed at the corresponding state lifecycle
+point.</td>
+<td>Project behavior data</td>
+<td>Canonical evaluator/runtime profile</td>
+<td>Only operations supported by current generated profile may
+compile.</td>
+</tr>
+<tr class="odd">
+<td>Add transition</td>
+<td>button</td>
+<td>Creates transition record with from/to state, priority, conditions,
+and actions.</td>
+<td>Project behavior data</td>
+<td>Deterministic evaluator</td>
+<td>Default transition starts as same-state with always condition.</td>
+</tr>
+<tr class="even">
+<td>From / To state</td>
+<td>selects</td>
+<td>Chooses source/destination states.</td>
+<td>Project behavior data</td>
+<td>Evaluator</td>
+<td>Stable state IDs underlie labels.</td>
+</tr>
+<tr class="odd">
+<td>Priority</td>
+<td>number -128..127</td>
+<td>Orders transition evaluation; higher/defined priority is evaluated
+before authored-order tie break as model specifies.</td>
+<td>Project behavior data</td>
+<td>Determinism</td>
+<td>At most one transition commits per actor tick in 1.9.0.</td>
+</tr>
+<tr class="even">
+<td>Add condition</td>
+<td>button</td>
+<td>Adds a typed canonical condition to transition.</td>
+<td>Project behavior data</td>
+<td>Transition evaluator</td>
+<td>Unsupported generated-profile condition rejects executable
+build.</td>
+</tr>
+<tr class="odd">
+<td>Add transition action</td>
+<td>button</td>
+<td>Adds typed actions executed during transition.</td>
+<td>Project behavior data</td>
+<td>Evaluator/runtime</td>
+<td>Unsupported profile action rejects executable build; never silently
+no-op.</td>
+</tr>
+<tr class="even">
+<td>Condition type: always</td>
+<td>operation</td>
+<td>Always true.</td>
+<td>Project behavior data</td>
+<td>Transitions</td>
+<td>Supported by current NROM Gameplay Core profile.</td>
+</tr>
+<tr class="odd">
+<td>Condition type: inputHeld / inputEdge</td>
+<td>operation</td>
+<td>Tests controller input state/edge.</td>
+<td>Project behavior data</td>
+<td>Input sources</td>
+<td>Canonical; current profile supports specified input conditions.</td>
+</tr>
+<tr class="even">
+<td>Condition type: grounded / airborne</td>
+<td>operation</td>
+<td>Tests physics grounding state.</td>
+<td>Project behavior data</td>
+<td>Physics</td>
+<td>Canonical authorable; current mapper-0 profile may reject if
+unsupported.</td>
+</tr>
+<tr class="odd">
+<td>Condition type: timerDone</td>
+<td>operation</td>
+<td>Tests named behavior timer completion.</td>
+<td>Project behavior data</td>
+<td>setTimer</td>
+<td>Supported by current profile.</td>
+</tr>
+<tr class="even">
+<td>Condition type: compare</td>
+<td>operation</td>
+<td>Compares a named/runtime field to value/operator.</td>
+<td>Project behavior data</td>
+<td>Behavior params/runtime fields</td>
+<td>Canonical; current generated profile support is bounded.</td>
+</tr>
+<tr class="odd">
+<td>Condition type: overlapPlayer</td>
+<td>operation</td>
+<td>Tests Actor overlap with retained Player using boundary-safe
+generated comparison.</td>
+<td>Project behavior data</td>
+<td>Pickup/hazard</td>
+<td>Supported by current profile; corrected opposite-edge wraparound bug
+is specifically tested.</td>
+</tr>
+<tr class="even">
+<td>Condition type: healthCompare</td>
+<td>operation</td>
+<td>Compares health.</td>
+<td>Project behavior data</td>
+<td>Health</td>
+<td>Canonical; generated profile support may reject if not in supported
+set.</td>
+</tr>
+<tr class="odd">
+<td>Condition type: animationComplete / animationEvent</td>
+<td>operation</td>
+<td>Tests animation lifecycle/event.</td>
+<td>Project behavior data</td>
+<td>Animation</td>
+<td>Canonical; current profile support is bounded.</td>
+</tr>
+<tr class="even">
+<td>Condition type: triggerReceived</td>
+<td>operation</td>
+<td>Tests typed trigger receipt.</td>
+<td>Project behavior data</td>
+<td>Trigger events</td>
+<td>Canonical; current profile may reject.</td>
+</tr>
+<tr class="odd">
+<td>Condition type: persistentCompare</td>
+<td>operation</td>
+<td>Compares declared Room/World variable to value.</td>
+<td>Project behavior data</td>
+<td>Persistence</td>
+<td>Supported by current profile.</td>
+</tr>
+<tr class="even">
+<td>Action: setTimer</td>
+<td>operation</td>
+<td>Sets named behavior timer to bounded tick count.</td>
+<td>Project behavior data</td>
+<td>timerDone</td>
+<td>Supported by current profile; missing ticks fails validation.</td>
+</tr>
+<tr class="odd">
+<td>Action: persistentSet</td>
+<td>operation</td>
+<td>Assigns declared persistent variable.</td>
+<td>Project behavior data</td>
+<td>Room/World state</td>
+<td>Supported by current profile.</td>
+</tr>
+<tr class="even">
+<td>Action: persistentChange</td>
+<td>operation</td>
+<td>Changes numeric persistent value by bounded amount.</td>
+<td>Project behavior data</td>
+<td>Persistence</td>
+<td>Canonical; selected profile may reject if unsupported.</td>
+</tr>
+<tr class="odd">
+<td>Action: despawn</td>
+<td>operation</td>
+<td>Deactivates/removes runtime actor according to generated profile
+semantics.</td>
+<td>Runtime behavior</td>
+<td>Pickups/etc.</td>
+<td>Supported current profile; persistence must be explicit if
+disappearance should survive reconstruction.</td>
+</tr>
+<tr class="even">
+<td>Action: moveWithinBounds</td>
+<td>operation</td>
+<td>Moves Actor horizontally within authored bounds/speed and reverses
+as needed.</td>
+<td>Runtime behavior</td>
+<td>Ground Patrol</td>
+<td>Supported current profile.</td>
+</tr>
+<tr class="odd">
+<td>Action: contactDamage</td>
+<td>operation</td>
+<td>Applies bounded damage/cooldown when Actor overlaps retained
+Player.</td>
+<td>Runtime behavior</td>
+<td>Hazard/Patrol</td>
+<td>Supported current profile.</td>
+</tr>
+<tr class="even">
+<td>Action: syncActiveFromPersistent</td>
+<td>operation</td>
+<td>Synchronizes active state from declared persistent variable.</td>
+<td>Runtime behavior</td>
+<td>Switch/Door alpha template</td>
+<td>1.9.0 alpha behavior is one-way after deactivation until
+reconstruction; not a reversible general gate contract.</td>
+</tr>
+<tr class="odd">
+<td>Canonical actions: selectAnimation / setFacing / setVelocity /
+accelerate / changeHealth / spawnActor / emitTrigger</td>
+<td>operations</td>
+<td>Authorable/preservable canonical operations for broader model.</td>
+<td>Project behavior data</td>
+<td>Future/profile-dependent</td>
+<td>Current NROM Gameplay Core profile rejects unsupported operations
+before ROM generation.</td>
+</tr>
+<tr class="even">
+<td>New persistent variable</td>
+<td>button</td>
+<td>Declares Room- or World-scoped variable.</td>
+<td>Project gameplay data</td>
+<td>Persistence records</td>
+<td>Current NROM profile supports max 64 one-byte values.</td>
+</tr>
+<tr class="odd">
+<td>Variable ID / Name</td>
+<td>text</td>
+<td>Defines stable variable identity and display label.</td>
+<td>Project gameplay data</td>
+<td>Bindings/conditions/actions</td>
+<td>Stable ID is reference identity.</td>
+</tr>
+<tr class="even">
+<td>Scope: Room / World</td>
+<td>select</td>
+<td>Declares persistence owner scope.</td>
+<td>Project gameplay data</td>
+<td>Owner selector</td>
+<td>Game/Global scope is intentionally not in 1.9.0.</td>
+</tr>
+<tr class="odd">
+<td>Owner</td>
+<td>select</td>
+<td>Chooses exact Room or World that owns variable.</td>
+<td>Project gameplay data</td>
+<td>Runtime persistence store</td>
+<td>Cross-owner references fail validation.</td>
+</tr>
+<tr class="even">
+<td>Type: boolean / uint / enum</td>
+<td>select</td>
+<td>Sets persistent value type.</td>
+<td>Project gameplay data</td>
+<td>Default/bounds</td>
+<td>Stored as one-byte profile representation where applicable.</td>
+</tr>
+<tr class="odd">
+<td>Default / min / max / enum values</td>
+<td>typed fields</td>
+<td>Defines initial persistent state and allowed value domain.</td>
+<td>Project gameplay data</td>
+<td>Runtime reset/reconstruction</td>
+<td>Power/reset starts from authored defaults; no cross-session save
+backend yet.</td>
+</tr>
+<tr class="even">
+<td>Remove persistent variable</td>
+<td>button</td>
+<td>Deletes declared variable.</td>
+<td>Project gameplay data</td>
+<td>Bindings/operations</td>
+<td>References must be removed/repaired.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="current-generated-gameplay-core-profile">Current generated
+Gameplay Core profile</h3>
+<p><strong>Capacity:</strong> 12 executable Actor Instances total
+including Sideview compatibility Player; 64 one-byte persistent values;
+no generic actor streaming.</p>
+<p><strong>Conditions executed by current profile:</strong>
+<code>always</code>, <code>inputHeld</code>, <code>inputEdge</code>,
+<code>timerDone</code>, <code>overlapPlayer</code>,
+<code>persistentCompare</code>.</p>
+<p><strong>Actions executed by current profile:</strong>
+<code>persistentSet</code>, <code>despawn</code>, <code>setTimer</code>,
+<code>moveWithinBounds</code>, <code>contactDamage</code>,
+<code>syncActiveFromPersistent</code>.</p>
+<p>Other canonical conditions/actions may remain authorable/preservable,
+but the executable build must reject them for this runtime profile
+rather than silently treating them as no-ops.</p>
+<p><strong>Door alpha contract:</strong> Switch + Door in 1.9.0
+demonstrates linked persistent state and active/inactive visual
+behavior. It is not physically solid, and
+<code>syncActiveFromPersistent</code> cannot reactivate an actor after
+that actor has deactivated itself until reconstruction. The original
+edition deferred richer Door/traversal semantics to a later milestone.
+That historical 1.9.1 target is not a current delivery promise.</p>
+<h2 id="audio">AUDIO</h2>
+<p>AUDIO owns tracker songs, instruments, SFX, MIDI/MusicXML import, and
+the current NES runtime audio build options.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Compile Audio Runtime</td>
+<td>checkbox</td>
+<td>Includes NES audio runtime in generated supported gameplay
+ROMs.</td>
+<td>Project build config</td>
+<td>RuntimeCompiler</td>
+<td>Required for authored music/SFX to execute in ROM.</td>
+</tr>
+<tr class="even">
+<td>Autoplay tracker order as music</td>
+<td>checkbox</td>
+<td>Starts tracker order as background music when runtime loads.</td>
+<td>Project audio config</td>
+<td>AudioCompiler</td>
+<td>Requires Audio Runtime enabled.</td>
+</tr>
+<tr class="odd">
+<td>Import MIDI</td>
+<td>button/file</td>
+<td>Parses supported Standard MIDI format 0/1 PPQN data and appends
+tracker patterns/instruments.</td>
+<td>Project audio data</td>
+<td>Tracker/AudioCompiler</td>
+<td>Format 2 and SMPTE timing unsupported; later tempo changes flatten
+to initial tempo with warning.</td>
+</tr>
+<tr class="even">
+<td>Import MusicXML</td>
+<td>button/file</td>
+<td>Parses uncompressed score-partwise MusicXML into tracker data.</td>
+<td>Project audio data</td>
+<td>Tracker/AudioCompiler</td>
+<td>Compressed .mxl unsupported; quantizes to sixteenth-note rows.</td>
+</tr>
+<tr class="odd">
+<td>Play / Stop</td>
+<td>buttons</td>
+<td>Runs/stops browser tracker preview.</td>
+<td>Editor preview/audio</td>
+<td>Tracker</td>
+<td>Browser preview is separate from proving ROM playback.</td>
+</tr>
+<tr class="even">
+<td>Row / Order</td>
+<td>status</td>
+<td>Shows current playback cursor/order.</td>
+<td>Editor status</td>
+<td>Transport</td>
+<td>No project change.</td>
+</tr>
+<tr class="odd">
+<td>Tempo 30-300</td>
+<td>number</td>
+<td>Sets tracker song tempo.</td>
+<td>Project audio data</td>
+<td>Runtime compilation/preview</td>
+<td>Initial tempo is authoritative for imports with unsupported
+tempo-map complexity.</td>
+</tr>
+<tr class="even">
+<td>Speed 1-15</td>
+<td>number</td>
+<td>Sets tracker tick/row speed.</td>
+<td>Project audio data</td>
+<td>Preview/runtime</td>
+<td>Runtime compiler uses supported tracker model.</td>
+</tr>
+<tr class="odd">
+<td>Rows 16-128</td>
+<td>number</td>
+<td>Sets current pattern row count.</td>
+<td>Project audio data</td>
+<td>Pattern editing</td>
+<td>Changing rows can affect existing pattern structure.</td>
+</tr>
+<tr class="even">
+<td>+ Add Instrument</td>
+<td>button</td>
+<td>Creates tracker instrument.</td>
+<td>Project audio data</td>
+<td>Notes</td>
+<td>Pulse duty/envelopes apply where relevant.</td>
+</tr>
+<tr class="odd">
+<td>Instrument list</td>
+<td>list</td>
+<td>Selects instrument for editing.</td>
+<td>Editor selection</td>
+<td>Tracker notes</td>
+<td>No data change by selection.</td>
+</tr>
+<tr class="even">
+<td>Instrument Name</td>
+<td>text</td>
+<td>Renames selected instrument.</td>
+<td>Project audio data</td>
+<td>Tracker UI</td>
+<td>ID/index remains internal reference.</td>
+</tr>
+<tr class="odd">
+<td>Duty 12.5/25/50/75%</td>
+<td>select</td>
+<td>Sets pulse duty waveform.</td>
+<td>Project audio data</td>
+<td>Pulse channels</td>
+<td>Triangle/Noise do not use pulse duty in same way.</td>
+</tr>
+<tr class="even">
+<td>Volume Envelope</td>
+<td>canvas</td>
+<td>Click/drag edits volume envelope.</td>
+<td>Project audio data</td>
+<td>Instrument playback</td>
+<td>Runtime supports bounded current instrument model.</td>
+</tr>
+<tr class="odd">
+<td>Arpeggio Envelope</td>
+<td>canvas</td>
+<td>Edits pitch-offset/arpeggio envelope.</td>
+<td>Project audio data</td>
+<td>Instrument playback</td>
+<td>Current runtime feature support should be checked against Audio
+docs.</td>
+</tr>
+<tr class="even">
+<td>Pattern Order grid</td>
+<td>grid</td>
+<td>Assigns patterns to channels for each order row.</td>
+<td>Project audio data</td>
+<td>Song sequence</td>
+<td>Click channel cell to choose pattern.</td>
+</tr>
+<tr class="odd">
+<td>+ Add Order Row</td>
+<td>button</td>
+<td>Extends song order sequence.</td>
+<td>Project audio data</td>
+<td>Music playback</td>
+<td>Undoable.</td>
+</tr>
+<tr class="even">
+<td>Tracker grid</td>
+<td>canvas/grid</td>
+<td>Enters notes/instruments in selected channel/row.</td>
+<td>Project audio data</td>
+<td>Preview/runtime</td>
+<td>Keyboard note shortcuts Z-M/Q-U; channel capacity is
+NES-limited.</td>
+</tr>
+<tr class="odd">
+<td>+ Add SFX</td>
+<td>button</td>
+<td>Creates sound-effect definition using one pattern/channel
+range.</td>
+<td>Project audio data</td>
+<td>Animation sound events/runtime</td>
+<td>Current runtime plays one SFX at a time on one channel.</td>
+</tr>
+<tr class="even">
+<td>SFX Name / ID</td>
+<td>fields</td>
+<td>Names effect and shows stable ID used by frame-entry sound event
+reference.</td>
+<td>Project audio data</td>
+<td>ANIM events</td>
+<td>ID is read-only/generated.</td>
+</tr>
+<tr class="odd">
+<td>SFX Channel</td>
+<td>select</td>
+<td>Chooses Pulse1/Pulse2/Triangle/Noise channel for effect.</td>
+<td>Project audio data</td>
+<td>Audio runtime</td>
+<td>DPCM runtime authoring not supported here.</td>
+</tr>
+<tr class="even">
+<td>SFX Pattern / Start row / End row</td>
+<td>numbers</td>
+<td>Chooses tracker pattern segment used as effect.</td>
+<td>Project audio data</td>
+<td>AudioCompiler</td>
+<td>Rows must resolve in selected pattern.</td>
+</tr>
+<tr class="odd">
+<td>Delete SFX</td>
+<td>button</td>
+<td>Deletes selected sound effect.</td>
+<td>Project audio data</td>
+<td>Animation sound references</td>
+<td>Can create missing references if still used.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="audio-importruntime-limits">AUDIO import/runtime limits</h3>
+<ul>
+<li>MIDI: Standard MIDI format 0/1 with PPQN timing; format 2 and SMPTE
+timing unsupported.</li>
+<li>MusicXML: uncompressed <code>score-partwise</code>; compressed
+<code>.mxl</code> unsupported.</li>
+<li>Imports quantize to sixteenth-note tracker rows.</li>
+<li>Current arrangement capacity is three simultaneous pitched voices
+plus one Noise/percussion voice; unsupported excess polyphony is
+rejected rather than silently dropped.</li>
+<li>DPCM authoring/runtime and general tracker FX commands are not part
+of the current 1.8/1.9 runtime.</li>
+</ul>
+<h2 id="collision">COLLISION</h2>
+<p>COLLISION assigns per-CHR tile properties. METATILES can
+override/compose collision per quadrant. Current generated runtimes
+mainly execute Empty/Solid; other authored properties are preserved for
+later gameplay expansion.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0 - Empty</td>
+<td>Active Property option</td>
+<td>Passable tile property.</td>
+<td>Project tile property data</td>
+<td>Tile Assignments / METATILES</td>
+<td>Current generated 1.9.0 World/single-room runtime primarily executes
+Empty/Solid; richer traversal waits for later tranche.</td>
+</tr>
+<tr class="even">
+<td>1 - Solid</td>
+<td>Active Property option</td>
+<td>Blocks movement in current generated collision paths.</td>
+<td>Project tile property data</td>
+<td>Tile Assignments / METATILES</td>
+<td>Current generated 1.9.0 World/single-room runtime primarily executes
+Empty/Solid; richer traversal waits for later tranche.</td>
+</tr>
+<tr class="odd">
+<td>2 - Platform</td>
+<td>Active Property option</td>
+<td>Authored one-way platform property.</td>
+<td>Project tile property data</td>
+<td>Tile Assignments / METATILES</td>
+<td>Current generated 1.9.0 World/single-room runtime primarily executes
+Empty/Solid; richer traversal waits for later tranche.</td>
+</tr>
+<tr class="even">
+<td>3 - Ladder</td>
+<td>Active Property option</td>
+<td>Authored ladder property.</td>
+<td>Project tile property data</td>
+<td>Tile Assignments / METATILES</td>
+<td>Current generated 1.9.0 World/single-room runtime primarily executes
+Empty/Solid; richer traversal waits for later tranche.</td>
+</tr>
+<tr class="odd">
+<td>4 - Hazard</td>
+<td>Active Property option</td>
+<td>Authored hazard property.</td>
+<td>Project tile property data</td>
+<td>Tile Assignments / METATILES</td>
+<td>Current generated 1.9.0 World/single-room runtime primarily executes
+Empty/Solid; richer traversal waits for later tranche.</td>
+</tr>
+<tr class="even">
+<td>5 - Water</td>
+<td>Active Property option</td>
+<td>Authored water property.</td>
+<td>Project tile property data</td>
+<td>Tile Assignments / METATILES</td>
+<td>Current generated 1.9.0 World/single-room runtime primarily executes
+Empty/Solid; richer traversal waits for later tranche.</td>
+</tr>
+<tr class="odd">
+<td>6 - Slope Left</td>
+<td>Active Property option</td>
+<td>Authored left-slope property.</td>
+<td>Project tile property data</td>
+<td>Tile Assignments / METATILES</td>
+<td>Current generated 1.9.0 World/single-room runtime primarily executes
+Empty/Solid; richer traversal waits for later tranche.</td>
+</tr>
+<tr class="even">
+<td>7 - Slope Right</td>
+<td>Active Property option</td>
+<td>Authored right-slope property.</td>
+<td>Project tile property data</td>
+<td>Tile Assignments / METATILES</td>
+<td>Current generated 1.9.0 World/single-room runtime primarily executes
+Empty/Solid; richer traversal waits for later tranche.</td>
+</tr>
+<tr class="odd">
+<td>Tile Assignments grid</td>
+<td>grid</td>
+<td>Click tile index to assign current Active Property.</td>
+<td>Project tile property data</td>
+<td>CHR/Scene</td>
+<td>Per-CHR tile property; metatile quadrant collision is edited in
+METATILES.</td>
+</tr>
+<tr class="even">
+<td>Legend</td>
+<td>reference</td>
+<td>Shows color code for tile property types.</td>
+<td>Editor reference</td>
+<td>Collision view</td>
+<td>No project change.</td>
+</tr>
+<tr class="odd">
+<td>Stats</td>
+<td>status</td>
+<td>Shows counts such as Solid/Platform/Hazard tiles.</td>
+<td>Diagnostics</td>
+<td>Collision planning</td>
+<td>Informational.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="code">CODE</h2>
+<p>CODE is the custom 6502 assembly path and ROM
+configuration/diagnostic view. Generated World/Gameplay/Audio runtimes
+are separate compiler paths and should not be mixed casually with custom
+assembly.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Assemble (Ctrl+Enter)</td>
+<td>button</td>
+<td>Assembles current 6502 source using NES Forge assembler.</td>
+<td>Build/editor output</td>
+<td>Custom assembly mode</td>
+<td>Errors/symbols/hex output update.</td>
+</tr>
+<tr class="even">
+<td>Assembly Status</td>
+<td>status</td>
+<td>Shows Ready/error/code size/origin information.</td>
+<td>Diagnostics</td>
+<td>Assembler</td>
+<td>No project change.</td>
+</tr>
+<tr class="odd">
+<td>Insert template...</td>
+<td>select</td>
+<td>Inserts/replaces editor source with selected built-in template.</td>
+<td>Project assembly source</td>
+<td>Code editor</td>
+<td>May prompt before replacing nonempty source.</td>
+</tr>
+<tr class="even">
+<td>Minimal (vectors + loop)</td>
+<td>template</td>
+<td>Creates minimal boot ROM skeleton.</td>
+<td>Project assembly source</td>
+<td>Assembler</td>
+<td>Intentionally no graphics/gameplay.</td>
+</tr>
+<tr class="odd">
+<td>Scene Viewer (working engine)</td>
+<td>template</td>
+<td>Generates working viewer assembly for current scene count.</td>
+<td>Project assembly source</td>
+<td>Scene packing</td>
+<td>Regenerate if scene count changes.</td>
+</tr>
+<tr class="even">
+<td>Scene Constants (generated)</td>
+<td>template</td>
+<td>Inserts constants for packed scene layout.</td>
+<td>Project assembly source</td>
+<td>Custom code referencing packed data</td>
+<td>Constants reflect current layout conventions.</td>
+</tr>
+<tr class="odd">
+<td>Code editor</td>
+<td>textarea</td>
+<td>Edits 6502 assembly source.</td>
+<td>Project assembly source</td>
+<td>Assembler/build</td>
+<td>Custom assembly path conflicts with generated World Runtime/current
+Audio runtime modes where documented.</td>
+</tr>
+<tr class="even">
+<td>Errors</td>
+<td>list</td>
+<td>Shows assembler errors; click entries where supported to
+navigate.</td>
+<td>Diagnostics</td>
+<td>Code editor</td>
+<td>Build cannot proceed with errors.</td>
+</tr>
+<tr class="odd">
+<td>Symbol Table</td>
+<td>table</td>
+<td>Shows resolved labels/addresses after assemble.</td>
+<td>Diagnostics</td>
+<td>Disassembly/custom code</td>
+<td>No project change.</td>
+</tr>
+<tr class="even">
+<td>Hex Output</td>
+<td>view</td>
+<td>Shows assembled bytes.</td>
+<td>Diagnostics</td>
+<td>Build</td>
+<td>No project change.</td>
+</tr>
+<tr class="odd">
+<td>Mapper: 0 NROM</td>
+<td>select</td>
+<td>Chooses current custom ROM mapper configuration.</td>
+<td>Project ROM config</td>
+<td>Build</td>
+<td>Current UI only exposes mapper 0 in this path; 2.0 plans
+mapper-aware linker expansion.</td>
+</tr>
+<tr class="even">
+<td>Mirroring Vertical / Horizontal</td>
+<td>select</td>
+<td>Sets NROM mirroring flag for custom/viewer build.</td>
+<td>Project ROM config</td>
+<td>PPU nametables</td>
+<td>Generated runtime profiles may own their own requirements.</td>
+</tr>
+<tr class="odd">
+<td>Battery-backed SRAM</td>
+<td>checkbox</td>
+<td>Sets battery/SRAM header/config for custom ROM path.</td>
+<td>Project ROM config</td>
+<td>Custom assembly</td>
+<td>Does not create a Gameplay save system by itself.</td>
+</tr>
+<tr class="even">
+<td>Pack scene data at $D000</td>
+<td>checkbox</td>
+<td>Controls legacy scene-packing path for custom/viewer ROM.</td>
+<td>Project build config</td>
+<td>Custom assembly/viewer</td>
+<td>Generated World/Game runtimes use their own compilers/link
+plans.</td>
+</tr>
+<tr class="odd">
+<td>Memory Map</td>
+<td>view</td>
+<td>Shows packed/custom memory layout information.</td>
+<td>Diagnostics</td>
+<td>Build planning</td>
+<td>Informational.</td>
+</tr>
+<tr class="even">
+<td>Build Log</td>
+<td>log</td>
+<td>Shows build/preflight/compiler messages.</td>
+<td>Diagnostics</td>
+<td>All builds</td>
+<td>Primary place to inspect why Build failed.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="emulator">EMULATOR</h2>
+<p>EMULATOR runs built/imported ROMs, exposes CPU/PPU/mapper
+diagnostics, and provides three distinct capture modes. Build &amp; Run
+is the authoritative way to test current edits.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Load ROM</td>
+<td>button/file</td>
+<td>Loads a .nes directly into bundled emulator.</td>
+<td>Emulator state</td>
+<td>Run/Disasm</td>
+<td>Separate from Import ROM into editor project.</td>
+</tr>
+<tr class="even">
+<td>Run Original ROM</td>
+<td>button</td>
+<td>Runs preserved ROM imported through Import ROM, ignoring current
+editor changes.</td>
+<td>Emulator runtime</td>
+<td>Import ROM</td>
+<td>Explicitly different from Build &amp; Run.</td>
+</tr>
+<tr class="odd">
+<td>Run / Pause</td>
+<td>button</td>
+<td>Starts/pauses loaded emulator ROM.</td>
+<td>Emulator runtime</td>
+<td>Controller input</td>
+<td>Button label/state changes with run status.</td>
+</tr>
+<tr class="even">
+<td>Stop</td>
+<td>button</td>
+<td>Stops playback or ROM initialization.</td>
+<td>Emulator runtime</td>
+<td>Audio/input</td>
+<td>Releases transient emulator activity.</td>
+</tr>
+<tr class="odd">
+<td>Frame</td>
+<td>button</td>
+<td>Advances exactly one emulator frame while paused.</td>
+<td>Emulator runtime</td>
+<td>Debugging</td>
+<td>Keyboard input supports manual stepping; touch/gamepad is for
+running play.</td>
+</tr>
+<tr class="even">
+<td>Reset</td>
+<td>button</td>
+<td>Resets loaded ROM/emulated machine.</td>
+<td>Emulator runtime</td>
+<td>Current ROM</td>
+<td>Resets session-level game state.</td>
+</tr>
+<tr class="odd">
+<td>Capture Runtime Scene</td>
+<td>button</td>
+<td>Captures logical PPU/nametable/attribute/mapped CHR/OAM state with
+provenance-aware runtime representation.</td>
+<td>Project capture data</td>
+<td>SCENE/CHR</td>
+<td>Not necessarily identical to visible scrolled/rasterized frame.</td>
+</tr>
+<tr class="even">
+<td>Bake Visible Frame</td>
+<td>button</td>
+<td>Converts currently rendered visible frame into constrained static
+background tiles and clears sprites.</td>
+<td>Project capture data</td>
+<td>Static Scene</td>
+<td>May approximate/change pixels to fit tile capacity; loses
+dynamic/raster behavior.</td>
+</tr>
+<tr class="odd">
+<td>Hybrid Capture</td>
+<td>button</td>
+<td>Uses frame-validated background plus editable OAM sprites to avoid
+doubled sprites.</td>
+<td>Project capture data</td>
+<td>SCENE/SPRITES</td>
+<td>Still cannot canonically rebuild every raster effect.</td>
+</tr>
+<tr class="even">
+<td>Capture target: New Scene</td>
+<td>select option</td>
+<td>Creates new Scene from capture.</td>
+<td>Project data</td>
+<td>Scene list</td>
+<td>Safest default.</td>
+</tr>
+<tr class="odd">
+<td>Capture target: Replace Current</td>
+<td>select option</td>
+<td>Replaces current Scene fields with capture.</td>
+<td>Project data</td>
+<td>Active Scene</td>
+<td>Destructive but undo/snapshot policies may help.</td>
+</tr>
+<tr class="even">
+<td>Capture target: Merge Fields</td>
+<td>select option</td>
+<td>Merges supported captured fields into current Scene.</td>
+<td>Project data</td>
+<td>Active Scene</td>
+<td>Use only when you understand which fields will be
+retained/replaced.</td>
+</tr>
+<tr class="odd">
+<td>Trace 20</td>
+<td>button</td>
+<td>Runs/records a short emulator trace window for debugging/RE
+diagnostics.</td>
+<td>Diagnostics</td>
+<td>CPU/emulator</td>
+<td>Not full integrated RE workspace yet.</td>
+</tr>
+<tr class="even">
+<td>Audio</td>
+<td>mute toggle</td>
+<td>Mutes/unmutes emulator audio output.</td>
+<td>Emulator presentation</td>
+<td>APU playback</td>
+<td>Does not modify ROM audio data.</td>
+</tr>
+<tr class="odd">
+<td>Performance status</td>
+<td>status</td>
+<td>Shows paused/running state, timing/audio health, loaded ROM
+info.</td>
+<td>Diagnostics</td>
+<td>Emulator</td>
+<td>Not an independent hardware-accuracy claim.</td>
+</tr>
+<tr class="even">
+<td>Emulator screen</td>
+<td>canvas</td>
+<td>Displays NES output and receives keyboard controller focus.</td>
+<td>Runtime</td>
+<td>Input</td>
+<td>Click/focus before using keyboard if needed.</td>
+</tr>
+<tr class="odd">
+<td>CPU register panel A/X/Y/SP/PC/P/CYC/FRM</td>
+<td>status</td>
+<td>Shows current CPU state/cycle/frame counters.</td>
+<td>Diagnostics</td>
+<td>Debugging</td>
+<td>Live observation only.</td>
+</tr>
+<tr class="even">
+<td>PPU State sidebar</td>
+<td>status</td>
+<td>Shows PPUCTRL/PPUMASK/PPUSTAT/VRAM address/Fine X.</td>
+<td>Diagnostics</td>
+<td>Capture/RE</td>
+<td>Useful for raster/scroll investigations.</td>
+</tr>
+<tr class="odd">
+<td>Mapper sidebar</td>
+<td>status</td>
+<td>Shows mapper, PRG/CHR bank state, mirroring.</td>
+<td>Diagnostics</td>
+<td>RE/capture</td>
+<td>Mapper implementation is experimental/not universal compatibility
+reference.</td>
+</tr>
+<tr class="even">
+<td>Palette RAM</td>
+<td>status</td>
+<td>Shows live NES palette RAM.</td>
+<td>Diagnostics</td>
+<td>Capture</td>
+<td>Runtime values may differ mid-frame in raster-heavy games.</td>
+</tr>
+<tr class="odd">
+<td>OAM Summary</td>
+<td>status</td>
+<td>Shows live sprite/OAM activity.</td>
+<td>Diagnostics</td>
+<td>Capture/RE</td>
+<td>Hardware scanline rules still apply.</td>
+</tr>
+<tr class="even">
+<td>Emulator Log</td>
+<td>log</td>
+<td>Shows load/build/run/emulator messages.</td>
+<td>Diagnostics</td>
+<td>Emulator</td>
+<td>Use with Build Log to distinguish compiler vs emulator issues.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="mobile-play-controls">Mobile Play controls</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Play view / ▶ Play view</td>
+<td>button</td>
+<td>Expands the existing emulator screen and play controls within the
+browser viewport.</td>
+<td>Emulator presentation</td>
+<td>EMULATOR; a loaded ROM for play</td>
+<td>Preserves the same ROM and running/paused state; does not rebuild,
+reset or automatically resume.</td>
+</tr>
+<tr class="even">
+<td>Play Run / Pause</td>
+<td>button</td>
+<td>Starts or pauses execution of the loaded ROM.</td>
+<td>Emulator runtime</td>
+<td>Play toolbar</td>
+<td>Separate from NES Start; Pause releases input.</td>
+</tr>
+<tr class="odd">
+<td>Sound on / Sound off</td>
+<td>toggle</td>
+<td>Enables or mutes emulator sound output.</td>
+<td>Emulator presentation</td>
+<td>Play toolbar; existing Audio toggle</td>
+<td>Does not enable authored Audio Runtime or change the ROM.</td>
+</tr>
+<tr class="even">
+<td>Fullscreen</td>
+<td>button</td>
+<td>Requests browser fullscreen for the play panel.</td>
+<td>Emulator presentation</td>
+<td>User tap/click; browser support</td>
+<td>If unavailable or denied, expanded viewport play stays available;
+browser bars may remain.</td>
+</tr>
+<tr class="odd">
+<td>Hide touch / Show touch</td>
+<td>toggle</td>
+<td>Hides or shows the on-screen NES controls.</td>
+<td>Emulator presentation/input</td>
+<td>Play toolbar</td>
+<td>Hiding clears touch input; initial visibility depends on
+pointer/viewport.</td>
+</tr>
+<tr class="even">
+<td>Controller</td>
+<td>button</td>
+<td>Opens controller selection and remapping settings.</td>
+<td>Local input settings</td>
+<td>Browser-exposed gamepad</td>
+<td>Opening pauses play and clears input; Done leaves it paused until
+Run.</td>
+</tr>
+<tr class="odd">
+<td>Exit to editor</td>
+<td>button</td>
+<td>Closes expanded Play view and returns to the editor.</td>
+<td>Emulator presentation/input</td>
+<td>Expanded Play view</td>
+<td>Releases held input; does not reset, rebuild or reload the ROM.</td>
+</tr>
+<tr class="even">
+<td>Touch D-pad: Up / Down / Left / Right</td>
+<td>pointer control</td>
+<td>Sends NES directional inputs; slide within the pad to change
+direction or hold a diagonal.</td>
+<td>NES controller input</td>
+<td>Running emulator; separate fingers can hold action buttons</td>
+<td>Opposite directions cancel; canceled/released touches clear.</td>
+</tr>
+<tr class="odd">
+<td>Touch A</td>
+<td>pointer control</td>
+<td>Sends NES A while held.</td>
+<td>NES controller input</td>
+<td>Running emulator; workshop jump</td>
+<td>Action depends on the loaded ROM.</td>
+</tr>
+<tr class="even">
+<td>Touch B</td>
+<td>pointer control</td>
+<td>Sends NES B while held.</td>
+<td>NES controller input</td>
+<td>Running emulator; workshop attack animation</td>
+<td>Action depends on the loaded ROM; does not add combat behavior.</td>
+</tr>
+<tr class="odd">
+<td>Touch Select</td>
+<td>pointer control</td>
+<td>Sends NES Select while held.</td>
+<td>NES controller input</td>
+<td>Running emulator</td>
+<td>Action depends on the loaded ROM.</td>
+</tr>
+<tr class="even">
+<td>Touch Start</td>
+<td>pointer control</td>
+<td>Sends NES Start while held.</td>
+<td>NES controller input</td>
+<td>Running emulator; workshop restart</td>
+<td>Separate from emulator Run/Pause.</td>
+</tr>
+<tr class="odd">
+<td>Controller device / No controller</td>
+<td>select</td>
+<td>Selects one exposed physical controller or disables that
+source.</td>
+<td>Local input settings</td>
+<td>Controller settings</td>
+<td>OS pairing/connection occurs outside Forge; reconnect requires
+selection again; one local port.</td>
+</tr>
+<tr class="even">
+<td>Map A / B / Select / Start / Up / Down / Left / Right</td>
+<td>eight mapping buttons</td>
+<td>Select an NES action, release all inputs, then press the desired
+controller button or move one axis.</td>
+<td>Local input settings</td>
+<td>Selected controller; paused Controller settings</td>
+<td>Session-only mappings; a nonstandard controller starts
+unassigned.</td>
+</tr>
+<tr class="odd">
+<td>Reset mapping</td>
+<td>button</td>
+<td>Restores standard defaults or clears bindings for a nonstandard
+device.</td>
+<td>Local input settings</td>
+<td>Controller settings</td>
+<td>Direction remapping otherwise replaces that direction’s default
+stick supplement.</td>
+</tr>
+<tr class="even">
+<td>Cancel mapping</td>
+<td>button</td>
+<td>Cancels capture of the next controller input.</td>
+<td>Local input settings</td>
+<td>Visible during a remapping capture</td>
+<td>Does not restore other mappings.</td>
+</tr>
+<tr class="odd">
+<td>Done</td>
+<td>button</td>
+<td>Closes Controller settings.</td>
+<td>Local input settings</td>
+<td>Controller settings</td>
+<td>Release buttons/sticks, then choose Run to resume.</td>
+</tr>
+<tr class="even">
+<td>Play/controller status</td>
+<td>status</td>
+<td>Reports controller availability, selection, neutral-release
+requirement and fullscreen fallback.</td>
+<td>Diagnostics</td>
+<td>Play panel</td>
+<td>An exposed controller is not a completed hardware compatibility
+test.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="using-touch-fullscreen-and-a-controller">Using touch, fullscreen
+and a controller</h3>
+<p>Use <strong>Build &amp; Run</strong> to test current edits,
+<strong>Run Original ROM</strong> to play retained original bytes, or
+<strong>Load ROM</strong> for an existing cartridge file. They use the
+same emulator. Open <strong>Play view</strong>, choose
+<strong>Run</strong> if paused, and touch the D-pad and A/B with
+separate fingers. Portrait and landscape layouts are provided; there is
+no forced orientation lock. <strong>Fullscreen</strong> requests the
+browser's fullscreen mode; the expanded Play view remains usable if the
+browser declines it.</p>
+<p><strong>Keyboard:</strong> arrows = D-pad; Z or A = NES A; X or S =
+NES B; either Shift = Select; Enter = Start. Keyboard still supports
+paused <strong>Frame</strong> stepping; touch/gamepad input is sampled
+during running play.</p>
+<p>Connect a compatible USB/USB-C controller or pair a Bluetooth
+controller through the device's operating system, then press a
+controller button and open <strong>Controller</strong>. Forge uses the
+controller exposed by the browser; it does not pair Bluetooth or
+directly open USB devices. The connector alone does not prove
+compatibility. If controller access is unavailable, touch and keyboard
+remain alternatives.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>NES input</th>
+<th>Browser-standard controller default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A</td>
+<td>South face button, browser button 0</td>
+</tr>
+<tr class="even">
+<td>B</td>
+<td>East face button, browser button 1</td>
+</tr>
+<tr class="odd">
+<td>Select</td>
+<td>Back/Select, button 8</td>
+</tr>
+<tr class="even">
+<td>Start</td>
+<td>Start/Menu, button 9</td>
+</tr>
+<tr class="odd">
+<td>Up / Down / Left / Right</td>
+<td>D-pad buttons 12–15 or left-stick axes 0/1</td>
+</tr>
+</tbody>
+</table></div>
+<p>Printed letters vary between controller brands. A nonstandard device
+requires mapping. Select each of the eight NES actions to remap it:
+release all controller buttons/sticks, then press the desired button or
+move one axis. <strong>Cancel mapping</strong> ends that capture;
+<strong>Reset mapping</strong> returns to standard defaults or an empty
+nonstandard mapping. Mappings last for this page session only and are
+not saved in a project, recovery file or ROM. After
+<strong>Done</strong>, release controls and select <strong>Run</strong>.
+The left-stick dead zone is 0.35; there is no sensitivity slider in this
+candidate.</p>
+<p>Only one physical controller feeds one local NES port. A disconnect
+clears selection; reconnect and explicitly select it again. There is no
+second-player assignment, netplay, input recording or persistent
+controller-profile editor in this follow-up.</p>
+<h3 id="input-stays-with-the-emulator">Input stays with the
+emulator</h3>
+<p>Controls feed the game only in its active emulator context. Opening
+controller settings pauses playback; typing in a text field, focusing a
+player toolbar control, and opening Save As/project/palette dialogs
+blocks game input. Expanded Play view keeps focus in its own controls;
+an existing editor dialog returns the presentation to the editor. Editor
+shortcuts keep their existing context rather than becoming game
+commands.</p>
+<p>Held inputs are released on Pause, focus loss, backgrounding, leaving
+the Emulator tab, ROM reset/replacement, settings, and entering/exiting
+expanded play. Cancellation/lost pointer capture also releases a touch.
+After an interruption, release all buttons and sticks and press anew; a
+controller must be observed neutral during resumed play before it acts.
+Opposite horizontal or vertical directions cancel. Entering/exiting Play
+view preserves the running/paused state and loaded ROM; it is not a
+reset or automatic pause/resume command.</p>
+<h3 id="mobile-status-and-performance-report--september-30">Mobile
+status and performance report — September 30</h3>
+<p>The owner reports working mobile touchscreen controls and audio/video
+lag. Treat this as an observation of the owner's session. The exact
+device, OS/browser versions, delivery method, ROM, orientation and
+timing/FPS/audio-health readings were not recorded, so the cause and
+scope remain undiagnosed. Physical controller compatibility and broad
+mobile acceptance remain pending. The 702 automated checks are
+regression evidence, not a mobile smoothness or listening test.</p>
+<p>For a useful report, keep the same ROM and note the device/OS/browser
+versions, local file versus hosted/embedded page, portrait/landscape,
+normal versus expanded/fullscreen view, time until the issue appears,
+and emulator performance status. Distinguish slow motion, visual
+stutter, delayed controls, crackling/dropouts and gradual audio/video
+drift. Compare the same short section once with Sound on and once off,
+and—if available—on desktop. Sound off changes output gain; it does not
+stop emulated APU/sample processing. This comparison therefore cannot
+prove that audio processing caused a slowdown. Comparing view or sound
+settings is diagnostic observation, not a performance fix. Attach the
+native project or an independently shareable test ROM when possible.</p>
+<h3 id="capture-modes-are-different-operations">Capture modes are
+different operations</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Capture</th>
+<th>Best description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Capture Runtime Scene</td>
+<td>Logical/provenance-aware PPU state. Best for preserving editable NES
+structures when representable.</td>
+</tr>
+<tr class="even">
+<td>Bake Visible Frame</td>
+<td>Converts what is visible into static background tiles. Useful when
+exact logical structure is less important than the rendered frame.</td>
+</tr>
+<tr class="odd">
+<td>Hybrid Capture</td>
+<td>Frame-validated background plus editable sprites, avoiding doubled
+OAM sprites.</td>
+</tr>
+</tbody>
+</table></div>
+<p>A raster-dependent scene can be captured losslessly without being
+statically rebuildable by the current NROM builder. NES Forge should
+report that distinction rather than flattening it silently.</p>
+<h2 id="disasm">DISASM</h2>
+<p>DISASM is a mapped PRG analysis aid, not a recovered original source
+tree. It is useful for inspection and for feeding experiments into
+CODE.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Disassembly code view</td>
+<td>view</td>
+<td>Shows mapped PRG disassembly for loaded/built ROM.</td>
+<td>Diagnostics/analysis</td>
+<td>EMULATOR ROM</td>
+<td>Not reconstructed original source code.</td>
+</tr>
+<tr class="even">
+<td>Vectors NMI / RESET / IRQ</td>
+<td>status</td>
+<td>Shows ROM vector addresses.</td>
+<td>Diagnostics</td>
+<td>ROM analysis</td>
+<td>Address meaning depends on mapper/window.</td>
+</tr>
+<tr class="odd">
+<td>ROM Info</td>
+<td>status</td>
+<td>Shows loaded ROM mapper/size/context information.</td>
+<td>Diagnostics</td>
+<td>Disassembly</td>
+<td>No project change.</td>
+</tr>
+<tr class="even">
+<td>Labels list</td>
+<td>list</td>
+<td>Shows discovered/generated labels.</td>
+<td>Diagnostics</td>
+<td>Copy ASM</td>
+<td>Not proof of original symbolic names.</td>
+</tr>
+<tr class="odd">
+<td>Disassemble PRG</td>
+<td>button</td>
+<td>Runs disassembly over current mapped PRG window/data.</td>
+<td>Analysis output</td>
+<td>Loaded ROM</td>
+<td>Bank-switched whole-game reconstruction is not automatic.</td>
+</tr>
+<tr class="even">
+<td>Copy ASM to Code Tab</td>
+<td>button</td>
+<td>Copies disassembly text into CODE editor for inspection/rebuild
+experiments.</td>
+<td>Project assembly source</td>
+<td>CODE</td>
+<td>Copied disassembly may need manual adaptation; disable scene packing
+as appropriate.</td>
+</tr>
+<tr class="odd">
+<td>Download .asm</td>
+<td>button</td>
+<td>Exports current disassembly text using Save As/download flow.</td>
+<td>External file</td>
+<td>Analysis</td>
+<td>Does not export original developer source.</td>
+</tr>
+<tr class="even">
+<td>Statistics</td>
+<td>status</td>
+<td>Shows code/data/instruction/label/subroutine counts.</td>
+<td>Diagnostics</td>
+<td>Disassembly</td>
+<td>Heuristic analysis.</td>
+</tr>
+<tr class="odd">
+<td>Hardware Registers</td>
+<td>reference</td>
+<td>Lists common NES hardware addresses for reading disassembly.</td>
+<td>Reference</td>
+<td>RE/debugging</td>
+<td>No data change.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tech-docs">TECH DOCS</h2>
+<p>TECH DOCS is a read-only, release-generated capability reference. It
+is not saved project data.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Current capability reference</td>
+<td>read-only document</td>
+<td>Displays runtime-generated documentation for current release
+capabilities, formats, limits, and historical notes.</td>
+<td>Reference only</td>
+<td>All tabs</td>
+<td>Not project data and not an editor.</td>
+</tr>
+<tr class="even">
+<td>Historical sections</td>
+<td>read-only document</td>
+<td>Retains prior-version context where useful.</td>
+<td>Reference only</td>
+<td>Migration/history</td>
+<td>Current <code>services/documentation.js</code> capability section
+should take precedence for current behavior.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="saving--file-formats">SAVING / FILE FORMATS</h2>
+<p>The most important rule is: a runnable ROM is not automatically a
+complete editable backup. Keep native JSON/ZIP project backups.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control / option</th>
+<th>Type</th>
+<th>What it does</th>
+<th>What it affects</th>
+<th>Used with / notes</th>
+<th>Current limits / gotchas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Browser Save</td>
+<td>storage path</td>
+<td>Complete project to IndexedDB.</td>
+<td>Editable project</td>
+<td>Load</td>
+<td>Browser-local; not portable.</td>
+</tr>
+<tr class="even">
+<td>Portable JSON</td>
+<td>file format</td>
+<td>Complete editable project from Save Project As.</td>
+<td>Editable project</td>
+<td>Open Project</td>
+<td>Recommended authoritative portable editable backup.</td>
+</tr>
+<tr class="odd">
+<td>Portable ZIP</td>
+<td>file format</td>
+<td>project.json plus binary assets from Export.</td>
+<td>Editable/project package</td>
+<td>Load .zip Pack</td>
+<td>Recommended packaged backup/share format.</td>
+</tr>
+<tr class="even">
+<td>Built .nes ROM</td>
+<td>file format</td>
+<td>Compiled executable cartridge image.</td>
+<td>Runtime artifact</td>
+<td>EMULATOR/Open Forge ROM</td>
+<td>Do not assume it is a full editable backup.</td>
+</tr>
+<tr class="odd">
+<td>World WG17 Forge ROM</td>
+<td>generated format</td>
+<td>World Runtime ROM that can carry embedded project source for more
+complete reopen.</td>
+<td>Runtime + source envelope</td>
+<td>Open Forge ROM</td>
+<td>Still validate current format/support on reopen.</td>
+</tr>
+<tr class="even">
+<td>Single-room Forge ROM</td>
+<td>generated format</td>
+<td>Single-room generated ROM.</td>
+<td>Runtime artifact</td>
+<td>Open Forge ROM</td>
+<td>Current reopening is partial: Gameplay Core source is not a complete
+embedded backup; use JSON/ZIP.</td>
+</tr>
+<tr class="odd">
+<td>Imported original ROM</td>
+<td>preserved bytes</td>
+<td>Original third-party/user-supplied ROM preserved for Run
+Original/capture/analysis.</td>
+<td>Imported artifact</td>
+<td>EMULATOR/RE</td>
+<td>Edits are not automatically applied to Run Original.</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="cross-tab-effect-matrix">Cross-tab effect matrix</h1>
+<p>Use this section when the question is not “what does this button do?”
+but “if I change this, where should I expect the result?”</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Source edit</th>
+<th>Direct owner</th>
+<th>Downstream consumers</th>
+<th>Common confusion</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>BG CHR pixel</td>
+<td>Scene CHR</td>
+<td>SCENE, METATILES, WORLD render via tileset, builds</td>
+<td>One tile change can affect many placements because references are
+shared.</td>
+</tr>
+<tr class="even">
+<td>Sprite CHR pixel</td>
+<td>Scene sprite CHR</td>
+<td>SPRITES, METASPRITES, ANIM, retained Player</td>
+<td>Changing source art updates every frame that references it.</td>
+</tr>
+<tr class="odd">
+<td>Metatile definition</td>
+<td>METATILES</td>
+<td>Linked SCENE cells, WORLD map rendering, World Runtime
+collision</td>
+<td>World cells store metatile IDs; a definition edit changes all cells
+using that ID.</td>
+</tr>
+<tr class="even">
+<td>Raw SCENE cell</td>
+<td>SCENE</td>
+<td>Scene viewer/build source</td>
+<td>Does not automatically repaint an already-authored World.</td>
+</tr>
+<tr class="odd">
+<td>World map cell</td>
+<td>WORLD</td>
+<td>World Runtime</td>
+<td>Does not rewrite source Scene nametable.</td>
+</tr>
+<tr class="even">
+<td>Room</td>
+<td>WORLD</td>
+<td>Gameplay Core Room placement/persistence</td>
+<td>Room scope requires stable authored Room ID.</td>
+</tr>
+<tr class="odd">
+<td>Entrance/Exit target</td>
+<td>WORLD</td>
+<td>World Runtime transitions</td>
+<td>Both target World and marker must be valid.</td>
+</tr>
+<tr class="even">
+<td>Metasprite frame</td>
+<td>METASPRITES</td>
+<td>ANIM metasprite frames</td>
+<td>Metasprite is one pose, not timing/state logic.</td>
+</tr>
+<tr class="odd">
+<td>Animation frame/event</td>
+<td>ANIM</td>
+<td>ENTITY STUDIO, Audio sound-event consumer where supported</td>
+<td>Entity Studio only logs events during preview; it does not execute
+gameplay there.</td>
+</tr>
+<tr class="even">
+<td>Legacy entity binding</td>
+<td>ENTITY STUDIO</td>
+<td>retained Player/single-room/World Player</td>
+<td>Not a Gameplay Core Actor Definition/Instance.</td>
+</tr>
+<tr class="odd">
+<td>Actor Definition</td>
+<td>GAMEPLAY CORE</td>
+<td>every Actor Instance referencing it</td>
+<td>Instance overrides should not mutate definition or siblings.</td>
+</tr>
+<tr class="even">
+<td>Actor Instance placement</td>
+<td>GAMEPLAY CORE</td>
+<td>Gameplay Core plan/runtime reachability</td>
+<td>World actors outside reachable World set should not be silently
+omitted.</td>
+</tr>
+<tr class="odd">
+<td>Persistent variable</td>
+<td>GAMEPLAY CORE</td>
+<td>behavior conditions/actions, Switch/Pickup/etc.</td>
+<td>Runtime Actor memory is separate/transient.</td>
+</tr>
+<tr class="even">
+<td>Tracker/SFX</td>
+<td>AUDIO</td>
+<td>AudioCompiler/runtime sound events</td>
+<td>Browser preview is not the same as built ROM playback.</td>
+</tr>
+<tr class="odd">
+<td>Custom assembly</td>
+<td>CODE</td>
+<td>custom/viewer ROM path</td>
+<td>Conflicts with generated World/Gameplay/Audio paths where docs say
+so.</td>
+</tr>
+<tr class="even">
+<td>Imported ROM</td>
+<td>Import/Emulator</td>
+<td>Run Original, capture, disasm</td>
+<td>Run Original ignores editor changes.</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="build-run-import-and-save-which-button-should-i-use">Build, run,
+import, and save: which button should I use?</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Goal</th>
+<th>Use</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Keep a portable editable project</td>
+<td><strong>Save Project As…</strong></td>
+<td>Complete JSON source backup.</td>
+</tr>
+<tr class="even">
+<td>Package editable project + binary assets</td>
+<td><strong>Export...</strong></td>
+<td>Produces <code>.nesforge.zip</code>.</td>
+</tr>
+<tr class="odd">
+<td>Save only in this browser/profile</td>
+<td><strong>Save</strong></td>
+<td>IndexedDB convenience.</td>
+</tr>
+<tr class="even">
+<td>Reopen browser save</td>
+<td><strong>Load</strong></td>
+<td>Reads IndexedDB list.</td>
+</tr>
+<tr class="odd">
+<td>Open portable JSON</td>
+<td><strong>Open Project</strong></td>
+<td>Restores saved project source.</td>
+</tr>
+<tr class="even">
+<td>Compile current edits</td>
+<td><strong>Build .NES ROM</strong></td>
+<td>Creates cartridge image.</td>
+</tr>
+<tr class="odd">
+<td>Compile current edits and immediately test</td>
+<td><strong>Build &amp; Run</strong></td>
+<td>Builds then launches the new ROM.</td>
+</tr>
+<tr class="even">
+<td>Preserve/analyze an existing ROM</td>
+<td><strong>Import ROM</strong></td>
+<td>Adds original ROM/capture context to project.</td>
+</tr>
+<tr class="odd">
+<td>Run imported ROM unchanged</td>
+<td><strong>Run Original ROM</strong></td>
+<td>Explicitly ignores editor edits.</td>
+</tr>
+<tr class="even">
+<td>Reopen a supported NES Forge ROM as project</td>
+<td><strong>Open Forge ROM</strong></td>
+<td>Uses Forge metadata/source envelope when available.</td>
+</tr>
+<tr class="odd">
+<td>Load a ROM only into emulator</td>
+<td><strong>EMULATOR &gt; Load ROM</strong></td>
+<td>Does not import it into project.</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="keyboard-and-mouse-reference">Keyboard and mouse reference</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Context</th>
+<th>Input</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Global/editor</td>
+<td>Ctrl/Cmd+Z</td>
+<td>Undo</td>
+</tr>
+<tr class="even">
+<td>Global/editor</td>
+<td>Ctrl/Cmd+Shift+Z</td>
+<td>Redo where available</td>
+</tr>
+<tr class="odd">
+<td>Tile contexts</td>
+<td>Ctrl/Cmd+C / Ctrl/Cmd+V</td>
+<td>Copy / paste tile</td>
+</tr>
+<tr class="even">
+<td>CHR</td>
+<td>1-4</td>
+<td>Select pixel color index</td>
+</tr>
+<tr class="odd">
+<td>CHR</td>
+<td>Arrow keys</td>
+<td>Change selected tile</td>
+</tr>
+<tr class="even">
+<td>SCENE</td>
+<td>Left click/drag</td>
+<td>Paint</td>
+</tr>
+<tr class="odd">
+<td>SCENE</td>
+<td>Right click</td>
+<td>Eyedrop tile + palette / linked metatile where brush supports
+it</td>
+</tr>
+<tr class="even">
+<td>SPRITES</td>
+<td>Drag</td>
+<td>Move selected OAM sprite</td>
+</tr>
+<tr class="odd">
+<td>SPRITES</td>
+<td>Arrow keys</td>
+<td>Nudge selected sprite</td>
+</tr>
+<tr class="even">
+<td>METASPRITES</td>
+<td>Arrow keys</td>
+<td>Nudge selected piece 1 px; Shift = 8 px</td>
+</tr>
+<tr class="odd">
+<td>ANIM frame areas</td>
+<td>Arrow keys</td>
+<td>Nudge selected area; Shift = 8 px</td>
+</tr>
+<tr class="even">
+<td>ANIM frame areas</td>
+<td>Delete / Backspace</td>
+<td>Remove selected area</td>
+</tr>
+<tr class="odd">
+<td>ANIM frame areas</td>
+<td>Escape</td>
+<td>Cancel drag</td>
+</tr>
+<tr class="even">
+<td>AUDIO</td>
+<td>Z-M / Q-U</td>
+<td>Enter low/high octave notes</td>
+</tr>
+<tr class="odd">
+<td>AUDIO</td>
+<td>Space</td>
+<td>Play/Stop</td>
+</tr>
+<tr class="even">
+<td>AUDIO</td>
+<td>Arrow keys</td>
+<td>Navigate tracker</td>
+</tr>
+<tr class="odd">
+<td>AUDIO</td>
+<td>Delete</td>
+<td>Clear note</td>
+</tr>
+<tr class="even">
+<td>AUDIO</td>
+<td>Backspace</td>
+<td>Cut note</td>
+</tr>
+<tr class="odd">
+<td>CODE</td>
+<td>Ctrl+Enter</td>
+<td>Assemble</td>
+</tr>
+<tr class="even">
+<td>EMULATOR</td>
+<td>Arrows</td>
+<td>D-pad</td>
+</tr>
+<tr class="odd">
+<td>EMULATOR</td>
+<td>Z</td>
+<td>NES A</td>
+</tr>
+<tr class="even">
+<td>EMULATOR</td>
+<td>X</td>
+<td>NES B</td>
+</tr>
+<tr class="odd">
+<td>EMULATOR</td>
+<td>Shift</td>
+<td>Select</td>
+</tr>
+<tr class="even">
+<td>EMULATOR</td>
+<td>Enter</td>
+<td>Start</td>
+</tr>
+<tr class="odd">
+<td>Tabs</td>
+<td>Middle-click</td>
+<td>Open selected view in new browser tab</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="limits-that-are-easy-to-misread-as-bugs">Limits that are easy to
+misread as bugs</h1>
+<ul>
+<li><strong>World Runtime is screen-transition based in 1.9.0.</strong>
+Smooth scrolling is a later runtime-profile milestone.</li>
+<li><strong>Generic Gameplay Core rendering is not the retained
+multi-piece Player rendering path.</strong> Sideview Player remains a
+compatibility binding in 1.9.0.</li>
+<li><strong>Gameplay Core NROM profile limit:</strong> 12 executable
+Actor Instances total and 64 one-byte persistent values.</li>
+<li><strong>Switch + Door is alpha state/persistence proof, not a
+solid/reversible final Door.</strong> Physical blocking is deliberately
+deferred.</li>
+<li><strong>Single-room Forge ROM reopening is partial.</strong> Keep
+JSON/ZIP as authoritative source backup. World WG17 source-envelope
+recovery is more complete.</li>
+<li><strong>Collision properties beyond Empty/Solid are authorable but
+not generally executed by the current World/single-room
+profile.</strong></li>
+<li><strong>Audio has no DPCM authoring/runtime expansion yet.</strong>
+MIDI/MusicXML imports target the canonical tracker model.</li>
+<li><strong>Entity Studio frame-entry events are previewed/logged there;
+the preview does not execute gameplay/damage/sound itself.</strong></li>
+<li><strong>Raster capture can be exact even when static NROM rebuilding
+is unsupported.</strong> Captured, represented, and compilable are
+separate claims.</li>
+<li><strong>DISASM is analysis, not decompilation back to original
+developer source.</strong></li>
+</ul>
+<h1 id="troubleshooting-by-symptom">Troubleshooting by symptom</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Symptom</th>
+<th>Check first</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>WORLD metatile brush says no metatiles</td>
+<td>Open METATILES on the chosen Tileset Scene; create/analyze
+definitions, or use the recovery button to choose a Scene with a
+library.</td>
+</tr>
+<tr class="even">
+<td>World looks empty after creating it</td>
+<td>A blank World is not automatically populated unless seeded from
+compatible Scene/metatile data; paint it with WORLD tools.</td>
+</tr>
+<tr class="odd">
+<td>Player starts somewhere unexpected</td>
+<td>World Runtime start uses selected Start World + Start Marker, not
+the Player entity Scene X/Y.</td>
+</tr>
+<tr class="even">
+<td>Player invisible</td>
+<td>Verify sprite CHR -&gt; METASPRITE -&gt; ANIM -&gt; ENTITY STUDIO
+bindings -&gt; World Player selection.</td>
+</tr>
+<tr class="odd">
+<td>Build says unsupported Gameplay operation</td>
+<td>The canonical model may contain an operation not implemented by
+current mapper-0 profile; change behavior or wait for an authorized
+runtime expansion.</td>
+</tr>
+<tr class="even">
+<td>Pickup/hazard behaves but custom state does not</td>
+<td>Check whether each condition/action is in current executable
+vocabulary and all operands/reference IDs validate.</td>
+</tr>
+<tr class="odd">
+<td>Room variable cannot be selected</td>
+<td>Verify Actor/variable placement really resolves to the same authored
+Room owner.</td>
+</tr>
+<tr class="even">
+<td>Door does not block</td>
+<td>Physical blocking remains outside the documented alpha contract. The
+original 1.9.1 milestone reference was a historical roadmap statement,
+not a current delivery promise.</td>
+</tr>
+<tr class="odd">
+<td>Door deactivates but will not reactivate immediately</td>
+<td>Current <code>syncActiveFromPersistent</code> stops ticking after
+deactivation; reactivation occurs after reconstruction, not as a general
+reversible gate loop.</td>
+</tr>
+<tr class="even">
+<td>Run Original ignores my edit</td>
+<td>Correct: Run Original intentionally runs preserved imported bytes.
+Use Build &amp; Run for edits.</td>
+</tr>
+<tr class="odd">
+<td>Open Forge ROM loses Gameplay Core in a single-room build</td>
+<td>Current single-room ROM source recovery is partial. Open the
+JSON/ZIP project backup instead.</td>
+</tr>
+<tr class="even">
+<td>Raster-captured Scene will not build statically</td>
+<td>Exact capture and static compilation are different capabilities; use
+supported static copy/conversion or preserve capture for future
+raster-capable runtime.</td>
+</tr>
+<tr class="odd">
+<td>Custom assembly blocks World/Audio generated build</td>
+<td>Save custom source separately/return to compatible generated mode;
+the generated runtime and custom assembly paths are distinct.</td>
+</tr>
+<tr class="even">
+<td>Touch controls visible but game does not move</td>
+<td>Load/build a ROM, choose Run, close settings/dialogs, release and
+press the controls again. Start is a game button, not the emulator Run
+command.</td>
+</tr>
+<tr class="odd">
+<td>Controller does not appear</td>
+<td>Connect/pair through OS settings, press a button, then choose it in
+Controller. Browser exposure/compatibility is not guaranteed; physical
+testing remains pending.</td>
+</tr>
+<tr class="even">
+<td>Controller stops after an interruption</td>
+<td>Release all inputs during resumed play. After disconnect/reconnect,
+explicitly select the device again.</td>
+</tr>
+<tr class="odd">
+<td>Fullscreen leaves browser bars visible</td>
+<td>Native fullscreen may be unsupported/denied. Expanded Play view is
+the viewport fallback.</td>
+</tr>
+<tr class="even">
+<td>Mobile sound/video lags or stutters</td>
+<td>Known owner report, not yet measured or fixed. Record
+device/browser, ROM, delivery mode, view/orientation, timing and audio
+symptoms; compare the same section with Sound on/off.</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="source-and-verification-note">Source and verification note</h1>
+<p>The original comprehensive reference was built from the corrected
+Gameplay Core application/source tree. This September 30 edition retains
+that coverage and adds the shipped Mobile Play input/presentation
+controls from <code>src/services/emulator-input.js</code>,
+<code>src/services/emulator-play-ui.js</code> and
+<code>docs/MOBILE_PLAY.md</code> in the application source package. The
+CPU/PPU/APU, authoring, build, capture and save contracts are not
+expanded by this documentation update.</p>
+<ul>
+<li>Historical 1.9.0 application SHA-256:
+<code>e7c75ccd43007c46b5e0336105f6551f4b6183cc39730802cd1fba226eb7fe12</code>.</li>
+<li>Original Mobile Play source ZIP SHA-256:
+<code>aa734c7e734adea8c4821ac57ec2297d105cb1a5e9813635a0a52ad9f2f77088</code>.</li>
+<li>Preserved pre-Mobile corrected reference SHA-256:
+<code>472c4eaa427c466e204a07f0c0c30d3ecfc24c318b5ee1566dddaa2bb4903e08</code>;
+this identifies a historical reference, not the included active
+application.</li>
+<li>Packaged September 28 regression evidence: 702/702 checks across 28
+suites. That existing run is not a fresh run performed by this manual
+update.</li>
+<li>September 30 owner observation: touchscreen controls work on mobile;
+audio/video lag reported. Physical controllers remain untested. No
+device/browser compatibility matrix or measured performance result has
+been established by that observation.</li>
+<li>The earlier PDF completion claim was premature. PDF
+production/layout checking must be reported by this review kit's actual
+verification record, independently from application testing.</li>
+<li>This documentation edition does not promote the alpha candidate or
+authorize 1.9.1.</li>
+</ul>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../START_HERE.html">Back to start</a></p></main></div></body></html>

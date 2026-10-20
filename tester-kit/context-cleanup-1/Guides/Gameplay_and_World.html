@@ -1,0 +1,1436 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gameplay, Worlds and
+repeatable variations · NES Forge alpha.11</title><link rel="stylesheet" href="../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../START_HERE.html">Start here</a><a href="../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../Guide.html">User guide</a><a href="../Tutorial.html">Tutorial</a><a href="../Manual.html">Manual</a><a href="../Reference/Operator_Reference.html">Controls</a><a href="../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#gameplay-worlds-and-repeatable-variations">Gameplay, Worlds and
+repeatable variations</a><a class="level2" href="#choose-what-the-rom-will-run">Choose what the ROM will run</a><a class="level2" href="#single-room-controls-and-a-first-play-test">Single-room controls
+and a first play test</a><a class="level2" href="#world-maps-objects-and-navigation">WORLD: maps, objects and
+navigation</a><a class="level2" href="#gameplay-core-definitions-instances-and-templates">Gameplay
+Core: definitions, instances and templates</a><a class="level2" href="#behavior-graph-and-canonical-tables">Behavior Graph and
+canonical tables</a><a class="level2" href="#persistent-values-and-ownership">Persistent values and
+ownership</a><a class="level2" href="#movement-rules-repeatable-player-changes">Movement rules:
+repeatable Player changes</a><a class="level2" href="#seeded-mashup-combine-editable-assets">Seeded mashup: combine
+editable assets</a><a class="level2" href="#save-build-and-diagnose">Save, build and diagnose</a><a class="level2" href="#source-audit-and-verification-scope">Source audit and
+verification scope</a></aside><main id="guide"><h1 id="gameplay-worlds-and-repeatable-variations">Gameplay, Worlds and
+repeatable variations</h1>
+<p>This guide explains the current generated gameplay tools in NES Forge
+2.0.0-alpha.11, including the <code>audio-tool-import-1</code>
+application. It covers the controls that choose a runtime, place a
+player and actors, edit behavior, connect Worlds, and make repeatable
+variations. For drawing and animation construction, continue with the <a
+href="../Tutorial.html">main tutorial</a>; the <a
+href="../Reference/Operator_Reference.html">Operator Reference</a>
+supplies the larger control inventory.</p>
+<p>The kit includes <a
+href="../examples/Scout_Gameplay_Core_2.0.0-alpha.11.nesforge.json">Scout_Gameplay_Core_2.0.0-alpha.11.nesforge.json</a>.
+Open that <strong>JSON</strong> through <strong>Open Project</strong>
+for these lessons. The matching <code>.nes</code> is a playable
+cartridge, not the editable lesson source. <strong>Save Project
+As…</strong> makes your own portable working copy. Reopen the untouched
+Scout JSON before each lesson when you want the original starting
+point.</p>
+<h2 id="choose-what-the-rom-will-run">Choose what the ROM will run</h2>
+<p>Three choices answer different needs. The <strong>Gameplay</strong>
+button opens the <strong>SCENE → Gameplay</strong> panel. <strong>WORLD
+→ WORLD RUNTIME</strong> contains the multi-screen selection.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Choice</th>
+<th>What Build runs</th>
+<th>What you must supply</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>ROM mode → Scene viewer / custom assembly</strong></td>
+<td>The generated scene viewer when CODE is empty, or your authored
+assembly when it is present. The viewer's Start button cycles selected
+scenes.</td>
+<td>A suitable Build Scene Set, or valid assembly and its required
+resources. It does not automatically turn scene entities into a
+game.</td>
+</tr>
+<tr class="even">
+<td><strong>ROM mode → Single-room platformer</strong></td>
+<td>One fixed sideview room, the retained Player, an optional stationary
+training target, and enabled supported Gameplay Core actors in that
+scene.</td>
+<td>A playable room, Player animation bindings, collision and build
+dependencies.</td>
+</tr>
+<tr class="odd">
+<td><strong>Build this project as World Runtime</strong></td>
+<td>Reachable World maps, screen transitions, the selected retained
+Player, and enabled supported Gameplay Core actors.</td>
+<td>Explicit start World/marker and Player source selections, valid
+linked terrain and assets.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Enabling World Runtime takes priority over the saved
+viewer/single-room selection. Those Gameplay fields become disabled and
+explain why. Turning World Runtime off reveals their saved settings
+again. Selecting a different editor scene or World does not silently
+change the configured runtime start.</p>
+<p><strong>New Project</strong> starts a blank project with single-room
+settings. It still needs an authored Player and its bindings before it
+can build as a playable room. A template in Gameplay Core does not
+supply the Player's artwork or the missing legacy Player entity.</p>
+<p>Custom assembly conflicts with the generated single-room and World
+paths. Save source that you need before clearing CODE to use a generated
+runtime. The generated profile is mapper 0/NROM; selecting a mode does
+not import another game's engine.</p>
+<h2 id="single-room-controls-and-a-first-play-test">Single-room controls
+and a first play test</h2>
+<p>The panel heading <strong>FIRST PLAYABLE ROOM</strong> is retained in
+the current application.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose and consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>ROM mode</strong></td>
+<td>Selects viewer/custom or <strong>Single-room platformer</strong>
+while World Runtime is off.</td>
+</tr>
+<tr class="even">
+<td><strong>Playable room</strong></td>
+<td>Selects the exact scene to execute. Include it in <strong>Build
+Scene Set</strong>.</td>
+</tr>
+<tr class="odd">
+<td><strong>Player</strong></td>
+<td>Selects a Player entity in that room. Entity Studio supplies its
+animation bindings.</td>
+</tr>
+<tr class="even">
+<td><strong>Training target</strong></td>
+<td>Selects one distinct NPC/enemy, or <strong>No training
+target</strong>. This is the stationary attack demonstration, separate
+from generic Gameplay Core actors.</td>
+</tr>
+<tr class="odd">
+<td><strong>Movement and collision body</strong></td>
+<td>Expands six runtime fields, described below. These are the movement
+settings used by the generated Player.</td>
+</tr>
+<tr class="even">
+<td><strong>Edit room</strong></td>
+<td>Opens the configured room in SCENE.</td>
+</tr>
+<tr class="odd">
+<td><strong>Bind animations</strong></td>
+<td>Opens the configured Player in ENTITY STUDIO.</td>
+</tr>
+<tr class="even">
+<td><strong>Build &amp; Play</strong></td>
+<td>Builds the active project and runs it in the emulator. It is the
+local label for the same build/run workflow.</td>
+</tr>
+<tr class="odd">
+<td><strong>Latest build details</strong></td>
+<td>Shows the captured build messages. Read the actual rejection if
+Build fails; a valid dropdown selection does not certify the art,
+collision or ROM capacity.</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Movement field</th>
+<th>Allowed values</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Move speed</strong></td>
+<td>Whole number 1–4</td>
+<td>Horizontal pixels per game tick.</td>
+</tr>
+<tr class="even">
+<td><strong>Jump speed</strong></td>
+<td>Whole number 1–12</td>
+<td>Initial upward speed on a new jump press.</td>
+</tr>
+<tr class="odd">
+<td><strong>Gravity</strong></td>
+<td>Whole number 1–3</td>
+<td>Downward speed change per game tick.</td>
+</tr>
+<tr class="even">
+<td><strong>Maximum fall</strong></td>
+<td>Whole number 1–8</td>
+<td>Downward speed cap.</td>
+</tr>
+<tr class="odd">
+<td><strong>Body width</strong></td>
+<td>Even whole number 2–32</td>
+<td>Width of the terrain collision body, centered around the Player's
+feet X.</td>
+</tr>
+<tr class="even">
+<td><strong>Body height</strong></td>
+<td>Whole number 2–48</td>
+<td>Height of that body above the feet.</td>
+</tr>
+</tbody>
+</table></div>
+<p>These fields are also used by World Runtime. The nominal tick rate is
+60 Hz. Body dimensions govern terrain movement; animation hitboxes and
+hurtboxes govern the supported attack interaction. Changing an entity's
+older <code>speed</code> or <code>jumpForce</code> property is not a
+substitute for changing these runtime fields.</p>
+<h3 id="lesson-run-scout-as-a-fixed-room">Lesson: run Scout as a fixed
+room</h3>
+<ol type="1">
+<li>Open the kit's Scout JSON and save a copy such as
+<code>Scout_single_room.nesforge.json</code>.</li>
+<li>Open <strong>WORLD</strong> and uncheck <strong>Build this project
+as World Runtime</strong>.</li>
+<li>Choose <strong>Gameplay</strong>. In <strong>GAMEPLAY CORE · TYPED
+TABLES</strong>, uncheck <strong>Enable canonical Gameplay Core</strong>
+for this retained Player/target lesson. This preserves those records
+while taking their generic actors out of this build.</li>
+<li>Set <strong>ROM mode</strong> to <strong>Single-room
+platformer</strong>, <strong>Playable room</strong> to <strong>Scout
+Training Room</strong>, <strong>Player</strong> to
+<strong>Scout</strong>, and <strong>Training target</strong> to
+<strong>Training target</strong>. These are already saved in the
+supplied project; verify them explicitly.</li>
+<li>Choose <strong>Bind animations</strong>. Confirm that Scout has
+<code>idle</code>, <code>walk</code> and <code>attack</code> bindings.
+In ANIM, <code>attack</code> must have <strong>Loop</strong> off. A
+<code>jump</code> binding is optional; without it, the retained runtime
+uses idle in the air. Return with <strong>Gameplay</strong>.</li>
+<li>Choose <strong>Build &amp; Play</strong>. Give the emulator keyboard
+focus. Use Left/Right to move, <strong>Z</strong> to jump,
+<strong>X</strong> to attack, and <strong>Enter</strong> to restart. A
+controller's A/B/Start perform the same actions. Jump and attack require
+a fresh press; holding either does not repeatedly start the action.</li>
+<li>Approach the target and attack. Scout's authored attack hitbox must
+meet the target's hurtbox for the supported one-hit-per-swing target
+interaction. The target flashes and recovers; this is not a general
+enemy combat system.</li>
+<li>Change <strong>Move speed</strong> from 2 to 3, then build again to
+compare. The previous running ROM does not update itself merely because
+you edited a field. Use <strong>Undo</strong> to restore that edit,
+<strong>Redo</strong> to reapply it, and <strong>Save Project
+As…</strong> to keep the chosen version.</li>
+</ol>
+<p>Expected result: one room with Player movement, solid terrain
+collision, bound animation and the optional target. Reopen the original
+Scout JSON to return to the World lesson; the mode/checkbox edits above
+are separate history actions.</p>
+<p>For your own fixed room, use <strong>SCENE PROPERTIES → Type:
+Side-View</strong>, <strong>Scroll: None</strong>, and a fixed 256×240
+camera at 0,0 with no follow entity. Place the Player's feet above clear
+terrain. Include the room and every scene providing linked sprite assets
+in Build Scene Set. Sprite palette rows used by the Player/target must
+agree with the room. Empty and Solid are the supported terrain
+properties; Platform, Ladder, Hazard, Water and slope labels do not add
+those movement mechanics to this runtime.</p>
+<p>Animation <code>sound</code> frame events can invoke a linked named
+SFX when Audio Runtime is enabled. Custom markers/scripts do not execute
+arbitrary code. Entity Studio's event log is an inspection preview; it
+does not perform combat or play those runtime events by itself.</p>
+<h2 id="world-maps-objects-and-navigation">WORLD: maps, objects and
+navigation</h2>
+<p>A World uses a scene's <strong>Metatile Library</strong> as its
+tileset. It stores metatile IDs in a separate map. Editing a metatile
+definition changes every World cell that references it; painting the
+source Scene later does not automatically repaint an existing World.</p>
+<p>One screen is <strong>16×15 metatile cells</strong>, or
+<strong>256×240 pixels</strong>. Each cell is 16×16 pixels. World
+marker/rectangle coordinates use cells. Gameplay actor positions use
+pixels; do not copy a marker coordinate directly into an actor X/Y
+field.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>WORLD control group</th>
+<th>What each control does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>World selection</td>
+<td>The World dropdown selects the editor map. <strong>+ World</strong>
+creates one from a scene with a metatile library and initially copies
+its linked scene map. <strong>⧉</strong> duplicates the World.
+<strong>✕</strong> deletes the active one after confirmation. Check
+start, actor and link references after duplication or deletion.</td>
+</tr>
+<tr class="even">
+<td>World properties</td>
+<td><strong>Name</strong> changes the display name. <strong>Tileset
+Scene</strong> selects the metatile/CHR/palette source. <strong>Width /
+Height</strong> set 1–16 screens per axis; shrinking can crop map
+content. A changed tileset can leave unresolved IDs, which Forge
+preserves and reports for repair.</td>
+</tr>
+<tr class="odd">
+<td>Editor view</td>
+<td>Directional arrows pan one screen. The <strong>1× / 2× / 3×</strong>
+selector under VIEW changes World zoom. <strong>MINIMAP /
+OVERVIEW</strong> jumps the viewport when clicked. These controls move
+the editor view, not the runtime start or camera.</td>
+</tr>
+<tr class="even">
+<td>Brush selection</td>
+<td><strong>METATILE BRUSH</strong> chooses an ID. <strong>METATILE
+PALETTE</strong> shows visual choices; search matches
+name/category/hexadecimal ID, the star filter shows favorites, and each
+card's star toggles that preference. <strong>Open METATILES</strong> or
+<strong>Use [scene]</strong> helps when the selected tileset has no
+library.</td>
+</tr>
+<tr class="odd">
+<td><strong>Paint / Erase / Fill / Rect</strong></td>
+<td>Paint strokes place the brush; right-click eyedrops an existing
+cell. Erase makes cells empty. Fill replaces a connected area of
+matching cells. Rect paints the dragged rectangle. These change World
+terrain, not Scene nametable cells.</td>
+</tr>
+<tr class="even">
+<td><strong>Select</strong></td>
+<td>Selects/moves a marker or rectangle on the canvas. Dragging a
+room/camera's lower-right cell resizes it; dragging its interior moves
+it. Dragging empty map space selects a rectangular cell region. At
+overlapping positions, markers are picked before cameras, then rooms.
+Sidebar lists show names/bounds and delete buttons; they are not
+object-selection buttons.</td>
+</tr>
+<tr class="odd">
+<td><strong>REGION → Copy / Paste / Clear</strong></td>
+<td>Copies selected cells to the World clipboard, pastes them into the
+World at the selected region/viewport position, or empties the
+selection. Copy is not a project file save.</td>
+</tr>
+<tr class="even">
+<td><strong>Room / + Current Screen</strong></td>
+<td>The Room tool drag-creates a rectangle; <strong>ROOMS / CHUNKS → +
+Current Screen</strong> creates a 16×15-cell room over the viewport.
+Rooms give actors and persistent values an ownership region; their
+borders do not create collision walls.</td>
+</tr>
+<tr class="odd">
+<td><strong>Entrance / Spawn / Exit</strong></td>
+<td>The tools click-place markers. The corresponding <strong>+ Entrance
+/ + Spawn / + Exit</strong> buttons add markers near the viewport center
+for further editing. Spawn marks a start/arrival position, not an enemy
+generator or a checkpoint-save system.</td>
+</tr>
+<tr class="even">
+<td><strong>Camera / + Current Screen Region</strong></td>
+<td>The Camera tool drag-creates a region. The button creates a
+screen-sized region. It controls which complete screen is displayed
+while the Player occupies that region.</td>
+</tr>
+<tr class="odd">
+<td><strong>SELECTION / PROPERTIES</strong></td>
+<td>Edits the selected object's <strong>Name</strong>, <strong>X /
+Y</strong>, and rectangle <strong>W / H</strong> or marker
+<strong>Kind</strong>. Camera <strong>Mode</strong> and marker
+<strong>Target World / Target Marker</strong> appear for those object
+types. <strong>Delete room</strong>, <strong>Delete camera</strong>,
+<strong>Delete marker</strong>, or list <strong>×</strong> removes the
+chosen object.</td>
+</tr>
+<tr class="even">
+<td><strong>BUILD STATUS</strong></td>
+<td>Reports used/painted metatile counts and missing definitions. A
+missing brush or map ID needs repair before building; this panel is not
+the full ROM preflight.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rooms and camera regions may be authored freely, but the current
+executable profile requires screen alignment: X and W multiples of 16
+cells, Y and H multiples of 15, positive dimensions and containment
+within the World. Rooms cannot overlap rooms; cameras cannot overlap
+cameras. A room and camera may cover the same space.</p>
+<h3 id="start-and-link-controls">Start and link controls</h3>
+<p>In <strong>WORLD RUNTIME</strong>, check <strong>Build this project
+as World Runtime</strong>, then choose <strong>Start world</strong>,
+<strong>Start marker</strong>, <strong>Player source scene</strong>, and
+<strong>Player</strong>. Forge does not guess these references.
+<strong>Movement and collision body</strong> expands the six fields
+already described. <strong>Build &amp; Run</strong> validates and runs
+the generated game.</p>
+<p>The start marker must be a <strong>Spawn</strong> or
+<strong>Entrance</strong>. Marker <code>(x,y)</code> places centered
+feet at pixel <code>(16x+8,16y+8)</code>. The entire body must fit the
+World and avoid Solid terrain. Forge rejects an obstructed start/arrival
+rather than moving it to a nearby space. World boundaries block
+movement.</p>
+<p>For a traversable Entrance/Exit, select it and fill
+<strong>both</strong> <strong>Target World</strong> and <strong>Target
+Marker</strong>. The destination must be a <strong>Spawn or
+Entrance</strong>, even if a broader marker list is visible in the
+authoring control. An Exit is not a valid runtime arrival target. Both
+fields empty means no transition; one field without the other is an
+error. Multiple traversable markers in the same cell are refused.</p>
+<p>During play, press <strong>Up</strong> while the Player's feet occupy
+the link's cell. Activation uses the last occupied body row, just above
+the feet, so a link immediately above a floor remains usable after
+landing. A fresh Up press is required; holding Up does not bounce
+indefinitely across reciprocal links. Arrival resets transient
+movement/action state.</p>
+<h3 id="camera-mode-reference">Camera mode reference</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th>Screen shown while inside the camera region</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>follow</code></td>
+<td>Player's screen column and row.</td>
+</tr>
+<tr class="even">
+<td><code>horizontal</code></td>
+<td>Player's screen column and the region's first row.</td>
+</tr>
+<tr class="odd">
+<td><code>vertical</code></td>
+<td>Region's first column and Player's screen row.</td>
+</tr>
+<tr class="even">
+<td><code>locked</code></td>
+<td>Region's first/top-left screen.</td>
+</tr>
+<tr class="odd">
+<td>No region</td>
+<td>Player's current World screen.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The change is a whole-screen transition, not smooth pixel scrolling.
+Cameras do not constrain movement. With a locked/axis-limited camera
+covering several screens, the Player can leave the displayed screen; its
+sprite is clipped rather than wrapped onto the camera view.</p>
+<h3 id="lesson-inspect-and-traverse-the-supplied-worlds">Lesson: inspect
+and traverse the supplied Worlds</h3>
+<ol type="1">
+<li>Open the original kit Scout JSON. In WORLD RUNTIME, verify
+<strong>Start world: Scout Ridge</strong>, <strong>Start marker:
+spawn-a</strong>, <strong>Player source scene: Scout Training
+Room</strong>, and <strong>Player: Scout</strong>. Leave World Runtime
+enabled.</li>
+<li>Select <strong>Scout Ridge</strong> in the editor's World dropdown.
+Its room spans 32×15 cells, two screens wide. Use the view arrow or
+overview to inspect the second screen.</li>
+<li>Choose <strong>Select</strong>, pan right one screen, and click
+marker <strong>exit-a</strong> at World cell <code>(25,12)</code>
+(column 9, row 12 within that viewport). Its inspector target is
+<strong>Scout Courtyard → spawn-b</strong>. Do not change it yet.</li>
+<li>Select <strong>Scout Courtyard</strong> in the World dropdown and
+click its marker at <code>(4,12)</code> with Select. The selected
+<strong>exit-b</strong> targets <strong>Scout Ridge → spawn-a</strong>.
+Its arrival Spawn and return Exit share a cell; only the Exit is
+traversable.</li>
+<li>Choose <strong>Build &amp; Run</strong>. Move through Scout Ridge,
+using Z to jump and avoiding contact hazards. Cross the first screen
+boundary: the camera changes by one complete screen. At exit-a, release
+and press <strong>Up</strong> to enter Scout Courtyard. Release and
+press Up again at its return marker to return to Scout Ridge.</li>
+<li>Save a copy, then select <strong>Scout Ridge</strong>, choose
+<strong>Select</strong> and click inside its camera away from a marker,
+such as cell <code>(0,0)</code>. Change <strong>Mode</strong> in
+SELECTION / PROPERTIES, rebuild, and compare the four modes with the
+reference above. <strong>Undo</strong> restores the authored change;
+rebuilding is required to see that restoration in the ROM.</li>
+</ol>
+<p>Expected result: linked World traversal with explicit start and
+arrival markers. The source Player's scene X/Y is not the World starting
+position. Press Enter/Start to restart at the configured start
+marker.</p>
+<h3
+id="lesson-add-a-room-terrain-and-a-safe-start-to-your-own-world">Lesson:
+add a room, terrain and a safe start to your own World</h3>
+<p>Use a saved project with a metatile library and a bound Player; the
+main tutorial explains how to author those assets. You can practice on a
+copy of Scout.</p>
+<ol type="1">
+<li>Choose <strong>+ World</strong>. Name it and select its
+<strong>Tileset Scene</strong> deliberately. Inspect the map: creation
+can seed linked cells from that scene, so it need not be blank. Erase
+unwanted cells.</li>
+<li>Select a metatile whose collision quadrants are Solid. With
+<strong>Paint</strong> or <strong>Rect</strong>, draw a floor. Leave
+clear space above it for the entire Player body. Empty map cells are
+passable; tile pictures alone do not define collision.</li>
+<li>Use <strong>+ Current Screen</strong> under ROOMS / CHUNKS for an
+aligned room. Use <strong>+ Current Screen Region</strong> for an
+aligned camera, then choose <code>follow</code> or <code>locked</code>
+in its inspector. Do not add a second overlapping room/camera of the
+same type.</li>
+<li>Choose the <strong>Spawn</strong> tool and click clear space above
+the floor. Set its exact X/Y in SELECTION / PROPERTIES. For a floor
+beginning at cell row 13, a Spawn at <code>(3,12)</code> puts feet at
+<code>(56,200)</code> with room to fall onto that floor, provided the
+cells above are clear.</li>
+<li>Enable World Runtime and explicitly choose the new World, new Spawn,
+existing Player source scene and Player. Build &amp; Run. Read any
+capacity, missing-ID, obstructed-body or region-alignment error before
+proceeding.</li>
+<li>For a second destination, author another World/start marker and an
+Exit linking to it. Add a separate reciprocal link if return travel is
+wanted; links are not automatically bidirectional.</li>
+<li>Save the JSON, reopen it and verify those references before
+distributing a ROM.</li>
+</ol>
+<p>World builds follow links reachable from the configured start and
+link required Player/tileset assets independently of Build Scene Set.
+Unreachable worlds remain authoring data. Gameplay actors outside the
+reachable World/player-source set are reported as authoring-only. Stored
+authoring data can still consume ROM source-record capacity.</p>
+<h2 id="gameplay-core-definitions-instances-and-templates">Gameplay
+Core: definitions, instances and templates</h2>
+<p>Open <strong>Gameplay → GAMEPLAY CORE · TYPED TABLES</strong>.
+<strong>Enable canonical Gameplay Core</strong> controls whether
+supported generalized actors participate in the generated
+single-room/World build. This does not replace the retained Player
+executor.</p>
+<p>An <strong>Actor Definition</strong> is a reusable set of components,
+parameters and a Behavior reference. An <strong>Actor Instance</strong>
+places one definition and supplies its own parameter overrides and
+persistence bindings. A <strong>Behavior</strong> contains states,
+ordered operations and transitions. Changing a shared
+definition/Behavior can affect several instances; editing an instance
+override affects that instance.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control group</th>
+<th>What to use it for</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Placement dropdowns</td>
+<td>Before <strong>Add template</strong>, <strong>New Actor
+Instance</strong> or <strong>New persistent variable</strong>, select
+<code>scene</code>, <code>room</code> or <code>world</code> and the
+actual owner. Room requires an authored Room. These selectors set
+creation context; they do not move existing records.</td>
+</tr>
+<tr class="even">
+<td>Template dropdown / <strong>Add template</strong></td>
+<td>Inserts ordinary editable records for one of the five templates
+below. It does not turn the feature on automatically or author artwork
+for you.</td>
+</tr>
+<tr class="odd">
+<td><strong>Actor Definitions</strong></td>
+<td><strong>New Actor Definition</strong> creates a definition and, if
+needed, a Behavior. The table edits <strong>Name</strong> and
+<strong>Behavior</strong>. <strong>Edit</strong> selects it for
+components/parameters; <strong>×</strong> removes it only when the
+resulting references validate. IDs identify records even after names
+change.</td>
+</tr>
+<tr class="even">
+<td><strong>Actor Instances / Placement / Bindings</strong></td>
+<td><strong>New Actor Instance</strong> creates an instance of the first
+definition; choose the wanted <strong>Definition</strong> afterward.
+Edit <strong>Placement</strong>, <strong>X</strong>, <strong>Y</strong>,
+and <strong>Facing</strong>. <strong>Edit</strong> selects its
+overrides/bindings. <strong>×</strong> removes the instance. Changing
+Definition clears its old parameter overrides.</td>
+</tr>
+<tr class="odd">
+<td><strong>Overrides</strong></td>
+<td>Changes a selected instance's typed parameter value.
+<strong>Default</strong> removes that override so it follows the
+definition again.</td>
+</tr>
+<tr class="even">
+<td><strong>Persistence bindings</strong></td>
+<td><strong>Add binding</strong> requires a variable owned by that
+placement. Choose <strong>Variable</strong> and a
+<strong>Purpose</strong>, or remove with <strong>×</strong>. The
+instance bindings are the authoritative links to persistent state.</td>
+</tr>
+<tr class="odd">
+<td><strong>Typed parameters</strong></td>
+<td><strong>Add parameter</strong> creates an ID, type, default and
+bounds/enum choices. Types are <code>boolean</code>, <code>uint</code>,
+<code>int</code>, <code>enum</code>, <code>text</code>,
+<code>asset</code>. Numeric ranges and declared enum choices are
+validated. Remove with <strong>×</strong> after repairing users of that
+parameter.</td>
+</tr>
+<tr class="even">
+<td><strong>Components</strong></td>
+<td><strong>Add component</strong> adds a selected capability to the
+selected definition. Choose its <strong>Type</strong>, edit offered
+fields, use <strong>Enabled</strong> to control it, or remove it. A
+disabled Behavior is inert. Merely adding a component does not implement
+a future engine feature.</td>
+</tr>
+</tbody>
+</table></div>
+<p>For an instance placed in a Scene, X/Y are scene pixels. For World
+placement, they are World pixels. For Room placement, they are pixels
+relative to that Room's top-left; compilation adds the Room's cell
+origin ×16. The single-room profile requires positions within 256×240.
+World-source Scene instances are not a substitute for placing generic
+actors in the World or Room.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Template</th>
+<th>Current behavior and its boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Sideview Player</strong></td>
+<td>Binds Gameplay Core to the already selected retained Player. It
+needs that Player and its assets; it does not create them. Its canonical
+graph is a compatibility record, not a programmable replacement for
+Player movement.</td>
+</tr>
+<tr class="even">
+<td><strong>Ground Patrol Enemy</strong></td>
+<td>Moves between authored <code>minX</code>/<code>maxX</code> bounds
+using <code>speed</code> 1–4 and applies supported contact damage. Its
+initial Hurt/Dead state records have no automatic transitions or full
+combat AI.</td>
+</tr>
+<tr class="odd">
+<td><strong>Stationary Contact Hazard</strong></td>
+<td>Uses contact damage while in its active behavior state, with an
+explicitly owned enabled variable. It is an actor; it does not implement
+the tile property named Hazard.</td>
+</tr>
+<tr class="even">
+<td><strong>Collectible Pickup</strong></td>
+<td>On Player overlap, sets its declared collected variable and
+despawns. The binding carries collection across supported reconstruction
+within the running game.</td>
+</tr>
+<tr class="odd">
+<td><strong>Switch + Door</strong></td>
+<td>Creates two definitions/instances sharing one variable. Overlap the
+switch and make a new Up press to set it; the door's alpha behavior
+changes its active/visible state. Physical door blocking and a general
+reversible gate are not implemented.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="component-field-reference">Component field reference</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Current editable meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Transform</code> / <code>Spawn</code></td>
+<td>Capability records with no separate value fields in this panel.
+Instance placement/X/Y supplies position. Spawn is not a general
+spawn-operation implementation.</td>
+</tr>
+<tr class="even">
+<td><code>Render</code></td>
+<td><code>sourceSceneId</code>, <code>tile</code> 0–255,
+<code>palette</code> 0–3 and <code>behind</code> choose the generic
+actor's sprite source. The generic renderer is separate from the
+retained Player's multi-piece metasprite animation.</td>
+</tr>
+<tr class="odd">
+<td><code>Animation</code> / <code>Physics</code></td>
+<td>Capability records with no additional typed values here. They do not
+grant the unsupported generic animation/physics operations listed
+below.</td>
+</tr>
+<tr class="even">
+<td><code>Collider</code></td>
+<td><code>width</code> and <code>height</code> 1–64 for supported actor
+overlap checks. These do not replace the Player terrain body's separate
+dimensions.</td>
+</tr>
+<tr class="odd">
+<td><code>Input</code></td>
+<td><code>adapter: legacyPlayer</code> identifies the retained Sideview
+Player binding. Only one such binding is supported.</td>
+</tr>
+<tr class="even">
+<td><code>Health</code></td>
+<td><code>maximum</code> 0–255 is bounded actor health data. Adding it
+does not wire Hurt/Dead transitions or implement generic
+<code>changeHealth</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>ContactDamage</code></td>
+<td>Capability and legacy mirror values for damage/cooldown. The
+Behavior's <code>contactDamage</code> operands are authoritative.
+Conflicting mirrors are errors, not another independent damage
+setting.</td>
+</tr>
+<tr class="even">
+<td><code>Behavior</code></td>
+<td>Enables execution of supported state/transition records for a
+generic actor.</td>
+</tr>
+<tr class="odd">
+<td><code>Pickup</code> / <code>Switch</code> / <code>Door</code></td>
+<td>Role/capability records used by the supported templates. Their
+Behavior and persistence records supply the actions. Door does not imply
+collision blocking.</td>
+</tr>
+<tr class="even">
+<td><code>PersistenceBinding</code></td>
+<td>Enables persistent behavior use. A legacy <code>variableId</code>
+mirror must agree with the authoritative Actor Instance bindings.</td>
+</tr>
+</tbody>
+</table></div>
+<h3
+id="lesson-change-one-patrol-without-changing-the-definition">Lesson:
+change one patrol without changing the definition</h3>
+<ol type="1">
+<li>Open the original Scout JSON. Keep World Runtime and canonical
+Gameplay Core enabled.</li>
+<li>In <strong>Actor Instances / Placement / Bindings</strong>, find ID
+<code>example-patrol</code> and choose <strong>Edit</strong>.</li>
+<li>Under <strong>Overrides · example-patrol</strong>, change
+<code>speed</code> to <strong>2</strong>. Leave <code>minX</code> and
+<code>maxX</code> at their current defaults. The Ground Patrol Enemy
+definition still has default speed 1.</li>
+<li>Build &amp; Run. Compare the patrol motion in Scout Ridge. This is
+an actor speed change, distinct from the Player's Move speed.</li>
+<li>Return to the instance and choose <strong>Default</strong> beside
+speed to remove its override, or Undo the edit. Save a separate JSON if
+you want to keep the faster patrol.</li>
+</ol>
+<h2 id="behavior-graph-and-canonical-tables">Behavior Graph and
+canonical tables</h2>
+<p><strong>BEHAVIOR GRAPH</strong> is another view of the same Behavior
+records shown in <strong>Canonical State Table</strong>. It does not
+save a second graph or run a separate visual scripting engine.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Graph or table control</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Actor Definition / Behavior</strong> selectors</td>
+<td>Choose which shared Behavior to inspect/edit.</td>
+</tr>
+<tr class="even">
+<td><strong>Duplicate for selected Actor Definition</strong></td>
+<td>Copies that definition's Behavior and assigns the copy only to that
+definition, in one Undo action. Instances of that definition still share
+the copy.</td>
+</tr>
+<tr class="odd">
+<td><strong>Refresh graph</strong></td>
+<td>Redraws the view and diagnostics. Layout/selection are temporary;
+this is not a save or build action.</td>
+</tr>
+<tr class="even">
+<td><strong>Add state</strong></td>
+<td>Adds a state with empty action lists. Select its card and edit
+<strong>State name</strong>. <strong>Make initial</strong> changes the
+initialization state.</td>
+</tr>
+<tr class="odd">
+<td><strong>onEnter / onTick / onExit</strong></td>
+<td>Ordered actions on entering the state, each tick, or leaving it.
+<strong>Add action</strong>, <strong>Type</strong>, and operand fields
+edit an operation; <strong>Earlier / Later / Remove</strong> changes its
+order or removes it.</td>
+</tr>
+<tr class="even">
+<td><strong>Add transition from state</strong></td>
+<td>Creates a canonical transition. Choose <strong>From state</strong>,
+<strong>To state</strong>, <strong>Priority (higher first)</strong>,
+<code>conditions</code> and <code>actions</code> in its inspector. New
+transitions initially use <code>always</code>; replace that when an
+event is intended.</td>
+</tr>
+<tr class="odd">
+<td><strong>Transitions (table order)</strong></td>
+<td>Selects a transition and its drawn connection. <strong>Earlier in
+table / Later in table</strong> controls equal-priority ties. Higher
+priority is checked first; the first matching transition wins. At most
+one transition commits per actor tick.</td>
+</tr>
+<tr class="even">
+<td><strong>References</strong></td>
+<td>Navigates to connected canonical records.</td>
+</tr>
+<tr class="odd">
+<td><strong>Behavior diagnostics</strong></td>
+<td>Buttons select the implicated record/operation. Warnings include
+unreachable states and transitions hidden by earlier unconditional ones.
+Structural reachability does not prove a game condition will occur.</td>
+</tr>
+<tr class="even">
+<td><strong>Remove state / Remove transition</strong></td>
+<td>Explicit deletion. Choose another initial state and remove/retarget
+connected transitions before removing a state.</td>
+</tr>
+<tr class="odd">
+<td>Canonical table controls</td>
+<td><strong>New Behavior</strong>, the selector/name field,
+<strong>Remove Behavior</strong>, <strong>Add behavior
+parameter</strong>, <strong>Add state</strong>,
+<strong>Initial</strong>, and <strong>Add transition</strong> edit the
+same data. The table's operation fields follow the same runtime
+restrictions.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Conditions on one transition are combined with AND. A generic state
+tick executes its <code>onTick</code> actions before transition
+evaluation; a transition runs source <code>onExit</code>, transition
+actions, then destination <code>onEnter</code>. Keep this order in mind
+when a state both causes contact damage and then transitions away.</p>
+<h3 id="operations-that-compile-now">Operations that compile now</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Supported condition</th>
+<th>What it tests</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>always</code></td>
+<td>True without an operand.</td>
+</tr>
+<tr class="even">
+<td><code>inputHeld</code></td>
+<td>NES button <code>a</code>, <code>b</code>, <code>select</code>,
+<code>start</code>, <code>up</code>, <code>down</code>,
+<code>left</code> or <code>right</code> is held.</td>
+</tr>
+<tr class="odd">
+<td><code>inputEdge</code></td>
+<td>A new press of the selected NES button.</td>
+</tr>
+<tr class="even">
+<td><code>timerDone</code></td>
+<td>The supported timer named <strong><code>main</code></strong> has
+expired.</td>
+</tr>
+<tr class="odd">
+<td><code>overlapPlayer</code></td>
+<td>Generic actor overlaps the retained Player.</td>
+</tr>
+<tr class="even">
+<td><code>persistentCompare</code></td>
+<td>Owned variable equals (<code>eq</code>) or differs from
+(<code>ne</code>) its typed value. Other comparison operators do not
+compile in this profile.</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Supported action</th>
+<th>What it changes and where it is allowed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>setTimer</code></td>
+<td>Sets <strong><code>main</code></strong>, 0–255 ticks. Other timer
+names are refused.</td>
+</tr>
+<tr class="even">
+<td><code>persistentSet</code></td>
+<td>Assigns a declared, correctly owned variable a valid typed
+value.</td>
+</tr>
+<tr class="odd">
+<td><code>despawn</code></td>
+<td>Deactivates the actor. Persistence must be modeled explicitly if
+that result should survive reconstruction.</td>
+</tr>
+<tr class="even">
+<td><code>moveWithinBounds</code></td>
+<td><strong>onTick only.</strong> Uses <code>minX</code>,
+<code>maxX</code>, <code>speed</code> literals or the corresponding
+definition parameters, one source per value. Speed is 1–4.</td>
+</tr>
+<tr class="odd">
+<td><code>contactDamage</code></td>
+<td><strong>onTick only.</strong> Current emitted profile supports
+<strong>amount 1</strong>, a bounded cooldown, an enabled ContactDamage
+component and one Sideview Player compatibility binding.</td>
+</tr>
+<tr class="even">
+<td><code>syncActiveFromPersistent</code></td>
+<td><strong>onTick only.</strong> Synchronizes active state using an
+owned variable and <code>whenTrue</code>; its current alpha deactivation
+behavior is not a reversible general gate.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The graph marks these other operations <strong>authoring
+only</strong>, and an executable build refuses them: conditions
+<code>grounded</code>, <code>airborne</code>, <code>compare</code>,
+<code>healthCompare</code>, <code>animationComplete</code>,
+<code>animationEvent</code>, <code>triggerReceived</code>; actions
+<code>selectAnimation</code>, <code>setFacing</code>,
+<code>setVelocity</code>, <code>accelerate</code>,
+<code>changeHealth</code>, <code>spawnActor</code>,
+<code>persistentChange</code>, <code>emitTrigger</code>. Saving their
+canonical records does not make them executable.</p>
+<p>Do not add graph operations/transitions to the <strong>Sideview
+Player</strong> compatibility Behavior: the compiled profile refuses
+them because its movement still runs through the retained Player
+implementation.</p>
+<h3 id="lesson-make-select-pause-and-resume-the-patrol">Lesson: make
+Select pause and resume the patrol</h3>
+<p>This is an editing exercise for the generic Ground Patrol Enemy, not
+the Player.</p>
+<ol type="1">
+<li>Open the original Scout JSON and save a working copy. Open
+<strong>BEHAVIOR GRAPH</strong>, choose <strong>Actor Definition: Ground
+Patrol Enemy</strong>, then <strong>Duplicate for selected Actor
+Definition</strong> to keep the original Behavior available.</li>
+<li>Choose <strong>Add state</strong> and change <strong>State
+name</strong> to <code>Paused</code>. Leave its action lists empty. Keep
+<strong>Patrol</strong> as the initial state.</li>
+<li>Select the <strong>Patrol</strong> state card and choose <strong>Add
+transition from state</strong>. Change <strong>To state</strong> to
+<strong>Paused</strong>. In <code>conditions</code>, change the existing
+operation <strong>Type</strong> from <code>always</code> to
+<code>inputEdge</code>, then <strong>key</strong> to
+<code>select</code>. Leave transition actions empty.</li>
+<li>Select <strong>Paused</strong>, add a transition from it, and set
+<strong>To state: Patrol</strong>. Replace its <code>always</code> with
+<code>inputEdge</code>, <strong>key: select</strong>, again.</li>
+<li>Read Behavior diagnostics. Scout's unused Hurt/Dead states can
+remain structurally unreachable; resolve any error introduced by your
+edits. In particular, confirm neither new transition still says
+<code>always</code>.</li>
+<li>Build &amp; Run and focus the emulator. Press and release
+<strong>Shift</strong> (NES Select): the patrol stops because Paused has
+no movement or contact-damage tick actions. Press and release Shift
+again: patrol resumes. A held button is not a stream of new
+presses.</li>
+<li>Save the JSON and reopen it. The new state/transitions remain;
+automatic graph layout and selected card need not. Each ordinary edit is
+Undoable. The Behavior duplication itself is one Undo action, while the
+subsequent edits have their own entries.</li>
+</ol>
+<p>Expected result follows the current supported <code>inputEdge</code>
+and state-action contracts. This walkthrough is source-audited guidance;
+it is not a claim that every browser, controller or physical console has
+been manually tested.</p>
+<h2 id="persistent-values-and-ownership">Persistent values and
+ownership</h2>
+<p><strong>Room / World Persistent Variables</strong> defines data that
+survives supported actor reconstruction during the current running game.
+It is not a disk save, battery-backed progress system or a global
+variable scope. Power/reset begins from authored defaults.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>New persistent variable</strong></td>
+<td>Creates a variable using the current placement context: Scene or
+Room gives room scope; World gives world scope.</td>
+</tr>
+<tr class="even">
+<td><strong>Name / Scope / Owner</strong></td>
+<td>Name is a display label; stable ID identifies the variable. Scope is
+<code>room</code> or <code>world</code>; Owner selects the exact
+Scene/Room/World. A room-scoped variable can be owned by a fixed Scene
+or an authored World Room.</td>
+</tr>
+<tr class="odd">
+<td><strong>Type</strong></td>
+<td><code>boolean</code>, <code>uint</code> or <code>enum</code>. The
+compiled representation is one byte per variable.</td>
+</tr>
+<tr class="even">
+<td><strong>Default / bounds / enum</strong></td>
+<td>Sets the startup value, uint min/max or declared enum choices.
+Changing type resets its type-specific defaults; inspect the resulting
+row.</td>
+</tr>
+<tr class="odd">
+<td><strong>×</strong></td>
+<td>Removes the variable only when remaining references are valid.
+Repair instance bindings and Behavior operations first.</td>
+</tr>
+</tbody>
+</table></div>
+<p>A World actor may use variables of its World; a Room actor may
+additionally use variables of that exact Room. Cross-owner references
+are errors. The <strong>PersistenceBinding</strong> component and the
+<strong>Actor Instance → Persistence bindings</strong> table work
+together; an operation mentioning a variable is not sufficient by
+itself.</p>
+<p>To inspect a complete example, select Scout's
+<code>example-pickup</code> instance. Its <code>collected</code> binding
+points to <code>example-pickup-state</code>, owned by Scout Ridge. Its
+overlap transition sets that value and despawns. Scout's switch and door
+share <code>example-switch-door-state</code>; inspect both bindings and
+the switch's new-Up-press condition. These examples explain the saved
+model without claiming arbitrary save-game logic.</p>
+<p>The current compiled Gameplay Core limit is <strong>12 applicable
+Actor Instances</strong>, including a canonical Sideview Player binding,
+and <strong>64 persistent one-byte values</strong>. The authoring tables
+can store larger collections; that does not enlarge ROM execution
+capacity. There is no generic actor streaming to bypass the runtime
+limit.</p>
+<h2 id="movement-rules-repeatable-player-changes">Movement rules:
+repeatable Player changes</h2>
+<p>Open <strong>SCENE → Movement rules</strong>. This changes only the
+active generated runtime's Move speed, Jump speed, Gravity and Maximum
+fall. It leaves body dimensions, runtime selection, actors, maps and
+audio as authored.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Use current project</strong></td>
+<td>Captures the exact current editable project as a detached base;
+clears previous movement locks/preview. Requires an enabled compatible
+World or single-room runtime.</td>
+</tr>
+<tr class="even">
+<td><strong>Source identity</strong></td>
+<td>Shows the chosen runtime and canonical project SHA-256. It
+identifies project content, not JSON whitespace/file-byte
+formatting.</td>
+</tr>
+<tr class="odd">
+<td><strong>Seed (text or numbers)</strong></td>
+<td>1–128 characters used for repeatable choices.</td>
+</tr>
+<tr class="even">
+<td><strong>Movement preset / Intensity</strong></td>
+<td>Chooses a named absolute target, or Seeded mix. Intensity offers
+<strong>1 · Mild</strong>, <strong>2 · Strong</strong>, <strong>3 · Full
+supported range</strong>.</td>
+</tr>
+<tr class="odd">
+<td>Four <strong>Lock</strong> boxes</td>
+<td>Retain run speed, jump speed, gravity or maximum fall from the last
+successful preview. Preview once before locking.</td>
+</tr>
+<tr class="even">
+<td><strong>Preview rules</strong></td>
+<td>Checks a detached candidate and shows each Before/After value plus
+validation. Does not edit or play the active project.</td>
+</tr>
+<tr class="odd">
+<td><strong>Shuffle unlocked</strong></td>
+<td>Advances the seed and selects Seeded mix, retaining locked values. A
+different seed can still produce the same values.</td>
+</tr>
+<tr class="even">
+<td><strong>Apply rules</strong></td>
+<td>Asks you to confirm the exact values, then commits one Undo
+action.</td>
+</tr>
+<tr class="odd">
+<td><strong>Download candidate project</strong></td>
+<td>Saves previewed Forge JSON without applying it to the active
+editor.</td>
+</tr>
+<tr class="even">
+<td><strong>Download recipe</strong></td>
+<td>Saves the versioned decisions/source identity, not the project's
+maps, graphics or music.</td>
+</tr>
+<tr class="odd">
+<td><strong>Open saved movement recipe (exact original project
+required)</strong></td>
+<td>Verifies/replays the recipe against its original captured base, then
+leaves a preview for explicit Apply/download.</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Preset</th>
+<th>Intensity 1</th>
+<th>Intensity 2</th>
+<th>Intensity 3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Keep current</strong></td>
+<td>Captured base</td>
+<td>Captured base</td>
+<td>Captured base</td>
+</tr>
+<tr class="even">
+<td><strong>Sprint</strong></td>
+<td>Run 2</td>
+<td>Run 3</td>
+<td>Run 4</td>
+</tr>
+<tr class="odd">
+<td><strong>High jump</strong></td>
+<td>Jump 10, gravity 1</td>
+<td>Jump 11, gravity 1</td>
+<td>Jump 12, gravity 1</td>
+</tr>
+<tr class="even">
+<td><strong>Slow fall</strong></td>
+<td>Maximum fall 4, gravity 1</td>
+<td>Maximum fall 2, gravity 1</td>
+<td>Maximum fall 1, gravity 1</td>
+</tr>
+<tr class="odd">
+<td><strong>Heavy fall</strong></td>
+<td>Gravity 2, maximum fall 6</td>
+<td>Gravity 2, maximum fall 7</td>
+<td>Gravity 3, maximum fall 8</td>
+</tr>
+<tr class="even">
+<td><strong>Seeded mix</strong></td>
+<td>Each value within ±1 of base, bounded</td>
+<td>Within ±2, bounded</td>
+<td>Full supported ranges</td>
+</tr>
+</tbody>
+</table></div>
+<p>Unmentioned values keep the captured base value unless locked from a
+prior preview. Higher intensity means a stronger named effect, not a
+guarantee of higher difficulty or a playable level.</p>
+<h3 id="lesson-make-scout-jump-higher">Lesson: make Scout jump
+higher</h3>
+<ol type="1">
+<li>Open the original Scout JSON. Open <strong>SCENE → Movement rules →
+Use current project</strong>.</li>
+<li>Choose <strong>High jump</strong>, <strong>3 · Full supported
+range</strong>, and seed <code>scout-high-jump-1</code>.</li>
+<li>Choose <strong>Preview rules</strong>. For this supplied base, Jump
+speed should change from 9 to 12 and gravity remain 1. Review all four
+rows and the detached ROM validation.</li>
+<li>Choose <strong>Apply rules</strong>, confirm, then <strong>Build
+&amp; Run</strong>. Compare a jump from rest, a running jump, ceiling
+contact and landing. A compiled change can make later jumps harder or
+impossible.</li>
+<li>Undo once to restore the original four settings, or Redo to return
+to the variation. Save the chosen project. Keep the original base
+separately if you download its recipe.</li>
+</ol>
+<p>Any project edit/reopen makes an earlier capture stale. Recapture
+with <strong>Use current project</strong> and preview again. <strong>No
+effective changes</strong> disables Apply but still permits
+candidate/recipe download. Recipes require the unchanged original base,
+not the already-applied candidate. Source projects are limited to 8 MiB
+of canonical JSON and recipes to 64 KiB. Reviewed foundation-metadata
+migration is supported where reported; arbitrary source changes still
+refuse. See <a
+href="../Reference/Current_Release_Docs/MOVEMENT_RULES.html">Movement
+rules</a> and <a
+href="../Reference/Current_Release_Docs/COMPATIBILITY_STABILIZATION.html">Compatibility
+stabilization</a>.</p>
+<h2 id="seeded-mashup-combine-editable-assets">Seeded mashup: combine
+editable assets</h2>
+<p>Open <strong>SCENE → Seeded mashup</strong>. The current project
+supplies the game's structure, collision, links, Player and runtime
+settings. Donors supply compatible editable assets; their code does not
+execute. Raw ROMs need a supported recovery/capture/authoring path
+before they can become donor Forge projects.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Use current project</strong></td>
+<td>Captures the base. To use another base, Open Project first.
+Recapture after an edit; loaded donors can remain.</td>
+</tr>
+<tr class="even">
+<td><strong>Add donor Forge project JSON files (up to
+eight)</strong></td>
+<td>Loads canonical compatible editable projects. Raw ROMs, ZIPs and
+recipe/report JSON are not donor projects. A rejected donor batch leaves
+the previous pool intact.</td>
+</tr>
+<tr class="odd">
+<td><strong>Clear donors</strong></td>
+<td>Removes donor snapshots from the session without editing the
+project.</td>
+</tr>
+<tr class="even">
+<td><strong>Source identities</strong></td>
+<td>Lists each source and its canonical content hash for
+reproducibility.</td>
+</tr>
+<tr class="odd">
+<td><strong>Target scene</strong></td>
+<td>Chooses the base scene receiving the selected graphic
+banks/palettes. Worlds using its library can also change
+appearance.</td>
+</tr>
+<tr class="even">
+<td><strong>Seed</strong></td>
+<td>Sets repeatable selection input, 1–128 characters.</td>
+</tr>
+<tr class="odd">
+<td><strong>Background tiles / Sprite tiles / Palettes /
+Music</strong></td>
+<td>Choose <strong>Keep current</strong>, <strong>Random source (preview
+checks fit)</strong> or an explicit source for each domain. Whole
+graphic banks retain the base's tile indices; a compatible bank can
+still look wrong for that map.</td>
+</tr>
+<tr class="even">
+<td>Four asset <strong>Lock</strong> boxes</td>
+<td>Retain prior preview source choices while shuffling. Before the
+first preview, an explicit source can be locked; a random lock
+establishes its choice on that first successful preview.</td>
+</tr>
+<tr class="odd">
+<td><strong>Vary patrol speed (1–4, within authored
+bounds)</strong></td>
+<td>Varies supported existing patrol instance parameters; it does not
+change Player movement or add mechanics.</td>
+</tr>
+<tr class="even">
+<td><strong>Shuffle compatible existing enemy/pickup slots</strong></td>
+<td>Permutes supported existing slots within checked
+ownership/screen/role/collider/bounds groups. It does not create actors
+or move the Player. Unsupported/unsafe cases are reported.</td>
+</tr>
+<tr class="odd">
+<td><strong>Lock gameplay choices from the previous
+preview</strong></td>
+<td>Keeps prior successful gameplay choices. Requires that preview.</td>
+</tr>
+<tr class="even">
+<td><strong>Preview mashup</strong></td>
+<td>Produces a detached candidate, source choices and compatibility
+report. The canvas is only a static background preview, without sprites,
+gameplay or audio playback.</td>
+</tr>
+<tr class="odd">
+<td><strong>Shuffle unlocked</strong></td>
+<td>Advances the seed and returns unlocked domain choices to Random.
+Locked choices remain.</td>
+</tr>
+<tr class="even">
+<td><strong>Apply mashup</strong></td>
+<td>Confirms, revalidates and applies supported changes as one Undo
+action. It does not start playback.</td>
+</tr>
+<tr class="odd">
+<td><strong>Download candidate project / Download recipe</strong></td>
+<td>Saves the editable result or reproducibility decisions. Neither
+download applies the candidate. A recipe contains no donor assets.</td>
+</tr>
+<tr class="even">
+<td><strong>Open saved mashup recipe (exact original sources
+required)</strong></td>
+<td>Replays against the original base and all original donor content,
+leaving a detached preview.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="lesson-try-an-asset-change-using-your-own-donor">Lesson: try an
+asset change using your own donor</h3>
+<ol type="1">
+<li>Save a base copy of your current editable project, then choose
+<strong>Use current project</strong> in Seeded mashup.</li>
+<li>Add another compatible Forge JSON that you own as a donor. Select a
+base <strong>Target scene</strong>. Set Background tiles, Sprite tiles
+and Music to <strong>Keep current</strong>; choose the donor explicitly
+for <strong>Palettes</strong>. Leave both gameplay options off for this
+first comparison.</li>
+<li>Choose <strong>Preview mashup</strong> and inspect the static
+background and compatibility report. If the palettes are identical,
+<strong>No effective changes</strong> is expected; select a donor with
+different colors rather than assuming Apply is broken.</li>
+<li>Choose <strong>Apply mashup</strong> only after reviewing the
+result. Build &amp; Run to inspect sprites, gameplay and any audio. Undo
+once restores the applied project change. Save the version you
+want.</li>
+<li>Download a recipe if needed, but also keep the unchanged base and
+every unchanged donor. To replay, reopen that original base, capture it,
+reload those donors, then open the recipe. File names may change;
+canonical content identities must match.</li>
+</ol>
+<p>The source repository additionally contains
+<code>app/examples/Seeded_Mashup_2.0.0-alpha.10/</code> and later
+generated results. Those are <strong>source-package examples</strong>,
+not a promise that the compact tester kit contains every donor named in
+the technical recipe guide. The Scout JSON linked at the top is included
+in this kit.</p>
+<p>Compatible donor music is appended with rebased references and
+becomes the new music order/tempo/speed. Existing patterns and SFX
+remain, but changed global tempo/speed can affect SFX timing. Audio
+Runtime/autoplay settings remain those of the base.</p>
+<p>The pool is limited to the base plus eight donors, each at most 8 MiB
+canonical JSON and 32 MiB total; recipes are at most 64 KiB. The base
+must use generated mapper-0 code. A World mashup receives a detached
+build check; other paths report their structural checks and need
+ordinary Build for full cartridge capacity. A preview does not establish
+level solvability, artistic quality or audible equivalence. See <a
+href="../Reference/Current_Release_Docs/SEEDED_MASHUP.html">Seeded
+mashups</a>.</p>
+<p>To combine both panels, Apply mashup first, save that intermediate
+project, then capture it in Movement rules and Apply rules. These are
+two edits with two Undo entries and two recipes with different required
+bases.</p>
+<h2 id="save-build-and-diagnose">Save, build and diagnose</h2>
+<p>Use <strong>Save Project As…</strong> or a native project ZIP as the
+editable backup. A successful build makes a runtime artifact; it is not
+a substitute for that backup. A World WG17 ROM can carry checked
+embedded source, but previously imported ROM bytes are excluded.
+Single-room Forge ROM reopening is partial and does not restore the
+complete Gameplay Core source. Keep JSON/ZIP even when you also
+distribute <code>.nes</code> files.</p>
+<p>Most authoring changes use normal Undo/Redo. Invalid canonical
+changes are rejected without committing partial data. Apply rules and
+Apply mashup each make one Undo action. Editor selection, panning, graph
+layout and detached previews are not changes to the game's saved
+behavior. Save/reopen the JSON to verify persistence; rebuild to verify
+executable behavior.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Symptom</th>
+<th>Check next</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Gameplay controls are disabled</td>
+<td>World Runtime is enabled. Turn it off only if you intend to use
+saved viewer/single-room settings.</td>
+</tr>
+<tr class="even">
+<td>New World has no usable brush</td>
+<td>Select a scene with a Metatile Library or open METATILES to create
+one.</td>
+</tr>
+<tr class="odd">
+<td>Map looks right but Player falls/stops incorrectly</td>
+<td>Inspect Empty/Solid collision quadrants in METATILES and raw tile
+properties for unlinked scene terrain; pictures do not define
+collision.</td>
+</tr>
+<tr class="even">
+<td>Player starts at an unexpected location</td>
+<td>World start uses Start world + Start marker, not the Player entity's
+scene X/Y.</td>
+</tr>
+<tr class="odd">
+<td>Player disappears after a screen crossing</td>
+<td>Check camera mode/region. An axis-limited or locked camera can
+intentionally leave a moving Player off screen.</td>
+</tr>
+<tr class="even">
+<td>Up does not traverse a marker</td>
+<td>Release/repress Up, stand in the correct feet cell, and verify both
+targets point to an existing Spawn/Entrance.</td>
+</tr>
+<tr class="odd">
+<td>Actor is absent</td>
+<td>Check Core enabled, instance placement/reachability, pixel
+coordinates, Render source and active state. A source Scene instance is
+not a generic World placement.</td>
+</tr>
+<tr class="even">
+<td>State exists but does nothing</td>
+<td>Check Behavior enabled, initial/reachable state, transition
+conditions and supported operation list. Template Hurt/Dead labels alone
+do not add combat transitions.</td>
+</tr>
+<tr class="odd">
+<td>Build refuses a canonical operation</td>
+<td>Use the supported profile table above; an authorable operation can
+still be outside the generated runtime. Do not remove validation to
+force it.</td>
+</tr>
+<tr class="even">
+<td>Persistence binding fails</td>
+<td>Verify exact Room/World ownership and repair both instance bindings
+and behavior references.</td>
+</tr>
+<tr class="odd">
+<td>Apply is unavailable</td>
+<td>Preview first. Check stale-project status and <strong>No effective
+changes</strong>.</td>
+</tr>
+<tr class="even">
+<td>Recipe replay is refused</td>
+<td>Reopen the original unchanged base and donors, then recapture. The
+generated candidate is not its original source.</td>
+</tr>
+<tr class="odd">
+<td>Map is below the screen-count limit but Build fails</td>
+<td>PRG code, map, graphics, animation and embedded source capacity have
+separate limits. Read the Build Log's specific resource error.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The World profile supports up to 32 authored/reachable Worlds and 64
+reachable executable screens, subject to much smaller actual ROM
+capacity when data is large. Output uses 32 KB PRG + 8 KB CHR; each
+background/sprite bank has a 256-unique-tile bound. Player animations
+have bounded frame, duration and hardware sprite budgets. Empty/Solid
+terrain, whole-screen camera changes and the explicitly supported actor
+operations remain the relevant execution limits. See <a
+href="../Reference/Current_Release_Docs/WORLD_RUNTIME.html">World
+Runtime</a> and <a
+href="../Reference/Current_Release_Docs/GAMEPLAY_GRAPH.html">Behavior
+Graph</a> for the full technical contracts.</p>
+<h2 id="source-audit-and-verification-scope">Source audit and
+verification scope</h2>
+<p>This guide was checked against the current source on 2026-10-19:
+<code>app/src/legacy/21-config165.js</code>, <code>24-ui165.js</code>,
+<code>28-ui166.js</code>, <code>08-world.js</code>,
+<code>11-world-interaction.js</code>;
+<code>app/src/world/world-ui.js</code> and World configuration/compiler;
+<code>app/src/gameplay/gameplay-model.js</code>,
+<code>gameplay-ui.js</code>, <code>gameplay-compiler.js</code>,
+<code>gameplay-graph.js</code>, <code>movement-rules.js</code>,
+<code>movement-rules-ui.js</code>; and
+<code>app/src/mashup/mashup-ui.js</code>/model. The supplied Scout JSON
+was inspected for its actual scene, World, marker, instance and binding
+names. Retained manual material and current World/Graph/Movement/Mashup
+references were compared with those handlers and compiled-profile
+restrictions.</p>
+<p>Tutorial expected results describe these audited contracts. They do
+not claim exhaustive real-browser, touch, listening,
+independent-emulator or physical-hardware acceptance. Keep a failing
+project and its build log when reporting a discrepancy so the documented
+workflow can be checked against the exact candidate.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../START_HERE.html">Back to start</a></p></main></div></body></html>

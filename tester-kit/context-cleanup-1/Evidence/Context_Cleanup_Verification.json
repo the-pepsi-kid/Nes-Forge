@@ -1,0 +1,105 @@
+{
+  "format": "NESForgeContextCleanupVerification",
+  "status": "PASS",
+  "candidate": "context-cleanup-1",
+  "appSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f",
+  "sourceParentCommit": "697a998e744c7794fae5d1063748e8d83d5ffe57",
+  "sourceImplementationCommit": "ce7548d2f06c31b56b539979003e86b78eabfb5d",
+  "automated": {
+    "mode": "durable-bounded-workers",
+    "passed": 2061,
+    "total": 2061,
+    "suiteCount": 118,
+    "retainedCases": 2046,
+    "retainedSuites": 116,
+    "newCases": 15,
+    "newSuites": 2,
+    "freshStandardSuitesRevalidated": 20,
+    "priorFailures": [
+      {
+        "name": "services167",
+        "error": "services167 process failed: Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/f11ca9349f0d/nes-forge/app/tests/services167.cjs /workspace/scratch/f11ca9349f0d/nes-forge/app/mainline/NES_Forge_2.0.0-alpha.11.html /workspace/scratch/f11ca9349f0d/nes-forge/reviews/context-cleanup-1/full-gate/services167.json\n; see ../reviews/context-cleanup-1/full-gate/services167.log",
+        "evidence": "reviews/context-cleanup-1/standard-concurrent-attempt",
+        "reason": "Two VM startup timeouts during concurrent execution; isolated unchanged suite passed 14/14."
+      },
+      {
+        "name": "gameplay-core190",
+        "error": "Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/f11ca9349f0d/nes-forge/app/tests/gameplay-core190.cjs /workspace/scratch/f11ca9349f0d/nes-forge/app/mainline/NES_Forge_2.0.0-alpha.11.html /workspace/scratch/f11ca9349f0d/nes-forge/reviews/context-cleanup-1/full-gate/gameplay-core190.json\n",
+        "at": "2026-10-20T07:07:24.951Z",
+        "evidence": "reviews/context-cleanup-1/durable-attempts/attempt-002-gameplay-core190"
+      },
+      {
+        "name": "gameplay-core190",
+        "error": "Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/f11ca9349f0d/nes-forge/app/tests/gameplay-core190.cjs /workspace/scratch/f11ca9349f0d/nes-forge/app/mainline/NES_Forge_2.0.0-alpha.11.html /workspace/scratch/f11ca9349f0d/nes-forge/reviews/context-cleanup-1/full-gate/gameplay-core190.json\n",
+        "at": "2026-10-20T07:09:39.910Z",
+        "evidence": "reviews/context-cleanup-1/durable-attempts/attempt-003-gameplay-core190"
+      }
+    ],
+    "executionRuns": [
+      {
+        "mode": "standard-runner",
+        "workers": 2,
+        "startedAt": "2026-10-20T06:56:20.157Z",
+        "finishedAt": "2026-10-20T07:00:46.452Z",
+        "completedSuites": 20
+      },
+      {
+        "mode": "pool",
+        "workers": 1,
+        "completedBefore": 20,
+        "startedAt": "2026-10-20T07:03:07.017Z"
+      },
+      {
+        "mode": "isolated-suite",
+        "workers": 1,
+        "completedBefore": 25,
+        "startedAt": "2026-10-20T07:08:21.954Z"
+      },
+      {
+        "mode": "pool",
+        "workers": 1,
+        "completedBefore": 25,
+        "startedAt": "2026-10-20T07:10:26.745Z"
+      }
+    ],
+    "summary": "full-gate/Summary.json",
+    "summarySha256": "d240e25f61131ddca22c5f00d8e33e3525c09ab139d8ace57917bc4b9a7ef258",
+    "scope": "Every mandatory case is measured on unchanged final inputs. Not an uninterrupted standard-runner pass; recorded VM deadline failures and unchanged isolated retries are retained."
+  },
+  "browser": {
+    "passed": 28,
+    "reports": [
+      {
+        "report": "Browser_Verification.json",
+        "passed": 14,
+        "sha256": "ba1485f418e68bb8c588764df1da4bc441645617e4332aa6514d65d35da00fee"
+      },
+      {
+        "report": "Native_Context_Verification.json",
+        "passed": 4,
+        "sha256": "0ad432e3d328b6260e8150d699a625f26d6c73d25ee0083f34d2a3af3a2df2ff"
+      },
+      {
+        "report": "Kit_Browser_Verification.json",
+        "passed": 10,
+        "sha256": "02990d614ac2d49f47ea0e0c4c3a21557def36ce53e229c5ca3c98b24075d0a5"
+      }
+    ],
+    "parentKitChecksSeparate": 8
+  },
+  "governanceHistoriesPreserved": 10,
+  "unchangedSavedExampleRoms": 14,
+  "supervisorIntegrityChecks": 4,
+  "sourceBundle": "Source_Bundle_Verification.json",
+  "publication": {
+    "status": "pending-owner-approval",
+    "branch": "implementation/context-cleanup-2026-10-20",
+    "reason": "Automatic approval review rejected the GitHub push because this turn did not explicitly authorize publication."
+  },
+  "remaining": [
+    "Full source Stage/Scene context and complete shared-asset dependency editing",
+    "Scene/event-to-music/SFX bindings and additional native encoders",
+    "Windows/native dialogs, physical phones/controllers, listening, hardware and owner acceptance"
+  ],
+  "scope": "Bounded canonical resource navigation and documentation cleanup; ordinary schema 12 and native schema 13 retain their prior meanings. No release promotion."
+}

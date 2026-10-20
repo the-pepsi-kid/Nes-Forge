@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>World Runtime — 1.7 · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Guide.html">User guide</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#world-runtime--17">World Runtime — 1.7</a><a class="level2" href="#author-through-the-editor">Author through the editor</a><a class="level2" href="#controls-and-movement">Controls and movement</a><a class="level2" href="#camera-regions">Camera regions</a><a class="level2" href="#runtime-limits">Runtime limits</a><a class="level2" href="#backups-and-verification">Backups and verification</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../../Guide.html">current user guide</a> for current operator instructions.</p></blockquote><h1 id="world-runtime--17">World Runtime — 1.7</h1>
+<p>World Runtime builds one authored sideview Player into a mapper-0 NES
+ROM. It uses metatile worlds, explicit start/arrival markers and a
+camera that changes by whole screens. In 1.8 it can also host the shared
+Audio Runtime and execute the player's linked <code>sound</code> frame
+events. It does not add smooth scrolling, generic actors or target
+damage.</p>
+<p>Open <code>../examples/Scout_World_Traversal_1.7.nesforge.json</code>
+through Open Project to inspect the editable World traversal example.
+Its matching <code>.nes</code> exercises playback and clean reopening.
+It is external example data, never an automatic startup template. The
+older Scout single-room example remains separate.</p>
+<h2 id="author-through-the-editor">Author through the editor</h2>
+<ol type="1">
+<li>Draw background and player pixels in CHR SHEET. In METATILES, create
+a scene-local library; each definition has four 8×8 tiles, one palette
+row and four collision quadrants. Use only Empty and Solid for
+executable world terrain.</li>
+<li>Create and paint a world in WORLD using that library. A screen
+contains 16×15 metatile cells; each cell is 16×16 pixels. World-used
+definitions need no placement in the source scene’s
+<code>metaMap</code>.</li>
+<li>Add named Room and Camera rectangles if wanted. For runtime, X/width
+must be multiples of 16 cells and Y/height multiples of 15 cells.
+Rectangles must be contained in the world. Rooms cannot overlap other
+rooms; cameras cannot overlap other cameras. A room and a camera may
+overlap each other.</li>
+<li>Place a Spawn or Entrance for the start. Author player poses in
+METASPRITES, frames in ANIM and a Player entity/bindings in ENTITY
+STUDIO. Bind <code>idle</code>, <code>walk</code> and a nonlooping
+<code>attack</code>; <code>jump</code> is optional and falls back to
+idle. The selected source entity supplies art/bindings/facing; the World
+marker supplies its starting position.</li>
+<li>To link places, select an Entrance or Exit and set both Target World
+and Target Marker. The destination must be a Spawn or Entrance. Both
+target fields empty means no transition. Partially specified or missing
+destinations fail the World build.</li>
+<li>In WORLD → WORLD RUNTIME, enable the mode and choose the start
+world, start marker, player source scene and Player. Adjust the existing
+movement/body parameters if needed, then use Build &amp; Run. No
+start/player selection is inferred automatically.</li>
+</ol>
+<p>The World build follows saved start-world links and player assets
+independently of legacy Build Scene Set. Unreachable worlds and
+unrelated entities remain in authoring backups; they are not
+automatically executed. The retained authoring source still consumes ROM
+space even when some resources do not execute.</p>
+<h2 id="controls-and-movement">Controls and movement</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Left / Right</td>
+<td>Move the player</td>
+</tr>
+<tr class="even">
+<td>Z / NES A</td>
+<td>Jump on a new button press</td>
+</tr>
+<tr class="odd">
+<td>X / NES B</td>
+<td>Play the nonlooping attack animation; no World target damage</td>
+</tr>
+<tr class="even">
+<td>Up</td>
+<td>Use a linked Entrance/Exit while feet occupy its cell; a new press
+is required</td>
+</tr>
+<tr class="odd">
+<td>Enter / Start</td>
+<td>Restart at the configured start marker</td>
+</tr>
+</tbody>
+</table></div>
+<p>Coordinates use the player’s centered feet. Marker <code>(x,y)</code>
+places the feet at world pixel <code>(x×16+8,y×16+8)</code>. The full
+movement body must fit world bounds and avoid Solid collision at starts
+and transition endpoints. Invalid placement is rejected; the compiler
+does not move the marker to nearby space.</p>
+<p>Collision samples the four authored 8×8 metatile quadrants
+independently; an empty world cell is visually blank and
+collision-empty. World edges block movement. Screen-boundary crossings
+continue physics and update world/room/camera descriptors. Room
+rectangles name regions; they do not create invisible walls or
+instantiate copies of scene entities. Screens outside rooms use the
+containing world as their region.</p>
+<p>Entrance/Exit links activate by a new Up press. Marker activation
+tests the last occupied row of the movement body (feet Y minus one), so
+a marker immediately above a full solid floor remains usable after the
+player lands. Arrival resets transient movement/action state at the
+destination. Holding Up across reciprocal links does not immediately
+return. Multiple traversable markers in the same cell are rejected.
+Spawn markers are arrival/start locations, not enemy generators or a
+checkpoint system.</p>
+<h2 id="camera-regions">Camera regions</h2>
+<p>The runtime tracks the player’s physics screen separately from the
+displayed camera screen. Modes apply while the player’s feet are inside
+their region. All camera rectangles are positive, contained,
+non-overlapping and screen aligned; they can span several screens.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th>Displayed screen</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>follow</code></td>
+<td>The player’s current screen on both axes</td>
+</tr>
+<tr class="even">
+<td><code>horizontal</code></td>
+<td>The player’s current screen column and the region’s first row</td>
+</tr>
+<tr class="odd">
+<td><code>vertical</code></td>
+<td>The region’s first column and the player’s current screen row</td>
+</tr>
+<tr class="even">
+<td><code>locked</code></td>
+<td>The region’s first/top-left screen</td>
+</tr>
+<tr class="odd">
+<td>No matching camera</td>
+<td>The player’s current world screen</td>
+</tr>
+</tbody>
+</table></div>
+<p>The display changes in complete 256×240 screens. There is no pixel
+scrolling, interpolation or dead-zone tracking. Cameras do not restrict
+movement. With a locked or axis-limited camera spanning multiple
+screens, the player can move off the displayed screen; its sprite is
+clipped instead of wrapping onto the visible screen. Leaving the region
+applies the next matching region or world-following fallback.</p>
+<h2 id="runtime-limits">Runtime limits</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Resource</th>
+<th>Limit or behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Output</td>
+<td>Mapper 0; 32 KB PRG and 8 KB CHR; no trainer/new mapper</td>
+</tr>
+<tr class="even">
+<td>World authoring</td>
+<td>Up to 32 worlds; each 1–16 screens per axis</td>
+</tr>
+<tr class="odd">
+<td>Reachable executable profile</td>
+<td>At most 32 worlds and 64 screens, with lower actual capacity imposed
+by code/data/source bytes</td>
+</tr>
+<tr class="even">
+<td>Background / sprite graphics</td>
+<td>256 unique tiles per 4 KB bank; linked by actual World/player
+usage</td>
+</tr>
+<tr class="odd">
+<td>Player frames</td>
+<td>1–64 frames per animation; 1–255 ticks per frame; at most 24
+hardware pieces and eight pieces on any scanline</td>
+</tr>
+<tr class="even">
+<td>Regions</td>
+<td>Screen aligned and non-overlapping within each type; derived runtime
+room/camera indices are bounded</td>
+</tr>
+<tr class="odd">
+<td>Collision</td>
+<td>Empty and Solid only; other collision types reject when used by
+executable terrain</td>
+</tr>
+<tr class="even">
+<td>Movement</td>
+<td>Speed 1–4; jump 1–12; gravity 1–3; max fall 1–8; body width 2–32
+even; height 2–48</td>
+</tr>
+<tr class="odd">
+<td>Source record</td>
+<td>Bounded checked compressed authoring; maximum decoded source 8 MB,
+with much smaller practical PRG capacity</td>
+</tr>
+</tbody>
+</table></div>
+<p>Screen data, code, animation and source-record capacity are checked
+separately. The profile’s maximum screen count does not mean that every
+map below it fits. A build failure identifies the relevant capacity;
+nothing is silently truncated.</p>
+<p>Player sprite palette colors must match their selected source across
+linked animation assets. Source metasprite origins, facing and
+8×16-to-8×8 expansion retain existing conventions. Attack contacts and
+frame events are preserved; <code>sound</code> events may execute linked
+1.8 SFX, but they do not execute damage or arbitrary scripts. Other
+entities, hazards, ladders, moving platforms and general events remain
+later work.</p>
+<h2 id="backups-and-verification">Backups and verification</h2>
+<p>Save Project As/Export uses schema 12. Open Forge ROM recognizes the
+layout-4/WG17 source record, validates its embedded schema 10, 11 or 12
+source before replacement and restores authoring with Undo available. It
+retains the opened ROM as the new original. Previously imported ROM
+bytes are excluded from embedded source, so use JSON/ZIP to retain those
+older originals. Append Import tells you to use Open Forge ROM for this
+format.</p>
+<p>The required tests and final measured candidate status are in
+<code>../TEST_POLICY.md</code> and <code>../CURRENT_BASELINE.md</code>.
+Real-browser acceptance remains unverified; generated-ROM emulator tests
+do not establish a native browser or independent hardware pass.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>

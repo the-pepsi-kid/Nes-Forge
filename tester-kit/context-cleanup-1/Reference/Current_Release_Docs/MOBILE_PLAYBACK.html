@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mobile Playback —
+2.0.0-alpha.2 · NES Forge alpha.11</title><link rel="stylesheet" href="../../style.css"></head><body><a class="skip" href="#guide">Skip to guide</a><header class="top"><strong>NES FORGE</strong><small>2.0.0-alpha.11 / audio-tool-import-1 · Alpha Test Kit RC3</small><nav aria-label="Kit guides"><a href="../../START_HERE.html">Start here</a><a href="../../NES_Forge.html" target="_blank" rel="noopener">Open NES Forge ↗</a><a href="../../Guide.html">User guide</a><a href="../../Tutorial.html">Tutorial</a><a href="../../Manual.html">Manual</a><a href="../../Reference/Operator_Reference.html">Controls</a><a href="../../Feedback_Template.txt">Feedback</a></nav></header><div class="layout"><aside class="toc" aria-label="Chapters"><strong>CONTENTS</strong><a class="level1" href="#mobile-playback--200-alpha2">Mobile Playback —
+2.0.0-alpha.2</a><a class="level2" href="#corrections">Corrections</a><a class="level2" href="#evidence-boundaries">Evidence boundaries</a><a class="level2" href="#review-and-remaining-limits">Review and remaining limits</a></aside><main id="guide"><blockquote><p><strong>Feature guide from the alpha.11 source package.</strong> Some inherited version headings and test totals describe earlier milestones. They are not current acceptance results. Development source and example paths mentioned here may require the full source checkout. Use the <a href="../../Guide.html">current user guide</a> for current operator instructions.</p></blockquote><h1 id="mobile-playback--200-alpha2">Mobile Playback —
+2.0.0-alpha.2</h1>
+<p>Candidate <code>mobile-playback-1</code>, project schema 12. This
+bounded correction follows reported gameplay/audio lag on Cricket Dream
+5G with Chrome, while desktop-browser playback was reported
+satisfactory. The supplied recording did not expose an application hash.
+Its measured screen updates and near-silent PCM intervals are recording
+evidence, not an instrumented phone profile.</p>
+<h2 id="corrections">Corrections</h2>
+<p><strong>Frame scheduling.</strong> The preceding scheduler stopped
+its callback after a fixed 10 ms slice and discarded remaining
+whole-frame time. Under slower callbacks, that could turn a recoverable
+delay into sustained slow emulation and audio gaps. The corrected
+scheduler retains pending time, including fractional frame phase. It
+executes up to four complete frames per callback with a
+callback-dependent budget from one NES frame interval to 40 ms. The 250
+ms elapsed safeguard remains; long stalls cap pending work to four whole
+frames plus the fractional phase and count discarded time
+explicitly.</p>
+<p>The budget is checked between indivisible frames. One expensive frame
+may exceed that budget; the original 200 ms frame safety guard remains.
+Genuine overload is still bounded and reported, not hidden behind an
+inflated FPS claim. CPU/APU/PPU execution and audio queue policy are
+unchanged. This does not add an unbounded catch-up loop or time-stretch
+sound.</p>
+<p><strong>Exact capture work.</strong> Native capture still records
+every visible scanline of the current completed frame. A transient
+per-frame CHR-ROM lookup reuses unchanged tile records instead of
+repeatedly allocating their byte arrays and string keys. Lookup resolves
+physical bank mapping first and checks all 16 current bytes, so patched
+data or replaced source arrays cannot be served stale. Mutable CHR-RAM
+retains its original live path. The cache stays outside serialized
+capture data and history snapshots; old/restored traces acquire it
+lazily.</p>
+<p>No capture is disabled in Play. Capture does not silently advance or
+replay a frame, and it does not flatten raster changes into the
+end-of-frame state. Palette, bank, scroll, mirroring, sprite and
+supported raster behavior remain covered by exact reference
+comparisons.</p>
+<p><strong>Play diagnostics.</strong> A compact readout uses the
+existing Play refresh loop, with normal text refresh limited to twice
+per second and immediate updates for loading/running/paused state
+changes. It does not start audio or execute emulation. It is also
+visible in expanded Play, where the editor's original performance line
+was hidden.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr class="header">
+<th>Readout</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>FPS / 60.1</td>
+<td>Approximate completed emulation frames per real second; target is
+the existing NTSC frame rate. Not the display or screen recorder's
+capture rate.</td>
+</tr>
+<tr class="even">
+<td>F / frame ms</td>
+<td>Current emulated frame and most recently measured frame processing
+time. This includes capture work but excludes later canvas/audio
+scheduling work.</td>
+</tr>
+<tr class="odd">
+<td>Audio state / ms queued</td>
+<td>Web Audio state and scheduled sound ahead of the browser audio
+clock. Queued milliseconds are not measured speaker or Bluetooth
+latency.</td>
+</tr>
+<tr class="even">
+<td>gaps / resyncs</td>
+<td>Audio queue underruns and resynchronizations since ROM reset/load.
+Compare whether the counters keep rising during steady play.</td>
+</tr>
+<tr class="odd">
+<td>backlog ms</td>
+<td>Pending emulation time, including fractional frame phase. A small
+changing remainder is expected.</td>
+</tr>
+<tr class="even">
+<td>timing discards</td>
+<td>Whole-frame time discarded by bounded overload protection. A
+steadily rising counter indicates the host is not keeping pace.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Muting changes output gain; it does not stop CPU-clocked audio work
+and is not an APU performance-isolation test. History and explicit RE
+tracing add work when enabled; leave them off for the baseline
+comparison, then test them separately. Expanded Play already defers
+hidden palette-sidebar redraws.</p>
+<h2 id="evidence-boundaries">Evidence boundaries</h2>
+<p>The focused tests compare actual current source with the frozen
+alpha.1 HTML. Synthetic clocks reproduce the scheduling failure without
+claiming a phone benchmark. Actual emulated-frame probes compare capture
+traces, source data and pixels; operation counts measure the targeted
+allocation reduction. Node VM wall times are environment-specific.</p>
+<p>The source-only capture probe measured 30 steady frames: 230,730 to
+390 temporary 16-byte tile allocations. Median three-batch VM time
+changed from 2,047 ms to 1,329 ms. Full frame/capture content matched
+the reference, excluding new scene IDs generated on separate captures.
+These are controlled measurements; they do not promise the same phone
+speedup.</p>
+<p>Mandatory evidence:</p>
+<ul>
+<li><code>../test-results/candidate/Summary.json</code>: all 921
+predecessor cases plus <code>mobile-playback200</code>, across 43
+suites; exact unchanged HTML and test/source/doc provenance.</li>
+<li><code>../test-results/candidate/mobile-playback200.json</code>:
+measured independent scheduler, raster/capture, history and diagnostic
+results.</li>
+<li><code>../checkpoints/mobile-playback-1-clean-extraction/Reproduction.json</code>:
+clean staging identity, verified payloads, exact summary hash and
+result.</li>
+<li><code>../test-results/browser-mobile/Report.json</code>,
+<code>browser-re-analysis/Report.json</code>, and
+<code>browser-re-runtime/Report.json</code>: fresh actual launch/check
+outcomes. A blocked launch means zero browser checks.</li>
+<li><code>../checkpoints/mobile-playback-focused/</code>: paired
+reference/current regressions and isolated implementation probes; these
+supplement the full gate.</li>
+</ul>
+<p>Frozen predecessor:
+<code>../baseline/NES_Forge_2.0.0-alpha.1_Audio_Correction.html</code>,
+SHA-256
+<code>4cdf7167c0c141e516416c8acabd6854cd979c5fd10e8f8b248514a3ba999aa0</code>.</p>
+<h2 id="review-and-remaining-limits">Review and remaining limits</h2>
+<p>Use <code>MOBILE_PLAYBACK_CHECKLIST.txt</code>. Compare exactly the
+same ROM, route, sound output and optional settings in old and new HTML.
+Record without screen capture first because capture itself may add load.
+Phone/OS/Chrome versions, visible FPS/gaps/discards and observed
+sound/input behavior are needed to establish the practical improvement.
+The device name alone is not a benchmark.</p>
+<p>The existing audio compiler corrections remain in force. Native
+Audio/Gameplay data and compiler code, five templates, 12-actor and
+64-persistent-byte limits, Door Option B, one-way synchronization,
+partial single-room recovery, Save As, CHR, undo and project schema
+remain protected. Release metadata can change generated project/ROM
+identity; compare one unchanged ROM to isolate emulator playback.</p>
+<p>The current review does not establish speaker continuity, physical
+controller support, physical-console timing, arbitrary-ROM compatibility
+or a new audio/RE driver. Owner acceptance and release promotion are
+pending. After the bounded mobile review, continue the supported Audio
+workflow/listening workshop before extending native audio recovery.</p>
+<p class="stamp">NES Forge alpha.11 · Kit RC3 · <a href="../../START_HERE.html">Back to start</a></p></main></div></body></html>
