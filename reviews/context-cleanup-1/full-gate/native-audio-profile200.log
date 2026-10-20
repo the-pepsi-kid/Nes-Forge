@@ -1,0 +1,320 @@
+{
+  "passed": 52,
+  "total": 52,
+  "failures": [],
+  "results": [
+    {
+      "name": "Real independent input is recognized from linked instructions and reachable initialization",
+      "passed": true
+    },
+    {
+      "name": "Input filename is immaterial and decode does not mutate bytes",
+      "passed": true
+    },
+    {
+      "name": "Exact header order and independent native tempos are preserved",
+      "passed": true
+    },
+    {
+      "name": "Compressed blank rows are 61 + 3, not 60 + 2",
+      "passed": true
+    },
+    {
+      "name": "Counted reference counts encoded events and returns after expanded row64",
+      "passed": true
+    },
+    {
+      "name": "Every native semantic event carries exact file/address bytes",
+      "passed": true
+    },
+    {
+      "name": "Native envelope value and additional-frame hold semantics are retained",
+      "passed": true
+    },
+    {
+      "name": "SFX register order, frame delays, both region variants and multichannel effect survive",
+      "passed": true
+    },
+    {
+      "name": "Reassembled driver and data relocation is recognized without fixed addresses",
+      "passed": true
+    },
+    {
+      "name": "Independent source reassembled as NROM32 maps correctly",
+      "passed": true
+    },
+    {
+      "name": "Optional iNES trainer offsets source spans correctly",
+      "passed": true
+    },
+    {
+      "name": "NROM16 low-mirror header and stream pointers remain valid",
+      "passed": true
+    },
+    {
+      "name": "Unknown mapper stays unknown",
+      "passed": true
+    },
+    {
+      "name": "Truncated declared ROM is invalid",
+      "passed": true
+    },
+    {
+      "name": "NES2 and surplus container data are outside profile",
+      "passed": true
+    },
+    {
+      "name": "Core driver opcode mutation loses recognition",
+      "passed": true
+    },
+    {
+      "name": "CHR-only structural decoy is never executable driver proof",
+      "passed": true
+    },
+    {
+      "name": "Unreachable matching data has no initialization proof",
+      "passed": true
+    },
+    {
+      "name": "Alternate jump entry directly into init call invalidates backward constants",
+      "passed": true
+    },
+    {
+      "name": "Conditional branch bypassing a register setup is not a second proven initialization",
+      "passed": true
+    },
+    {
+      "name": "Two reachable distinct initialization headers are ambiguous",
+      "passed": true
+    },
+    {
+      "name": "Out-of-PRG channel pointer is rejected",
+      "passed": true
+    },
+    {
+      "name": "Header/song count overflow is rejected",
+      "passed": true
+    },
+    {
+      "name": "Channel pointer into header data is rejected",
+      "passed": true
+    },
+    {
+      "name": "Instrument pointer into executable driver is rejected",
+      "passed": true
+    },
+    {
+      "name": "Unbounded zero-progress jump is rejected",
+      "passed": true
+    },
+    {
+      "name": "Zero-count native reference is refused",
+      "passed": true
+    },
+    {
+      "name": "Nested native reference is refused",
+      "passed": true
+    },
+    {
+      "name": "Jump into a command operand is rejected",
+      "passed": true
+    },
+    {
+      "name": "Envelope loop into its own operand is rejected",
+      "passed": true
+    },
+    {
+      "name": "Nonproductive envelope loop is rejected",
+      "passed": true
+    },
+    {
+      "name": "Envelope signed range is exact -64 through63",
+      "passed": true
+    },
+    {
+      "name": "Envelope loop retains inherited held value in its cycle state",
+      "passed": true
+    },
+    {
+      "name": "Envelope leading hold without a known value is refused",
+      "passed": true
+    },
+    {
+      "name": "Invalid SFX buffer register code is rejected",
+      "passed": true
+    },
+    {
+      "name": "Unterminated SFX cannot wrap its 8-bit index",
+      "passed": true
+    },
+    {
+      "name": "SFX write operand cannot wrap its 8-bit index",
+      "passed": true
+    },
+    {
+      "name": "Global work/output budget bounds repeated aliased long channels",
+      "passed": true
+    },
+    {
+      "name": "Semantic native note patch changes only the exact command byte",
+      "passed": true
+    },
+    {
+      "name": "Empty-following-row bit is preserved by note edits",
+      "passed": true
+    },
+    {
+      "name": "Shared triangle reference reports both affected subsongs",
+      "passed": true
+    },
+    {
+      "name": "Changed source identity and forged evidence targets cannot bypass revalidation",
+      "passed": true
+    },
+    {
+      "name": "Control/repeat/envelope and arbitrary fields cannot be edited",
+      "passed": true
+    },
+    {
+      "name": "Instrument commands can only choose already validated instruments",
+      "passed": true
+    },
+    {
+      "name": "Duplicate shared-byte edit requests are refused",
+      "passed": true
+    },
+    {
+      "name": "Shared DPCM note and instrument aliases cannot be patched through pulse channel",
+      "passed": true
+    },
+    {
+      "name": "Shared noise aliases enforce the noise note range",
+      "passed": true
+    },
+    {
+      "name": "Bundled core leaves active project and emulator unchanged",
+      "passed": true
+    },
+    {
+      "name": "Both independent ROM and native rebuilt ROM execute without unknown CPU opcodes",
+      "passed": true
+    },
+    {
+      "name": "Native edit leaves external-driver instructions and every other ROM byte unchanged",
+      "passed": true
+    },
+    {
+      "name": "Modified native note changes the expected real APU pulse timer at identical frames",
+      "passed": true
+    },
+    {
+      "name": "Other APU register writes retain exact timing and values for this bounded edit",
+      "passed": true
+    }
+  ],
+  "apuEvidence": {
+    "passed": 4,
+    "total": 4,
+    "failed": 0,
+    "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f",
+    "originalRomSha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+    "rebuiltRomSha256": "4f47f0c0192490d18f0e17a502f4f9abcdae5c5f7c52d468d33298c6e7d3db33",
+    "scope": "180 natural game frames per ROM in actual candidate emulator; logical CPU/APU evidence, not listening or hardware acceptance.",
+    "patch": {
+      "fileOffset": 5205,
+      "address": 54341,
+      "before": 40,
+      "after": 42,
+      "affected": [
+        {
+          "song": 0,
+          "channel": 0,
+          "event": 2
+        }
+      ]
+    },
+    "observations": {
+      "beforeWrites": 2462,
+      "afterWrites": 2462,
+      "pulseDifferences": 19,
+      "firstDifferences": [
+        {
+          "before": {
+            "frame": 7,
+            "address": 16386,
+            "value": 57
+          },
+          "after": {
+            "frame": 7,
+            "address": 16386,
+            "value": 25
+          }
+        },
+        {
+          "before": {
+            "frame": 7,
+            "address": 16386,
+            "value": 57
+          },
+          "after": {
+            "frame": 7,
+            "address": 16386,
+            "value": 25
+          }
+        },
+        {
+          "before": {
+            "frame": 8,
+            "address": 16386,
+            "value": 57
+          },
+          "after": {
+            "frame": 8,
+            "address": 16386,
+            "value": 25
+          }
+        },
+        {
+          "before": {
+            "frame": 9,
+            "address": 16386,
+            "value": 57
+          },
+          "after": {
+            "frame": 9,
+            "address": 16386,
+            "value": 25
+          }
+        },
+        {
+          "before": {
+            "frame": 10,
+            "address": 16386,
+            "value": 57
+          },
+          "after": {
+            "frame": 10,
+            "address": 16386,
+            "value": 25
+          }
+        },
+        {
+          "before": {
+            "frame": 11,
+            "address": 16386,
+            "value": 57
+          },
+          "after": {
+            "frame": 11,
+            "address": 16386,
+            "value": 25
+          }
+        }
+      ],
+      "expectedNativeTimerBefore": 569,
+      "expectedNativeTimerAfter": 537
+    }
+  },
+  "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f",
+  "failed": 0
+}

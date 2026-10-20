@@ -5,7 +5,7 @@
   "candidate": "context-cleanup-1",
   "schema": 13,
   "ordinaryProjectSchema": 12,
-  "status": "verification-in-progress",
+  "status": "review-candidate",
   "branch": "implementation/context-cleanup-2026-10-20",
   "parentCommit": "697a998e744c7794fae5d1063748e8d83d5ffe57",
   "html": "app/mainline/NES_Forge_2.0.0-alpha.11.html",
@@ -17,11 +17,66 @@
     "Retain ordinary schema 12, native schema 13, original tutorial/manuals and existing native encoder boundaries."
   ],
   "automatedResult": {
-    "status": "running",
-    "requiredRetainedSuites": 116,
-    "requiredRetainedCases": 2046,
-    "additionalSuites": 2,
-    "summary": "reviews/context-cleanup-1/full-gate/Summary.json"
+    "mode": "durable-bounded-workers",
+    "passed": 2061,
+    "total": 2061,
+    "suiteCount": 118,
+    "retainedCases": 2046,
+    "retainedSuites": 116,
+    "newCases": 15,
+    "newSuites": 2,
+    "freshStandardSuitesRevalidated": 20,
+    "priorFailures": [
+      {
+        "name": "services167",
+        "error": "services167 process failed: Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/f11ca9349f0d/nes-forge/app/tests/services167.cjs /workspace/scratch/f11ca9349f0d/nes-forge/app/mainline/NES_Forge_2.0.0-alpha.11.html /workspace/scratch/f11ca9349f0d/nes-forge/reviews/context-cleanup-1/full-gate/services167.json\n; see ../reviews/context-cleanup-1/full-gate/services167.log",
+        "evidence": "reviews/context-cleanup-1/standard-concurrent-attempt",
+        "reason": "Two VM startup timeouts during concurrent execution; isolated unchanged suite passed 14/14."
+      },
+      {
+        "name": "gameplay-core190",
+        "error": "Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/f11ca9349f0d/nes-forge/app/tests/gameplay-core190.cjs /workspace/scratch/f11ca9349f0d/nes-forge/app/mainline/NES_Forge_2.0.0-alpha.11.html /workspace/scratch/f11ca9349f0d/nes-forge/reviews/context-cleanup-1/full-gate/gameplay-core190.json\n",
+        "at": "2026-10-20T07:07:24.951Z",
+        "evidence": "reviews/context-cleanup-1/durable-attempts/attempt-002-gameplay-core190"
+      },
+      {
+        "name": "gameplay-core190",
+        "error": "Command failed: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/scratch/f11ca9349f0d/nes-forge/app/tests/gameplay-core190.cjs /workspace/scratch/f11ca9349f0d/nes-forge/app/mainline/NES_Forge_2.0.0-alpha.11.html /workspace/scratch/f11ca9349f0d/nes-forge/reviews/context-cleanup-1/full-gate/gameplay-core190.json\n",
+        "at": "2026-10-20T07:09:39.910Z",
+        "evidence": "reviews/context-cleanup-1/durable-attempts/attempt-003-gameplay-core190"
+      }
+    ],
+    "executionRuns": [
+      {
+        "mode": "standard-runner",
+        "workers": 2,
+        "startedAt": "2026-10-20T06:56:20.157Z",
+        "finishedAt": "2026-10-20T07:00:46.452Z",
+        "completedSuites": 20
+      },
+      {
+        "mode": "pool",
+        "workers": 1,
+        "completedBefore": 20,
+        "startedAt": "2026-10-20T07:03:07.017Z"
+      },
+      {
+        "mode": "isolated-suite",
+        "workers": 1,
+        "completedBefore": 25,
+        "startedAt": "2026-10-20T07:08:21.954Z"
+      },
+      {
+        "mode": "pool",
+        "workers": 1,
+        "completedBefore": 25,
+        "startedAt": "2026-10-20T07:10:26.745Z"
+      }
+    ],
+    "summary": "reviews/context-cleanup-1/full-gate/Summary.json",
+    "summarySha256": "d240e25f61131ddca22c5f00d8e33e3525c09ab139d8ace57917bc4b9a7ef258",
+    "scope": "Every mandatory case is measured on unchanged final inputs. Not an uninterrupted standard-runner pass; recorded VM deadline failures and unchanged isolated retries are retained.",
+    "status": "passed"
   },
   "browserEvidence": [
     {
@@ -32,6 +87,11 @@
     {
       "report": "reviews/context-cleanup-1/Native_Context_Verification.json",
       "passed": 4,
+      "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f"
+    },
+    {
+      "report": "reviews/context-cleanup-1/Kit_Browser_Verification.json",
+      "passed": 10,
       "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f"
     }
   ],
@@ -52,5 +112,7 @@
   "publication": {
     "status": "blocked-pending-owner-approval",
     "reason": "Automatic approval review rejected pushing the new branch because this turn did not explicitly authorize publication. Local commits and downloadable artifacts remain available."
-  }
+  },
+  "sourceImplementationCommit": "ce7548d2f06c31b56b539979003e86b78eabfb5d",
+  "sourceBundle": "Included in the documented kit under Developer; source restoration measured separately."
 }

@@ -1,0 +1,53 @@
+{
+  "suite": "project-scene-transaction",
+  "scope": "Actual production bundle VM/DOM harness: canonical single-scene append, shared guarded history transaction, normalization, failure rollback, stale/reentrant refusal, preserved unrelated authoring/playback/cache state, Undo/Redo and save/reopen. Not browser acceptance.",
+  "passed": 11,
+  "total": 11,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Append selects one normalized canonical scene while retaining existing stores, caches, playback and tracker state",
+      "passed": true
+    },
+    {
+      "name": "Append without selection leaves all current scene mirrors and unrelated settings intact",
+      "passed": true
+    },
+    {
+      "name": "Scene normalization is authoritative only for the appended scene and never reloads unrelated authored records",
+      "passed": true
+    },
+    {
+      "name": "Append Undo/Redo and save/reopen reproduce exactly the committed canonical project and original metadata",
+      "passed": true
+    },
+    {
+      "name": "Scene identity, duplicate, capacity, selection and malformed scene validation failures are atomic",
+      "passed": true
+    },
+    {
+      "name": "Stale and missing guards, paused history and unwritable state refuse scene import without mutation",
+      "passed": true
+    },
+    {
+      "name": "Snapshot refusal or post-record failure restores history, dirty flag and references without appending",
+      "passed": true
+    },
+    {
+      "name": "Failure after appending and partial mirror assignment rolls back canonical scene, descriptors and exact history",
+      "passed": true
+    },
+    {
+      "name": "Scene and settings edits share the same reentrancy guard and release it after failure",
+      "passed": true
+    },
+    {
+      "name": "A project edit during detached preparation is retained while stale append is rejected",
+      "passed": true
+    },
+    {
+      "name": "Notification, selection-cache and refresh faults report committed warnings with complete editable scene mirrors",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+PASS Audio report starts empty and invalid modes cannot alter observations
+PASS Default mode retains PPU, APU, watches and physical source evidence
+PASS Audio-focused mode excludes PPU evidence while exact machine state and watches are preserved
+PASS A PPU-heavy interval cannot exhaust the audio event budget or stop graphics writes
+PASS Writer grouping separates the same CPU address in different physical MMC3 banks
+PASS RAM writer sites and writes with no CPU origin remain explicitly unmapped
+PASS Noise/DMC observations count register requests without inventing samples or audible notes
+PASS Derived reports cannot mutate the retained evidence, source ROM or active project
+PASS Audio-focused mode retains the event cap and stops recording while emulation continues
+PASS Reset, clear and replacement discard audio evidence and restore default mode
+PASS Audio UI selects the explicit mode, lists writers and opens verified originating code
+PASS Audio source jumps refuse a different inspected ROM and a reset session
+PASS Audio export preserves exact identity/evidence through cancellation and refuses stale UI sessions
+PASS Audio UI paginates writer sites without omission or duplication
+14/14 passed

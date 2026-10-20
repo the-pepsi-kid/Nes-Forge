@@ -1,0 +1,58 @@
+{
+  "suite": "native-scene-lifecycle",
+  "htmlSha256": "d377f322ee87843397d73d60838335119c16d5671bbacf7e3f48d98b6a45ad0f",
+  "scope": "Production shared scene lifecycle, exact A1 stage/report/project/build/import/save/Undo/Redo parity against its frozen standalone release for two independent sources and valid edits, wrapper stage ownership, report binding, canonical validation, backend guard and asynchronous cancellation/stale-project refusal. Routine tests do not establish browser or physical cartridge acceptance.",
+  "passed": 12,
+  "total": 12,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Pepsi A1 stage, import and saved bytes match the frozen release exactly",
+      "passed": true
+    },
+    {
+      "name": "Pepsi valid source edits and renamed files retain exact A1 scene/report/project/build output",
+      "passed": true
+    },
+    {
+      "name": "HonkeyPong A1 stage, import and saved bytes match the frozen release exactly",
+      "passed": true
+    },
+    {
+      "name": "HonkeyPong valid source edits and renamed files retain exact A1 scene/report/project/build output",
+      "passed": true
+    },
+    {
+      "name": "Background option, unsupported operation and cancellation error names/messages are unchanged",
+      "passed": true
+    },
+    {
+      "name": "Shared lifecycle stages belong only to the wrapper that previewed them",
+      "passed": true
+    },
+    {
+      "name": "Declared backend mismatch refuses a fully generated artifact without publishing a stage",
+      "passed": true
+    },
+    {
+      "name": "Detached canonical validation failure leaves active scenes, history and playback intact",
+      "passed": true
+    },
+    {
+      "name": "Cancellation during the artifact hash cannot publish or mutate the active project",
+      "passed": true
+    },
+    {
+      "name": "An edit during the artifact hash preserves that edit and refuses the stale preview",
+      "passed": true
+    },
+    {
+      "name": "Scene evidence must agree with the dispatched method, source and canonical metadata",
+      "passed": true
+    },
+    {
+      "name": "Missing SHA-256 support retains the background refusal and leaves live state unchanged",
+      "passed": true
+    }
+  ]
+}
