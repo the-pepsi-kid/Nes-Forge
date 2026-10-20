@@ -1,0 +1,190 @@
+{
+  "suite": "emulator-timeline-runtime",
+  "html": "NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "e5d247c07b5fb9e0803d891b142082e5b1b12f5de502485e6442b2dce4ae5089",
+  "scope": "Independent actual CPU/PPU/APU execution with native/world and original synthetic MMC1/MMC3 CHR-RAM fixtures; complete historical state, PCM continuation, frame-validated runtime capture, branching, cancellation and unknown-state rejection. Mock DOM, not browser or physical-hardware acceptance.",
+  "passed": 9,
+  "failed": 0,
+  "total": 9,
+  "metrics": {
+    "disabled": {
+      "frames": 12,
+      "storedStates": 0
+    },
+    "native": {
+      "anchorFrame": 11,
+      "restoredFrame": 11,
+      "finalFrame": 16,
+      "framebufferSha256": "d4701678a4581ba82405af86731540c7bfad20c86917f36ec827922b0fa9cd67",
+      "pcmSamples": 3994,
+      "pcmSha256": "179311b3e1161b98d348dc7561873a76a43a9e0a4c4cad6ffbc20439c3a4597d",
+      "fullSixtyFrameRewind": {
+        "retainedStates": 69,
+        "storedBytes": 16800179,
+        "fromFrame": 76,
+        "toFrame": 16
+      },
+      "history": {
+        "enabled": true,
+        "busy": false,
+        "loaded": true,
+        "supported": true,
+        "oldest": 8,
+        "current": 16,
+        "newest": 76,
+        "storedStates": 69,
+        "storedBytes": 16800179,
+        "maxStates": 300,
+        "maxBytes": 33554432,
+        "session": 2,
+        "checkpointCount": 0,
+        "checkpointBytes": 0,
+        "maxCheckpoints": 16,
+        "maxCheckpointBytes": 33554432,
+        "canBack": true,
+        "canForward": true,
+        "message": "Restored recorded frame 16."
+      }
+    },
+    "world": {
+      "anchorFrame": 11,
+      "restoredFrame": 11,
+      "finalFrame": 16,
+      "framebufferSha256": "44fea0cade6bd27613c517d0f2d4c3e840da03a85206c9b92a884f3f78e54786",
+      "pcmSamples": 3994,
+      "pcmSha256": "8f65568c6bc6fc1f2f4709dcfbaa4213fc9eef4e9bea89a3c2c7178edc04186e",
+      "fullSixtyFrameRewind": {
+        "retainedStates": 69,
+        "storedBytes": 19381214,
+        "fromFrame": 76,
+        "toFrame": 16
+      },
+      "history": {
+        "enabled": true,
+        "busy": false,
+        "loaded": true,
+        "supported": true,
+        "oldest": 8,
+        "current": 16,
+        "newest": 76,
+        "storedStates": 69,
+        "storedBytes": 19381214,
+        "maxStates": 300,
+        "maxBytes": 33554432,
+        "session": 2,
+        "checkpointCount": 0,
+        "checkpointBytes": 0,
+        "maxCheckpoints": 16,
+        "maxCheckpointBytes": 33554432,
+        "canBack": true,
+        "canForward": true,
+        "message": "Restored recorded frame 16."
+      }
+    },
+    "capture": {
+      "frame": 11,
+      "framebufferSha256": "bc7b24991c41600b9f0b24e903be005902662380582b93ceb42bc0126c056269",
+      "backgroundDifferentPixels": 0,
+      "compositeDifferentPixels": 0
+    },
+    "mapper1": {
+      "mappedByte": 160,
+      "ramHash": "a8cccea92aab29f7efdebcfa5c6d6fc9d999ef7c095f1c349e2f544bc773e4bc",
+      "chrRamHash": "07456979345a245376a8e11ebc90b3caddb267269694fe72cccebfe5b4c76e2a",
+      "sramHash": "07456979345a245376a8e11ebc90b3caddb267269694fe72cccebfe5b4c76e2a",
+      "framebufferSha256": "52d9c474ab5f64ab6da6e415b69197a58f324cab6712bf69568485c201369272",
+      "dmc": {
+        "ctrl": 79,
+        "level": 26,
+        "start": 49152,
+        "sampleLength": 33,
+        "address": 49167,
+        "remaining": 18,
+        "buffer": 32,
+        "shift": 0,
+        "bits": 1,
+        "silent": false,
+        "timer": 16,
+        "period": 54,
+        "irq": false
+      }
+    },
+    "mapper4": {
+      "mappedByte": 166,
+      "ramHash": "a8cccea92aab29f7efdebcfa5c6d6fc9d999ef7c095f1c349e2f544bc773e4bc",
+      "chrRamHash": "07456979345a245376a8e11ebc90b3caddb267269694fe72cccebfe5b4c76e2a",
+      "sramHash": "07456979345a245376a8e11ebc90b3caddb267269694fe72cccebfe5b4c76e2a",
+      "framebufferSha256": "52d9c474ab5f64ab6da6e415b69197a58f324cab6712bf69568485c201369272",
+      "dmc": {
+        "ctrl": 79,
+        "level": 26,
+        "start": 49152,
+        "sampleLength": 33,
+        "address": 49167,
+        "remaining": 18,
+        "buffer": 32,
+        "shift": 0,
+        "bits": 1,
+        "silent": false,
+        "timer": 16,
+        "period": 54,
+        "irq": false
+      }
+    },
+    "branch": {
+      "oldNewest": 18,
+      "newNewest": 16
+    },
+    "cancel": {
+      "newFrame": 0,
+      "romSha256": "03e4038e323931b5028298682e0ec0c464101ebf542175e25351a4c02eb334e6"
+    }
+  },
+  "results": [
+    {
+      "name": "History is opt-in and ordinary frame execution changes no authoring project or original ROM",
+      "passed": true,
+      "milliseconds": 1731
+    },
+    {
+      "name": "Recorded native frames restore full state and re-execute identical machine state and PCM samples",
+      "passed": true,
+      "milliseconds": 10802
+    },
+    {
+      "name": "Recorded world frames restore full state and re-execute identical machine state and PCM samples",
+      "passed": true,
+      "milliseconds": 9652
+    },
+    {
+      "name": "Runtime capture after rewind uses restored native tiles, scanline provenance and prior sprite positions",
+      "passed": true,
+      "milliseconds": 3073
+    },
+    {
+      "name": "Mapper 1 rewind restores actual bank state, CHR-RAM, SRAM, controller latch and active DMC internals",
+      "passed": true,
+      "milliseconds": 3115
+    },
+    {
+      "name": "Mapper 4 rewind restores actual bank state, CHR-RAM, SRAM, controller latch and active DMC internals",
+      "passed": true,
+      "milliseconds": 2683
+    },
+    {
+      "name": "Recorded future is restored without CPU execution; resumed play branches and discards that future",
+      "passed": true,
+      "milliseconds": 2135
+    },
+    {
+      "name": "Unknown current emulator state rejects rewind atomically instead of dropping unsupported state",
+      "passed": true,
+      "milliseconds": 1220
+    },
+    {
+      "name": "A replacement ROM cancels a yielding forward skip and cannot receive stale execution or restore",
+      "passed": true,
+      "milliseconds": 1079
+    }
+  ]
+}

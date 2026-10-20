@@ -1,0 +1,229 @@
+{
+  "suite": "WR16 stabilization codec and metadata allocators",
+  "passed": 55,
+  "total": 55,
+  "tests": [
+    {
+      "name": "WR16 v3 preserves IDs and bidirectional cross-world destinations",
+      "passed": true
+    },
+    {
+      "name": "Input authoring data remains unchanged by encoding",
+      "passed": true
+    },
+    {
+      "name": "Build order selects the actual tileset scene index",
+      "passed": true
+    },
+    {
+      "name": "Self-world destination and Unicode names remain exact",
+      "passed": true
+    },
+    {
+      "name": "Empty world list roundtrips explicitly",
+      "passed": true
+    },
+    {
+      "name": "Maximum 16 by 16 world map stays exactly 61440 cells",
+      "passed": true
+    },
+    {
+      "name": "Map metatile values -1, 0, 1 and 254 remain distinct",
+      "passed": true
+    },
+    {
+      "name": "No version 3 prefix can decode from truncated data",
+      "passed": true
+    },
+    {
+      "name": "Decoder returns consumed boundary and permits following extensions",
+      "passed": true
+    },
+    {
+      "name": "Unknown WR16 version is rejected",
+      "passed": true
+    },
+    {
+      "name": "Invalid UTF-8 fails instead of substitution",
+      "passed": true
+    },
+    {
+      "name": "Legacy v1 maps and original destination references are retained with warning",
+      "passed": true
+    },
+    {
+      "name": "Legacy v1 truncation is rejected at every prefix",
+      "passed": true
+    },
+    {
+      "name": "Legacy v2 maps and original destination references are retained with warning",
+      "passed": true
+    },
+    {
+      "name": "Legacy v2 truncation is rejected at every prefix",
+      "passed": true
+    },
+    {
+      "name": "More than 32 worlds rejected",
+      "passed": true
+    },
+    {
+      "name": "Duplicate world identity rejected",
+      "passed": true
+    },
+    {
+      "name": "Duplicate marker identity rejected",
+      "passed": true
+    },
+    {
+      "name": "Unknown destination world rejected",
+      "passed": true
+    },
+    {
+      "name": "Unknown destination marker rejected",
+      "passed": true
+    },
+    {
+      "name": "Marker-only destination rejected",
+      "passed": true
+    },
+    {
+      "name": "World shape mismatch rejected",
+      "passed": true
+    },
+    {
+      "name": "Fractional screen count rejected",
+      "passed": true
+    },
+    {
+      "name": "Metatile byte overflow rejected",
+      "passed": true
+    },
+    {
+      "name": "Missing linked metatile definition rejected",
+      "passed": true
+    },
+    {
+      "name": "Excluded world tileset rejected",
+      "passed": true
+    },
+    {
+      "name": "World name exceeding normalizer character limit rejected",
+      "passed": true
+    },
+    {
+      "name": "World text exceeding UTF-8 byte capacity rejected",
+      "passed": true
+    },
+    {
+      "name": "Lone surrogate cannot silently become a replacement character",
+      "passed": true
+    },
+    {
+      "name": "Rectangle extending past world edge rejected",
+      "passed": true
+    },
+    {
+      "name": "Marker outside world rejected",
+      "passed": true
+    },
+    {
+      "name": "More than 128 rooms rejected",
+      "passed": true
+    },
+    {
+      "name": "More than 256 markers rejected",
+      "passed": true
+    },
+    {
+      "name": "Unknown marker kind rejected",
+      "passed": true
+    },
+    {
+      "name": "Unknown camera mode rejected",
+      "passed": true
+    },
+    {
+      "name": "WR16 parsed from 16384 byte PRG with exact boundary",
+      "passed": true
+    },
+    {
+      "name": "WR16 parsed from 32768 byte PRG with exact boundary",
+      "passed": true
+    },
+    {
+      "name": "Fake WR16 signature inside NFEX scene record is not interpreted",
+      "passed": true
+    },
+    {
+      "name": "Legacy trailer followed by v3 resolves to the authoritative last record",
+      "passed": true
+    },
+    {
+      "name": "Zero-world ROM returns the exact boundary needed by following extensions",
+      "passed": true
+    },
+    {
+      "name": "Following MS16 extension does not corrupt the world record boundary",
+      "passed": true
+    },
+    {
+      "name": "Out-of-range NFEX pointer rejected",
+      "passed": true
+    },
+    {
+      "name": "Out-of-range NFEX scene record rejected",
+      "passed": true
+    },
+    {
+      "name": "Invalid world build-scene index rejected before import",
+      "passed": true
+    },
+    {
+      "name": "Truncated PRG fails rather than normalizing partial worlds",
+      "passed": true
+    },
+    {
+      "name": "Non-Forge ROM has no WR16 metadata",
+      "passed": true
+    },
+    {
+      "name": "findExtensionAddress advances beyond occupied aligned and unaligned bytes",
+      "passed": true
+    },
+    {
+      "name": "findExtensionAddress fails promptly when all available addresses occupied",
+      "passed": true
+    },
+    {
+      "name": "findExtensionAddress accepts exact capacity and rejects oversized/invalid length",
+      "passed": true
+    },
+    {
+      "name": "findExtAddr16 advances beyond occupied aligned and unaligned bytes",
+      "passed": true
+    },
+    {
+      "name": "findExtAddr16 fails promptly when all available addresses occupied",
+      "passed": true
+    },
+    {
+      "name": "findExtAddr16 accepts exact capacity and rejects oversized/invalid length",
+      "passed": true
+    },
+    {
+      "name": "findAddr advances beyond occupied aligned and unaligned bytes",
+      "passed": true
+    },
+    {
+      "name": "findAddr fails promptly when all available addresses occupied",
+      "passed": true
+    },
+    {
+      "name": "findAddr accepts exact capacity and rejects oversized/invalid length",
+      "passed": true
+    }
+  ]
+}
+(node:12) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

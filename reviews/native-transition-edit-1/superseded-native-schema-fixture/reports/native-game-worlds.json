@@ -1,0 +1,85 @@
+{
+  "suite": "native-game-worlds",
+  "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
+  "passed": 19,
+  "total": 19,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Worlds preserve the full room width, source palette and four quadrant patterns",
+      "passed": true
+    },
+    {
+      "name": "World layouts retain every page and split before visual-library capacity is exceeded",
+      "passed": true
+    },
+    {
+      "name": "A room longer than sixteen screens splits at an exact page boundary without invented links",
+      "passed": true
+    },
+    {
+      "name": "Padding stays unassigned and native origins remain receipts rather than extra world rows",
+      "passed": true
+    },
+    {
+      "name": "Legacy v1 bundles still import without inventing a World payload",
+      "passed": true
+    },
+    {
+      "name": "A v2 payload cannot be disguised as v1, or omit its world collection",
+      "passed": true
+    },
+    {
+      "name": "Standalone save and reopen retain editable worlds, libraries and source receipts",
+      "passed": true
+    },
+    {
+      "name": "Worlds, pages and poses append together with exactly one Undo and Redo",
+      "passed": true
+    },
+    {
+      "name": "Repeated imports remap World IDs and tileset references independently",
+      "passed": true
+    },
+    {
+      "name": "Bundle-local marker destinations remap to imported worlds and preserve marker IDs",
+      "passed": true
+    },
+    {
+      "name": "Existing World records, runtime settings, audio and custom code remain unchanged",
+      "passed": true
+    },
+    {
+      "name": "World capacity is refused before any canonical or history mutation",
+      "passed": true
+    },
+    {
+      "name": "Missing tileset and undefined metatile references fail despite resealing the checksum",
+      "passed": true
+    },
+    {
+      "name": "Unknown World authoring fields are refused rather than silently lost in normalization",
+      "passed": true
+    },
+    {
+      "name": "Preview shows exact world counts and collision/entity/connection coverage",
+      "passed": true
+    },
+    {
+      "name": "Pose-only preview explains why ANIM has no timed clips",
+      "passed": true
+    },
+    {
+      "name": "Detached RE audio catalog leaves emulator, project and history unchanged",
+      "passed": true
+    },
+    {
+      "name": "Spatial RE exposes direct audio recovery without requiring an emulator load",
+      "passed": true
+    },
+    {
+      "name": "Emulator loads continue to refresh the Audio library after detached RE use",
+      "passed": true
+    }
+  ]
+}

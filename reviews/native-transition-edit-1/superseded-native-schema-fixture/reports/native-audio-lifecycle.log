@@ -1,0 +1,19 @@
+PASS Retained music blank-project canonical import matches the frozen pre-refactor UI exactly
+PASS Retained music existing-score canonical import matches the frozen pre-refactor UI exactly
+PASS Music and SFX staging is immutable and preserves authoring, history, emulator and tracker state
+PASS SFX appends rebased patterns, instruments and stable IDs while existing music, scenes and settings remain identical
+PASS SFX one-Undo import survives Redo and actual Save As/reopen with executable canonical references
+PASS Unsupported SFX returns diagnostics without an importable stage or project changes
+PASS SFX refuses incompatible project timing or pattern size and never replaces the existing song
+PASS Pattern, instrument and SFX capacity and repeated native identity are refused before mutation
+PASS Copied, foreign, consumed and stale source/project stages cannot commit
+PASS Cancellation and asynchronous source or project changes refuse during revalidation before installation
+PASS Changed conversion, malformed source bytes and normalization drift refuse before an Undo entry
+PASS Audio owner rejects undeclared fields, modified prefixes, missing guards and unwritable live collections
+PASS Audio history snapshot refusal, silence, duplicate recording and post-record exceptions roll back fully
+PASS A failed Audio install restores already assigned collections, property descriptors, Undo/Redo and dirty state
+PASS Audio detached validation failure and reentrancy release the transaction lock without replacing unrelated owners
+PASS Notification failure is an explicit committed warning with dirty and Undoable Audio data
+16/16 passed
+(node:51338) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

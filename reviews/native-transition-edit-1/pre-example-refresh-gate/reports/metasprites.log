@@ -1,0 +1,31 @@
+PASS Project v6 roundtrip retains composed frames, explicit origins, source scenes, animation IDs and mixed frame sources
+PASS Legacy v5 project migrates with empty composer library and playable legacy tile references
+PASS Composer creation and composed animation assignment undo and redo as whole project edits
+PASS Invalid v6 duplicate frame ID rejects atomically before current project or history changes
+PASS Invalid v6 duplicate piece ID rejects atomically before current project or history changes
+PASS Invalid v6 tile outside CHR bank rejects atomically before current project or history changes
+PASS Invalid v6 fractional coordinate rejects atomically before current project or history changes
+PASS Invalid v6 invalid sprite mode rejects atomically before current project or history changes
+PASS Invalid v6 nonboolean flip rejects atomically before current project or history changes
+PASS Invalid v6 zero duration rejects atomically before current project or history changes
+PASS Invalid v6 too many pieces rejects atomically before current project or history changes
+PASS Metasprite-only CHR tiles, including both nonadjacent 8x16 source tiles, survive generated ROM linking
+PASS Custom ASM retains fixed sprite tile IDs for composed and legacy animation graphics
+PASS A metasprite sourced from an excluded scene fails the build explicitly
+PASS Dangling animation frame and source scene references fail the linker without producing a ROM
+PASS MS16 checksum detects a mutated payload and length check rejects truncation
+PASS MS16 structural bounds reject recomputed-checksum oversized counts, short records, and trailing bytes
+PASS MS16 preserves Unicode names, signed geometry, attributes, mixed animation sources and durations
+PASS Importing the built ROM into its original project remaps frame/animation IDs and preserves rendered pixels
+PASS Corrupt MS16 ROM import leaves existing scenes, worlds, frames, animations and history intact
+PASS Old Forge packed ROM with no MS16 metadata still imports without inventing composer assets
+PASS Ordinary iNES ROM without a Forge marker stays compatible with original import path
+PASS Animation bounds use authored origins across differently sized composite frames
+PASS Animation draw applies 8x16 vertical tile swap, both flips, palette and authored anchor exactly
+PASS Legacy animation pixels use live active CHR and remain available after switching away from a metasprite
+PASS Missing composed assets return a visible-preview error instead of silently drawing a legacy tile
+PASS Project saves retain long legacy animation names and sequences while ROM limits reject them explicitly
+
+27/27 passed
+(node:294) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

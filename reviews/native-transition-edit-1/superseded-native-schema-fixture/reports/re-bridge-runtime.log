@@ -1,0 +1,13 @@
+PASS Independent source ROM is metadata-free and executes its native collision and pulse music
+PASS ROM recovery materializes every authored collision cell, graphic tile, palette and music row
+PASS Imported project rebuilds and its displayed scene pixels equal the original completed frame
+PASS Rebuilt 6502 engine honors recovered wall, floor and matching left/right movement
+PASS Original and rebuilt programs emit the complete authored pulse-note sequence through the APU
+PASS Canonical wall-collision edit changes emitted collision and lets actual 6502 player cross the wall
+PASS Canonical CHR pixel edit reaches rebuilt pattern bytes and the displayed 6502 framebuffer
+PASS Canonical tracker-note edit changes the actual APU timer from C4 to C5
+PASS Authoritative ProjectStore JSON save/reload preserves canonical recovery and deterministic rebuilt bytes
+
+9/9 passed
+(node:21916) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

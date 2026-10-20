@@ -1,0 +1,18 @@
+PASS Registry discovers native resources with explicit map capability while preserving A1 container limits
+PASS Detached map stage preserves live state and recovers all 960 collision cells with explicit authored adaptation
+PASS Scene import is one guarded Undo action and Save As/reopen preserves existing scenes and native evidence
+PASS Unsupported resources and unrecognized sources stay inspectable and cannot be converted
+PASS Missing resource, wrong source identity and extra recovery options refuse without mutation
+PASS Forged, stale, duplicate and cross-resource stages cannot append a scene
+PASS Cancellation and an intervening edit during actual map staging never publish stale work
+PASS A valid native command edit removes the proven floor through structural recovery under a different filename
+PASS Detached and ordinary gameplay builds remain identical after canonical Save As and reopen
+PASS Generated 6502 preserves raw-map background pixels and the recovered floor supports the authored player
+PASS Ordinary collision-tab floor edit survives Save As/reopen and changes actual generated falling behavior
+PASS An authored canonical wall stops rebuilt movement; a metatile collision edit opens it after Save As/reopen
+PASS Source graphics reused by Empty and Solid retain distinct linked canonical collision and rebuilt support
+PASS Raw visual edits detach only the altered linked cell and expose existing tile-property fallback
+PASS Malformed persisted map evidence, collision coverage, source binding and adaptation are rejected
+15/15 passed
+(node:50646) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

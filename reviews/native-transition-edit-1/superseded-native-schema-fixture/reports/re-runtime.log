@@ -1,0 +1,27 @@
+PASS Unloaded runtime cannot silently pretend to have a tracing source
+PASS Loaded source identity is its actual immutable file, including trainer bytes
+PASS Observation is opt-in and coverage names original instruction PCs and physical offsets
+PASS Snapshot A/B reads backing memory without changing PPU, controller or APU read latches
+PASS Snapshot outputs cannot alter retained comparison data
+PASS RAM comparisons distinguish unsigned increase, decrease, equal value and unchanged
+PASS RAM comparison result pagination neither skips nor duplicates matches
+PASS Comparison filters and paging reject malformed requests rather than silently widening a search
+PASS RAM watches canonicalize mirrored writes and report the actual STA instruction
+PASS Eight watch bound and permitted memory regions are enforced without duplicates
+PASS PPU and APU events retain execution origin without inventing origins for external bus writes
+PASS Observed-resource copies preserve unknown bytes and cannot mutate evidence
+PASS Trace event cap stops recording with bounded evidence while emulation continues
+PASS Reset invalidates snapshots and observations but preserves watches within the same ROM
+PASS Replacement ROM clears old identity, observations, snapshots and watch meaning
+PASS A failed unsupported emulator load leaves the existing analysis source intact
+PASS Exported observation report is a copied record and cannot be imported as a project
+PASS Pending identity and trace start cannot survive reset of their original runtime session
+PASS Pending identity and trace start cannot survive replacement of their original runtime session
+PASS Pending identity and trace start cannot survive clear of their original runtime session
+PASS Executed RAM code is observed without inventing a physical ROM source
+PASS A failing presentation subscriber cannot change instruction execution or trace collection
+PASS Coverage-entry bound stops before collecting an unbounded NOP region
+PASS Explicit Stop cancels a pending hash and cannot arm tracing after the user stopped it
+24/24 passed
+(node:24564) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,16 @@
+PASS The same ROM-independent record method runs in a fresh Forge project
+PASS No edits reproduce arbitrary source bytes, including unknown bytes and flags
+PASS A masked edit changes only its declared bits and preserves unrelated records
+PASS Editing independent masks in one byte retains both fields
+PASS Read-only flag edits and undeclared fields are refused
+PASS Duplicate edits, extra properties and record overflow are refused
+PASS Noninteger and out-of-range values cannot be coerced into native bytes
+PASS Overlapping masks across fields or records are refused before encoding
+PASS Malformed layouts, unaligned masks and source overflow are refused
+PASS Native metadata requires schema 13 and original source bytes
+PASS Older projects migrate without enabling the native backend
+PASS Ordinary projects retain schema 12 and existing shared mashup identities
+PASS Native source recognition refuses unknown engines and modified protected data
+13/13 passed
+(node:53753) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

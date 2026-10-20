@@ -1,0 +1,30 @@
+PASS Default-off variation returns a detached unchanged canonical project
+PASS Same seed reproduces exact choices without modifying the project or live editor/emulator
+PASS Patrol speeds change only per-instance numeric overrides inside declared 1–4 bounds
+PASS Different seeds produce multiple actual speed recipes
+PASS Gameplay lock retains the complete prior selection while another seed is used
+PASS Recipes replay after JSON export and reject modified decisions
+PASS Recipe source binding rejects stale actor, collision, attribute, World links, and player start edits
+PASS Palette/CHR edits do not invalidate independently locked gameplay geometry
+PASS Compatible authored enemy/pickup slots permute without adding coordinates
+PASS Player, switches/doors, persistence owners, maps, links and template set remain exact
+PASS Placement refuses collision-intersecting slots and leaves that group intact
+PASS Placement refuses missing collision evidence instead of assuming empty space
+PASS Single-room placement follows metatile reconciliation instead of trusting stale empty collision
+PASS Placement excludes body extents beyond map, Room, or screen edges
+PASS A placement permutation cannot move patrols outside their own authored bounds
+PASS An aliased speed/bound parameter cannot masquerade as a bounded patrol variation
+PASS Different colliders or placement owners cannot share slots
+PASS Disabled or custom behaviors are left unmodified and explicitly unavailable
+PASS Item-value requests report unavailable and preserve boolean pickup semantics
+PASS Disabled Gameplay Core stays disabled and has explicit unavailable domains
+PASS Actor and persistent RAM capacity refusals are atomic
+PASS Malformed seeds/options and invalid canonical values refuse before mutation
+PASS Toggling placement cannot change domain-separated patrol speed choices
+PASS Actual emitted World ROM and 6502 patrol movement reflect the chosen speed
+PASS Shuffled pickup source slots reach the actual compiled actor coordinates and preserve collection binding
+PASS A single-room candidate preserves its backend and emits changed patrol speed
+
+26/26 passed
+(node:42781) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

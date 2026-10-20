@@ -1,0 +1,15 @@
+PASS Project actions are attached to the existing project bar and no workflow popup is constructed
+PASS Gameplay navigation opens the existing Scene settings without replacing controls or compiling
+PASS Cancelling New Project preserves project references, undo history, save identity and running ROM
+PASS Confirming New Project creates a blank Scene in one undo step with no inherited runtime
+PASS Open Forge ROM uses its registered file input and cancellation retains the entire workspace
+PASS Malformed and unrelated ROM files are rejected before replacement confirmation or mutation
+PASS Confirmed Forge ROM input opens one editable project and keeps the Scene gameplay controls live
+PASS A newer ROM selection wins and a late older read cannot replace it or add history
+PASS Confirming a blank project invalidates an outstanding ROM read before it can prompt or import
+PASS Cancelling New Project does not silently discard an already selected ROM file
+PASS Read failures and oversized files release the input without confirming or changing project state
+PASS A failed Scene gameplay build exposes the shared build log beside the same settings
+12/12 passed
+(node:5856) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

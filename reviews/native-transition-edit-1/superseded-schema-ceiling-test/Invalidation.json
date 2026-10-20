@@ -1,0 +1,5 @@
+{
+  "status": "superseded",
+  "htmlUnchanged": true,
+  "reason": "The retained next-unsupported-schema tests computed the ceiling from the ordinary write schema. With native projects supported at schema 13 while ordinary writes remain 12, these guards must use ProjectStore.maxSchema + 1. Their future-version rejection and atomic nonmutation assertions are retained. No production HTML changes. Earlier mandatory reports are excluded after this test-input correction."
+}

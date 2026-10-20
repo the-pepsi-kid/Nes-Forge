@@ -1,0 +1,17 @@
+PASS Detached settings edit records one snapshot and preserves unrelated canonical values, typed buffers, caches and playback
+PASS One transaction can change both settings owners and Undo/Redo exactly restores the canonical project
+PASS Unchanged settings and empty patches are true no-ops
+PASS Unknown owners, nested/prototype fields, wrong primitive types and out-of-range settings reject atomically
+PASS Missing or stale project guards reject edits, including replacement by identical data
+PASS Paused history and unwritable settings refuse before history or state mutation
+PASS Detached validation failure leaves project, dirty flag, history, playback and live settings references intact
+PASS A validator cannot reenter the settings transaction, and failure releases the lock
+PASS Snapshot refusal, silence, double recording and post-record exceptions restore complete Undo/Redo state
+PASS History eviction remains owned by the retained snapshot engine and failed recording restores evicted entries
+PASS Settings edits never invoke whole-project commit or mutate a detached validation result
+PASS Notification and refresh failures are explicit committed warnings with dirty, Undoable data
+PASS Movement UI routes Apply through one shared transaction and retains the four-field boundary
+PASS Movement cancellation and replay rejection never enter the shared settings transaction
+14/14 passed
+(node:47101) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

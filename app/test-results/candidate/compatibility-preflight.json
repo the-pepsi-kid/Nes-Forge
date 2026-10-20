@@ -1,6 +1,6 @@
 {
   "suite": "compatibility-preflight",
-  "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1",
+  "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
   "scope": "Shared immutable movement bounds/config references, real generated World and single-room ROM compilation, exact frozen/current ordinary-build parity, success/failure live noninterference, candidate capacity failures and custom ASM refusal. Mock DOM; no browser or physical hardware acceptance.",
   "passed": 13,
   "failed": 0,
@@ -9,67 +9,67 @@
     {
       "name": "Both runtime owners and Movement Rules share deeply immutable movement domains",
       "passed": true,
-      "milliseconds": 426
+      "milliseconds": 659
     },
     {
       "name": "UI/import/config/compiler reject matching illegal physics through config ownership",
       "passed": true,
-      "milliseconds": 741
+      "milliseconds": 994
     },
     {
       "name": "Runtime references use the explicit project and never fall back from malformed detached sources",
       "passed": true,
-      "milliseconds": 437
+      "milliseconds": 1671
     },
     {
       "name": "single-room: detached compilation matches ordinary and frozen alpha.11 ROM bytes",
       "passed": true,
-      "milliseconds": 1937
+      "milliseconds": 7791
     },
     {
       "name": "single-room: preview/replay compile the changed candidate and leave live state intact",
       "passed": true,
-      "milliseconds": 1258
+      "milliseconds": 3325
     },
     {
       "name": "single-room: detached plans are isolated from subsequent caller edits and remain single-use",
       "passed": true,
-      "milliseconds": 647
+      "milliseconds": 1333
     },
     {
       "name": "world: detached compilation matches ordinary and frozen alpha.11 ROM bytes",
       "passed": true,
-      "milliseconds": 2053
+      "milliseconds": 3265
     },
     {
       "name": "world: preview/replay compile the changed candidate and leave live state intact",
       "passed": true,
-      "milliseconds": 2254
+      "milliseconds": 2325
     },
     {
       "name": "world: detached plans are isolated from subsequent caller edits and remain single-use",
       "passed": true,
-      "milliseconds": 789
+      "milliseconds": 1019
     },
     {
       "name": "Single-room candidate metadata overflow rejects during Preview with exact live noninterference",
       "passed": true,
-      "milliseconds": 1114
+      "milliseconds": 994
     },
     {
       "name": "World candidate resource overflow rejects during Preview with exact live noninterference",
       "passed": true,
-      "milliseconds": 865
+      "milliseconds": 968
     },
     {
       "name": "Detached build API refuses custom ASM, unsupported schema/backend/mapper and malformed source without live work",
       "passed": true,
-      "milliseconds": 603
+      "milliseconds": 721
     },
     {
       "name": "A detached plan cannot be repurposed to invoke the live assembler",
       "passed": true,
-      "milliseconds": 490
+      "milliseconds": 577
     }
   ]
 }

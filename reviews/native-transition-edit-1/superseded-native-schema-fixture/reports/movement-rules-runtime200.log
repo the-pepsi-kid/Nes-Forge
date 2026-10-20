@@ -1,0 +1,21 @@
+PASS single-room: Sprint changes actual emitted player travel, with repeatable ROM bytes
+PASS single-room: High jump raises the actual jump apex and lands without repeated held-button jumps
+PASS single-room: Slow fall and Heavy fall change actual generated gravity/fall-cap behavior
+PASS single-room: Maximum rule movement respects a solid wall without tunneling
+PASS single-room: Maximum jump stops at the ceiling and returns to its original floor
+PASS single-room: Maximum movement remains within the outer screen/map body bounds
+PASS single-room: UI Preview/Apply, Undo/Redo and Save Project As preserve exact editable and ROM results
+PASS world: Sprint changes actual emitted player travel, with repeatable ROM bytes
+PASS world: High jump raises the actual jump apex and lands without repeated held-button jumps
+PASS world: Slow fall and Heavy fall change actual generated gravity/fall-cap behavior
+PASS world: Maximum rule movement respects a solid wall without tunneling
+PASS world: Maximum jump stops at the ceiling and returns to its original floor
+PASS world: Maximum movement remains within the outer screen/map body bounds
+PASS world: UI Preview/Apply, Undo/Redo and Save Project As preserve exact editable and ROM results
+PASS World sprint crosses a screen boundary, uses its linked exit, and Start restores the configured spawn
+PASS Applying movement rules after a v1 mashup keeps the original mashup recipe independently reproducible
+PASS Shipped Movement Rules examples replay through the actual UI and rebuild every exact ROM
+PASS A seeded movement recipe replay compiles the same changed ROM after all four decision locks
+18/18 passed
+(node:43966) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

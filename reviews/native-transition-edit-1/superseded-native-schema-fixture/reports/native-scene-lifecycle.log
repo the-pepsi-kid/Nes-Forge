@@ -1,0 +1,15 @@
+PASS Pepsi A1 stage, import and saved bytes match the frozen release exactly
+PASS Pepsi valid source edits and renamed files retain exact A1 scene/report/project/build output
+PASS HonkeyPong A1 stage, import and saved bytes match the frozen release exactly
+PASS HonkeyPong valid source edits and renamed files retain exact A1 scene/report/project/build output
+PASS Background option, unsupported operation and cancellation error names/messages are unchanged
+PASS Shared lifecycle stages belong only to the wrapper that previewed them
+PASS Declared backend mismatch refuses a fully generated artifact without publishing a stage
+PASS Detached canonical validation failure leaves active scenes, history and playback intact
+PASS Cancellation during the artifact hash cannot publish or mutate the active project
+PASS An edit during the artifact hash preserves that edit and refuses the stale preview
+PASS Scene evidence must agree with the dispatched method, source and canonical metadata
+PASS Missing SHA-256 support retains the background refusal and leaves live state unchanged
+12/12 passed
+(node:50637) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

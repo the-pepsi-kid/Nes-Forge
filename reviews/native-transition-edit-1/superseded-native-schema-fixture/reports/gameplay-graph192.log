@@ -1,0 +1,16 @@
+PASS Graph is reachable within Gameplay Core and selections never mutate canonical source or history
+PASS Actual graph controls add a state and typed transition into the existing canonical tables, with single-edit undo and redo
+PASS The graph refreshes when table authoring and project Undo change the same source
+PASS Invalid transition edits are rejected atomically; connected and initial states cannot be silently removed
+PASS Deleting a transition then an unreferenced state is explicit and undo restores their exact records
+PASS Ordered action controls edit typed operands, reorder the actual table, and preserve precise compiler diagnostics
+PASS Priority ties use actual transition table order and diagnostics identify unconditional shadowing
+PASS Structural reachability is a warning with exact navigable source, and graph references navigate endpoints
+PASS Duplicating a template Behavior changes only the selected Actor Definition and is one undoable canonical edit
+PASS Player compatibility and disabled Behavior are explicitly diagnosed instead of promising graph execution
+PASS Graph-created canonical data survives native project save and reload with byte-identical ROM output
+PASS A graph-authored input transition executes in the emitted 6502 runtime
+
+12/12 passed
+(node:35606) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

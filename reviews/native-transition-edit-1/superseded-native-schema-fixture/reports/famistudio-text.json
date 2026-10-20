@@ -1,0 +1,71 @@
+{
+  "suite": "famistudio-text",
+  "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
+  "scope": "Actual candidate bundled FamiStudio text parser and canonical AudioCompiler: musical values, finite-pass timing, cuts, repeated/custom patterns, envelopes, warnings, strict refusal boundaries and separate pure-module packaging parity. No browser, audible or hardware equivalence acceptance.",
+  "passed": 12,
+  "total": 12,
+  "failed": 0,
+  "assertions": 176,
+  "results": [
+    {
+      "name": "Actual candidate HTML initializes and registers the parser and canonical compiler",
+      "passed": true,
+      "assertions": 4
+    },
+    {
+      "name": "Selected song timing, repeated patterns, interruption cuts, envelopes, padding, independent previews and quoted metadata",
+      "passed": true,
+      "assertions": 87
+    },
+    {
+      "name": "Malformed exports, unsupported project versions and ambiguous attributes are refused",
+      "passed": true,
+      "assertions": 13
+    },
+    {
+      "name": "Unsupported loops, variable groove, invalid tempo settings and oversized arrangements are refused",
+      "passed": true,
+      "assertions": 6
+    },
+    {
+      "name": "Pattern instances, hidden notes and event identity are validated",
+      "passed": true,
+      "assertions": 7
+    },
+    {
+      "name": "Invalid musical notes, unsupported effects and broken instrument references are refused",
+      "passed": true,
+      "assertions": 27
+    },
+    {
+      "name": "Duplicate channels, DPCM and expansion content are refused",
+      "passed": true,
+      "assertions": 5
+    },
+    {
+      "name": "Envelope shape, values, loops, modulation and volume scaling are validated",
+      "passed": true,
+      "assertions": 10
+    },
+    {
+      "name": "Options, control characters and file-size limits are enforced",
+      "passed": true,
+      "assertions": 6
+    },
+    {
+      "name": "Fixed FamiTracker tempo, dynamic-envelope timing and noise-mode boundaries are enforced",
+      "passed": true,
+      "assertions": 4
+    },
+    {
+      "name": "Standalone UMD registers without editor globals and agrees with the bundled parser",
+      "passed": true,
+      "assertions": 4
+    },
+    {
+      "name": "Bundled canonical compiler accepts the bundled parser output without normalization loss",
+      "passed": true,
+      "assertions": 3
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "suite": "movement-rules-runtime200",
-  "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1",
+  "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
   "scope": "Actual emitted World and single-room 6502 movement/collision, original authored fixtures, canonical UI Preview/Apply/Undo/Redo and mocked OS Save Project As handle, exact recipe replay and saved ROM rebuilds. No real-browser, listening, mobile/controller or physical NES acceptance.",
   "passed": 18,
   "failed": 0,
@@ -45,92 +45,92 @@
     {
       "name": "single-room: Sprint changes actual emitted player travel, with repeatable ROM bytes",
       "passed": true,
-      "milliseconds": 11491
+      "milliseconds": 6754
     },
     {
       "name": "single-room: High jump raises the actual jump apex and lands without repeated held-button jumps",
       "passed": true,
-      "milliseconds": 11132
+      "milliseconds": 10825
     },
     {
       "name": "single-room: Slow fall and Heavy fall change actual generated gravity/fall-cap behavior",
       "passed": true,
-      "milliseconds": 6751
+      "milliseconds": 5027
     },
     {
       "name": "single-room: Maximum rule movement respects a solid wall without tunneling",
       "passed": true,
-      "milliseconds": 4286
+      "milliseconds": 3085
     },
     {
       "name": "single-room: Maximum jump stops at the ceiling and returns to its original floor",
       "passed": true,
-      "milliseconds": 5810
+      "milliseconds": 4447
     },
     {
       "name": "single-room: Maximum movement remains within the outer screen/map body bounds",
       "passed": true,
-      "milliseconds": 10494
+      "milliseconds": 8523
     },
     {
       "name": "single-room: UI Preview/Apply, Undo/Redo and Save Project As preserve exact editable and ROM results",
       "passed": true,
-      "milliseconds": 4206
+      "milliseconds": 4845
     },
     {
       "name": "world: Sprint changes actual emitted player travel, with repeatable ROM bytes",
       "passed": true,
-      "milliseconds": 9492
+      "milliseconds": 7189
     },
     {
       "name": "world: High jump raises the actual jump apex and lands without repeated held-button jumps",
       "passed": true,
-      "milliseconds": 19933
+      "milliseconds": 12822
     },
     {
       "name": "world: Slow fall and Heavy fall change actual generated gravity/fall-cap behavior",
       "passed": true,
-      "milliseconds": 6079
+      "milliseconds": 5375
     },
     {
       "name": "world: Maximum rule movement respects a solid wall without tunneling",
       "passed": true,
-      "milliseconds": 3478
+      "milliseconds": 3202
     },
     {
       "name": "world: Maximum jump stops at the ceiling and returns to its original floor",
       "passed": true,
-      "milliseconds": 4937
+      "milliseconds": 4544
     },
     {
       "name": "world: Maximum movement remains within the outer screen/map body bounds",
       "passed": true,
-      "milliseconds": 11332
+      "milliseconds": 10651
     },
     {
       "name": "world: UI Preview/Apply, Undo/Redo and Save Project As preserve exact editable and ROM results",
       "passed": true,
-      "milliseconds": 3706
+      "milliseconds": 4692
     },
     {
       "name": "World sprint crosses a screen boundary, uses its linked exit, and Start restores the configured spawn",
       "passed": true,
-      "milliseconds": 8840
+      "milliseconds": 7354
     },
     {
       "name": "Applying movement rules after a v1 mashup keeps the original mashup recipe independently reproducible",
       "passed": true,
-      "milliseconds": 5636
+      "milliseconds": 5343
     },
     {
       "name": "Shipped Movement Rules examples replay through the actual UI and rebuild every exact ROM",
       "passed": true,
-      "milliseconds": 15219
+      "milliseconds": 14808
     },
     {
       "name": "A seeded movement recipe replay compiles the same changed ROM after all four decision locks",
       "passed": true,
-      "milliseconds": 4215
+      "milliseconds": 3801
     }
   ]
 }

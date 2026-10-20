@@ -1,7 +1,7 @@
 {
   "suite": "re-experiments",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1",
+  "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
   "scope": "Physical CPU/PPU/APU execution, mapper state, PCM deterministic replay, RAM mutation boundaries and mock-DOM UI commands; not browser layout, speaker, phone or hardware acceptance.",
   "passed": 19,
   "failed": 0,
@@ -25,97 +25,97 @@
     {
       "name": "Named checkpoints restore complete physical state without enabling history or changing the project",
       "passed": true,
-      "milliseconds": 1474
+      "milliseconds": 1371
     },
     {
       "name": "Checkpoint preserves mapper 1 bank state, CHR RAM, SRAM, latches and active DMC",
       "passed": true,
-      "milliseconds": 1668
+      "milliseconds": 1600
     },
     {
       "name": "Checkpoint preserves mapper 4 bank state, CHR RAM, SRAM, latches and active DMC",
       "passed": true,
-      "milliseconds": 1559
+      "milliseconds": 1622
     },
     {
       "name": "Checkpoint names and storage count are bounded without evicting another named checkpoint",
       "passed": true,
-      "milliseconds": 2419
+      "milliseconds": 1979
     },
     {
       "name": "Checkpoint byte bound rejects the whole save and keeps previous states intact",
       "passed": true,
-      "milliseconds": 3748
+      "milliseconds": 3197
     },
     {
       "name": "Unsupported live physical properties reject checkpoint restoration without partial mutation",
       "passed": true,
-      "milliseconds": 1221
+      "milliseconds": 981
     },
     {
       "name": "Checkpoint restore discards incompatible frame-history future and invalidates observations",
       "passed": true,
-      "milliseconds": 2185
+      "milliseconds": 1635
     },
     {
       "name": "Reset, successful ROM load, CPU trace and project unload invalidate checkpoints; rejected load retains them",
       "passed": true,
-      "milliseconds": 3528
+      "milliseconds": 3671
     },
     {
       "name": "Input script executes native movement and reproduces the complete machine and PCM stream from a checkpoint",
       "passed": true,
-      "milliseconds": 2460
+      "milliseconds": 2716
     },
     {
       "name": "Scripts isolate live input and editable focus without removing unrelated blockers",
       "passed": true,
-      "milliseconds": 1904
+      "milliseconds": 2167
     },
     {
       "name": "Script validation is atomic for duplicate/opposite buttons, counts, addresses and stale checkpoints",
       "passed": true,
-      "milliseconds": 877
+      "milliseconds": 856
     },
     {
       "name": "Canceled scripted input stops at the yield and leaves a restorable paused checkpoint",
       "passed": true,
-      "milliseconds": 965
+      "milliseconds": 1195
     },
     {
       "name": "A ROM replacement during scripted replay cancels old work before the new ROM executes",
       "passed": true,
-      "milliseconds": 878
+      "milliseconds": 937
     },
     {
       "name": "RAM experiments normalize mirrors, never call bus writers and restore the complete pre-edit machine",
       "passed": true,
-      "milliseconds": 1197
+      "milliseconds": 1185
     },
     {
       "name": "RAM edit rejects I/O, ROM, bad values, stale expected bytes and duplicate mirrors before mutation",
       "passed": true,
-      "milliseconds": 803
+      "milliseconds": 842
     },
     {
       "name": "Keeping a RAM experiment leaves only emulator changes and a bounded explanatory log",
       "passed": true,
-      "milliseconds": 925
+      "milliseconds": 955
     },
     {
       "name": "Public checkpoint deletion cannot discard active RAM experiment rollback, while keep and restore release it",
       "passed": true,
-      "milliseconds": 1200
+      "milliseconds": 1028
     },
     {
       "name": "A reset invalidates active experiment rollback instead of applying a stale session",
       "passed": true,
-      "milliseconds": 875
+      "milliseconds": 882
     },
     {
       "name": "UI exposes checkpoint/script/experiment actions, errors and literal user labels with native keyboard entry",
       "passed": true,
-      "milliseconds": 1089
+      "milliseconds": 1119
     }
   ]
 }

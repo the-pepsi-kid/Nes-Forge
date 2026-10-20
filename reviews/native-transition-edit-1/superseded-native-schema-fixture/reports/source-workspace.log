@@ -1,0 +1,18 @@
+PASS Multi-file example resolves includes, macros, binary bytes and builds runnable NROM
+PASS Build is deterministic and preserves active project, assembly and emulator state
+PASS Original arbitrary binary bytes and CRLF source survive edits, JSON and ZIP export
+PASS Relative parent references resolve inside the root and path escapes are rejected
+PASS Duplicate normalized paths and invalid base64 are diagnosed before build
+PASS Missing includes and cycles report originating files and 1-based lines
+PASS Include and incbin expressions are refused explicitly, comments retain quoted semicolons
+PASS Unsupported dialects, foreign directives and Lua entry points do not translate silently
+PASS Assembly failures map to included source and restore project assembly state
+PASS NROM rejects mirrored aliases, missing vectors, RAM output and unbacked vectors
+PASS 32 KiB layout and selected CHR bytes are respected; unsupported sizes fail
+PASS Expansion limits reject runaway inclusion before invoking the assembler
+PASS Exponential and recursive macro inputs fail before unbounded assembly work
+PASS Empty macro fan-out counts visits and emitted labels before calling the assembler
+PASS Source encoding errors preserve bytes and report a file rather than replacement text
+15/15 passed
+(node:35817) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

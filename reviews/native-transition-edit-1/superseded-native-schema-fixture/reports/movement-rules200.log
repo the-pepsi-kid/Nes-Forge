@@ -1,0 +1,33 @@
+PASS A schema-12 generated single-room source is detached, deeply frozen and independently identified
+PASS Canonical source identity ignores object key order and filename but preserves values
+PASS Copied, foreign and forged source wrappers are refused
+PASS Viewer mode, nonzero mapper and custom assembly refuse without enabling a backend
+PASS Invalid schema, non-JSON values and invalid physics fail instead of normalizing silently
+PASS Missing/excluded player scene and invalid training target are refused using detached references
+PASS Keep is the default and reports no effective change without rewriting any project field
+PASS Sprint targets exactly 2, 3 and 4 pixels per tick at the three intensities
+PASS High-jump targets 10, 11 and 12 with gravity 1 and preserves unrelated fields
+PASS Slow-fall targets maximum fall 4, 2 and 1 with gravity 1
+PASS Heavy-fall uses the specified paired gravity and maximum-fall targets
+PASS Only the active backend four scalar settings can change, preserving layout, IDs and inactive physics
+PASS Equal seed/source/options repeat exact recipe, project and detached validation
+PASS Seeded-mix intensities enforce ±1, ±2 and full legal domains over varied seeds
+PASS Seeded-mix full intensity reaches each supported endpoint deterministically
+PASS Any first-preview lock is refused instead of silently selecting or inventing a value
+PASS Four independent locks preserve prior values while unlocked fields use their own new seed domains
+PASS All locks retain exact physics across seed, preset and intensity changes with flat replayable origins
+PASS Unlocking drops the inherited origin and returns to current preset values
+PASS Locked field can override a paired preset and the result explicitly warns about that interaction
+PASS Changed original source content makes both recipe replay and previous locks stale
+PASS Unknown options, presets, intensity values and malformed locks are refused
+PASS Blank, non-string and oversized seeds are refused
+PASS Recipe strict top-level fields, method/version and source/runtime identities are checked
+PASS Recipe decisions cannot be tampered, omitted, widened or substituted with fractional values
+PASS Recipe source hash, result hash and unlocked rule origins cannot be silently altered
+PASS Locked decisions regenerate from their saved origins instead of trusting numerical fields
+PASS Single-room preview reports a detached ROM compilation and checked capacity accurately
+PASS World backend takes precedence and compiles the final changed physics into its own preflight artifact
+PASS Movement preview/replay preserve all live project/history/emulator state
+30/30 passed
+(node:43651) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

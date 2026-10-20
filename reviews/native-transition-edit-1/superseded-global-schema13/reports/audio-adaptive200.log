@@ -1,0 +1,29 @@
+PASS Exact alpha.4 sources and prior correction boundaries remain recoverable
+PASS Workspace adaptation is transient and bootstrap has no errors
+PASS Touch paints canonical volume data with one undo step for a stroke
+PASS Pen paints signed arpeggio values without affecting volume or notes
+PASS Scaled canvas coordinates select the correct canonical envelope point
+PASS A no-op touch does not create an undo snapshot or dirty the project
+PASS Captured drags clamp at envelope endpoints and value limits
+PASS Secondary pointers, right buttons, outside starts and zero-sized canvases are ignored
+PASS Missing instruments and empty envelopes remain guarded
+PASS A second pointer cancels the active stroke across canvases
+PASS Pointer cancellation stops further editing and preserves prior committed changes
+PASS Lost pointer capture releases the stroke
+PASS Window blur releases envelope input
+PASS Visibility loss releases envelope input
+PASS Tab changes release strokes and remove Audio layout state
+PASS Project replacement and undo cannot receive stale envelope writes
+PASS Instrument selection changes cannot redirect a stroke to another instrument
+PASS Touch compatibility mouse events cannot add a duplicate desktop stroke
+PASS Touch-event fallback paints and releases with the same undo contract
+PASS Touch fallback cancels on multi-touch or cancellation
+PASS Selected row and channel scroll into the modeled tracker viewport
+PASS Rendering an unchanged selection does not snap a manually scrolled tracker
+PASS Viewport resize and scroll update Audio height without project edits
+PASS Playback does not force tracker follow-scrolling
+PASS Touch envelope edits persist through canonical project save and reopen
+PASS Envelope input releases the native keyboard and does not press emulator buttons
+26/26 passed
+(node:30816) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

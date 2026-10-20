@@ -1,0 +1,25 @@
+PASS Schema 12 is the actual portable output and explicit schema downgrade is rejected
+PASS Actual frozen 1.6.6 loses the v8 unresolved cell but rejects the current-schema snapshot atomically
+PASS Legacy through v11 project inputs migrate to v12 with Gameplay Core disabled and without modifying input objects
+PASS Malformed or unsupported schema 0 rejects before mutation
+PASS Malformed or unsupported schema -1 rejects before mutation
+PASS Malformed or unsupported schema 3.5 rejects before mutation
+PASS Malformed or unsupported schema "8" rejects before mutation
+PASS Malformed or unsupported schema "future" rejects before mutation
+PASS Malformed or unsupported schema null rejects before mutation
+PASS Malformed or unsupported schema {} rejects before mutation
+FAIL The next unsupported schema rejects before mutation
+Missing expected exception.
+PASS Unsupported extension declarations reject before project mutation
+PASS Duplicate scene identities reject before runtime, history, project or lifecycle mutation
+PASS Duplicate world and nested room identities reject atomically
+PASS Pure preparation validates detached input without committing an active editor mirror
+PASS Authoritative capture includes live scene edits and returns detached project data
+PASS Unresolved authored world map and destinations survive save/open and history round trips
+PASS Global capture, serialization and load entrypoints route to the authoritative service exactly once
+PASS Ordinary load clears history; native replacement records exactly one boundary and one commit
+PASS Ordinary history replay preserves emulator and browser identity while using ProjectStore commit
+PASS Production Scout creation is rejected and an external Scout file remains an ordinary project
+20/21 passed
+(node:7823) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,145 @@
+{
+  "html": "NES_Forge_2.0.0-alpha.11.html",
+  "scope": "1.6.3 full-script persistence, ROM and animation regressions; Node VM with mock DOM and recorded sprite draw operations.",
+  "passed": 26,
+  "failed": 1,
+  "total": 27,
+  "results": [
+    {
+      "name": "Project v6 roundtrip retains composed frames, explicit origins, source scenes, animation IDs and mixed frame sources",
+      "passed": true,
+      "milliseconds": 939
+    },
+    {
+      "name": "Legacy v5 project migrates with empty composer library and playable legacy tile references",
+      "passed": true,
+      "milliseconds": 585
+    },
+    {
+      "name": "Composer creation and composed animation assignment undo and redo as whole project edits",
+      "passed": true,
+      "milliseconds": 1179
+    },
+    {
+      "name": "Invalid v6 duplicate frame ID rejects atomically before current project or history changes",
+      "passed": true,
+      "milliseconds": 585
+    },
+    {
+      "name": "Invalid v6 duplicate piece ID rejects atomically before current project or history changes",
+      "passed": true,
+      "milliseconds": 696
+    },
+    {
+      "name": "Invalid v6 tile outside CHR bank rejects atomically before current project or history changes",
+      "passed": true,
+      "milliseconds": 588
+    },
+    {
+      "name": "Invalid v6 fractional coordinate rejects atomically before current project or history changes",
+      "passed": true,
+      "milliseconds": 1004
+    },
+    {
+      "name": "Invalid v6 invalid sprite mode rejects atomically before current project or history changes",
+      "passed": true,
+      "milliseconds": 1234
+    },
+    {
+      "name": "Invalid v6 nonboolean flip rejects atomically before current project or history changes",
+      "passed": true,
+      "milliseconds": 1436
+    },
+    {
+      "name": "Invalid v6 zero duration rejects atomically before current project or history changes",
+      "passed": true,
+      "milliseconds": 1739
+    },
+    {
+      "name": "Invalid v6 too many pieces rejects atomically before current project or history changes",
+      "passed": true,
+      "milliseconds": 1635
+    },
+    {
+      "name": "Metasprite-only CHR tiles, including both nonadjacent 8x16 source tiles, survive generated ROM linking",
+      "passed": true,
+      "milliseconds": 1586
+    },
+    {
+      "name": "Custom ASM retains fixed sprite tile IDs for composed and legacy animation graphics",
+      "passed": true,
+      "milliseconds": 1320
+    },
+    {
+      "name": "A metasprite sourced from an excluded scene fails the build explicitly",
+      "passed": true,
+      "milliseconds": 1458
+    },
+    {
+      "name": "Dangling animation frame and source scene references fail the linker without producing a ROM",
+      "passed": true,
+      "milliseconds": 1388
+    },
+    {
+      "name": "MS16 checksum detects a mutated payload and length check rejects truncation",
+      "passed": true,
+      "milliseconds": 1278
+    },
+    {
+      "name": "MS16 structural bounds reject recomputed-checksum oversized counts, short records, and trailing bytes",
+      "passed": true,
+      "milliseconds": 1171
+    },
+    {
+      "name": "MS16 preserves Unicode names, signed geometry, attributes, mixed animation sources and durations",
+      "passed": false,
+      "milliseconds": 3480,
+      "error": "Error: Script execution timed out after 2000ms\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/harness.cjs:97:46)\n    at fresh (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/metasprites.cjs:29:80)\n    at /workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/metasprites.cjs:89:11\n    at /workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/metasprites.cjs:133:92\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "name": "Importing the built ROM into its original project remaps frame/animation IDs and preserves rendered pixels",
+      "passed": true,
+      "milliseconds": 4775
+    },
+    {
+      "name": "Corrupt MS16 ROM import leaves existing scenes, worlds, frames, animations and history intact",
+      "passed": true,
+      "milliseconds": 1382
+    },
+    {
+      "name": "Old Forge packed ROM with no MS16 metadata still imports without inventing composer assets",
+      "passed": true,
+      "milliseconds": 4372
+    },
+    {
+      "name": "Ordinary iNES ROM without a Forge marker stays compatible with original import path",
+      "passed": true,
+      "milliseconds": 4243
+    },
+    {
+      "name": "Animation bounds use authored origins across differently sized composite frames",
+      "passed": true,
+      "milliseconds": 1180
+    },
+    {
+      "name": "Animation draw applies 8x16 vertical tile swap, both flips, palette and authored anchor exactly",
+      "passed": true,
+      "milliseconds": 1197
+    },
+    {
+      "name": "Legacy animation pixels use live active CHR and remain available after switching away from a metasprite",
+      "passed": true,
+      "milliseconds": 1268
+    },
+    {
+      "name": "Missing composed assets return a visible-preview error instead of silently drawing a legacy tile",
+      "passed": true,
+      "milliseconds": 1148
+    },
+    {
+      "name": "Project saves retain long legacy animation names and sequences while ROM limits reject them explicitly",
+      "passed": true,
+      "milliseconds": 1561
+    }
+  ]
+}

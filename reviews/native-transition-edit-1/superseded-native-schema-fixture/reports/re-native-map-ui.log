@@ -1,0 +1,19 @@
+PASS Scene conversion metadata is optional, bounded and cannot imply an undeclared convert operation
+PASS Map and background share one panel with explicit output kind and preserved background API
+PASS Visible Find maps lists the 22 referenced native maps and distinguishes unsupported semantics without authoring changes
+PASS Map discovery route opens shared controls without finding, converting, importing or playing maps
+PASS Supported native map preview exposes exact identity, resource, collision and actual single-room compile proof
+PASS Unsupported native collision remains listed with its reason and cannot preview or import
+PASS Acknowledged map import adds one excluded canonical scene, one Undo and reversible Redo without changing runtime settings
+PASS Changing the selected native resource clears stage, acknowledgement and export eligibility
+PASS Source changes during native resource inspection cancel old work and clear stale choices
+PASS Explicit cancel prevents an older map inspection from replacing newer results
+PASS Changing maps while conversion is pending prevents stale preview publication
+PASS Project changes during or after map preview refuse stale import without discarding the newer project
+PASS Wrong source, native resource and static-viewer backend cannot masquerade as a map preview
+PASS Map project and evidence downloads are separate and never load the playable adaptation into the editor
+PASS Map Save As preserves busy, cancellation and failure outcomes and suppresses late status after source change
+PASS Switching conversion kinds clears map records and cannot route old map output into background import
+16/16 passed
+(node:50807) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,17 @@
+PASS Runtime investigation mounts inside general analysis, once, with tracing off
+PASS Adopting emulator ROM copies identity without resetting game or replacing project
+PASS Start trace observes current state and explicit reset trace alone restarts game
+PASS Two snapshots expose changed state and selected address becomes an explicit watch
+PASS Comparison filters and paging remain bounded and preserve supplied query
+PASS PPU/APU events and resource masks display observations without recovered semantics
+PASS Originating code jumps require matching SHA even when ROM names are identical
+PASS Writes without instruction context cannot invent source-code links
+PASS Reset invalidates old UI observations and snapshots for the same ROM
+PASS Watch cap, address validation and removal are surfaced without mutation
+PASS Exports use Save As, preserve identity and bounded evidence; cancellation retains data
+PASS Untrusted ROM names and watch labels render as literal text
+PASS Keyboard input is isolated while preserving native field defaults
+PASS A changed emulator session during ROM adoption reports staleness
+14/14 passed
+(node:24712) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

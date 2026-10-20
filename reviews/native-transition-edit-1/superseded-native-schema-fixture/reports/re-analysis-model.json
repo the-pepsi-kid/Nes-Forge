@@ -1,0 +1,126 @@
+{
+  "suite": "re-analysis-model",
+  "html": "NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
+  "scope": "Actual bundled read-only analysis model; physical bytes, container declarations, explicit mappings and instruction candidates. No browser layout or universal emulator acceptance claim.",
+  "passed": 23,
+  "total": 23,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Unknown engine and mapper open for inspection without changing project, undo or emulator",
+      "passed": true,
+      "milliseconds": 548
+    },
+    {
+      "name": "Raw non-NES binary and empty file retain exact physical identity without invented platform",
+      "passed": true,
+      "milliseconds": 417
+    },
+    {
+      "name": "Truncated, extended and invalid NES headers fall back to raw bytes rather than reject analysis",
+      "passed": true,
+      "milliseconds": 436
+    },
+    {
+      "name": "NROM 16KiB mirror mapping and vectors use real physical offsets",
+      "passed": true,
+      "milliseconds": 431
+    },
+    {
+      "name": "Trainer, distinct NROM32 banks and trailing bytes retain exact spans and hash",
+      "passed": true,
+      "milliseconds": 415
+    },
+    {
+      "name": "NES2 mapper high bits, submapper and linear ROM size are decoded without runtime claims",
+      "passed": true,
+      "milliseconds": 413
+    },
+    {
+      "name": "NES2 exponent-multiplier sizes and unsafe declarations are handled without allocations from headers",
+      "passed": true,
+      "milliseconds": 429
+    },
+    {
+      "name": "NES2 linear size upper nibble is measured in PRG and CHR units",
+      "passed": true,
+      "milliseconds": 454
+    },
+    {
+      "name": "Input bytes are copied synchronously before asynchronous digest resolves",
+      "passed": true,
+      "milliseconds": 437
+    },
+    {
+      "name": "Caller ArrayBuffer views and returned objects cannot mutate retained bytes or evidence",
+      "passed": true,
+      "milliseconds": 432
+    },
+    {
+      "name": "Shared memory, unsupported input and unavailable hash are rejected clearly",
+      "passed": true,
+      "milliseconds": 893
+    },
+    {
+      "name": "Input and all public output bounds reject negatives, overflow, fractional values and oversized requests",
+      "passed": true,
+      "milliseconds": 422
+    },
+    {
+      "name": "Explicit CPU mappings preserve overlapping banks and reject crossing physical or CPU limits",
+      "passed": true,
+      "milliseconds": 414
+    },
+    {
+      "name": "Every documented addressing form uses correct little-endian operands and instruction lengths",
+      "passed": true,
+      "milliseconds": 420
+    },
+    {
+      "name": "Relative branches use signed offsets and wrap targets only with an explicit CPU origin",
+      "passed": true,
+      "milliseconds": 429
+    },
+    {
+      "name": "Disassembly is independent from static NROM mapping and absolute jumps expose encoded targets only",
+      "passed": true,
+      "milliseconds": 412
+    },
+    {
+      "name": "Unknown opcodes and truncated operands retain exact bytes with uncertainty instead of fabricated instructions",
+      "passed": true,
+      "milliseconds": 413
+    },
+    {
+      "name": "NMOS and 2A03 document exactly 151 encodings and reject accidental CMOS decoding",
+      "passed": true,
+      "milliseconds": 467
+    },
+    {
+      "name": "Chunked search retains every match crossing scan boundaries without duplicate offsets",
+      "passed": true,
+      "milliseconds": 418
+    },
+    {
+      "name": "Result-limited search resumes overlapping repeated matches without skipping",
+      "passed": true,
+      "milliseconds": 440
+    },
+    {
+      "name": "Search validates pattern and scan progress, and reads at most its explicit bound",
+      "passed": true,
+      "milliseconds": 494
+    },
+    {
+      "name": "Physical CHR bitplanes and source evidence decode independently of an unsupported mapper",
+      "passed": true,
+      "milliseconds": 445
+    },
+    {
+      "name": "CHR RAM and raw layouts never invent graphics from unrelated bytes",
+      "passed": true,
+      "milliseconds": 444
+    }
+  ]
+}

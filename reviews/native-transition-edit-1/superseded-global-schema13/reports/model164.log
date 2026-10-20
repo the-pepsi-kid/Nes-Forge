@@ -1,0 +1,75 @@
+PASS v7 model APIs and canonical project version are available
+PASS Legacy project migration supplies independent frame arrays and stable IDs
+PASS Ensure preserves authored values and existing animation/entity identities
+PASS Lookup helpers return live selected entity and explicit misses
+PASS UID generation remains unique across repeated requests
+PASS Duplicating a scene regenerates global entity IDs and preserves animation assignments
+PASS The legacy animation creation command supplies a stable new ID and normalized frame arrays
+PASS A new state retains live entity identity, resolves animation and supports undo/redo
+PASS Reassigning an existing state updates one mapping without duplicate names
+PASS Setting default state/facing updates preview resolution and undo restores binding
+PASS Removing a default mapping leaves a valid default and removing all leaves an empty binding
+PASS Missing animation references are preserved for repair and explicitly reported
+PASS Unbound entity and unknown state return visible errors instead of a silent fallback
+PASS State assignment rejects invalid state name "Walk" atomically
+PASS State assignment rejects invalid state name "9walk" atomically
+PASS State assignment rejects invalid state name "two words" atomically
+PASS State assignment rejects invalid state name "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" atomically
+PASS State assignment rejects invalid state name "" atomically
+PASS Binding edit rejects defaultState="unknown" atomically
+PASS Binding edit rejects facing="up" atomically
+PASS Binding edit rejects defaultState=9 atomically
+PASS Binding edit rejects unknown="right" atomically
+PASS Validation rejects duplicate animation IDs
+PASS Validation rejects entity IDs duplicated across scenes
+PASS Validation rejects duplicate binding state names
+PASS Validation rejects more than sixteen binding states
+PASS Hitbox and hurtbox edits preserve independent kinds and live frame/box identity
+PASS Box add/update/remove are separate undoable edits with full geometry restoration
+PASS Invalid box x=-2049 is atomic
+PASS Invalid box x=2048 is atomic
+PASS Invalid box x=1.25 is atomic
+PASS Invalid box y=-2049 is atomic
+PASS Invalid box y=2048 is atomic
+PASS Invalid box w=0 is atomic
+PASS Invalid box w=2049 is atomic
+PASS Invalid box h=-1 is atomic
+PASS Invalid box h=2049 is atomic
+PASS Invalid box name=界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界 is atomic
+PASS Box geometry accepts documented signed coordinate and dimension endpoints
+PASS Adding a seventeenth box of either kind rejects without changing frame or history
+PASS Invalid animation/frame/kind cannot create boxes or history entries
+PASS Box IDs must be unique across hitboxes and hurtboxes in the same frame
+PASS Malformed box arrays fail validation without normalization
+PASS Non-string box IDs fail validation
+PASS Event creation, update, ordering and removal preserve ordered data with undo/redo
+PASS Documented event type attack_start is accepted and retained
+PASS Documented event type attack_end is accepted and retained
+PASS Documented event type footstep is accepted and retained
+PASS Documented event type sound is accepted and retained
+PASS Documented event type custom is accepted and retained
+PASS Invalid event type=execute is atomic
+PASS Invalid event type=null is atomic
+PASS Invalid event name=界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界 is atomic
+PASS Invalid event value=界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界 is atomic
+PASS Invalid event value=4 is atomic
+PASS UTF-8 event text accepts 255 bytes and rejects the next byte
+PASS A seventeenth frame event rejects without changing frame or history
+PASS Duplicate event IDs in one frame fail validation
+PASS Malformed event arrays fail validation
+PASS Oversized UTF-8 event identities fail validation
+PASS Duplicating an animation frame deep-copies boxes/events and regenerates their IDs
+PASS Duplicate frame undo/redo preserves the newly generated identities
+PASS Frame duration boundaries select the correct frame and local tick
+PASS Nonlooping playback ends at total duration and clamps the final frame
+PASS Frame entry includes initial tick, excludes from boundary and preserves same-frame event order
+PASS Looping event boundaries include each frame once per cycle without duplicates at wrap
+PASS Nonlooping event delivery does not emit another initial event or replay the final frame
+PASS Timing calculations do not mutate animation/event records or invoke authored event values
+PASS Origin-relative union bounds include both hit/hurt boxes only when requested
+PASS Facing left reflects legacy tile pixels and authored boxes around the same anchor
+PASS Facing reflection preserves metasprite origin, per-piece flips, palette and geometry
+
+71/71 passed
+(node:392) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

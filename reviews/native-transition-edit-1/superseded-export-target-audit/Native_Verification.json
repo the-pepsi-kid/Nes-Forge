@@ -1,0 +1,61 @@
+{
+  "format": "NESForgeNativeTransitionVerification",
+  "htmlSha256": "1530c4ccbd1899aa0ba304d241b2b3c9d7ba79689380c91e13e7020fac3560ad",
+  "checks": [
+    {
+      "name": "No-edit native build is byte-identical to the entire source ROM",
+      "passed": true
+    },
+    {
+      "name": "Original table loader and entry decoder agree for all 248 static locations",
+      "passed": true,
+      "nativeCases": 248
+    },
+    {
+      "name": "Canonical native edit x has one Undo and exact Redo",
+      "passed": true
+    },
+    {
+      "name": "Canonical native edit y has one Undo and exact Redo",
+      "passed": true
+    },
+    {
+      "name": "Canonical native edit scene has one Undo and exact Redo",
+      "passed": true
+    },
+    {
+      "name": "Canonical native edit entry has one Undo and exact Redo",
+      "passed": true
+    },
+    {
+      "name": "Four field edits affect only the three declared packed bytes",
+      "passed": true
+    },
+    {
+      "name": "Original native entry and return routines consume the edited data",
+      "passed": true
+    },
+    {
+      "name": "Project save and reopen preserve source, edits, reference World and native output",
+      "passed": true
+    },
+    {
+      "name": "Edited native output can be recognized and reimported without weakening code guards",
+      "passed": true
+    },
+    {
+      "name": "Unsupported art edits block native build and failure clears a previous artifact",
+      "passed": true
+    },
+    {
+      "name": "Transient slots, travel flags, duplicate edits and invalid values are refused",
+      "passed": true
+    }
+  ],
+  "limits": [
+    "Private ROM input is not distributed. Native routine checks share the existing CPU instruction core and use an independent bounded bus. No full-game, hardware or audible-equivalence claim."
+  ],
+  "status": "passed",
+  "sourceSha256": "ad8c0fbcf092bf84b48e69fd3964eea4ed91bfe62abc352943d537979782680c",
+  "outputSha256": "ff1e70f38ed720aca4f586c9b11959c4406f8c475940d9cd9514454af48733c8"
+}

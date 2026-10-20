@@ -1,7 +1,7 @@
 {
   "suite": "emulator-timeline",
   "html": "NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1",
+  "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
   "scope": "Actual bundled emulator, physical snapshot service, real ROM execution and lifecycle in inherited mock DOM; no visual/browser/device validation.",
   "passed": 16,
   "total": 16,
@@ -10,82 +10,82 @@
     {
       "name": "Default-off history adds no frame storage or per-frame subscriber work",
       "passed": true,
-      "milliseconds": 646
+      "milliseconds": 719
     },
     {
       "name": "Forward works with recording off, stays paused, and does not implicitly enable history",
       "passed": true,
-      "milliseconds": 522
+      "milliseconds": 574
     },
     {
       "name": "Back restores complete physical state and forward reuses recorded future without executing CPU",
       "passed": true,
-      "milliseconds": 1304
+      "milliseconds": 1395
     },
     {
       "name": "Re-executing from restored state produces the same CPU, APU, trace and video",
       "passed": true,
-      "milliseconds": 1727
+      "milliseconds": 2048
     },
     {
       "name": "Navigation preserves ROM, project and APU callbacks while clearing host audio and live controls",
       "passed": true,
-      "milliseconds": 1211
+      "milliseconds": 1468
     },
     {
       "name": "Existing Frame retains held-key behavior and branches after a rewind",
       "passed": true,
-      "milliseconds": 1449
+      "milliseconds": 1653
     },
     {
       "name": "Starting Run after rewind discards recorded future without restarting ROM state",
       "passed": true,
-      "milliseconds": 675
+      "milliseconds": 785
     },
     {
       "name": "The 300-state cap evicts oldest snapshots and reports the actual retained range",
       "passed": true,
-      "milliseconds": 7422
+      "milliseconds": 7358
     },
     {
       "name": "Stored-byte cap evicts snapshots before 32 MiB and reports a shorter window",
       "passed": true,
-      "milliseconds": 2579
+      "milliseconds": 2357
     },
     {
       "name": "Unknown current function state rejects restoration atomically and clears unusable history",
       "passed": true,
-      "milliseconds": 1211
+      "milliseconds": 1228
     },
     {
       "name": "Successful load isolates sessions while rejected headers retain current history",
       "passed": true,
-      "milliseconds": 635
+      "milliseconds": 691
     },
     {
       "name": "Reset reseeds, CPU instruction tracing invalidates, and project unload clears history",
       "passed": true,
-      "milliseconds": 708
+      "milliseconds": 1018
     },
     {
       "name": "Large forward requests yield and can be canceled without additional frames",
       "passed": true,
-      "milliseconds": 586
+      "milliseconds": 561
     },
     {
       "name": "Inputs pressed during a yielded seek stay blocked until completion without removing other blockers",
       "passed": true,
-      "milliseconds": 1618
+      "milliseconds": 1725
     },
     {
       "name": "New loads during a yielded seek cannot apply the previous ROM future",
       "passed": true,
-      "milliseconds": 616
+      "milliseconds": 723
     },
     {
       "name": "Disabling history releases its storage and rejects invalid navigation distances",
       "passed": true,
-      "milliseconds": 529
+      "milliseconds": 564
     }
   ]
 }

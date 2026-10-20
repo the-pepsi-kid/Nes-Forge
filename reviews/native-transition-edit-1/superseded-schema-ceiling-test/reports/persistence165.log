@@ -1,0 +1,21 @@
+PASS v8 portable ZIP preserves complete gameplay configuration and manifest
+PASS Malformed v8 null settings rejects before live/history mutation
+PASS Malformed v8 odd body width rejects before live/history mutation
+PASS Malformed v8 invalid mode rejects before live/history mutation
+PASS Malformed v8 unknown setting rejects before live/history mutation
+PASS Malformed v8 invalid target ID type rejects before live/history mutation
+PASS Ordinary 32 KB NROM with non-UTF8 bytes at the probe address still imports
+PASS Gameplay ROM re-import remaps selected room, player and target and preserves physics
+PASS Gameplay ROM without a target restores an empty optional target
+PASS GP16 checksum corruption rejects atomically
+PASS Unknown GP16 version rejects atomically
+PASS GP16 length outside reserved region rejects atomically
+PASS Rechecksummed GP16 missing room rejects before import mutation
+PASS Rechecksummed GP16 nonplayer selection rejects before import mutation
+PASS Rechecksummed GP16 missing target rejects before import mutation
+PASS Rechecksummed GP16 invalid physics rejects before import mutation
+PASS Reordered included scenes preserve gameplay indices and remap to the correct imported room
+PASS Gameplay compilation failure clears the previous built ROM without downloading
+18/18 passed
+(node:1148) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

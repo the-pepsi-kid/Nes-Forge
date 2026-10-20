@@ -1,0 +1,31 @@
+{
+  "suite": "audio-workshop",
+  "html": "NES_Forge_2.0.0-alpha.11.html",
+  "sha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
+  "passed": 4,
+  "total": 5,
+  "failed": 1,
+  "results": [
+    {
+      "name": "Both built-in examples import four canonical notes without changing SFX or runtime settings",
+      "passed": true
+    },
+    {
+      "name": "Example load is one undoable operation; redo and native save/reload retain it",
+      "passed": true
+    },
+    {
+      "name": "Unknown example fails without mutating the project or history",
+      "passed": true
+    },
+    {
+      "name": "Workshop controls are reachable in Audio and cancellation leaves project unchanged",
+      "passed": true
+    },
+    {
+      "name": "Four-channel example compiles into an executable Audio Runtime ROM",
+      "passed": false,
+      "error": "Error: Script execution timed out after 2000ms\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/harness.cjs:97:46)\n    at /workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/audio-workshop.cjs:10:573\n    at Object.<anonymous> (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/audio-workshop.cjs:11:51)\n    at Module._compile (node:internal/modules/cjs/loader:1781:14)\n    at Object..js (node:internal/modules/cjs/loader:1913:10)\n    at Module.load (node:internal/modules/cjs/loader:1505:32)\n    at Function._load (node:internal/modules/cjs/loader:1309:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)"
+    }
+  ]
+}

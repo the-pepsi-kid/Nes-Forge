@@ -1,0 +1,42 @@
+PASS v7 JSON save/reopen retains entity identities, bindings, all contacts, ordered events and existing assets
+PASS Portable ZIP contains independent extension manifest and restores v7 project completely
+PASS Legacy v5 migration supplies stable IDs and empty frame extension arrays without changing graphics
+PASS Legacy v6 composer migration retains animation and metasprite IDs with scene source associations
+PASS Malformed duplicate entity ID rejects before live project/history mutation
+PASS Malformed missing entity ID rejects before live project/history mutation
+PASS Malformed duplicate box ID across hit/hurt kinds rejects before live project/history mutation
+PASS Malformed fractional box coordinate rejects before live project/history mutation
+PASS Malformed zero box width rejects before live project/history mutation
+PASS Malformed null box array rejects before live project/history mutation
+PASS Malformed null event array rejects before live project/history mutation
+PASS Malformed null binding rejects before live project/history mutation
+PASS Malformed duplicate event ID rejects before live project/history mutation
+PASS Malformed unknown event type rejects before live project/history mutation
+PASS Malformed event UTF-8 byte overflow rejects before live project/history mutation
+PASS Malformed invalid binding default rejects before live project/history mutation
+PASS Malformed duplicate binding state rejects before live project/history mutation
+PASS Malformed invalid facing rejects before live project/history mutation
+PASS Malformed unknown future schema rejects before live project/history mutation
+PASS Repairable missing binding source survives project reopen but prevents a ROM build
+PASS MS16 v2 encodes all frame extensions and entity binding identities in a bounded signed block
+PASS MS16 preserves empty bindings independently of absent bindings
+PASS ROM loop flag preserves implicit default looping and explicit stop semantics
+PASS MS16 v2 stores entity identities when no composer or animation assets exist
+PASS ROM build scene ordering maps each entity binding to its own scene/entity ordinal
+PASS Reimport into original project preserves existing assets and rekeys every appended asset/reference
+PASS Older MS16 v1 ROM imports into 1.6.4 with normalized frame extensions
+PASS MS16 checksum and outer size reject byte corruption and truncation
+PASS Rechecksummed malformed v2 animation count mismatch is structurally rejected
+PASS Rechecksummed malformed v2 frame count mismatch is structurally rejected
+PASS Rechecksummed malformed v2 box count overflow is structurally rejected
+PASS Rechecksummed malformed v2 unknown event type is structurally rejected
+PASS Rechecksummed malformed v2 invalid UTF-8 is structurally rejected
+PASS Rechecksummed malformed v2 duplicate entity ID is structurally rejected
+PASS Rechecksummed malformed v2 unresolved bound animation index is structurally rejected
+PASS Rechecksummed trailing extension bytes reject before any ROM import mutation
+PASS Rechecksummed entity table mismatch with NFEX rejects before project/history mutation
+PASS Excluded animation source and exhausted metadata capacity fail with no stale ROM
+
+38/38 passed
+(node:1215) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,61 @@
+{
+  "suite": "native-records",
+  "htmlSha256": "e5d247c07b5fb9e0803d891b142082e5b1b12f5de502485e6442b2dce4ae5089",
+  "passed": 13,
+  "total": 13,
+  "failed": 0,
+  "results": [
+    {
+      "name": "The same ROM-independent record method runs in a fresh Forge project",
+      "passed": true
+    },
+    {
+      "name": "No edits reproduce arbitrary source bytes, including unknown bytes and flags",
+      "passed": true
+    },
+    {
+      "name": "A masked edit changes only its declared bits and preserves unrelated records",
+      "passed": true
+    },
+    {
+      "name": "Editing independent masks in one byte retains both fields",
+      "passed": true
+    },
+    {
+      "name": "Read-only flag edits and undeclared fields are refused",
+      "passed": true
+    },
+    {
+      "name": "Duplicate edits, extra properties and record overflow are refused",
+      "passed": true
+    },
+    {
+      "name": "Noninteger and out-of-range values cannot be coerced into native bytes",
+      "passed": true
+    },
+    {
+      "name": "Overlapping masks across fields or records are refused before encoding",
+      "passed": true
+    },
+    {
+      "name": "Malformed layouts, unaligned masks and source overflow are refused",
+      "passed": true
+    },
+    {
+      "name": "Native metadata requires schema 13 and original source bytes",
+      "passed": true
+    },
+    {
+      "name": "Older projects migrate without enabling the native backend",
+      "passed": true
+    },
+    {
+      "name": "Schema-13 ordinary projects retain the existing shared mashup source workflow",
+      "passed": true
+    },
+    {
+      "name": "Native source recognition refuses unknown engines and modified protected data",
+      "passed": true
+    }
+  ]
+}

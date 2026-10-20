@@ -1,0 +1,31 @@
+PASS Versioned profiles declare inspection and lossy conversion without a fictitious encoder
+PASS Registration freezes descriptors and captures trusted handlers without executing them
+PASS Executable ROM bytes are physical data and never profile registrations
+PASS Malformed descriptors cannot expose absent operations or imply inverse conversion
+PASS Duplicate registration and method-count bounds do not replace existing handlers
+PASS Discovery preserves unknown unsupported ambiguous and invalid outcomes separately
+PASS Explicit discovery selection avoids unrequested decoder work
+PASS Source-size refusal happens before any profile code is invoked
+PASS Physical identity must be bounded SHA-256 and cannot be forged by results
+PASS Evidence cannot misidentify the source or escape physical bounds
+PASS Supported recognition requires physical evidence rather than a positive label alone
+PASS Aggregate evidence range budget rejects multiplying individually valid lists
+PASS Context reads charge work and validate source provenance and exact byte ranges
+PASS Out-of-bounds context reads are refused before the physical reader runs
+PASS Cooperative method and aggregate work budgets stop further work without overcharging
+PASS Cancellation before discovery or dispatch invokes no registered code
+PASS Cancellation after a completed probe suppresses stale results and later profiles
+PASS Cooperative async checkpoints honor cancellation before returning operation data
+PASS Recognition never calls editing or conversion handlers as a side effect
+PASS Changing source identity during an async handler invalidates the operation
+PASS Malformed or oversized output is an invalid method result, not silent truncation
+PASS Shared dispatch refuses undeclared native patching without calling a handler
+PASS Legacy decode encode and explicit byte round-trip APIs retain their behavior
+PASS Legacy native encode dispatch describes only separate raw bytes and rejects unbound ranges
+PASS Shared legacy encoding rejects cross-source data, altered spans and wrong encoded lengths
+PASS Legacy discovery reports inferred applicability separately from verified decoding
+PASS A failed legacy byte round-trip remains a failure and cannot be inferred from registration
+PASS Returned evidence and operation data are frozen snapshots independent of handler objects
+28/28 passed
+(node:42431) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

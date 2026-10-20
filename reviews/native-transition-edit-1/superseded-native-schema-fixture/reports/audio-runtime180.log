@@ -1,0 +1,21 @@
+PASS Schema 12 preserves Audio Runtime and stable SFX references while schema 10 migrates disabled
+PASS Malformed Audio Runtime input rejects before project, history, identity, or emulator mutation
+PASS Actual frozen 1.7 rejects schema 11 before changing project or history
+PASS Audio compiler derives deterministic channel records, envelopes, timers, and sound links without source mutation
+PASS Disabled Audio Runtime preserves unresolved audio sketches as authoring-only data
+PASS Audio compiler rejects missing/ambiguous SFX, unsupported effects and executable DPCM
+PASS Audio-enabled custom assembly fails explicitly instead of silently omitting playback
+PASS Generated viewer autoplays pulse, triangle, and noise through hardware APU registers
+PASS Generated viewer executes authored duty, volume, and arpeggio envelopes over time
+PASS Single-room sound event preempts its music channel once and restores the authored note
+PASS World sound event starts the same SFX representation and finishes within frame budget
+PASS World ROM round trip preserves schema 12 Audio authoring and older 1.7 rejects it atomically
+PASS Audio Studio controls make runtime and SFX edits undoable without inventing a second note model
+PASS Standard MIDI import maps timing, pitch, velocity, and program into ordinary tracker data
+PASS MusicXML import maps score timing into the same tracker representation and rejects excess polyphony
+PASS Audio import appends patterns, preserves SFX references, is undoable, and builds playable music
+PASS Supplied 1.8 Audio example retains its frozen provenance and reproduces its matching generated World ROM
+
+17/17 passed
+(node:9708) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

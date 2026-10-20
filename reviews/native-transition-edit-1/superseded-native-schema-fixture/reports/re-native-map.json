@@ -1,0 +1,115 @@
+{
+  "suite": "re-native-map",
+  "htmlSha256": "b0ca1de0b112612c34bfc3d006e1854194a097e9ee1a4fde86fbfaf0b5b84b73",
+  "scope": "Actual production native map service: source-bound discovery, detached preview and guarded import; exact canonical binary collision, existing Save As/Undo/Redo, structural source edits, actual generated 6502/PPU floor/wall movement and raw background pixels, collision edits, ambiguous graphic reuse and disclosed link-detachment fallback. Forge player/physics and authored wall are adaptations, not recovered source actors or engine equivalence. Mock DOM; no browser, independent emulator or physical hardware acceptance.",
+  "passed": 15,
+  "total": 15,
+  "failed": 0,
+  "metrics": {
+    "sourceSha256": "eca79b9d0b546e96c1bc73099e239539fb9c7773ff10a431bb3a9cd6763208ca",
+    "resources": {
+      "distinctMaps": 22,
+      "convertible": 1
+    },
+    "nativeDataEdit": {
+      "fileOffset": 16372,
+      "from": 45,
+      "to": 61,
+      "rebuiltFeetY": 240
+    },
+    "build": {
+      "romSha256": "70ecd62fb067c40042c8749103bef832ad70d1483c0ed630396a465d5f59e63a",
+      "projectSha256": "d928af4ac0acb77cd09ba4a4133b2237d77adaafc9b1e7e55893b22a8811f746",
+      "bytes": 40976
+    },
+    "rawBackground": {
+      "sha256": "cb9fdf0de201bdf7318ec97ac464d2f02e82844b8581dc29ec2c09f9479ef817",
+      "nativeStage": "raw command map before PrettyLevel",
+      "movement": {
+        "x": 132,
+        "y": 224,
+        "grounded": 1,
+        "missed": 0
+      }
+    },
+    "canonicalFloorEdit": {
+      "beforeFeetY": 224,
+      "afterFeetY": 240,
+      "romSha256": "dd2a82f4e02f529cf48ea0757354f7cbea875b4bfc3f27f5411fbde157e644cb"
+    },
+    "authoredWall": {
+      "blockedCenterX": 124,
+      "openedCenterX": 182,
+      "wallLeftX": 128,
+      "wallIsRecovered": false
+    },
+    "rawEditFallback": {
+      "detachedCell": 228,
+      "previousLink": 1,
+      "changedCanonicalCells": 4,
+      "rebuiltFeetY": 240
+    }
+  },
+  "results": [
+    {
+      "name": "Registry discovers native resources with explicit map capability while preserving A1 container limits",
+      "passed": true
+    },
+    {
+      "name": "Detached map stage preserves live state and recovers all 960 collision cells with explicit authored adaptation",
+      "passed": true
+    },
+    {
+      "name": "Scene import is one guarded Undo action and Save As/reopen preserves existing scenes and native evidence",
+      "passed": true
+    },
+    {
+      "name": "Unsupported resources and unrecognized sources stay inspectable and cannot be converted",
+      "passed": true
+    },
+    {
+      "name": "Missing resource, wrong source identity and extra recovery options refuse without mutation",
+      "passed": true
+    },
+    {
+      "name": "Forged, stale, duplicate and cross-resource stages cannot append a scene",
+      "passed": true
+    },
+    {
+      "name": "Cancellation and an intervening edit during actual map staging never publish stale work",
+      "passed": true
+    },
+    {
+      "name": "A valid native command edit removes the proven floor through structural recovery under a different filename",
+      "passed": true
+    },
+    {
+      "name": "Detached and ordinary gameplay builds remain identical after canonical Save As and reopen",
+      "passed": true
+    },
+    {
+      "name": "Generated 6502 preserves raw-map background pixels and the recovered floor supports the authored player",
+      "passed": true
+    },
+    {
+      "name": "Ordinary collision-tab floor edit survives Save As/reopen and changes actual generated falling behavior",
+      "passed": true
+    },
+    {
+      "name": "An authored canonical wall stops rebuilt movement; a metatile collision edit opens it after Save As/reopen",
+      "passed": true
+    },
+    {
+      "name": "Source graphics reused by Empty and Solid retain distinct linked canonical collision and rebuilt support",
+      "passed": true
+    },
+    {
+      "name": "Raw visual edits detach only the altered linked cell and expose existing tile-property fallback",
+      "passed": true
+    },
+    {
+      "name": "Malformed persisted map evidence, collision coverage, source binding and adaptation are rejected",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+PASS Schema8 migration defaults legacy projects to viewer and preserves authored state
+PASS Gameplay configuration survives JSON, undo and redo
+PASS Invalid gameplay moveSpeed rejects atomically
+PASS Invalid gameplay jumpSpeed rejects atomically
+PASS Invalid gameplay gravity rejects atomically
+PASS Invalid gameplay maxFallSpeed rejects atomically
+PASS Invalid gameplay bodyWidth rejects atomically
+PASS Invalid gameplay bodyHeight rejects atomically
+PASS Invalid gameplay mode rejects atomically
+PASS Viewer mode preserves the complete original 16 KB ROM bytes
+PASS Gameplay build emits 32 KB NROM with unchanged linked CHR and legacy metadata
+PASS Compiler uses raw tile collision and linked metatile quadrant overrides
+PASS Unsupported collision values fail without a stale ROM
+PASS Custom assembly is retained and blocks single-room generation
+PASS Missing player state and looping attack fail clearly
+PASS Excluded gameplay room fails without silently choosing another scene
+PASS Mismatched source sprite palettes reject silent recoloring
+PASS Conservative total scanline sprite overflow is rejected
+PASS Game boots with rendered room, grounded actor, balanced stack and advancing ticks
+PASS Directional input moves exact distance, selects walk and release returns idle
+PASS Opposing directions do not move and preserve last unambiguous facing
+PASS Solid wall blocks every movement pixel and prevents horizontal tunneling
+PASS Room bounds prevent left and right coordinate byte wrapping
+PASS Minimum two-pixel body width reaches both room edges without compare overflow
+PASS Nonlooping idle and walk hold their final frame without repeated entry events
+PASS A edge jumps, reaches an apex, lands and does not automatically repeat while held
+PASS Ceiling contact stops rising without pushing the body into solid tiles
+PASS Jumping over a ledge lands on its top and walking off resumes gravity
+PASS Terminal fall speed is bounded while falling from a clear high spawn
+PASS Attack outside all target hurtboxes has no effect
+PASS An attack hits once in its active frame; held B does not retrigger; new edge hits again
+PASS Target reaction expires and restores idle without changing actor position
+PASS Left-facing attack mirrors contact geometry and cannot strike behind the player
+PASS Frame-entry markers appear once at authored attack duration boundaries
+PASS Walk frame durations follow authored 2/3 tick cadence
+PASS Facing reflects asymmetric hardware pieces around feet origin and flips their pixels
+PASS Start edge resets position, attack and target hit state
+PASS NMI completes within a bounded DMA budget without visible-frame PPU writes
+PASS Identical boot and input sequence gives identical CPU RAM, OAM and framebuffer
+
+39/39 passed
+(node:1827) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

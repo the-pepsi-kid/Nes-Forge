@@ -1,0 +1,16 @@
+PASS Native controls mount once inside general analysis with labels and native keyboard fields
+PASS Explicit analysis identifies native songs, instruments and partial SFX without project changes
+PASS Unknown, invalid and oversized ROMs show profile status and never enable editing
+PASS Native note edit changes only a copied command byte and exports both ROM and evidence
+PASS Native Undo and Redo re-decode target bytes without using project history
+PASS No-op, invalid, noise and DPCM selections preserve the current native copy
+PASS A new inspected source refuses native edit, history and exports from the old session
+PASS Delayed native analysis cannot publish a result for a changed source
+PASS Delayed native patch rejects intervening selection edits and preserves prior copy
+PASS Delayed history restore cannot replace a copy after the inspected source changes
+PASS Actual pending Save As returns busy honestly and leaves the session available
+PASS Native fields block emulator keyboard, touch and controller input while retaining text defaults
+PASS Native history is bounded and a new edit after Undo discards only its redo branch
+13/13 passed
+(node:36045) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

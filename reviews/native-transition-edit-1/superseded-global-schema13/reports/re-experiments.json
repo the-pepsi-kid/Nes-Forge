@@ -1,0 +1,121 @@
+{
+  "suite": "re-experiments",
+  "html": "NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "e5d247c07b5fb9e0803d891b142082e5b1b12f5de502485e6442b2dce4ae5089",
+  "scope": "Physical CPU/PPU/APU execution, mapper state, PCM deterministic replay, RAM mutation boundaries and mock-DOM UI commands; not browser layout, speaker, phone or hardware acceptance.",
+  "passed": 19,
+  "failed": 0,
+  "total": 19,
+  "metrics": {
+    "mapper1": {
+      "frame": 9,
+      "bytes": 279965
+    },
+    "mapper4": {
+      "frame": 9,
+      "bytes": 294355
+    },
+    "replay": {
+      "frames": 14,
+      "pcmSamples": 11182,
+      "framebufferSha256": "2adba87f58dbd32a24b72e8a6423aeb6d0c9d17cb7d66349813039b973e2549f"
+    }
+  },
+  "results": [
+    {
+      "name": "Named checkpoints restore complete physical state without enabling history or changing the project",
+      "passed": true,
+      "milliseconds": 1749
+    },
+    {
+      "name": "Checkpoint preserves mapper 1 bank state, CHR RAM, SRAM, latches and active DMC",
+      "passed": true,
+      "milliseconds": 2699
+    },
+    {
+      "name": "Checkpoint preserves mapper 4 bank state, CHR RAM, SRAM, latches and active DMC",
+      "passed": true,
+      "milliseconds": 2919
+    },
+    {
+      "name": "Checkpoint names and storage count are bounded without evicting another named checkpoint",
+      "passed": true,
+      "milliseconds": 1854
+    },
+    {
+      "name": "Checkpoint byte bound rejects the whole save and keeps previous states intact",
+      "passed": true,
+      "milliseconds": 3888
+    },
+    {
+      "name": "Unsupported live physical properties reject checkpoint restoration without partial mutation",
+      "passed": true,
+      "milliseconds": 1106
+    },
+    {
+      "name": "Checkpoint restore discards incompatible frame-history future and invalidates observations",
+      "passed": true,
+      "milliseconds": 1612
+    },
+    {
+      "name": "Reset, successful ROM load, CPU trace and project unload invalidate checkpoints; rejected load retains them",
+      "passed": true,
+      "milliseconds": 3581
+    },
+    {
+      "name": "Input script executes native movement and reproduces the complete machine and PCM stream from a checkpoint",
+      "passed": true,
+      "milliseconds": 2550
+    },
+    {
+      "name": "Scripts isolate live input and editable focus without removing unrelated blockers",
+      "passed": true,
+      "milliseconds": 1986
+    },
+    {
+      "name": "Script validation is atomic for duplicate/opposite buttons, counts, addresses and stale checkpoints",
+      "passed": true,
+      "milliseconds": 897
+    },
+    {
+      "name": "Canceled scripted input stops at the yield and leaves a restorable paused checkpoint",
+      "passed": true,
+      "milliseconds": 1204
+    },
+    {
+      "name": "A ROM replacement during scripted replay cancels old work before the new ROM executes",
+      "passed": true,
+      "milliseconds": 2010
+    },
+    {
+      "name": "RAM experiments normalize mirrors, never call bus writers and restore the complete pre-edit machine",
+      "passed": true,
+      "milliseconds": 1429
+    },
+    {
+      "name": "RAM edit rejects I/O, ROM, bad values, stale expected bytes and duplicate mirrors before mutation",
+      "passed": true,
+      "milliseconds": 883
+    },
+    {
+      "name": "Keeping a RAM experiment leaves only emulator changes and a bounded explanatory log",
+      "passed": true,
+      "milliseconds": 1030
+    },
+    {
+      "name": "Public checkpoint deletion cannot discard active RAM experiment rollback, while keep and restore release it",
+      "passed": true,
+      "milliseconds": 1117
+    },
+    {
+      "name": "A reset invalidates active experiment rollback instead of applying a stale session",
+      "passed": true,
+      "milliseconds": 959
+    },
+    {
+      "name": "UI exposes checkpoint/script/experiment actions, errors and literal user labels with native keyboard entry",
+      "passed": true,
+      "milliseconds": 1148
+    }
+  ]
+}

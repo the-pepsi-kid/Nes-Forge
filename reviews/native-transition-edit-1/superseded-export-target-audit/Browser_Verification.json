@@ -1,0 +1,43 @@
+{
+  "htmlSha256": "1530c4ccbd1899aa0ba304d241b2b3c9d7ba79689380c91e13e7020fac3560ad",
+  "checks": [
+    {
+      "name": "Native preview identifies source and preserves the current project",
+      "passed": true
+    },
+    {
+      "name": "Native import creates a canonical project with one reference World and preserved ROM",
+      "passed": true
+    },
+    {
+      "name": "Ordinary Build & Run uses the native backend and starts the unchanged game",
+      "passed": true
+    },
+    {
+      "name": "Real location inputs create a native edit with one-step Undo and Redo",
+      "passed": true
+    },
+    {
+      "name": "Rebuilding applies the UI edit and preserves all other native bytes",
+      "passed": true
+    },
+    {
+      "name": "A saved project reopened by ordinary project controls retains native edit/build",
+      "passed": true
+    },
+    {
+      "name": "Transient record inputs are read-only and the in-app tutorial is accessible",
+      "passed": true
+    },
+    {
+      "name": "Native edit controls fit a 430-pixel workbench",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "limits": [
+    "Headless Linux Chromium; no physical Windows/hardware or listening acceptance. Private project/ROM downloads are temporary and are not distributed."
+  ],
+  "status": "passed",
+  "passed": 8
+}
