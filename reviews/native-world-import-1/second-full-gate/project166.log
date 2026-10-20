@@ -1,0 +1,20 @@
+PASS Blank room starts clean with explicit fixed sideview defaults and missing player
+PASS External Scout example builds through validated project replacement without custom code
+PASS Fresh editor opens Scout as one editable room and immediately rebuilds
+PASS Opening from a populated project removes duplicate global assets and unrelated ASM
+PASS Four edit/build/open cycles preserve identities, counts and metadata size
+PASS Reordered rooms restore separate art sources, independent CHR banks and complete linked worlds
+PASS Replacement adds exactly one undo step and clears redo while preserving older history
+PASS Undo/redo restores project content while keeping browser save identity detached
+PASS Ordinary authoring undo and redo retain emulator state and browser-save identity
+PASS Successful project replacement pauses stale playback and clears built-ROM caches
+PASS Rejected bad GP16 checksum leaves project, history, identity and running emulator unchanged
+PASS Rejected unsupported GP16 version leaves project, history, identity and running emulator unchanged
+PASS Rejected bad MS16 checksum leaves project, history, identity and running emulator unchanged
+PASS Rejected truncated header leaves project, history, identity and running emulator unchanged
+PASS Foreign ROM classification is nonmutating and cannot masquerade as a recovered project
+PASS Legacy append import remains available and foreign success message states capture limits
+PASS Unknown starter kind is rejected without modifying the workspace
+17/17 passed
+(node:7899) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

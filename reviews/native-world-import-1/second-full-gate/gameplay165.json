@@ -1,0 +1,205 @@
+{
+  "suite": "gameplay165",
+  "html": "NES_Forge_2.0.0-alpha.11.html",
+  "scope": "Actual generated 6502 gameplay-ROM execution in bundled emulator, compiler/configuration contracts, original synthetic art and collision fixtures. Mock DOM; browser/native-dialog and hardware-accuracy QA not implied.",
+  "passed": 39,
+  "failed": 0,
+  "total": 39,
+  "results": [
+    {
+      "name": "Schema8 migration defaults legacy projects to viewer and preserves authored state",
+      "passed": true,
+      "milliseconds": 953
+    },
+    {
+      "name": "Gameplay configuration survives JSON, undo and redo",
+      "passed": true,
+      "milliseconds": 1010
+    },
+    {
+      "name": "Invalid gameplay moveSpeed rejects atomically",
+      "passed": true,
+      "milliseconds": 731
+    },
+    {
+      "name": "Invalid gameplay jumpSpeed rejects atomically",
+      "passed": true,
+      "milliseconds": 543
+    },
+    {
+      "name": "Invalid gameplay gravity rejects atomically",
+      "passed": true,
+      "milliseconds": 581
+    },
+    {
+      "name": "Invalid gameplay maxFallSpeed rejects atomically",
+      "passed": true,
+      "milliseconds": 559
+    },
+    {
+      "name": "Invalid gameplay bodyWidth rejects atomically",
+      "passed": true,
+      "milliseconds": 735
+    },
+    {
+      "name": "Invalid gameplay bodyHeight rejects atomically",
+      "passed": true,
+      "milliseconds": 611
+    },
+    {
+      "name": "Invalid gameplay mode rejects atomically",
+      "passed": true,
+      "milliseconds": 547
+    },
+    {
+      "name": "Viewer mode preserves the complete original 16 KB ROM bytes",
+      "passed": true,
+      "milliseconds": 1054
+    },
+    {
+      "name": "Gameplay build emits 32 KB NROM with unchanged linked CHR and legacy metadata",
+      "passed": true,
+      "milliseconds": 884
+    },
+    {
+      "name": "Compiler uses raw tile collision and linked metatile quadrant overrides",
+      "passed": true,
+      "milliseconds": 746
+    },
+    {
+      "name": "Unsupported collision values fail without a stale ROM",
+      "passed": true,
+      "milliseconds": 742
+    },
+    {
+      "name": "Custom assembly is retained and blocks single-room generation",
+      "passed": true,
+      "milliseconds": 572
+    },
+    {
+      "name": "Missing player state and looping attack fail clearly",
+      "passed": true,
+      "milliseconds": 1197
+    },
+    {
+      "name": "Excluded gameplay room fails without silently choosing another scene",
+      "passed": true,
+      "milliseconds": 594
+    },
+    {
+      "name": "Mismatched source sprite palettes reject silent recoloring",
+      "passed": true,
+      "milliseconds": 656
+    },
+    {
+      "name": "Conservative total scanline sprite overflow is rejected",
+      "passed": true,
+      "milliseconds": 568
+    },
+    {
+      "name": "Game boots with rendered room, grounded actor, balanced stack and advancing ticks",
+      "passed": true,
+      "milliseconds": 1422
+    },
+    {
+      "name": "Directional input moves exact distance, selects walk and release returns idle",
+      "passed": true,
+      "milliseconds": 1786
+    },
+    {
+      "name": "Opposing directions do not move and preserve last unambiguous facing",
+      "passed": true,
+      "milliseconds": 1246
+    },
+    {
+      "name": "Solid wall blocks every movement pixel and prevents horizontal tunneling",
+      "passed": true,
+      "milliseconds": 1712
+    },
+    {
+      "name": "Room bounds prevent left and right coordinate byte wrapping",
+      "passed": true,
+      "milliseconds": 3922
+    },
+    {
+      "name": "Minimum two-pixel body width reaches both room edges without compare overflow",
+      "passed": true,
+      "milliseconds": 4094
+    },
+    {
+      "name": "Nonlooping idle and walk hold their final frame without repeated entry events",
+      "passed": true,
+      "milliseconds": 2128
+    },
+    {
+      "name": "A edge jumps, reaches an apex, lands and does not automatically repeat while held",
+      "passed": true,
+      "milliseconds": 4157
+    },
+    {
+      "name": "Ceiling contact stops rising without pushing the body into solid tiles",
+      "passed": true,
+      "milliseconds": 3563
+    },
+    {
+      "name": "Jumping over a ledge lands on its top and walking off resumes gravity",
+      "passed": true,
+      "milliseconds": 4115
+    },
+    {
+      "name": "Terminal fall speed is bounded while falling from a clear high spawn",
+      "passed": true,
+      "milliseconds": 2444
+    },
+    {
+      "name": "Attack outside all target hurtboxes has no effect",
+      "passed": true,
+      "milliseconds": 1724
+    },
+    {
+      "name": "An attack hits once in its active frame; held B does not retrigger; new edge hits again",
+      "passed": true,
+      "milliseconds": 2726
+    },
+    {
+      "name": "Target reaction expires and restores idle without changing actor position",
+      "passed": true,
+      "milliseconds": 4126
+    },
+    {
+      "name": "Left-facing attack mirrors contact geometry and cannot strike behind the player",
+      "passed": true,
+      "milliseconds": 2645
+    },
+    {
+      "name": "Frame-entry markers appear once at authored attack duration boundaries",
+      "passed": true,
+      "milliseconds": 1402
+    },
+    {
+      "name": "Walk frame durations follow authored 2/3 tick cadence",
+      "passed": true,
+      "milliseconds": 1533
+    },
+    {
+      "name": "Facing reflects asymmetric hardware pieces around feet origin and flips their pixels",
+      "passed": true,
+      "milliseconds": 1189
+    },
+    {
+      "name": "Start edge resets position, attack and target hit state",
+      "passed": true,
+      "milliseconds": 1644
+    },
+    {
+      "name": "NMI completes within a bounded DMA budget without visible-frame PPU writes",
+      "passed": true,
+      "milliseconds": 1884
+    },
+    {
+      "name": "Identical boot and input sequence gives identical CPU RAM, OAM and framebuffer",
+      "passed": true,
+      "milliseconds": 7175
+    }
+  ]
+}

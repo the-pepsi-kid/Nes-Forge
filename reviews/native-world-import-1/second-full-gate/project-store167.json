@@ -1,0 +1,113 @@
+{
+  "suite": "project-store167",
+  "scope": "Full production application VM with mock DOM: authoritative service routing, v10 preservation with disabled legacy World Runtime migration and actual frozen-1.6.6 downgrade rejection, atomic loading and history intent. Not a real browser test.",
+  "passed": 20,
+  "total": 21,
+  "results": [
+    {
+      "name": "Schema 12 is the actual portable output and explicit schema downgrade is rejected",
+      "passed": true,
+      "milliseconds": 1286
+    },
+    {
+      "name": "Actual frozen 1.6.6 loses the v8 unresolved cell but rejects the current-schema snapshot atomically",
+      "passed": true,
+      "milliseconds": 1185
+    },
+    {
+      "name": "Legacy through v11 project inputs migrate to v12 with Gameplay Core disabled and without modifying input objects",
+      "passed": false,
+      "error": "Error: Script execution timed out after 2000ms\n    at Script.runInContext (node:vm:149:12)\n    at Object.runInContext (node:vm:301:6)\n    at Object.run (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/harness.cjs:97:46)\n    at fixture (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/project-store167.cjs:11:72)\n    at /workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/project-store167.cjs:31:315\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async bounded (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/project-store167.cjs:59:49)\n    at async /workspace/scratch/4a3286d86934/nes-forge-spatial-re/app/tests/project-store167.cjs:60:85"
+    },
+    {
+      "name": "Malformed or unsupported schema 0 rejects before mutation",
+      "passed": true,
+      "milliseconds": 4615
+    },
+    {
+      "name": "Malformed or unsupported schema -1 rejects before mutation",
+      "passed": true,
+      "milliseconds": 752
+    },
+    {
+      "name": "Malformed or unsupported schema 3.5 rejects before mutation",
+      "passed": true,
+      "milliseconds": 735
+    },
+    {
+      "name": "Malformed or unsupported schema \"8\" rejects before mutation",
+      "passed": true,
+      "milliseconds": 653
+    },
+    {
+      "name": "Malformed or unsupported schema \"future\" rejects before mutation",
+      "passed": true,
+      "milliseconds": 659
+    },
+    {
+      "name": "Malformed or unsupported schema null rejects before mutation",
+      "passed": true,
+      "milliseconds": 762
+    },
+    {
+      "name": "Malformed or unsupported schema {} rejects before mutation",
+      "passed": true,
+      "milliseconds": 655
+    },
+    {
+      "name": "The next unsupported schema rejects before mutation",
+      "passed": true,
+      "milliseconds": 645
+    },
+    {
+      "name": "Unsupported extension declarations reject before project mutation",
+      "passed": true,
+      "milliseconds": 1883
+    },
+    {
+      "name": "Duplicate scene identities reject before runtime, history, project or lifecycle mutation",
+      "passed": true,
+      "milliseconds": 602
+    },
+    {
+      "name": "Duplicate world and nested room identities reject atomically",
+      "passed": true,
+      "milliseconds": 756
+    },
+    {
+      "name": "Pure preparation validates detached input without committing an active editor mirror",
+      "passed": true,
+      "milliseconds": 823
+    },
+    {
+      "name": "Authoritative capture includes live scene edits and returns detached project data",
+      "passed": true,
+      "milliseconds": 1310
+    },
+    {
+      "name": "Unresolved authored world map and destinations survive save/open and history round trips",
+      "passed": true,
+      "milliseconds": 1250
+    },
+    {
+      "name": "Global capture, serialization and load entrypoints route to the authoritative service exactly once",
+      "passed": true,
+      "milliseconds": 1600
+    },
+    {
+      "name": "Ordinary load clears history; native replacement records exactly one boundary and one commit",
+      "passed": true,
+      "milliseconds": 1754
+    },
+    {
+      "name": "Ordinary history replay preserves emulator and browser identity while using ProjectStore commit",
+      "passed": true,
+      "milliseconds": 822
+    },
+    {
+      "name": "Production Scout creation is rejected and an external Scout file remains an ordinary project",
+      "passed": true,
+      "milliseconds": 589
+    }
+  ]
+}

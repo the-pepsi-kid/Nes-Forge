@@ -1,0 +1,22 @@
+PASS Worlds preserve the full room width, source palette and four quadrant patterns
+PASS World layouts retain every page and split before visual-library capacity is exceeded
+PASS A room longer than sixteen screens splits at an exact page boundary without invented links
+PASS Padding stays unassigned and native origins remain receipts rather than extra world rows
+PASS Legacy v1 bundles still import without inventing a World payload
+PASS A v2 payload cannot be disguised as v1, or omit its world collection
+PASS Standalone save and reopen retain editable worlds, libraries and source receipts
+PASS Worlds, pages and poses append together with exactly one Undo and Redo
+PASS Repeated imports remap World IDs and tileset references independently
+PASS Bundle-local marker destinations remap to imported worlds and preserve marker IDs
+PASS Existing World records, runtime settings, audio and custom code remain unchanged
+PASS World capacity is refused before any canonical or history mutation
+PASS Missing tileset and undefined metatile references fail despite resealing the checksum
+PASS Unknown World authoring fields are refused rather than silently lost in normalization
+PASS Preview shows exact world counts and collision/entity/connection coverage
+PASS Pose-only preview explains why ANIM has no timed clips
+PASS Detached RE audio catalog leaves emulator, project and history unchanged
+PASS Spatial RE exposes direct audio recovery without requiring an emulator load
+PASS Emulator loads continue to refresh the Audio library after detached RE use
+19/19 passed
+(node:53609) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
