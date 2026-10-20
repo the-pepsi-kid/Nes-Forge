@@ -68,7 +68,7 @@ test('Failed compile clears published artifacts and does not run/export a stale 
 test('ReleaseInfo owns current version/schema and production has no embedded Scout starter',()=>{
   const h=fresh();assert.equal(h.context.Forge.release.version,'2.0.0-alpha.11');assert.equal(h.context.Forge.release.schema,13);
   assert.match(h.context.document.title,/2\.0\.0-alpha\.11.*Native Engine Edit Roundtrip/);assert.equal(h.context.Forge.release.candidate,'native-transition-edit-1');
-  assert.equal(h.run('projectData().version'),13);assert.equal(h.run('projectData().foundation'),'2.0.0-alpha.11');
+  assert.equal(h.run('projectData().version'),12);assert.equal(h.run('projectData().foundation'),'2.0.0-alpha.11');
   assert.doesNotMatch(h.html,/const\s+STARTER\s*=/);assert.doesNotMatch(h.html,/const\s+SCOUT_STARTER\s*=/);
 });
 test('Current Tech Docs render through one owner without accumulating historical sections',()=>{

@@ -1,15 +1,15 @@
 {
   "status": "passed",
-  "htmlSha256": "e5d247c07b5fb9e0803d891b142082e5b1b12f5de502485e6442b2dce4ae5089",
-  "method": "Recompile the existing unchanged saved projects using the actual standalone application. World ROMs may update only the embedded schema-13 authoring record and its marker length; independently compare all executable engine/data, header, vectors and CHR bytes. Other ROM backends must remain byte-identical. Preserve projects, recipes and source evidence; refresh ROM artifacts and their exact hash receipts.",
+  "htmlSha256": "1530c4ccbd1899aa0ba304d241b2b3c9d7ba79689380c91e13e7020fac3560ad",
+  "method": "Recompile the existing unchanged saved projects using the actual standalone application; compare every output ROM byte. Ordinary projects retain schema 12. Only the six current HTML identity receipts change. All projects, recipes, source evidence and complete ROM artifacts remain unchanged.",
   "checks": [
     {
       "name": "examples/Scout_Gameplay_Core_2.0.0-alpha.11.nesforge.json",
       "passed": true,
       "projectSha256": "f1e6703d9b23f9e716f421f98dd51c6a14faf0021f7bc5eba0d851b1e5db241b",
       "previousRomSha256": "7814bf08504653d3f23964d7c0a654a936b051bf5aadbbf92c4a2eeaf726f4a2",
-      "romSha256": "db02f67dfed9b6de6d950b51246f51a367fd87e3460b7e8223795512730fef69",
-      "comparison": "Only WG17 authoring schema/payload/checksums and marker record length changed; all other ROM bytes identical",
+      "romSha256": "7814bf08504653d3f23964d7c0a654a936b051bf5aadbbf92c4a2eeaf726f4a2",
+      "comparison": "whole-ROM byte-identical",
       "bytes": 40976
     },
     {
@@ -17,8 +17,8 @@
       "passed": true,
       "projectSha256": "a4efe748360b777dfcdbf37eb51ff40f7c763408800813a77f1c3a0092010034",
       "previousRomSha256": "7a68a885c9b4d666800e25f65778e6fb0ff563130615d45f31ae9cb0f982403a",
-      "romSha256": "53385fdbf7eeafbdc166ac9ed888b439330ed5011c7940e924730443681bf3dc",
-      "comparison": "Only WG17 authoring schema/payload/checksums and marker record length changed; all other ROM bytes identical",
+      "romSha256": "7a68a885c9b4d666800e25f65778e6fb0ff563130615d45f31ae9cb0f982403a",
+      "comparison": "whole-ROM byte-identical",
       "bytes": 40976
     },
     {
@@ -26,8 +26,8 @@
       "passed": true,
       "projectSha256": "ed2ba3ba3c9630b6548ff6a53f6d1aa1fc392f939c80247c849b8e5eefb79370",
       "previousRomSha256": "61d438b2739e7a2e242dca2759b7cb014b714a52df73c7051278b21e24eaa598",
-      "romSha256": "3a449f005e5e48a38d1092804ed41d631221849146b1d45adae4330034c6714d",
-      "comparison": "Only WG17 authoring schema/payload/checksums and marker record length changed; all other ROM bytes identical",
+      "romSha256": "61d438b2739e7a2e242dca2759b7cb014b714a52df73c7051278b21e24eaa598",
+      "comparison": "whole-ROM byte-identical",
       "bytes": 40976
     },
     {
@@ -35,8 +35,8 @@
       "passed": true,
       "projectSha256": "4101c72ef0915512e0b59dfff205dc0b99085c3d54979e3c20204e7fdd754a0f",
       "previousRomSha256": "f4f80b1b956864de096875ee69a13694e8085cb202a995896ae525b2c5f3d9e8",
-      "romSha256": "fee036594760b86c44b9efc42c58abd2d3b94b06eacc77c61f0b16bab45b84f8",
-      "comparison": "Only WG17 authoring schema/payload/checksums and marker record length changed; all other ROM bytes identical",
+      "romSha256": "f4f80b1b956864de096875ee69a13694e8085cb202a995896ae525b2c5f3d9e8",
+      "comparison": "whole-ROM byte-identical",
       "bytes": 40976
     },
     {
@@ -62,8 +62,8 @@
       "passed": true,
       "projectSha256": "e4f349196a233ed9107aa8383603502eb8d5602770ca76af3d3db61211a652c4",
       "previousRomSha256": "ca5f4eab66600a37a58835dbcf56b336b761e96189d21074bea77af556c6360d",
-      "romSha256": "3cb75cc2637fd097f478e0701555cd447aae6eef7563a9d81663e2531d4eb8c4",
-      "comparison": "Only WG17 authoring schema/payload/checksums and marker record length changed; all other ROM bytes identical",
+      "romSha256": "ca5f4eab66600a37a58835dbcf56b336b761e96189d21074bea77af556c6360d",
+      "comparison": "whole-ROM byte-identical",
       "bytes": 40976
     },
     {
@@ -71,8 +71,8 @@
       "passed": true,
       "projectSha256": "6107d707dc0e6b887e65d9015fb67c3fbd1267ac4413f0e2167412b070800784",
       "previousRomSha256": "f0fe676bfe4257cdef27c69c3c8d39cb5cae9d23d532d389d8cec3052bf9d0b5",
-      "romSha256": "2b447b527093d5b429fb0930cbd6e33efe7792d07e1521e6a13fd394b42078ca",
-      "comparison": "Only WG17 authoring schema/payload/checksums and marker record length changed; all other ROM bytes identical",
+      "romSha256": "f0fe676bfe4257cdef27c69c3c8d39cb5cae9d23d532d389d8cec3052bf9d0b5",
+      "comparison": "whole-ROM byte-identical",
       "bytes": 40976
     },
     {
@@ -98,8 +98,8 @@
       "passed": true,
       "projectSha256": "7a5c63f8e2352908e120eeaca0a495861a7c09553f3169cd4ab802ddc064095a",
       "previousRomSha256": "c05f9e6fa801385dd01ef0ec9d7f57fb8db8c6cf9eef47078a4fb549f0f838f7",
-      "romSha256": "b426e352d81252b7c4886c018109cdfcc84f7a1e070b9efc48c0ab24a4813c94",
-      "comparison": "Only WG17 authoring schema/payload/checksums and marker record length changed; all other ROM bytes identical",
+      "romSha256": "c05f9e6fa801385dd01ef0ec9d7f57fb8db8c6cf9eef47078a4fb549f0f838f7",
+      "comparison": "whole-ROM byte-identical",
       "bytes": 40976
     },
     {
@@ -107,8 +107,8 @@
       "passed": true,
       "projectSha256": "43d8388b56355efb1ab41ba88bd777d1940ceeedc3d25e0f8ee38621e6f75b62",
       "previousRomSha256": "43f38ce3f64cf95776cad8afe91f17f08fd5596e9e471fa14482bd1c0f5b6713",
-      "romSha256": "1fe8262340b9341203f51209c5c25ef4c66b7f7ef708c07a59f6d64fd082e1da",
-      "comparison": "Only WG17 authoring schema/payload/checksums and marker record length changed; all other ROM bytes identical",
+      "romSha256": "43f38ce3f64cf95776cad8afe91f17f08fd5596e9e471fa14482bd1c0f5b6713",
+      "comparison": "whole-ROM byte-identical",
       "bytes": 40976
     },
     {
@@ -134,33 +134,36 @@
     {
       "path": "examples/Scout_Gameplay_Core_2.0.0-alpha.11.build.json",
       "beforeSha256": "f42576511f5d40fc42d7838c4dc5ea0a1693bb21b748c66709a1db670deca8dc",
-      "afterSha256": "1ac996ab2eb4ad7be7e25e977d92ab0ae020d1699169341b6d7c1628582ffbf3"
+      "afterSha256": "0bfeadc57600c094be4be84df62fe329c1989139f28fd2532eb2f1bd58147679"
     },
     {
       "path": "examples/RE_Native_SFX/Manifest.json",
       "beforeSha256": "8622c03ebd95b4d8bc5ae73a1b0f7b4000afb0982f7cfc73fb13fbe7214fff1b",
-      "afterSha256": "51937011aec531195e4c47a468449e44b0a17fe7b7645d1cf64e4ad5a6dca7e8"
+      "afterSha256": "14e674d6ea054bd86b22dfff2acd2a989c384f70dbdbfaef286ab190ccd56b72"
     },
     {
       "path": "examples/RE_Native_Map/Manifest.json",
       "beforeSha256": "a91fdf110e8e9752931327f03062509b7ff4eb0eef985ffd3f5e8b6349a66299",
-      "afterSha256": "898b03231d918a69f0b8280c9c159ea5b4d85a1a81e7d6ed1447ffa4b9e816ea"
+      "afterSha256": "8bf661586cd17156881384891158c9140c0c03c3680eacdbb1afccdc3c385e39"
     },
     {
       "path": "examples/Seeded_Mashup_2.0.0-alpha.11/Manifest.json",
       "beforeSha256": "76f2eb8f3d51c6312b44cfb2c6e7ece5f8b7ffa5b9e83e6dfadb392dca007c1e",
-      "afterSha256": "4804a1d58bc1f0f1617b9e32b5965e86ecd475396a1b1882521ee72bc50d0b98"
+      "afterSha256": "53eff2dae4840ba74958dd0df12574ac6082b62f85d6d9f79ab11330362324bd"
     },
     {
       "path": "examples/RE_Native_Background/Manifest.json",
       "beforeSha256": "ad4bb4f463856593394399e6d702fa854b88408a3fe94481d6143c4d795f961d",
-      "afterSha256": "293a88007585943593769158781a3160115f6c3326b46549ddbc658b3b3294c9"
+      "afterSha256": "aa56ab2c17564de4430e3e51713db050a1a4ece701b7865707171e9c8ca28089"
     },
     {
       "path": "examples/Movement_Rules_2.0.0-alpha.11/Manifest.json",
       "beforeSha256": "1034798914a7c859bf0c8cd111923c2a307374994b97c6dc7e0f71d8c2a0d328",
-      "afterSha256": "88a5972eb2434ed5e2e26ce47ab50a13e4857eb73fea2fbb0a94568d04fd6cbf"
+      "afterSha256": "657c42719b892e74f35db331d19499386499e956f46b2230e638f16e9f82eeea"
     }
   ],
+  "changedProjects": 0,
+  "changedRecipes": 0,
+  "changedRoms": 0,
   "passed": 14
 }

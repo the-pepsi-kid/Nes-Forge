@@ -31,7 +31,7 @@ function capture(options={}){
   saveCurrentScene();
   Forge161.worlds.ensure();
   S.asmSource=$('codeInput')?.value??S.asmSource;
-  return cp({format:'NESForge',version:Forge.release.schema,foundation:Forge.release.version,romLayout:Forge.services.WorldConfig.get().enabled?4:3,worldAuthoring:3,
+  return cp({format:'NESForge',version:S.nativeGame?Forge.release.schema:12,foundation:Forge.release.version,romLayout:Forge.services.WorldConfig.get().enabled?4:3,worldAuthoring:3,
     metatileExtension:1,metaspriteExtension:2,entityAnimationExtension:1,
     chr:S.chr,sprChr:S.sprChr,nt:S.nt,attr:S.attr,pal:S.pal,sprPal:S.sprPal,oam:S.oam,
     scenes:S.scenes,activeScene:S.activeScene,asmSource:S.asmSource,instruments:S.instruments,
@@ -423,7 +423,7 @@ async function dismissRecovery(){
     recoveryPhase('ready');status();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applyNativeGameEdit,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+const Store=Forge.services.ProjectStore={schema:12,maxSchema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,prepareLoad,commit,load,applyNativeGameEdit,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};

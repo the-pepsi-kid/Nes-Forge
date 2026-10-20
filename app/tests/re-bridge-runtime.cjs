@@ -38,7 +38,7 @@ test('Independent source ROM is metadata-free and executes its native collision 
  assert.equal(digest(original),originalHash);
 });
 test('ROM recovery materializes every authored collision cell, graphic tile, palette and music row',async()=>{
- const h=await recover(),p=baselineProject,sc=p.scenes[0];assert.equal(p.format,'NESForge');assert.equal(p.version,13);assert.equal(p.scenes.length,1);assert.deepEqual(Buffer.from(p.importedRom,'base64'),Buffer.from(original));assert.deepEqual(canonicalCollision(sc),expectedCollision());
+ const h=await recover(),p=baselineProject,sc=p.scenes[0];assert.equal(p.format,'NESForge');assert.equal(p.version,12);assert.equal(p.scenes.length,1);assert.deepEqual(Buffer.from(p.importedRom,'base64'),Buffer.from(original));assert.deepEqual(canonicalCollision(sc),expectedCollision());
  assert.deepEqual(sc.nt,Array.from(original.slice(0x3010,0x3010+960)));assert.deepEqual(sc.attr,Array.from(original.slice(0x33d0,0x33d0+64)));assert.deepEqual([...sc.pal.flat(),...sc.sprPal.flat()],PALETTES);
  for(let i=0;i<256;i++){assert.deepEqual(Array.from(packedTile(sc.chr[i])),Array.from(original.slice(32784+i*16,32784+i*16+16)));assert.deepEqual(Array.from(packedTile(sc.sprChr[i])),Array.from(original.slice(36880+i*16,36880+i*16+16)));}
  assert.deepEqual(p.patterns[0].rows.map(row=>row[0].note),NOTES);assert.equal(p.speed,12);assert.equal(p.tempo,150);assert.deepEqual(p.sfx,[]);assert.equal(p.gameplay.bodyWidth,8);assert.equal(p.gameplay.bodyHeight,8);assert.equal(p.gameplay.moveSpeed,2);assert.equal(sc.entities.find(e=>e.type==='player').x,40);

@@ -49,7 +49,7 @@ test('External example preserves Scout bindings and uses metatiles absent from t
 });
 test('Legacy project migration leaves World runtime disabled and startup remains empty',()=>{
  const h=loadForge(html);assert.deepEqual(h.json('S.worlds'),[]);assert.equal(h.run('S.worldRuntime.enabled'),false);
- h.context.old170=require('./fixtures/scout166.json');h.run('db_deserializeState(old170)');assert.equal(h.run('S.worldRuntime.enabled'),false);assert.equal(h.run('S.audioRuntime.enabled'),false);assert.equal(h.run('S.gameplayCore.enabled'),false);assert.equal(h.run('S.gameplay.mode'),'single-room');assert.equal(h.run('projectData().version'),13);
+ h.context.old170=require('./fixtures/scout166.json');h.run('db_deserializeState(old170)');assert.equal(h.run('S.worldRuntime.enabled'),false);assert.equal(h.run('S.audioRuntime.enabled'),false);assert.equal(h.run('S.gameplayCore.enabled'),false);assert.equal(h.run('S.gameplay.mode'),'single-room');assert.equal(h.run('projectData().version'),12);
 });
 test('World runtime configuration persists through JSON, undo and redo',()=>{
  const h=fresh(),before=h.json('Forge.services.WorldConfig.get()');h.run('Forge.services.WorldConfig.set("moveSpeed",3)');assert.equal(h.run('S.worldRuntime.moveSpeed'),3);
@@ -232,7 +232,7 @@ test('Runtime PPU writes occur during forced blank or vblank, with no missed opc
 // Versioned authoring reconstruction and atomic rejection against real 1.6.7.
 test('World layout4 ROM preserves full source through inspect and Open Forge ROM',()=>{
  const h=defaultBuild();h.context.inspect170=h.run('Forge.services.WorldRom.inspect(rom170)',20000);const info=h.context.inspect170;
- assert.deepEqual(clone(info.source),clone(h.context.artifact170.plan.source));assert.equal(info.source.version,13);assert.deepEqual(clone(info.source.worlds),h.json('S.worlds'));assert.deepEqual(clone(info.source.worldRuntime),h.json('S.worldRuntime'));assert.deepEqual(clone(info.source.scenes),h.json('S.scenes'));
+ assert.deepEqual(clone(info.source),clone(h.context.artifact170.plan.source));assert.equal(info.source.version,12);assert.deepEqual(clone(info.source.worlds),h.json('S.worlds'));assert.deepEqual(clone(info.source.worldRuntime),h.json('S.worldRuntime'));assert.deepEqual(clone(info.source.scenes),h.json('S.scenes'));
  assert.equal(h.run('Forge166.project.classifyRom(rom170).captureOnly',20000),false);
  const opened=fresh();opened.context.reopen170=h.context.rom170;const beforeAppend=atomicSnapshot(opened);assert.equal(opened.run('importRom(reopen170,"World roundtrip.nes")',20000),false);assert.deepEqual(atomicSnapshot(opened),beforeAppend);assert.match(opened.errors.at(-1),/Open Forge ROM|append/i);assert.equal(opened.run('Forge166.project.openRom(reopen170,"World roundtrip.nes")',20000),true);
  assert.deepEqual(authored(opened),authored(h));assert.deepEqual(opened.json('Array.from(S.importedRom)'),Array.from(h.context.rom170));
