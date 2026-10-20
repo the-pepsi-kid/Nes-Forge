@@ -1,0 +1,18 @@
+PASS Pepsi production stage is immutable, source-bound, fully built and isolated from live project/history/playback
+PASS Pepsi fresh staged import uses one shared append transaction and round-trips Undo/Redo/save/reopen
+PASS Pepsi source rename and valid CHR mutation use structural decoding, not name/hash recognition
+PASS Pepsi generated viewer executes exact decoded background geometry through real PPU/CHR rendering
+PASS Pepsi real CHR/nametable edits survive reopening and change the rebuilt viewer while original evidence remains
+PASS HonkeyPong production stage is immutable, source-bound, fully built and isolated from live project/history/playback
+PASS HonkeyPong fresh staged import uses one shared append transaction and round-trips Undo/Redo/save/reopen
+PASS HonkeyPong source rename and valid CHR mutation use structural decoding, not name/hash recognition
+PASS HonkeyPong generated viewer executes exact decoded background geometry through real PPU/CHR rendering
+PASS HonkeyPong real CHR/nametable edits survive reopening and change the rebuilt viewer while original evidence remains
+PASS Detached viewer requires explicit consent, mapper zero and byte-identical ordinary compilation
+PASS HonkeyPong remains raw to strict General Analysis while its declared structural background method succeeds
+PASS Forged/stale stages, duplicate resources, invalid source options and cancellation refuse without applying
+PASS An intervening project edit during actual asynchronous staging cannot publish a usable stale preview
+PASS Malformed persistent source identity, evidence, coverage, version and oversized records are rejected
+15/15 passed
+(node:49521) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,15 @@
+PASS Real external export stages an immutable canonical score without editing the project
+PASS Import appends editable data with correct references and preserves existing SFX and unrelated owners
+PASS One Undo, Redo and actual portable Save As/reopen preserve the imported score
+PASS Authenticity, consumed stages and edited or replaced projects cannot install stale imports
+PASS Capacity refusal and malformed source leave project and Undo untouched
+PASS Visible workflow requires preview and allows cancellation without changing the score
+PASS New source selection and song changes invalidate a visible preview
+PASS Project edits during confirmation refuse the import without undoing the user edit
+PASS A slow file read cannot overwrite a later selected file
+PASS Malformed UTF-8, UTF-16, oversized and changed-size files fail before preview
+PASS Receipt export preserves original text and the historical import result separately from the project
+PASS Imported ordinary note can be edited, saved, reopened and compiled to a real Audio Runtime ROM
+12/12 passed
+(node:52945) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,116 @@
+{
+  "format": "NESForgeNativeGameBrowserVerification",
+  "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1",
+  "checks": [
+    {
+      "name": "Actual Ninja chooser opens the connected scene, actor, pose and script catalog",
+      "passed": true
+    },
+    {
+      "name": "Original Ninja scene art renders at native room dimensions and source cell selection exposes provenance",
+      "passed": true
+    },
+    {
+      "name": "Native scene groups, code view and spawn-trigger overlay use actual controls",
+      "passed": true
+    },
+    {
+      "name": "Native actor parameters retain code semantics and dispatch addresses",
+      "passed": true
+    },
+    {
+      "name": "Nonplayer Ninja preview uses native delay-plus-one updates and stops on a workspace change",
+      "passed": true
+    },
+    {
+      "name": "A real selected-evidence download includes scene art, objects and exact ROM identity",
+      "passed": true
+    },
+    {
+      "name": "A real resource-catalog download retains all selector slots and source annotations",
+      "passed": true
+    },
+    {
+      "name": "Actual Zelda chooser opens nine contexts, preserved unavailable slots and native side-view art",
+      "passed": true
+    },
+    {
+      "name": "Unavailable Zelda slots cannot export an invented decoded scene",
+      "passed": true
+    },
+    {
+      "name": "Zelda scene selection exposes original construction and page-indexed connection records",
+      "passed": true
+    },
+    {
+      "name": "Zelda Link pose and facing samples render without claiming timed animation",
+      "passed": true
+    },
+    {
+      "name": "The physical graphics sheet selects all 32 source banks",
+      "passed": true
+    },
+    {
+      "name": "Existing physical disassembly opens a selected native routine with its source address",
+      "passed": true
+    },
+    {
+      "name": "Coverage explicitly separates reconstructed data from unresolved game behavior",
+      "passed": true
+    },
+    {
+      "name": "Investigation leaves project, Undo and live CPU state unchanged",
+      "passed": true
+    },
+    {
+      "name": "Native controls and physical graphics stay within the 430px workbench",
+      "passed": true
+    },
+    {
+      "name": "A modified source clears the native catalog without guessing from its filename",
+      "passed": true
+    },
+    {
+      "name": "Malformed replacement clears native exports and reports the input failure",
+      "passed": true
+    },
+    {
+      "name": "Zelda title frame 835 honors the native visible PPU address reload and capture agrees",
+      "passed": true
+    },
+    {
+      "name": "Use emulator ROM opens the same Zelda catalog without advancing the loaded game",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "crashes": [],
+  "limits": [
+    "Headless Linux Chromium, direct file launch, real file/download controls and a 430px viewport. No physical Windows/mobile or NES hardware claim.",
+    "Native catalogs and playback verification remain distinct from complete game reconstruction."
+  ],
+  "browser": "151.0.7922.34",
+  "zeldaTitle": {
+    "frame": 835,
+    "framebufferSha256": "8644d7b9eefa6b9aee7b43c1b8341629ac8084fc784916cfc126e7fa8a2ff1e2",
+    "reloads": [
+      {
+        "ctrl": 50,
+        "mask": 30,
+        "scrollX": 0,
+        "localY": 131,
+        "ntY": 1,
+        "ntX": 0,
+        "mirror": 0,
+        "chr0": 0,
+        "chr1": 4096,
+        "chrPages": null,
+        "line": 144
+      }
+    ],
+    "changedCapturePixels": 0
+  },
+  "status": "passed",
+  "passed": 20,
+  "failed": 0
+}

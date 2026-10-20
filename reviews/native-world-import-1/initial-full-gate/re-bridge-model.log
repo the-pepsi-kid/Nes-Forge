@@ -1,0 +1,20 @@
+PASS Recognized native ROM produces immutable evidence without touching active project, playback or history
+PASS ROM snapshot is copied before async hashing and exported projects are isolated
+PASS Recovery reads all native nametable, attributes, palettes and planar CHR bytes exactly
+PASS Native cell collision is exact and uniform tiles remain editable through ordinary tile properties
+PASS Identical tile art with different native collision gets exact cell overrides without invented global meaning
+PASS Pulse timers map exactly to canonical notes, constant instrument and frame duration without invented SFX
+PASS Unsupported cartridge headers, sizes and extensions reject atomically
+PASS Unknown code fingerprint and changed interrupt vectors never create a recovery project
+PASS Malformed collision and lossy palette values reject rather than normalize into plausible data
+PASS Unsupported body geometry and solid spawn fail before mutation
+PASS Unsupported and ambiguous pulse timers reject instead of guessing a pitch
+PASS Unsupported audio count, duration, envelope and sweep reject atomically
+PASS Successful import is an undoable replacement with byte-identical original and validated native project
+PASS Ordinary JSON save/reload preserves native assets, exact collision, music and original ROM
+PASS Forged stages and unavailable hashing reject with active state intact
+PASS Shared-memory inputs reject before hashing instead of claiming a coherent immutable snapshot
+
+16/16 passed
+(node:21579) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,16 @@
+PASS Playback tools starts collapsed and recording is opt-in without startup state allocation
+PASS Forward controls work with history off, remain paused, and backward controls stay disabled
+PASS Actual record/back/forward buttons restore state and keep displayed history bounds accurate
+PASS ±60 controls navigate actual frames, clamp to recorded oldest, and allocate no history while off
+PASS New timeline commands release held NES input while the protected Frame command retains its keyboard contract
+PASS Every enabled playback tool remains inside the fullscreen keyboard focus boundary
+PASS Transport keyboard activation does not press NES Start and Ctrl/Cmd Save still reaches Save As
+PASS Busy navigation offers Cancel and disables overlapping transport commands
+PASS Closing tools, settings, tab exit, Play exit, blur and hidden documents cancel pending frame batches
+PASS Save As cancels pending navigation without later batches stealing focus or advancing the ROM
+PASS Programmatic transport clicks from another tab or controller settings cannot execute frames
+PASS Reset and new ROM controls clear prior history bounds in the visible strip
+PASS Turning history off clears stored states and leaves forward navigation available
+13/13 passed
+(node:24064) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

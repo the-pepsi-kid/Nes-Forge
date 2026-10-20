@@ -1,0 +1,27 @@
+PASS Desktop tracker retains piano mapping, navigation, cut, clear and no automatic advance
+PASS Desktop envelope painting and ordinary text fields keep their original behavior
+PASS Rejected separate note and envelope forms are absent
+PASS A stationary touch focuses a real text input synchronously without changing the model
+PASS Pen and touch-event fallback select the requested cell and request keyboard focus
+PASS Scrolling and canceled gestures do not focus or replace an existing keyboard session
+PASS Multi-touch cancels both pointer and touch-fallback keyboard activation
+PASS Header, outside-grid and other-tab taps leave the keyboard and project inactive
+PASS Compatibility mouse events cannot steal native focus; later desktop clicks still work
+PASS Native text input uses all PC piano keys and canonical selected-instrument mutations
+PASS Android Unidentified and keyCode 229 defer mutation until native input arrives
+PASS Cancelable deletion applies once across beforeinput and its same-task input echo
+PASS Noncancelable and input-only deletion fallbacks use the original cut and clear commands
+PASS Composition is provisional, commits one note at end and suppresses a microtask echo
+PASS Explicit trailing composition echoes stay suppressed until a new ordinary edit
+PASS Composition cannot commit into a different row, channel, order or replacement project
+PASS Native Done commits a single provisional note and dismisses the keyboard
+PASS Escape cancels a composition even when the keyboard marks it as IME keyCode 229
+PASS Paste, drop, replacement, cut and bulk text never become an unintended note importer
+PASS Blur, tab change and visibility loss stop native edits and leave other fields isolated
+PASS Project replacement and canonical Undo invalidate a stale native typing session
+PASS Ctrl and Command shortcuts invoke real Undo, Redo and protected Save As
+PASS Native history events use canonical history with no duplicate same-task undo
+PASS Keyboard edits round-trip through project JSON while unsupported DPCM and missing instruments retain guards
+24/24 passed
+(node:34410) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

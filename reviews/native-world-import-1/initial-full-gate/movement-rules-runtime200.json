@@ -1,0 +1,136 @@
+{
+  "suite": "movement-rules-runtime200",
+  "htmlSha256": "cf2eb17d33d8ce63067ae04bcb7de082026300bea2bf90670414f65217b2649e",
+  "scope": "Actual emitted World and single-room 6502 movement/collision, original authored fixtures, canonical UI Preview/Apply/Undo/Redo and mocked OS Save Project As handle, exact recipe replay and saved ROM rebuilds. No real-browser, listening, mobile/controller or physical NES acceptance.",
+  "passed": 18,
+  "failed": 0,
+  "total": 18,
+  "metrics": {
+    "single-room": {
+      "travel": {
+        "ordinary": 24,
+        "sprint": 48,
+        "ticks": 12,
+        "romSha256": "2be905e8397f4b2ce24f46979c30dad754c76d795dd4a38d0505e14d466f1cc7"
+      },
+      "jump": {
+        "normalRise": 45,
+        "highRise": 78
+      },
+      "fall": {
+        "slowPixels": 7,
+        "heavyPixels": 49,
+        "ticks": 8
+      }
+    },
+    "world": {
+      "travel": {
+        "ordinary": 24,
+        "sprint": 48,
+        "ticks": 12,
+        "romSha256": "270b2b77c45b2fd59dfa8a217c3bb29651584862e43468e6fd2892dedf469a05"
+      },
+      "jump": {
+        "normalRise": 45,
+        "highRise": 78
+      },
+      "fall": {
+        "slowPixels": 7,
+        "heavyPixels": 49,
+        "ticks": 8
+      }
+    }
+  },
+  "results": [
+    {
+      "name": "single-room: Sprint changes actual emitted player travel, with repeatable ROM bytes",
+      "passed": true,
+      "milliseconds": 6767
+    },
+    {
+      "name": "single-room: High jump raises the actual jump apex and lands without repeated held-button jumps",
+      "passed": true,
+      "milliseconds": 11199
+    },
+    {
+      "name": "single-room: Slow fall and Heavy fall change actual generated gravity/fall-cap behavior",
+      "passed": true,
+      "milliseconds": 5117
+    },
+    {
+      "name": "single-room: Maximum rule movement respects a solid wall without tunneling",
+      "passed": true,
+      "milliseconds": 3469
+    },
+    {
+      "name": "single-room: Maximum jump stops at the ceiling and returns to its original floor",
+      "passed": true,
+      "milliseconds": 5444
+    },
+    {
+      "name": "single-room: Maximum movement remains within the outer screen/map body bounds",
+      "passed": true,
+      "milliseconds": 7542
+    },
+    {
+      "name": "single-room: UI Preview/Apply, Undo/Redo and Save Project As preserve exact editable and ROM results",
+      "passed": true,
+      "milliseconds": 3178
+    },
+    {
+      "name": "world: Sprint changes actual emitted player travel, with repeatable ROM bytes",
+      "passed": true,
+      "milliseconds": 7373
+    },
+    {
+      "name": "world: High jump raises the actual jump apex and lands without repeated held-button jumps",
+      "passed": true,
+      "milliseconds": 13694
+    },
+    {
+      "name": "world: Slow fall and Heavy fall change actual generated gravity/fall-cap behavior",
+      "passed": true,
+      "milliseconds": 6213
+    },
+    {
+      "name": "world: Maximum rule movement respects a solid wall without tunneling",
+      "passed": true,
+      "milliseconds": 4208
+    },
+    {
+      "name": "world: Maximum jump stops at the ceiling and returns to its original floor",
+      "passed": true,
+      "milliseconds": 5723
+    },
+    {
+      "name": "world: Maximum movement remains within the outer screen/map body bounds",
+      "passed": true,
+      "milliseconds": 12063
+    },
+    {
+      "name": "world: UI Preview/Apply, Undo/Redo and Save Project As preserve exact editable and ROM results",
+      "passed": true,
+      "milliseconds": 3611
+    },
+    {
+      "name": "World sprint crosses a screen boundary, uses its linked exit, and Start restores the configured spawn",
+      "passed": true,
+      "milliseconds": 8735
+    },
+    {
+      "name": "Applying movement rules after a v1 mashup keeps the original mashup recipe independently reproducible",
+      "passed": true,
+      "milliseconds": 6831
+    },
+    {
+      "name": "Shipped Movement Rules examples replay through the actual UI and rebuild every exact ROM",
+      "passed": true,
+      "milliseconds": 19064
+    },
+    {
+      "name": "A seeded movement recipe replay compiles the same changed ROM after all four decision locks",
+      "passed": true,
+      "milliseconds": 4837
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "suite": "re-audio-survey",
+  "html": "NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "cf2eb17d33d8ce63067ae04bcb7de082026300bea2bf90670414f65217b2649e",
+  "scope": "Complete bundled APIs/UI and independently authored 6502 fixtures; banked write provenance, trace filtering/machine-state parity, bounds, lifecycle and export isolation. Not full library recovery, engine identification, audible playback, browser layout or hardware acceptance.",
+  "passed": 14,
+  "total": 14,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Audio report starts empty and invalid modes cannot alter observations",
+      "passed": true
+    },
+    {
+      "name": "Default mode retains PPU, APU, watches and physical source evidence",
+      "passed": true
+    },
+    {
+      "name": "Audio-focused mode excludes PPU evidence while exact machine state and watches are preserved",
+      "passed": true
+    },
+    {
+      "name": "A PPU-heavy interval cannot exhaust the audio event budget or stop graphics writes",
+      "passed": true
+    },
+    {
+      "name": "Writer grouping separates the same CPU address in different physical MMC3 banks",
+      "passed": true
+    },
+    {
+      "name": "RAM writer sites and writes with no CPU origin remain explicitly unmapped",
+      "passed": true
+    },
+    {
+      "name": "Noise/DMC observations count register requests without inventing samples or audible notes",
+      "passed": true
+    },
+    {
+      "name": "Derived reports cannot mutate the retained evidence, source ROM or active project",
+      "passed": true
+    },
+    {
+      "name": "Audio-focused mode retains the event cap and stops recording while emulation continues",
+      "passed": true
+    },
+    {
+      "name": "Reset, clear and replacement discard audio evidence and restore default mode",
+      "passed": true
+    },
+    {
+      "name": "Audio UI selects the explicit mode, lists writers and opens verified originating code",
+      "passed": true
+    },
+    {
+      "name": "Audio source jumps refuse a different inspected ROM and a reset session",
+      "passed": true
+    },
+    {
+      "name": "Audio export preserves exact identity/evidence through cancellation and refuses stale UI sessions",
+      "passed": true
+    },
+    {
+      "name": "Audio UI paginates writer sites without omission or duplication",
+      "passed": true
+    }
+  ]
+}

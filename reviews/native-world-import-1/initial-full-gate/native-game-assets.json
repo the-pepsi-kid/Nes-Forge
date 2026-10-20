@@ -1,0 +1,85 @@
+{
+  "suite": "native-game-assets",
+  "htmlSha256": "cf2eb17d33d8ce63067ae04bcb7de082026300bea2bf90670414f65217b2649e",
+  "passed": 19,
+  "total": 19,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Editable bundles carry complete pixels and preserve wide-room palette/pixel placement",
+      "passed": true
+    },
+    {
+      "name": "8x16 poses preserve both source banks, OAM Y offset, flips, priority and palettes",
+      "passed": true
+    },
+    {
+      "name": "Ninja clips preserve effective update ticks and explicit loop/stop endings",
+      "passed": true
+    },
+    {
+      "name": "Throwing-star and windmill scripts bind player poses despite projectile ownership",
+      "passed": true
+    },
+    {
+      "name": "Shared scripts without an established sprite-table context refuse editable conversion",
+      "passed": true
+    },
+    {
+      "name": "An untimed display pose stays a metasprite without an invented animation",
+      "passed": true
+    },
+    {
+      "name": "Standalone projects open without ROM state and retain source receipts through save/load",
+      "passed": true
+    },
+    {
+      "name": "Preview and export leave project, history and live emulator untouched",
+      "passed": true
+    },
+    {
+      "name": "Current-project append is one Undo, preserves old record identities and unrelated audio/settings",
+      "passed": true
+    },
+    {
+      "name": "Repeated imports remap scene, pose and animation references without ID collisions",
+      "passed": true
+    },
+    {
+      "name": "Stale project previews refuse to import and leave no history entry",
+      "passed": true
+    },
+    {
+      "name": "Changed payloads and evidence-only JSON are refused before project mutation",
+      "passed": true
+    },
+    {
+      "name": "Missing references, malformed pixels and lossy normalization fail even with a fresh checksum",
+      "passed": true
+    },
+    {
+      "name": "Full project capacity refuses atomically rather than truncating imported pages",
+      "passed": true
+    },
+    {
+      "name": "Unrepresentable native palettes and missing recovered poses fail rather than silently dropping data",
+      "passed": true
+    },
+    {
+      "name": "Scene padding never overwrites a used nonblank CHR pattern",
+      "passed": true
+    },
+    {
+      "name": "Portable bundle controls are usable before a ROM is loaded and import without it",
+      "passed": true
+    },
+    {
+      "name": "Malformed replacement clears staged import and download availability",
+      "passed": true
+    },
+    {
+      "name": "Store append validates IDs and references before history changes",
+      "passed": true
+    }
+  ]
+}

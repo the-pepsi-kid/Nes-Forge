@@ -1,0 +1,133 @@
+{
+  "format": "NESForgeNativeBackgroundExamples",
+  "version": 1,
+  "release": "2.0.0-alpha.11",
+  "candidate": "native-background-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1",
+  "referenceHtml": "baseline/NES_Forge_2.0.0-alpha.11_Compatibility_Stabilization.html",
+  "referenceHtmlSha256": "b3d9b852782b1b7ebd56637bb94e4dbcb09379614b7c8577e007046db45c8e02",
+  "scope": "Two independent native-source backgrounds converted through the shipped structural methods into separate editable schema-12 projects and generated NROM static viewers. Files preserve source identity and recovery evidence. Generated viewers use canonical palette normalization and rendering defaults; they do not reconstruct original game engines, collision, entities, animation, audio or native program behavior. Generation verifies detached preview and ordinary saved-project ROM equality; runtime pixel verification is in tests/re-native-background.cjs. Browser and physical hardware acceptance are not established.",
+  "outputs": [
+    {
+      "name": "Pepsi",
+      "classification": "canonical static viewer adaptation",
+      "source": {
+        "file": "tests/fixtures/re-runtime/pepsi_vending_v9e.nes",
+        "sha256": "8fb961353e9f626bcc62b85896550ec0108addff1fb82eaf7df7aafbf9b6462a",
+        "bytes": 24592,
+        "description": "Independent Pepsi vending native ROM; bounded reset-linked immediate PPU construction.",
+        "generalAnalysisStatus": "valid"
+      },
+      "method": {
+        "id": "nes.immediate-ppu-background.v1",
+        "version": 1,
+        "name": "Immediate PPU background construction"
+      },
+      "sceneId": "re-bg-8fb961353e9f626bcc62b85896550ec0108addff1fb82eaf7df7aafbf9b6462a-nes.immediate-ppu-background.v1-reset-background-2fc",
+      "backend": "packed",
+      "previewBuild": {
+        "backend": "packed",
+        "byteLength": 24592,
+        "sha256": "896198b64a350135235e3d0586859dd5b9dfc8e3e7ab54ff650067f3e3ce5a56"
+      },
+      "project": {
+        "file": "Pepsi_Static_Background.nesforge.json",
+        "sha256": "d8ee1550006b093228350a75e872164b26a698ad6a48afe902590dd2f0448e24",
+        "bytes": 1287358
+      },
+      "rom": {
+        "file": "Pepsi_Static_Background.nes",
+        "sha256": "896198b64a350135235e3d0586859dd5b9dfc8e3e7ab54ff650067f3e3ce5a56",
+        "bytes": 24592
+      },
+      "recovery": {
+        "file": "Pepsi_Static_Background.recovery.json",
+        "sha256": "6fb7e93a3b5c4417b507fa07985b4fca16033175ef346b2de7b72f7d7fa46159",
+        "bytes": 104724
+      },
+      "unknownAttributeIndices": [],
+      "unknown": [
+        "later-background-updates",
+        "sprites",
+        "collision",
+        "gameplay",
+        "audio",
+        "runtime-timing"
+      ],
+      "limitations": [
+        "One static background and its physical CHR bank only. Sprites, scrolling, animation, collision, actors, audio and game logic are not recovered.",
+        "Import adds an editable scene excluded from the current build. Download background project creates a separate Forge static viewer; it does not recreate the original program.",
+        "The source ROM is unchanged. There is no native ROM patch, inverse encoder or whole-game reconstruction claim.",
+        "Forge displays the underlying 256 × 240 background with its own rendering mask. Original clipping, sprite overlays and later runtime writes are not reproduced.",
+        "One reset-linked, forced-blank initialization with immediate PPU palette writes and a literal/counted-fill nametable subroutine is supported. Arbitrary 6502 code, indirect pointers and other compression are not interpreted.",
+        "This is the initialized background only. Later text, sprites, input, game logic, raster effects, collisions and audio are not recovered.",
+        "Canonical conversion builds a separate Forge static scene. There is no native encoder, source-ROM patch, inverse or byte-round-trip claim.",
+        "Only a proven static NROM background pattern bank, nametable zero, zero scroll and unemphasized nongrayscale background rendering are supported."
+      ]
+    },
+    {
+      "name": "HonkeyPong",
+      "classification": "canonical static viewer adaptation",
+      "source": {
+        "file": "examples/RE_Native_Audio/HonkeyPong-reproduced.nes",
+        "sha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+        "bytes": 24592,
+        "description": "Independent HonkeyPong native ROM reproduced from the external source checkpoint; bounded pointer/page nametable construction.",
+        "generalAnalysisStatus": "raw"
+      },
+      "method": {
+        "id": "nes.pointer-nametable.v1",
+        "version": 1,
+        "name": "Vector-linked pointer-page nametable loader"
+      },
+      "sceneId": "re-bg-cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b-nes.pointer-nametable.v1-pointer-page-10a-442",
+      "backend": "packed",
+      "previewBuild": {
+        "backend": "packed",
+        "byteLength": 24592,
+        "sha256": "7550ab6d9ebc4bb5a555901ac84285537f00e51adf80389d1fbc1e9a7fcd5512"
+      },
+      "project": {
+        "file": "HonkeyPong_Static_Background.nesforge.json",
+        "sha256": "291f8efca9c56fb2f96bbbbc359c3aff958874a02c98efaa5246147c8ff4106e",
+        "bytes": 1158835
+      },
+      "rom": {
+        "file": "HonkeyPong_Static_Background.nes",
+        "sha256": "7550ab6d9ebc4bb5a555901ac84285537f00e51adf80389d1fbc1e9a7fcd5512",
+        "bytes": 24592
+      },
+      "recovery": {
+        "file": "HonkeyPong_Static_Background.recovery.json",
+        "sha256": "e41dbee2f31bc709ca14181b036b76c176e8f5000cd1afa6bcb51a191d3a53f5",
+        "bytes": 31540
+      },
+      "unknownAttributeIndices": [
+        1023
+      ],
+      "unknown": [
+        "nametable-byte-1023-prior-state",
+        "sprites",
+        "collision",
+        "gameplay",
+        "animation",
+        "later-runtime-writes"
+      ],
+      "limitations": [
+        "One static background and its physical CHR bank only. Sprites, scrolling, animation, collision, actors, audio and game logic are not recovered.",
+        "Import adds an editable scene excluded from the current build. Download background project creates a separate Forge static viewer; it does not recreate the original program.",
+        "The source ROM is unchanged. There is no native ROM patch, inverse encoder or whole-game reconstruction claim.",
+        "Forge displays the underlying 256 × 240 background with its own rendering mask. Original clipping, sprite overlays and later runtime writes are not reproduced.",
+        "Recognizes the declared vector-linked four-state dispatch and pointer-page nametable/palette loader routines, not arbitrary NES engines or compressed maps.",
+        "Recovers the matched upload phase: 1023 nametable/attribute writes. The last attribute byte retains unknown prior PPU state and is marked unknown; zero is an explicit conversion placeholder.",
+        "The native loader uses Y=$FF as its page stop without resetting Y. Source bytes at page boundaries are reordered; the exact source-index write sequence is preserved.",
+        "Native PPUMASK=$18 clips the leftmost eight background pixels; an editable map can show the underlying tiles. No complete runtime frame or original gameplay behavior is promised.",
+        "Sprites, collision, animation, dynamic score/text writes and subsequent runtime changes are not recovered. Original ROM bytes remain unchanged.",
+        "The native loader leaves 1 attribute byte(s) dependent on prior PPU state (nametable indices 1023). The Forge conversion explicitly fills them with zero; these values are authored defaults, not recovered source data."
+      ]
+    }
+  ]
+}
+(node:143) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

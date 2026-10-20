@@ -249,20 +249,23 @@ function appendScene(input,options={}){
 }
 function appendAssets(input,options={}){
   return runEdit('assets',options,candidate=>{
-    if(!input||Object.keys(input).sort().join(',')!=='animations,metasprites,scenes')fail('An asset append requires only scenes, metasprites and animations.');
+    if(!input||!['animations,metasprites,scenes','animations,metasprites,scenes,worlds'].includes(Object.keys(input).sort().join(',')))fail('An asset append requires scenes, metasprites, animations and optional worlds.');
+    const collections=['scenes','metasprites','animations',...(input.worlds!==undefined?['worlds']:[])];
     for(const [key,min,max]of [['scenes',1,64],['metasprites',0,256],['animations',0,256]])if(!Array.isArray(input[key])||input[key].length<min||input[key].length+(candidate[key]?.length||0)>max)fail('Asset append exceeds '+key+' capacity.');
-    for(const key of ['scenes','metasprites','animations']){
+    for(const key of collections){
       const used=new Set((candidate[key]||[]).map(x=>x.id));
       for(const item of input[key]){if(!item||typeof item.id!=='string'||!item.id.trim()||used.has(item.id))fail('Asset append requires new explicit '+key+' IDs.');used.add(item.id);}
     }
+    if(input.worlds!==undefined){if(!Array.isArray(input.worlds)||input.worlds.length+(candidate.worlds?.length||0)>32)fail('Asset append exceeds world capacity.');window.ForgeWorldCodec1621.validate(input.worlds);for(const w of input.worlds){const scene=input.scenes?.find(s=>s.id===w.tilesetSceneId);if(!scene)fail('World tileset scene must be appended with its world.');const ids=new Set((scene.metatiles||[]).map(m=>m.id));if(w.map.some(id=>id>=0&&!ids.has(id)))fail('World metatile reference is missing.');}}
     Forge163.persistence.validate(input.metasprites,input.animations,input.scenes,{references:true});
-    const offsets=Object.fromEntries(['scenes','metasprites','animations'].map(key=>[key,candidate[key]?.length||0]));
+    const offsets=Object.fromEntries(collections.map(key=>[key,candidate[key]?.length||0]));
     for(const key of Object.keys(offsets))candidate[key]=[...(candidate[key]||[]),...cp(input[key])];
     const prepared=Store.prepareLoad(candidate),values={};
+    for(const key of collections)if(JSON.stringify(prepared[key])!==JSON.stringify(candidate[key]))fail('Asset append would change '+key+' during normalization.');
     for(const key of Object.keys(offsets))values[key]=[...S[key],...cp(prepared[key].slice(offsets[key]))];
     const index=offsets.scenes,selected=options.select!==false,scene=values.scenes[index];
     if(selected){for(const key of ['nt','attr','pal','sprPal','oam','chr','sprChr','tileProps'])values[key]=cp(scene[key]);Object.assign(values,{activeScene:index,selSprite:-1,selEntity:-1,entPlaceTool:null,chrBank:'bg',selTile:0,editTile:0});}
-    return {effective:true,values,intent:'nativeAssetImport',result:{sceneIds:input.scenes.map(s=>s.id),sceneIndex:index,metasprites:input.metasprites.length,animations:input.animations.length,selected},refresh:[...(selected?[()=>loadSceneData(index)]:[]),()=>rebuildAllUI(),()=>Forge163.metasprites.render(),()=>Forge166.ui?.refresh()]};
+    return {effective:true,values,intent:'nativeAssetImport',result:{sceneIds:input.scenes.map(s=>s.id),sceneIndex:index,metasprites:input.metasprites.length,animations:input.animations.length,worldIds:(input.worlds||[]).map(w=>w.id),selected},refresh:[...(selected?[()=>loadSceneData(index)]:[]),()=>rebuildAllUI(),()=>Forge163.metasprites.render(),()=>{if(selected&&input.worlds?.length){Forge161.worlds.state.selected=offsets.worlds;Forge161.worlds.state.panX=Forge161.worlds.state.panY=0;}Forge161.worlds.renderUI();},()=>Forge166.ui?.refresh()]};
   });
 }
 function applyAudioImport(changes,options={}){

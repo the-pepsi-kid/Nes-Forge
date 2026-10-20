@@ -1,3 +1,13 @@
+# NES Forge — Native Room Worlds
+
+Current development candidate: **native-world-import-1**, on [`implementation/native-world-import-2026-10-19`](https://github.com/the-pepsi-kid/Nes-Forge/tree/implementation/native-world-import-2026-10-19). Use the [standalone HTML](app/mainline/NES_Forge_2.0.0-alpha.11.html) for this update; no new review ZIP is packaged.
+
+**RE / DISASM → Open spatial RE workbench → Prepare editable assets → Import into current project → Open imported World** now creates editable room geometry and metatile libraries alongside scenes and supported poses/clips. **Recover / import audio** opens the same RE ROM in the Audio library; preview and import a finite supported music/SFX transcription. Save the ordinary project after both imports.
+
+[Workflow and limits](app/docs/NATIVE_RESOURCE_IMPORT.md) · [Current verification](reviews/native-world-import-1/README.md). Collision stays unassigned, native connections remain evidence, and complete gameplay reconstruction is unfinished. Existing tutorial/manual files and prior kits remain preserved.
+
+---
+
 # NES Forge — Native Resource Import
 
 [Download the standalone application](app/mainline/NES_Forge_2.0.0-alpha.11.html) from this branch and open the downloaded HTML in your browser. In **RE / DISASM → Open spatial RE workbench**, open an investigated Ninja Gaiden or Zelda II ROM, choose a scene and pose/script, then **Prepare editable assets**.

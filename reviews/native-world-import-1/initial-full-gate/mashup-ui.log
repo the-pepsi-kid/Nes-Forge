@@ -1,0 +1,28 @@
+PASS SCENE mashup mounts once with visible native file and seed inputs and no implicit capture
+PASS Missing base, cancelled selection and invalid donor types preserve project and pool
+PASS Donor batches validate atomically and deduplicate identical content
+PASS Visible capture, source choice and static preview preserve authoring, history and emulator
+PASS Same seed and sources reproduce byte-identical candidate and recipe downloads
+PASS Locks retain the previous source during shuffle until unlocked
+PASS Shuffle unlocked resets explicit and recipe-resolved unlocked choices to random
+PASS A keep-current preview reports no effective change and disables Apply
+PASS Cancelling confirmation preserves the preview and complete Undo history
+PASS Apply changes only the chosen background and mirror and one Undo/Redo restores exact data
+PASS A nonactive target leaves active scene mirrors and selection untouched
+PASS An edited native ROM session survives mashup preview and Apply
+PASS Ordinary edits, replaced identical projects and edits in confirmation reject stale Apply
+PASS Delayed donor reads reject project and option races with no partial source publication
+PASS Delayed preview and replay reject changed project or options before mutation
+PASS Blank, whitespace and oversized seeds are rejected
+PASS Notification and refresh faults keep committed edits dirty and Undoable
+PASS A failed snapshot restores history before assigning candidate data
+PASS Candidate and recipe downloads use protected Save As without applying changes
+PASS Downloaded recipes load a verified preview, with Apply remaining explicit
+PASS Wrong, incomplete or mismatched recipes cannot replace a valid preview
+PASS Delayed recipe reads reject changed options and projects
+PASS Save As busy, cancellation, failure and stale completion report accurate outcomes
+PASS Recapture preserves donors, while clearing donors invalidates the old preview
+PASS Inputs retain native keyboard defaults and release active emulator controls
+25/25 passed
+(node:43045) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

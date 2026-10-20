@@ -1,0 +1,85 @@
+{
+  "format": "NESForgeNativeSfxExamples",
+  "version": 1,
+  "release": "2.0.0-alpha.11",
+  "candidate": "native-sfx-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1",
+  "source": {
+    "file": "examples/RE_Native_Audio/HonkeyPong-reproduced.nes",
+    "sha256": "cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b",
+    "byteLength": 24592
+  },
+  "method": "famitone2-canonical-sfx-transcription-1",
+  "outputs": [
+    {
+      "name": "HonkeyPong_SFX_0",
+      "effectId": 0,
+      "description": "Native single-pulse SFX transcribed into canonical Audio; Scout World/attack binding authored separately.",
+      "backend": "world",
+      "sfxId": "re-sfx-cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b-0",
+      "authoredTrigger": "Scout attack animation frame 1, entered through B",
+      "project": {
+        "file": "HonkeyPong_SFX_0.nesforge.json",
+        "byteLength": 199047,
+        "sha256": "a4efe748360b777dfcdbf37eb51ff40f7c763408800813a77f1c3a0092010034"
+      },
+      "rom": {
+        "file": "HonkeyPong_SFX_0.nes",
+        "byteLength": 40976,
+        "sha256": "7a68a885c9b4d666800e25f65778e6fb0ff563130615d45f31ae9cb0f982403a"
+      }
+    },
+    {
+      "name": "HonkeyPong_SFX_0_Edited",
+      "effectId": 0,
+      "description": "Ordinary canonical tracker-note edit raises every sounding row one semitone; existing volume/duty remain.",
+      "backend": "world",
+      "sfxId": "re-sfx-cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b-0",
+      "authoredTrigger": "Scout attack animation frame 1, entered through B",
+      "project": {
+        "file": "HonkeyPong_SFX_0_Edited.nesforge.json",
+        "byteLength": 199046,
+        "sha256": "ed2ba3ba3c9630b6548ff6a53f6d1aa1fc392f939c80247c849b8e5eefb79370"
+      },
+      "rom": {
+        "file": "HonkeyPong_SFX_0_Edited.nes",
+        "byteLength": 40976,
+        "sha256": "61d438b2739e7a2e242dca2759b7cb014b714a52df73c7051278b21e24eaa598"
+      }
+    },
+    {
+      "name": "HonkeyPong_SFX_1",
+      "effectId": 1,
+      "description": "Native single-pulse SFX transcribed into canonical Audio; Scout World/attack binding authored separately.",
+      "backend": "world",
+      "sfxId": "re-sfx-cce7bf2f71eb9e63de0dba15098679dde06a1da9d7553f2319aa60ea57a1193b-1",
+      "authoredTrigger": "Scout attack animation frame 1, entered through B",
+      "project": {
+        "file": "HonkeyPong_SFX_1.nesforge.json",
+        "byteLength": 199047,
+        "sha256": "4101c72ef0915512e0b59dfff205dc0b99085c3d54979e3c20204e7fdd754a0f"
+      },
+      "rom": {
+        "file": "HonkeyPong_SFX_1.nes",
+        "byteLength": 40976,
+        "sha256": "f4f80b1b956864de096875ee69a13694e8085cb202a995896ae525b2c5f3d9e8"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "file": "HonkeyPong_SFX_0.evidence.json",
+      "byteLength": 83762,
+      "sha256": "e5322df72b5fe8a0d2297897b2a8588819fa416597fe2e3b135590194af96a64"
+    },
+    {
+      "file": "HonkeyPong_SFX_1.evidence.json",
+      "byteLength": 83777,
+      "sha256": "f889b494de59f5ef21963d2e21382bc615a7aca4453ee0c96b1f74b36673d33e"
+    }
+  ],
+  "scope": "Actual shipped converter, shared Audio staging/import, ordinary World build and exact Save As-style serialization/reopen/rebuild. Canonical note edit and authored B/attack sound binding are explicit adaptations. No original gameplay, native mixing, speaker listening, browser, device or hardware acceptance."
+}
+(node:174) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

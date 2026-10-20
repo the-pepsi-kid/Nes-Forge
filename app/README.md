@@ -1,3 +1,5 @@
+Current candidate **native-world-import-1** adds recovered room World maps and a same-ROM RE → Audio import entry point. See [NATIVE_RESOURCE_IMPORT.md](docs/NATIVE_RESOURCE_IMPORT.md) for the single-HTML workflow, v1/v2 bundle compatibility and limits.
+
 # Native Resource Import checkpoint
 
 Current development candidate: **2.0.0-alpha.11 / native-game-import-1**, project schema 12. Investigated Ninja Gaiden / Zelda II initial art, palettes, paged room layouts and selected sprite resources can now become canonical editable assets. Ninja clips preserve native effective update ticks; Zelda display poses remain untimed. In RE / DISASM, use **Prepare editable assets**, then import into the current project in one Undo step, download a self-contained `.nfassets.json` bundle, or download a standalone `.nesforge.json` project. Bundle reopening needs no ROM. [Controls, exact scope and limits](docs/NATIVE_RESOURCE_IMPORT.md).

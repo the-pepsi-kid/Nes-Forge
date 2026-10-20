@@ -1,0 +1,103 @@
+{
+  "format": "NESForgeCandidateHandoff",
+  "version": 1,
+  "release": "2.0.0-alpha.11",
+  "candidate": "native-game-import-1",
+  "schema": 12,
+  "status": "review-candidate",
+  "branch": "implementation/native-game-import-2026-10-19",
+  "parentCommit": "81338252e1f7a2ee8629c2f23f2e4e1d72c23472",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "cf2eb17d33d8ce63067ae04bcb7de082026300bea2bf90670414f65217b2649e",
+  "changes": [
+    "Self-contained editable native asset bundle with CHR pixels, palettes, full selected room split into pages, selected 8x16 poses and supported Ninja effective-tick clips.",
+    "Bundle preview/reopen without the original ROM, standalone Forge project download, and collision-free current-project append owned by ProjectStore with one Undo/Redo.",
+    "Exact pixel/pose/timing verification over investigated native resources, explicit missing-pose refusals, capacity/integrity/reference guards and retained source/test inventories."
+  ],
+  "automatedResult": {
+    "status": "passed",
+    "suiteCount": 112,
+    "passed": 2010,
+    "total": 2010,
+    "retainedSuites": 110,
+    "retainedCases": 1989,
+    "addedCases": 21,
+    "summary": "app/test-results/candidate/Summary.json",
+    "node": "v22.23.3",
+    "workers": 1
+  },
+  "browserEvidence": [
+    {
+      "report": "reviews/native-game-import-1/Browser_Verification.json",
+      "passed": 10,
+      "htmlSha256": "cf2eb17d33d8ce63067ae04bcb7de082026300bea2bf90670414f65217b2649e"
+    },
+    {
+      "report": "reviews/native-game-import-1/browser/Report.json",
+      "passed": 20,
+      "htmlSha256": "cf2eb17d33d8ce63067ae04bcb7de082026300bea2bf90670414f65217b2649e"
+    }
+  ],
+  "nativeResourceImport": {
+    "guide": "app/docs/NATIVE_RESOURCE_IMPORT.md",
+    "verification": "reviews/native-game-import-1/ROM_Verification.json",
+    "ninjaRooms": 48,
+    "zeldaAvailableViews": 561,
+    "zeldaUnavailableSlots": 6,
+    "ninjaImportableScripts": 80,
+    "ninjaPartialScripts": [
+      15,
+      16,
+      89
+    ],
+    "ninjaPoses": 202,
+    "zeldaUntimedLinkPoses": 30,
+    "comparedBackgroundPixels": 111935488,
+    "formats": [
+      "NESForgeNativeAssets v1",
+      "NESForge project schema 12"
+    ],
+    "completeGameRecovery": false,
+    "unknownEngineRecognition": false
+  },
+  "retainedExamples": {
+    "files": 58,
+    "byteIdentical": 52,
+    "receiptIdentityOnlyChanges": 6,
+    "unchangedRomFiles": 15,
+    "unchangedProjects": 19,
+    "unchangedRecipes": 6,
+    "evidence": "reviews/native-game-import-1/Example_Regeneration.json"
+  },
+  "preservedParent": {
+    "candidate": "ninja-zelda-re-1",
+    "commit": "81338252e1f7a2ee8629c2f23f2e4e1d72c23472",
+    "htmlSha256": "f12c1cac282bd081c60d25e1b62a99ddce3e578d82573ecca5e930d95af5c233",
+    "suiteCount": 110,
+    "cases": 1989,
+    "protectedFiles": 295,
+    "reference": "app/docs/history/ninja-zelda-re-1/Reference_Inventory.json",
+    "method": "Exact source/test reversal, retaining all earlier preservation boundaries. Release-only expectation edits preserve retained test cases."
+  },
+  "parentManifest": "reviews/native-game-import-1/Parent_CANDIDATE.json",
+  "fullGateAttempts": {
+    "first": "reviews/native-game-import-1/initial-full-gate/Summary.json",
+    "second": "reviews/native-game-import-1/second-full-gate/Summary.json",
+    "completed": "app/test-results/candidate/Summary.json"
+  },
+  "historicalKit": {
+    "path": "tester-kit/ninja-zelda-re-1/NF_Ninja_Zelda_RE.zip",
+    "candidate": "ninja-zelda-re-1",
+    "containsNewImporter": false
+  },
+  "limits": [
+    "Collision responses, physics, AI, executable source integration, state transitions, quest/item behavior and complete gameplay reconstruction remain incomplete.",
+    "Initial art only; native origin is recorded while content is adapted to Y=0 in paged scenes. Existing ROM build limits and source-scene dependencies remain.",
+    "Zelda poses are untimed; Ninja script update ticks do not reproduce state-dependent update cadence. Scripts 15/16 have unresolved sprite-table context; script 89 has unassigned pose entries. Known throwing-star/windmill clips use the native player pose table.",
+    "Checksum is integrity metadata, not a source signature. Keep the editable bundle for full reference evidence; ordinary project saves preserve canonical assets and per-page receipts.",
+    "Current 30 browser checks use headless Linux Chromium. Previous audio browser/oracle/example evidence retains its original checkpoint identity; no new physical Windows/mobile, listening or hardware claim."
+  ],
+  "promotion": "Development checkpoint on its own branch; use its standalone HTML for the new workflow. Previous complete review ZIP remains preserved and explicitly labeled historical.",
+  "payloadChecksums": 7298,
+  "packageFiles": 7299
+}

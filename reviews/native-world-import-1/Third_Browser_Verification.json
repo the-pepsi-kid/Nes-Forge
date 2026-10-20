@@ -1,0 +1,142 @@
+{
+  "format": "NESForgeNativeAssetBrowserVerification",
+  "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1",
+  "checks": [
+    {
+      "name": "Editable bundle file controls are visible before loading any ROM",
+      "passed": true
+    },
+    {
+      "name": "Actual ROM chooser and preparation create a detached paged-room/clip preview",
+      "passed": true
+    },
+    {
+      "name": "Partial Ninja selector remains inspectable with playback disabled and evidence export intact",
+      "passed": true
+    },
+    {
+      "name": "Real editable-bundle and standalone-project downloads include their pixels and references",
+      "passed": true
+    },
+    {
+      "name": "Fresh browser workspace imports downloaded bundle without loading its original ROM",
+      "passed": true
+    },
+    {
+      "name": "Standalone downloaded project opens through ordinary project-file controls",
+      "passed": true
+    },
+    {
+      "name": "Stale preview refuses mutation through the actual import button",
+      "passed": true
+    },
+    {
+      "name": "Changed downloaded pixels fail integrity checks and clear import readiness",
+      "passed": true
+    },
+    {
+      "name": "Zelda selection exports a timed-free pose with editable native room art",
+      "passed": true
+    },
+    {
+      "name": "430-pixel workbench preview and controls remain inside their container",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes — World destination renders recovered geometry and declares incomplete behavior",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes — real World paint controls edit geometry and Undo restores it",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes — spatial RE opens the same ROM audio catalog without emulator mutation",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes — music imports beside the World and both survive project reopen",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "limits": [
+    "Headless Linux Chromium and direct file launch; no native Windows or hardware acceptance claim."
+  ],
+  "browser": "151.0.7922.34",
+  "integratedCases": [
+    {
+      "file": "Ninja Gaiden (USA).nes",
+      "musicCue": "42",
+      "worlds": 1,
+      "patternsAdded": 2,
+      "instrumentsAdded": 4,
+      "emulatorLoaded": false,
+      "sfxAttempts": [
+        {
+          "cue": "1",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        },
+        {
+          "cue": "2",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        },
+        {
+          "cue": "3",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        },
+        {
+          "cue": "4",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        },
+        {
+          "cue": "5",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        },
+        {
+          "cue": "6",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        },
+        {
+          "cue": "7",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        },
+        {
+          "cue": "8",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        },
+        {
+          "cue": "9",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        },
+        {
+          "cue": "10",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        },
+        {
+          "cue": "11",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        },
+        {
+          "cue": "12",
+          "ready": false,
+          "status": "This selection cannot be converted. Read the conversion details; native catalog/playback remains available."
+        }
+      ]
+    }
+  ],
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: At least one checked native SFX must have a representable window\n    at /workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/native-world-import-1/verify-browser.cjs:29:1084\n    at async check (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/native-world-import-1/verify-browser.cjs:4:31)\n    at async /workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/native-world-import-1/verify-browser.cjs:29:2",
+  "passed": 14
+}

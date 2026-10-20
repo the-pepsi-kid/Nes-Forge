@@ -1,0 +1,22 @@
+PASS 30 Hz host callbacks with 11 ms complete frames sustain NTSC progress and continuous audio
+PASS 60 Hz host control remains near real time without extra frames or queue growth
+PASS One second stall is bounded and all discarded emulation time is accounted for
+PASS Sustained overload yields bounded callbacks, retains debt, and reports lost time
+PASS Out-of-order timestamps do not consume debt; invalid timestamps stop safely
+PASS Pause/resume rejects stale callback generations and clears queued host audio
+PASS Capture parity: ordinary scrolled background and sprites
+PASS Capture parity: CNROM bank switches during visible rendering
+PASS Capture parity: MMC3 individual pages and bank inversion
+PASS Capture parity: raster palette mirrors, grayscale and scroll changes
+PASS Capture parity: CHR-RAM writes during the visible frame
+PASS Capture parity: CHR-ROM in-place mutation does not reuse stale tiles
+PASS Capture parity: CHR-ROM replacement invalidates source identity
+PASS Repeated capture is stable and does not advance CPU or mutate authoring data
+PASS Unsafe mid-frame sprite geometry still rejects capture atomically
+PASS Actual native ROM frames preserve complete captures while reducing 16-byte tile allocations
+PASS History restoration and resumed real CPU execution preserve native capture data
+PASS Play performance readout reflects measured counters without changing emulation or input
+PASS Play readout reacts immediately to pause and unload within its normal refresh throttle
+19/19 passed
+(node:33375) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

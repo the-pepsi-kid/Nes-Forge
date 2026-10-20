@@ -1,0 +1,80 @@
+{
+  "format": "NESForgeNativeAssetBrowserVerification",
+  "htmlSha256": "6e7f71707e78bbb80839e1e0333b99c6f5fb891a754a549ffee93bf7045a3395",
+  "checks": [
+    {
+      "name": "Editable bundle file controls are visible before loading any ROM",
+      "passed": true
+    },
+    {
+      "name": "Actual ROM chooser and preparation create a detached paged-room/clip preview",
+      "passed": true
+    },
+    {
+      "name": "Partial Ninja selector remains inspectable with playback disabled and evidence export intact",
+      "passed": true
+    },
+    {
+      "name": "Real editable-bundle and standalone-project downloads include their pixels and references",
+      "passed": true
+    },
+    {
+      "name": "Fresh browser workspace imports downloaded bundle without loading its original ROM",
+      "passed": true
+    },
+    {
+      "name": "Standalone downloaded project opens through ordinary project-file controls",
+      "passed": true
+    },
+    {
+      "name": "Stale preview refuses mutation through the actual import button",
+      "passed": true
+    },
+    {
+      "name": "Changed downloaded pixels fail integrity checks and clear import readiness",
+      "passed": true
+    },
+    {
+      "name": "Zelda selection exports a timed-free pose with editable native room art",
+      "passed": true
+    },
+    {
+      "name": "430-pixel workbench preview and controls remain inside their container",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes — World destination renders recovered geometry and declares incomplete behavior",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes — real World paint controls edit geometry and Undo restores it",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes — spatial RE opens the same ROM audio catalog without emulator mutation",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes — music imports beside the World and both survive project reopen",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "limits": [
+    "Headless Linux Chromium and direct file launch; no native Windows or hardware acceptance claim."
+  ],
+  "browser": "151.0.7922.34",
+  "integratedCases": [
+    {
+      "file": "Ninja Gaiden (USA).nes",
+      "musicCue": "42",
+      "worlds": 1,
+      "patternsAdded": 2,
+      "instrumentsAdded": 4,
+      "emulatorLoaded": false
+    }
+  ],
+  "status": "failed",
+  "error": "locator.scrollIntoViewIfNeeded: Timeout 29990.036999999997ms exceeded.\nCall log:\n\u001b[2m  - attempting scroll into view action\u001b[22m\n\u001b[2m    2 × waiting for element to be stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying scroll into view action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying scroll into view action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    56 × waiting for element to be stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying scroll into view action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at click (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/native-world-import-1/verify-browser.cjs:5:46)\n    at /workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/native-world-import-1/verify-browser.cjs:29:143\n    at async check (/workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/native-world-import-1/verify-browser.cjs:4:31)\n    at async /workspace/scratch/4a3286d86934/nes-forge-spatial-re/reviews/native-world-import-1/verify-browser.cjs:29:2",
+  "passed": 14
+}

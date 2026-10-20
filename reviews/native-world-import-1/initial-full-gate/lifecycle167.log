@@ -1,0 +1,29 @@
+PASS Cold startup is a blank viewer workspace with one effective autosave schedule and no recovery writes
+PASS IndexedDB-only recovery is gated from startup through discovery, including unload autosave
+PASS Legacy local recovery stays available even when IndexedDB is unavailable
+PASS Corrupt local recovery is retained and blocks autosave when IndexedDB cannot be read
+PASS Explicit restore loads recovery once, clears its record, and marks restored edits unsaved
+PASS Recovery deletion failure retains the recovery copy and leaves restored content unsaved
+PASS Legacy local recovery restores and clears both storage locations after success
+PASS Unsupported recovery rejects atomically and keeps the original bytes offered for recovery
+PASS Malformed recovery stays intact and can be explicitly dismissed without replacing the workspace
+PASS Dismiss invalidates a pending recovery read and gates autosave through deletion
+PASS Recovery storage denial leaves a usable blank editor with an accurate unavailable message
+PASS Late restore cannot overwrite author edits made while its storage read was pending
+PASS Late restore cannot overwrite a New Project replacement
+PASS Autosave queued before a project replacement cannot write the old snapshot afterward
+PASS An old browser save persists its original identity but cannot rebind a new project
+PASS Browser save completion cannot mark later edits clean even within the same lifecycle epoch
+PASS Unchanged browser save binds one saved identity and marks only the saved snapshot clean
+PASS A failed browser save does not change project identity, content or dirty status
+PASS Saved project opening uses one authoritative commit and restores its browser identity
+PASS A delayed saved-project read cannot replace a newer project
+PASS Project file opening uses one authoritative commit and preserves authored data
+PASS Delayed project-file reads cannot overwrite subsequent edits or project replacement
+PASS Portable JSON and ZIP completion cannot clear edits or update save status made after export began
+PASS Portable JSON and ZIP completion cannot rebind or mark a newer project saved
+PASS Unchanged JSON and ZIP portable saves complete only after close and update save status exactly once
+PASS Legacy lifecycle globals call the authoritative service once for each requested operation
+26/26 passed
+(node:9124) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

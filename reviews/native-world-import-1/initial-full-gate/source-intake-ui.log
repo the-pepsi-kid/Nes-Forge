@@ -1,0 +1,22 @@
+PASS Intake controls mount inside the existing source workspace with explicit actions and no auto-analysis
+PASS Actual explicit analysis reports current source identity and leaves workspace, build, project, history, assembler and emulator intact
+PASS Engine declarations are report-only, never added to version 1 workspace or source ZIP exports
+PASS Explicit foreign declarations refuse UI assembly; unknown and Forge declarations preserve the existing build path
+PASS Successful workspace replacement resets declarations and restores the ordinary example build
+PASS Failed replacement preserves source and declarations but retires the previous report
+PASS Native text edits, build settings and declaration edits invalidate reports immediately
+PASS Analysis completing after source edits, settings, declarations or cancellation cannot install stale reports
+PASS Starting either asynchronous import invalidates analysis before any bytes finish loading
+PASS Later analysis wins when an older success or failure finishes last
+PASS Report Save As exports exact current evidence and cancellation retains a usable report
+PASS Report export revalidates declarations even when a programmatic change missed its input event
+PASS Stale report-save success, cancellation and failure cannot overwrite newer status or resurrect a report
+PASS Busy or failed Save As requests keep the current report and do not claim an export started
+PASS Long inventory and dependency displays disclose omitted rows while JSON retains all evidence
+PASS Public report return values and state snapshots cannot mutate the owned export evidence
+PASS Unsafe-looking source names and metadata render as literal report text
+PASS Metadata fields share source keyboard isolation without cancelling native editing
+PASS Current analysis errors leave source, active project and earlier source ROM available
+19/19 passed
+(node:52851) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)

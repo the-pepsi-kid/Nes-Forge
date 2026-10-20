@@ -1,0 +1,25 @@
+# Proposed procedural generation after verified RE import
+
+Owner direction: generate new games or runs from imported resources, with separate controls for what may change and a strict option to preserve the recovered game rules. The Dungeons of Infinity analogy describes the desired replayable experience; it does not establish that any arbitrary imported ROM is already generatable. This is a design proposal, not implementation or a new release claim.
+
+The current seeded mashup model already has reproducible seeds, saved recipes, source hashes, independent background/sprite/palette/music choices and locks. Its existing gameplay variation changes bounded patrol parameters and permutes compatible authored enemy/pickup slots. It does not generate new room geometry or prove level solvability, and currently does not reconstruct native imported AI. Reuse the seed/recipe/lock and canonical project contracts rather than build a competing mutation path.
+
+Proposed modes: (1) randomize content inside established room geometry, (2) rearrange verified compatible room chunks and connections, (3) synthesize new terrain/puzzles constrained by verified movement, collision, progression and engine capacities. Keep physics, collision response, enemy AI, combat/state transitions and progression semantics locked in preserve-logic mode. Choosing which enemies or items may move remains separate from changing their rules. Dynamic generation on original NES hardware is a separate runtime/banking/RAM milestone; generation inside the standalone HTML followed by export of a finite compatible game is the first target.
+
+Each engine profile must declare supported editable structures, port/entrance compatibility, movement reachability, state prerequisites, spawn safety, code/data ranges and ROM constraints. The generator must not infer these from art or generic native-byte flags. Start with a verified subset of one title; all cutscenes/dialogue need not be decoded before limited room reshuffling is useful. Unverified systems remain locked or explicitly unavailable.
+
+A recipe should include source hashes, profile/decoder/generator versions, seed, locked domains and constraints. Generate to a detached preview, validate, then use canonical project transactions with one Undo. Preserve the original project and show differences. The same original inputs, recipe and implementation version must reproduce the output. Validation must exercise reachability and progression (including keys/abilities), jump/landing bounds, collision and hazards, entity spawn constraints, native exit/state side effects, CHR/palette/bank/runtime limits, and state transitions; unchanged source code alone cannot prove a new arrangement is playable. Report the coverage and unresolved cases rather than call a partially explored state graph fully solvable.
+
+First implementation target after the required collision/entity/link evidence: shuffle compatible verified room chunks in Ninja Gaiden or Zelda II, preserve their rule/actor implementations, and supply a reproducible seed plus an evidence-backed route check. No automatic support for arbitrary imported ROMs is promised.
+
+## Required editability
+
+Owner clarification: generated output stays a normal editable Forge project. Reachability findings should locate and explain unreachable exits, impossible jumps, unsafe spawns or progression dependencies, and allow deliberate manual repairs. Editing platforms, collision, doors, encounters and item placements must remain available after generation. Generator locks constrain randomization; they do not make the resulting supported project assets permanently read-only.
+
+Keep the original source snapshot and generated recipe separate from subsequent manual edits. Mark/pin hand-authored areas and records so regeneration can preserve them by default or target only selected unlocked domains/regions. Support ordinary Undo/Redo and save/open throughout. Revalidate affected geometry/progression after edits and distinguish advisory reachability findings from malformed references, capacity overflow or unsupported executable representations that existing compilers must still refuse. Do not silently move, replace or discard a manual correction to satisfy a generator. These are future generator acceptance requirements, not newly implemented controls.
+
+## Reference and original-engine fidelity
+
+The creator's description of Dungeons of Infinity (https://justinbohemier.wixsite.com/portfolio/game-design) describes a GameMaker recreation with randomized layouts/items/enemies and an aim to retain the original feel. That experience is the inspiration; it is not evidence that arbitrary original ROM code supports unlimited layout changes.
+
+For a strict original-engine mode, prefer verified data-only layout/object/item patches with code regions locked and original encoding/bank capacities enforced. A Forge-project adaptation is a separate target: reconstructed behavior needs its own equivalence evidence and cannot be called unchanged native logic merely because art and poses match. Both modes should yield editable outputs within their supported representation.

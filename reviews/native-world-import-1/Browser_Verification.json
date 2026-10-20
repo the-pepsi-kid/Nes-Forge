@@ -1,0 +1,129 @@
+{
+  "format": "NESForgeNativeAssetBrowserVerification",
+  "htmlSha256": "0a973195626991c6277a0ab8e285c623717bfa6d6617d996dbcdfdc934f013d1",
+  "checks": [
+    {
+      "name": "Editable bundle file controls are visible before loading any ROM",
+      "passed": true
+    },
+    {
+      "name": "Actual ROM chooser and preparation create a detached paged-room/clip preview",
+      "passed": true
+    },
+    {
+      "name": "Partial Ninja selector remains inspectable with playback disabled and evidence export intact",
+      "passed": true
+    },
+    {
+      "name": "Real editable-bundle and standalone-project downloads include their pixels and references",
+      "passed": true
+    },
+    {
+      "name": "Fresh browser workspace imports downloaded bundle without loading its original ROM",
+      "passed": true
+    },
+    {
+      "name": "Standalone downloaded project opens through ordinary project-file controls",
+      "passed": true
+    },
+    {
+      "name": "Stale preview refuses mutation through the actual import button",
+      "passed": true
+    },
+    {
+      "name": "Changed downloaded pixels fail integrity checks and clear import readiness",
+      "passed": true
+    },
+    {
+      "name": "Zelda selection exports a timed-free pose with editable native room art",
+      "passed": true
+    },
+    {
+      "name": "430-pixel workbench preview and controls remain inside their container",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes \u2014 World destination renders recovered geometry and declares incomplete behavior",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes \u2014 real World paint controls edit geometry and Undo restores it",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes \u2014 spatial RE opens the same ROM audio catalog without emulator mutation",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes \u2014 music imports beside the World and both survive project reopen",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes \u2014 a supported single-channel SFX imports with its own Undo",
+      "passed": true
+    },
+    {
+      "name": "Ninja Gaiden (USA).nes \u2014 changing the RE ROM invalidates its detached audio source",
+      "passed": true
+    },
+    {
+      "name": "Zelda 2 - The Adventure of Link (U).nes \u2014 World destination renders recovered geometry and declares incomplete behavior",
+      "passed": true
+    },
+    {
+      "name": "Zelda 2 - The Adventure of Link (U).nes \u2014 real World paint controls edit geometry and Undo restores it",
+      "passed": true
+    },
+    {
+      "name": "Zelda 2 - The Adventure of Link (U).nes \u2014 spatial RE opens the same ROM audio catalog without emulator mutation",
+      "passed": true
+    },
+    {
+      "name": "Zelda 2 - The Adventure of Link (U).nes \u2014 music imports beside the World and both survive project reopen",
+      "passed": true
+    },
+    {
+      "name": "Zelda 2 - The Adventure of Link (U).nes \u2014 a supported single-channel SFX imports with its own Undo",
+      "passed": true
+    },
+    {
+      "name": "Zelda 2 - The Adventure of Link (U).nes \u2014 changing the RE ROM invalidates its detached audio source",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "limits": [
+    "Headless Linux Chromium and direct file launch; no native Windows or hardware acceptance claim."
+  ],
+  "browser": "151.0.7922.34",
+  "integratedCases": [
+    {
+      "file": "Ninja Gaiden (USA).nes",
+      "musicCue": "42",
+      "worlds": 1,
+      "patternsAdded": 2,
+      "instrumentsAdded": 4,
+      "emulatorLoaded": false,
+      "sfxCue": "14"
+    },
+    {
+      "file": "Zelda 2 - The Adventure of Link (U).nes",
+      "musicCue": "title:$01",
+      "worlds": 1,
+      "patternsAdded": 3,
+      "instrumentsAdded": 2,
+      "emulatorLoaded": false,
+      "sfxCue": "game:sfx:239:2"
+    }
+  ],
+  "status": "passed",
+  "passed": 22,
+  "visualReview": {
+    "status": "reviewed",
+    "images": [
+      "Ninja_World.png",
+      "Zelda_World.png"
+    ],
+    "findings": "Both show recovered art, World count 1, native dimensions/origin receipts and coverage; tileset palettes are populated. Standard World padding, grid and room rectangle remain visible. Zelda capture also shows the normal recovery banner."
+  }
+}
