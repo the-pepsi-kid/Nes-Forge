@@ -8945,14 +8945,15 @@ function status(message){
   el.textContent=message||((Forge15.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(Forge15.lastRecovery));
   el.title='Modified: '+(Forge15.dirty?'yes':'no')+'\nBrowser save: '+clock(Forge15.lastBrowserSave)+'\nRecovery: '+clock(Forge15.lastRecovery)+'\nPortable save: '+clock(Forge15.lastPortable);
 }
-function assertTarget(options){const target=options?.targetVersion??options?.targetSchema;if(target!==undefined&&target!==Forge.release.schema)fail('Project schema '+Forge.release.schema+' is required: downgrade would lose Gameplay Core, Audio Runtime, World Runtime, or unresolved authoring records. Export with this editor or retain the original older file.');}
+function writeSchema(){return S.nativeGame?Forge.release.schema:12;}
+function assertTarget(options){const target=options?.targetVersion??options?.targetSchema,schema=writeSchema();if(target!==undefined&&target!==schema)fail('Project schema '+schema+' is required: downgrade or format changes would lose native recipes or canonical authoring records. Export with this project format or retain the original older file.');}
 function capture(options={}){
   assertTarget(options);
   Forge164.model.ensure();
   saveCurrentScene();
   Forge161.worlds.ensure();
   S.asmSource=$('codeInput')?.value??S.asmSource;
-  return cp({format:'NESForge',version:S.nativeGame?Forge.release.schema:12,foundation:Forge.release.version,romLayout:Forge.services.WorldConfig.get().enabled?4:3,worldAuthoring:3,
+  return cp({format:'NESForge',version:writeSchema(),foundation:Forge.release.version,romLayout:Forge.services.WorldConfig.get().enabled?4:3,worldAuthoring:3,
     metatileExtension:1,metaspriteExtension:2,entityAnimationExtension:1,
     chr:S.chr,sprChr:S.sprChr,nt:S.nt,attr:S.attr,pal:S.pal,sprPal:S.sprPal,oam:S.oam,
     scenes:S.scenes,activeScene:S.activeScene,asmSource:S.asmSource,instruments:S.instruments,
