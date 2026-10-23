@@ -18684,6 +18684,43 @@ function projectPage(c,id,page){if(!profiles.includes(c.profile))return parent.p
 function encode(bytes,c,edits){if(!profiles.includes(c.profile))return parent.encode(bytes,c,edits);if(!Array.isArray(edits)||edits.length>c.totalCells)fail('Invalid recipes');const out=bytes.slice(),l=c.layouts[0],seen=new Set();for(const e of edits){if(!e||Object.keys(e).sort().join(',')!=='block,cell,layoutId'||e.layoutId!==l.id||!Number.isInteger(e.cell)||e.cell<0||e.cell>=l.cells.length||!Number.isInteger(e.block)||e.block<0||e.block>255||e.block===253||e.block===254)fail('Invalid native literal recipe');if(!l.writable[e.cell])fail('Generated/inherited cells or protected metadata aliases are read-only');if(seen.has(e.cell))fail('Duplicate physical recipe');seen.add(e.cell);out[l.offsets[e.cell]]=e.block;}const changes=[];for(let i=0;i<out.length;i++)if(out[i]!==bytes[i])changes.push({offset:i,before:bytes[i],after:out[i]});return {bytes:out,changes};}
 return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,...profiles]),inspect,projectPage,encode,punchOutContexts:contexts});
 });
+/* Source-owned Punch-Out fight/pose inventory. Native shape routines run on a
+ * bounded private RAM bus; they cannot access the live emulator, APU or PPU.
+ * Inventory is distinct from complete gameplay or native edit support. */
+(function(root,factory){const api=factory(typeof module!=='undefined'&&module.exports?require('../services/cpu6502-core.js'):root.Forge6502Core);if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.PunchOutContent=api;})(typeof globalThis!=='undefined'?globalThis:this,function(cpu){
+'use strict';
+const names=['Glass Joe','Von Kaiser','Piston Honda · first fight','Don Flamenco · first fight','King Hippo','Great Tiger','Bald Bull · first fight','Piston Honda · rematch','Soda Popinski','Bald Bull · rematch','Don Flamenco · rematch','Mr. Sandman','Super Macho Man','Mike Tyson'];
+const fail=m=>{throw Error('Punch-Out content: '+m);},hex=n=>'$'+n.toString(16).toUpperCase().padStart(4,'0');
+function open(input){
+ if(!(input instanceof Uint8Array)||input.length!==262160||input[4]!==8||input[5]!==16||((input[6]>>4)|(input[7]&240))!==9||input[6]&4)fail('A complete supported MMC2 source is required.');
+ const bytes=input.slice(),offset=(bank,a)=>{if(!Number.isInteger(bank)||bank<0||bank>15||!Number.isInteger(a)||a<0x8000||a>=0xa000)fail('Read leaves the declared physical bank.');return 16+bank*8192+a-0x8000;},b=(bank,a)=>bytes[offset(bank,a)],word=(bank,a)=>b(bank,a)|(b(bank,a+1)<<8);
+ // This entry must retain its original native shape dispatcher.
+ const anchor=[0xa5,0xa0,0xf0,0xfb,0xaa,0xa9,0x50,0x85,0xe7,0xa4,0x03];
+ if(!anchor.every((v,i)=>b(14,0x8890+i)===v))fail('Native shape reader differs.');
+ const fights=names.map((label,index)=>{
+  const bank=b(13,0x80d1+index*2),entryOffset=b(13,0x80d2+index*2),header=0x8000+entryOffset,shapes=word(bank,header),tables=[0,2,4].map(i=>word(bank,shapes+i)),palette=word(bank,header+6),config=word(bank,header+14),count=(tables[1]-tables[0])/2;
+  if(!Number.isInteger(count)||count<1||count>64||tables.some(t=>t<0x8000||t>=0xa000)||palette<0x8000||palette+32>0xa000||config<0x8000||config+96>0xa000)fail('Invalid fight pointer graph.');
+  const mode=b(bank,config+44)?16:8,poses=Array.from({length:count},(_,i)=>{const selector=i*2,address=word(bank,tables[0]+selector);return {id:'fight-'+index+'-pose-'+selector,selector,address,fileOffset:address>=0x8000&&address<0xa000?offset(bank,address):null,status:address>=0x8000&&address<0xa000?'source-record':'unavailable-slot',label:'Pose '+hex(selector)};});
+  return {id:'fight-'+index,index,label,bank8KiB:bank,entryOffset,entryFileOffset:offset(bank,header),shapeTables:tables,paletteFileOffset:offset(bank,palette),palette:Array.from({length:32},(_,i)=>b(bank,palette+i)&63),configFileOffset:offset(bank,config),configBytes:Array.from({length:96},(_,i)=>b(bank,config+i)),spriteMode:mode,baseX:b(bank,config+46),baseY:b(bank,config+47),poses,deltaPoseTables:tables.slice(1).map((address,i)=>({selectorBase:i?192:128,address,fileOffset:offset(bank,address),status:'requires-previous-pose'})),stateTables:[2,4].map(i=>({address:word(bank,header+i),fileOffset:offset(bank,word(bank,header+i)),status:'native-state-streams-not-translated'}))};
+ });
+ function pose(fightIndex,selector){
+  const f=fights[fightIndex],record=f?.poses.find(p=>p.selector===selector);if(!record||record.status!=='source-record')fail('Select a valid full-pose source record.');
+  const ram=new Uint8Array(2048),written=new Set(),reads=new Set(),state={A:0,X:0,Y:0,SP:0xfb,PC:0xc890,C:0,Z:0,I:1,D:0,V:0,N:0,cycles:0,opsMissed:0};let steps=0;
+  const read=a=>{a&=65535;if(a<0x2000)return ram[a&2047];if(a>=0x8000){const at=a<0xa000?offset(f.bank8KiB,a):16+131072-24576+a-0xa000;reads.add(at);return bytes[at];}fail('Pose requires runtime bus '+hex(a));};
+  const write=(a,v)=>{a&=65535;if(a>=0x2000)fail('Pose tried to access runtime bus '+hex(a));ram[a&2047]=v&255;written.add(a&2047);};
+  ram[3]=f.entryOffset;ram[0xa0]=128;ram[0xa1]=selector;ram[0x80]=f.spriteMode;ram[0x81]=f.spriteMode/8;ram[0x82]=f.spriteMode===16?254:255;ram[0xa9]=5;ram[0xb0]=f.baseX;ram[0xb1]=f.baseY;ram.fill(248,512,768);ram[0x1fc]=0xee;ram[0x1fd]=0x7f;
+  const core=cpu.create(state,read,write);
+  while(state.PC!==0x7fef){if(++steps>50000||state.PC<0xc88b||state.PC>=0xd800)fail('Pose leaves the bounded native shape reader.');core.step();state.PC&=65535;if(state.opsMissed)fail('Unsupported native instruction.');}
+  if(state.SP!==0xfd)fail('Native pose stack is unbalanced.');
+  const pieces=[],gaps=[];for(let slot=3;slot<64;slot++){const at=512+slot*4,y=ram[at],tile=ram[at+1];if(y>=239)continue;if(!written.has(at+1)){gaps.push('Slot '+slot+' inherits its tile from an earlier pose.');continue;}pieces.push({slot,x:ram[at+3],y:y+1,tile,attributes:ram[at+2],chrHalf:f.spriteMode===16?tile&1:0});}
+  if(pieces.some(p=>p.chrHalf))gaps.push('Upper CHR half requires the concurrent Little Mac / background bank state.');
+  return {fight:f.index,selector,source:record,bank8KiB:f.bank8KiB,spriteMode:f.spriteMode,chrBank4KiB:ram[0xa9]&31,palette:f.palette.slice(16),pieces,oam:Array.from(ram.slice(512,768)),status:gaps.length?'context-required':'decoded',gaps,instructions:steps,sourceBytesRead:reads.size};
+ }
+ function chr(bank){if(!Number.isInteger(bank)||bank<0||bank>=32)fail('CHR bank must be 0–31.');const start=131088+bank*4096;return Array.from({length:256},(_,t)=>Array.from({length:8},(_,y)=>Array.from({length:8},(_,x)=>((bytes[start+t*16+y]>>(7-x))&1)|(((bytes[start+t*16+y+8]>>(7-x))&1)<<1))));}
+ return Object.freeze({fights,pose,chr,physicalChrBanks:32,physicalChrTiles:8192,limits:['Full pose records only. Delta poses need a preceding animation state.','Native pose execution preserves OAM ordering, coordinates, palette IDs, flips and priority. Concurrent CHR state is required where reported.','Fight behavior, damage/collision, animation timing, menus, scene transitions and native sprite/CHR/Audio writing are separate recovery work.']});
+}
+return Object.freeze({version:1,open});
+});
 /* One source and native recipe owner. Catalogs are read-only evidence;
  * materialized pages are ordinary Scene assets, never a second Stage store. */
 (()=>{
@@ -18774,6 +18811,34 @@ renderEmuLine=function(line,baseY,baseNTY){if(emu.mapper!==9)return prior.line(l
 const capture=previous=>function(...args){if(emu.mapper===9)return reportError(Error('MMC2 runtime capture is not available. Use recovered source screens for native editing.'));return previous(...args);};
 emuCapture=capture(prior.capture);emuCaptureNametable=capture(prior.nametable);emuCaptureHybrid=capture(prior.hybrid);
 Forge.services.MMC2Mapping=Object.freeze({version:1,scope:'Standard MMC2 physical banking; scanline rendering remains approximate. Runtime capture is explicitly unavailable for MMC2.'});
+})();
+/* Materialize source poses with the established native source/recipe owner.
+ * Existing projects and all other adapters retain their original intake. */
+(()=>{
+'use strict';
+const services=Forge.services,base=services.NativeResourceProject,cp=v=>JSON.parse(JSON.stringify(v)),cache=new Map();
+const matches=p=>base.matches(p)&&p.nativeGame.adapter.startsWith('punch-out-');
+function source(p){if(!matches(p))throw Error('Open a recovered Punch-Out source project first.');const info=base.validate(p),key=p.nativeGame.sourceSha256;if(!cache.has(key)){if(cache.size>=2)cache.delete(cache.keys().next().value);cache.set(key,PunchOutContent.open(info.bytes));}return cache.get(key);}
+function assets(p,fight,selector){
+ const content=source(p),f=content.fights[fight],pose=content.pose(fight,selector);if(pose.status!=='decoded')throw Error('This pose needs its animation context: '+pose.gaps.join(' '));
+ let representative;for(const record of content.fights[fight].poses){if(record.status!=='source-record')continue;const candidate=content.pose(fight,record.selector);if(candidate.status==='decoded'&&candidate.chrBank4KiB===pose.chrBank4KiB&&candidate.spriteMode===pose.spriteMode){representative=candidate;break;}}
+ const sceneId='po-sprites-f'+fight+'-b'+pose.chrBank4KiB+'-m'+pose.spriteMode,frameId='po-pose-f'+fight+'-s'+selector,colors=Array.from({length:4},(_,i)=>[f.palette[16],...f.palette.slice(17+i*4,20+i*4)]),scene=makeScene({id:sceneId,name:f.label+' · sprite CHR '+pose.chrBank4KiB,chr:normalizeTiles(),sprChr:content.chr(pose.chrBank4KiB),pal:Array.from({length:4},()=>[15,0,0,0]),sprPal:colors,nt:Array(960).fill(0),attr:Array(64).fill(0),tileProps:Array(256).fill(0),oam:representative.pieces.map(piece=>({x:piece.x,y:piece.y,tile:pose.spriteMode===16?piece.tile&254:piece.tile,tile2:pose.spriteMode===16?(piece.tile&254)+1:(piece.tile+1)&255,attr:piece.attributes,height:pose.spriteMode,active:true,sourceOamIndex:piece.slot})),entities:[],links:[],buildInclude:false,buildOrder:0,gravity:0,scrollDir:'none',sceneType:'static',captureMeta:{mode:'native-sprite-source',punchOutContent:{version:1,sourceSha256:p.nativeGame.sourceSha256,fight,chrBank4KiB:pose.chrBank4KiB,spriteMode:pose.spriteMode,representativeSelector:representative.selector,scope:'Original sprite patterns and fight palette. Scene sprites show a representative source pose. Open a linked metasprite for its selected placement. This is not a complete fight scene.'}}});
+ const signed=n=>((n+128)&255)-128,frame={id:frameId,name:f.label+' · pose $'+selector.toString(16).toUpperCase().padStart(2,'0'),sceneId,spriteMode:pose.spriteMode,originX:0,originY:0,pieces:pose.pieces.map(piece=>({id:'oam-'+piece.slot,tile:pose.spriteMode===16?piece.tile&254:piece.tile,tile2:pose.spriteMode===16?(piece.tile&254)+1:(piece.tile+1)&255,x:signed(piece.x-f.baseX),y:signed(piece.y-1-f.baseY)+1,pal:piece.attributes&3,flipH:!!(piece.attributes&64),flipV:!!(piece.attributes&128),behind:!!(piece.attributes&32)}))};
+ return {scene,frame,pose};
+}
+function recover(project,{overview=false,fight=0,selector=0}={}){
+ // Do not turn unsupported edits into a new accepted native baseline.
+ base.validate(project,{build:true});const p=cp(project),content=source(p),choices=overview?content.fights.map(f=>[f.index,0]):[[fight,selector]];
+ if(overview){for(const item of base.libraryView(p).scenes)for(const page of base.pageList(p,item.id))Object.assign(p,base.addPage(p,item.id,page.page));}
+ const ids=[];for(const [fi,sel]of choices){const {scene,frame}=assets(p,fi,sel),existing=p.scenes.find(s=>s.id===scene.id),old=p.metasprites.find(m=>m.id===frame.id);if(existing&&JSON.stringify(existing)!==JSON.stringify(scene))throw Error('The recovered sprite source has local changes. Preserve them before opening another pose.');if(old&&JSON.stringify(old)!==JSON.stringify(frame))throw Error('The recovered pose has local changes. Preserve them before recovering it again.');if(!existing)p.scenes.push(scene);if(!old)p.metasprites.push(frame);ids.push(frame.id);}
+ if(p.scenes.length>64||p.metasprites.length>256)throw Error('The current project has no free Scene or metasprite slots. No source catalog entries were discarded.');
+ Forge163.persistence.validate(p.metasprites,p.animations,p.scenes);
+ p.nativeGame.projectionSha256=services.NativeEngineProject.signature({...p,scenes:p.scenes.filter(s=>!base.requiredScene(p,s.id))});
+ base.validate(p,{build:true});return {project:p,frameIds:ids};
+}
+async function create(input,name){const p=await base.create(input,name);return matches(p)?recover(p,{overview:true}).project:p;}
+services.NativeResourceProject=Object.freeze({...base,create});
+services.PunchOutContentRecovery=Object.freeze({matches,source,assets,recover});
 })();
 /* Read-only source evidence belongs to the project, not a second asset model.
  * Existing decoders own recovery; existing asset imports own editable copies.
@@ -19494,6 +19559,35 @@ for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropag
 const style=el('style');style.textContent='#nativeLayoutPanel[hidden]{display:none!important}#nativeLayoutPanel{border:1px solid #568087;border-radius:8px;padding:12px;margin:8px 0;overflow-wrap:anywhere}#nativeLayoutPanel label{display:block;margin:8px 0}#nativeLayoutPanel select,#nativeLayoutPanel button{min-height:44px;max-width:100%}#nativeLayoutPanel canvas{display:block;image-rendering:pixelated;margin:8px 0}';document.head.appendChild(style);
 const beforeTab=switchTab;switchTab=function(...args){const result=beforeTab(...args);refresh();return result;};
  s.NativeLayoutUI=Object.freeze({refresh,paint});refresh();
+})();
+/* Browse the entire source inventory without replacing existing editor tabs. */
+(()=>{
+'use strict';
+const services=Forge.services,api=services.PunchOutContentRecovery,store=services.ProjectStore,$=id=>document.getElementById(id),el=(tag,id,text)=>{const n=document.createElement(tag);if(id)n.id=id;if(text!==undefined)n.textContent=text;return n;};
+let catalog=null,sourceHash='',current=null;
+const entry=el('button','punchOutContentOpen','Recovered content'),panel=el('details','punchOutContentPanel'),summary=el('summary',null,'Punch-Out source content'),status=el('p','punchOutContentStatus'),inventory=el('p','punchOutContentInventory'),fight=el('select','punchOutContentFight'),pose=el('select','punchOutContentPose'),preview=el('canvas','punchOutContentPreview'),details=el('pre','punchOutContentDetails'),copy=el('button','punchOutContentCopy','Open pose in Metasprites'),overview=el('button','punchOutContentOverview','Recover background pages and fighter samples'),chr=el('button','punchOutContentChr','Browse all CHR banks'),audio=el('button','punchOutContentAudio','Open source Audio');
+panel.hidden=true;preview.width=256;preview.height=240;preview.style.imageRendering='pixelated';status.setAttribute('role','status');entry.type=copy.type=overview.type=chr.type=audio.type='button';panel.append(summary,status,inventory,el('label',null,'Fighter / fight '),fight,el('label',null,' Pose '),pose,preview,copy,overview,chr,audio,details);$('sceneContext').before(panel);$('areaLibraryOpen').before(entry);
+const style=el('style');style.textContent='#punchOutContentPanel[hidden]{display:none!important}#punchOutContentPanel{flex:1 0 100%;padding:12px;box-sizing:border-box;border:1px solid var(--bdr);font:12px/1.6 system-ui;max-width:100%;overflow-wrap:anywhere}#punchOutContentPanel button,#punchOutContentPanel select{min-height:44px;max-width:100%;margin:4px}#punchOutContentPreview{display:block;background:#151515;margin:8px 0;max-width:100%;width:256px}#punchOutContentDetails{white-space:pre-wrap;max-height:240px;overflow:auto}';document.head.appendChild(style);
+function read(){const p=store.capture();if(!api.matches(p))throw Error('Open a recovered Punch-Out project with Open ROM / project first.');if(sourceHash!==p.nativeGame.sourceSha256){catalog=api.source(p);sourceHash=p.nativeGame.sourceSha256;fight.replaceChildren();for(const f of catalog.fights){const o=el('option',null,f.label);o.value=String(f.index);fight.appendChild(o);}fight.value='0';poses();}return p;}
+function poses(){pose.replaceChildren();const f=catalog.fights[Number(fight.value)];for(const p of f.poses){const o=el('option',null,p.label+(p.status==='unavailable-slot'?' · empty slot':''));o.value=String(p.selector);o.disabled=p.status==='unavailable-slot';pose.appendChild(o);}pose.value='0';}
+function render(){
+ current=null;copy.disabled=true;const ctx=preview.getContext('2d');ctx.clearRect(0,0,256,240);
+ try{read();const fi=Number(fight.value),sel=Number(pose.value),f=catalog.fights[fi],p=store.capture(),result=api.assets(p,fi,sel);current=result;
+  const im=ctx.createImageData(256,240);for(let i=0;i<256*240;i++)im.data.set([21,21,21,255],i*4);
+  // Display fit uses unchanged native piece geometry, including flip and order.
+  const bounds=Forge163.metasprites.bounds(result.frame),ox=Math.floor((256-bounds.w)/2)-bounds.x,oy=Math.floor((240-bounds.h)/2)-bounds.y;
+  for(const piece of result.frame.pieces.slice().reverse())for(let y=0;y<result.frame.spriteMode;y++)for(let x=0;x<8;x++){const fy=piece.flipV?result.frame.spriteMode-1-y:y,fx=piece.flipH?7-x:x,tile=fy<8?piece.tile:piece.tile2,c=result.scene.sprChr[tile][fy&7][fx],px=ox+piece.x+x,py=oy+piece.y+y;if(c&&px>=0&&px<256&&py>=0&&py<240)im.data.set([...(NP[result.scene.sprPal[piece.pal][c]]||[0,0,0]),255],(py*256+px)*4);}
+  ctx.putImageData(im,0,0);copy.disabled=false;status.textContent=f.label+' · '+result.frame.pieces.length+' pieces · '+result.frame.spriteMode+'-pixel sprites. Centered pose preview; hardware scanline clipping is not simulated.';
+  details.textContent=JSON.stringify({sourcePose:result.pose.source,chrBank4KiB:result.pose.chrBank4KiB,paletteFileOffset:f.paletteFileOffset,stateTables:f.stateTables,deltaPoseTables:f.deltaPoseTables,limits:catalog.limits},null,2);
+ }catch(e){status.textContent=e.message;details.textContent=catalog?catalog.limits.join('\n'):'';}
+ if(catalog)inventory.textContent='Source: '+catalog.fights.length+' fight configurations · '+catalog.fights.reduce((n,f)=>n+f.poses.length,0)+' full-pose table slots · '+catalog.physicalChrBanks+' physical CHR banks / '+catalog.physicalChrTiles+' tiles. Full fights, Little Mac/referee animation, timing, transitions, collision and native sprite/Audio writing remain incomplete.';
+}
+function open(){try{read();panel.hidden=false;panel.open=true;render();panel.scrollIntoView?.({block:'start'});return true;}catch(e){showToast(e.message);return false;}}
+function materialize(all=false){const p=read(),expected=store.serialize(),epoch=store.state.epoch,result=api.recover(p,all?{overview:true}:{fight:Number(fight.value),selector:Number(pose.value)}),prepared=store.prepareLoad(result.project);if(epoch!==store.state.epoch||expected!==store.serialize())throw Error('The project changed. Preview the source pose again.');if(snapshot()===false)throw Error('History could not preserve the current project. Save it before recovering content.');store.commit(prepared,{sync:true,intent:'punch-out-content-recovery'});notify('punchOutContentRecovery');const id=result.frameIds[0],frame=S.metasprites.find(m=>m.id===id);if(frame){services.SceneContext.selectScene(frame.sceneId);Forge163.metasprites.select(id);switchTab('metasprites');}status.textContent='Recovered '+result.frameIds.length+' source pose(s). Undo restores the prior project. Pose edits save, but native output requires an encoder.';return result.frameIds;}
+const safe=fn=>()=>{try{return fn();}catch(e){status.textContent=e.message;showToast(e.message);return false;}};
+entry.onclick=open;fight.onchange=()=>{poses();render();};pose.onchange=render;copy.onclick=safe(()=>materialize());overview.onclick=safe(()=>materialize(true));chr.onclick=safe(()=>{read();switchTab('chr');updateChrBankBrowser();$('chrBankBrowser').scrollIntoView?.({block:'center'});});audio.onclick=()=>void services.InvestigationUI.whenReady().then(()=>{read();services.NativeAudioLibraryUI.open(true);switchTab('audio');}).catch(e=>{status.textContent=e.message;});
+for(const type of ['keydown','keyup'])panel.addEventListener(type,e=>e.stopPropagation?.());
+services.PunchOutContentUI=Object.freeze({open,render,materialize,getState:()=>({sourceHash,fight:Number(fight.value),selector:Number(pose.value),ready:!!current})});
 })();
 
 /* Single current application bootstrap. */

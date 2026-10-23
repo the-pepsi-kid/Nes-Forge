@@ -1,3 +1,8 @@
+
+## Punch-Out source content checkpoint
+
+The current candidate adds the source-content browser and materializes five preceding background pages plus representative sprite sources/placements/metasprites for 14 fight configurations. All 32 raw CHR banks remain available. Full recovery is **not complete**: animation context, Little Mac/referee states, transitions/collision/AI and native sprite/CHR/Audio writers remain open. See `reviews/punch-out-content-1/HANDOFF.md`, the fresh content/lifecycle evidence and 90-check gate. All 157 original application inputs remain byte-identical.
+
 # Current checkpoint: Punch-Out static backgrounds + Audio
 
 Read ../reviews/punch-out-1/HANDOFF.md and ../reviews/PROJECT_VERIFICATION.md. Both supplied US revisions now have five static source backgrounds and the original bank-8 Audio driver. Whole-game recovery, fighter sprites, dynamic states, native Audio writing, MMC2 runtime capture and owner listening/hardware acceptance remain unresolved. The bank-6 startup PCM is cataloged and auditionable, with PCM tracker editing still unavailable. Every project must verify both Scene and Audio.

@@ -1,3 +1,8 @@
+
+## Punch-Out source content checkpoint
+
+The current candidate adds the source-content browser and materializes five preceding background pages plus representative sprite sources/placements/metasprites for 14 fight configurations. All 32 raw CHR banks remain available. Full recovery is **not complete**: animation context, Little Mac/referee states, transitions/collision/AI and native sprite/CHR/Audio writers remain open. See `reviews/punch-out-content-1/HANDOFF.md`, the fresh content/lifecycle evidence and 90-check gate. All 157 original application inputs remain byte-identical.
+
 # NES Forge · Punch-Out backgrounds + Audio
 
 Both supplied US revisions now have five static native staging backgrounds, MMC2 latch-aware CHR row projection and bounded native literal edits. Audio installs 84 entries: 75 sounding bank-8 music/effect/DPCM selections, a Startup PCM + native bell audition, six empty slots and two stop controls.

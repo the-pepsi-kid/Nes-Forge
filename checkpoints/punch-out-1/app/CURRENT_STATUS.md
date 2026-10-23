@@ -1,3 +1,8 @@
+
+## Punch-Out source content checkpoint
+
+The current candidate adds the source-content browser and materializes five preceding background pages plus representative sprite sources/placements/metasprites for 14 fight configurations. All 32 raw CHR banks remain available. Full recovery is **not complete**: animation context, Little Mac/referee states, transitions/collision/AI and native sprite/CHR/Audio writers remain open. See `reviews/punch-out-content-1/HANDOFF.md`, the fresh content/lifecycle evidence and 90-check gate. All 157 original application inputs remain byte-identical.
+
 # Current status
 
 **2.0.0-alpha.11 · Punch-Out static backgrounds + Audio review**
