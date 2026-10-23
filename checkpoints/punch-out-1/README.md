@@ -1,11 +1,13 @@
-# NES Forge · Punch-Out intake and capture correction
+# NES Forge · Punch-Out backgrounds + Audio
 
-Import ROM and Open ROM / project now start with a completed pixel-validated native frame, including sprites, palettes and scroll. Source Audio recognizes 84 entries after import/reopening and accepts equivalent iNES padding bytes 12–15. Re-import the original ROM to create the corrected scene; preceding saved projects retain their original projections and recipes.
+Both supplied US revisions now have five static native staging backgrounds, MMC2 latch-aware CHR row projection and bounded native literal edits. Audio installs 84 entries: 75 sounding bank-8 music/effect/DPCM selections, a Startup PCM + native bell audition, six empty slots and two stop controls.
 
-Read reviews/punch-out-fix-1/HANDOFF.md and Owner_Checklist.md. The v2 background templates use the source's physical mirroring and FD/FE fills, and retain a bounded 574-byte native writer. Complete captured-frame native writing, native Audio/sample writing, complete fights and hardware accuracy remain unsupported. MMC2 capture is exact against the existing scanline emulator's completed frame.
+Startup PCM runs the original bank-6 one-shot routine continuously with instruction-clocked DAC writes. Select at least 199 updates to complete it; shorter windows report truncation. It has no PCM tracker model or native sample writer. Other editable Audio excerpts are finite adaptations; unsupported tracker edits refuse native ROM output.
 
-Current evidence: 97 public checks across nine suites, 12 actual intake/workflow groups, four full-catalog/native-template groups, and 150 unchanged predecessor bundle inputs. The older 403 supplied-input cases and historical 25-suite gate remain archived, not counted as fresh reruns. Browser listening and physical device acceptance remain owner checks.
+Read reviews/punch-out-1/PUNCH_OUT_REVIEW.md, HANDOFF.md, Owner_Checklist.md and reviews/PROJECT_VERIFICATION.md. Five static backgrounds do not establish complete fights, fighter layers, animation, game logic or full menus. MMC2 scanline timing is approximate and runtime capture explicitly refuses. Browser listening, controllers, hardware acceptance, the complete release gate and alpha promotion remain open.
 
-Build: `python3 app/tools/bundle.py --check`. Public checks: `python3 reviews/punch-out-fix-1/run_checks.py`. Supplied originals: `node reviews/punch-out-fix-1/verify_intake.cjs /path/to/private-roms` and `node reviews/punch-out-fix-1/verify_catalog.cjs /path/to/private-roms`. Source preservation: `python3 tools/verify_punch_out_fix_source.py`.
+Build/check: `python3 app/tools/bundle.py --check`. Run the eight available public suites with `python3 reviews/punch-out-1/run_checks.py`. Supplied-input verification uses `python3 reviews/punch-out-1/run_supplied.py /path/to/private-roms`. The historical 386-case/25-suite gate is archived; seventeen historical suite scripts were absent from the restored source snapshot and are not counted as fresh reruns.
 
-No commercial ROM, music/sample payload, screenshot or source-bearing commercial project is included. Main and preceding checkpoints are preserved.
+The standalone HTML is app/mainline/NES_Forge_2.0.0-alpha.11.html. Source preservation can be checked without earlier Git history using `python3 tools/verify_punch_out_source.py`: the exact predecessor HTML and verified part boundaries are included.
+
+No commercial ROM, recovered music/sample payload, screenshot or source-bearing commercial project is included. Previous checkpoints and main are preserved.

@@ -1,12 +1,12 @@
 {
-  "candidate": "punch-out-fix-1",
+  "candidate": "punch-out-1",
   "version": "2.0.0-alpha.11",
   "status": "development-candidate",
   "promoted": false,
-  "parentCommit": "cf93cb65a19ad182f647dc678b26d630ef757642",
-  "branch": "implementation/punch-out-fix-1",
+  "parentCommit": "82a8977984cbddce53268f1b85ce6bb37905af5d",
+  "branch": "implementation/punch-out-1",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "babb65a3d43418172454c1d259a11e2e07c3c7e777922dccc6a2397e8bd2754f",
+  "htmlSha256": "5b38daf48470f98f01cefa202378981642dc64dfc401eb4dcd03225fd0dfc8d8",
   "schemas": {
     "ordinary": 12,
     "native": 13,
@@ -16,46 +16,49 @@
     "portableRom": 16
   },
   "scope": [
-    "Punch-Out both supplied US revisions: actual Import ROM and Open ROM/project routes start with a completed pixel-validated native frame including background, sprites, palettes and scroll",
-    "Source Audio recognition/navigation and 84 entries survive import and reopening, including equivalent iNES padding bytes 12\u201315",
-    "Corrected v2 static template mirroring, physical nametable fills and initial result background palette; 574 bounded writable literals",
-    "Unmodified v1 decoder preserves preceding saved-project recipes; prior source owners, CPU/APU, Audio execution and RuntimeCompiler remain unchanged"
+    "Punch-Out US PRG0/PRG1: five static native background staging contexts with explicit MMC2 latch-selected rows and 711 bounded writable literal bytes per revision",
+    "Punch-Out Audio: 84 catalog entries, including 75 sounding bank-8 music/effect/DPCM requests plus Startup PCM + native bell",
+    "Resumable one-shot bank-6 playback preserves original instruction-clocked DAC timing, completion and truncation; original sample bytes remain source-owned",
+    "Retained Shadowgate, River City, Lolo and Metroid native Scene/Audio contracts"
   ],
   "limits": [
-    "Exact scene validation is against the completed scanline emulator frame; it does not establish cycle-accurate hardware video or complete fights",
-    "Captured reference edits save, but have no native source encoder. Native editing is separately limited to declared source-template recipes",
-    "No native Audio/sample writer. Canonical Audio omits DPCM and short-mode noise; startup PCM supports native audition only",
-    "Existing v1 projects retain their original projections. Re-import the original ROM to create the corrected first Scene",
-    "Physical input, browser listening, full-game acceptance, complete historical release gate and alpha promotion remain open"
+    "New generic source projects preserve unchanged native ROM output; copied edits need a declared native writer",
+    "Physical CHR banks do not establish palette, scene, sprite role, collision, AI or Audio meanings",
+    "CHR RAM requires a verified decoder or capture; no recovered graphics donor is invented",
+    "Shared multiplayer networking remains planned; start with a small Forge World, then a bounded Z2 integration adapter",
+    "Physical devices, OS dialogs, listening, full quests and hardware remain separately unverified",
+    "Punch-Out: static backgrounds only; fighter/sprite layers, dynamic UI, animation, collision, full fights and gameplay remain unresolved. MMC2 scanline timing is approximate and runtime capture is unavailable.",
+    "Startup PCM is cataloged and auditionable, but PCM tracker editing and native Audio/sample writing are unavailable. Short-mode noise and DPCM are omitted from canonical adaptations."
   ],
   "verification": {
     "status": "targeted-passed",
-    "focus": "actual Punch-Out import routes, complete native frame, Audio recognition/reopen and preceding saved projects",
-    "targetedGate": "reviews/punch-out-fix-1/gate/Summary.json",
-    "publicChecks": 97,
-    "publicSuites": 9,
-    "realIntake": "reviews/punch-out-fix-1/Intake_Verification.json",
-    "realWorkflowGroups": 12,
-    "catalogAndWriter": "reviews/punch-out-fix-1/Catalog_Verification.json",
-    "catalogAndWriterGroups": 4,
-    "sourcePreservation": "reviews/punch-out-fix-1/Source_Preservation.json",
-    "backgroundDifferentPixels": 0,
-    "compositeDifferentPixels": 0,
-    "historicalEvidence": "The preceding 403 supplied-input cases and historical 386-case/25-suite gate are archived, not counted as current reruns",
-    "fullReleaseGate": "not run",
-    "browserListening": "pending"
+    "focus": "Punch-Out both US revisions: static backgrounds + Audio + continuous startup PCM",
+    "freshScreens": "reviews/punch-out-1/Screens_Verification.json",
+    "freshAudio": "reviews/punch-out-1/Audio_Verification.json",
+    "freshPCM": "reviews/punch-out-1/PCM_Verification.json",
+    "boundedBoot": "reviews/punch-out-1/Boot_Verification.json",
+    "targetedGate": "reviews/punch-out-1/gate/Summary.json",
+    "sharedChecks": 90,
+    "sharedSuites": 8,
+    "suppliedInputSupplement": "reviews/punch-out-1/Supplied_Summary.json",
+    "suppliedInputChecks": 403,
+    "sourcePreservation": "reviews/punch-out-1/Source_Preservation.json",
+    "historicalGate": "Prior 386-case/25-suite results remain archived. Seventeen suite scripts were absent from the restored source snapshot and are not claimed as current reruns.",
+    "fullReleaseGate": "not run for this bounded checkpoint",
+    "ownerSceneAndListening": "pending"
   },
   "distribution": {
     "privateRomsIncluded": false,
     "sourceBearingCommercialProjectsIncluded": false,
     "previousKit": "NF6.zip",
-    "standaloneHTML": "NES_Forge_Punch_Out_Fixed.html",
+    "standaloneHTML": "NES_Forge_Punch_Out.html",
     "newZipRequested": false
   },
   "sourcePreservation": {
-    "protectedBundleInputs": 150,
-    "changedSeams": 7,
-    "addedModules": 2,
+    "report": "reviews/punch-out-1/Source_Preservation.json",
+    "protectedBundleInputs": 146,
+    "changedSharedInputs": 6,
+    "newModules": 5,
     "ordinarySchema": 12,
     "readerCeiling": 16
   },
