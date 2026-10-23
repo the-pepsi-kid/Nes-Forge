@@ -1,0 +1,23 @@
+PASS Unknown and legacy source scenes never infer an Audio binding from a label or cue number
+PASS Explicit native writer and source-table evidence produce a detached area-start receipt
+PASS Area selector, table byte and writer location must all agree
+PASS Unsupported profiles and out-of-catalog command identities cannot establish a link
+PASS Source verification re-reads both the indexed command byte and native writer before cue selection
+PASS Real conversion, sealing and guarded append retain the same native event on all room pages
+PASS Descriptions neither import tracker data nor add a history entry
+PASS Canonical page and World navigation retain the source cue without choosing music
+PASS JSON save/reopen preserves event provenance with the ordinary schema and exact bytes
+PASS Import Undo/Redo restores exact scene receipts and unchanged canonical Audio
+PASS Repeated imports retain independent canonical assets while sharing source-event evidence
+PASS Older room-only receipts remain unresolved rather than acquiring guessed stage music
+PASS Disagreeing event receipts disable cue navigation across the same source context
+PASS Malformed sibling writer evidence is a conflict rather than a second guessed binding
+PASS Source hashes partition event evidence even when room and area labels match
+PASS A context/area mismatch cannot use otherwise valid source event metadata
+PASS Missing matching source visibly disables the exact cue action
+PASS Unavailable or unresolved cue actions refuse before changing project, history or tab
+PASS The native Audio library refuses direct cue selection without an exact current source
+PASS Returned event descriptions cannot mutate the saved source receipt
+PASS Native event labels are constructed from checked command IDs and do not render supplied HTML
+PASS New Project clears source events and does not leave a stale action or selection
+22/22 passed
