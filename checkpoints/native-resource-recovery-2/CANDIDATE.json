@@ -1,0 +1,53 @@
+{
+  "candidate": "native-resource-recovery-2-metroid",
+  "version": "2.0.0-alpha.11",
+  "status": "development-candidate",
+  "promoted": false,
+  "parentCommit": "5bee768675152e69d5a9a3b5c837cbc452f3422c",
+  "branch": "implementation/native-resource-recovery-2",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "28a2a6a98b06f31f51f18aba9669807ab722ed2bab729d7f688f9b02d5cadecb",
+  "schemas": {
+    "ordinary": 12,
+    "native": 13,
+    "investigation": 14,
+    "readCeiling": 16,
+    "selectedTerrain": 15,
+    "portableRom": 16
+  },
+  "scope": [
+    "Metroid ordered room backgrounds and bounded native structure replacement; five areas / 193 source slots / 191 owners",
+    "Retained recovered baseline and earlier Mega Man work",
+    "Metroid 12-song / 24-SFX native audio catalog, bank-aware audition and finite tracker conversion; project reopen restores its Audio library"
+  ],
+  "limits": [
+    "New generic source projects preserve unchanged native ROM output; copied edits need a declared native writer",
+    "Physical CHR banks do not establish palette, scene, sprite role, collision, AI or Audio meanings",
+    "CHR RAM requires a verified decoder or capture; no recovered graphics donor is invented",
+    "Shared multiplayer networking remains planned; start with a small Forge World, then a bounded Z2 integration adapter",
+    "Physical devices, OS dialogs, listening, full quests and hardware remain separately unverified"
+  ],
+  "verification": {
+    "status": "targeted-passed",
+    "focus": "Metroid",
+    "freshResults": "reviews/native-resource-recovery-2/Metroid_Verification.json",
+    "targetedGate": "reviews/native-resource-recovery-2/audio-gate/Summary.json",
+    "fullReleaseGate": "not run for Metroid-inclusive candidate",
+    "audio": "reviews/native-resource-recovery-2/Metroid_Audio_Verification.json",
+    "audioGate": "reviews/native-resource-recovery-2/audio-gate/Summary.json"
+  },
+  "distribution": {
+    "privateRomsIncluded": false,
+    "sourceBearingCommercialProjectsIncluded": false,
+    "previousKit": "../NES_Forge_Project_Expansion_1_Documented_Review_Kit.zip",
+    "currentKit": "NF2.zip",
+    "newKitAvailable": true
+  },
+  "sourcePreservation": {
+    "delta": "app/tests/fixtures/agnostic-source-delta.json",
+    "protectedPredecessorFiles": 357,
+    "parentHtmlSha256": "f3c8aa049742480359097a3fdb9e458d175993a59cbe5a772b571cac82947232"
+  },
+  "payloadChecksums": 7533,
+  "packageFiles": 7534
+}

@@ -12,22 +12,22 @@ async function run(input,options={},controls={}){
  const bytes=input.slice(),frames=integer(options.frames??256,1,MAX_FRAMES,'Native updates');aborted(controls.signal);
  const identity=await services.NativeAudioCatalog.identify(bytes);aborted(controls.signal);if(!identity.profile)throw Error('No installed decoder supports this ROM revision.');
  const catalog=await services.NativeAudioCatalog.inspect(bytes),cue=catalog.cues.find(c=>String(c.id)===String(options.cueId));if(!cue)throw Error('Select a cue from the decoded catalog.');if(['empty-request','control'].includes(cue.kind))throw Error('This is an empty request or control command, not a standalone sound. Inspect its native data instead.');
- const samples=[],machine=services.NativeAudioMachine.create(bytes,identity.profile.bank,{onSample:options.samples===false?()=>{}:s=>samples.push(s)}),ram=machine.ram;let update;
+ const samples=[],machine=services.NativeAudioMachine.create(bytes,cue.bank??identity.profile.bank,{onSample:options.samples===false?()=>{}:s=>samples.push(s)}),ram=machine.ram;let update,beforeUpdate=null;
  machine.write(0x4015,15);machine.write(0x4017,0xc0);
  if(identity.profile.id==='zelda2-us-1'){
   update=cue.family==='title'||cue.driver==='title'?0x8000:0x9000;
   if(cue.family){ram[0x707]=({'game-context-0':0,'game-context-1-2':1,'game-context-3-4':3,'game-context-other':5})[cue.family]??0;}
   ram[cue.requestRegister]=cue.requestMask;
- }else if(identity.profile.id==='ninja-gaiden-us-1'){update=0x8000;ram[0x600]=Number(cue.id);}
+ }else if(identity.profile.id==='metroid-us-1'){update=0xb3b4;machine.call(0xb404);ram[0x2e]=0x11;ram[0x2f]=0xff;beforeUpdate=()=>machine.call(0xc000);ram[cue.requestRegister]=cue.requestMask;}else if(identity.profile.id==='ninja-gaiden-us-1'){update=0x8000;ram[0x600]=Number(cue.id);}
  else if(identity.profile.id==='megaman2-us-1'){update=0x8000;machine.call(0x8003,Number(cue.id));}
  else{update=0x967d;machine.call(0xa2af,0);machine.call(0xa29b,Number(cue.id));}
  const schedule=[];
  for(let frame=0;frame<frames;frame++){
-  aborted(controls.signal);machine.setFrame(frame);const before=machine.apu.cycles;machine.call(update);const elapsed=machine.apu.cycles-before;if(elapsed>29780)throw Error('Native call exceeded its update window.');machine.clock(29780-elapsed);
+  aborted(controls.signal);machine.setFrame(frame);const before=machine.apu.cycles;beforeUpdate?.();machine.call(update);const elapsed=machine.apu.cycles-before;if(elapsed>29780)throw Error('Native call exceeded its update window.');machine.clock(29780-elapsed);
   schedule.push({frame,channels:machine.channels(),dmc:{remaining:machine.apu.dmc.remaining,level:machine.apu.dmc.level,address:machine.apu.dmc.address}});
   if((frame&15)===15){controls.progress?.({frame:frame+1,total:frames});await new Promise(resolve=>setTimeout(resolve,0));aborted(controls.signal);}
  }
- const stats=machine.stats();return {format:'NESForgeNativeAudioPlayback',version:1,source:identity.source,profile:identity.profile,cue,frames,sampleRate:48000,clock:29780,schedule,writes:machine.writes,stats,limitations:limits.slice(),samples:Float32Array.from(samples)};
+ const stats=machine.stats();return {format:'NESForgeNativeAudioPlayback',version:1,source:identity.source,profile:identity.profile,cue,physicalBank:cue.bank??identity.profile.bank,frames,sampleRate:48000,clock:29780,schedule,writes:machine.writes,stats,limitations:[...limits,...(identity.profile.id==='metroid-us-1'?catalog.native.limitations:[])],samples:Float32Array.from(samples)};
 }
 function transcribe(trace,options={}){
  const rows=integer(options.rows??64,16,128,'Pattern rows'),kind=options.resourceKind??'music';if(!['music','sfx'].includes(kind))throw Error('Choose music or a single-channel SFX transcription.');

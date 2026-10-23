@@ -41,7 +41,7 @@ function restore(){
  const hash=n.source.sha256,bytes=Uint8Array.from(S.importedRom),current=()=>own===restoreToken&&epoch===store.state.epoch&&S.investigation?.source.sha256===hash;
  ownedHash=hash;
  return (async()=>{try{
-  if(n.version===2||n.version===3||n.version===4){const ok=await services.REAnalysisUI.openFile({name:n.source.name,size:bytes.length,arrayBuffer:async()=>bytes.slice().buffer},{allowLegacyHeaderLayout:true,isCurrent:current});if(!ok||!current())return false;refresh();services.AreaLibraryUI.refresh();return true;}
+  if(n.version===2||n.version===3||n.version===4){const ok=await services.REAnalysisUI.openFile({name:n.source.name,size:bytes.length,arrayBuffer:async()=>bytes.slice().buffer},{allowLegacyHeaderLayout:true,isCurrent:current});if(!ok||!current())return false;const audio=await services.NativeAudioLibraryUI.sourceLoaded(bytes,n.source.name,{isCurrent:current});if(!audio||!current())return false;refresh();services.AreaLibraryUI.refresh();return true;}
   if(services.SpatialREUI.getState().sha256!==hash){const ok=await services.SpatialREUI.openFile({name:n.source.name,size:bytes.length,arrayBuffer:async()=>bytes.slice().buffer},{reveal:false,isCurrent:current});if(!ok||!current())return false;}
   const sourceCurrent=()=>current()&&services.SpatialREUI.getState().sha256===hash;
   const audio=await services.NativeAudioLibraryUI.sourceLoaded(bytes,n.source.name,{isCurrent:sourceCurrent});if(!audio||!sourceCurrent())return false;

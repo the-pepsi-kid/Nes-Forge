@@ -27,7 +27,11 @@ The existing canonical Scene/ProjectStore/history/native-build workflow remains 
 
 `targeted-gate/Summary.json` records the focused compatibility run against the exact final HTML hash. The earlier full gate was intentionally stopped at 63 suites / 1,393 checks before Metroid integration. Those partial results are historical and do not certify this build. A fresh full release regression run is not claimed.
 
-Real browser appearance, file downloads, controllers, mobile touch, listening and full gameplay traversal require owner/device acceptance. Background room recovery and structure substitution are partial support. World-map placement and travel, menus, actors, items, doors, collision-rule editing, animation, dynamic palette states, Audio and complete behavior recovery remain unfinished. No title in the 17-title batch is complete.
+Real browser appearance, file downloads, controllers, mobile touch, listening and full gameplay traversal require owner/device acceptance. Background room recovery and structure substitution are partial support. World-map placement and travel, menus, actors, items, doors, collision-rule editing, animation, dynamic palette states, native Audio writing and complete behavior recovery remain unfinished. No title in the 17-title batch is complete.
+
+## Metroid Audio update
+
+The AUDIO / ROM Audio Library now offers 12 music cues, 24 SFX and one reset control. It restores automatically from the original source when a recovered Metroid project is opened or reopened. See `METROID_AUDIO.md` for steps, revision limits and the distinction between a tracker excerpt and original-engine audio.
 
 ## Source and continuation
 

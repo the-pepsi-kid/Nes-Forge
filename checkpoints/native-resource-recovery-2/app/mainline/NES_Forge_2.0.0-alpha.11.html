@@ -14050,6 +14050,90 @@ function decode(rom,sourceSha256){
 }
 return Object.freeze({decode,sha256:SHA,limits:Object.freeze({streamInstructions:MAX}),version:1});
 });
+/* Metroid US music/SFX catalog. Independent interpretation of the native
+ * B3B4 update, BBFA/BD31 headers and BADC/BB1C stream interpreter documented
+ * in nmikstas/metroid-disassembly, revision 4270d57. No ROM/music payloads.
+ * Physical bank is part of cue identity; placeholder RAM pointers are refused. */
+(function(root,factory){const api=factory();if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.MetroidAudio=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+'use strict';
+const sha256='c5eea06e1e1128b576bd789f1a4f63bb154d6d31579c2f319382fb77a72d34a6';
+const limits=Object.freeze({streamInstructions:4096,streamEvents:1024,streamFrames:65536});
+const fail=m=>{throw Error('Metroid Audio: '+m);};
+const hash=bytes=>(typeof FamiTone2Native!=='undefined'?FamiTone2Native:require('./famitone2-native.js')).sha256(bytes);
+const at=(bank,cpu)=>({bank16KiB:bank,cpu,fileOffset:16+bank*16384+cpu-0x8000});
+const songs=Object.freeze([
+ [0,5,'Ridley area'],[1,3,'Tourian'],[2,1,'Item room'],[3,4,'Kraid area'],
+ [4,2,'Norfair'],[5,3,'Escape'],[6,3,'Mother Brain'],[7,1,'Brinstar'],
+ [8,1,'Fade in'],[9,1,'Power up'],[10,0,'Ending'],[11,0,'Title / intro']
+].map(Object.freeze));
+function decode(bytes,expectedSha256){
+ if(!(bytes instanceof Uint8Array)||bytes.length!==131088||expectedSha256!==sha256||hash(bytes)!==sha256)fail('Unsupported source revision.');
+ if(bytes[4]!==8||bytes[5]!==0||((bytes[6]>>4)|(bytes[7]&240))!==1||(bytes[6]&4)||(bytes[7]&12))fail('Unsupported source header.');
+ function b(bank,cpu){if(!Number.isInteger(bank)||bank<0||bank>5||!Number.isInteger(cpu)||cpu<0x8000||cpu>=0xc000)fail('Read outside reviewed music bank.');return bytes[at(bank,cpu).fileOffset];}
+ const word=(bank,cpu)=>b(bank,cpu)|(b(bank,cpu+1)<<8);
+ function anchor(bank,cpu,data){if(data.some((v,i)=>b(bank,cpu+i)!==v))fail('Driver anchor differs at '+cpu.toString(16));}
+ for(let bank=0;bank<=5;bank++){
+  anchor(bank,0xb3b4,[0xa9,0xc0,0x8d,0x17,0x40,0xad,0x80,0x06]);
+  anchor(bank,0xbf26,[0xb9,0xfa,0xbb,0xa8,0xa2,0]);
+  anchor(bank,0xbb2b,[0xb9,0xf7,0xbe]);
+ }
+ const cues=[],streams=[],headers=[],instruments=[],drivers=[],effects=[];
+ function walk(bank,pointer,channel,header,cueId,frameLimit=limits.streamFrames){
+  if(pointer<(bank===0?0xac00:0xb000)||pointer>=0xb200&&pointer<0xbdcd||pointer>=0xbef7)fail('Music stream points outside reviewed data.');
+  let index=0,frames=0,duration=0,repeat=0,loop=0,terminal='work-limit',steps=0;
+  const seen=new Set(),events=[];
+  const read=()=>{const address=pointer+index;index=(index+1)&255;return {value:b(bank,address),source:at(bank,address)};};
+  while(steps++<limits.streamInstructions&&events.length<limits.streamEvents&&frames<Math.min(frameLimit,limits.streamFrames)){
+   const state=[index,duration,repeat,loop].join(':');if(seen.has(state)){terminal='repeated-parser-state';break;}seen.add(state);
+   const op=read(),value=op.value;
+   if(value===0){terminal='end';events.push({kind:'end',frame:frames,source:op.source});break;}
+   if(value===255){if(repeat){repeat--;index=loop;}events.push({kind:'loop-end',remaining:repeat,frame:frames,source:op.source});continue;}
+   if((value&192)===192){repeat=((value&63)-1)&255;loop=index;events.push({kind:'loop-start',repeatCount:value&63,frame:frames,source:op.source});continue;}
+   let note=op;
+   if((value&176)===176){const lengthIndex=header.lengthTableOffset+(value&15);if(lengthIndex>=34)fail('Note duration outside native length tables.');duration=b(bank,0xbef7+lengthIndex);if(!duration)fail('Zero duration is not a supported static score.');events.push({kind:'duration',frames:duration,frame:frames,source:op.source});note=read();if(!note.value||(note.value&192)===192||(note.value&176)===176)fail('Invalid note after length command.');}
+   if(!duration)fail('Stream lacks an initial note duration.');
+   if(channel===3){if(![1,4,7,10].includes(note.value)){terminal='outside-note-table';break;}events.push({kind:'drum',drum:(note.value-1)/3,frame:frames,frames:duration,source:note.source,registers:at(bank,0xb200+note.value)});}
+   else{if(note.value&1||note.value>=128){terminal='outside-note-table';break;}const high=b(bank,0xbe77+note.value),low=b(bank,0xbe78+note.value);events.push({kind:low?'note':'rest',frame:frames,frames:duration,period:low?((high&7)<<8)|low:null,source:note.source,noteTable:at(bank,0xbe77+note.value)});}
+   frames+=duration;
+  }
+  if(frames>=frameLimit)terminal='shared-music-end';
+  return {id:cueId+':ch'+channel,cueIds:[cueId],channel,source:at(bank,pointer),frames,terminal,instructions:steps,events};
+ }
+ for(const [index,bank,name]of songs){
+  const headerCpu=0xbd31+b(bank,0xbbfa+index),pointers=Array.from({length:4},(_,i)=>word(bank,headerCpu+5+i*2));
+  if(pointers.some(p=>p&&p<0x8000))fail('Placeholder music request has no physical ROM stream.');
+  const id='music:'+index,header={id,index,bank,source:at(bank,headerCpu),lengthTableOffset:b(bank,headerCpu),repeat:b(bank,headerCpu+1)!==0,triangleControl:b(bank,headerCpu+2),volumeControls:[b(bank,headerCpu+3),b(bank,headerCpu+4)],pointers};
+  if(![0,11,23].includes(header.lengthTableOffset)||header.volumeControls.some(v=>v>5))fail('Invalid music header controls.');
+  let channelStreams=pointers.flatMap((p,ch)=>p?[walk(bank,p,ch,header,id)]:[]);
+  const ends=channelStreams.filter(s=>s.terminal==='end').map(s=>s.frames),endFrame=ends.length?Math.min(...ends):null;
+  if(endFrame!==null)channelStreams=pointers.flatMap((p,ch)=>p?[walk(bank,p,ch,header,id,endFrame)]:[]);
+  if(channelStreams.some(s=>s.terminal==='outside-note-table'))fail('Music channel leaves its note table before shared termination.');
+  header.endFrame=endFrame;streams.push(...channelStreams);headers.push(header);
+  cues.push({id,label:name+' · music',kind:'music-request',bank,musicIndex:index,requestRegister:index<8?0x685:0x684,requestMask:index<8?0x80>>index:0x80>>(index-8),channels:channelStreams.map(s=>s.channel),streamIDs:channelStreams.map(s=>s.id),header:header.source,repeat:header.repeat});
+ }
+ const groups=[
+  [0x680,0xb2bb,[null,'Screw attack','Missile launch','Bomb explosion','Samus walk','Spit flame',null,null]],
+  [0x681,0xb2db,['Missile pickup','Energy pickup','Metal','Beam shot','Enemy regeneration','Enemy hit','Jump','Wave beam']],
+  [0x683,0xb2fb,['Samus death','Door','Metroid hit','Statue raise','Low energy beep','Large enemy hit','Morph ball','Bomb launch']],
+  [0x684,0xbc06,[null,null,null,null,null,'Samus hit','Boss hit','Incorrect password']]
+ ];
+ for(const [requestRegister,table,names]of groups)for(let bit=0;bit<8;bit++){
+  if(!names[bit])continue;
+  const mask=0x80>>bit,id='sfx:'+requestRegister.toString(16)+':'+mask,entry=word(1,table+bit*2),kind='effect';
+  if(entry<0xb31b||entry>=0xbcaf)fail('SFX handler outside reviewed driver.');
+  const cue={id,label:names[bit]+(kind==='control'?' · control':' · SFX'),kind,bank:1,requestRegister,requestMask:mask,table:at(1,table+bit*2),entry:at(1,entry)};cues.push(cue);effects.push(cue);
+ }
+ const reset={id:'control:reset',label:'Silence / reset · control',kind:'control',bank:1,requestRegister:0x680,requestMask:1,entry:at(1,0xb3eb)};cues.push(reset);effects.push(reset);
+ for(let i=0;i<5;i++){
+  const pointer=word(1,0xbcb0+i*2),entries=[];let terminal=null;
+  for(let n=0;n<64;n++){if(pointer+n<0xbcba||pointer+n>=0xbd31)fail('Envelope outside reviewed table.');const value=b(1,pointer+n);entries.push({index:n,value,source:at(1,pointer+n)});if(value===255||value===240){terminal=value===255?'restore-original-volume':'silence';break;}if(value>15)fail('Invalid envelope volume.');}
+  if(!terminal)fail('Unterminated volume envelope.');instruments.push({id:i+1,source:at(1,pointer),terminal,entries});
+ }
+ for(let bank=0;bank<=5;bank++)drivers.push({bank,update:at(bank,0xb3b4),initialize:at(bank,0xb404),headerIndex:at(bank,0xbbfa),headers:at(bank,0xbd31)});
+ return {format:'NESForgeMetroidNativeAudio',version:1,cues,streams,headers,effects,instruments,samples:[],drivers,summary:{musicCues:12,effectCues:effects.filter(c=>c.kind==='effect').length,controlCues:effects.filter(c=>c.kind==='control').length,channelStreams:streams.length,decodedEvents:streams.reduce((n,s)=>n+s.events.length,0),volumeEnvelopes:instruments.length,physicalMusicBanks:6},limitations:['Exact supplied US revision only; other revisions and audio-modified ROMs are not recognized.','Music names and request routing follow the reviewed driver tables. A selected cue runs in its declared physical bank with cleared driver RAM, startup random seeds $11/$FF and one native RNG update per frame; this is a deterministic audition context, not recorded gameplay randomness.','Static channel streams are bounded independently. Native playback owns whole-cue termination, music repetition and SFX arbitration.','Procedural SFX are catalogued by request/handler; their notes come from bounded native execution.','No native audio writer is installed. Editable score import is a finite frame-sampled adaptation using the existing Forge engine.']};
+}
+return Object.freeze({sha256,decode,limits});
+});
 /* Native byte parsers ported from the reviewed private catalog studies. No
  * recovered catalog or commercial ROM/sample payload is embedded in Forge.
  * Known-revision identity gates are explicit; each decoder re-reads source bytes. */
@@ -14063,6 +14147,7 @@ const profiles=Object.freeze([
 {id:'zelda2-us-1',title:'Zelda II — The Adventure of Link',sha256:'ad8c0fbcf092bf84b48e69fd3964eea4ed91bfe62abc352943d537979782680c',bank:6},
 {id:'ninja-gaiden-us-1',title:'Ninja Gaiden',sha256:'07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e',bank:3},
 {id:'castlevania2-us-1',title:"Castlevania II — Simon's Quest",sha256:'f045d72683d3156555eccbb56090888f03a15e5b25e59db49dca7a87330472d3',bank:0},
+{id:'metroid-us-1',title:'Metroid',defaultCueId:'music:7',banks:[0,1,2,3,4,5,7],sha256:'c5eea06e1e1128b576bd789f1a4f63bb154d6d31579c2f319382fb77a72d34a6',bank:1,fixedBank:7},
 {id:'megaman2-us-1',title:'Mega Man 2',sha256:'49136b412ff61beac6e40d0bbcd8691a39a50cd2744fdcdde3401eed53d71edf',bank:12,fixedBank:15}]);
 function input(bytes){assert(bytes instanceof Uint8Array,'Choose a NES ROM.');assert(bytes.length>=16&&bytes.length<=64*1024*1024,'ROM size is outside the supported bound.');return bytes;}
 async function identify(bytes){input(bytes);const sha256=sha(bytes);return {source:{sha256,byteLength:bytes.length},profile:profiles.find(p=>p.sha256===sha256)||null};}
@@ -14313,10 +14398,10 @@ return structural;
 }
 const hx=n=>'$'+n.toString(16).toUpperCase().padStart(2,'0');
 function build(bytes,identity,selection=null){
- const {profile,source}=identity;assert(profile,'This ROM revision has no installed native audio decoder.');assert(bytes.length===262160&&bytes[0]===78&&bytes[1]===69&&bytes[2]===83&&bytes[3]===26&&bytes[4]===(profile.id==='megaman2-us-1'?16:8)&&bytes[5]===(profile.id==='megaman2-us-1'?0:16)&&((bytes[6]>>4)|(bytes[7]&240))===1&&!(bytes[6]&4),'Known revision header layout differs.');
- const native=profile.id==='megaman2-us-1'?(typeof MegaMan2Audio!=='undefined'?MegaMan2Audio:require('./megaman2-audio.js')).decode(bytes,source.sha256):profile.id==='zelda2-us-1'?zelda(bytes,source.sha256):profile.id==='ninja-gaiden-us-1'?ninja(bytes,source.sha256,selection):castlevania(bytes,source.sha256);
+ const {profile,source}=identity;assert(profile,'This ROM revision has no installed native audio decoder.');if(profile.id!=='metroid-us-1')assert(bytes.length===262160&&bytes[0]===78&&bytes[1]===69&&bytes[2]===83&&bytes[3]===26&&bytes[4]===(profile.id==='megaman2-us-1'?16:8)&&bytes[5]===(profile.id==='megaman2-us-1'?0:16)&&((bytes[6]>>4)|(bytes[7]&240))===1&&!(bytes[6]&4),'Known revision header layout differs.');
+ const native=profile.id==='metroid-us-1'?(typeof MetroidAudio!=='undefined'?MetroidAudio:require('./metroid-audio.js')).decode(bytes,source.sha256):profile.id==='megaman2-us-1'?(typeof MegaMan2Audio!=='undefined'?MegaMan2Audio:require('./megaman2-audio.js')).decode(bytes,source.sha256):profile.id==='zelda2-us-1'?zelda(bytes,source.sha256):profile.id==='ninja-gaiden-us-1'?ninja(bytes,source.sha256,selection):castlevania(bytes,source.sha256);
  let cues,instruments,samples,summary,limitations;
- if(profile.id==='megaman2-us-1'){({cues,instruments,samples,summary,limitations}=native);
+ if(profile.id==='megaman2-us-1'||profile.id==='metroid-us-1'){({cues,instruments,samples,summary,limitations}=native);
  }else if(profile.id==='zelda2-us-1'){
  cues=native.cues.map(c=>({id:c.id,label:c.family+' · request '+hx(c.requestMask)+(c.orders.length?'':' · empty slot'),kind:c.orders.length?'music-request':'empty-request',family:c.family,requestMask:c.requestMask,requestRegister:c.requestRegister,orders:c.orders,aliases:c.sameOrderSequenceAs}));
  for(const g of native.sfx)for(const s of g.slots)cues.push({id:g.driver+':sfx:'+g.requestRegister+':'+s.mask,label:g.driver+' · SFX '+hx(g.requestRegister)+' / '+hx(s.mask),kind:'effect',driver:g.driver,requestRegister:g.requestRegister,requestMask:s.mask,...s});
@@ -14331,7 +14416,7 @@ function build(bytes,identity,selection=null){
  return {format:'NESForgeNativeAudioCatalog',version:1,status:'decoded',source:copy(source),profile:copy(profile),summary,cues,instruments,samples,native,limitations:[...limitations,'Known revision only. Cue IDs and aliases are native identities, not verified song names.','Catalog evidence is separate from an editable project. Controlled native playback and canonical transcription disclose their own limits.']};
 }
 async function inspect(bytes){bytes=input(bytes).slice();const identity=await identify(bytes);if(!identity.profile)return {format:'NESForgeNativeAudioCatalog',version:1,status:'unknown',...identity,cues:[],instruments:[],samples:[],limitations:['No installed native catalog matches this revision. No claim that audio is absent. Existing FamiTone2 and runtime investigation remain available.']};return build(bytes,identity);}
-async function selection(bytes,id){bytes=input(bytes).slice();const identity=await identify(bytes),catalog=build(bytes,identity,identity.profile?.id==='ninja-gaiden-us-1'?Number(id):null),cue=catalog.cues.find(c=>c.id===String(id));assert(cue,'Select a catalog cue.');let streams;if(identity.profile.id==='megaman2-us-1')streams=catalog.native.streams.filter(s=>cue.streamIDs.includes(s.id));else if(identity.profile.id==='zelda2-us-1')streams=(cue.orders||[]).map(o=>catalog.native.headers.find(h=>h.id===o.header));else if(identity.profile.id==='ninja-gaiden-us-1')streams=catalog.native.streams.filter(s=>s.commandIDs.includes(Number(id)));else streams=catalog.native.streams.filter(s=>cue.recordIds?.includes(s.recordId));return {source:catalog.source,profile:catalog.profile,cue,streams,instruments:catalog.instruments,samples:catalog.samples,limitations:catalog.limitations};}
+async function selection(bytes,id){bytes=input(bytes).slice();const identity=await identify(bytes),catalog=build(bytes,identity,identity.profile?.id==='ninja-gaiden-us-1'?Number(id):null),cue=catalog.cues.find(c=>c.id===String(id));assert(cue,'Select a catalog cue.');let streams;if(identity.profile.id==='metroid-us-1')streams=catalog.native.streams.filter(s=>cue.streamIDs?.includes(s.id));else if(identity.profile.id==='megaman2-us-1')streams=catalog.native.streams.filter(s=>cue.streamIDs.includes(s.id));else if(identity.profile.id==='zelda2-us-1')streams=(cue.orders||[]).map(o=>catalog.native.headers.find(h=>h.id===o.header));else if(identity.profile.id==='ninja-gaiden-us-1')streams=catalog.native.streams.filter(s=>s.commandIDs.includes(Number(id)));else streams=catalog.native.streams.filter(s=>cue.recordIds?.includes(s.recordId));return {source:catalog.source,profile:catalog.profile,cue,streams,instruments:catalog.instruments,samples:catalog.samples,limitations:catalog.limitations};}
 return Object.freeze({version:1,profiles,identify,inspect,selection});
 });
 /* Installed catalog methods live in the existing recovery registry. Recognition
@@ -14340,7 +14425,7 @@ return Object.freeze({version:1,profiles,identify,inspect,selection});
 'use strict';
 const services=window.Forge.services;
 for(const profile of services.NativeAudioCatalog.profiles){
- const span={start:16+profile.bank*16384,length:16384},evidence=status=>[{status,claim:status==='decoded'?'Native audio tables and commands decoded from the verified current source.':'SHA-256 identifies this investigated ROM revision; it does not establish another title or revision.',ranges:[span]}];
+ const spans=(profile.banks||[profile.bank]).map(bank=>({start:16+bank*16384,length:16384})),evidence=status=>[{status,claim:status==='decoded'?'Native audio tables and commands decoded from the verified current source.':'SHA-256 identifies this investigated ROM revision; it does not establish another title or revision.',ranges:spans}];
  services.REMethods.registerProfile({id:'native-audio.'+profile.id,version:1,contractVersion:2,name:profile.title+' · known revision audio catalog',domains:['audio','code'],limits:{maxSourceBytes:262160,maxWork:4*1024*1024},limitations:['Exact investigated revision only. Full engine-family recognition is not implemented.','Cue IDs and structural candidates are not verified song names. Canonical transcription has separate fidelity limits.','No native encoder or ROM rebuild is implied by catalog decoding.'],operations:{inspect:{label:'Identify investigated audio revision',effect:'read-only'},decode:{label:'Decode native audio catalog',effect:'read-only'}},
   probe:(_analysis,ctx)=>({status:ctx.source.sha256===profile.sha256?'supported':'unknown',reason:ctx.source.sha256===profile.sha256?'Matches the investigated revision; its decoded catalog is available in AUDIO / ROM Audio Library.':'This profile does not identify the current revision.',evidence:ctx.source.sha256===profile.sha256?evidence('observed'):[]}),
   handlers:{inspect:(_analysis,_input,ctx)=>({status:'supported',reason:'Known revision identified; audio tables have not been decoded by this operation.',evidence:evidence('observed'),data:{profile}}),decode:async(_analysis,_input,ctx)=>{const bytes=new Uint8Array(ctx.source.byteLength);for(let offset=0;offset<bytes.length;offset+=65536){const n=Math.min(65536,bytes.length-offset);bytes.set(ctx.read(offset,n).bytes,offset);await ctx.checkpoint();}const catalog=await services.NativeAudioCatalog.inspect(bytes);if(catalog.status!=='decoded'||catalog.profile.id!==profile.id)throw Error('Current bytes no longer decode as the selected profile.');return {status:'supported',reason:'Native audio catalog decoded from physical source bytes.',evidence:evidence('decoded'),data:catalog};}}
@@ -14386,22 +14471,22 @@ async function run(input,options={},controls={}){
  const bytes=input.slice(),frames=integer(options.frames??256,1,MAX_FRAMES,'Native updates');aborted(controls.signal);
  const identity=await services.NativeAudioCatalog.identify(bytes);aborted(controls.signal);if(!identity.profile)throw Error('No installed decoder supports this ROM revision.');
  const catalog=await services.NativeAudioCatalog.inspect(bytes),cue=catalog.cues.find(c=>String(c.id)===String(options.cueId));if(!cue)throw Error('Select a cue from the decoded catalog.');if(['empty-request','control'].includes(cue.kind))throw Error('This is an empty request or control command, not a standalone sound. Inspect its native data instead.');
- const samples=[],machine=services.NativeAudioMachine.create(bytes,identity.profile.bank,{onSample:options.samples===false?()=>{}:s=>samples.push(s)}),ram=machine.ram;let update;
+ const samples=[],machine=services.NativeAudioMachine.create(bytes,cue.bank??identity.profile.bank,{onSample:options.samples===false?()=>{}:s=>samples.push(s)}),ram=machine.ram;let update,beforeUpdate=null;
  machine.write(0x4015,15);machine.write(0x4017,0xc0);
  if(identity.profile.id==='zelda2-us-1'){
   update=cue.family==='title'||cue.driver==='title'?0x8000:0x9000;
   if(cue.family){ram[0x707]=({'game-context-0':0,'game-context-1-2':1,'game-context-3-4':3,'game-context-other':5})[cue.family]??0;}
   ram[cue.requestRegister]=cue.requestMask;
- }else if(identity.profile.id==='ninja-gaiden-us-1'){update=0x8000;ram[0x600]=Number(cue.id);}
+ }else if(identity.profile.id==='metroid-us-1'){update=0xb3b4;machine.call(0xb404);ram[0x2e]=0x11;ram[0x2f]=0xff;beforeUpdate=()=>machine.call(0xc000);ram[cue.requestRegister]=cue.requestMask;}else if(identity.profile.id==='ninja-gaiden-us-1'){update=0x8000;ram[0x600]=Number(cue.id);}
  else if(identity.profile.id==='megaman2-us-1'){update=0x8000;machine.call(0x8003,Number(cue.id));}
  else{update=0x967d;machine.call(0xa2af,0);machine.call(0xa29b,Number(cue.id));}
  const schedule=[];
  for(let frame=0;frame<frames;frame++){
-  aborted(controls.signal);machine.setFrame(frame);const before=machine.apu.cycles;machine.call(update);const elapsed=machine.apu.cycles-before;if(elapsed>29780)throw Error('Native call exceeded its update window.');machine.clock(29780-elapsed);
+  aborted(controls.signal);machine.setFrame(frame);const before=machine.apu.cycles;beforeUpdate?.();machine.call(update);const elapsed=machine.apu.cycles-before;if(elapsed>29780)throw Error('Native call exceeded its update window.');machine.clock(29780-elapsed);
   schedule.push({frame,channels:machine.channels(),dmc:{remaining:machine.apu.dmc.remaining,level:machine.apu.dmc.level,address:machine.apu.dmc.address}});
   if((frame&15)===15){controls.progress?.({frame:frame+1,total:frames});await new Promise(resolve=>setTimeout(resolve,0));aborted(controls.signal);}
  }
- const stats=machine.stats();return {format:'NESForgeNativeAudioPlayback',version:1,source:identity.source,profile:identity.profile,cue,frames,sampleRate:48000,clock:29780,schedule,writes:machine.writes,stats,limitations:limits.slice(),samples:Float32Array.from(samples)};
+ const stats=machine.stats();return {format:'NESForgeNativeAudioPlayback',version:1,source:identity.source,profile:identity.profile,cue,physicalBank:cue.bank??identity.profile.bank,frames,sampleRate:48000,clock:29780,schedule,writes:machine.writes,stats,limitations:[...limits,...(identity.profile.id==='metroid-us-1'?catalog.native.limitations:[])],samples:Float32Array.from(samples)};
 }
 function transcribe(trace,options={}){
  const rows=integer(options.rows??64,16,128,'Pattern rows'),kind=options.resourceKind??'music';if(!['music','sfx'].includes(kind))throw Error('Choose music or a single-channel SFX transcription.');
@@ -14520,14 +14605,14 @@ function selectCue(id,expected){
  return cp(cue);
 }
 function jsonRecords(){if(!catalog)return [];if(view==='instruments')return catalog.instruments||[];if(view==='samples')return catalog.samples||[];if(view==='commands'){if(!selection)return [{notice:'Inspect a cue first to decode its complete command records.'}];const out=[];for(const stream of selection.streams||[]){if(stream.channels)for(const [channel,data]of Object.entries(stream.channels))for(const event of data.events||[])out.push({section:stream.id,channel,...event});else for(const event of stream.events||[])out.push({channel:stream.channel??stream.slot,recordId:stream.recordId,...event});}return out.length?out:[{cue:selection.cue,notice:'This entry is a control/empty slot or procedural effect. It does not have an independently decoded note stream; inspect its entry/table evidence.'}];}
- if(view==='writes')return trace?.writes||[{notice:'Run Play native or Preview editable score to collect the actual isolated native writes.'}];if(view==='methods')return [{profile:catalog.profile,drivers:catalog.native?.drivers,dispatcher:catalog.native?.driver,opcodes:catalog.native?.opcodes,queueStateMachine:catalog.native?.queueStateMachine,banks:{mapper:1,mode:'fixed PRG mapping for controlled playback',lower:{cpu:'$8000–$BFFF',physicalBank:catalog.profile?.bank,fileStart:16+(catalog.profile?.bank||0)*16384},upper:{cpu:'$C000–$FFFF',physicalBank:catalog.profile?.fixedBank??7,fileStart:16+(catalog.profile?.fixedBank??7)*16384}},limitations:catalog.limitations}];return [{source:catalog.source,profile:catalog.profile,summary:catalog.summary,selectedCue:selection?.cue||cueRecords().find(x=>x.id===selected),limitations:catalog.limitations}];}
+ if(view==='writes')return trace?.writes||[{notice:'Run Play native or Preview editable score to collect the actual isolated native writes.'}];if(view==='methods')return [{profile:catalog.profile,drivers:catalog.native?.drivers,dispatcher:catalog.native?.driver,opcodes:catalog.native?.opcodes,queueStateMachine:catalog.native?.queueStateMachine,banks:{mapper:1,mode:'fixed PRG mapping for controlled playback',lower:{cpu:'$8000–$BFFF',physicalBank:selection?.cue?.bank??catalog.profile?.bank,fileStart:16+(selection?.cue?.bank??catalog.profile?.bank??0)*16384},upper:{cpu:'$C000–$FFFF',physicalBank:catalog.profile?.fixedBank??7,fileStart:16+(catalog.profile?.fixedBank??7)*16384}},limitations:catalog.limitations}];return [{source:catalog.source,profile:catalog.profile,summary:catalog.summary,selectedCue:selection?.cue||cueRecords().find(x=>x.id===selected),limitations:catalog.limitations}];}
 function showData(){const data=jsonRecords(),size=view==='commands'||view==='writes'?32:4;page=Math.max(0,Math.min(page,Math.max(0,Math.ceil(data.length/size)-1)));const start=page*size;c.data.textContent=JSON.stringify(data.slice(start,start+size),null,2);c.page.textContent=data.length?'Records '+(start+1)+'–'+Math.min(start+size,data.length)+' of '+data.length:'No records in this category.';c.prev.disabled=page===0;c.next.disabled=start+size>=data.length;}
 function metrics(){c.metrics.replaceChildren();if(!catalog||catalog.status!=='decoded')return;const pointerCount=catalog.instruments.reduce((n,x)=>n+(x.entries?.length||1),0);for(const [number,label]of [[catalog.cues.length,'cue / control entries'],[pointerCount,'envelope entries'],[catalog.samples.length,'DPCM descriptors']]){const box=make('div');box.className='nal-metric';box.appendChild(make('strong',null,String(number)));box.appendChild(make('span',null,label));c.metrics.appendChild(box);}}
 async function sourceLoaded(bytes,name='ROM',options={}){
  if(bytes===romRef&&source&&matchesSource()&&sourceCurrent===(options.isCurrent||null))return source;fileOperation++;cancel();sourceCurrent=typeof options.isCurrent==='function'?options.isCurrent:null;detachedEmulatorRef=sourceCurrent?emu.lastBuiltRom:null;romRef=bytes;const id=++generation;source=null;catalog=null;selection=null;trace=null;staged=null;c.cue.replaceChildren();c.title.textContent='Reading ROM audio';metrics();busy=true;controls();status('Identifying the loaded ROM and decoding its native audio tables…');
  try{const data=bytes.slice(),result=await services.NativeAudioCatalog.inspect(data);if(id!==generation||romRef!==bytes||!matchesSource())return false;source={bytes:data,name:String(name).slice(0,512),sha256:result.source.sha256,token:'rom-audio-'+id+'-'+result.source.sha256};catalog=result;c.title.textContent=result.profile?.title||'Audio driver not recognized';
   if(result.status!=='decoded'){const option=make('option',null,'No native decoder for this revision — use Audio Discovery');option.value='';c.cue.appendChild(option);}
-  for(const cue of result.cues){const option=make('option',null,cue.label);option.value=cue.id;c.cue.appendChild(option);}const preferred=result.cues.find(x=>x.kind==='music-candidate'||x.kind==='music-request'||x.channels?.length>=3)||result.cues[0];selected=preferred?.id||null;c.cue.value=selected||'';metrics();view='overview';page=0;showData();
+  for(const cue of result.cues){const option=make('option',null,cue.label);option.value=cue.id;c.cue.appendChild(option);}const preferred=result.cues.find(x=>x.id===result.profile?.defaultCueId)||result.cues.find(x=>x.kind==='music-candidate'||x.kind==='music-request'||x.channels?.length>=3)||result.cues[0];selected=preferred?.id||null;c.cue.value=selected||'';metrics();view='overview';page=0;showData();
   if(result.status==='decoded'){open=true;status('Decoded '+result.cues.length+' native cue/control entries from '+source.name+'. The Audio library is ready. No project data has been changed.');c.summary.textContent='The catalog comes directly from this ROM. Browse commands, instruments and samples; audition a cue, then preview its editable adaptation.';}
   else{status('This ROM revision has no installed native catalog. Runtime Investigation and the existing FamiTone2 workflow remain available.');c.summary.textContent=result.limitations.join('\n');}return source;
  }catch(error){if(id===generation){source=null;catalog=null;c.title.textContent='Catalog could not be decoded';status(error.message,true);}return false;}finally{if(id===generation){busy=false;controls();sync();services.SceneContextUI?.refresh();}}
@@ -14537,7 +14622,7 @@ async function inspect(){if(busy)return false;const id=++generation;token={abort
 function settings(){return {cueId:c.cue.value,frames:Number(c.frames.value),rows:S.audRows,resourceKind:c.kind.value};}
 function renderTimeline(data){const canvas=c.timeline;canvas.hidden=false;const x=canvas.getContext('2d'),w=canvas.width,h=canvas.height,names=['Pulse 1','Pulse 2','Triangle','Noise','DPCM fetch'],colors=['#64e4ff','#b3a0ff','#6bf0b1','#ffc978','#ff8ba7'];x.fillStyle='#0a111e';x.fillRect(0,0,w,h);x.font='12px monospace';
  for(let ch=0;ch<5;ch++){const top=26+ch*43;x.fillStyle='#a5b5c9';x.fillText(names[ch],10,top+18);x.fillStyle='#172438';x.fillRect(86,top,w-102,32);for(const f of data.schedule){const v=ch===4?(f.dmc.remaining?15:0):f.channels[ch].volume;if(!v)continue;const a=86+f.frame*(w-102)/data.frames,b=Math.max(1,(w-102)/data.frames),height=4+v/15*26;x.fillStyle=colors[ch];x.fillRect(a,top+32-height,b,height);}}
- x.fillStyle='#8eabc4';x.fillText('Controlled native playback · channel volumes / DPCM fetch status · click a frame for exact values',10,h-9);c.timelineInfo.textContent=data.frames+' native updates · '+data.writes.length+' APU writes · '+data.stats.instructions.toLocaleString()+' CPU instructions. Fixed bank '+data.profile.bank+' at $8000; bank '+(data.profile.fixedBank??7)+' at $C000.';
+ x.fillStyle='#8eabc4';x.fillText('Controlled native playback · channel volumes / DPCM fetch status · click a frame for exact values',10,h-9);c.timelineInfo.textContent=data.frames+' native updates · '+data.writes.length+' APU writes · '+data.stats.instructions.toLocaleString()+' CPU instructions. Fixed bank '+(data.physicalBank??data.profile.bank)+' at $8000; bank '+(data.profile.fixedBank??7)+' at $C000.';
 }
 async function play(){if(busy)return false;const id=++generation;token={aborted:false};busy=true;staged=null;stop();controls();try{const native=current(),options=settings(),C=window.AudioContext||window.webkitAudioContext;if(!C)throw Error('Web Audio is unavailable in this browser.');if(!audioContext)audioContext=new C();await audioContext.resume();guard(id);status('Rendering native audio in the isolated driver instance…');const data=await services.NativeAudioRecovery.run(native.bytes,{cueId:options.cueId,frames:options.frames},{signal:token,progress:p=>{if(id===generation)status('Native playback '+p.frame+' / '+p.total+' updates…');}});guard(id);trace=data;renderTimeline(data);view='writes';page=0;showData();const buffer=audioContext.createBuffer(1,data.samples.length,data.sampleRate);buffer.getChannelData(0).set(data.samples);playing=audioContext.createBufferSource();playing.buffer=buffer;playing.connect(audioContext.destination);playing.start();status('Playing the selected native cue, including native noise and DPCM, from the controlled initial state.');return true;}catch(error){if(id===generation)status(error.message,true);return false;}finally{if(id===generation){busy=false;controls();}}}
 async function preview(){if(busy)return false;const id=++generation;token={aborted:false};busy=true;staged=null;stop();controls();try{const native=current(),options=settings();status('Executing the selected native cue and preparing the editable score…');const item=await services.RENativeAudioImport.stage(native,{kind:options.resourceKind,profile:'native-catalog',...options},{signal:token});guard(id);if(item.result.status!=='ready'||!item.data){c.summary.textContent=item.result.diagnostics.map(d=>d.message).join('\n');throw Error('This selection cannot be converted. Read the conversion details; native catalog/playback remains available.');}staged=item;const r=item.result,p=r.provenance;trace={source:{sha256:native.currentSha256},profile:catalog.profile,frames:options.frames,schedule:p.schedule,writes:p.writes,stats:p.cpu};renderTimeline(trace);view='overview';page=0;showData();c.summary.textContent=[catalog.profile.title+' · '+cueRecords().find(x=>x.id===options.cueId).label,r.imported.noteCount+' note changes · '+item.data.patternCount+' new patterns · '+item.data.instrumentCount+' new duty instruments',options.frames+' native updates; '+r.imported.paddingFrames+' final cut/silent padding rows','Largest nearest-pitch difference: '+p.maxAbsoluteCents.toFixed(3)+' cents','Estimated generated Audio data: '+item.data.estimatedBytes+' bytes','',...r.warnings,'',...r.limitations,'','Import appends editable data. Music import replaces the current music order and tempo/speed; SFX import adds one named definition. One Undo restores the prior project. Save Project As preserves the score.'].join('\n');status('Preview ready. Review the transcription differences, then import into the tracker.');return true;}catch(error){if(id===generation){staged=null;status(error.message,true);}return false;}finally{if(id===generation){busy=false;controls();}}}
@@ -18696,7 +18781,7 @@ function restore(){
  const hash=n.source.sha256,bytes=Uint8Array.from(S.importedRom),current=()=>own===restoreToken&&epoch===store.state.epoch&&S.investigation?.source.sha256===hash;
  ownedHash=hash;
  return (async()=>{try{
-  if(n.version===2||n.version===3||n.version===4){const ok=await services.REAnalysisUI.openFile({name:n.source.name,size:bytes.length,arrayBuffer:async()=>bytes.slice().buffer},{allowLegacyHeaderLayout:true,isCurrent:current});if(!ok||!current())return false;refresh();services.AreaLibraryUI.refresh();return true;}
+  if(n.version===2||n.version===3||n.version===4){const ok=await services.REAnalysisUI.openFile({name:n.source.name,size:bytes.length,arrayBuffer:async()=>bytes.slice().buffer},{allowLegacyHeaderLayout:true,isCurrent:current});if(!ok||!current())return false;const audio=await services.NativeAudioLibraryUI.sourceLoaded(bytes,n.source.name,{isCurrent:current});if(!audio||!current())return false;refresh();services.AreaLibraryUI.refresh();return true;}
   if(services.SpatialREUI.getState().sha256!==hash){const ok=await services.SpatialREUI.openFile({name:n.source.name,size:bytes.length,arrayBuffer:async()=>bytes.slice().buffer},{reveal:false,isCurrent:current});if(!ok||!current())return false;}
   const sourceCurrent=()=>current()&&services.SpatialREUI.getState().sha256===hash;
   const audio=await services.NativeAudioLibraryUI.sourceLoaded(bytes,n.source.name,{isCurrent:sourceCurrent});if(!audio||!sourceCurrent())return false;
