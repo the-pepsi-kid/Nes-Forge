@@ -1,0 +1,28 @@
+PASS An unlisted mapper 0 can become a portable project without an engine allowlist
+PASS An unlisted mapper 1 can become a portable project without an engine allowlist
+PASS An unlisted mapper 2 can become a portable project without an engine allowlist
+PASS An unlisted mapper 3 can become a portable project without an engine allowlist
+PASS An unlisted mapper 4 can become a portable project without an engine allowlist
+PASS An unlisted mapper 7 can become a portable project without an engine allowlist
+PASS An unlisted mapper 9 can become a portable project without an engine allowlist
+PASS An unlisted mapper 66 can become a portable project without an engine allowlist
+PASS CHR RAM does not manufacture recovered tiles, game scenes, actors or Audio
+PASS Legacy header interpretation is explicit; source header/trainer/trailing bytes never change
+PASS Truncated and malformed inputs cannot become ROM projects
+PASS A caller cannot mutate the preserved source during preparation
+PASS Real load/save/reopen retains source, every CHR binding and unchanged native output
+PASS Edited CHR copies persist and export raw tiles while native output refuses them
+PASS Undo/Redo keep the native build boundary and raw tile changes consistent
+PASS Corrupt bank ownership, missing scene, source and catalog tampering refuse atomically
+PASS Schema 16 is confined to its new source format and downgrade export refuses
+PASS Large CHR sources preserve the whole input while respecting 64 canonical scenes
+PASS Generic intake preview has no early project/history/emulator mutation and import is one Undo
+PASS Changing the selected intake source invalidates its pending import
+PASS Changing the authoring project after preview prevents partial import
+PASS Resource navigation works without an invented area or Audio catalog
+PASS Required physical sheets cannot be deleted into unreopenable saves; ordinary and unbound scenes remain deletable
+PASS The supplied corpus is deduplicated to 17 primaries with five distinct alternate revisions
+PASS Selected-bank donor export omits preserved ROM/engine and enters the existing mashup contract
+PASS Two graphics donors combine in one authored project with preview, Apply, Undo/Redo, save/reopen and build
+PASS CHR-RAM scratchpads cannot masquerade as recovered graphics donors
+27/27 passed
