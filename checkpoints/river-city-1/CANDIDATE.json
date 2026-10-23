@@ -1,0 +1,63 @@
+{
+  "candidate": "river-city-1",
+  "version": "2.0.0-alpha.11",
+  "status": "development-candidate",
+  "promoted": false,
+  "parentCommit": "a8c97c3f620ff3c7d1c1c68372746d1ffeb4319b",
+  "branch": "implementation/river-city-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "3e8fa47939721072d8d10134bbb9269fbcd5ddc9b90eeacea4894f4c246d0c86",
+  "schemas": {
+    "ordinary": 12,
+    "native": 13,
+    "investigation": 14,
+    "readCeiling": 16,
+    "selectedTerrain": 15,
+    "portableRom": 16
+  },
+  "scope": [
+    "River City: 36 cropped native street segments in 13 locations, shared physical-tile substitutions and native rebuilding",
+    "River City Audio: 19 music requests (18 unique), 43 SFX, one stop control, original-driver audition and finite editable tracker import",
+    "The 22 special/interior locations remain unavailable; HUD, actors, collision/exit semantics and whole-game recovery are unfinished",
+    "Retained Lolo and Metroid Scene/Audio and previous native importers"
+  ],
+  "limits": [
+    "New generic source projects preserve unchanged native ROM output; copied edits need a declared native writer",
+    "Physical CHR banks do not establish palette, scene, sprite role, collision, AI or Audio meanings",
+    "CHR RAM requires a verified decoder or capture; no recovered graphics donor is invented",
+    "Shared multiplayer networking remains planned; start with a small Forge World, then a bounded Z2 integration adapter",
+    "Physical devices, OS dialogs, listening, full quests and hardware remain separately unverified",
+    "River City: 20-row cropped street backgrounds only; 22 special/interior locations unavailable. No native Audio writer or whole-game/browser/hardware acceptance."
+  ],
+  "verification": {
+    "status": "targeted-passed",
+    "focus": "River City Ransom streets + Audio",
+    "freshStreets": "reviews/river-city-1/Street_Verification.json",
+    "freshAudio": "reviews/river-city-1/Audio_Verification.json",
+    "targetedGate": "reviews/river-city-1/gate/Summary.json",
+    "sharedChecks": 378,
+    "sharedSuites": 24,
+    "retainedLoloAudio": "reviews/river-city-1/Retained_Lolo_Audio.json",
+    "retainedLoloRooms": "reviews/river-city-1/Retained_Lolo_Rooms.json",
+    "retainedMetroidAudio": "reviews/river-city-1/Retained_Metroid_Audio.json",
+    "sourcePreservation": "reviews/river-city-1/Source_Preservation.json",
+    "fullReleaseGate": "not run for this bounded checkpoint",
+    "ownerSceneAndListening": "pending"
+  },
+  "distribution": {
+    "privateRomsIncluded": false,
+    "sourceBearingCommercialProjectsIncluded": false,
+    "previousKit": "NF4.zip",
+    "currentKit": "NF5.zip"
+  },
+  "sourcePreservation": {
+    "report": "reviews/river-city-1/Source_Preservation.json",
+    "protectedBundleInputs": 142,
+    "changedSharedInputs": 5,
+    "newAudioDecoders": 1,
+    "newGameAdapters": 1,
+    "ordinarySchema": 12,
+    "readerCeiling": 16
+  },
+  "audioVerificationRequiredForEveryProject": true
+}
