@@ -1,3 +1,9 @@
+# Current checkpoint: Punch-Out intake/capture correction
+
+Read ../reviews/punch-out-fix-1/HANDOFF.md and ../reviews/PROJECT_VERIFICATION.md. Both ROM import routes now prepare a completed, pixel-validated native frame and restore source Audio. Re-import the original ROM to replace earlier garbled/incomplete captures; old saved projects remain compatible. Native editing of captured frames and native Audio/sample writing remain unsupported.
+
+## Earlier handoff
+
 # Current checkpoint: Punch-Out static backgrounds + Audio
 
 Read ../reviews/punch-out-1/HANDOFF.md and ../reviews/PROJECT_VERIFICATION.md. Both supplied US revisions now have five static source backgrounds and the original bank-8 Audio driver. Whole-game recovery, fighter sprites, dynamic states, native Audio writing, MMC2 runtime capture and owner listening/hardware acceptance remain unresolved. The bank-6 startup PCM is cataloged and auditionable, with PCM tracker editing still unavailable. Every project must verify both Scene and Audio.

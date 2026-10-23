@@ -1,0 +1,16 @@
+PASS MMC2 uses selected 8 KiB PRG plus the final fixed 24 KiB
+PASS Both CHR halves retain independent FD and FE banks with documented latch ranges
+PASS Mirroring and physical layout bounds refuse invalid mappings
+PASS Live PPU returns the old bank byte before applying the latch and preserves original headers
+PASS Existing mappers delegate to the exact prior reader and no schema owner changes
+PASS MMC2 isolated audio requires explicit opt-in and cannot touch mapper or PPU buses
+PASS Both preceding native profiles retain 711 writable literal bytes without asset payloads
+PASS Synthetic filename-like content and caller hashes do not authorize commercial profiles
+PASS Native recipes enforce unique writable physical operands and protect latch-control tile IDs
+PASS Malformed PPU programs refuse under bounded source reads
+PASS Empty native requests and stop controls refuse before isolated execution
+PASS New audio profiles declare 8 KiB physical windows and read-only methods
+PASS Resumable native routines preserve instruction timing, DAC writes and the single return
+PASS Continuous routine windows keep instruction and bus refusal limits
+PASS PCM audition never silently converts its bell into an editable substitute
+15/15 passed

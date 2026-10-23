@@ -1,5 +1,15 @@
 # Current status
 
+**2.0.0-alpha.11 · Punch-Out intake/capture correction**
+
+Import ROM and Open ROM / project now start with a pixel-validated native frame including sprites, palettes and scroll. Source Audio recognizes 84 entries after import and reopening, exposes its source navigation, and accepts equivalent iNES padding bytes 12–15. Corrected v2 background templates preserve physical mirroring and FD/FE fills; old v1 saved projects retain their original decoder. Re-import the original ROM for the corrected first Scene.
+
+Read ../reviews/punch-out-fix-1/HANDOFF.md. Fresh evidence: 97 public checks, 12 actual intake/workflow groups, four complete-catalog/native-template groups, and source preservation. Exactness is against the completed emulator frame. Captured-frame native writing, native Audio/sample writing, full fights, hardware timing and browser listening remain open.
+
+## Previous checkpoint
+
+# Current status
+
 **2.0.0-alpha.11 · Punch-Out static backgrounds + Audio review**
 
 Both supplied US PRG revisions import five static native background contexts with MMC2 latch-aware graphics, original palettes and bounded native literal edits. Shared physical operands retain one owner; generated/inherited cells, metadata aliases and latch-control IDs refuse. Fighter/sprite layers, dynamic UI, animation, collisions and full fights remain unresolved.

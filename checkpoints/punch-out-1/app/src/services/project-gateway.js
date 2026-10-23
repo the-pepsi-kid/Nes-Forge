@@ -21,7 +21,7 @@ async function inspect(input,{name='ROM',signal}={}){
   sessions.set(report,{bytes,project:cp(project)});return report;
  }
  const analysis=await services.REAnalysis.open(bytes,{name:label});cancelled();
- const source=analysis.report.identity,header=analysis.report.header,known=window.GameRENative.profiles.find(p=>p.sha256===source.sha256),audio=services.NativeAudioCatalog.profiles.find(p=>p.sha256===source.sha256);
+ const source=analysis.report.identity,header=analysis.report.header,known=window.GameRENative.profiles.find(p=>p.sha256===source.sha256),audio=bytes.length>=16?(await services.NativeAudioCatalog.identify(bytes)).profile:null;
  const recoveredResource=services.NativeResourceProject?.recognizes(bytes);
  const recoveredLayout=services.NativeLayoutProject?.recognizes(bytes),terrain=window.ZeldaOverworld.recognizes(bytes),valid=header.status==='valid';
  let portable=false,portableContainer=null;try{portableContainer=services.ROMProject.container(bytes);portable=bytes.length<=services.ROMProject.maxBytes;}catch(_){}
