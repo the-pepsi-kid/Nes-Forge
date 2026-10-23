@@ -1,0 +1,73 @@
+{
+  "suite": "punch-out-startup-pcm-supplied-inputs",
+  "status": "passed",
+  "htmlSha256": "5b38daf48470f98f01cefa202378981642dc64dfc401eb4dcd03225fd0dfc8d8",
+  "passed": 8,
+  "total": 8,
+  "checks": [
+    {
+      "name": "PRG 0 · Startup PCM executes once to the original return with nonzero instruction-timed audio",
+      "passed": true,
+      "frames": 256,
+      "complete": true,
+      "cycles": 5897296,
+      "instructions": 1568614,
+      "dacWrites": 50177,
+      "apuWrites": 50243,
+      "peak": 0.3959193527698517,
+      "pcmSha256": "1c0c513bc8d4a817acfd1dcddb41728ce074023cf01c932c353c4222b0083d98",
+      "scope": "Original routine timing under the shared CPU/APU model; not hardware or listening equivalence."
+    },
+    {
+      "name": "PRG 0 · Every DAC/bell write and its CPU-cycle position match uninterrupted live MMC2 execution",
+      "passed": true,
+      "comparedWrites": 50243,
+      "cycleAddressValueSha256": "0b49cfab7e53803ee5f28220cf427963d55729bc29ae7fd26be25a9ecc0ba87e"
+    },
+    {
+      "name": "PRG 0 · Short windows truncate without restarting; cancellation and PCM score conversion refuse safely",
+      "passed": true
+    },
+    {
+      "name": "PRG 0 · Audio UI exposes native PCM playback, reports completion and disables unsupported conversion without mutation",
+      "passed": true,
+      "nativePlayback": true,
+      "pcmCanonicalImport": false,
+      "sourceUnchanged": true
+    },
+    {
+      "name": "PRG 1 · Startup PCM executes once to the original return with nonzero instruction-timed audio",
+      "passed": true,
+      "frames": 256,
+      "complete": true,
+      "cycles": 5897296,
+      "instructions": 1568614,
+      "dacWrites": 50177,
+      "apuWrites": 50243,
+      "peak": 0.3959193527698517,
+      "pcmSha256": "1c0c513bc8d4a817acfd1dcddb41728ce074023cf01c932c353c4222b0083d98",
+      "scope": "Original routine timing under the shared CPU/APU model; not hardware or listening equivalence."
+    },
+    {
+      "name": "PRG 1 · Every DAC/bell write and its CPU-cycle position match uninterrupted live MMC2 execution",
+      "passed": true,
+      "comparedWrites": 50243,
+      "cycleAddressValueSha256": "0b49cfab7e53803ee5f28220cf427963d55729bc29ae7fd26be25a9ecc0ba87e"
+    },
+    {
+      "name": "PRG 1 · Short windows truncate without restarting; cancellation and PCM score conversion refuse safely",
+      "passed": true
+    },
+    {
+      "name": "PRG 1 · Audio UI exposes native PCM playback, reports completion and disables unsupported conversion without mutation",
+      "passed": true,
+      "nativePlayback": true,
+      "pcmCanonicalImport": false,
+      "sourceUnchanged": true
+    }
+  ],
+  "limitations": [
+    "Continuous isolated native routine audition, including its bell, with instruction-clocked direct DAC writes. No NMI/gameplay recording or hardware/listening equivalence.",
+    "Original PCM bytes remain in the private source. No PCM tracker sample model or native sample writer is introduced. Windows below 199 updates truncate this routine."
+  ]
+}

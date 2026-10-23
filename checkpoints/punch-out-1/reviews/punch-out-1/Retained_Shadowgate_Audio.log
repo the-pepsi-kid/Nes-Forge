@@ -1,0 +1,43 @@
+PASS The exact source decodes 14 music requests, 20 SFX, one unavailable slot and 83 channel streams
+PASS Native playback Music 01
+PASS Native playback Music 02
+PASS Native playback Music 03
+PASS Native playback Music 04
+PASS Native playback Music 05
+PASS Native playback Music 06
+PASS Native playback Music 07
+PASS Native playback Music 08
+PASS Native playback Music 09
+PASS Native playback Music 10
+PASS Native playback Music 11
+PASS Native playback Music 12
+PASS Native playback Music 13
+PASS Native playback Music 14
+PASS Native playback SFX 15
+PASS Native playback SFX 16
+PASS Native playback SFX 17
+PASS Native playback SFX 18
+PASS Native playback SFX 19
+PASS Native playback SFX 20
+PASS Native playback SFX 21
+PASS Native playback SFX 22
+PASS Native playback SFX 23
+PASS Native playback SFX 25
+PASS Native playback SFX 26
+PASS Native playback SFX 27
+PASS Native playback SFX 28
+PASS Native playback SFX 29
+PASS Native playback SFX 30
+PASS Native playback SFX 31
+PASS Native playback SFX 32
+PASS Native playback SFX 33
+PASS Native playback SFX 34
+PASS Native playback SFX 35
+PASS Every selected stream event retains its exact physical source byte and invalid header requests refuse playback
+PASS Independent live MMC3 execution matches isolated APU register sequences for all 34 sounding cue selections
+PASS Project intake and reopening restore all 35 Audio entries without altering saved projects
+PASS Music preview/import, Undo/Redo and save/reopen preserve editable tracker rows and refuse unsupported native audio writing
+PASS A short one-channel native effect produces a bounded editable SFX definition
+PASS A native picture edit/rebuild preserves Audio detection, actual derivative identity, method decoding and native audition
+PASS Changed audio/header bytes are refused and inspection leaves the original source untouched
+42/42 supplied-input checks passed

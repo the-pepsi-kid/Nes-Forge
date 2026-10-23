@@ -1,0 +1,9 @@
+PASS All 50 original CHR-backed stream transfers and decompressed room cells match native CPU/PPU execution
+PASS All 50 post-setup backgrounds, attributes, initial CHR and both palette states match the original renderer
+PASS Every room accepts a representative bounded edit; all rebuilt rooms match native decompression and rendering
+PASS Project intake creates assembled native rooms with one source owner and unchanged original output
+PASS Native brush, Undo/Redo, save/reopen and derivative reimport preserve the exact edit recipe
+PASS Opening distant rooms retains prior recipes and keeps Scene selection bound to the native source
+PASS Locked markers, stale guards, changed source and unsupported CHR edits reject atomically
+PASS The pre-Lolo reader rejects this adapter before committing a project
+8/8 supplied-input groups passed
