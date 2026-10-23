@@ -1,0 +1,64 @@
+/* NES Forge 1.9.0 — detached canonical Gameplay Core linker and legacy adapter. */
+(()=>{
+'use strict';
+const services=window.Forge.services,cp=value=>JSON.parse(JSON.stringify(value));
+const fail=message=>{throw Error('Gameplay Core compiler: '+message);};
+const plans=new WeakSet();
+function component(definition,type){return(definition.components||[]).find(item=>item.type===type&&item.enabled!==false)||null;}
+function bindings(instance){return[...(instance.persistenceBindings||[])];}
+function legacyAdapter(source,backend){
+  let sceneId='',playerId='',targetId='';
+  if(backend==='single-room'){sceneId=source.gameplay.sceneId;playerId=source.gameplay.playerId;targetId=source.gameplay.targetId||'';}
+  if(backend==='world'){sceneId=source.worldRuntime.playerSceneId;playerId=source.worldRuntime.playerId;}
+  const scene=(source.scenes||[]).find(item=>item.id===sceneId),player=scene?.entities?.find(item=>item.id===playerId),target=scene?.entities?.find(item=>item.id===targetId);
+  return{kind:'legacy-player-target-compatibility-map',runtimeUnified:false,backend,sceneId,actors:[...(player?[{definitionId:'legacy:sideview-player',instanceId:'legacy:'+sceneId+':'+player.id,sourceEntityId:player.id,runtimeRole:'player',executor:'retained-legacy-player-runtime'}]:[]),...(target?[{definitionId:'legacy:stationary-target',instanceId:'legacy:'+sceneId+':'+target.id,sourceEntityId:target.id,runtimeRole:'target',executor:'retained-legacy-target-runtime'}]:[])]};
+}
+function ownerContext(instance){const p=instance.placement;return p.kind==='scene'?{roomOwnerId:p.sceneId,worldOwnerId:null}:p.kind==='room'?{roomOwnerId:p.roomId,worldOwnerId:p.worldId}:{roomOwnerId:null,worldOwnerId:p.worldId};}
+function compileInstance(instance,definition,behavior,variables,index){
+  const parameters=services.GameplayModel.parameterValues(definition,instance),renderComponent=component(definition,'Render'),colliderComponent=component(definition,'Collider'),healthComponent=component(definition,'Health'),render=renderComponent?services.GameplayModel.componentValues(renderComponent,{executable:true,label:'Actor Definition '+definition.id+' component '+renderComponent.id}):{sourceSceneId:'',tile:0,palette:0,behind:false},collider=colliderComponent?services.GameplayModel.componentValues(colliderComponent,{executable:true,label:'Actor Definition '+definition.id+' component '+colliderComponent.id}):{width:16,height:16},health=healthComponent?services.GameplayModel.componentValues(healthComponent,{executable:true,label:'Actor Definition '+definition.id+' component '+healthComponent.id}):{maximum:0},components=definition.components.filter(item=>item.enabled!==false).map(item=>item.type);
+  const variableBindings=bindings(instance).map(binding=>{const variable=variables.get(binding.variableId);if(!variable)fail('Actor Instance '+instance.id+' references missing persistent variable '+binding.variableId);return{...cp(binding),variableIndex:[...variables.keys()].indexOf(binding.variableId),scope:variable.scope,ownerId:variable.ownerId};});
+  return{slot:index,id:instance.id,definitionId:definition.id,behaviorId:behavior.id,placement:cp(instance.placement),x:instance.x,y:instance.y,facing:instance.facing==='left'?1:0,parameters,render:{sourceSceneId:render.sourceSceneId||'',tile:render.tile,palette:render.palette,behind:render.behind},renderEnabled:!!renderComponent,collider:{width:collider.width,height:collider.height},colliderEnabled:!!colliderComponent,health:health.maximum,components,behaviorEnabled:components.includes('Behavior'),behavior:cp(behavior),bindings:variableBindings,activeDefault:true};
+}
+function plan(source,{backend,executionContext=null}={}){
+  const core=services.GameplayModel.normalize(source.gameplayCore);services.GameplayModel.validateProject(core,source,{references:true,executable:true});
+  const adapter=legacyAdapter(source,backend),result={enabled:core.enabled,backend,adapter,variables:[],actors:[],diagnostics:[],source:core,estimatedBytes:0};
+  if(!core.enabled){plans.add(result);return result;}
+  if(!['single-room','world'].includes(backend))fail('Gameplay Core executes only in single-room and World generated runtime paths');
+  const profile=services.GameplayModel.runtimeProfile;if(core.persistentVariables.length>profile.persistentCapacity)fail('The '+profile.name+' profile supports at most '+profile.persistentCapacity+' persistent variables; '+core.persistentVariables.length+' would overlap Runtime Actor RAM');
+  const definitions=new Map(core.actorDefinitions.map(item=>[item.id,item])),behaviors=new Map(core.behaviors.map(item=>[item.id,item])),variables=new Map(core.persistentVariables.map(item=>[item.id,item]));
+  result.variables=core.persistentVariables.map((item,index)=>({...cp(item),index}));
+  if(backend==='world'&&!Array.isArray(executionContext?.reachableWorldIds))fail('World actor planning requires the typed reachable-World context owned by WorldCompiler');
+  const reachableWorldIds=new Set(executionContext?.reachableWorldIds||[]),relevant=core.actorInstances.filter(instance=>backend==='single-room'?instance.placement.kind==='scene'&&instance.placement.sceneId===source.gameplay.sceneId:((['world','room'].includes(instance.placement.kind)&&reachableWorldIds.has(instance.placement.worldId))||(instance.placement.kind==='scene'&&instance.placement.sceneId===source.worldRuntime.playerSceneId))),relevantIds=new Set(relevant.map(item=>item.id));
+  if(backend==='world')for(const instance of core.actorInstances)if(!relevantIds.has(instance.id))result.diagnostics.push({severity:'warning',code:'gameplay-actor-authoring-only',message:'Actor Instance '+instance.id+' is retained as authoring data but is outside the reachable World/player-source set and is not executable in this build.',phase:'gameplay-core-link',actorInstanceId:instance.id});
+  if(relevant.length>profile.actorCapacity)fail('The '+profile.name+' profile supports at most '+profile.actorCapacity+' Actor Instances in one runtime plan');
+  result.actors=relevant.map((instance,index)=>{const definition=definitions.get(instance.definitionId),behavior=behaviors.get(definition.behaviorId);return compileInstance(instance,definition,behavior,variables,index);});
+  const inputActors=result.actors.filter(actor=>actor.components.includes('Input'));if(inputActors.length>1)fail('The 1.9.0 compatibility profile supports one Sideview Player binding');
+  for(const actor of inputActors){const input=component(definitions.get(actor.definitionId),'Input');if(input?.values?.adapter!=='legacyPlayer')fail('Input Actor '+actor.id+' must declare the legacyPlayer compatibility adapter');const mapped=adapter.actors.find(item=>item.runtimeRole==='player');if(!mapped)fail('Sideview Player '+actor.id+' cannot bind because the retained legacy Player is missing');actor.compatibility={mode:'retained-legacy-player-runtime',runtimeUnified:false,sourceEntityId:mapped.sourceEntityId,sceneId:adapter.sceneId};}
+  result.compatibilityPlayerSlot=inputActors[0]?.slot??null;
+  result.identity={definitionIds:[...definitions.keys()],instanceIds:result.actors.map(item=>item.id),runtimeSlots:result.actors.map(item=>item.slot),persistentKeys:result.variables.map(item=>item.scope+':'+item.ownerId+':'+item.id)};
+  if(new Set(result.identity.persistentKeys).size!==result.identity.persistentKeys.length)fail('Persistent State Record keys must be unique');
+  result.estimatedBytes=32+result.variables.length*4+result.actors.length*24+core.behaviors.reduce((sum,item)=>sum+item.states.length*8+item.transitions.length*12,0);
+  plans.add(result);return result;
+}
+function locateWorld(plan,spec){
+  if(!plan.enabled)return plan;const worlds=new Map(spec.worlds.map(item=>[item.id,item])),rooms=new Map(spec.rooms.map(item=>[item.id,item]));
+  for(const actor of plan.actors){const p=actor.placement;if(p.kind==='scene'){actor.runtimeRole=actor.components.includes('Input')?'legacy-player-source':'source-only';actor.screen=spec.start.screen;actor.localX=spec.start.x;actor.localY=spec.start.y;continue;}
+    const world=worlds.get(p.worldId);if(!world)fail('Actor Instance '+actor.id+' is outside the reachable World set');let globalX=actor.x,globalY=actor.y;
+    if(p.kind==='room'){const room=rooms.get(p.roomId);if(!room||room.worldId!==p.worldId)fail('Actor Instance '+actor.id+' references a Room outside its World');globalX+=room.x*16;globalY+=room.y*16;}
+    const sx=Math.floor(globalX/256),sy=Math.floor(globalY/240);if(sx<0||sy<0||sx>=world.widthScreens||sy>=world.heightScreens)fail('Actor Instance '+actor.id+' lies outside its World');actor.screen=world.screenStart+sy*world.widthScreens+sx;actor.localX=globalX%256;actor.localY=globalY%240;
+  }return plan;
+}
+function locateSingleRoom(plan){if(!plan.enabled)return plan;for(const actor of plan.actors){actor.screen=0;actor.localX=actor.x;actor.localY=actor.y;if(actor.x>255||actor.y>239)fail('Actor Instance '+actor.id+' lies outside the selected single Room');actor.runtimeRole=actor.components.includes('Input')?'legacy-player-source':'generic';}return plan;}
+function compileSemantics(plan){
+  if(!plans.has(plan))fail('Expected a detached Gameplay Core plan');if(!plan.enabled)return plan;
+  const profile=services.GameplayModel.runtimeProfile,conditionSupport=new Set(profile.conditions),actionSupport=new Set(profile.actions),states=[];
+  const profileOperation=(actor,operation,kind,location)=>{services.GameplayModel.validateOperation(operation,kind,'Actor '+actor.id+' '+location);const supported=kind==='condition'?conditionSupport:actionSupport;if(!supported.has(operation.type))fail('Actor '+actor.id+' '+kind+' '+operation.type+' is canonical but unsupported by '+profile.name+'; ROM generation refused before emission');if(operation.type==='setTimer'&&operation.timer!=='main')fail('Actor '+actor.id+' setTimer supports only the main timer in '+profile.name);if(operation.type==='timerDone'&&operation.timer!=='main')fail('Actor '+actor.id+' timerDone supports only the main timer in '+profile.name);if(operation.type==='persistentCompare'&&!['eq','ne'].includes(operation.operator))fail('Actor '+actor.id+' persistentCompare supports only eq/ne in '+profile.name);if(operation.type==='contactDamage'&&operation.amount!==1)fail('Actor '+actor.id+' contactDamage supports amount 1 in '+profile.name);if(operation.type==='contactDamage'&&plan.compatibilityPlayerSlot===null)fail('Actor '+actor.id+' contactDamage requires one Sideview Player compatibility binding in '+profile.name);};
+  for(const actor of plan.actors){const behavior=actor.behavior;if(actor.components.includes('Input')){const operations=behavior.states.flatMap(state=>[...(state.onEnter||[]),...(state.onTick||[]),...(state.onExit||[])]).concat(behavior.transitions.flatMap(transition=>[...(transition.conditions||[]),...(transition.actions||[])]));if(operations.length||behavior.transitions.length)fail('Sideview Player '+actor.id+' is a retained-runtime compatibility binding; canonical state operations are not executed by '+profile.name);states.push({actorId:actor.id,executor:'retained-legacy-player-runtime',initialStateId:behavior.initialStateId,transitionOrder:[]});continue;}if(!actor.behaviorEnabled){states.push({actorId:actor.id,executor:'inert-disabled-behavior',initialStateId:behavior.initialStateId,transitionOrder:[]});continue;}
+    for(const state of behavior.states){for(const operation of state.onEnter||[])profileOperation(actor,operation,'action','entry action');for(const operation of state.onExit||[])profileOperation(actor,operation,'action','exit action');for(const operation of state.onTick||[])profileOperation(actor,operation,'action','tick action');for(const operation of[...(state.onEnter||[]),...(state.onExit||[])])if(['moveWithinBounds','contactDamage','syncActiveFromPersistent'].includes(operation.type))fail('Actor '+actor.id+' action '+operation.type+' is supported only as an onTick action');}
+    for(const transition of behavior.transitions){for(const operation of transition.conditions||[])profileOperation(actor,operation,'condition','transition condition');for(const operation of transition.actions||[]){profileOperation(actor,operation,'action','transition action');if(['moveWithinBounds','contactDamage','syncActiveFromPersistent'].includes(operation.type))fail('Actor '+actor.id+' action '+operation.type+' is supported only as an onTick action');}}
+    states.push({actorId:actor.id,executor:'generic-runtime',initialStateId:behavior.initialStateId,transitionOrder:behavior.transitions.map((transition,order)=>({id:transition.id,priority:transition.priority,order})).sort((a,b)=>b.priority-a.priority||a.order-b.order)});
+  }
+  plan.compiledSemantics=states;return plan;
+}
+services.GameplayCompiler=Object.freeze({plan,locateWorld,locateSingleRoom,compileSemantics,legacyAdapter,ownerContext});
+})();
