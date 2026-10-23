@@ -1,0 +1,53 @@
+{
+  "candidate": "native-resource-recovery-2-lolo",
+  "version": "2.0.0-alpha.11",
+  "status": "development-candidate",
+  "promoted": false,
+  "parentCommit": "003ddbb3a705a03ed07e30505535ff1bba798b38",
+  "branch": "implementation/lolo-recovery-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "c7f5e0328def5923cbe9409b2ac7cccaeedb8cb912f3f1a8ec52d159a78559ab",
+  "schemas": {
+    "ordinary": 12,
+    "native": 13,
+    "investigation": 14,
+    "readCeiling": 16,
+    "selectedTerrain": 15,
+    "portableRom": 16
+  },
+  "scope": [
+    "Lolo: 50 initial room backgrounds, graphics/palettes, bounded terrain/heart edits in original CHR-backed allocations",
+    "Retained Metroid room/audio, Mega Man and earlier importers"
+  ],
+  "limits": [
+    "New generic source projects preserve unchanged native ROM output; copied edits need a declared native writer",
+    "Physical CHR banks do not establish palette, scene, sprite role, collision, AI or Audio meanings",
+    "CHR RAM requires a verified decoder or capture; no recovered graphics donor is invented",
+    "Shared multiplayer networking remains planned; start with a small Forge World, then a bounded Z2 integration adapter",
+    "Physical devices, OS dialogs, listening, full quests and hardware remain separately unverified"
+  ],
+  "verification": {
+    "status": "targeted-passed",
+    "focus": "Adventures of Lolo",
+    "freshResults": "reviews/lolo-recovery-1/Lolo_Verification.json",
+    "targetedGate": "reviews/lolo-recovery-1/gate/Summary.json",
+    "retainedMetroidAudio": "reviews/lolo-recovery-1/Metroid_Audio_Retained.json",
+    "sourcePreservation": "reviews/lolo-recovery-1/Source_Preservation.json",
+    "fullReleaseGate": "not run for the Lolo-inclusive candidate"
+  },
+  "distribution": {
+    "privateRomsIncluded": false,
+    "sourceBearingCommercialProjectsIncluded": false,
+    "previousKit": "NF2.zip",
+    "currentKit": "NF3.zip",
+    "newKitAvailable": true
+  },
+  "sourcePreservation": {
+    "report": "reviews/lolo-recovery-1/Source_Preservation.json",
+    "protectedBundleInputs": 141,
+    "changedSharedInputs": 4,
+    "newAdapters": 1,
+    "ordinarySchema": 12,
+    "readerCeiling": 16
+  }
+}
