@@ -1,0 +1,8 @@
+/* Explicit recovery also works on earlier saved Punch-Out projects. */
+(()=>{
+'use strict';
+const services=Forge.services,store=services.ProjectStore,button=document.createElement('button'),status=document.createElement('p');button.id='punchOutArenaOpen';button.type='button';button.textContent='Open ring and audience';status.id='punchOutArenaStatus';status.setAttribute('role','status');status.textContent='Arena recovery adds the ring and audience as a separate Scene. Boxer source views have blank backgrounds; intro screens are separate. The arena setup retains initial HUD placeholders and excludes live fighters and gameplay.';
+const panel=document.getElementById('punchOutContentPanel');const label=panel.children[3];panel.insertBefore(button,label);panel.insertBefore(status,label);
+function open(){const project=store.capture(),expected=store.serialize(),epoch=store.state.epoch,result=services.PunchOutArenaRecovery.recover(project),prepared=store.prepareLoad(result.project);if(epoch!==store.state.epoch||expected!==store.serialize())throw Error('The project changed. Open the arena again.');if(snapshot()===false)throw Error('Save the current project before recovering the arena.');store.commit(prepared,{sync:true,intent:'punch-out-arena-recovery'});notify('punchOutArenaRecovery');services.SceneContext.selectScene(result.sceneId);switchTab('scene');status.textContent=result.limits.join(' ');return result.sceneId;}
+button.onclick=()=>{try{return open();}catch(e){status.textContent=e.message;showToast(e.message);return false;}};services.PunchOutArenaUI=Object.freeze({open});
+})();

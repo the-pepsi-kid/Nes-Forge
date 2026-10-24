@@ -1,0 +1,665 @@
+{
+  "status": "passed",
+  "baselineLocalCommit": "c9c7be36c996fa537f9b79972787016613354892",
+  "unchangedApplicationInputs": 163,
+  "addedModules": [
+    "src/re/punch-out-arena.js",
+    "src/services/punch-out-arena-recovery.js",
+    "src/re/punch-out-arena-ui.js"
+  ],
+  "htmlSha256": "d444e57c9705afe27f571ac3100e0459d910f2d6fd412a73451f36264462c9be",
+  "inputs": [
+    {
+      "path": "src/shell-prefix.html",
+      "sha256": "728653c97870659e80430f1d2097c4e422895d9737a78f4054f44cd2faa8885c"
+    },
+    {
+      "path": "src/legacy/00-editor.js",
+      "sha256": "b32fdf6b783c2f26ca02b063a625194ae45e4005c5cd03a208db32db646c8eac"
+    },
+    {
+      "path": "src/services/cpu6502-core.js",
+      "sha256": "2ed095816ff966a759e347d4af0118e795798d8d4859fa9b8344533410ba4f40"
+    },
+    {
+      "path": "src/legacy/01-emulator.js",
+      "sha256": "3662559c42e818ac277065bb2674ee8ea606904f221457931a775dc2ee8a053b"
+    },
+    {
+      "path": "src/legacy/02-interaction-bootstrap.js",
+      "sha256": "73679b216f248119f1180bb94ba6d01da2b63df6b8aaf10a72e9dda06bdc9113"
+    },
+    {
+      "path": "src/legacy/03-runtime-capture.js",
+      "sha256": "291127091641efa12370d4332c3b804f24eeb5568c8df6f260230435e9da4712"
+    },
+    {
+      "path": "src/legacy/04-saveas-chr.js",
+      "sha256": "3023b8bb9867eb2c4acf17e598bdb6146592ff6a0b5e855cb955e0102f5ee079"
+    },
+    {
+      "path": "src/legacy/05-foundation.js",
+      "sha256": "327d74b40bfa866e7dccbdbf5bef6bf55ed11ee8fad4ee1fbbbd8a6809e46721"
+    },
+    {
+      "path": "src/legacy/06-integration.js",
+      "sha256": "7bb8699218910ac09e7761c7a3fc66abb258649009bb46982b58fb4fc9fdbbf6"
+    },
+    {
+      "path": "src/legacy/07-metatiles.js",
+      "sha256": "a6a2685a82b81b33eef0b72462a86c95b060770bd3f2904ac7dba0a6e43227f7"
+    },
+    {
+      "path": "src/legacy/08-world.js",
+      "sha256": "e22d8dbe806da1c74959cb7503fc5fd9e616606a3131820f43e7a9cc5816b535"
+    },
+    {
+      "path": "src/legacy/09-world-codec.js",
+      "sha256": "6c6016e03bc806d07a22af0f31cb839cd920230ca0fbb7665139e5e99f8ea76b"
+    },
+    {
+      "path": "src/legacy/10-world-build.js",
+      "sha256": "e0a42075b9a259e7aaac782e834026115a2293e991b335ff8e141b7d0ff1aee4"
+    },
+    {
+      "path": "src/legacy/11-world-interaction.js",
+      "sha256": "58ad4d66edd6ded56e23c208e4a8a4c1715bd0944b2319d549f9a172b8f009ba"
+    },
+    {
+      "path": "src/legacy/12-stabilization-info.js",
+      "sha256": "e572763e14d2a07961df5b9fe14ab3f5842681b9e6bfa342c8ebeffcf17c40d2"
+    },
+    {
+      "path": "src/legacy/13-metasprites.js",
+      "sha256": "a3da1d59af7479fb512a0d96168c2b5102e2233129c5c0eb3f0af02b8901281b"
+    },
+    {
+      "path": "src/legacy/14-composed-animation.js",
+      "sha256": "2daea40692a2028be149d440a7d768b4d10b1a81ac638964aebdbac629edd77c"
+    },
+    {
+      "path": "src/legacy/15-assets-codec.js",
+      "sha256": "bd36122466706b314dde3dc5a9511551c79fa241e6cd61f7903146122308b32b"
+    },
+    {
+      "path": "src/legacy/16-model.js",
+      "sha256": "80232ade26469b4a0c7fdb72c33196b0fd45d5f9cd6c2483da5a902f34e49df8"
+    },
+    {
+      "path": "src/legacy/17-frame-editor.js",
+      "sha256": "c8ab55c35c58d9e131592a997232f268d6330accfea4491e58098360f0947e37"
+    },
+    {
+      "path": "src/legacy/18-entity-studio.js",
+      "sha256": "38b5d96e377eb491d42ad34fa708ed2930da5300ffa7e99dbe8dd388f7869dba"
+    },
+    {
+      "path": "src/legacy/19-entity-codec.js",
+      "sha256": "9268689262a658555446e556651b276ca09a3970c04ebff2bbf570a30c14e700"
+    },
+    {
+      "path": "src/legacy/20-release164.js",
+      "sha256": "1bd827f4cad469707662c6b7734d970c1fb4bcea14945357424a75618c62b86c"
+    },
+    {
+      "path": "src/legacy/21-config165.js",
+      "sha256": "2dd89db11591e059ce95a8fba52bd9445b27e6612fb5bc7190914e3974aa9589"
+    },
+    {
+      "path": "src/legacy/22-compiler-engine165.js",
+      "sha256": "1541ba3e5fa26312a86a5d414d0ea61d181eafd4041d2bdb3ea8a562664702ec"
+    },
+    {
+      "path": "src/legacy/23-build165.js",
+      "sha256": "739bc1a1952a489552d4580c6578972c49afe4be9921364079bdba428a0446b2"
+    },
+    {
+      "path": "src/legacy/24-ui165.js",
+      "sha256": "2647e480873e60148c93a2f1487e1b924c31c94ef8347cb8f067f7119e74f901"
+    },
+    {
+      "path": "src/legacy/25-release165.js",
+      "sha256": "6324c7c7a5720153475c8df5d54e09efd385ae79c2a2266731ae1991f7180608"
+    },
+    {
+      "path": "src/legacy/26-project166.js",
+      "sha256": "5ffd158684aa4e31365731ce7610ab78e2ac709988bc36cba7d60605b2776719"
+    },
+    {
+      "path": "src/legacy/27-placement166.js",
+      "sha256": "8f40497e52e002827d1bd11ef63cc4d01fb275ab87147ed220f77cccf8f3917d"
+    },
+    {
+      "path": "src/legacy/28-ui166.js",
+      "sha256": "54a8af973538b0ae5490c12a622aa9653087e93a22bbcd711bdaac76bc705111"
+    },
+    {
+      "path": "src/legacy/29-release166.js",
+      "sha256": "981be068de7d44a6dfb17b10b6554866f2eadce4b2eebc39e5727b182b5ba82d"
+    },
+    {
+      "path": "src/services/release-info.js",
+      "sha256": "e7581da585e42f1028c14ae22452ee857ed9f50199f6e1984bdf137ca50d6b68"
+    },
+    {
+      "path": "src/world/world-config.js",
+      "sha256": "ba111517bc7d8b48f5096b5c1ed5c0f840aa51339bf79c936adc36265e2b6dc7"
+    },
+    {
+      "path": "src/audio/audio-config.js",
+      "sha256": "edca072e1e2ba53c9de834511c1e7fd3a715c9e4c83bc64c6c0f4713145e77a3"
+    },
+    {
+      "path": "src/gameplay/gameplay-model.js",
+      "sha256": "26a27d1c84ee3c17e020ea1ec44e04e8c0353f0425ec012a9c95c85bc7813cda"
+    },
+    {
+      "path": "src/services/asset-registry.js",
+      "sha256": "5e28ee004648b965fd75f751f494defe5d75a62fef2297aefb96f36089d38924"
+    },
+    {
+      "path": "src/services/project-store.js",
+      "sha256": "dd9853e9ef7782ddf6d5efc62278d321bbe0286b23189f2da90cfaf9e9c9e846"
+    },
+    {
+      "path": "src/audio/audio-compiler.js",
+      "sha256": "f91abeac7e465bbf0a6a3ef93351834ad6a29617fb73963f5eb72df8a511f6e2"
+    },
+    {
+      "path": "src/gameplay/gameplay-compiler.js",
+      "sha256": "c3f001e23b2e1571ad55503a9655dce7978c74408c6dd83bb1056834aa2926c2"
+    },
+    {
+      "path": "src/audio/audio-engine.js",
+      "sha256": "31a8a187af95d447f435cc5ac58bbcb76a9a869c61e0ed51722e6b832af216b4"
+    },
+    {
+      "path": "src/gameplay/gameplay-engine.js",
+      "sha256": "baf0d80a9f090d1f3dc0457c83d7f59ffd4d7dd1a6d75b594507a861cac2f50f"
+    },
+    {
+      "path": "src/audio/audio-import.js",
+      "sha256": "3450a5c1f3a9dd75f6ce6b6ff765df5d5adc24c256a621860fe729af5b53cdff"
+    },
+    {
+      "path": "src/audio/audio-export.js",
+      "sha256": "a9af0d34028f93fc14278e3948a3669afb4ca77972bb33e5a0d13bbf19b0e65a"
+    },
+    {
+      "path": "src/audio/famistudio-text.js",
+      "sha256": "8cf80ae6a717dd8d15ffc727f0e3edaadb82b60bfefe46017b0d4ef0c9544eec"
+    },
+    {
+      "path": "src/audio/audio-tool-import.js",
+      "sha256": "c894283cccec3864acc07962d5f3d3f23c611186a9ab4354ff613a9b9fe678dd"
+    },
+    {
+      "path": "src/world/world-engine.js",
+      "sha256": "091ed40ab2287bd2fb432334695f3bde305793a48f4328c27d3fe26de320e1ae"
+    },
+    {
+      "path": "src/world/world-rom.js",
+      "sha256": "78892dbb5ee176e93d7365d29e5179d7d099f88c5293db723a44d23bf78d0b41"
+    },
+    {
+      "path": "src/world/world-compiler.js",
+      "sha256": "05f14683ef0f3ccc63980e23bc509d89b451a6c8a089187c0d1e21fed1bf24a9"
+    },
+    {
+      "path": "src/services/build-services.js",
+      "sha256": "db67fd3282e7403d427d67701055426603af11341c2789087b34fa2b89d8bdf4"
+    },
+    {
+      "path": "src/services/emulator-bridge.js",
+      "sha256": "f1f7731180c5701ede49911cf4447d3a352b2684d7907a4c05faad353005c680"
+    },
+    {
+      "path": "src/services/emulator-input.js",
+      "sha256": "95c38d6c470392f1826abe262258a537aab25786b9a58fc1daf9da0b0d428955"
+    },
+    {
+      "path": "src/services/emulator-timeline.js",
+      "sha256": "01d78bc64d8582bea99d0873385e945d3671c496793f943f87ff14d46437af9a"
+    },
+    {
+      "path": "src/services/emulator-play-ui.js",
+      "sha256": "89b39311ae38002483000de3213f18a3f409073577d0821ee9500aa16155e0ae"
+    },
+    {
+      "path": "src/services/documentation.js",
+      "sha256": "cec7b87ad314dae65aa35a937711cd1dd667504599107834f2d213a74d716c3b"
+    },
+    {
+      "path": "src/world/world-ui.js",
+      "sha256": "2e3176ef65f7944cb492a5c27aa56d6aa9f522a7987e7847bc421de25afee87f"
+    },
+    {
+      "path": "src/audio/audio-ui.js",
+      "sha256": "bfc94d23ceecc2b147f2ffa91ed56fd27862ee2521714c9da77aea2ec09b251e"
+    },
+    {
+      "path": "src/audio/audio-adaptive-ui.js",
+      "sha256": "fc0f398f981a3f7bef384c7ac49bcf4e9cfffaf438fe643c4fbef71b81710d03"
+    },
+    {
+      "path": "src/audio/audio-tool-import-ui.js",
+      "sha256": "33457f72da282dc2ff6d14ae4ceabc5b3297b3ea5283f7b70143168f0b97f453"
+    },
+    {
+      "path": "src/services/workshop.js",
+      "sha256": "a09d0b883331319507daa2ad8594f04293f2cfbdad63494a38c27bc4e8bfa384"
+    },
+    {
+      "path": "src/gameplay/gameplay-ui.js",
+      "sha256": "60975c7a5719a3193a895411713314c3a4fa71ec852934ff134dc35ef680b265"
+    },
+    {
+      "path": "src/gameplay/gameplay-graph.js",
+      "sha256": "d001dc1bd45ef47f5df0ea34d91972d01d3ad2e48b62ffe01fb414441665222d"
+    },
+    {
+      "path": "src/re/re-bridge.js",
+      "sha256": "269f2575b2d168a1a9cf19b7c91b67ae03855dff65a2be1f8c20012c74b41590"
+    },
+    {
+      "path": "src/re/re-ui.js",
+      "sha256": "1ad4953875fbb2d73d8e0e67dec18ff9b7073e80f78c8ee4c499f70f8658dcb1"
+    },
+    {
+      "path": "src/re/re-analysis.js",
+      "sha256": "159a16dfc2981c53741289299ce23dea95723086b3611d22b8f697dcf888ee15"
+    },
+    {
+      "path": "src/re/re-analysis-ui.js",
+      "sha256": "45702018b43d12fc8ff3843ba1a3c7f1f355980bf484feec75afe473334a60d0"
+    },
+    {
+      "path": "src/re/re-methods.js",
+      "sha256": "94d933199694771188a30feb8ee65040888c4b0c6552f05014da54c1491d4fd7"
+    },
+    {
+      "path": "src/re/re-native-assets.js",
+      "sha256": "9566c252acaa9f12f9e08c47b49a2d50d8dfad9602c868ba35ee50f202757a92"
+    },
+    {
+      "path": "src/re/re-native-assets-ui.js",
+      "sha256": "e4696afa6e1ee02bf69061e23a4290702cc36de8f25e76ba93dbd414290611e4"
+    },
+    {
+      "path": "src/re/re-runtime.js",
+      "sha256": "aa5815677ca62f575bec002bc00326c1eb7cb207376649bd0c403daaf5c6f901"
+    },
+    {
+      "path": "src/re/re-runtime-ui.js",
+      "sha256": "cf30bedaa71e21fa125d445d52806def7e32ba58fcf81d75c94ea3c02f8468a2"
+    },
+    {
+      "path": "src/re/re-experiments.js",
+      "sha256": "f7f98f8f42d0b1b10a71f50b25c7c484113cc7e65ea929680f8e58c262fa8f19"
+    },
+    {
+      "path": "src/re/re-experiments-ui.js",
+      "sha256": "9b724f34196cad6f353706902895a4ec8117195bfe94ad5e47a410105cd2f665"
+    },
+    {
+      "path": "src/source/source-workspace.js",
+      "sha256": "561c09ba88c4f1e6835518c7c06a0a2a59c3ff78f5c2fb48223b8d4d721fe930"
+    },
+    {
+      "path": "src/source/source-intake.js",
+      "sha256": "bb6c226ee087a074ed1899dd55a2874d2c390160d675469f0548ea0efc7ccdc7"
+    },
+    {
+      "path": "src/source/source-workspace-ui.js",
+      "sha256": "da86635a80469165b9e5e53b6bc947520f2b7024d068a4fd7298b1632b52bcd5"
+    },
+    {
+      "path": "src/re/famitone2-driver-profile.js",
+      "sha256": "a1d7ff0d2cc39eeb403857343a9f71b0e9102652962322d8d71b4655c09b6da0"
+    },
+    {
+      "path": "src/re/famitone2-native.js",
+      "sha256": "2392e1a1ed77ca1af4a179a44c2f288348633c68a310592a9f4ac6c18fe068cf"
+    },
+    {
+      "path": "src/re/re-native-audio-ui.js",
+      "sha256": "5316c53f36b8c9447a0af919aa129548f1c9acb8735bfbd23e51c00ab0de4a5a"
+    },
+    {
+      "path": "src/re/famitone2-audio-import.js",
+      "sha256": "a0cee3cd4a71cf17360b2fd20d287074dee660a1bf8828781e6c4e2920fa816d"
+    },
+    {
+      "path": "src/re/famitone2-sfx-import.js",
+      "sha256": "332805b08d5178aed091f735ef6309ad85e9fe232bb97d4ed43dcdba3ce9b392"
+    },
+    {
+      "path": "src/re/megaman2-audio.js",
+      "sha256": "ff2c9623e6f3e0c88e189596a126c6965045f7dfe6086991f3d0252b41599e08"
+    },
+    {
+      "path": "src/re/metroid-audio.js",
+      "sha256": "4db4ec5725c8cd104c3342f55aebbdc0aa1b9511fa9245d6d251654c9cf0352a"
+    },
+    {
+      "path": "src/re/lolo-audio.js",
+      "sha256": "8ea5f0ab2207198a928c2f4c8270c3c8e60dd47cff7e21e62aa170c13ec7f20c"
+    },
+    {
+      "path": "src/re/river-city-audio.js",
+      "sha256": "b790a4d78860fe8b89ff38bba984294dd14799c84c6d4a691e0e49a75a668375"
+    },
+    {
+      "path": "src/re/shadowgate-audio.js",
+      "sha256": "e6c71f172e9c5e2dde88a3edb5603da0bf21d995b2103d8a15b0ae32ae653b9b"
+    },
+    {
+      "path": "src/re/punch-out-audio.js",
+      "sha256": "3c090d7eaad4a3805848f7d490837074f25e53977af29be0a185852ff1afc4a4"
+    },
+    {
+      "path": "src/re/native-audio-catalog.js",
+      "sha256": "881edd0efc71552e09599c305e2d10cd71ac02b37bb927fe52b768b6897dd733"
+    },
+    {
+      "path": "src/re/native-audio-profiles.js",
+      "sha256": "7cf36ba40afbdbca52a004bc8d0714ac8efbb83faf64b7067bc633d554ab203f"
+    },
+    {
+      "path": "src/re/native-audio-machine.js",
+      "sha256": "8a4b6d3ea5132dc8cf92cc8644ed9e5b5b3c1652de721de7992a985e8043ace5"
+    },
+    {
+      "path": "src/re/native-audio-recovery.js",
+      "sha256": "05f6ed0df271a407a327d5546dcbaa8239f93891bd239eb35911fe9545f61090"
+    },
+    {
+      "path": "src/re/re-native-audio-import.js",
+      "sha256": "202e5d49101d1db22227bb21ee42c9fe7e348578f64aa722bfb5f7dcd7ea659b"
+    },
+    {
+      "path": "src/audio/native-audio-library-ui.js",
+      "sha256": "8379a2c12330ca95013125127c52d9c0a3826323e4fc27b1159f9fe8b7d8999a"
+    },
+    {
+      "path": "src/re/audio-discovery.js",
+      "sha256": "33d81b2bdfa2376348991c0886ce0212a2c77128f0717bdf74483bc1300521a7"
+    },
+    {
+      "path": "src/re/audio-discovery-references.js",
+      "sha256": "5f42cc537a09cda9b363d85d0d9d28359bdffbf4f5e744b098b2d991a3542b36"
+    },
+    {
+      "path": "src/audio/audio-discovery-ui.js",
+      "sha256": "10c5213b77fa3121decab9b21f107b8b5006f956b8f742593cb00e99b0177531"
+    },
+    {
+      "path": "src/re/re-native-audio-import-ui.js",
+      "sha256": "fb08697a14a727c17bb9438e6495f15d0a513ec49e4b5ec28c860f34c5809808"
+    },
+    {
+      "path": "src/re/re-native-sfx-ui.js",
+      "sha256": "84bfb20a0b42f8edcfc9ef54cd896662c1dedbf29648e5b7acc4ebf24ed1d8ef"
+    },
+    {
+      "path": "src/re/recovery-profiles.js",
+      "sha256": "934e351e22442242801bdb9eca5789c9e1a9f0fb8711a264b41536c98ee57e35"
+    },
+    {
+      "path": "src/re/re-native-scene.js",
+      "sha256": "ec219b3a17ad23a3c7cf7bf1c8dac3c7365a8a673e74444caee6ace94539ce48"
+    },
+    {
+      "path": "src/re/re-native-background.js",
+      "sha256": "ef238af769ec3ec0d0a401e6bfad6e408489c77d00f8e669436dd03b7064c939"
+    },
+    {
+      "path": "src/re/native-background-construction.js",
+      "sha256": "a4a4f823a914430d7378e0767b322f9cfe1607043ee79aa9f8c2e795e68be2e7"
+    },
+    {
+      "path": "src/re/native-background-nametable.js",
+      "sha256": "b7f07e706456181b8433efd0844e13c1b88b80f825fd51dabb0ce0ce2fb29ef6"
+    },
+    {
+      "path": "src/re/native-command-map.js",
+      "sha256": "f16cd35c2d31d4d2a458b69c3893a9658f4e2d299c8c4e0c1f0394117d0edde5"
+    },
+    {
+      "path": "src/re/native-command-graphics.js",
+      "sha256": "f8fa0d4b94dafdceadfcef190eea03d01ffbed1ddb3d612c886257d3cec242f7"
+    },
+    {
+      "path": "src/re/re-native-map.js",
+      "sha256": "fb91003e044ba6898a3f66abba1e3e431dd6050de07654ddc8c9f0fc3a30f797"
+    },
+    {
+      "path": "src/re/re-native-background-ui.js",
+      "sha256": "628c5ceb5a1a51e78097e98bba5571815f0d8b6faa625f86f69b8e40851bea4b"
+    },
+    {
+      "path": "src/re/recovery-methods-ui.js",
+      "sha256": "8d018f05f5659ca353c5d527dc1125631e46d6325183c651565d669689487bcb"
+    },
+    {
+      "path": "src/mashup/mashup-gameplay.js",
+      "sha256": "4bc227daf612d9a50dfee597e9c6a4da70a084f1865ea098cc27811add225f43"
+    },
+    {
+      "path": "src/mashup/mashup-model.js",
+      "sha256": "d5e3f856b062d6ef1a55f16adad99dfe1243358a9af40b87c712213df991c2be"
+    },
+    {
+      "path": "src/services/recipe-identity.js",
+      "sha256": "953afa5b67c1106d0ddfcadf3b425fde736c8e1dab94bb94ca553516935001de"
+    },
+    {
+      "path": "src/mashup/mashup-ui.js",
+      "sha256": "6b4289590e5fa3ea2d404252f4e37ac13e00b4d6d22995adf2b6f4d4f1c823d1"
+    },
+    {
+      "path": "src/gameplay/movement-rules.js",
+      "sha256": "1e68985e2707168f6d6449293919e35a6483a066412f945450958718e8a3827e"
+    },
+    {
+      "path": "src/gameplay/movement-rules-ui.js",
+      "sha256": "6619850d48dc9e1cff6ac87e021db92845ef21ba40604ea265626a21158e370e"
+    },
+    {
+      "path": "src/re/spatial-native.js",
+      "sha256": "3d6d05b91d8dc921e13a17eafd648b6c23452ff560ba00b4d4882421df3099ea"
+    },
+    {
+      "path": "src/re/game-re-index.js",
+      "sha256": "b1205bd185c9b68df847f9cf2272c981cfca0729e1cb529dd3ec764ec2b420ad"
+    },
+    {
+      "path": "src/re/native-records.js",
+      "sha256": "4f17a9f84ea8761c65a43d0cd2f58c29a3fb74a10f64f49318894be5bb71570e"
+    },
+    {
+      "path": "src/re/native-engine-format.js",
+      "sha256": "04e2dd76e3eda1b66fa6d1aad98edcfb2149a7513278e1ec69f26c991d86e2ea"
+    },
+    {
+      "path": "src/re/native-row-rle.js",
+      "sha256": "6317a0286ae83169c5f5853d45caef6098bcc57d6a4c6c84185204c4974b9ce9"
+    },
+    {
+      "path": "src/re/zelda-overworld.js",
+      "sha256": "92f1a956cd993b75419340d0ae5d2db325abafceca26fa0b9c7b489f1f2d1915"
+    },
+    {
+      "path": "src/re/game-re-native.js",
+      "sha256": "4061ef63831c637bdc69b64619c6d5d5affe0e280da47a6d280d8931dcea273b"
+    },
+    {
+      "path": "src/re/game-re-worlds.js",
+      "sha256": "c61938300432727a105ef4bbfc1a15ab0e02e9d16a98b42610bc82a4a0548f7b"
+    },
+    {
+      "path": "src/services/stage-context.js",
+      "sha256": "93f2ac5cb432125a37aae64415ab1a86cbbfbc5a236ffdb5cdb8c99f9caeeb25"
+    },
+    {
+      "path": "src/services/scene-audio.js",
+      "sha256": "437e021123a16f424873ea0e84370c6205fefc54b48ba1027381eda65a248023"
+    },
+    {
+      "path": "src/re/game-re-assets.js",
+      "sha256": "87cfcc96ba110f52fda5727bdee715170cc281094d8672583a894be9e3726522"
+    },
+    {
+      "path": "src/re/spatial-re-ui.js",
+      "sha256": "a279be753d5e01f2193dd10a0a120217ffe9097350823bfd77822243a32a7a96"
+    },
+    {
+      "path": "src/re/game-re-ui.js",
+      "sha256": "237305a8d33a6fd494bc23fe1d973fd478b13e126c733900284f5209cc2caf4c"
+    },
+    {
+      "path": "src/re/game-re-assets-ui.js",
+      "sha256": "b5c9d9181e99538369fc456b01a1d6b8ab6c96ae9392a523967e33c8c3bb1bb4"
+    },
+    {
+      "path": "src/re/game-re-worlds-ui.js",
+      "sha256": "c08cb9c5da217c21c9e776c90eb692e1b44cb1797e3163b15db5bfe914120d9e"
+    },
+    {
+      "path": "src/re/native-engine-project.js",
+      "sha256": "7ddaec80443fdbe8e254375d032f681f1497d509f4b9ecf49f1b5eac273a68e6"
+    },
+    {
+      "path": "src/services/native-world-project.js",
+      "sha256": "c3acd9d1772ac07fdddf3705a1efab7cf498dc9898b12eb343b60c7aac819c4f"
+    },
+    {
+      "path": "src/services/rom-project.js",
+      "sha256": "31898926792a5b7ca9e429b2db326b354795c3f8b246dae6a6808ad64c68d2a7"
+    },
+    {
+      "path": "src/re/native-block-layout.js",
+      "sha256": "133f5df4af7120ec892efaa26abbae8231e977285442603ed63160c82e9ef9fe"
+    },
+    {
+      "path": "src/services/native-layout-project.js",
+      "sha256": "91e2920befa0065b9035293a910beaf9a64ec8aa241c9805f7dd183aeb79ca45"
+    },
+    {
+      "path": "src/re/native-prg-resources.js",
+      "sha256": "4fecd13ad17387823042ff092ce1bace9e01a5e5d8b8027cc46e890675799e18"
+    },
+    {
+      "path": "src/re/native-megaman-resources.js",
+      "sha256": "c68a308133e39ec60efc923b7c1230aaca91c5a337c01910805db3a474e19f09"
+    },
+    {
+      "path": "src/re/native-metroid-resources.js",
+      "sha256": "af0a120b494e3930aac99a90eede62866717ece16948fc52fc5e06e33f34d50b"
+    },
+    {
+      "path": "src/re/native-lolo-resources.js",
+      "sha256": "ffdd1b6abed4159c7cdcb0104de86c982124a4b8149f68cdfc251ed468e4b4b2"
+    },
+    {
+      "path": "src/re/native-river-city-resources.js",
+      "sha256": "e2af53dd5d2063630a33eac332224e566dc32c93b92cfee8725871a5bd37f6c9"
+    },
+    {
+      "path": "src/re/native-shadowgate-resources.js",
+      "sha256": "98fd0a9b11900c42554ed2bb14f1fd819acddded393ea3847df106e965633452"
+    },
+    {
+      "path": "src/re/punch-out-layout.js",
+      "sha256": "69075c70433786bdc73e0ed80d587c4243d8a1acf69308fa5a0f067b8a42e911"
+    },
+    {
+      "path": "src/re/native-punch-out-resources.js",
+      "sha256": "ebda19480e726293de5f715f5f182316fec949725ed0f4e037edae7f337c2e05"
+    },
+    {
+      "path": "src/re/punch-out-content.js",
+      "sha256": "12e742ddfc6420685a696d5754d0973aee9726b01beb2536fe7990e103fc61ce"
+    },
+    {
+      "path": "src/services/native-resource-project.js",
+      "sha256": "7c0b4f535a6ddcd6255f7a15335643e9b832a46e8680d2d15026f3491017c74f"
+    },
+    {
+      "path": "src/services/shadowgate-mapping.js",
+      "sha256": "9d7c48d5986077c7a09696806547d374435494ea885594b968f93219e561bf9c"
+    },
+    {
+      "path": "src/re/mmc2.js",
+      "sha256": "56603e75bd8872126c6d9aefd1724a76afc578f5ca9994f36c20edd1aea89c4a"
+    },
+    {
+      "path": "src/services/mmc2-emulator.js",
+      "sha256": "c52b0ea38dc903648f380a0a379a7fefab1b4ad2b4b9ce7e081276f45b6899de"
+    },
+    {
+      "path": "src/re/punch-out-states.js",
+      "sha256": "588c1e092d9663fffa50ad2234602f1255999ccf9a9275b0414ed7da633425cc"
+    },
+    {
+      "path": "src/services/punch-out-content-recovery.js",
+      "sha256": "f71943b10e2786139e8a0d788c5a29ea266e5b624af6ff6dd8270e86b74157ea"
+    },
+    {
+      "path": "src/services/punch-out-state-recovery.js",
+      "sha256": "5ab44ec2d42b21dca8568d0157072d9841ebea4cf7063e9f1cded837c39f2b37"
+    },
+    {
+      "path": "src/services/investigation-project.js",
+      "sha256": "f8a2bee7d9c67c27131951c1847d443d6d1bd21fd51fe4a85f46c9f6cf7b060e"
+    },
+    {
+      "path": "src/re/native-engine-ui.js",
+      "sha256": "5124c3dcb2de179e2c98e7b9432197ab0661973a1b1b46a89716b52877a06979"
+    },
+    {
+      "path": "src/services/scene-context.js",
+      "sha256": "cebb2bc3c4a392dc816df9295fd6a7db8ba32cb4aaab715a79518ae2a6d1dba4"
+    },
+    {
+      "path": "src/services/area-library.js",
+      "sha256": "ad10a284261afc549d40d4676264f7447f37c0bc6169700ce9479407aa6e6d0a"
+    },
+    {
+      "path": "src/re/investigation-ui.js",
+      "sha256": "a6293f181c01cbf2137cf71e2a863802bdf9d8e4cb5908afe6f3b2bb9a1882f7"
+    },
+    {
+      "path": "src/world/native-world-ui.js",
+      "sha256": "83511b3e0c47c0e47b4502c3e76764808897601c770f8229472801ebebc9646f"
+    },
+    {
+      "path": "src/services/project-gateway.js",
+      "sha256": "21c8f42e87d084cf16c5fd464df057d757e59c3ecbda2b2bff62b5cbc0dbcccc"
+    },
+    {
+      "path": "src/re/project-gateway-ui.js",
+      "sha256": "efd6160e465b1eec2d211fec9058519d3e1e899dd92bc389ffc6792f76a16208"
+    },
+    {
+      "path": "src/re/native-layout-ui.js",
+      "sha256": "379358befe11f192af9ea1cf060b8d4396b6f1198c8d7b06a61fe1e1f6dcd4a4"
+    },
+    {
+      "path": "src/re/punch-out-content-ui.js",
+      "sha256": "40d340c4596f0d1ed347d1372d8c7a6d5dc8dd12042ca1bc56e3dbf5f4ec0db1"
+    },
+    {
+      "path": "src/re/punch-out-states-ui.js",
+      "sha256": "a4596d2b607476b7034b4297b9cc6a87080300d0c6c5ac86361b5254fa38af34"
+    },
+    {
+      "path": "src/composition.js",
+      "sha256": "2ba43b63b407559c5ed3c08679afea89a4ad1db14f2a16c0c1f4f0611dd09119"
+    },
+    {
+      "path": "src/shell-suffix.html",
+      "sha256": "893cb35f3016a3523c33b676c4dfbe5686c4b99a1e7128d78e2e3fa271cd4829"
+    }
+  ]
+}

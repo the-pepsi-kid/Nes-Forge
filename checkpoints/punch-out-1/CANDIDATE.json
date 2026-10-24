@@ -1,12 +1,12 @@
 {
-  "candidate": "punch-out-states-1",
+  "candidate": "punch-out-arena-1",
   "version": "2.0.0-alpha.11",
   "status": "development-candidate",
   "promoted": false,
-  "parentCommit": "026fa22753d7e97455ed02180bb363054248ebed",
-  "branch": "implementation/punch-out-states-1",
+  "parentCommit": "c9c7be36c996fa537f9b79972787016613354892",
+  "branch": "implementation/punch-out-arena-1",
   "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "9b34cfce1317a72fa521488bedbc4f9e6338e61393031afe57890ba11e7c073e",
+  "htmlSha256": "d444e57c9705afe27f571ac3100e0459d910f2d6fd412a73451f36264462c9be",
   "schemas": {
     "ordinary": 12,
     "native": 13,
@@ -16,30 +16,24 @@
     "portableRom": 16
   },
   "scope": [
-    "Retain all 160 preceding application inputs unchanged; three additions provide source-state tracing, timed asset recovery and UI.",
-    "Trace 365 available primary state entries per revision using original state/shape routines on bounded private RAM. Preserve source sprite size, tile stride, preceding OAM, palettes and physical CHR bank.",
-    "Materialize selected observed excerpts into existing Scenes, metasprites and Animation through ProjectStore and Undo history; link matching original sound requests to installed Audio cues.",
-    "Each 240-update state matrix contains 3028 timed frame records, 1168 incremental-pose frame occurrences and 119 size-changing excerpts; 81 previously contextual full-pose entries are witnessed."
+    "Add the missing static ring/audience setup by running original two-page PPU programs and assembling native NT1/scroll $B0 context.",
+    "Append a clearly named Scene on fresh imports; explicit one-Undo recovery enriches preceding saved projects.",
+    "Retain all 163 preceding runtime inputs, five source backgrounds, boxer/pose/state tools and Audio."
   ],
   "limits": [
-    "Observed source-state paths use initial pose 0, original fight configuration/palette and zeroed scratch RAM. Concurrent player/referee/clock systems and arbitrary inputs are not simulated.",
-    "Excerpts stop at the requested update window, an external condition or a state boundary. No complete fight or exhaustive conditional-branch/secondary-state recovery is claimed.",
-    "Initial imports retain the preceding five backgrounds and 14 fighter samples. State clips are recovered explicitly within existing working limits; there is no silent truncation.",
-    "Native sprite/CHR/palette/Audio writing remains absent. Canonical animation edits save, but native builds refuse unsupported edits. Background recipes remain the preceding bounded writer.",
-    "Browser listening, hardware, controller and full release acceptance remain open."
+    "Static setup reference; health-bar placeholders and initial scoreboard are retained.",
+    "Concurrent Little Mac/opponent/referee, live HUD updates, camera/raster effects and full fights remain unresolved.",
+    "Arena/CHR/palette/Audio edits have no native writer; unsupported edits remain savable but refuse native builds.",
+    "No actual browser listening, hardware acceptance or full release gate."
   ],
   "verification": {
     "status": "targeted-passed",
     "publicChecks": 90,
     "publicSuites": 8,
-    "stateAndLifecycleGroups": 4,
-    "stateEvidence": "reviews/punch-out-states-1/State_Verification.json",
-    "gate": "reviews/punch-out-states-1/gate/Summary.json",
-    "sourcePreservation": "reviews/punch-out-states-1/Source_Preservation.json",
-    "unchangedApplicationInputs": 160,
-    "nativeStateUpdatesComparedPerRevision": 65534,
-    "stateEntriesPerRevision": 365,
-    "actualHeadlessWorkflow": "Source-state UI, mixed-size canonical Animation import, source Audio request selection/inspection, Undo/Redo, save/reopen and unchanged native output; unsupported edits refuse.",
+    "bothRevisionArenaLifecycleGroups": 2,
+    "nativePpuWritesComparedPerRevision": 2048,
+    "sourcePixelsComparedPerRevision": 61440,
+    "audioEntriesPerRevision": 84,
     "fullReleaseGate": "not run",
     "browserListening": "pending"
   },
@@ -47,11 +41,11 @@
     "privateRomsIncluded": false,
     "commercialAssetPayloadsIncluded": false,
     "sourceBearingCommercialProjectsIncluded": false,
-    "standaloneHTML": "NES_Forge_Punch_Out_States.html",
+    "standaloneHTML": "NES_Forge_Punch_Out_Arena.html",
     "newZipRequested": false
   },
   "sourcePreservation": {
-    "protectedBundleInputs": 160,
+    "protectedBundleInputs": 163,
     "changedSharedInputs": 0,
     "newModules": 3,
     "ordinarySchema": 12,
