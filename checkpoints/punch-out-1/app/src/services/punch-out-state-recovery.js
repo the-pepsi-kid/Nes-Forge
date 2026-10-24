@@ -1,25 +1,218 @@
+/*
+ * NES FORGE MODULE: src/services/punch-out-state-recovery.js
+ * Entry: Forge.services.PunchOutStateRecovery
+ * Purpose: Convert finite native state traces into canonical Scenes, metasprites and timed Animation frames.
+ * Connections: Uses PunchOutStates and existing Forge163 persistence; the UI commits through ProjectStore.
+ * Contract: Metadata retains assumptions, source offsets and observed Audio requests; those requests do not become authored Audio events.
+ * Developer walkthrough: app/docs/NATIVE_RECOVERY_TUTORIAL.md
+ * Bundle order: app/source-manifest.json; regenerate with app/tools/bundle.py.
+ */
 /* Timed source excerpts are canonical Scene/metasprite/animation assets.
  * The original source, background recipes and transactional owners remain. */
-(()=>{
-'use strict';
-const services=Forge.services,base=services.NativeResourceProject,content=services.PunchOutContentRecovery,cp=v=>JSON.parse(JSON.stringify(v)),cache=new Map();
-function source(p){if(!content.matches(p))throw Error('Open a recovered Punch-Out project first.');const info=base.validate(p),key=p.nativeGame.sourceSha256;if(!cache.has(key)){if(cache.size>=2)cache.delete(cache.keys().next().value);cache.set(key,PunchOutStates.open(info.bytes));}return cache.get(key);}
-function preview(p,fight,state,maxUpdates=240){return source(p).trace(fight,state,{maxUpdates});}
-function assets(p,trace){
- if(!trace.editable)throw Error('This state excerpt cannot be recovered: '+trace.stop+(trace.pendingFrames?' · concurrent CHR context required':''));
- const original=content.source(p),fight=original.fights[trace.fight],prefix=trace.state.id+'-u'+trace.maxUpdates,scenes=[],metasprites=[],groups=new Map(),signed=n=>((n+128)&255)-128;
- for(const frame of trace.frames){const key=JSON.stringify([frame.spriteMode,frame.chrBank4KiB,frame.palette]);let sceneId=groups.get(key);if(!sceneId){sceneId=prefix+'-art'+groups.size;groups.set(key,sceneId);const colors=Array.from({length:4},(_,i)=>[frame.palette[0],...frame.palette.slice(i*4+1,i*4+4)]);scenes.push(makeScene({id:sceneId,name:fight.label+' · state '+trace.state.index+' · sprite source '+(groups.size-1),chr:normalizeTiles(),sprChr:original.chr(frame.chrBank4KiB),pal:Array.from({length:4},()=>[15,0,0,0]),sprPal:colors,nt:Array(960).fill(0),attr:Array(64).fill(0),tileProps:Array(256).fill(0),oam:frame.pieces.map(piece=>({x:piece.x,y:piece.y,tile:frame.spriteMode===16?piece.tile&254:piece.tile,tile2:frame.spriteMode===16?(piece.tile&254)+1:(piece.tile+1)&255,attr:piece.attributes,height:frame.spriteMode,active:true,sourceOamIndex:piece.slot})),entities:[],links:[],sceneType:'static',scrollDir:'none',gravity:0,buildInclude:false,buildOrder:0,captureMeta:{mode:'native-state-sprite-source',punchOutState:{version:1,sourceSha256:p.nativeGame.sourceSha256,fight:trace.fight,state:trace.state.index,maxUpdates:trace.maxUpdates,firstUpdate:frame.update,spriteMode:frame.spriteMode,chrBank4KiB:frame.chrBank4KiB,scope:'Representative sprite-source view. The linked animation owns its timed frames; this is not a complete fight scene.'}}}));}
-  metasprites.push({id:prefix+'-frame'+frame.index,name:fight.label+' · state '+trace.state.index+' · frame '+frame.index,sceneId,spriteMode:frame.spriteMode,originX:0,originY:0,pieces:frame.pieces.map(piece=>({id:'oam-'+piece.slot,tile:frame.spriteMode===16?piece.tile&254:piece.tile,tile2:frame.spriteMode===16?(piece.tile&254)+1:(piece.tile+1)&255,x:signed(piece.x-fight.baseX),y:signed(piece.y-1-fight.baseY)+1,pal:piece.attributes&3,flipH:!!(piece.attributes&64),flipV:!!(piece.attributes&128),behind:!!(piece.attributes&32)}))});
- }
- const frames=[];for(const frame of trace.frames){let duration=frame.duration;while(duration){const part=Math.min(255,duration);frames.push({tileIdx:0,duration:part,metaspriteId:prefix+'-frame'+frame.index,hitboxes:[],hurtboxes:[],events:[]});duration-=part;}}
- const animation={id:prefix,name:fight.label+' · state '+trace.state.index+' · '+trace.updates+' native updates',state:'',loop:false,frames,nativeState:{version:1,sourceSha256:p.nativeGame.sourceSha256,fight:trace.fight,state:cp(trace.state),maxUpdates:trace.maxUpdates,updates:trace.updates,stop:trace.stop,truncated:trace.truncated,assumptions:cp(trace.assumptions),audioRequests:cp(trace.audioEvents),frameSources:trace.frames.map(f=>({index:f.index,update:f.update,duration:f.duration,selector:f.selector,spriteMode:f.spriteMode,tileStride:f.tileStride,chrBank4KiB:f.chrBank4KiB,sourceCommandFileOffset:f.sourceCommandFileOffset}))}};
- return {scenes,metasprites,animation};
-}
-function recover(project,fight,state,maxUpdates=240){
- base.validate(project,{build:true});const p=cp(project),trace=preview(p,fight,state,maxUpdates),bundle=assets(p,trace);
- for(const [key,values]of [['scenes',bundle.scenes],['metasprites',bundle.metasprites],['animations',[bundle.animation]]])for(const value of values){const old=p[key].find(x=>x.id===value.id);if(old&&JSON.stringify(old)!==JSON.stringify(value))throw Error('The recovered '+key+' asset has local changes. Preserve it before recovering again.');if(!old)p[key].push(value);}
- if(p.scenes.length>64||p.metasprites.length>256||p.animations.length>256)throw Error('This excerpt exceeds the remaining Scene, metasprite or animation working slots. Choose a shorter excerpt. No source state was discarded.');
- Forge163.persistence.validate(p.metasprites,p.animations,p.scenes);p.nativeGame.projectionSha256=base.projectionSignature(p);base.validate(p,{build:true});return {project:p,trace,animationId:bundle.animation.id};
-}
-services.PunchOutStateRecovery=Object.freeze({source,preview,assets,recover});
+(() => {
+  'use strict';
+  const services = Forge.services,
+    base = services.NativeResourceProject,
+    content = services.PunchOutContentRecovery,
+    cp = v => JSON.parse(JSON.stringify(v)),
+    cache = new Map();
+
+  function source(p) {
+    if (!content.matches(p)) throw Error('Open a recovered Punch-Out project first.');
+    const info = base.validate(p),
+      key = p.nativeGame.sourceSha256;
+    if (!cache.has(key)) {
+      if (cache.size >= 2) cache.delete(cache.keys().next().value);
+      cache.set(key, PunchOutStates.open(info.bytes));
+    }
+    return cache.get(key);
+  }
+
+  function preview(p, fight, state, maxUpdates = 240) {
+    return source(p).trace(fight, state, {
+      maxUpdates
+    });
+  }
+
+  function assets(p, trace) {
+    if (!trace.editable) throw Error('This state excerpt cannot be recovered: ' + trace.stop + (
+      trace.pendingFrames ? ' · concurrent CHR context required' : ''));
+    const original = content.source(p),
+      fight = original.fights[trace.fight],
+      prefix = trace.state.id + '-u' + trace.maxUpdates,
+      scenes = [],
+      metasprites = [],
+      groups = new Map(),
+      signed = n => ((n + 128) & 255) - 128;
+    for (const frame of trace.frames) {
+      const key = JSON.stringify([frame.spriteMode, frame.chrBank4KiB, frame.palette]);
+      let sceneId = groups.get(key);
+      if (!sceneId) {
+        sceneId = prefix + '-art' + groups.size;
+        groups.set(key, sceneId);
+        const colors = Array.from({
+          length: 4
+        }, (_, i) => [frame.palette[0], ...frame.palette.slice(i * 4 + 1, i * 4 + 4)]);
+        scenes.push(makeScene({
+          id: sceneId,
+          name: fight.label + ' · state ' + trace.state.index + ' · sprite source ' + (
+            groups.size - 1),
+          chr: normalizeTiles(),
+          sprChr: original.chr(frame.chrBank4KiB),
+          pal: Array.from({
+            length: 4
+          }, () => [15, 0, 0, 0]),
+          sprPal: colors,
+          nt: Array(960).fill(0),
+          attr: Array(64).fill(0),
+          tileProps: Array(256).fill(0),
+          oam: frame.pieces.map(piece => ({
+            x: piece.x,
+            y: piece.y,
+            tile: frame.spriteMode === 16 ? piece.tile & 254 : piece.tile,
+            tile2: frame.spriteMode === 16 ? (piece.tile & 254) + 1 : (piece.tile +
+              1) & 255,
+            attr: piece.attributes,
+            height: frame.spriteMode,
+            active: true,
+            sourceOamIndex: piece.slot
+          })),
+          entities: [],
+          links: [],
+          sceneType: 'static',
+          scrollDir: 'none',
+          gravity: 0,
+          buildInclude: false,
+          buildOrder: 0,
+          captureMeta: {
+            mode: 'native-state-sprite-source',
+            punchOutState: {
+              version: 1,
+              sourceSha256: p.nativeGame.sourceSha256,
+              fight: trace.fight,
+              state: trace.state.index,
+              maxUpdates: trace.maxUpdates,
+              firstUpdate: frame.update,
+              spriteMode: frame.spriteMode,
+              chrBank4KiB: frame.chrBank4KiB,
+              scope: 'Representative sprite-source view. The linked animation owns its timed frames; this is not a complete fight scene.'
+            }
+          }
+        }));
+      }
+      metasprites.push({
+        id: prefix + '-frame' + frame.index,
+        name: fight.label + ' · state ' + trace.state.index + ' · frame ' + frame.index,
+        sceneId,
+        spriteMode: frame.spriteMode,
+        originX: 0,
+        originY: 0,
+        pieces: frame.pieces.map(piece => ({
+          id: 'oam-' + piece.slot,
+          tile: frame.spriteMode === 16 ? piece.tile & 254 : piece.tile,
+          tile2: frame.spriteMode === 16 ? (piece.tile & 254) + 1 : (piece.tile + 1) &
+            255,
+          x: signed(piece.x - fight.baseX),
+          y: signed(piece.y - 1 - fight.baseY) + 1,
+          pal: piece.attributes & 3,
+          flipH: !!(piece.attributes & 64),
+          flipV: !!(piece.attributes & 128),
+          behind: !!(piece.attributes & 32)
+        }))
+      });
+    }
+    const frames = [];
+    for (const frame of trace.frames) {
+      let duration = frame.duration;
+      while (duration) {
+        const part = Math.min(255, duration);
+        frames.push({
+          tileIdx: 0,
+          duration: part,
+          metaspriteId: prefix + '-frame' + frame.index,
+          hitboxes: [],
+          hurtboxes: [],
+          events: []
+        });
+        duration -= part;
+      }
+    }
+    const animation = {
+      id: prefix,
+      name: fight.label + ' · state ' + trace.state.index + ' · ' + trace.updates +
+        ' native updates',
+      state: '',
+      loop: false,
+      frames,
+      nativeState: {
+        version: 1,
+        sourceSha256: p.nativeGame.sourceSha256,
+        fight: trace.fight,
+        state: cp(trace.state),
+        maxUpdates: trace.maxUpdates,
+        updates: trace.updates,
+        stop: trace.stop,
+        truncated: trace.truncated,
+        assumptions: cp(trace.assumptions),
+        audioRequests: cp(trace.audioEvents),
+        frameSources: trace.frames.map(f => ({
+          index: f.index,
+          update: f.update,
+          duration: f.duration,
+          selector: f.selector,
+          spriteMode: f.spriteMode,
+          tileStride: f.tileStride,
+          chrBank4KiB: f.chrBank4KiB,
+          sourceCommandFileOffset: f.sourceCommandFileOffset
+        }))
+      }
+    };
+    return {
+      scenes,
+      metasprites,
+      animation
+    };
+  }
+
+  /* Validate the old projection before adding source-derived assets. Re-sign only
+   * after canonical validation; the UI owns snapshot/commit and Undo. */
+  function recover(project, fight, state, maxUpdates = 240) {
+    base.validate(project, {
+      build: true
+    });
+    const p = cp(project),
+      trace = preview(p, fight, state, maxUpdates),
+      bundle = assets(p, trace);
+    for (const [key, values] of [
+        ['scenes', bundle.scenes],
+        ['metasprites', bundle.metasprites],
+        ['animations', [bundle.animation]]
+      ])
+      for (const value of values) {
+        const old = p[key].find(x => x.id === value.id);
+        if (old && JSON.stringify(old) !== JSON.stringify(value)) throw Error('The recovered ' +
+          key + ' asset has local changes. Preserve it before recovering again.');
+        if (!old) p[key].push(value);
+      }
+    if (p.scenes.length > 64 || p.metasprites.length > 256 || p.animations.length > 256)
+    throw Error(
+        'This excerpt exceeds the remaining Scene, metasprite or animation working slots. Choose a shorter excerpt. No source state was discarded.'
+        );
+    Forge163.persistence.validate(p.metasprites, p.animations, p.scenes);
+    p.nativeGame.projectionSha256 = base.projectionSignature(p);
+    base.validate(p, {
+      build: true
+    });
+    return {
+      project: p,
+      trace,
+      animationId: bundle.animation.id
+    };
+  }
+  services.PunchOutStateRecovery = Object.freeze({
+    source,
+    preview,
+    assets,
+    recover
+  });
 })();

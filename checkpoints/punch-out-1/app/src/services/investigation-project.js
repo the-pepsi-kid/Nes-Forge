@@ -1,3 +1,8 @@
+/* NES FORGE CONNECTION: src/services/investigation-project.js
+ * Intake priority: NativeResourceProject recognition, NativeLayoutProject, known
+ * game profile, then preserved generic ROM. A missed identity falls back to raw source
+ * views, which is why arena-derivative recognition matters to the user workflow.
+ */
 /* Read-only source evidence belongs to the project, not a second asset model.
  * Existing decoders own recovery; existing asset imports own editable copies.
  * Catalogs are versioned, bounded and bound to the preserved source identity. */

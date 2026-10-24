@@ -1,3 +1,8 @@
+/* NES FORGE CONNECTION: src/services/project-store.js
+ * Canonical lifecycle: capture -> prepareLoad -> commit/load; recovery epoch and persistence
+ * stay here. Punch-Out UI materializers use these APIs plus the existing snapshot/Undo owner.
+ * Native-source projects write schema 16; ordinary authored projects retain schema 12.
+ */
 /* NES Forge 1.9.0 — authoritative project serialization and lifecycle.
  * Schema 12 rejects older editors that cannot preserve Gameplay Core records.
  * Unresolved authored references still survive saves for deliberate repair.

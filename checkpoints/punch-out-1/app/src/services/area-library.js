@@ -1,3 +1,8 @@
+/* NES FORGE CONNECTION: src/services/area-library.js
+ * Area navigation presents the investigation catalog and its materialized pages.
+ * The source catalog can exceed the 64 working Scene slots. Punch-Out Recovered content
+ * adds pose/state/arena navigation while retaining this shared page library.
+ */
 /* A navigation view over existing project assets and detached source catalogs.
  * No second asset store, inferred route graph, runtime binding or native encoder. */
 (()=>{

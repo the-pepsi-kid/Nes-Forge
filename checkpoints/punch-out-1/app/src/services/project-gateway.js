@@ -1,3 +1,7 @@
+/* NES FORGE CONNECTION: src/services/project-gateway.js
+ * Shared Open ROM / project gateway. Preserve this entry path when adding adapters;
+ * direct service.create tests alone do not establish that the user import path works.
+ */
 /* Capability discovery is a view over existing adapters. It owns no editable
  * assets and never treats a recognized container as a recovered game engine. */
 (()=>{

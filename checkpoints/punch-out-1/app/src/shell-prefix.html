@@ -1,4 +1,49 @@
 <!DOCTYPE html>
+<!--
+NES FORGE DEVELOPER MAP — 2026-10-24
+This is a generated, editable standalone application. Your loaded assets and
+saved project are separate from this file. Source: app/src/; ordered parts:
+app/source-manifest.json; build: python3 app/tools/bundle.py.
+
+Four independent developer paths remain available:
+  Manual RE: services/project-gateway.js -> re/re-analysis*.js -> source/.
+  6502 code: CODE / asm_assemble (legacy/00-editor.js) -> build-services.js.
+  Hex work: read-only general analysis + external ROM patching; reversible RAM
+    experiments are session-only; narrow native command editors are separate.
+  App changes: edit this HTML copy, or app/src then regenerate. Port HTML-only
+    changes back to source before bundling, which replaces generated output.
+
+Asset owners:
+  Scene / CHR / palette / sprite placements: makeScene + selected Scene buffers.
+  Metatiles / collision: legacy/07-metatiles.js and runtime-specific compilers.
+  Metasprites: legacy/13-metasprites.js; Animation: 14-composed-animation.js
+    plus 16-model.js; actor definitions/instances/behavior: gameplay/.
+  World maps / rooms / markers / cameras: world/ and their tileset Scene.
+  Canonical music / instruments / patterns / order / SFX: audio/.
+  Native sound catalogs / samples / PCM audition: re/native-audio-*.js.
+  Assembly source: asmSource / CODE; emitted bytes require a valid build path.
+  Source bytes: importedRom; read-only evidence: investigation; native edit
+    intent: nativeGame recipes and supported canonical Scene fields.
+
+Shared connections:
+  ProjectStore -> canonical lifecycle, schema, capture/prepare/commit/save.
+  AssetRegistry -> lookup/reference diagnostics, never a parallel asset store.
+  BuildGraph / RuntimeCompiler -> backend and output; EmulatorBridge -> player.
+  NativeResourceProject -> preserved bytes, recipes, registered Scene writers.
+  Punch-Out pure decoders -> recovery services -> transactional UI -> ordinary
+    Scenes / metasprites / Animation; arena writer -> existing native build.
+
+Search "NES FORGE MODULE:" for detailed Punch-Out module contracts and
+"NES FORGE CONNECTION:" for shared integration points. Legacy function names
+remain searchable. Follow manifest order: later wrappers extend earlier owners.
+
+Complete asset reference, visual/manual RE/code/hex/HTML workflows, native
+codec lesson and runnable synthetic exercise:
+  app/docs/NATIVE_RECOVERY_TUTORIAL.md
+  app/docs/native-codec-exercise.cjs
+Recognition, recovery, editable copies and native encoders are separate
+capabilities. Do not bypass source/signature checks to simulate support.
+-->
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NES Forge 2.0.0-alpha.11 — Agnostic ROM Projects</title>

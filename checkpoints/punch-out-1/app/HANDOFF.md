@@ -1,3 +1,9 @@
+## Current developer/derivative checkpoint
+
+Read `docs/NATIVE_RECOVERY_TUTORIAL.md` and `../reviews/punch-out-developer-1/HANDOFF.md` first. Preserve all independent workflows: visual asset authoring, manual RE, custom assembly, external hex work and direct HTML development. Existing adapter support is not a prerequisite for general byte investigation. Canonical editing, source evidence and native encoders remain distinct.
+
+This checkpoint fixes bounded native arena derivative recognition and adds readable source comments plus the asset/workflow tutorial. It does not add a universal hex editor, native Audio writer or full Punch-Out recovery. The current available gate is 104 checks, not the absent historical full release gate. Ordinary schema 12 and native-source schema 16 remain unchanged.
+
 ## Punch-Out player background correction
 
 The owner’s scrambled live HUD/crowd/ring was reproduced with the untouched ROM. The native arena writer was not required to trigger it. Forge’s MMC2 renderer fetched only visible background tiles; Punch-Out uses a tile beyond the visible edge to select the correct graphics bank for the next row. The renderer now performs all 34 background pattern fetches per scanline while drawing only visible pixels. Sprite-only rendering also retains those background bus reads.

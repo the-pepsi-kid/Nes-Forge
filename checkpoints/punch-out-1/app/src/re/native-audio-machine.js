@@ -1,3 +1,8 @@
+/* NES FORGE CONNECTION: src/re/native-audio-machine.js
+ * Native sound execution owner: isolated CPU/APU playback for the installed profiles.
+ * PunchOutAudio supplies catalog/entry metadata; this machine owns timing and direct-DAC
+ * startup PCM audition. An audible catalog does not imply a native Audio writer.
+ */
 /* Isolated native-driver execution using the same instruction implementation
  * and ForgeAPU class as live emulation. Fixed physical banks, no DOM/files/network,
  * no live emulator mutation, no ROM writes. All calls and windows are bounded. */

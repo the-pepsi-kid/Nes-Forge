@@ -1,3 +1,8 @@
+/* NES FORGE CONNECTION: src/services/build-services.js
+ * Build routing: BuildGraph/RuntimeCompiler select authored or native-engine output.
+ * NativeResourceProject.build composes source recipes and registered Scene encoders;
+ * Punch-Out does not replace this dispatcher. See app/docs/NATIVE_RECOVERY_TUTORIAL.md.
+ */
 /* NES Forge 1.6.7 — authoritative build graph and existing-backend dispatch.
  * Live preparation commits active editor buffers and normalizes IDs once.
  * Generated builds pass their copied source explicitly to retained codecs.

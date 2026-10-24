@@ -1,3 +1,7 @@
+/* NES FORGE CONNECTION: src/services/scene-context.js
+ * Selected Scene/context owner used by recovery UIs. Recovered assets are ordinary
+ * Scenes selected through this service; source catalogs do not become a parallel Stage model.
+ */
 /* A navigation view over canonical assets. No Stage store, schema or encoder. */
 (()=>{
 'use strict';

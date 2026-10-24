@@ -1,3 +1,9 @@
+## Developer workflows and arena derivative re-import
+
+Read [the developer and asset workflow guide](app/docs/NATIVE_RECOVERY_TUTORIAL.md) for the complete asset map, visual editing, manual RE, 6502 coding, external hex work, direct HTML changes and a worked native codec lesson. Run `node app/docs/native-codec-exercise.cjs` for the synthetic exercise. The HTML starts with a developer map; Punch-Out modules have readable formatting, connection comments and native ownership contracts.
+
+The current app also recognizes bounded Punch-Out arena builds when re-imported through Open ROM / project. This retains supported edits, recovered fighter samples and Audio while preserving existing recipe/write ownership. Malformed streams and unrelated header/code/Audio/CHR modifications remain outside support. Full recovery and native sprite/animation/Audio writing remain unfinished. See `reviews/punch-out-developer-1/` for current evidence.
+
 ## Punch-Out player background correction
 
 The owner’s scrambled live HUD/crowd/ring was reproduced with the untouched ROM. The native arena writer was not required to trigger it. Forge’s MMC2 renderer fetched only visible background tiles; Punch-Out uses a tile beyond the visible edge to select the correct graphics bank for the next row. The renderer now performs all 34 background pattern fetches per scanline while drawing only visible pixels. Sprite-only rendering also retains those background bus reads.

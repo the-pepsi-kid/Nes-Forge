@@ -1,3 +1,8 @@
+/* NES FORGE CONNECTION: src/audio/native-audio-library-ui.js
+ * Native Audio workflow: catalog selection/inspection/audition and explicit conversion
+ * into canonical tracker assets. The preserved source remains the native owner.
+ * Scene recovery and project reopen must keep this library available.
+ */
 /* ROM Audio Library: one in-app path from a loaded ROM to native evidence,
  * isolated playback, an explicit conversion preview and canonical Audio import. */
 (()=>{
