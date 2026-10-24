@@ -19,7 +19,7 @@ function recover(project,fight,state,maxUpdates=240){
  base.validate(project,{build:true});const p=cp(project),trace=preview(p,fight,state,maxUpdates),bundle=assets(p,trace);
  for(const [key,values]of [['scenes',bundle.scenes],['metasprites',bundle.metasprites],['animations',[bundle.animation]]])for(const value of values){const old=p[key].find(x=>x.id===value.id);if(old&&JSON.stringify(old)!==JSON.stringify(value))throw Error('The recovered '+key+' asset has local changes. Preserve it before recovering again.');if(!old)p[key].push(value);}
  if(p.scenes.length>64||p.metasprites.length>256||p.animations.length>256)throw Error('This excerpt exceeds the remaining Scene, metasprite or animation working slots. Choose a shorter excerpt. No source state was discarded.');
- Forge163.persistence.validate(p.metasprites,p.animations,p.scenes);p.nativeGame.projectionSha256=services.NativeEngineProject.signature({...p,scenes:p.scenes.filter(s=>!base.requiredScene(p,s.id))});base.validate(p,{build:true});return {project:p,trace,animationId:bundle.animation.id};
+ Forge163.persistence.validate(p.metasprites,p.animations,p.scenes);p.nativeGame.projectionSha256=base.projectionSignature(p);base.validate(p,{build:true});return {project:p,trace,animationId:bundle.animation.id};
 }
 services.PunchOutStateRecovery=Object.freeze({source,preview,assets,recover});
 })();

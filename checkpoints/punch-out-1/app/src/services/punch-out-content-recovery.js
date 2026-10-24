@@ -19,7 +19,7 @@ function recover(project,{overview=false,fight=0,selector=0}={}){
  const ids=[];for(const [fi,sel]of choices){const {scene,frame}=assets(p,fi,sel),existing=p.scenes.find(s=>s.id===scene.id),old=p.metasprites.find(m=>m.id===frame.id);if(existing&&JSON.stringify(existing)!==JSON.stringify(scene))throw Error('The recovered sprite source has local changes. Preserve them before opening another pose.');if(old&&JSON.stringify(old)!==JSON.stringify(frame))throw Error('The recovered pose has local changes. Preserve them before recovering it again.');if(!existing)p.scenes.push(scene);if(!old)p.metasprites.push(frame);ids.push(frame.id);}
  if(p.scenes.length>64||p.metasprites.length>256)throw Error('The current project has no free Scene or metasprite slots. No source catalog entries were discarded.');
  Forge163.persistence.validate(p.metasprites,p.animations,p.scenes);
- p.nativeGame.projectionSha256=services.NativeEngineProject.signature({...p,scenes:p.scenes.filter(s=>!base.requiredScene(p,s.id))});
+ p.nativeGame.projectionSha256=base.projectionSignature(p);
  base.validate(p,{build:true});return {project:p,frameIds:ids};
 }
 async function create(input,name){const p=await base.create(input,name);return matches(p)?recover(p,{overview:true}).project:p;}

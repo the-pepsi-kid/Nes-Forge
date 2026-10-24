@@ -1,0 +1,57 @@
+{
+  "suite": "native-lolo-resources",
+  "htmlSha256": "3d8260a9ab1ada2738ba260eef29921a501928f2e67265caa8d567e130a8f808",
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Bottom-up streams use the imaginary zero row and native repeat counts",
+      "passed": true
+    },
+    {
+      "name": "Display-order rows and columns survive packing without transposition",
+      "passed": true
+    },
+    {
+      "name": "The native consumer stops after 240 cells and preserves allocated tail bytes",
+      "passed": true
+    },
+    {
+      "name": "Truncated commands, row overflow and repeated meta operands refuse",
+      "passed": true
+    },
+    {
+      "name": "Packing is deterministic and favors a bounded row-copy representation",
+      "passed": true
+    },
+    {
+      "name": "Only the edited room allocation changes; untouched source and allocated padding remain exact",
+      "passed": true
+    },
+    {
+      "name": "No-op recipes preserve every byte, rather than normalizing compression",
+      "passed": true
+    },
+    {
+      "name": "Native marker, border and room-setting cells cannot be changed by a terrain recipe",
+      "passed": true
+    },
+    {
+      "name": "A compressed edit that cannot fit its original allocation fails before source mutation",
+      "passed": true
+    },
+    {
+      "name": "Unknown room profiles and filenames cannot activate recovery or mutate the project",
+      "passed": true
+    },
+    {
+      "name": "Shared source validation preserves generic CHR ownership and source identity rejection",
+      "passed": true
+    },
+    {
+      "name": "Previously installed native adapters retain exact order and behavior",
+      "passed": true
+    }
+  ]
+}
