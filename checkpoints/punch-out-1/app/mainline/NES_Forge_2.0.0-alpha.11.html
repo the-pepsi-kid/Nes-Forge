@@ -18812,6 +18812,40 @@ const capture=previous=>function(...args){if(emu.mapper===9)return reportError(E
 emuCapture=capture(prior.capture);emuCaptureNametable=capture(prior.nametable);emuCaptureHybrid=capture(prior.hybrid);
 Forge.services.MMC2Mapping=Object.freeze({version:1,scope:'Standard MMC2 physical banking; scanline rendering remains approximate. Runtime capture is explicitly unavailable for MMC2.'});
 })();
+/* Bounded original opponent-state execution. Timed excerpts retain preceding
+ * OAM and native sprite-size/stride changes. No live emulator, PPU or APU bus. */
+(function(root,factory){const node=typeof module!=='undefined'&&module.exports,api=factory(node?require('../services/cpu6502-core.js'):root.Forge6502Core,node?require('./punch-out-content.js'):root.PunchOutContent);if(node)module.exports=api;else root.PunchOutStates=api;})(typeof globalThis!=='undefined'?globalThis:this,function(cpu,contentApi){
+'use strict';
+const fail=m=>{throw Error('Punch-Out states: '+m);},hex=n=>'$'+n.toString(16).toUpperCase().padStart(4,'0');
+function open(input){
+ const content=contentApi.open(input),bytes=input.slice(),at=(bank,a)=>16+bank*8192+a-0x8000,word=(bank,a)=>bytes[at(bank,a)]|(bytes[at(bank,a)+1]<<8);
+ const states=content.fights.map(f=>{const count=(f.stateTables[1].address-f.stateTables[0].address)/2;if(!Number.isInteger(count)||count<1||count>64)fail('Primary state table has invalid bounds.');return Array.from({length:count},(_,index)=>{const address=word(f.bank8KiB,f.stateTables[0].address+index*2);return {fight:f.index,index,id:'po-state-f'+f.index+'-s'+index,address,fileOffset:address>=0x8000&&address<0xa000?at(f.bank8KiB,address):null,label:'State '+hex(index),available:address>=0x8000&&address<0xa000};});});
+ function trace(fightIndex,stateIndex,{maxUpdates=240,onUpdate=null}={}){
+  const f=content.fights[fightIndex],root=states[fightIndex]?.find(s=>s.index===stateIndex);if(!root?.available)fail('Choose an available source state.');if(!Number.isInteger(maxUpdates)||maxUpdates<1||maxUpdates>600||onUpdate!==null&&typeof onUpdate!=='function')fail('Choose 1–600 native updates.');
+  const ram=new Uint8Array(2048),state={A:0,X:0,Y:0,SP:0xfd,PC:0,C:0,Z:0,I:1,D:0,V:0,N:0,cycles:0,opsMissed:0},frames=[],commands=[],audioEvents=[];let instructions=0,update=-1,waiting=false,command=null,lastKey='',stop='update-limit',status='bounded',updates=0;
+  const physical=a=>a<0xa000?at(f.bank8KiB,a):16+106496+a-0xa000;
+  function read(a){a&=65535;if(a<0x2000)return ram[a&2047];if(a>=0x8000)return bytes[physical(a)];fail('State requires runtime bus '+hex(a));}
+  function write(a,v){a&=65535;v&=255;if(a<0x2000){ram[a&2047]=v;if(update>=0&&a>=0xf0&&a<=0xf3){if(audioEvents.length>=4096)fail('Audio event budget exceeded.');audioEvents.push({update,register:a,value:v,pc:state.PC,fileOffset:command});}return;}if(a===0xa000&&v===f.bank8KiB)return;fail('State requires runtime bus '+hex(a));}
+  const core=cpu.create(state,read,write);
+  function call(pc){state.PC=pc;state.SP=0xfb;ram[0x1fc]=0xee;ram[0x1fd]=0x7f;let steps=0;while(state.PC!==0x7fef){if(++steps>50000||++instructions>1500000)fail('Native instruction budget exceeded.');if(state.PC<0xa000||state.PC>=0xd858)fail('State leaves the bounded native code at '+hex(state.PC));if(state.PC===0xc74e)waiting=true;if(state.PC===0xc552){const address=(ram[0x94]|ram[0x95]<<8)+state.Y;if(address<0x8000||address>=0xa000)fail('State stream leaves its source bank.');command=at(f.bank8KiB,address);if(commands.length>=4096)fail('State command budget exceeded.');commands.push({update,fileOffset:command,opcode:bytes[command],spriteMode:ram[0x80]});}core.step();state.PC&=65535;if(state.opsMissed)fail('Unsupported native instruction.');}if(state.SP!==0xfd)fail('Unbalanced native state stack.');}
+  ram.set(f.configBytes,0x5a0);ram.set(f.palette,0x480);ram[2]=f.bank8KiB;ram[3]=f.entryOffset;ram[0x80]=f.spriteMode;ram[0x81]=f.spriteMode/8;ram[0x82]=f.spriteMode===16?254:255;ram[0xa9]=5;ram[0xb0]=f.baseX;ram[0xb1]=f.baseY;ram[0xa0]=128;ram.fill(248,0x200,0x300);
+  // The baseline full pose supplies real preceding tiles to incremental poses.
+  call(0xc890);ram[0x90]=stateIndex;ram[0x94]=root.address&255;ram[0x95]=root.address>>8;ram[0x93]=0;ram[0x92]=1;
+  try{for(update=0;update<maxUpdates;update++){
+   waiting=false;call(update===0?0xc550:0xc4e7);if(ram[0xa0])call(0xc890);
+   const mode=ram[0x80];if(![8,16].includes(mode))fail('State has an unknown sprite size.');const oam=Array.from(ram.slice(0x200,0x300)),palette=Array.from(ram.slice(0x490,0x4a0),v=>v&63),bank=ram[0xa9]&31,pieces=[];
+   for(let slot=3;slot<64;slot++){const i=slot*4;if(oam[i]>=239)continue;pieces.push({slot,x:oam[i+3],y:oam[i]+1,tile:oam[i+1],attributes:oam[i+2],chrHalf:mode===16?oam[i+1]&1:0});}
+   const key=JSON.stringify([mode,bank,palette,oam]);if(key===lastKey)frames.at(-1).duration++;else{frames.push({index:frames.length,update,duration:1,selector:ram[0xa1],spriteMode:mode,tileStride:ram[0x81],chrBank4KiB:bank,palette,oam,pieces,sourceCommandFileOffset:command,status:pieces.some(p=>p.chrHalf)?'context-required':'decoded'});lastKey=key;}
+   updates++;if(onUpdate)onUpdate({update,ram:Array.from(ram),oam,command});
+   if(ram[0x90]&128||ram[0x90]===0){stop='state-boundary';status='stopped';break;}if(waiting){stop='external-condition';status='stopped';break;}
+  }}catch(e){stop=e.message;status='refused';}
+  const pending=frames.filter(f=>f.status!=='decoded').length;
+  return {version:1,fight:fightIndex,state:root,maxUpdates,updates,status,stop,truncated:stop==='update-limit',instructions,frames,commands,audioEvents,editable:status!=='refused'&&frames.length>0&&!pending,pendingFrames:pending,assumptions:['Initial full pose 0, source fight configuration/palette and zeroed scratch RAM. No concurrent player/referee/game-clock update or player input is simulated.','Durations count original opponent-state updates; freezes, lag and other game systems can change wall-clock timing.','Only the selected primary state path under these inputs is observed. Conditional branches, full fights and all secondary states are not exhaustively recovered.','Incremental poses retain preceding native OAM. Upper-half CHR dependencies are refused. Native sprite, CHR and Audio writing remain unavailable.']};
+ }
+ return Object.freeze({states,trace});
+}
+return Object.freeze({version:1,open});
+});
 /* Materialize source poses with the established native source/recipe owner.
  * Existing projects and all other adapters retain their original intake. */
 (()=>{
@@ -18839,6 +18873,31 @@ function recover(project,{overview=false,fight=0,selector=0}={}){
 async function create(input,name){const p=await base.create(input,name);return matches(p)?recover(p,{overview:true}).project:p;}
 services.NativeResourceProject=Object.freeze({...base,create});
 services.PunchOutContentRecovery=Object.freeze({matches,source,assets,recover});
+})();
+/* Timed source excerpts are canonical Scene/metasprite/animation assets.
+ * The original source, background recipes and transactional owners remain. */
+(()=>{
+'use strict';
+const services=Forge.services,base=services.NativeResourceProject,content=services.PunchOutContentRecovery,cp=v=>JSON.parse(JSON.stringify(v)),cache=new Map();
+function source(p){if(!content.matches(p))throw Error('Open a recovered Punch-Out project first.');const info=base.validate(p),key=p.nativeGame.sourceSha256;if(!cache.has(key)){if(cache.size>=2)cache.delete(cache.keys().next().value);cache.set(key,PunchOutStates.open(info.bytes));}return cache.get(key);}
+function preview(p,fight,state,maxUpdates=240){return source(p).trace(fight,state,{maxUpdates});}
+function assets(p,trace){
+ if(!trace.editable)throw Error('This state excerpt cannot be recovered: '+trace.stop+(trace.pendingFrames?' · concurrent CHR context required':''));
+ const original=content.source(p),fight=original.fights[trace.fight],prefix=trace.state.id+'-u'+trace.maxUpdates,scenes=[],metasprites=[],groups=new Map(),signed=n=>((n+128)&255)-128;
+ for(const frame of trace.frames){const key=JSON.stringify([frame.spriteMode,frame.chrBank4KiB,frame.palette]);let sceneId=groups.get(key);if(!sceneId){sceneId=prefix+'-art'+groups.size;groups.set(key,sceneId);const colors=Array.from({length:4},(_,i)=>[frame.palette[0],...frame.palette.slice(i*4+1,i*4+4)]);scenes.push(makeScene({id:sceneId,name:fight.label+' · state '+trace.state.index+' · sprite source '+(groups.size-1),chr:normalizeTiles(),sprChr:original.chr(frame.chrBank4KiB),pal:Array.from({length:4},()=>[15,0,0,0]),sprPal:colors,nt:Array(960).fill(0),attr:Array(64).fill(0),tileProps:Array(256).fill(0),oam:frame.pieces.map(piece=>({x:piece.x,y:piece.y,tile:frame.spriteMode===16?piece.tile&254:piece.tile,tile2:frame.spriteMode===16?(piece.tile&254)+1:(piece.tile+1)&255,attr:piece.attributes,height:frame.spriteMode,active:true,sourceOamIndex:piece.slot})),entities:[],links:[],sceneType:'static',scrollDir:'none',gravity:0,buildInclude:false,buildOrder:0,captureMeta:{mode:'native-state-sprite-source',punchOutState:{version:1,sourceSha256:p.nativeGame.sourceSha256,fight:trace.fight,state:trace.state.index,maxUpdates:trace.maxUpdates,firstUpdate:frame.update,spriteMode:frame.spriteMode,chrBank4KiB:frame.chrBank4KiB,scope:'Representative sprite-source view. The linked animation owns its timed frames; this is not a complete fight scene.'}}}));}
+  metasprites.push({id:prefix+'-frame'+frame.index,name:fight.label+' · state '+trace.state.index+' · frame '+frame.index,sceneId,spriteMode:frame.spriteMode,originX:0,originY:0,pieces:frame.pieces.map(piece=>({id:'oam-'+piece.slot,tile:frame.spriteMode===16?piece.tile&254:piece.tile,tile2:frame.spriteMode===16?(piece.tile&254)+1:(piece.tile+1)&255,x:signed(piece.x-fight.baseX),y:signed(piece.y-1-fight.baseY)+1,pal:piece.attributes&3,flipH:!!(piece.attributes&64),flipV:!!(piece.attributes&128),behind:!!(piece.attributes&32)}))});
+ }
+ const frames=[];for(const frame of trace.frames){let duration=frame.duration;while(duration){const part=Math.min(255,duration);frames.push({tileIdx:0,duration:part,metaspriteId:prefix+'-frame'+frame.index,hitboxes:[],hurtboxes:[],events:[]});duration-=part;}}
+ const animation={id:prefix,name:fight.label+' · state '+trace.state.index+' · '+trace.updates+' native updates',state:'',loop:false,frames,nativeState:{version:1,sourceSha256:p.nativeGame.sourceSha256,fight:trace.fight,state:cp(trace.state),maxUpdates:trace.maxUpdates,updates:trace.updates,stop:trace.stop,truncated:trace.truncated,assumptions:cp(trace.assumptions),audioRequests:cp(trace.audioEvents),frameSources:trace.frames.map(f=>({index:f.index,update:f.update,duration:f.duration,selector:f.selector,spriteMode:f.spriteMode,tileStride:f.tileStride,chrBank4KiB:f.chrBank4KiB,sourceCommandFileOffset:f.sourceCommandFileOffset}))}};
+ return {scenes,metasprites,animation};
+}
+function recover(project,fight,state,maxUpdates=240){
+ base.validate(project,{build:true});const p=cp(project),trace=preview(p,fight,state,maxUpdates),bundle=assets(p,trace);
+ for(const [key,values]of [['scenes',bundle.scenes],['metasprites',bundle.metasprites],['animations',[bundle.animation]]])for(const value of values){const old=p[key].find(x=>x.id===value.id);if(old&&JSON.stringify(old)!==JSON.stringify(value))throw Error('The recovered '+key+' asset has local changes. Preserve it before recovering again.');if(!old)p[key].push(value);}
+ if(p.scenes.length>64||p.metasprites.length>256||p.animations.length>256)throw Error('This excerpt exceeds the remaining Scene, metasprite or animation working slots. Choose a shorter excerpt. No source state was discarded.');
+ Forge163.persistence.validate(p.metasprites,p.animations,p.scenes);p.nativeGame.projectionSha256=services.NativeEngineProject.signature({...p,scenes:p.scenes.filter(s=>!base.requiredScene(p,s.id))});base.validate(p,{build:true});return {project:p,trace,animationId:bundle.animation.id};
+}
+services.PunchOutStateRecovery=Object.freeze({source,preview,assets,recover});
 })();
 /* Read-only source evidence belongs to the project, not a second asset model.
  * Existing decoders own recovery; existing asset imports own editable copies.
@@ -19588,6 +19647,39 @@ const safe=fn=>()=>{try{return fn();}catch(e){status.textContent=e.message;showT
 entry.onclick=open;fight.onchange=()=>{poses();render();};pose.onchange=render;copy.onclick=safe(()=>materialize());overview.onclick=safe(()=>materialize(true));chr.onclick=safe(()=>{read();switchTab('chr');updateChrBankBrowser();$('chrBankBrowser').scrollIntoView?.({block:'center'});});audio.onclick=()=>void services.InvestigationUI.whenReady().then(()=>{read();services.NativeAudioLibraryUI.open(true);switchTab('audio');}).catch(e=>{status.textContent=e.message;});
 for(const type of ['keydown','keyup'])panel.addEventListener(type,e=>e.stopPropagation?.());
 services.PunchOutContentUI=Object.freeze({open,render,materialize,getState:()=>({sourceHash,fight:Number(fight.value),selector:Number(pose.value),ready:!!current})});
+})();
+/* Add state excerpts to the existing source-content browser. */
+(()=>{
+'use strict';
+const services=Forge.services,api=services.PunchOutStateRecovery,store=services.ProjectStore,$=id=>document.getElementById(id),el=(tag,id,text)=>{const n=document.createElement(tag);if(id)n.id=id;if(text!==undefined)n.textContent=text;return n;};
+let session=null,identity='',fight=-1,trace=null,bundle=null,guard=null,eventLinks=[];
+const root=el('details','punchOutStatesPanel'),title=el('summary',null,'State animation excerpts'),note=el('p',null,'Trace the original state routines, including sprite-size changes and incremental poses. These are bounded excerpts with explicit starting conditions.'),state=el('select','punchOutStateSelect'),updates=el('input','punchOutStateUpdates'),run=el('button','punchOutStateTrace','Trace state'),copy=el('button','punchOutStateRecover','Open recovered animation'),status=el('p','punchOutStateStatus'),frame=el('input','punchOutStateFrame'),canvas=el('canvas','punchOutStatePreview'),details=el('pre','punchOutStateDetails');
+const requests=el('select','punchOutStateAudioRequest'),sound=el('button','punchOutStateAudioOpen','Inspect linked sound');sound.type='button';sound.disabled=requests.disabled=true;details.style.whiteSpace='pre-wrap';details.style.maxHeight='240px';details.style.overflow='auto';
+updates.type='number';updates.min='1';updates.max='600';updates.value='240';frame.type='range';frame.min='0';frame.max='0';frame.value='0';canvas.width=256;canvas.height=240;canvas.style.imageRendering='pixelated';copy.disabled=frame.disabled=true;run.type=copy.type='button';status.setAttribute('role','status');root.append(title,note,el('label',null,'Source state '),state,el('label',null,' Native updates '),updates,run,status,frame,canvas,copy,el('label',null,' Source Audio requests '),requests,sound,details);$('punchOutContentPanel').appendChild(root);
+function reset(){trace=bundle=guard=null;eventLinks=[];requests.replaceChildren();sound.disabled=requests.disabled=true;copy.disabled=frame.disabled=true;canvas.getContext('2d').clearRect(0,0,256,240);details.textContent='';}
+function refresh(){
+ const p=store.capture();if(!services.PunchOutContentRecovery.matches(p))return false;const selected=Number($('punchOutContentFight').value)||0;
+ if(identity!==p.nativeGame.sourceSha256||fight!==selected){identity=p.nativeGame.sourceSha256;fight=selected;session=api.source(p);reset();state.replaceChildren();for(const item of session.states[fight]){if(!item.available)continue;const o=el('option',null,item.label);o.value=String(item.index);state.appendChild(o);}state.value=String(session.states[fight].find(s=>s.available)?.index||0);status.textContent=session.states[fight].filter(s=>s.available).length+' primary states available for this fight.';}
+ return true;
+}
+function draw(){
+ if(!trace||!bundle)return;const index=Number(frame.value),m=bundle.metasprites[index],scene=bundle.scenes.find(s=>s.id===m.sceneId),ctx=canvas.getContext('2d'),im=ctx.createImageData(256,240),bounds=bundle.metasprites.map(m=>Forge163.metasprites.bounds(m)),left=Math.min(...bounds.map(b=>b.x)),top=Math.min(...bounds.map(b=>b.y)),right=Math.max(...bounds.map(b=>b.right)),bottom=Math.max(...bounds.map(b=>b.bottom)),ox=Math.floor((256-(right-left))/2)-left,oy=Math.floor((240-(bottom-top))/2)-top;
+ for(let p=0;p<256*240;p++)im.data.set([21,21,21,255],p*4);for(const piece of m.pieces.slice().reverse())for(let y=0;y<m.spriteMode;y++)for(let x=0;x<8;x++){const fy=piece.flipV?m.spriteMode-1-y:y,fx=piece.flipH?7-x:x,ci=scene.sprChr[fy<8?piece.tile:piece.tile2][fy&7][fx],px=ox+piece.x+x,py=oy+piece.y+y;if(ci&&px>=0&&px<256&&py>=0&&py<240)im.data.set([...(NP[scene.sprPal[piece.pal][ci]]||[0,0,0]),255],(py*256+px)*4);}ctx.putImageData(im,0,0);
+ const f=trace.frames[index];status.textContent='Frame '+index+' · update '+f.update+' · duration '+f.duration+' · '+f.spriteMode+'-pixel sprites · CHR '+f.chrBank4KiB+'. Centered excerpt preview; hardware scanline clipping is not simulated.';
+}
+function inspect(){
+ if(!refresh())throw Error('Open a Punch-Out source project first.');reset();const p=store.capture(),before=store.serialize(),epoch=store.state.epoch,result=api.preview(p,fight,Number(state.value),Number(updates.value));if(epoch!==store.state.epoch||before!==store.serialize())throw Error('The project changed. Trace again.');trace=result;const catalog=services.NativeAudioLibraryUI.catalog();if(catalog?.source?.sha256===identity){for(const event of trace.audioEvents){const cue=catalog.cues.find(c=>c.requestRegister===event.register&&c.requestValue===event.value);if(cue){eventLinks.push({cueId:cue.id,profile:catalog.profile.id,update:event.update});const o=el('option',null,'Update '+event.update+' · '+cue.label);o.value=String(eventLinks.length-1);requests.appendChild(o);}}}if(eventLinks.length){requests.value='0';sound.disabled=requests.disabled=false;}
+ details.textContent=JSON.stringify({updates:trace.updates,frames:trace.frames.length,stop:trace.stop,truncated:trace.truncated,spriteModes:[...new Set(trace.frames.map(f=>f.spriteMode))],incrementalFrames:trace.frames.filter(f=>f.selector>=128).length,audioRequests:trace.audioEvents,assumptions:trace.assumptions},null,2);
+ if(!trace.editable){status.textContent='Excerpt refused: '+trace.stop+(trace.pendingFrames?' · unresolved graphics context':'');return false;}bundle=api.assets(p,trace);guard={epoch,snapshot:before,fight,state:Number(state.value),updates:Number(updates.value)};copy.disabled=frame.disabled=false;frame.max=String(trace.frames.length-1);frame.value='0';draw();return true;
+}
+function materialize(){
+ if(!guard||!trace?.editable)throw Error('Trace the selected state first.');if(guard.epoch!==store.state.epoch||guard.snapshot!==store.serialize())throw Error('The project changed. Trace again before recovering.');
+ const result=api.recover(store.capture(),guard.fight,guard.state,guard.updates),prepared=store.prepareLoad(result.project);if(snapshot()===false)throw Error('History could not preserve the project. Save before recovering.');store.commit(prepared,{sync:true,intent:'punch-out-state-recovery'});notify('punchOutStateRecovery');S._selAnim=S.animations.findIndex(a=>a.id===result.animationId);S._animFrame=0;const m=S.metasprites.find(m=>m.id===S.animations[S._selAnim].frames[0].metaspriteId);services.SceneContext.selectScene(m.sceneId);anim_updateSidebar();Forge164.frameEditor.refresh();switchTab('anim');status.textContent='Recovered '+trace.frames.length+' timed frames into Animation. Undo restores the prior project. Native source writing remains limited to the existing background recipes.';guard=null;copy.disabled=true;return result.animationId;
+}
+function openAudio(){const p=store.capture(),event=eventLinks[Number(requests.value)];if(!event||p.nativeGame?.sourceSha256!==identity)throw Error('Trace the matching source again.');return services.NativeAudioLibraryUI.selectCue(event.cueId,{sourceSha256:identity,profile:event.profile});}
+const safe=fn=>()=>{try{return fn();}catch(e){status.textContent=e.message;return false;}};run.onclick=safe(inspect);sound.onclick=safe(openAudio);copy.onclick=safe(materialize);frame.oninput=draw;state.onchange=updates.onchange=reset;
+const oldOpen=$('punchOutContentOpen').onclick;$('punchOutContentOpen').onclick=()=>{const ok=oldOpen();if(ok)refresh();return ok;};const oldFight=$('punchOutContentFight').onchange;$('punchOutContentFight').onchange=()=>{oldFight();refresh();};
+services.PunchOutStatesUI=Object.freeze({refresh,inspect,materialize,draw,openAudio,getState:()=>({ready:!!guard,fight,state:Number(state.value),frames:trace?.frames.length||0,updates:trace?.updates||0,stop:trace?.stop||null})});
 })();
 
 /* Single current application bootstrap. */
