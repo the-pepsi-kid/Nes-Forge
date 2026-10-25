@@ -1,4 +1,14 @@
-## Punch-Out player background correction
+# Current baseline: working alpha on main
+
+**2.0.0-alpha.11 · Retro Workstation and native Glass Joe full-pose positions.** The owner approved this development baseline for `main`, with the original Pepsi version preserved on `archive/original-pepsi` and tag `original-pepsi`. Open `../nes-forge.html`; its bytes match `mainline/NES_Forge_2.0.0-alpha.11.html` (SHA-256 `90c179abf3360821dc2dd93168ef74fa6ae2282a78ee6c7357958424612c4322`).
+
+Read [the repository entry](../README.md), [promotion handoff](../reviews/main-alpha-promotion-1/HANDOFF.md), [project handbook](docs/PROJECT_HANDBOOK.html) and [per-title methods](docs/projects/README.md). All 184 runtime inputs are unchanged by promotion. Fresh available checks comprise 104 public cases, 10 strict parsed-DOM startup/control cases, both-revision native pose/art lifecycle checks and parsed-DOM native pose editing. The unavailable full historical release gate and physical browser/device/listening/controller/hardware acceptance remain separate.
+
+Punch-Out supports documented native arena, physical CHR/fight-palette and 30 full-pose X/Y edits, plus bounded original-engine replay experiments. Full fights, individual native geometry, delta-pose/animation writing, attack/damage/collision and native Audio writing remain pending. Preserve the existing canonical owners, source comments, compact workstation and independent RE/coding/hex/HTML workflows.
+
+The sections below retain earlier checkpoint reports. Their old filenames, counts and pending items describe their recorded states and do not override this current baseline.
+
+## Historical: Punch-Out player background correction
 
 The owner’s scrambled live HUD/crowd/ring was reproduced with the untouched ROM. The native arena writer was not required to trigger it. Forge’s MMC2 renderer fetched only visible background tiles; Punch-Out uses a tile beyond the visible edge to select the correct graphics bank for the next row. The renderer now performs all 34 background pattern fetches per scanline while drawing only visible pixels. Sprite-only rendering also retains those background bus reads.
 

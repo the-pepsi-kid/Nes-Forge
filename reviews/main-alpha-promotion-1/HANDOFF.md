@@ -23,7 +23,7 @@ The promotion commit joins the previous public main and the published Punch-Out 
 
 `Public_Checks.json` records a fresh run of the nine available public suites (104/104) and synthetic codec exercise on this exact app. `Startup_DOM_Verification.json` records 10 strict parsed-DOM startup/control checks against the root entry. `Pose_Verification.json`, `Pose_DOM_Verification.json` and `Art_Verification.json` are fresh native lifecycle/control reruns on the same unchanged application. Private inputs are not included.
 
-`Integration_Verification.json` records matching entry bytes, source-input preservation, preserved original-main blobs and local documentation links. `Implementation_History.json` records the restored local implementation history. `Original_Pepsi_Tag.jpg` is public GitHub tag/release proof, not a game screenshot.
+`Integration_Verification.json` records matching entry bytes, source-input preservation, preserved original-main blobs and local documentation links. `Implementation_History.json` records the restored local implementation history. `Original_Pepsi_Refs.json` records verified branch/tag identities. Public GitHub tag proof is kept separately from the source checkout.
 
 The existing `../punch-out-pose-position-1/Pose_Playback_Verification.json` records original-engine playback on this same app hash: the edited full pose translates during the intro while native state/health paths remain unchanged. This promotion does not repeat that live playback or claim new browser layout, listening, controller, independent-emulator or physical-hardware acceptance. Parsed-DOM checks stub canvas/timers. The historical complete release gate is not available in this restored source snapshot.
 
