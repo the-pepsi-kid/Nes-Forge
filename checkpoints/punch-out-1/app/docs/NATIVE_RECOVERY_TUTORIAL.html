@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge Developer and Asset Workflows</title><style>body{margin:0;background:#f5f7fa;color:#172238;font:17px/1.65 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:36px 28px 80px}h1,h2,h3{line-height:1.25;scroll-margin-top:24px}h1{font-size:2.25rem}h2{margin-top:2.2em;padding-top:1em;border-top:1px solid #ccd5e1}a{color:#124d9a}table{border-collapse:collapse;display:block;overflow-x:auto;width:100%;font-size:.9rem;margin:1.4em 0}th,td{border:1px solid #bbc8d8;padding:10px;vertical-align:top;text-align:left}th{background:#e3ebf5}pre{overflow:auto;background:#132136;color:#eaf3ff;padding:18px;border-radius:8px;line-height:1.45}code{font-family:ui-monospace,monospace;font-size:.9em}p code,li code,td code{background:#e5ebf3;padding:1px 4px;border-radius:3px}nav{border:1px solid #bdcddd;background:#fff;padding:20px;border-radius:8px;margin:28px 0}nav ul{padding-left:24px}.meta{font-size:.9rem;color:#53647a}@media(max-width:650px){main{padding:22px 16px}body{font-size:16px}h1{font-size:1.8rem}}@media print{body{background:white;font-size:10pt}main{max-width:none;padding:0}nav{display:none}pre{white-space:pre-wrap;background:#f1f3f6;color:#172238}table{display:table;font-size:8pt}h2,h3{break-after:avoid}tr,pre{break-inside:avoid}}</style></head><body><main><p class="meta">Developer reference · 2026-10-24 · current Punch-Out checkpoint</p><nav aria-label="Contents"><strong>Contents</strong><ul>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge Developer and Asset Workflows</title><style>body{margin:0;background:#f5f7fa;color:#172238;font:17px/1.65 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:36px 28px 80px}h1,h2,h3{line-height:1.25;scroll-margin-top:24px}h1{font-size:2.25rem}h2{margin-top:2.2em;padding-top:1em;border-top:1px solid #ccd5e1}a{color:#124d9a}table{border-collapse:collapse;display:block;overflow-x:auto;width:100%;font-size:.9rem;margin:1.4em 0}th,td{border:1px solid #bbc8d8;padding:10px;vertical-align:top;text-align:left}th{background:#e3ebf5}pre{overflow:auto;background:#132136;color:#eaf3ff;padding:18px;border-radius:8px;line-height:1.45}code{font-family:ui-monospace,monospace;font-size:.9em}p code,li code,td code{background:#e5ebf3;padding:1px 4px;border-radius:3px}nav{border:1px solid #bdcddd;background:#fff;padding:20px;border-radius:8px;margin:28px 0}nav ul{padding-left:24px}.meta{font-size:.9rem;color:#53647a}@media(max-width:650px){main{padding:22px 16px}body{font-size:16px}h1{font-size:1.8rem}}@media print{body{background:white;font-size:10pt}main{max-width:none;padding:0}nav{display:none}pre{white-space:pre-wrap;background:#f1f3f6;color:#172238}table{display:table;font-size:8pt}h2,h3{break-after:avoid}tr,pre{break-inside:avoid}}</style></head><body><main><p class="meta">Developer reference · 2026-10-24 · Glass Joe fight-context checkpoint</p><nav aria-label="Contents"><strong>Contents</strong><ul>
   <li><a href="#nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</a>
   <ul>
     <li><a href="#1-choose-an-entry-point">1. Choose an entry point</a></li>
@@ -29,6 +29,7 @@
     </ul></li>
     <li><a href="#12-debugging-and-extending-the-project">12. Debugging and extending the project</a></li>
     <li><a href="#13-concrete-asset-edits-from-javascript-or-html">13. Concrete asset edits from JavaScript or HTML</a></li>
+    <li><a href="#14-glass-joe-fight-references-mac-referee-and-hud">14. Glass Joe fight references: Mac, referee and HUD</a></li>
   </ul></li>
 </ul>
 </nav><h1 id="nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</h1>
@@ -809,4 +810,30 @@ notify('manual-scene-tile');
 <p>For an HTML-only experiment, put the change inside the relevant existing module closure or at a documented service extension point. Simply appending code after the closing script does not execute it as JavaScript; installing code after application startup can also miss required registrations. Port the final change into the corresponding source module and manifest order.</p>
 
 <p>Do not paste a private source-bearing project into the application template. Ordinary asset exports/imports and saved JSON provide portable asset work; the application remains reusable across projects.</p>
+
+<h2 id="14-glass-joe-fight-references-mac-referee-and-hud">14. Glass Joe fight references: Mac, referee and HUD</h2>
+
+<p>The next recovery pass adds a <strong>Glass Joe fight reference · Little Mac / referee / HUD</strong> section inside <strong>Recovered content</strong>. Open the supported original or an existing recovered project, click <strong>Recovered content</strong>, then expand that section.</p>
+
+<ul>
+<li>Choose a <strong>Little Mac command</strong> and a <strong>Referee / speech command</strong>, then <strong>Preview pose composition</strong>. There are 98 Mac and 47 extended referee/speech command descriptors. These are source commands: some clear cells, draw a fragment or update a count/speech bubble. They are not all self-contained full poses.</li>
+<li>The default combines Mac command 0, referee command 144, and Glass Joe source pose 0. The opponent starts at the source configuration's opening position near the upper right; this is a setup/reference composition, not a simulated active fight. Full initial health, hearts, stars, score and clock come from the original HUD routines.</li>
+<li>Choose a <strong>Native player state</strong>, set <strong>Native updates</strong> (1–600), and use <strong>Trace player / referee state</strong>. The 23 available state entries produce bounded zero-input paths. Pick an <strong>Observed excerpt frame</strong> to inspect its duration, fine scroll and graphics-bank context. A state can wait for input or another game system; <code>update-limit</code> means the excerpt is bounded, not that every branch has been recovered.</li>
+<li><strong>Open selected fight reference</strong> adds the selected composition/frame as an ordinary Scene in one Undo transaction. Save Project As and reopen to preserve its native bitplanes, per-scanline tile/palette placement, separate opponent OAM and source metadata. This uses the existing raster representation; it does not turn the source into a screenshot overlay or a new animation schema.</li>
+<li><strong>Edit native arena layout</strong> returns to the existing native arena Scene and writer. Paint supported tiles/attributes there, build, then make a new reference to inspect the current encoded arena beneath the characters. Changing the reference copy's CHR, palette, sprites or background remains savable but blocks native builds because those fields have no reference encoder.</li>
+<li><strong>Open source Audio</strong> retains the original Audio library. Observed state sound requests remain source evidence; they do not become runtime bindings or native Audio edits automatically.</li>
+<li><strong>Browse all CHR banks</strong>, from a fight reference, first selects the source arena and then opens the existing raw bank browser. The reference's raster atlas and physical CHR banks remain separate views of source graphics.</li>
+</ul>
+
+<p>The implementation is additive: <code>re/punch-out-fight.js</code> supplies a bounded private CPU/PPU bus and source projection; <code>services/punch-out-fight-recovery.js</code> validates and prepares canonical additions; <code>re/punch-out-fight-ui.js</code> owns detached preview and guarded ProjectStore transactions. All 168 preceding application inputs remain byte-identical, in their original order.</p>
+
+<p>Why background commands? Punch-Out draws Little Mac and the referee through bank-11 nametable streams. Their placement, partial updates and CHR-bank changes are different from the opponents' sprite/metasprite system. Recovery keeps those differences. The projector retains 34 background fetches per scanline, including offscreen latch controls, and the source OAM order/scanline limit. Fine scrolling is represented by raster runs rather than flattened into an inaccurate 8×8 grid.</p>
+
+<p>Verification compares every catalogued command and each observed state update with the original routines through the actual emulator CPU/mapper/PPU bus. Representative compositions and fine-scroll frames also compare background and sprite composite pixels. These checks establish the declared source reference and projection; they do not establish original NMI transfer arbitration, a complete concurrent fight, cycle-accurate hardware behavior or native Mac/referee/CHR/Audio writers.</p>
+
+<pre><code>node reviews/punch-out-fight-context-1/verify_fight.cjs /path/to/private-roms
+node reviews/punch-out-fight-context-1/verify_lifecycle.cjs /path/to/private-roms
+</code></pre>
+
+<p>Source ROMs, source-bearing projects and decoded screenshots stay outside the repository and review deliverables. Native art/color encoders and complete gameplay-context recovery remain subsequent work.</p>
 </main></body></html>

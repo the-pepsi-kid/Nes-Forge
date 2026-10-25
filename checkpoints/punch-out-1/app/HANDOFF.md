@@ -1,3 +1,13 @@
+## Current tutorial requirement
+
+The owner requires a method-specific tutorial for each imported/supported title, alongside the common NES Forge tutorial. Use `docs/projects/README.md`, `docs/projects/PROJECT_TUTORIAL_TEMPLATE.md` and the worked `docs/projects/PUNCH_OUT.md`. `docs/PROJECT_HANDBOOK.html` is one offline book containing these, the full general guide, earlier available title steps and the synthetic exercise. Older title lessons awaiting expansion are explicitly listed; do not claim all tutorials or games are complete. Update the title lesson with each scope/method change and retain independent RE, assembly, hex, HTML and authored-game workflows.
+
+This documentation checkpoint changes no application input, schema, native writer or gameplay behavior. The next implementation milestone remains a verified short concurrent Glass Joe sequence before larger fight phases or new native art writers.
+
+## Current: Glass Joe fight-context recovery
+
+Read `../reviews/punch-out-fight-context-1/HANDOFF.md` and section 14 of `docs/NATIVE_RECOVERY_TUTORIAL.md` first. Recovered content now includes Mac/referee/HUD command/state reference composition. Preserve the source-defined opening position and declared state assumptions; do not label this full fight recovery or runtime capture. Three additive modules use the existing canonical raster/Scene lifecycle. Native arena painting and Audio remain authoritative; other native writers remain open. All 168 preceding application parts are unchanged.
+
 ## Current developer/derivative checkpoint
 
 Read `docs/NATIVE_RECOVERY_TUTORIAL.md` and `../reviews/punch-out-developer-1/HANDOFF.md` first. Preserve all independent workflows: visual asset authoring, manual RE, custom assembly, external hex work and direct HTML development. Existing adapter support is not a prerequisite for general byte investigation. Canonical editing, source evidence and native encoders remain distinct.

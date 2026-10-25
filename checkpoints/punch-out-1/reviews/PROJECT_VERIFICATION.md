@@ -16,3 +16,17 @@ For each supplied title and revision, record the exact source identity and the c
 - [ ] Retained compatibility: existing importers, Audio and project persistence keep their checks. Report the tested scope and any outstanding browser, controller or gameplay checks.
 
 A missing decoder blocks an Audio pass. Existing unsupported audio writers and other partial domains must be disclosed. Whole-game recovery remains separate from bounded Scene and Audio verification.
+
+## Per-title tutorial requirement
+
+Owner requirement, 2026-10-24: each imported/supported title needs instructions for its own methods, alongside the general NES Forge tutorial. Use `app/docs/projects/PROJECT_TUTORIAL_TEMPLATE.md` and the current `PUNCH_OUT.md` lesson. Older guides awaiting expansion are listed in `app/docs/projects/README.md`; their inclusion does not establish a new acceptance pass.
+
+- [ ] Exact input/application identities and a reproducible supported edit with actual control labels.
+- [ ] Per-domain asset inventory, source ownership, native writer scope and explicit gaps.
+- [ ] Format lesson: bank mapping, pointers, compression, raster context, aliases and capacity.
+- [ ] Independent RE, assembly and external hex workflows, plus source/HTML module connections.
+- [ ] Separate native rebuilt-ROM, authored-game and customized standalone-HTML outcomes.
+- [ ] Audio steps, Undo/Redo, save/reopen, native rebuild/reimport and original-engine checks.
+- [ ] Reproduction commands and clearly separated automated evidence and learner/device acceptance.
+
+Update the title lesson in the same checkpoint that changes its method. A tutorial can be complete for a bounded supported workflow while unrecovered domains stay open; importing a ROM is not whole-game recovery.

@@ -348,3 +348,28 @@ To bake an application change into HTML, edit the owner function rather than pas
 For an HTML-only experiment, put the change inside the relevant existing module closure or at a documented service extension point. Simply appending code after the closing script does not execute it as JavaScript; installing code after application startup can also miss required registrations. Port the final change into the corresponding source module and manifest order.
 
 Do not paste a private source-bearing project into the application template. Ordinary asset exports/imports and saved JSON provide portable asset work; the application remains reusable across projects.
+
+## 14. Glass Joe fight references: Mac, referee and HUD
+
+The next recovery pass adds a **Glass Joe fight reference · Little Mac / referee / HUD** section inside **Recovered content**. Open the supported original or an existing recovered project, click **Recovered content**, then expand that section.
+
+- Choose a **Little Mac command** and a **Referee / speech command**, then **Preview pose composition**. There are 98 Mac and 47 extended referee/speech command descriptors. These are source commands: some clear cells, draw a fragment or update a count/speech bubble. They are not all self-contained full poses.
+- The default combines Mac command 0, referee command 144, and Glass Joe source pose 0. The opponent starts at the source configuration's opening position near the upper right; this is a setup/reference composition, not a simulated active fight. Full initial health, hearts, stars, score and clock come from the original HUD routines.
+- Choose a **Native player state**, set **Native updates** (1–600), and use **Trace player / referee state**. The 23 available state entries produce bounded zero-input paths. Pick an **Observed excerpt frame** to inspect its duration, fine scroll and graphics-bank context. A state can wait for input or another game system; `update-limit` means the excerpt is bounded, not that every branch has been recovered.
+- **Open selected fight reference** adds the selected composition/frame as an ordinary Scene in one Undo transaction. Save Project As and reopen to preserve its native bitplanes, per-scanline tile/palette placement, separate opponent OAM and source metadata. This uses the existing raster representation; it does not turn the source into a screenshot overlay or a new animation schema.
+- **Edit native arena layout** returns to the existing native arena Scene and writer. Paint supported tiles/attributes there, build, then make a new reference to inspect the current encoded arena beneath the characters. Changing the reference copy's CHR, palette, sprites or background remains savable but blocks native builds because those fields have no reference encoder.
+- **Open source Audio** retains the original Audio library. Observed state sound requests remain source evidence; they do not become runtime bindings or native Audio edits automatically.
+- **Browse all CHR banks**, from a fight reference, first selects the source arena and then opens the existing raw bank browser. The reference's raster atlas and physical CHR banks remain separate views of source graphics.
+
+The implementation is additive: `re/punch-out-fight.js` supplies a bounded private CPU/PPU bus and source projection; `services/punch-out-fight-recovery.js` validates and prepares canonical additions; `re/punch-out-fight-ui.js` owns detached preview and guarded ProjectStore transactions. All 168 preceding application inputs remain byte-identical, in their original order.
+
+Why background commands? Punch-Out draws Little Mac and the referee through bank-11 nametable streams. Their placement, partial updates and CHR-bank changes are different from the opponents' sprite/metasprite system. Recovery keeps those differences. The projector retains 34 background fetches per scanline, including offscreen latch controls, and the source OAM order/scanline limit. Fine scrolling is represented by raster runs rather than flattened into an inaccurate 8×8 grid.
+
+Verification compares every catalogued command and each observed state update with the original routines through the actual emulator CPU/mapper/PPU bus. Representative compositions and fine-scroll frames also compare background and sprite composite pixels. These checks establish the declared source reference and projection; they do not establish original NMI transfer arbitration, a complete concurrent fight, cycle-accurate hardware behavior or native Mac/referee/CHR/Audio writers.
+
+```bash
+node reviews/punch-out-fight-context-1/verify_fight.cjs /path/to/private-roms
+node reviews/punch-out-fight-context-1/verify_lifecycle.cjs /path/to/private-roms
+```
+
+Source ROMs, source-bearing projects and decoded screenshots stay outside the repository and review deliverables. Native art/color encoders and complete gameplay-context recovery remain subsequent work.

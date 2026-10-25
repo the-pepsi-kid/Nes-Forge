@@ -1,3 +1,15 @@
+## Tutorials for each recovered project
+
+Start with [the per-project tutorial index](app/docs/projects/README.md) and [the Punch-Out worked tutorial](app/docs/projects/PUNCH_OUT.md). The [offline handbook](app/docs/PROJECT_HANDBOOK.html) combines the general asset/developer guide, current Punch-Out lesson, earlier available title workflows and a reusable tutorial template. It covers native editing, independent RE/assembly/hex work, modifying standalone HTML and the separate authored-game path. Subsequent title checkpoints require their own method-specific tutorial; older partial guides remain marked for expansion. Documentation inclusion does not establish fresh all-title acceptance.
+
+## Glass Joe fight-context recovery
+
+Use Recovered content → Glass Joe fight reference · Little Mac / referee / HUD. Preview source commands or a bounded player-state path, select an observed frame, then Open selected fight reference. The initial health/hearts/stars/score/clock come from original HUD routines. Little Mac and referee graphics retain their background streams and bank/scroll context; the opponent remains separate source OAM at its configured opening position.
+
+This adds 98 Mac and 47 referee/speech commands and 23 available player-state entries. It is an opening composition/reference and finite zero-input state observation, not a full fight simulation. Reference assets save/reopen; native Mac/referee/CHR/palette/Audio writers remain open. Use Edit native arena layout for supported ROM changes and preview again to include those current native edits. Raw CHR and prior source Animation/Audio tools remain connected.
+
+All 168 preceding application parts are byte-identical; three new modules connect through the existing source, Scene, raster and transactional owners. See `reviews/punch-out-fight-context-1/` for current verification and [the guide](app/docs/NATIVE_RECOVERY_TUTORIAL.md#14-glass-joe-fight-references-mac-referee-and-hud) for the workflow.
+
 ## Developer workflows and arena derivative re-import
 
 Read [the developer and asset workflow guide](app/docs/NATIVE_RECOVERY_TUTORIAL.md) for the complete asset map, visual editing, manual RE, 6502 coding, external hex work, direct HTML changes and a worked native codec lesson. Run `node app/docs/native-codec-exercise.cjs` for the synthetic exercise. The HTML starts with a developer map; Punch-Out modules have readable formatting, connection comments and native ownership contracts.
