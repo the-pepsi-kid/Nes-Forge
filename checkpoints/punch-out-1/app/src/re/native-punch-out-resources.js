@@ -18,6 +18,9 @@
   'use strict';
   // Extra recognition spans cover only the four arena pointers and their 381-byte
   // arena data area. These are NOT additional native literal-brush permissions.
+  const paletteOffsets = Object.freeze([4806, 21043, 47065, 4838, 11326, 21075, 30759, 47097, 39016, 30791, 4870, 30823, 38984, 47033]);
+  const artSpans = Object.freeze([{offset: 0x20010, length: 0x20000},
+    ...paletteOffsets.map(offset => ({offset, length: 32, mask: 63}))]);
   const profiles = Object.freeze([{
     "id": "punch-out-us-prg0-screens-v1",
     "kind": "punch-out",
@@ -334,7 +337,8 @@
         "length": 381
       }],
       "protectedSha256": "356e71dc75ecf38ef6218b74904361739992badbc35b726392bb210e84e10366"
-    }
+    },
+    artDerivativeIdentity: {spans: artSpans, protectedSha256: "85c39327f56fbc72c8bb122393739748613f5cb1d0dd072aa90febf21a8575b6"}
   }, {
     "id": "punch-out-us-prg1-screens-v1",
     "kind": "punch-out",
@@ -651,7 +655,8 @@
         "length": 381
       }],
       "protectedSha256": "db6923c2291d91385edc738de85c12aedd8d9a422dd831d51b70875e83aac994"
-    }
+    },
+    artDerivativeIdentity: {spans: artSpans, protectedSha256: "fc48479aebb4aa3f9e07315030839130de9f7cd42b34abc8a03f366896516739"}
   }]);
   const contexts = Object.freeze([{
       key: 'b70e',
@@ -701,6 +706,13 @@
     if (!(bytes instanceof Uint8Array) || bytes.length !== 262160 || bytes[4] !== 8 || bytes[
       5] !== 16 || bytes[6] !== 144 || bytes[7] !== 0) fail('Unsupported source header');
     codec.arenaPrograms(bytes);
+    // Art admission does not permit code/pointer changes. Colors must remain
+    // representable by the existing palette model, including universal aliases.
+    for (const offset of paletteOffsets) {
+      const raw = bytes.slice(offset, offset + 32);
+      if (raw.some((v, i) => !(i & 3) && (v & 63) !== (raw[0] & 63)))
+        fail('Unsupported native fight palette colors or aliases');
+    }
     const source = codec.open(bytes),
       all = [];
     for (let i = 0; i < 95; i++) {

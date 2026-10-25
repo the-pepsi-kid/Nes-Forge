@@ -1,3 +1,7 @@
+## Paused WIP
+
+Owner requested pause and GitHub backup at usage limits. Read `../PAUSE_HANDOFF_2026-10-24.md` first. Current source adds unfinished native artwork modules and two shared seams; unchanged building after opening the first art view fails a projection signature check. No passing native artwork lifecycle report or replay service/UI exists yet. Last verified app SHA-256 remains `aceb8cdd70e0839b4649bc56daa39519204b660bbbae100209ad9e66bb03b89a`; the current bundled WIP is separate. Continue the authorized Glass Joe sequence, knockdown/count/round and native CHR/palette scope after the owner resumes.
+
 ## Current tutorial requirement
 
 The owner requires a method-specific tutorial for each imported/supported title, alongside the common NES Forge tutorial. Use `docs/projects/README.md`, `docs/projects/PROJECT_TUTORIAL_TEMPLATE.md` and the worked `docs/projects/PUNCH_OUT.md`. `docs/PROJECT_HANDBOOK.html` is one offline book containing these, the full general guide, earlier available title steps and the synthetic exercise. Older title lessons awaiting expansion are explicitly listed; do not claim all tutorials or games are complete. Update the title lesson with each scope/method change and retain independent RE, assembly, hex, HTML and authored-game workflows.

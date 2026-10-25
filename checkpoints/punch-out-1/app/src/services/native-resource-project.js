@@ -71,9 +71,16 @@
           spans: [...a.spans, ...a.derivativeIdentity.spans],
           sha256: a.derivativeIdentity.protectedSha256
         });
+        if (a.artDerivativeIdentity) identities.push({
+          spans: [...a.spans, ...(a.derivativeIdentity?.spans || []), ...a.artDerivativeIdentity.spans],
+          sha256: a.artDerivativeIdentity.protectedSha256
+        });
         if (!identities.some(identity => {
             const masked = bytes.slice();
-            for (const r of identity.spans) masked.fill(0, r.offset, r.offset + r.length);
+            for (const r of identity.spans) {
+              if (r.mask === undefined) masked.fill(0, r.offset, r.offset + r.length);
+              else for (let i = r.offset; i < r.offset + r.length; i++) masked[i] &= 255 ^ r.mask;
+            }
             return f.sha256(masked) === identity.sha256;
           })) continue;
       }
@@ -178,8 +185,9 @@
     };
   }
 
-  /* Hash all unsupported project state unchanged. Substitute source nt/attr ONLY for
-   * registered views so supported Scene paint can differ without bypassing other checks. */
+  /* Substitute only explicitly registered, bounded fields. A field claim is unique
+   * per Scene. New CHR/palette writers share this gate rather than re-signing edits
+   * or adding another source/recipe store. All other asset fields stay protected. */
   function baseSignature(p, info = inspect(p)) {
     let scenes = p.scenes.filter(sc => !p.nativeGame.bindings.some(b => sceneId({
       id: p.nativeGame.adapter
@@ -187,19 +195,26 @@
     const seen = new Set();
     for (const codec of sceneEncoders.filter(c => c.matches(p, info)))
       for (const view of codec.views(p, info)) {
-        if (!view || Object.keys(view).sort().join(',') !== 'attr,id,nt' || seen.has(view.id) ||
-          view.nt?.length !== 960 || view.attr?.length !== 64 || [...view.nt, ...view.attr].some(
-            v => !Number.isInteger(v) || v < 0 || v > 255)) fail(
-          'Invalid native Scene projection');
-        seen.add(view.id);
+        const fields = view && Object.keys(view).filter(k => k !== 'id');
+        if (!view || typeof view.id !== 'string' || !fields.length) fail('Invalid native Scene projection');
+        for (const field of fields) {
+          const v = view[field], integer = (n, max) => Number.isInteger(n) && n >= 0 && n <= max;
+          const valid = field === 'nt' || field === 'attr' ? Array.isArray(v) &&
+            v.length === (field === 'nt' ? 960 : 64) && v.every(n => integer(n, 255)) :
+            field === 'chr' || field === 'sprChr' ? Array.isArray(v) && v.length === 256 &&
+              v.every(tile => Array.isArray(tile) && tile.length === 8 && tile.every(row =>
+                Array.isArray(row) && row.length === 8 && row.every(n => integer(n, 3)))) :
+            field === 'pal' || field === 'sprPal' ? Array.isArray(v) && v.length === 4 &&
+              v.every(row => Array.isArray(row) && row.length === 4 && row.every(n => integer(n, 63))) :
+            field === 'bgColor' && integer(v, 63);
+          const key = view.id + ':' + field;
+          if (!valid || seen.has(key)) fail('Invalid or duplicate native Scene field projection');
+          seen.add(key);
+        }
         const index = scenes.findIndex(sc => sc.id === view.id);
         if (index < 0) fail('Native Scene encoder cannot mask a missing or recipe-owned Scene');
         scenes = scenes.slice();
-        scenes[index] = {
-          ...scenes[index],
-          nt: view.nt.slice(),
-          attr: view.attr.slice()
-        };
+        scenes[index] = {...scenes[index], ...Object.fromEntries(fields.map(k => [k, cp(view[k])]))};
       }
     return s.NativeEngineProject.signature({
       ...p,

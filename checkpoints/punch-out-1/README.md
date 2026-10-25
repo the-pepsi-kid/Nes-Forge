@@ -1,3 +1,7 @@
+## Paused work in progress — 2026-10-24
+
+Read [the pause/resume handoff](PAUSE_HANDOFF_2026-10-24.md) before using this branch. The new native artwork workflow has a known post-import signature failure and is not accepted. Concurrent Glass Joe punch/dodge and seeded knockdown/round-boundary observations are preliminary; replay UI, correct referee-count decoding, both-revision checks and exported artwork verification remain unfinished. The last verified application is recorded in the handoff. Historical passing reports apply to their recorded app hashes.
+
 ## Tutorials for each recovered project
 
 Start with [the per-project tutorial index](app/docs/projects/README.md) and [the Punch-Out worked tutorial](app/docs/projects/PUNCH_OUT.md). The [offline handbook](app/docs/PROJECT_HANDBOOK.html) combines the general asset/developer guide, current Punch-Out lesson, earlier available title workflows and a reusable tutorial template. It covers native editing, independent RE/assembly/hex work, modifying standalone HTML and the separate authored-game path. Subsequent title checkpoints require their own method-specific tutorial; older partial guides remain marked for expansion. Documentation inclusion does not establish fresh all-title acceptance.

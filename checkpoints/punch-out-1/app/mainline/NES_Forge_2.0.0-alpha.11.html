@@ -19207,6 +19207,9 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
   'use strict';
   // Extra recognition spans cover only the four arena pointers and their 381-byte
   // arena data area. These are NOT additional native literal-brush permissions.
+  const paletteOffsets = Object.freeze([4806, 21043, 47065, 4838, 11326, 21075, 30759, 47097, 39016, 30791, 4870, 30823, 38984, 47033]);
+  const artSpans = Object.freeze([{offset: 0x20010, length: 0x20000},
+    ...paletteOffsets.map(offset => ({offset, length: 32, mask: 63}))]);
   const profiles = Object.freeze([{
     "id": "punch-out-us-prg0-screens-v1",
     "kind": "punch-out",
@@ -19523,7 +19526,8 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
         "length": 381
       }],
       "protectedSha256": "356e71dc75ecf38ef6218b74904361739992badbc35b726392bb210e84e10366"
-    }
+    },
+    artDerivativeIdentity: {spans: artSpans, protectedSha256: "85c39327f56fbc72c8bb122393739748613f5cb1d0dd072aa90febf21a8575b6"}
   }, {
     "id": "punch-out-us-prg1-screens-v1",
     "kind": "punch-out",
@@ -19840,7 +19844,8 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
         "length": 381
       }],
       "protectedSha256": "db6923c2291d91385edc738de85c12aedd8d9a422dd831d51b70875e83aac994"
-    }
+    },
+    artDerivativeIdentity: {spans: artSpans, protectedSha256: "fc48479aebb4aa3f9e07315030839130de9f7cd42b34abc8a03f366896516739"}
   }]);
   const contexts = Object.freeze([{
       key: 'b70e',
@@ -19890,6 +19895,13 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
     if (!(bytes instanceof Uint8Array) || bytes.length !== 262160 || bytes[4] !== 8 || bytes[
       5] !== 16 || bytes[6] !== 144 || bytes[7] !== 0) fail('Unsupported source header');
     codec.arenaPrograms(bytes);
+    // Art admission does not permit code/pointer changes. Colors must remain
+    // representable by the existing palette model, including universal aliases.
+    for (const offset of paletteOffsets) {
+      const raw = bytes.slice(offset, offset + 32);
+      if (raw.some((v, i) => !(i & 3) && (v & 63) !== (raw[0] & 63)))
+        fail('Unsupported native fight palette colors or aliases');
+    }
     const source = codec.open(bytes),
       all = [];
     for (let i = 0; i < 95; i++) {
@@ -20388,9 +20400,16 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
           spans: [...a.spans, ...a.derivativeIdentity.spans],
           sha256: a.derivativeIdentity.protectedSha256
         });
+        if (a.artDerivativeIdentity) identities.push({
+          spans: [...a.spans, ...(a.derivativeIdentity?.spans || []), ...a.artDerivativeIdentity.spans],
+          sha256: a.artDerivativeIdentity.protectedSha256
+        });
         if (!identities.some(identity => {
             const masked = bytes.slice();
-            for (const r of identity.spans) masked.fill(0, r.offset, r.offset + r.length);
+            for (const r of identity.spans) {
+              if (r.mask === undefined) masked.fill(0, r.offset, r.offset + r.length);
+              else for (let i = r.offset; i < r.offset + r.length; i++) masked[i] &= 255 ^ r.mask;
+            }
             return f.sha256(masked) === identity.sha256;
           })) continue;
       }
@@ -20495,8 +20514,9 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
     };
   }
 
-  /* Hash all unsupported project state unchanged. Substitute source nt/attr ONLY for
-   * registered views so supported Scene paint can differ without bypassing other checks. */
+  /* Substitute only explicitly registered, bounded fields. A field claim is unique
+   * per Scene. New CHR/palette writers share this gate rather than re-signing edits
+   * or adding another source/recipe store. All other asset fields stay protected. */
   function baseSignature(p, info = inspect(p)) {
     let scenes = p.scenes.filter(sc => !p.nativeGame.bindings.some(b => sceneId({
       id: p.nativeGame.adapter
@@ -20504,19 +20524,26 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
     const seen = new Set();
     for (const codec of sceneEncoders.filter(c => c.matches(p, info)))
       for (const view of codec.views(p, info)) {
-        if (!view || Object.keys(view).sort().join(',') !== 'attr,id,nt' || seen.has(view.id) ||
-          view.nt?.length !== 960 || view.attr?.length !== 64 || [...view.nt, ...view.attr].some(
-            v => !Number.isInteger(v) || v < 0 || v > 255)) fail(
-          'Invalid native Scene projection');
-        seen.add(view.id);
+        const fields = view && Object.keys(view).filter(k => k !== 'id');
+        if (!view || typeof view.id !== 'string' || !fields.length) fail('Invalid native Scene projection');
+        for (const field of fields) {
+          const v = view[field], integer = (n, max) => Number.isInteger(n) && n >= 0 && n <= max;
+          const valid = field === 'nt' || field === 'attr' ? Array.isArray(v) &&
+            v.length === (field === 'nt' ? 960 : 64) && v.every(n => integer(n, 255)) :
+            field === 'chr' || field === 'sprChr' ? Array.isArray(v) && v.length === 256 &&
+              v.every(tile => Array.isArray(tile) && tile.length === 8 && tile.every(row =>
+                Array.isArray(row) && row.length === 8 && row.every(n => integer(n, 3)))) :
+            field === 'pal' || field === 'sprPal' ? Array.isArray(v) && v.length === 4 &&
+              v.every(row => Array.isArray(row) && row.length === 4 && row.every(n => integer(n, 63))) :
+            field === 'bgColor' && integer(v, 63);
+          const key = view.id + ':' + field;
+          if (!valid || seen.has(key)) fail('Invalid or duplicate native Scene field projection');
+          seen.add(key);
+        }
         const index = scenes.findIndex(sc => sc.id === view.id);
         if (index < 0) fail('Native Scene encoder cannot mask a missing or recipe-owned Scene');
         scenes = scenes.slice();
-        scenes[index] = {
-          ...scenes[index],
-          nt: view.nt.slice(),
-          attr: view.attr.slice()
-        };
+        scenes[index] = {...scenes[index], ...Object.fromEntries(fields.map(k => [k, cp(view[k])]))};
       }
     return s.NativeEngineProject.signature({
       ...p,
@@ -22159,6 +22186,66 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
   return Object.freeze({version: 1, open});
 });
 /*
+ * NES FORGE MODULE: src/re/punch-out-art.js
+ * Physical 4 KiB CHR and 32-byte fight-palette codec. The native resource owner
+ * validates revision identity; this pure codec validates bitplanes, source table
+ * pointers and color aliases. It never changes input, project state or an emulator.
+ */
+(function(root, factory) {
+  const node = typeof module !== 'undefined' && module.exports;
+  const api = factory(node ? require('./punch-out-content.js') : root.PunchOutContent);
+  if (node) module.exports = api; else root.PunchOutArt = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function(content) {
+  'use strict';
+  const fail = m => { throw Error('Punch-Out native artwork: ' + m); };
+  function number(v, max) { if (!Number.isInteger(v) || v < 0 || v > max) fail('Invalid art index/value'); return v; }
+  function packChr(tiles) {
+    if (!Array.isArray(tiles) || tiles.length !== 256) fail('A physical bank needs 256 tiles');
+    const out = new Uint8Array(4096);
+    tiles.forEach((tile, t) => {
+      if (!Array.isArray(tile) || tile.length !== 8) fail('A tile needs eight rows');
+      tile.forEach((row, y) => {
+        if (!Array.isArray(row) || row.length !== 8) fail('A tile row needs eight pixels');
+        row.forEach((pixel, x) => { number(pixel, 3); out[t * 16 + y] |= (pixel & 1) << (7 - x);
+          out[t * 16 + y + 8] |= (pixel >> 1) << (7 - x); });
+      });
+    });
+    return out;
+  }
+  function paletteBytes(scene, original = null) {
+    if (original !== null && (!(original instanceof Uint8Array) || original.length !== 32)) fail('Original palette flag bytes are required');
+    const bg = number(scene.bgColor, 63), values = [];
+    for (const groups of [scene.pal, scene.sprPal]) {
+      if (!Array.isArray(groups) || groups.length !== 4) fail('Palette needs four groups');
+      for (const row of groups) {
+        if (!Array.isArray(row) || row.length !== 4) fail('Palette group needs four slots');
+        row.forEach(v => values.push(number(v, 63)));
+        if (row[0] !== bg) fail('Universal color aliases must agree with the Scene background color');
+      }
+    }
+    // High source bits participate in native palette/fade behavior. A color edit
+    // owns the six PPU color bits only; retain the source flags byte for byte.
+    return Uint8Array.from(values, (v, i) => v | (original ? original[i] & 192 : 0));
+  }
+  function open(input) {
+    const bytes = Uint8Array.from(input), model = content.open(bytes);
+    function bank(index) { number(index, 31); return {bank: index, offset: 0x20010 + index * 4096, chr: model.chr(index)}; }
+    function palette(index) {
+      number(index, 13); const fight = model.fights[index], raw = bytes.slice(fight.paletteFileOffset, fight.paletteFileOffset + 32);
+      if (raw.some((v, i) => !(i & 3) && (v & 63) !== (raw[0] & 63)))
+        fail('Source palette has unsupported color/alias state');
+      return {fight: index, label: fight.label, offset: fight.paletteFileOffset, bgColor: raw[0] & 63,
+        pal: Array.from({length: 4}, (_, p) => Array.from(raw.slice(p * 4, p * 4 + 4), v => v & 63)),
+        sprPal: Array.from({length: 4}, (_, p) => Array.from(raw.slice(16 + p * 4, 20 + p * 4), v => v & 63))};
+    }
+    // Validate every palette even for a single-bank operation. Derivatives cannot
+    // hide a lossy unrepresentable palette behind the broader art identity mask.
+    for (let i = 0; i < 14; i++) palette(i);
+    return Object.freeze({bank, palette, fights: model.fights.map(f => ({index: f.index, label: f.label}))});
+  }
+  return Object.freeze({version: 1, open, packChr, paletteBytes});
+});
+/*
  * NES FORGE MODULE: src/services/punch-out-content-recovery.js
  * Entry: Forge.services.PunchOutContentRecovery
  * Purpose: Convert source poses into canonical Scene/sprite/metasprite assets with provenance.
@@ -22755,6 +22842,81 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
     return {project: p, sceneId: id, limits: result.limits};
   }
   services.PunchOutFightRecovery = Object.freeze({source, preview, recover});
+})();
+/*
+ * NES FORGE MODULE: src/services/punch-out-art-project.js
+ * Dedicated canonical Scenes own physical CHR banks or one fight palette table.
+ * Existing reference Scenes remain snapshots; new fight previews and the native
+ * player consume the encoded output. No copied pose/reference is silently patched.
+ * ProjectStore owns history/persistence; NativeResourceProject owns build/signature
+ * validation and enforces disjoint physical spans for this registered writer.
+ */
+(() => {
+  'use strict';
+  const services = Forge.services, owner = services.NativeResourceProject, art = PunchOutArt;
+  const copy = value => JSON.parse(JSON.stringify(value));
+  let cache = null;
+  const sceneId = (kind, index) => 'po-native-art-' + kind + '-' + index;
+  const marker = sc => sc.captureMeta?.punchOutArt;
+  function source(info) {
+    if (!cache || cache.hash !== info.descriptor.sourceSha256)
+      cache = {hash: info.descriptor.sourceSha256, model: art.open(info.bytes)};
+    return cache.model;
+  }
+  function make(info, kind, index) {
+    const model = source(info), record = kind === 'chr' ? model.bank(index) : kind === 'palette' ? model.palette(index) : null;
+    if (!record) throw Error('Select a native CHR bank or fight palette.');
+    const tiles = kind === 'chr' ? record.chr : model.bank(0).chr;
+    return makeScene({id: sceneId(kind, index), name: kind === 'chr' ? 'Native artwork · physical CHR bank ' + index :
+      'Native palette · ' + record.label, chr: tiles, sprChr: normalizeTiles(),
+      pal: kind === 'palette' ? record.pal : [[15, 0, 16, 48], [15, 0, 16, 48], [15, 0, 16, 48], [15, 0, 16, 48]],
+      ...(kind === 'palette' ? {sprPal: record.sprPal, bgColor: record.bgColor} : {}),
+      nt: Array.from({length: 960}, (_, cell) => (cell % 32 < 16 && cell < 512) ?
+        Math.floor(cell / 32) * 16 + cell % 32 : 0), attr: Array(64).fill(0), oam: [], entities: [], links: [],
+      sceneType: 'static', scrollDir: 'none', gravity: 0, buildInclude: false, buildOrder: 0,
+      captureMeta: {mode: 'native-art-edit-view', punchOutArt: {version: 1,
+        sourceSha256: info.descriptor.sourceSha256, kind, index}}});
+  }
+  function entries(p, info) {
+    return p.scenes.filter(marker).map(sc => {
+      const m = marker(sc);
+      if (Object.keys(m).sort().join(',') !== 'index,kind,sourceSha256,version' || m.version !== 1 ||
+        m.sourceSha256 !== info.descriptor.sourceSha256 || sc.id !== sceneId(m.kind, m.index))
+        throw Error('Native artwork Scene has invalid source ownership.');
+      const baseline = make(info, m.kind, m.index), record = m.kind === 'chr' ? source(info).bank(m.index) : source(info).palette(m.index);
+      return {sc, baseline, record, kind: m.kind};
+    });
+  }
+  const matches = (p, info) => info.adapter.kind === 'punch-out' && p.scenes.some(marker);
+  owner.registerSceneEncoder({
+    id: 'punch-out-physical-art-v1', matches,
+    views(p, info) { return entries(p, info).map(({sc, baseline, kind}) => kind === 'chr' ?
+      {id: sc.id, chr: baseline.chr} : {id: sc.id, pal: baseline.pal, sprPal: baseline.sprPal, bgColor: baseline.bgColor}); },
+    spans(p, info) { return entries(p, info).map(({record, kind}) => ({offset: record.offset, length: kind === 'chr' ? 4096 : 32})); },
+    encode(bytes, p, info) {
+      const output = bytes.slice(); let changed = 0;
+      for (const {sc, record, kind} of entries(p, info)) {
+        const data = kind === 'chr' ? art.packChr(sc.chr) : art.paletteBytes(sc, info.bytes.slice(record.offset, record.offset + 32));
+        for (let i = 0; i < data.length; i++) if (output[record.offset + i] !== data[i]) changed++;
+        output.set(data, record.offset);
+      }
+      return {bytes: output, diagnostics: [{severity: 'info', code: 'punch-out-native-art', phase: 'native-encode',
+        message: changed + ' CHR/palette byte(s) changed in explicitly opened physical art resources. Shared game uses change together; existing reference Scenes retain their source snapshot.'}]};
+    }
+  });
+  function prepare(project, kind, index) {
+    const info = owner.validate(project, {build: true});
+    if (info.adapter.kind !== 'punch-out') throw Error('Open a recovered Punch-Out project first.');
+    const sc = make(info, kind, index), old = project.scenes.find(s => s.id === sc.id);
+    if (old) return {project, sceneId: old.id, added: false};
+    if (project.scenes.length >= 64) throw Error('No free Scene slot. Preserve existing work before opening another art resource.');
+    const p = copy(project); p.scenes.push(sc);
+    p.nativeGame.projectionSha256 = owner.projectionSignature(p);
+    owner.validate(p, {build: true});
+    return {project: p, sceneId: sc.id, added: true};
+  }
+  services.PunchOutArtProject = Object.freeze({prepare, sceneId,
+    inventory(p) { const info = owner.validate(p); if (info.adapter.kind !== 'punch-out') throw Error('Open Punch-Out first.'); return source(info).fights; }});
 })();
 /* NES FORGE CONNECTION: src/services/investigation-project.js
  * Intake priority: NativeResourceProject recognition, NativeLayoutProject, known
@@ -24314,6 +24476,56 @@ const beforeTab=switchTab;switchTab=function(...args){const result=beforeTab(...
   for (const type of ['keydown', 'keyup']) root.addEventListener(type, event => event.stopPropagation?.());
   services.PunchOutFightUI = Object.freeze({refresh, preview, selectFrame, apply,
     getState: () => ({sourceHash, ready: !!current, selection: request ? {...request} : null})});
+})();
+/* Native artwork uses the existing CHR/palette editors after explicit source
+ * selection. Opening a physical resource is one ordinary ProjectStore transaction.
+ * Reference snapshots remain inspectable; source-owner checks block stale rebases. */
+(() => {
+  'use strict';
+  const services = Forge.services, store = services.ProjectStore, api = services.PunchOutArtProject;
+  const make = (tag, id, text) => { const el = document.createElement(tag); if (id) el.id = id;
+    if (text !== undefined) el.textContent = text; return el; };
+  const root = make('details', 'punchOutArtPanel'), banks = make('select', 'punchOutArtBank');
+  const palettes = make('select', 'punchOutArtPalette'), status = make('p', 'punchOutArtStatus');
+  const openBank = make('button', 'punchOutArtOpenBank', 'Edit physical CHR bank');
+  const openPalette = make('button', 'punchOutArtOpenPalette', 'Edit native fight palette');
+  const check = make('button', 'punchOutArtCheck', 'Check native artwork build');
+  for (let i = 0; i < 32; i++) { const o = make('option', null, 'Physical CHR bank ' + i); o.value = String(i); banks.appendChild(o); }
+  status.setAttribute('role', 'status');
+  root.append(make('summary', null, 'Native artwork · CHR banks and fight palettes'),
+    make('p', null, 'Edit pixels in a dedicated physical CHR view, or colors in a dedicated fight-palette view. Shared native uses change together. Existing recovered copies remain source snapshots; new fight previews and Build & Run use the current encoded art. A CHR view uses a display palette only. Palette-table slots can be overridden by game routines in some phases.'),
+    banks, openBank, palettes, openPalette, check, status);
+  document.getElementById('punchOutContentPanel').appendChild(root);
+  function refresh() {
+    palettes.replaceChildren();
+    for (const fight of api.inventory(store.capture())) {
+      const o = make('option', null, fight.label); o.value = String(fight.index); palettes.appendChild(o);
+    }
+    palettes.value = '0';
+  }
+  function open(kind, index) {
+    const expected = store.serialize(), epoch = store.state.epoch, result = api.prepare(store.capture(), kind, index);
+    if (expected !== store.serialize() || epoch !== store.state.epoch) throw Error('The project changed. Open the artwork again.');
+    if (result.added) {
+      const prepared = store.prepareLoad(result.project);
+      if (snapshot() === false) throw Error('History could not preserve the current project. Save it first.');
+      store.commit(prepared, {sync: true, intent: 'punch-out-native-art'}); notify('punchOutNativeArt');
+    }
+    services.SceneContext.selectScene(result.sceneId); switchTab('chr');
+    status.textContent = kind === 'chr' ? 'Edit background CHR pixels in this physical bank view. Its display palette is not a native palette edit. Save/reopen and Build & Run; shared uses change together.' :
+      'Edit background/sprite palette colors in this dedicated table view. Save/reopen and Build & Run. Universal color slots are linked; game routines can override some entries.';
+    return result.sceneId;
+  }
+  const safe = fn => () => { try { return fn(); } catch (e) { status.textContent = e.message; return false; } };
+  openBank.onclick = safe(() => open('chr', Number(banks.value)));
+  openPalette.onclick = safe(() => open('palette', Number(palettes.value)));
+  check.onclick = safe(() => { const result = services.NativeResourceProject.build(store.capture());
+    status.textContent = result.metadata.changes.length + ' native byte change(s). Check the built game and a fresh fight reference; unsupported edits still refuse.'; return true; });
+  for (const b of [openBank, openPalette, check]) b.type = 'button';
+  const previous = document.getElementById('punchOutContentOpen').onclick;
+  document.getElementById('punchOutContentOpen').onclick = () => { const ok = previous(); if (ok) { try { refresh(); } catch (e) { status.textContent = e.message; } } return ok; };
+  for (const type of ['keydown', 'keyup']) root.addEventListener(type, e => e.stopPropagation?.());
+  services.PunchOutArtUI = Object.freeze({refresh, open});
 })();
 
 /* Single current application bootstrap. */
