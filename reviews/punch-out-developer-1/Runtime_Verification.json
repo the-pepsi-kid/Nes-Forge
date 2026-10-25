@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "htmlSha256": "6b294100ffbe7a35d9865e600dd6021ac786639a73b656f2d18b3b00ae9e1f7d",
+  "baselineHtmlSha256": "3d8260a9ab1ada2738ba260eef29921a501928f2e67265caa8d567e130a8f808",
+  "scope": "Original ROM boot/controller path followed by identical frozen native PPU/OAM/CHR/scroll/palette state in preceding and corrected players. Independent fixed-bank HUD source comparison. Existing scanline CPU/sprite timing remains approximate; not cycle-accurate hardware acceptance.",
+  "results": [
+    {
+      "revision": "Mike Tyson's Punch-Out!! (U) (PRG 0).nes",
+      "passed": true,
+      "unmodifiedRomReproduced": true,
+      "nativeBootFrames": 1250,
+      "hudPixelsCompared": 14336,
+      "precedingHudMismatches": 11501,
+      "correctedHudMismatches": 0,
+      "sourceRomUnchanged": true
+    },
+    {
+      "revision": "Mike Tyson's Punch-Out!! (U) (PRG 1).nes",
+      "passed": true,
+      "unmodifiedRomReproduced": true,
+      "nativeBootFrames": 1250,
+      "hudPixelsCompared": 14336,
+      "precedingHudMismatches": 11501,
+      "correctedHudMismatches": 0,
+      "sourceRomUnchanged": true
+    }
+  ]
+}

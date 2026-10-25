@@ -1,0 +1,55 @@
+{
+  "candidate": "main-alpha-promotion-1",
+  "version": "2.0.0-alpha.11",
+  "status": "accepted-development-alpha",
+  "promoted": true,
+  "branch": "main",
+  "html": "nes-forge.html",
+  "sourceHtml": "app/mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "90c179abf3360821dc2dd93168ef74fa6ae2282a78ee6c7357958424612c4322",
+  "htmlBytes": 2998472,
+  "schemas": {
+    "ordinary": 12,
+    "native": 13,
+    "investigation": 14,
+    "readCeiling": 16,
+    "selectedTerrain": 15,
+    "portableRom": 16
+  },
+  "localImplementationCommit": "a648803f79c3ba194403cecd965bda409b9bc318",
+  "sourceInputs": 184,
+  "scope": [
+    "Promote the owner-accepted working alpha, compact Retro Workstation and existing recovery/authoring workflows to main.",
+    "Retain native Punch-Out arena, physical CHR/fight palettes, bounded Glass Joe replay and thirty full-pose X/Y views.",
+    "Preserve exact original Pepsi artifact and previous public history."
+  ],
+  "limits": [
+    "Punch-Out recovery remains partial; per-title methods and limits are documented in app/docs/projects.",
+    "Native individual geometry, delta poses, animation, attack/damage/collision and Audio writers remain pending.",
+    "MMC2 timing is approximate; unavailable historical full release gate and browser/device/listening/controller/hardware acceptance remain separate."
+  ],
+  "verification": {
+    "status": "targeted-passed",
+    "publicChecks": 104,
+    "publicSuites": 9,
+    "strictDomStartupChecks": 10,
+    "poseLifecycleRevisions": 2,
+    "artworkLifecycleRevisions": 2,
+    "fullHistoricalReleaseGate": "unavailable in restored snapshot",
+    "report": "reviews/main-alpha-promotion-1/Integration_Verification.json"
+  },
+  "originalArtifact": {
+    "branch": "archive/original-pepsi",
+    "tag": "original-pepsi",
+    "commit": "61dee20c4c36886c3fac143c0258d7fac27d5ff7",
+    "html": "archive/original-pepsi.html"
+  },
+  "distribution": {
+    "privateRomsIncluded": false,
+    "commercialAssetPayloadsIncluded": false,
+    "sourceBearingCommercialProjectsIncluded": false,
+    "standaloneHTML": "nes-forge.html"
+  },
+  "audioVerificationRequiredForEveryProject": true,
+  "publishedImplementationCommit": "2c795396ca91462dcd6bb631668976f6253795b9"
+}

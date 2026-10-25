@@ -1,0 +1,234 @@
+/*
+ * NES FORGE MODULE: src/re/punch-out-content-ui.js
+ * Entry: Forge.services.PunchOutContentUI
+ * Purpose: Browse source fights/poses/CHR and explicitly materialize supported poses.
+ * Connections: PunchOutContentRecovery prepares assets; ProjectStore prepareLoad/commit plus snapshot owns transactional edits.
+ * Contract: Previews do not mutate the project. Epoch and serialized-source checks reject stale materialization.
+ * Developer walkthrough: app/docs/NATIVE_RECOVERY_TUTORIAL.md
+ * Bundle order: app/source-manifest.json; regenerate with app/tools/bundle.py.
+ */
+/* Browse the entire source inventory without replacing existing editor tabs. */
+(() => {
+  'use strict';
+  const services = Forge.services,
+    api = services.PunchOutContentRecovery,
+    store = services.ProjectStore,
+    $ = id => document.getElementById(id),
+    el = (tag, id, text) => {
+      const n = document.createElement(tag);
+      if (id) n.id = id;
+      if (text !== undefined) n.textContent = text;
+      return n;
+    };
+  let catalog = null,
+    sourceHash = '',
+    current = null;
+  const entry = el('button', 'punchOutContentOpen', 'Recovered content'),
+    panel = el('details', 'punchOutContentPanel'),
+    summary = el('summary', null, 'Punch-Out source content'),
+    status = el('p', 'punchOutContentStatus'),
+    inventory = el('p', 'punchOutContentInventory'),
+    fight = el('select', 'punchOutContentFight'),
+    pose = el('select', 'punchOutContentPose'),
+    preview = el('canvas', 'punchOutContentPreview'),
+    details = el('pre', 'punchOutContentDetails'),
+    copy = el('button', 'punchOutContentCopy', 'Open pose in Metasprites'),
+    overview = el('button', 'punchOutContentOverview',
+      'Recover background pages and fighter samples'),
+    chr = el('button', 'punchOutContentChr', 'Browse all CHR banks'),
+    audio = el('button', 'punchOutContentAudio', 'Open source Audio');
+  panel.hidden = true;
+  preview.width = 256;
+  preview.height = 240;
+  preview.style.imageRendering = 'pixelated';
+  status.setAttribute('role', 'status');
+  entry.type = copy.type = overview.type = chr.type = audio.type = 'button';
+  panel.append(summary, status, inventory, el('label', null, 'Fighter / fight '), fight, el(
+    'label', null, ' Pose '), pose, preview, copy, overview, chr, audio, details);
+  $('sceneContext').before(panel);
+  $('areaLibraryOpen').before(entry);
+  const style = el('style');
+  style.textContent =
+    '#punchOutContentPanel[hidden]{display:none!important}#punchOutContentPanel{flex:1 0 100%;padding:12px;box-sizing:border-box;border:1px solid var(--bdr);font:12px/1.6 system-ui;max-width:100%;overflow-wrap:anywhere}#punchOutContentPanel button,#punchOutContentPanel select{min-height:44px;max-width:100%;margin:4px}#punchOutContentPreview{display:block;background:#151515;margin:8px 0;max-width:100%;width:256px}#punchOutContentDetails{white-space:pre-wrap;max-height:240px;overflow:auto}';
+  document.head.appendChild(style);
+
+  function read() {
+    const p = store.capture();
+    if (!api.matches(p)) throw Error(
+      'Open a recovered Punch-Out project with Open ROM / project first.');
+    if (sourceHash !== p.nativeGame.sourceSha256) {
+      catalog = api.source(p);
+      sourceHash = p.nativeGame.sourceSha256;
+      fight.replaceChildren();
+      for (const f of catalog.fights) {
+        const o = el('option', null, f.label);
+        o.value = String(f.index);
+        fight.appendChild(o);
+      }
+      fight.value = '0';
+      poses();
+    }
+    return p;
+  }
+
+  function poses() {
+    pose.replaceChildren();
+    const f = catalog.fights[Number(fight.value)];
+    for (const p of f.poses) {
+      const o = el('option', null, p.label + (p.status === 'unavailable-slot' ? ' · empty slot' :
+        ''));
+      o.value = String(p.selector);
+      o.disabled = p.status === 'unavailable-slot';
+      pose.appendChild(o);
+    }
+    pose.value = '0';
+  }
+
+  function render() {
+    current = null;
+    copy.disabled = true;
+    const ctx = preview.getContext('2d');
+    ctx.clearRect(0, 0, 256, 240);
+    try {
+      read();
+      const fi = Number(fight.value),
+        sel = Number(pose.value),
+        f = catalog.fights[fi],
+        p = store.capture(),
+        result = api.assets(p, fi, sel);
+      current = result;
+      const im = ctx.createImageData(256, 240);
+      for (let i = 0; i < 256 * 240; i++) im.data.set([21, 21, 21, 255], i * 4);
+      // Display fit uses unchanged native piece geometry, including flip and order.
+      const bounds = Forge163.metasprites.bounds(result.frame),
+        ox = Math.floor((256 - bounds.w) / 2) - bounds.x,
+        oy = Math.floor((240 - bounds.h) / 2) - bounds.y;
+      for (const piece of result.frame.pieces.slice().reverse())
+        for (let y = 0; y < result.frame.spriteMode; y++)
+          for (let x = 0; x < 8; x++) {
+            const fy = piece.flipV ? result.frame.spriteMode - 1 - y : y,
+              fx = piece.flipH ? 7 - x : x,
+              tile = fy < 8 ? piece.tile : piece.tile2,
+              c = result.scene.sprChr[tile][fy & 7][fx],
+              px = ox + piece.x + x,
+              py = oy + piece.y + y;
+            if (c && px >= 0 && px < 256 && py >= 0 && py < 240) im.data.set([...(NP[result.scene
+              .sprPal[piece.pal][c]] || [0, 0, 0]), 255], (py * 256 + px) * 4);
+          }
+      ctx.putImageData(im, 0, 0);
+      copy.disabled = false;
+      status.textContent = f.label + ' · ' + result.frame.pieces.length + ' pieces · ' + result
+        .frame.spriteMode +
+        '-pixel sprites. Centered pose preview; hardware scanline clipping is not simulated.';
+      details.textContent = JSON.stringify({
+        sourcePose: result.pose.source,
+        chrBank4KiB: result.pose.chrBank4KiB,
+        paletteFileOffset: f.paletteFileOffset,
+        stateTables: f.stateTables,
+        deltaPoseTables: f.deltaPoseTables,
+        limits: catalog.limits
+      }, null, 2);
+    } catch (e) {
+      status.textContent = e.message;
+      details.textContent = catalog ? catalog.limits.join('\n') : '';
+    }
+    if (catalog) inventory.textContent = 'Source: ' + catalog.fights.length +
+      ' fight configurations · ' + catalog.fights.reduce((n, f) => n + f.poses.length, 0) +
+      ' full-pose table slots · ' + catalog.physicalChrBanks + ' physical CHR banks / ' + catalog
+      .physicalChrTiles +
+      ' tiles. Full fights, Little Mac/referee animation, timing, transitions, collision and native sprite/Audio writing remain incomplete.';
+  }
+
+  function open() {
+    try {
+      read();
+      panel.hidden = false;
+      panel.open = true;
+      render();
+      panel.scrollIntoView?.({
+        block: 'start'
+      });
+      return true;
+    } catch (e) {
+      showToast(e.message);
+      return false;
+    }
+  }
+
+  function materialize(all = false) {
+    const p = read(),
+      expected = store.serialize(),
+      epoch = store.state.epoch,
+      result = api.recover(p, all ? {
+        overview: true
+      } : {
+        fight: Number(fight.value),
+        selector: Number(pose.value)
+      }),
+      prepared = store.prepareLoad(result.project);
+    if (epoch !== store.state.epoch || expected !== store.serialize()) throw Error(
+      'The project changed. Preview the source pose again.');
+    if (snapshot() === false) throw Error(
+      'History could not preserve the current project. Save it before recovering content.');
+    store.commit(prepared, {
+      sync: true,
+      intent: 'punch-out-content-recovery'
+    });
+    notify('punchOutContentRecovery');
+    const id = result.frameIds[0],
+      frame = S.metasprites.find(m => m.id === id);
+    if (frame) {
+      services.SceneContext.selectScene(frame.sceneId);
+      Forge163.metasprites.select(id);
+      switchTab('metasprites');
+    }
+    status.textContent = 'Recovered ' + result.frameIds.length +
+      ' source pose(s). Undo restores the prior project. Pose edits save, but native output requires an encoder.';
+    return result.frameIds;
+  }
+  const safe = fn => () => {
+    try {
+      return fn();
+    } catch (e) {
+      status.textContent = e.message;
+      showToast(e.message);
+      return false;
+    }
+  };
+  entry.onclick = open;
+  fight.onchange = () => {
+    poses();
+    render();
+  };
+  pose.onchange = render;
+  copy.onclick = safe(() => materialize());
+  overview.onclick = safe(() => materialize(true));
+  chr.onclick = safe(() => {
+    read();
+    switchTab('chr');
+    updateChrBankBrowser();
+    $('chrBankBrowser').scrollIntoView?.({
+      block: 'center'
+    });
+  });
+  audio.onclick = () => void services.InvestigationUI.whenReady().then(() => {
+    read();
+    services.NativeAudioLibraryUI.open(true);
+    switchTab('audio');
+  }).catch(e => {
+    status.textContent = e.message;
+  });
+  for (const type of ['keydown', 'keyup']) panel.addEventListener(type, e => e.stopPropagation?.
+  ());
+  services.PunchOutContentUI = Object.freeze({
+    open,
+    render,
+    materialize,
+    getState: () => ({
+      sourceHash,
+      fight: Number(fight.value),
+      selector: Number(pose.value),
+      ready: !!current
+    })
+  });
+})();

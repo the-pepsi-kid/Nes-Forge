@@ -1,0 +1,20 @@
+PASS Transcription mounts once with visible native keyboard entry and explicit action
+PASS Missing native session and malformed excerpt lengths refuse without project mutations
+PASS Read-only visible preview describes finite transcription and exact source identity
+PASS Explicit cancellation retains preview and leaves project, history and emulator unchanged
+PASS Confirmed import appends rebased canonical data and preserves SFX, runtime, scenes and emulator
+PASS Imported score survives one Undo, Redo and native save/reload without normalization loss
+PASS New inspected source, native edits, and subsong changes refuse a staged transcription
+PASS Project edits, replaced identical projects, and edits inside confirm refuse stale imports
+PASS Delayed preview rejects source, project and option races with no partial import
+PASS Delayed import revalidation refuses new source or project before confirmation
+PASS Changed conversion results and malformed canonical data are refused before snapshot
+PASS Pattern and instrument capacity refusals preserve all authoring and history
+PASS Native getter returns detached current edits and refuses busy or stale sessions
+PASS Native transcription fields retain keyboard defaults and block emulator controls
+PASS Successful import marks dirty even if tracker cleanup fails after commit
+PASS Preview validates enabled canonical runtime effects and instruments without changing runtime settings
+PASS Visible evidence export preserves the complete historical preview and imported identity
+PASS Evidence Save As busy, cancel, error and delayed completion remain honest
+PASS The exact review-checklist project imports, saves, reopens and builds edited music
+19/19 passed

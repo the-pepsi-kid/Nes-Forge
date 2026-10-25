@@ -1,0 +1,37 @@
+{
+  "suite": "native-metroid-resources",
+  "htmlSha256": "cf5825b600fc8f8c028e9df0def70cc1cac483408ad49b8327715b02a4598e08",
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Default-palette structures retain earlier overlap attributes while replacing tile content",
+      "passed": true
+    },
+    {
+      "name": "A nondefault structure replaces its own quadrant while retaining unrelated attribute bits",
+      "passed": true
+    },
+    {
+      "name": "Native row termination clips at the right boundary and preserves following rows",
+      "passed": true
+    },
+    {
+      "name": "Structure replacement touches only its original index byte, retaining object position and palette",
+      "passed": true
+    },
+    {
+      "name": "Malformed, duplicate and invalid object recipes reject before changing the source",
+      "passed": true
+    },
+    {
+      "name": "An unrelated ROM named Metroid cannot activate the exact-revision adapter",
+      "passed": true
+    },
+    {
+      "name": "Preceding adapters retain their order, identity and codec behavior",
+      "passed": true
+    }
+  ]
+}

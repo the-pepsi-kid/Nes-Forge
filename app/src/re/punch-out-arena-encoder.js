@@ -1,0 +1,186 @@
+/*
+ * NES FORGE MODULE: src/re/punch-out-arena-encoder.js
+ * Entry: PunchOutArenaEncoder
+ * Purpose: Reverse arena Scene nt/attr edits into two native nametables, compress and verify by original loader.
+ * Connections: Registered through PunchOutArenaWriter, called by NativeResourceProject during native-engine builds.
+ * Contract: Owns four stream pointers plus 381 bytes only. CHR, palette colors, sprites and Audio remain protected.
+ * Developer walkthrough: app/docs/NATIVE_RECOVERY_TUTORIAL.md
+ * Bundle order: app/source-manifest.json; regenerate with app/tools/bundle.py.
+ */
+/* Repack the two native arena setup streams inside their original exclusive
+ * data area. Original command reader, descriptors, engine and CHR stay intact. */
+(function(root, factory) {
+  const api = factory(typeof module !== 'undefined' && module.exports ? require(
+    './punch-out-arena.js') : root.PunchOutArena);
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.PunchOutArenaEncoder = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function(decoder) {
+  'use strict';
+  const base = 0x18010,
+    start = 0x9190,
+    end = 0x930d,
+    capacity = end - start,
+    pointers = [0x917b, 0x917e, 0x9184, 0x9187],
+    fail = m => {
+      throw Error('Punch-Out arena build: ' + m);
+    };
+  const spans = Object.freeze([...pointers.map(a => Object.freeze({
+    offset: base + a - 0x8000,
+    length: 2
+  })), Object.freeze({
+    offset: base + start - 0x8000,
+    length: capacity
+  })]);
+
+  /* Choose low-byte-cost native operations by dynamic programming. Each page has
+   * two streams, each at most 255 command bytes plus a terminator (8-bit Y).
+   * The page split is checked separately; exceeding total native capacity refuses. */
+  function compress(data) {
+    const n = data.length,
+      cost = Array(n + 1).fill(Infinity),
+      best = Array(n);
+    cost[n] = 0;
+    for (let i = n - 1; i >= 0; i--) {
+      const put = (length, op) => {
+        if (op.length + cost[i + length] < cost[i]) {
+          cost[i] = op.length + cost[i + length];
+          best[i] = {
+            length,
+            op
+          };
+        }
+      };
+      for (let k = 1; k <= 15 && i + k <= n; k++) put(k, [0x40 | k, ...data.slice(i, i + k)]);
+      let run = 1;
+      while (run < 32 && i + run < n && data[i + run] === data[i]) run++;
+      for (let k = 1; k <= run; k++) {
+        if (k > 15 && k !== 32) continue;
+        put(k, [0xe0 | (k === 32 ? 0 : k), data[i]]);
+        if (data[i] === 255) put(k, [0xf0 | (k === 32 ? 0 : k)]);
+      }
+      let inc = 1;
+      while (inc < 15 && i + inc < n && data[i] + inc < 256 && data[i + inc] === data[i] + inc)
+        inc++;
+      for (let k = 1; k <= inc; k++) put(k, [k, data[i]]);
+      for (let length = 1; length <= 253 && i + length * 2 <= n; length++) {
+        let repeats = 1;
+        outer: while (repeats < 15 && i + (repeats + 1) * length <= n) {
+          for (let j = 0; j < length; j++)
+            if (data[i + j] !== data[i + repeats * length + j]) break outer;
+          repeats++;
+        }
+        for (let k = 2; k <= repeats; k++) {
+          put(length * k, [0x60 | k, length, ...data.slice(i, i + length)]);
+          if (data[i] + length <= 256 && data.slice(i, i + length).every((v, j) => v === data[i] +
+              j)) put(length * k, [0x50 | k, length, data[i]]);
+        }
+      }
+      for (let length = 1; length * 256 + i <= n; length++) {
+        let repeat = true;
+        for (let j = length; j < length * 256; j++)
+          if (data[i + j] !== data[i + j % length]) {
+            repeat = false;
+            break;
+          } if (repeat) put(length * 256, [0x60, length, ...data.slice(i, i + length)]);
+      }
+    }
+    const streams = [
+      []
+    ];
+    for (let i = 0; i < n;) {
+      const {
+        length,
+        op
+      } = best[i];
+      if (streams.at(-1).length + op.length > 255) streams.push([]);
+      streams.at(-1).push(...op);
+      i += length;
+    }
+    if (streams.length > 2) fail(
+      'This page exceeds its two native command streams. Simplify the tile pattern.');
+    while (streams.length < 2) streams.push([]);
+    return streams.map(v => [...v, 0]);
+  }
+
+  /* Never patch input in place. Start with the preserved raw pages so offscreen
+   * cells survive; cellSources maps each visible tile back across the scroll seam. */
+  function encode(input, scene, source = decoder.open(input)) {
+    if (!scene || scene.nt?.length !== 960 || scene.attr?.length !== 64 || [...scene.nt, ...scene
+        .attr
+      ].some(v => !Number.isInteger(v) || v < 0 || v > 255)) fail(
+      'Use existing native tiles 0–255 and valid attribute bytes.');
+    const same = (a, b) => a.every((v, i) => v === b[i]);
+    if (same(scene.nt, source.nt) && same(scene.attr, source.attr)) return {
+      bytes: input.slice(),
+      changedCells: 0,
+      changedAttributes: 0,
+      used: 0,
+      capacity,
+      changed: false,
+      latchChanges: 0
+    };
+    // Off-canvas attribute bits have no projected source cell and cannot be hidden.
+    for (let i = 56; i < 64; i++)
+      if ((scene.attr[i] & 240) !== (source.attr[i] & 240)) fail(
+        'Attribute bits outside the visible arena cannot be encoded.');
+    const pages = source.rawPages.slice();
+    let changedCells = 0,
+      changedAttributes = 0,
+      latchChanges = 0;
+    for (let cell = 0; cell < 960; cell++) {
+      const ref = source.cellSources[cell],
+        page = (ref.nametable - 0x2000) / 1024,
+        sx = ref.cell % 32,
+        sy = Math.floor(ref.cell / 32),
+        x = cell % 32,
+        y = Math.floor(cell / 32);
+      pages[page * 1024 + ref.cell] = scene.nt[cell];
+      const target = (y >> 2) * 8 + (x >> 2),
+        shift = ((y & 2) ? 4 : 0) + ((x & 2) ? 2 : 0),
+        pal = (scene.attr[target] >> shift) & 3,
+        at = page * 1024 + 960 + (sy >> 2) * 8 + (sx >> 2),
+        nativeShift = ((sy & 2) ? 4 : 0) + ((sx & 2) ? 2 : 0);
+      pages[at] = (pages[at] & ~(3 << nativeShift)) | (pal << nativeShift);
+      if (scene.nt[cell] !== source.nt[cell]) {
+        changedCells++;
+        if ([253, 254].includes(scene.nt[cell]) || [253, 254].includes(source.nt[cell]))
+          latchChanges++;
+      }
+    }
+    for (let i = 0; i < 64; i++)
+      if (scene.attr[i] !== source.attr[i]) changedAttributes++;
+    const streams = [...compress(pages.slice(0, 1024)), ...compress(pages.slice(1024))],
+      used = streams.reduce((n, v) => n + v.length, 0);
+    if (used > capacity) fail('Arena needs ' + used + ' compressed bytes; ' + capacity +
+      ' are available. Simplify the painted pattern. Your project remains savable.');
+    const bytes = input.slice();
+    let cursor = start;
+    streams.forEach((stream, i) => {
+      const offset = base + pointers[i] - 0x8000;
+      bytes[offset] = cursor & 255;
+      bytes[offset + 1] = cursor >> 8;
+      bytes.set(stream, base + cursor - 0x8000);
+      cursor += stream.length;
+    });
+    /* Execute the original loader on the candidate. An inverse mapping that merely
+   * agrees with its own compressor is not enough to establish a correct build. */
+    const decoded = decoder.open(bytes);
+    if (!same(decoded.rawPages, pages) || !same(decoded.nt, scene.nt) || !same(decoded.attr, scene
+        .attr)) fail('The original PPU reader did not reproduce the edited arena.');
+    return {
+      bytes,
+      changedCells,
+      changedAttributes,
+      used,
+      capacity,
+      changed: true,
+      latchChanges
+    };
+  }
+  return Object.freeze({
+    version: 1,
+    spans,
+    capacity,
+    encode
+  });
+});

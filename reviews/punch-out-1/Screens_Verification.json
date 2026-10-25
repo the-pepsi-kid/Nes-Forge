@@ -1,0 +1,68 @@
+{
+  "suite": "punch-out-supplied-screens",
+  "status": "passed",
+  "htmlSha256": "5b38daf48470f98f01cefa202378981642dc64dfc401eb4dcd03225fd0dfc8d8",
+  "passed": 9,
+  "total": 9,
+  "checks": [
+    {
+      "name": "PRG 0 · all bounded PPU programs match original C113 writes",
+      "passed": true,
+      "programs": 84,
+      "ppuWrites": 8500
+    },
+    {
+      "name": "PRG 0 · five assembled backgrounds and all latch-selected pixel rows match original loaders",
+      "passed": true,
+      "contexts": 5,
+      "pixels": 307200
+    },
+    {
+      "name": "PRG 0 · an edited build in every context preserves native rendering and all audio banks",
+      "passed": true,
+      "editedContexts": 5,
+      "changedBytesPerBuild": 1
+    },
+    {
+      "name": "PRG 0 · project intake, all views, Undo/Redo, save/reopen, alias projection and derivative import preserve recipes",
+      "passed": true,
+      "residentViews": 5,
+      "outputSha256": "02bfb2e597804dc5082ad444794daf341d2c870b9aeac69ce3483fab60e8f1c6",
+      "sourceSha256": "0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952"
+    },
+    {
+      "name": "PRG 1 · all bounded PPU programs match original C113 writes",
+      "passed": true,
+      "programs": 84,
+      "ppuWrites": 8500
+    },
+    {
+      "name": "PRG 1 · five assembled backgrounds and all latch-selected pixel rows match original loaders",
+      "passed": true,
+      "contexts": 5,
+      "pixels": 307200
+    },
+    {
+      "name": "PRG 1 · an edited build in every context preserves native rendering and all audio banks",
+      "passed": true,
+      "editedContexts": 5,
+      "changedBytesPerBuild": 1
+    },
+    {
+      "name": "PRG 1 · project intake, all views, Undo/Redo, save/reopen, alias projection and derivative import preserve recipes",
+      "passed": true,
+      "residentViews": 5,
+      "outputSha256": "99d7c7510fbff7e1eceb01b74db7fd49be2c389a857dc84d236d92b9d97dcbfb",
+      "sourceSha256": "22ce21aa9c477d87e9cdc386b185f2166b18d438257640aa1d8e75ee9960e06e"
+    },
+    {
+      "name": "The real preceding reader refuses a Punch-Out project before mutation",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "Five static source staging backgrounds per revision. These are not recovered full fights, complete menus, sprite/fighter layers, animation, collision or gameplay logic.",
+    "MMC2 background latch transitions remain explicit in the source projection. Dynamic gameplay raster/timing remains outside the static scene checkpoint.",
+    "Headless model/CPU and lifecycle comparisons do not establish owner browser, hardware or controller acceptance."
+  ]
+}

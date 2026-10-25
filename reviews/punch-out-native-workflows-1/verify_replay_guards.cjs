@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('fs'),path=require('path'),assert=require('assert/strict'),crypto=require('crypto'),{loadForge}=require('../../app/tests/harness.cjs');
+const html=path.resolve(__dirname,'../../app/mainline/NES_Forge_2.0.0-alpha.11.html'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+(async()=>{const bytes=new Uint8Array(fs.readFileSync(path.join(process.argv[2],"Mike Tyson's Punch-Out!! (U) (PRG 0).nes"))),h=loadForge(html,{environment:{crypto:crypto.webcrypto,setTimeout,clearTimeout}}),s=h.context.Forge.services;
+ s.ProjectStore.load(await s.NativeResourceProject.create(bytes,'Guard verification'),{sync:true});await s.InvestigationUI.whenReady();const before=s.ProjectStore.serialize();h.context.inputForSessionChange=bytes;
+ const stopped=s.PunchOutReplay.run('sequence');s.PunchOutReplay.cancel('Guard test stop');const out=await stopped;assert.equal(out.status,'stopped');assert.equal(s.PunchOutReplay.status().busy,false);assert.equal(s.EmulatorTimeline.status().busy,false);assert.equal(s.ProjectStore.serialize(),before);
+ const changed=s.PunchOutReplay.run('sequence');h.run('emuLoadRomData(inputForSessionChange,"Changed ROM session",0)',2000);
+ const result=await changed;assert.notEqual(result.status,'completed');assert.equal(s.PunchOutReplay.status().busy,false);assert.equal(s.EmulatorTimeline.status().busy,false);assert.equal(s.PunchOutReplay.status().canRestore,false);assert.throws(()=>s.PunchOutReplay.restore());assert.equal(s.ProjectStore.serialize(),before);
+ assert.equal(await s.PunchOutReplay.run('unsupported').then(()=>false,()=>true),true);assert.equal(await s.PunchOutReplay.run('sequence',{extra:true}).then(()=>false,()=>true),true);
+ assert.deepEqual(h.errors,[]);fs.writeFileSync(path.join(__dirname,'Replay_Guards.json'),JSON.stringify({status:'passed',htmlSha256:sha(fs.readFileSync(html)),userStop:true,sessionChangeCancels:true,staleCheckpointRefused:true,unknownRecipesAndOptionsRefused:true,projectUnchanged:true},null,2)+'\n');console.log('PASS replay stop/session guards');
+})().catch(e=>{console.error(e.stack);process.exitCode=1});

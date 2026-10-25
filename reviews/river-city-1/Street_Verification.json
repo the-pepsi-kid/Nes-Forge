@@ -1,0 +1,53 @@
+{
+  "suite": "river-city-streets-supplied-input",
+  "status": "passed",
+  "sourceSha256": "b95f8def04c0012604b7cc68cf4ed8f49b2dfe4beda6182051de4b2423bea7b1",
+  "htmlSha256": "3e8fa47939721072d8d10134bbb9269fbcd5ddc9b90eeacea4894f4c246d0c86",
+  "passed": 5,
+  "total": 5,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "36 cropped street segments across 13 locations match native tile upload, attribute cache, CHR mapping and palette execution",
+      "passed": true,
+      "streetLocations": 13,
+      "segments": 36,
+      "nativeTilesCompared": 23040,
+      "attributeBytes": 1440,
+      "chrBytes": 147456,
+      "paletteBytes": 576,
+      "unresolvedSpecialLocations": 22,
+      "instructions": 1201728
+    },
+    {
+      "name": "A representative edit in every street segment changes exactly one physical byte and matches the original renderer",
+      "passed": true,
+      "representativeNativeEdits": 36,
+      "instructions": 1201728,
+      "policy": "Shared physical tile byte only; code, metadata, attributes, graphics, audio and all unrelated bytes preserved."
+    },
+    {
+      "name": "Native source intake, shared-owner canvas controls, alias projection, Undo/Redo and save/reopen retain a one-byte recipe",
+      "passed": true,
+      "residentViews": 3,
+      "changedBytes": 1,
+      "outputSha256": "5c02e5985b380a9aca78854ae6390854ccd34db630bd3effc2353bb221b2a417",
+      "nativeCell": 0,
+      "sourceColumn": 0,
+      "sourceRow": 0
+    },
+    {
+      "name": "Unresolved interiors, metadata aliases, changed code, stale guards and unsupported assets refuse atomically",
+      "passed": true
+    },
+    {
+      "name": "The actual pre-River-City reader rejects the new native adapter before project mutation",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "36 cropped street segments from 13 locations; the 22 other locations use an unresolved compressed special/interior path.",
+    "Only game rows 4–23 are recovered and displayed at Scene rows 0–19. No HUD, scrolling event, entity, collision-rule, exit or interior editing is claimed.",
+    "Original renderer/model checks do not establish browser, hardware/controller or complete gameplay acceptance."
+  ]
+}

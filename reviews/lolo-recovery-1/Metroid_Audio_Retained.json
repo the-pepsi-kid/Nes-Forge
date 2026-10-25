@@ -1,0 +1,489 @@
+{
+  "suite": "metroid-audio-supplied-input",
+  "status": "passed",
+  "htmlSha256": "c7f5e0328def5923cbe9409b2ac7cccaeedb8cb912f3f1a8ec52d159a78559ab",
+  "sourceSha256": "c5eea06e1e1128b576bd789f1a4f63bb154d6d31579c2f319382fb77a72d34a6",
+  "passed": 44,
+  "total": 44,
+  "failed": 0,
+  "cases": [
+    {
+      "name": "Exact supplied Metroid revision decodes 12 music cues, 24 SFX and one reset control",
+      "passed": true,
+      "summary": {
+        "musicCues": 12,
+        "effectCues": 24,
+        "controlCues": 1,
+        "channelStreams": 41,
+        "decodedEvents": 9150,
+        "volumeEnvelopes": 5,
+        "physicalMusicBanks": 6
+      }
+    },
+    {
+      "name": "Native playback Ridley area · music",
+      "passed": true,
+      "cue": "music:0",
+      "physicalBank": 5,
+      "frames": 256,
+      "apuWrites": 935,
+      "cpuInstructions": 325290,
+      "peak": 0.14374639093875885,
+      "pcmSha256": "59f3eb28f196e72a3c1934d0939e8b035dfe4d7d0c4afceac27177c4dfb205cf",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Tourian · music",
+      "passed": true,
+      "cue": "music:1",
+      "physicalBank": 3,
+      "frames": 256,
+      "apuWrites": 548,
+      "cpuInstructions": 310716,
+      "peak": 0.14630044996738434,
+      "pcmSha256": "11796ab1f2e959f0b6156bb9679254cf6f73b67ac69a8fea919620c1c98ca7e3",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Item room · music",
+      "passed": true,
+      "cue": "music:2",
+      "physicalBank": 1,
+      "frames": 256,
+      "apuWrites": 428,
+      "cpuInstructions": 308866,
+      "peak": 0.08842594921588898,
+      "pcmSha256": "7ef2350910271dda79544867245af03740e8e7548601096c18a68412443bcda2",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Kraid area · music",
+      "passed": true,
+      "cue": "music:3",
+      "physicalBank": 4,
+      "frames": 256,
+      "apuWrites": 404,
+      "cpuInstructions": 309065,
+      "peak": 0.11400442570447922,
+      "pcmSha256": "42098a2ba7c1c3567c5193b52887d4bcff5a5ed73f519682c2b348f767e7e3b5",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Norfair · music",
+      "passed": true,
+      "cue": "music:4",
+      "physicalBank": 2,
+      "frames": 256,
+      "apuWrites": 882,
+      "cpuInstructions": 332324,
+      "peak": 0.12459012120962143,
+      "pcmSha256": "ef5cb030824979c61cd7c442375e31c68c9f6e86d79c9844c538fac25d55b636",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Escape · music",
+      "passed": true,
+      "cue": "music:5",
+      "physicalBank": 3,
+      "frames": 256,
+      "apuWrites": 927,
+      "cpuInstructions": 326415,
+      "peak": 0.15655921399593353,
+      "pcmSha256": "186d63ad177380e7dbfb32a3e84f198649e3cf8ca33916342f6ad53e55c5dcb7",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Mother Brain · music",
+      "passed": true,
+      "cue": "music:6",
+      "physicalBank": 3,
+      "frames": 256,
+      "apuWrites": 948,
+      "cpuInstructions": 316965,
+      "peak": 0.11631760001182556,
+      "pcmSha256": "f59019dc75d20409d990e275c8a2bfa20894778dfe58bfcaf02321a0ec9f3aeb",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Brinstar · music",
+      "passed": true,
+      "cue": "music:7",
+      "physicalBank": 1,
+      "frames": 256,
+      "apuWrites": 909,
+      "cpuInstructions": 328058,
+      "peak": 0.18351545929908752,
+      "pcmSha256": "0ca16656ef75d535a66851921586e192afa2546af2401a76e747943610dc62d0",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Fade in · music",
+      "passed": true,
+      "cue": "music:8",
+      "physicalBank": 1,
+      "frames": 256,
+      "apuWrites": 732,
+      "cpuInstructions": 318119,
+      "peak": 0.12116870284080505,
+      "pcmSha256": "f27ee6b82e1359c8b24a8340485ab657b963cec12a470b56b5512d78beb39103",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Power up · music",
+      "passed": true,
+      "cue": "music:9",
+      "physicalBank": 1,
+      "frames": 256,
+      "apuWrites": 678,
+      "cpuInstructions": 316631,
+      "peak": 0.15152449905872345,
+      "pcmSha256": "89e8017a852886f11b75f0fdd6cb5aa149e2e946f9752694941caaf6b1f36f33",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Ending · music",
+      "passed": true,
+      "cue": "music:10",
+      "physicalBank": 0,
+      "frames": 256,
+      "apuWrites": 1059,
+      "cpuInstructions": 325917,
+      "peak": 0.17078407108783722,
+      "pcmSha256": "2b2570f0956b9685747e138e2b10f30cc9a9ed151783b78b678f1a7e08aa0fe0",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Title / intro · music",
+      "passed": true,
+      "cue": "music:11",
+      "physicalBank": 0,
+      "frames": 256,
+      "apuWrites": 843,
+      "cpuInstructions": 328475,
+      "peak": 0.16960132122039795,
+      "pcmSha256": "afb213cacab4b879fdef4ebdd0da6400dd8cbf0e28e144ab94a586816679d168",
+      "hasEditableMusic": true
+    },
+    {
+      "name": "Native playback Screw attack · SFX",
+      "passed": true,
+      "cue": "sfx:680:64",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 200,
+      "cpuInstructions": 137127,
+      "peak": 0.05813194066286087,
+      "pcmSha256": "0849b6b4cfe2edb886936e9ad98c6c4580601fc29770c1639a12ddb7c7e5a051",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Missile launch · SFX",
+      "passed": true,
+      "cue": "sfx:680:32",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 163,
+      "cpuInstructions": 138811,
+      "peak": 0.10213393718004227,
+      "pcmSha256": "9e63691a760b85a377d78bd2bac49085b732f22ddb49a16421fb49cdade51b1f",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Bomb explosion · SFX",
+      "passed": true,
+      "cue": "sfx:680:16",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 140,
+      "cpuInstructions": 138456,
+      "peak": 0.15725751221179962,
+      "pcmSha256": "f6d835308529cbfc08401819e36590ab9434f7ffa451bc9d4279905ab1374a45",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Samus walk · SFX",
+      "passed": true,
+      "cue": "sfx:680:8",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 140,
+      "cpuInstructions": 139343,
+      "peak": 0.06721840053796768,
+      "pcmSha256": "7092dc2aedd9c7a6b589aeab9675e1c21f3ae9fa664563b2136a87697bbfbdc2",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Spit flame · SFX",
+      "passed": true,
+      "cue": "sfx:680:4",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 159,
+      "cpuInstructions": 139359,
+      "peak": 0.1407841295003891,
+      "pcmSha256": "9dcca43747dd8e5d8ecbb950b942ad1a16ef16b6577c6d3f5f10d436da48120f",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Missile pickup · SFX",
+      "passed": true,
+      "cue": "sfx:681:128",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 152,
+      "cpuInstructions": 138012,
+      "peak": 0.13615719974040985,
+      "pcmSha256": "582853ac6f682abd7b18c19b436b1705aa6f3d11428e8a30410b4151157d7469",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Energy pickup · SFX",
+      "passed": true,
+      "cue": "sfx:681:64",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 148,
+      "cpuInstructions": 138853,
+      "peak": 0.12446437031030655,
+      "pcmSha256": "9484b7bb4ba8dc03124c2aee4c8c43e877c19f8ec8558ab59fb313baec104222",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Metal · SFX",
+      "passed": true,
+      "cue": "sfx:681:32",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 140,
+      "cpuInstructions": 139081,
+      "peak": 0.1275908201932907,
+      "pcmSha256": "31ef928dbf2128eb2428ef59e28fc640691c2cff7b40cc5f8b559980f08ccc87",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Beam shot · SFX",
+      "passed": true,
+      "cue": "sfx:681:16",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 140,
+      "cpuInstructions": 139337,
+      "peak": 0.058067649602890015,
+      "pcmSha256": "b6b5d74c711102dd66ab2c7c17a71575f6037e11977159b3e8f0736358881101",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Enemy regeneration · SFX",
+      "passed": true,
+      "cue": "sfx:681:8",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 140,
+      "cpuInstructions": 139121,
+      "peak": 0.05801816284656525,
+      "pcmSha256": "850674faf13d5b6c6829cfb1b0cb6da742ede7da72927e77117e704cc314c987",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Enemy hit · SFX",
+      "passed": true,
+      "cue": "sfx:681:4",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 140,
+      "cpuInstructions": 139349,
+      "peak": 0.12308867275714874,
+      "pcmSha256": "59c5f4c0f22d54e2c21d5a86d2605b1e4a792fc678eb2f52f958e63443d3f66c",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Jump · SFX",
+      "passed": true,
+      "cue": "sfx:681:2",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 140,
+      "cpuInstructions": 139423,
+      "peak": 0.05165591090917587,
+      "pcmSha256": "37961ff2c548464808bf68ba00eeebc729364cbbfb9ebf902b4b43ce61a02862",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Wave beam · SFX",
+      "passed": true,
+      "cue": "sfx:681:1",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 164,
+      "cpuInstructions": 139764,
+      "peak": 0.08144973963499069,
+      "pcmSha256": "bbc56650caf68491ff61b9ca4b616c394973a49dc78b5b54a2363e3cac34b77d",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Samus death · SFX",
+      "passed": true,
+      "cue": "sfx:683:128",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 302,
+      "cpuInstructions": 149434,
+      "peak": 0.116227887570858,
+      "pcmSha256": "e9e71af40ffc1ded579ed98ad62bdb5d69ac5980e96760f88b063d7c76a72754",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Door · SFX",
+      "passed": true,
+      "cue": "sfx:683:64",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 201,
+      "cpuInstructions": 138801,
+      "peak": 0.08041101694107056,
+      "pcmSha256": "2f3aa50ea9289c90cb8fe4201759894873797f208a11be8d48d76e1a7cfc6a64",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Metroid hit · SFX",
+      "passed": true,
+      "cue": "sfx:683:32",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 151,
+      "cpuInstructions": 139108,
+      "peak": 0.0903339758515358,
+      "pcmSha256": "579280cb1dd852208e8f90db0f19676bf4303322879d612ca2dc4ff637b41751",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Statue raise · SFX",
+      "passed": true,
+      "cue": "sfx:683:16",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 247,
+      "cpuInstructions": 139305,
+      "peak": 0.10005688667297363,
+      "pcmSha256": "fc08f2e5a6e33375d7679a4c026efcbf35df2bf8dda74c56800f301651677faf",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Low energy beep · SFX",
+      "passed": true,
+      "cue": "sfx:683:8",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 141,
+      "cpuInstructions": 139353,
+      "peak": 0.12123716622591019,
+      "pcmSha256": "2e3026b3e54f71a9794249b0737c7fa4ee835564daee917413ae46f3cbb598e8",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Large enemy hit · SFX",
+      "passed": true,
+      "cue": "sfx:683:4",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 159,
+      "cpuInstructions": 139523,
+      "peak": 0.11501546204090118,
+      "pcmSha256": "4650ea10b34874c6df65ba2dc36acf7eeafa28f665703cd32c6aec1b2595be43",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Morph ball · SFX",
+      "passed": true,
+      "cue": "sfx:683:2",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 155,
+      "cpuInstructions": 140633,
+      "peak": 0.05178472027182579,
+      "pcmSha256": "be252b03a88690aa205262dd989111e6b07c902cb2e1a184b073cc796ae5d2d6",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Bomb launch · SFX",
+      "passed": true,
+      "cue": "sfx:683:1",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 145,
+      "cpuInstructions": 139524,
+      "peak": 0.116227887570858,
+      "pcmSha256": "b2bb5b31d485d94d0630f1fd66f6aa812608c7904742d00c67e0254ba1f18eea",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Samus hit · SFX",
+      "passed": true,
+      "cue": "sfx:684:4",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 169,
+      "cpuInstructions": 138807,
+      "peak": 0.2181941419839859,
+      "pcmSha256": "ce56abd5024060efe64190f02193a5f6b7901b89b4bb62037d9ffbb4cb0da3b3",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Boss hit · SFX",
+      "passed": true,
+      "cue": "sfx:684:2",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 225,
+      "cpuInstructions": 135565,
+      "peak": 0.21906393766403198,
+      "pcmSha256": "d9fe0bdcfcbaa8459f69fbc07b9b85b31742c650d74887a8fcd424715531480b",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "Native playback Incorrect password · SFX",
+      "passed": true,
+      "cue": "sfx:684:1",
+      "physicalBank": 1,
+      "frames": 128,
+      "apuWrites": 147,
+      "cpuInstructions": 133218,
+      "peak": 0.10068827867507935,
+      "pcmSha256": "24e347244c9db7bcdeb50a57e85ea5e5da298a175e37e9970410c4d3b2899f8a",
+      "hasEditableMusic": false
+    },
+    {
+      "name": "SFX request masks select the declared native handler using the driver high-bit-first dispatch",
+      "passed": true
+    },
+    {
+      "name": "Native catalog entries retain exact source stream and bank evidence",
+      "passed": true
+    },
+    {
+      "name": "Changed audio data cannot reuse the source identity",
+      "passed": true
+    },
+    {
+      "name": "Project intake exposes the Metroid Audio catalog action",
+      "passed": true
+    },
+    {
+      "name": "Opening and reopening a recovered project restores its Audio library without altering the project",
+      "passed": true
+    },
+    {
+      "name": "Audio UI inspects, previews and imports a music excerpt through Undo/Redo",
+      "passed": true
+    },
+    {
+      "name": "Playback and inspection leave the original ROM bytes unchanged",
+      "passed": true
+    }
+  ],
+  "limits": [
+    "Exact user-supplied US revision. Other revisions/hacks are not recognized.",
+    "Automated PCM and APU checks are not a listening/hardware acceptance test.",
+    "Canonical score import is a finite adaptation; native ROM audio encoding remains unsupported."
+  ]
+}

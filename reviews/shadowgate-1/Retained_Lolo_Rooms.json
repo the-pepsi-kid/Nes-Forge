@@ -1,0 +1,74 @@
+{
+  "candidate": "lolo-recovery-1",
+  "status": "passed",
+  "sourceSha256": "914c676959612fc6738a297b6b799dff848e43de4e9bd3c9f3c6783efd059e01",
+  "htmlSha256": "9c276fa3c7fea42d37e43ce154249adcc78976620f8b4aa7dd1950998c9e1d2b",
+  "passed": 8,
+  "total": 8,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "All 50 original CHR-backed stream transfers and decompressed room cells match native CPU/PPU execution",
+      "passed": true,
+      "rooms": 50,
+      "cells": 12000,
+      "streamBytes": 6784,
+      "instructions": 319768
+    },
+    {
+      "name": "All 50 post-setup backgrounds, attributes, initial CHR and both palette states match the original renderer",
+      "passed": true,
+      "rooms": 50,
+      "backgroundAndAttributeBytes": 51200,
+      "graphicsComparisons": 204800,
+      "paletteComparisons": 800,
+      "instructions": 5478605
+    },
+    {
+      "name": "Every room accepts a representative bounded edit; all rebuilt rooms match native decompression and rendering",
+      "passed": true,
+      "rooms": 50,
+      "representativeEdits": 50,
+      "totalChangedBytes": 2565,
+      "instructions": 5435056,
+      "policy": "Only the selected original room allocation can change; no pointer, bank, length, PRG or artwork relocation."
+    },
+    {
+      "name": "Project intake creates assembled native rooms with one source owner and unchanged original output",
+      "passed": true,
+      "catalogRooms": 50,
+      "materializedScenes": 1,
+      "editableTileTypes": 8,
+      "unchangedSourceSha256": "914c676959612fc6738a297b6b799dff848e43de4e9bd3c9f3c6783efd059e01"
+    },
+    {
+      "name": "Native brush, Undo/Redo, save/reopen and derivative reimport preserve the exact edit recipe",
+      "passed": true,
+      "changedBytes": 63,
+      "outputSha256": "c52f5b205e4da7562030ead5a24526ddc613ceae6fc31b0f8bb30040cfd780b6"
+    },
+    {
+      "name": "Opening distant rooms retains prior recipes and keeps Scene selection bound to the native source",
+      "passed": true,
+      "openedSourceRooms": [
+        50,
+        25,
+        1
+      ],
+      "residentScenes": 3
+    },
+    {
+      "name": "Locked markers, stale guards, changed source and unsupported CHR edits reject atomically",
+      "passed": true
+    },
+    {
+      "name": "The pre-Lolo reader rejects this adapter before committing a project",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "Original loader/renderer execution and mock-DOM authoring lifecycle; no real browser, controller, listening or whole-game traversal acceptance.",
+    "Only terrain/heart substitutions in the existing 11×11 interior are encoded, within original compressed capacity.",
+    "Player/enemy/chest/settings records are retained; moving sprites, behavior authoring, live HUD counters, animation, menus, world travel and native Audio are not recovered assets."
+  ]
+}

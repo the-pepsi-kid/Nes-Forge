@@ -1,0 +1,50 @@
+{
+  "suite": "shadowgate-pictures-supplied-input",
+  "status": "passed",
+  "sourceSha256": "f3eeeefb3a1359cf45ad8a5033525ae4be050b9fb9cbe2105e09637aad00a9be",
+  "htmlSha256": "5b38daf48470f98f01cefa202378981642dc64dfc401eb4dcd03225fd0dfc8d8",
+  "passed": 5,
+  "total": 5,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "All 130 static picture records match the original tile upload, attributes, background CHR mapping and standard palette loader",
+      "passed": true,
+      "pictureSlots": 130,
+      "nativeTilesCompared": 25480,
+      "chrBytesCompared": 532480,
+      "paletteBytesCompared": 2080,
+      "instructions": 5140004,
+      "scope": "112×112 static picture crop; source table slots, not 130 distinct gameplay rooms. Standard palette state only."
+    },
+    {
+      "name": "A one-byte native edit in every picture matches original rendering and preserves all Audio and unrelated bytes",
+      "passed": true,
+      "nativeEditedPictures": 130,
+      "instructions": 5140004,
+      "changedBytesPerBuild": 1
+    },
+    {
+      "name": "Native intake, picture library, canvas controls, Undo/Redo, save/reopen and derivative reimport keep the same source owner",
+      "passed": true,
+      "residentViews": 3,
+      "outputSha256": "781686074ef71bf73db54a7cea984c097c92fe716e026d9ecd07a51d627f0705",
+      "changedBytes": 1,
+      "declaredMapper": 68,
+      "executionMapper": 4
+    },
+    {
+      "name": "Stale guards, unsupported assets, invalid picture recipes and changed protected source refuse without committing edits",
+      "passed": true
+    },
+    {
+      "name": "The actual pre-Shadowgate reader rejects this project before mutation",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "130 static picture-table slots; table membership is not room reachability or gameplay-state reconstruction.",
+    "Only native tiles (2,4)–(15,17) are cropped to Scene (0,0), using the standard palette. Objects/doors, alternate states, UI/text, interactions, animation and full gameplay are unresolved.",
+    "Native loader comparisons and mock-DOM lifecycle checks do not establish owner-browser, controller or hardware acceptance."
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "suite": "punch-out-bounded-native-boot",
+  "status": "passed",
+  "htmlSha256": "5b38daf48470f98f01cefa202378981642dc64dfc401eb4dcd03225fd0dfc8d8",
+  "passed": 4,
+  "total": 4,
+  "checks": [
+    {
+      "name": "PRG 0 original",
+      "passed": true,
+      "sourceSha256": "0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952",
+      "frames": 600,
+      "cycles": 17868400,
+      "opsMissed": 0,
+      "mapper": 9,
+      "PC": 44806,
+      "loaded": true,
+      "frameColors": 17,
+      "nametableNonzero": 960
+    },
+    {
+      "name": "PRG 0 scene-derivative",
+      "passed": true,
+      "sourceSha256": "e012503393303f4e6f26fc0a518e4411aff630daf827b6fd9bb8222137f49957",
+      "frames": 600,
+      "cycles": 17868400,
+      "opsMissed": 0,
+      "mapper": 9,
+      "PC": 44806,
+      "loaded": true,
+      "frameColors": 17,
+      "nametableNonzero": 960
+    },
+    {
+      "name": "PRG 1 original",
+      "passed": true,
+      "sourceSha256": "22ce21aa9c477d87e9cdc386b185f2166b18d438257640aa1d8e75ee9960e06e",
+      "frames": 600,
+      "cycles": 17868400,
+      "opsMissed": 0,
+      "mapper": 9,
+      "PC": 44806,
+      "loaded": true,
+      "frameColors": 17,
+      "nametableNonzero": 960
+    },
+    {
+      "name": "PRG 1 scene-derivative",
+      "passed": true,
+      "sourceSha256": "5ab20fa73c022b97fdcef32673ed9e4ea98273b3c1d54dcbfd7da66861019c98",
+      "frames": 600,
+      "cycles": 17868400,
+      "opsMissed": 0,
+      "mapper": 9,
+      "PC": 44806,
+      "loaded": true,
+      "frameColors": 17,
+      "nametableNonzero": 960
+    }
+  ],
+  "limitations": [
+    "600 headless native frames from reset, including bank-6 direct PCM startup, per original/derivative. No controller input or full fights.",
+    "Approximate scanline MMC2 rendering; no hardware bus timing or browser/listening acceptance claim."
+  ]
+}
