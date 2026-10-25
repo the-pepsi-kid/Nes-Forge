@@ -1,0 +1,143 @@
+{
+  "scope": "Provenance for the restored local implementation; public snapshot commits have distinct IDs. Original public ancestry is retained by the promotion merge.",
+  "implementationHead": "a648803f79c3ba194403cecd965bda409b9bc318",
+  "commits": [
+    {
+      "localCommit": "94aabbb6307d1c8d68c3f027933fd1d88767bf11",
+      "parents": [],
+      "subject": "Restore exact tested Shadowgate source after environment restart"
+    },
+    {
+      "localCommit": "82a8977984cbddce53268f1b85ce6bb37905af5d",
+      "parents": [
+        "94aabbb6307d1c8d68c3f027933fd1d88767bf11"
+      ],
+      "subject": "Retain prior Metroid source verification scripts in checkpoint"
+    },
+    {
+      "localCommit": "cf93cb65a19ad182f647dc678b26d630ef757642",
+      "parents": [
+        "82a8977984cbddce53268f1b85ce6bb37905af5d"
+      ],
+      "subject": "Add Punch-Out backgrounds, MMC2 mapping and native Audio with startup PCM"
+    },
+    {
+      "localCommit": "6a3269646e36daa33f50f707ef9adcecd285f436",
+      "parents": [
+        "cf93cb65a19ad182f647dc678b26d630ef757642"
+      ],
+      "subject": "Fix Punch-Out scene intake, exact MMC2 capture and source Audio restoration"
+    },
+    {
+      "localCommit": "0b15a113376818f6b28bc66e32573b8b9f7aea30",
+      "parents": [
+        "6a3269646e36daa33f50f707ef9adcecd285f436"
+      ],
+      "subject": "Revert \"Fix Punch-Out scene intake, exact MMC2 capture and source Audio restoration\""
+    },
+    {
+      "localCommit": "026fa22753d7e97455ed02180bb363054248ebed",
+      "parents": [
+        "0b15a113376818f6b28bc66e32573b8b9f7aea30"
+      ],
+      "subject": "Add Punch-Out source pose inventory and sprite/metasprite recovery without replacing restored editor"
+    },
+    {
+      "localCommit": "c9c7be36c996fa537f9b79972787016613354892",
+      "parents": [
+        "026fa22753d7e97455ed02180bb363054248ebed"
+      ],
+      "subject": "Recover timed Punch-Out state excerpts with native size changes, delta poses and Audio request links"
+    },
+    {
+      "localCommit": "e2f101e1e35bd59c67d609b4e2954fc60cf80c92",
+      "parents": [
+        "c9c7be36c996fa537f9b79972787016613354892"
+      ],
+      "subject": "Recover Punch-Out ring and audience setup from original two-page arena loader"
+    },
+    {
+      "localCommit": "fbe0b15b008756ba86ce0da0286748b8df8a5022",
+      "parents": [
+        "e2f101e1e35bd59c67d609b4e2954fc60cf80c92"
+      ],
+      "subject": "Encode Punch-Out arena tile and attribute edits into original native layout streams"
+    },
+    {
+      "localCommit": "c66b77483fd62a94deee8c3934f4c48552a5cd1a",
+      "parents": [
+        "fbe0b15b008756ba86ce0da0286748b8df8a5022"
+      ],
+      "subject": "Fix Punch-Out player background banks by retaining offscreen MMC2 pattern fetches"
+    },
+    {
+      "localCommit": "600787155d075cc9e6411338aeb2cd3c899b41f3",
+      "parents": [
+        "c66b77483fd62a94deee8c3934f4c48552a5cd1a"
+      ],
+      "subject": "Document NES Forge assets and developer workflows; retain Punch-Out arena derivatives on reimport"
+    },
+    {
+      "localCommit": "e2d94cbad861783fabde4e52d647e3701f78b487",
+      "parents": [
+        "600787155d075cc9e6411338aeb2cd3c899b41f3"
+      ],
+      "subject": "Recover Glass Joe setup layers and native Little Mac/referee command-state references"
+    },
+    {
+      "localCommit": "fff36b05480682c9d80c8d179fc5ac4294e09b13",
+      "parents": [
+        "e2d94cbad861783fabde4e52d647e3701f78b487"
+      ],
+      "subject": "Document per-title recovery tutorials and Punch-Out standalone workflows"
+    },
+    {
+      "localCommit": "9263dd56292c1a0546eafdf0891c3afaaaaad1ac",
+      "parents": [
+        "fff36b05480682c9d80c8d179fc5ac4294e09b13"
+      ],
+      "subject": "WIP: pause native Punch-Out artwork and record Glass Joe replay research"
+    },
+    {
+      "localCommit": "8cc05fa6c5b0ca6a3830da1cd17ecaaac2a4dd72",
+      "parents": [
+        "9263dd56292c1a0546eafdf0891c3afaaaaad1ac"
+      ],
+      "subject": "Integrate Retro Workstation and verify native Punch-Out artwork and Glass Joe replay workflows"
+    },
+    {
+      "localCommit": "c7de8e08f674510df54e86ef86cd65cc97c3ea09",
+      "parents": [
+        "8cc05fa6c5b0ca6a3830da1cd17ecaaac2a4dd72"
+      ],
+      "subject": "Fix workstation startup abort caused by moved emulator canvas anchor"
+    },
+    {
+      "localCommit": "a648803f79c3ba194403cecd965bda409b9bc318",
+      "parents": [
+        "c7de8e08f674510df54e86ef86cd65cc97c3ea09"
+      ],
+      "subject": "Add verified native Glass Joe full-pose position editing and tutorial"
+    }
+  ],
+  "publicImplementationSteps": [
+    {
+      "localCommit": "8cc05fa",
+      "remoteCommit": "8d240f74a0a19f7c60d49ea300cd0e8189e6094a",
+      "tree": "b66c3f900dfbb843a26e872194ed0fb2bedf2f62",
+      "state": "Retro Workstation and native artwork/replay integration"
+    },
+    {
+      "localCommit": "c7de8e0",
+      "remoteCommit": "afc91bb9c474b785188d9ad2c8bfb0251ba3ac2e",
+      "tree": "e0c19538743dd7cd79da4b585de1e08eda65cddd",
+      "state": "Strict DOM startup repair"
+    },
+    {
+      "localCommit": "a648803",
+      "remoteCommit": "2c795396ca91462dcd6bb631668976f6253795b9",
+      "tree": "e3731859d233be257dcb71d8cf3a6fd28932b07b",
+      "state": "Verified native Glass Joe full-pose position editing"
+    }
+  ]
+}

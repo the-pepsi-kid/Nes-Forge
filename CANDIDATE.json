@@ -1,12 +1,13 @@
 {
-  "candidate": "punch-out-arena-runtime-1",
+  "candidate": "main-alpha-promotion-1",
   "version": "2.0.0-alpha.11",
-  "status": "development-candidate",
-  "promoted": false,
-  "parentCommit": "fbe0b15b008756ba86ce0da0286748b8df8a5022",
-  "branch": "implementation/punch-out-arena-runtime-1",
-  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "16d3bb6f253b74fca5c004b378bbfb6890d41b2717a05c9a187b4d4b8a71a881",
+  "status": "accepted-development-alpha",
+  "promoted": true,
+  "branch": "main",
+  "html": "nes-forge.html",
+  "sourceHtml": "app/mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "90c179abf3360821dc2dd93168ef74fa6ae2282a78ee6c7357958424612c4322",
+  "htmlBytes": 2998472,
   "schemas": {
     "ordinary": 12,
     "native": 13,
@@ -15,43 +16,40 @@
     "selectedTerrain": 15,
     "portableRom": 16
   },
+  "localImplementationCommit": "a648803f79c3ba194403cecd965bda409b9bc318",
+  "sourceInputs": 184,
   "scope": [
-    "Fix reproduced live HUD/crowd/ring CHR-bank corruption by retaining offscreen MMC2 background pattern fetches.",
-    "Retain the existing native arena writer and all project/source/schema/CPU/APU owners.",
-    "Preserve saved edits and rebuild workflow; both untouched US ROMs establish the runtime regression."
+    "Promote the owner-accepted working alpha, compact Retro Workstation and existing recovery/authoring workflows to main.",
+    "Retain native Punch-Out arena, physical CHR/fight palettes, bounded Glass Joe replay and thirty full-pose X/Y views.",
+    "Preserve exact original Pepsi artifact and previous public history."
   ],
   "limits": [
-    "Scanline CPU/sprite/raster timing remains approximate; MMC2 runtime capture remains unavailable.",
-    "Native arena compressed storage and previously documented unsupported edit domains are unchanged.",
-    "No complete fight-state, browser listening, hardware or full historical release-gate acceptance."
+    "Punch-Out recovery remains partial; per-title methods and limits are documented in app/docs/projects.",
+    "Native individual geometry, delta poses, animation, attack/damage/collision and Audio writers remain pending.",
+    "MMC2 timing is approximate; unavailable historical full release gate and browser/device/listening/controller/hardware acceptance remain separate."
   ],
   "verification": {
     "status": "targeted-passed",
     "publicChecks": 104,
     "publicSuites": 9,
-    "runtimeRevisions": 2,
-    "nativeBuildWorkflowRevisions": 2,
-    "hudPixelsComparedPerRevision": 14336,
-    "previousHudMismatchesPerRevision": 11501,
-    "correctedHudMismatchesPerRevision": 0,
-    "audioEntriesPerRevision": 84,
-    "hardware": "pending",
-    "browserListening": "pending"
+    "strictDomStartupChecks": 10,
+    "poseLifecycleRevisions": 2,
+    "artworkLifecycleRevisions": 2,
+    "fullHistoricalReleaseGate": "unavailable in restored snapshot",
+    "report": "reviews/main-alpha-promotion-1/Integration_Verification.json"
+  },
+  "originalArtifact": {
+    "branch": "archive/original-pepsi",
+    "tag": "original-pepsi",
+    "commit": "61dee20c4c36886c3fac143c0258d7fac27d5ff7",
+    "html": "archive/original-pepsi.html"
   },
   "distribution": {
     "privateRomsIncluded": false,
     "commercialAssetPayloadsIncluded": false,
     "sourceBearingCommercialProjectsIncluded": false,
-    "standaloneHTML": "NES_Forge_Punch_Out_Player_Fix.html",
-    "newZipRequested": false
+    "standaloneHTML": "nes-forge.html"
   },
-  "sourcePreservation": {
-    "baselineBundleInputs": 168,
-    "unchangedInputs": 167,
-    "changedInputs": 1,
-    "newRuntimeModules": 0,
-    "ordinarySchema": 12,
-    "readerCeiling": 16
-  },
-  "audioVerificationRequiredForEveryProject": true
+  "audioVerificationRequiredForEveryProject": true,
+  "publishedImplementationCommit": "2c795396ca91462dcd6bb631668976f6253795b9"
 }

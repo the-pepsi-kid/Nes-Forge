@@ -1,0 +1,57 @@
+{
+  "candidate": "punch-out-arena-runtime-1",
+  "version": "2.0.0-alpha.11",
+  "status": "development-candidate",
+  "promoted": false,
+  "parentCommit": "fbe0b15b008756ba86ce0da0286748b8df8a5022",
+  "branch": "implementation/punch-out-arena-runtime-1",
+  "html": "mainline/NES_Forge_2.0.0-alpha.11.html",
+  "htmlSha256": "16d3bb6f253b74fca5c004b378bbfb6890d41b2717a05c9a187b4d4b8a71a881",
+  "schemas": {
+    "ordinary": 12,
+    "native": 13,
+    "investigation": 14,
+    "readCeiling": 16,
+    "selectedTerrain": 15,
+    "portableRom": 16
+  },
+  "scope": [
+    "Fix reproduced live HUD/crowd/ring CHR-bank corruption by retaining offscreen MMC2 background pattern fetches.",
+    "Retain the existing native arena writer and all project/source/schema/CPU/APU owners.",
+    "Preserve saved edits and rebuild workflow; both untouched US ROMs establish the runtime regression."
+  ],
+  "limits": [
+    "Scanline CPU/sprite/raster timing remains approximate; MMC2 runtime capture remains unavailable.",
+    "Native arena compressed storage and previously documented unsupported edit domains are unchanged.",
+    "No complete fight-state, browser listening, hardware or full historical release-gate acceptance."
+  ],
+  "verification": {
+    "status": "targeted-passed",
+    "publicChecks": 104,
+    "publicSuites": 9,
+    "runtimeRevisions": 2,
+    "nativeBuildWorkflowRevisions": 2,
+    "hudPixelsComparedPerRevision": 14336,
+    "previousHudMismatchesPerRevision": 11501,
+    "correctedHudMismatchesPerRevision": 0,
+    "audioEntriesPerRevision": 84,
+    "hardware": "pending",
+    "browserListening": "pending"
+  },
+  "distribution": {
+    "privateRomsIncluded": false,
+    "commercialAssetPayloadsIncluded": false,
+    "sourceBearingCommercialProjectsIncluded": false,
+    "standaloneHTML": "NES_Forge_Punch_Out_Player_Fix.html",
+    "newZipRequested": false
+  },
+  "sourcePreservation": {
+    "baselineBundleInputs": 168,
+    "unchangedInputs": 167,
+    "changedInputs": 1,
+    "newRuntimeModules": 0,
+    "ordinarySchema": 12,
+    "readerCeiling": 16
+  },
+  "audioVerificationRequiredForEveryProject": true
+}
