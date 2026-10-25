@@ -25,7 +25,20 @@ function loadForge(htmlPath, {strictMissingIds = [], environment = {}} = {}) {
       dispatchEvent(e) { e.target ||= this; e.currentTarget = this; for (const fn of this.listeners.get(e.type) || []) fn(e); return true; },
       appendChild(child) { return this.insertBefore(child,null); },
       append(...xs) { xs.forEach(x => this.appendChild(x)); }, prepend(...xs) { const ref=this.children[0]||null; xs.forEach(x => this.insertBefore(x,ref)); },
-      insertBefore(child,ref=null) { if(child===ref)return child; const old=child.parentNode?.children,index=old?.indexOf(child); if(index>=0)old.splice(index,1); const at=ref===null?this.children.length:this.children.indexOf(ref); /* Static markup is not fully parsed; preserve the old fallback for unknown refs. */ this.children.splice(at<0?this.children.length:at,0,child); child.parentElement=child.parentNode=this; return child; }, before: noop, after: noop, remove: noop,
+      insertBefore(child,ref=null) {
+        if(child===ref)return child;
+        // Static markup is not fully parsed, but once a node has been mounted
+        // its ancestry is known. Never silently accept a nested/moved anchor:
+        // browsers throw, which can abort the remaining application startup.
+        if(ref!==null&&!this.children.includes(ref)&&ref._mountedInTree){
+          const error=new Error('The reference node is not a child of this parent.');
+          error.name='NotFoundError';throw error;
+        }
+        const old=child.parentNode?.children,index=old?.indexOf(child);if(index>=0)old.splice(index,1);
+        const at=ref===null?this.children.length:this.children.indexOf(ref);
+        this.children.splice(at<0?this.children.length:at,0,child);
+        child.parentElement=child.parentNode=this;child._mountedInTree=true;return child;
+      }, before: noop, after: noop, remove: noop,
       replaceChildren(...xs) { this.children = []; this.append(...xs); },
       insertAdjacentHTML(position, html) { this._html = (this._html || '') + html; },
       setAttribute(k, v) { this[k] = v; }, getAttribute(k) { return this[k] ?? null; }, removeAttribute(k) { delete this[k]; },

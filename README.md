@@ -1,4 +1,10 @@
-## Current: Retro Workstation and native Punch-Out workflows
+## Current: Retro Workstation startup repair
+
+The preceding combined HTML aborted during startup before creating Retro Workstation, Resources, Connected Workspace and the metasprite context. The replay panel used the emulator canvas as an insertion anchor after Play view had moved that canvas into a wrapper. The corrected panel anchors to the containing direct child of the emulator view and retains the canvas's existing owner.
+
+Read [the startup correction and reproduction steps](reviews/workstation-startup-fix-1/HANDOFF.md). The delivered HTML is executed in a strict parsed DOM; the earlier missing controls and `NotFoundError` are reproduced, and the repaired appearance, resource browsing, workspace panels, follow selection, metasprite context and replay shortcut are checked through actual control events. This supersedes the earlier permissive startup check. Browser layout/device acceptance remains separate.
+
+## Retro Workstation and native Punch-Out workflows
 
 The supplied Retro Workstation v0.5 UI is ported into modular source, including Resources, Connected Workspace, the metasprite source-context indicator and the supplied native World navigation fixes. Its original opt-in fallback and density choices remain intact. Dedicated Punch-Out physical CHR/fight-palette views now build natively; the prior selection/signature failure is corrected without weakening validation.
 

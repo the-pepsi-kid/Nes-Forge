@@ -1,4 +1,8 @@
-## Current combined workstation/native workflow candidate
+## Current: startup repair for the adopted workstation
+
+Read `../reviews/workstation-startup-fix-1/HANDOFF.md` first. The preceding combined HTML threw `NotFoundError` before reaching any adopted UI module: replay UI tried to insert into `emuView` using the canvas after Play view had reparented it. The repaired insertion uses the view's direct containing child. Keep the existing Play view/canvas owner and supplied appearance/resource scripts intact. The tiny regression DOM now refuses invalid anchors once nodes have been mounted; a new jsdom check executes the complete delivered HTML with strict ancestry and actual events, reproduces the broken delivery and verifies the repaired controls. It also covers unavailable local-file preference storage and restoring stored appearance. This is DOM execution evidence, not browser layout, listening or device acceptance.
+
+## Previous combined workstation/native workflow candidate
 
 Read `../reviews/punch-out-native-workflows-1/HANDOFF.md` first. The owner resumed work and adopted the supplied Retro Workstation v0.5 kit. Its five UI modules are source-manifest inputs; the native-overworld routes and metasprite refresh are exact supplied ports. The native artwork factory now initializes canonical collision properties before signing, resolving the paused build failure. Dedicated CHR/fight-palette writes, both-revision Glass Joe replay/seeded phase experiments, Audio, safe prior-reader refusal and retained checks have current reports. Keep the compact retro skin, opt-out fallback, advanced controls, existing owners and per-title tutorials. Do not claim complete fights, native pose/animation/Audio writers, hardware accuracy or a fresh browser layout/listening pass.
 

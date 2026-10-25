@@ -13,7 +13,14 @@
   choice.value = 'sequence'; status.setAttribute('role', 'status');
   root.append(make('summary', null, 'Glass Joe · native sequence and reversible experiments'),
     make('p', null, 'Run replaces the current emulator session with your current native build, then pauses at the result. The sequence uses real controller input from reset. Knockdown/round cases record explicit temporary RAM seeds after the native opening; Restore fight start returns to the physical pre-experiment checkpoint. Project edits and original source are untouched. MMC2 rendering remains approximate; runtime Scene capture is unavailable.'), choice, run, stop, restore, status, evidence);
-  document.getElementById('emuView').insertBefore(root, document.getElementById('emuCanvas'));
+  // Play view owns the canvas and moves it into its controls wrapper during
+  // startup. Insert before the view's direct child containing that canvas;
+  // passing the nested canvas to view.insertBefore throws and aborts the
+  // remaining application bootstrap, including Resources and appearance.
+  const view = document.getElementById('emuView');
+  let anchor = document.getElementById('emuCanvas');
+  while (anchor && anchor.parentNode !== view) anchor = anchor.parentNode;
+  view.insertBefore(root, anchor);
   const launch = make('button', 'punchOutReplayOpen', 'Open Glass Joe native replay'); launch.type = 'button';
   document.getElementById('punchOutContentPanel').appendChild(launch);
   launch.onclick = () => { switchTab('emu'); root.open = true; root.scrollIntoView?.({block: 'nearest'}); };
