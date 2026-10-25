@@ -75,6 +75,10 @@
           spans: [...a.spans, ...(a.derivativeIdentity?.spans || []), ...a.artDerivativeIdentity.spans],
           sha256: a.artDerivativeIdentity.protectedSha256
         });
+        if (a.poseDerivativeIdentity) identities.push({
+          spans: [...a.spans, ...(a.derivativeIdentity?.spans || []), ...(a.artDerivativeIdentity?.spans || []), ...a.poseDerivativeIdentity.spans],
+          sha256: a.poseDerivativeIdentity.protectedSha256
+        });
         if (!identities.some(identity => {
             const masked = bytes.slice();
             for (const r of identity.spans) {
@@ -216,9 +220,28 @@
         scenes = scenes.slice();
         scenes[index] = {...scenes[index], ...Object.fromEntries(fields.map(k => [k, cp(view[k])]))};
       }
+    // Optional canonical metasprite views share this same native build owner.
+    // A codec may mask only position fields and original piece coordinates;
+    // its encoder must still prove the actual edit maps to its bounded spans.
+    // Frames without a registered owner remain protected, including snapshots.
+    let metasprites = p.metasprites;
+    const frameFields = new Set();
+    for (const codec of sceneEncoders.filter(c => c.matches(p, info))) {
+      if (!codec.metaspriteViews) continue;
+      for (const view of codec.metaspriteViews(p, info)) {
+        if (!view || Object.keys(view).sort().join(',') !== 'id,originX,originY,pieces' || frameFields.has(view.id))
+          fail('Invalid or duplicate native metasprite projection');
+        const index = metasprites.findIndex(frame => frame.id === view.id);
+        if (index < 0) fail('Native metasprite encoder cannot mask a missing frame');
+        const baseline = {...metasprites[index], ...cp(view)};
+        Forge163.persistence.validate([baseline], [], p.scenes);
+        frameFields.add(view.id); metasprites = metasprites.slice(); metasprites[index] = baseline;
+      }
+    }
     return s.NativeEngineProject.signature({
       ...p,
-      scenes
+      scenes,
+      metasprites
     });
   }
 

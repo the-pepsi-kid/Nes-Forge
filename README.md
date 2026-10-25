@@ -1,4 +1,10 @@
-## Current: Retro Workstation startup repair
+## Current: Native Glass Joe full-pose positions
+
+Recovered content → Native pose positions · Glass Joe opens one of 30 dedicated native placement views in the existing Metasprites editor. Apply signed X/Y offsets in one Undo transaction, save/reopen, and rebuild the original game. The writer owns only each full pose's two position bytes; individual piece geometry, delta poses, native animation, attack/damage/collision and Audio writing remain separate work. Physical CHR/color and arena edits compose through the existing native owner.
+
+Read [the pose-position handoff](reviews/punch-out-pose-position-1/HANDOFF.md) and [section 16 of the title tutorial](app/docs/projects/PUNCH_OUT.md#16-move-a-native-glass-joe-full-pose). The startup repair and compact Retro Workstation remain in this build.
+
+## Previous: Retro Workstation startup repair
 
 The preceding combined HTML aborted during startup before creating Retro Workstation, Resources, Connected Workspace and the metasprite context. The replay panel used the emulator canvas as an insertion anchor after Play view had moved that canvas into a wrapper. The corrected panel anchors to the containing direct child of the emulator view and retains the canvas's existing owner.
 

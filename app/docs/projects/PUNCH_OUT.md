@@ -1,6 +1,6 @@
 # Punch-Out: import, edit, rebuild and understand the method
 
-This lesson covers the current Mike Tyson's Punch-Out!! US PRG0/PRG1 support. You will make a supported arena edit, preserve it in a project, build a separate ROM, inspect fighter/player/referee references, audition source Audio and find the code needed to extend the method. The bounded original-engine replay, reversible knockdown/round experiments and dedicated physical CHR/fight-palette writers extend that workflow. Complete fights, native pose/animation and Audio writers remain open.
+This lesson covers the current Mike Tyson's Punch-Out!! US PRG0/PRG1 support. You will make a supported arena edit, preserve it in a project, build a separate ROM, inspect fighter/player/referee references, audition source Audio and find the code needed to extend the method. The bounded original-engine replay, reversible knockdown/round experiments, physical CHR/fight-palette writers and Glass Joe full-pose position writer extend that workflow. Complete fights, individual native pose geometry, native animation and Audio writers remain open.
 
 The combined review application is `NES_Forge_Retro_Punch_Out_Native_Workflows.html`, identical to `app/mainline/NES_Forge_2.0.0-alpha.11.html`. Its SHA-256 is `cf5825b600fc8f8c028e9df0def70cc1cac483408ad49b8327715b02a4598e08`. Sections 13–15 describe the new dedicated artwork, original-engine replay and Retro Workstation controls. The preceding verified fight-reference checkpoint remains separately available at local commit `e2d94cb` (app SHA-256 `aceb8cdd70e0839b4649bc56daa39519204b660bbbae100209ad9e66bb03b89a`).
 
@@ -36,7 +36,7 @@ If the writer reports a capacity failure, simplify the pattern or Undo. Nothing 
 | Ring/audience arena | Two original setup nametables projected across the source scroll seam; ordinary Scene layout | Arena writer supports `nt` and visible attribute bits within fixed capacity; shared native arena affects its game uses |
 | Background and sprite CHR | 32 physical 4 KiB banks; source banks and projected references available | Open a dedicated physical CHR view for native pixel writing; edits to copied reference art still have no reference writer |
 | Palette colors | Source palettes retained for each declared context | Dedicated native fight-palette views now write color bits while preserving flags; reference copies remain protected |
-| Opponents | 14 fight configurations, source pose records, separate sprite CHR/OAM and explicit Metasprite materialization | Pose copies are editable/savable; native sprite, pose and position writers are absent; some source poses need prior state |
+| Opponents | 14 fight configurations, source pose records, separate sprite CHR/OAM and explicit Metasprite materialization | Dedicated Glass Joe full-pose views write whole-pose X/Y; copied reference poses remain snapshots; individual geometry, tiles, flags and other opponents need separate pose writers |
 | Opponent animations | Bounded original state execution retains RAM/OAM, incremental poses and size changes; explicit Animation import | Observed excerpts have declared duration/initial state; no complete AI, fight timing or native animation writer |
 | Little Mac | 98 bank-11 background command descriptors; bounded player-state paths | Commands can clear cells or draw fragments; not all are complete poses; native command/art writing absent |
 | Referee/count/speech | 47 extended bank-11 command descriptors; available player/referee state paths | Same background system, not opponent metasprites; no native writer |
@@ -271,3 +271,29 @@ Click **Retro Workstation** in the toolbar to enable the supplied skin; choose *
 The kit's Zelda II native-overworld routes are also ported: the Area Library can reopen a linked native World or request the exact matching source when investigation has discarded its transient bytes. Revision/identity and stale-selection checks remain in place. These navigation fixes do not grant another game's missing terrain writer.
 
 The supplied v0.5 browser evidence applies to that supplied HTML. The current modular integration has its own checks; any remaining browser/device acceptance is listed separately in the review notes. The source ports live under `app/src/ui/`, and the deterministic source manifest includes them. Directly replacing this app with the older review HTML would discard the new Punch-Out work, so continue from the integrated output.
+
+## 16. Move a native Glass Joe full pose
+
+This workflow writes the two signed position operands of a full pose. It moves the graphic relative to the original moving opponent anchor. It does not move the opponent's collision/attack rules or change animation timing. Large shifts can separate the visible boxer from those original rules; inspect the built game.
+
+1. Open a supported Punch-Out ROM or its saved native Forge project. Choose **Recovered content → Native pose positions · Glass Joe**.
+2. Select one of the 30 full poses, `$00` through `$3A` in steps of two. Choose **Edit native Glass Joe pose position**. The existing Metasprites editor opens a dedicated native frame and its source-art Scene. Opening an unchanged view produces the same ROM bytes.
+3. In **NATIVE GLASS JOE POSE POSITION**, change **Native X / Y**, then **Apply native pose position**. Values are signed offsets from -128 through 127. For pose `$00`, the original values are X = -16 and Y = -96. X = -14 moves that pose two pixels right relative to its native anchor. Only game states that use this particular full-pose record change; incremental/delta poses have separate source records.
+4. Apply moves every original piece together in one Undo step. Undo/Redo retains the canonical frame; after undoing creation of a frame, reselect its native shortcut to restore the browsing selection. The frame's cyan origin and ordinary coordinates remain canonical Metasprite data. A uniform move through the composer, or a frame-origin change, can also express the same position. Individual piece drags, tile changes, flips, reordering and piece insertion/deletion remain savable but refuse native building.
+5. Choose **Check native pose build**, then **Build & Run** or download the built ROM. Inspect the selected pose in its actual intro/fight/knockdown context. A full-pose position does not rewrite the delta-pose records used by many active animation updates.
+6. Save Project As and reopen. Reopen the native pose shortcut to see its offsets. Build again and compare the exported ROM. Import that output as a new native source: its edited offsets become the new source baseline, and an unchanged rebuild should match exactly.
+7. Physical CHR/color edits and the arena writer compose with pose placement. The dedicated pose Scene snapshots current encoded art when first opened; its copied pixels/palettes are not a second art writer. Continue using the physical native art views to edit game graphics.
+
+### Independent RE, hex and source development for pose positions
+
+The Glass Joe full-pose pointer table is in physical PRG bank 0. A pose record starts with signed X and Y bytes; subsequent fields point to shared geometry/attribute/tile streams. For selector `$00`, the position bytes are at file offsets `$009C` and `$009D`, including the 16-byte iNES header. An external hex edit from `$F0` to `$F2` at `$009C` expresses the same two-pixel X movement. Keep the original separate, change only the verified operand, compare the binary diff, and test the actual record's game use. These file offsets are for the two supported revisions, not a universal Punch-Out format guarantee.
+
+`re/punch-out-pose.js` reads the pointer graph, converts canonical placement to signed native operands, and executes the original shape reader to check the candidate. `services/punch-out-pose-project.js` creates the ordinary Scene/Metasprite views and registers exclusive two-byte ownership with NativeResourceProject. Its optional `metaspriteViews` hook substitutes only declared canonical positions for signature comparison; the encoder still rejects every unsupported piece edit. `re/punch-out-pose-ui.js` performs guarded ProjectStore transactions. Add these modules to the source manifest in dependency order and re-run the bundler when changing the HTML.
+
+No schema bump, copied ROM in the HTML, alternate asset store or second live CPU is involved. Other opponents, delta poses, shared geometry streams, animation/timing, AI/damage/collision, native Audio and complete game conversion remain separate work. The original shape reader and representative live original-engine playback are different checks; neither establishes hardware or browser listening acceptance.
+
+```bash
+node reviews/punch-out-pose-position-1/verify_pose.cjs /path/to/private-roms /path/to/previous-startup-fixed.html
+node reviews/punch-out-pose-position-1/verify_pose_playback.cjs /path/to/private-roms
+NODE_PATH=/path/to/jsdom/node_modules node reviews/punch-out-pose-position-1/verify_pose_dom.cjs /path/to/private-roms
+```

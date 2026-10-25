@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge Developer and Asset Workflows</title><style>body{margin:0;background:#f5f7fa;color:#172238;font:17px/1.65 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:36px 28px 80px}h1,h2,h3{line-height:1.25;scroll-margin-top:24px}h1{font-size:2.25rem}h2{margin-top:2.2em;padding-top:1em;border-top:1px solid #ccd5e1}a{color:#124d9a}table{border-collapse:collapse;display:block;overflow-x:auto;width:100%;font-size:.9rem;margin:1.4em 0}th,td{border:1px solid #bbc8d8;padding:10px;vertical-align:top;text-align:left}th{background:#e3ebf5}pre{overflow:auto;background:#132136;color:#eaf3ff;padding:18px;border-radius:8px;line-height:1.45}code{font-family:ui-monospace,monospace;font-size:.9em}p code,li code,td code{background:#e5ebf3;padding:1px 4px;border-radius:3px}nav{border:1px solid #bdcddd;background:#fff;padding:20px;border-radius:8px;margin:28px 0}nav ul{padding-left:24px}.meta{font-size:.9rem;color:#53647a}@media(max-width:650px){main{padding:22px 16px}body{font-size:16px}h1{font-size:1.8rem}}@media print{body{background:white;font-size:10pt}main{max-width:none;padding:0}nav{display:none}pre{white-space:pre-wrap;background:#f1f3f6;color:#172238}table{display:table;font-size:8pt}h2,h3{break-after:avoid}tr,pre{break-inside:avoid}}</style></head><body><main><p class="meta">Developer reference · 2026-10-24 · Modular Retro Workstation / native Punch-Out workflows</p><nav aria-label="Contents"><strong>Contents</strong><ul>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge Developer and Asset Workflows</title><style>body{margin:0;background:#f5f7fa;color:#172238;font:17px/1.65 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:36px 28px 80px}h1,h2,h3{line-height:1.25;scroll-margin-top:24px}h1{font-size:2.25rem}h2{margin-top:2.2em;padding-top:1em;border-top:1px solid #ccd5e1}a{color:#124d9a}table{border-collapse:collapse;display:block;overflow-x:auto;width:100%;font-size:.9rem;margin:1.4em 0}th,td{border:1px solid #bbc8d8;padding:10px;vertical-align:top;text-align:left}th{background:#e3ebf5}pre{overflow:auto;background:#132136;color:#eaf3ff;padding:18px;border-radius:8px;line-height:1.45}code{font-family:ui-monospace,monospace;font-size:.9em}p code,li code,td code{background:#e5ebf3;padding:1px 4px;border-radius:3px}nav{border:1px solid #bdcddd;background:#fff;padding:20px;border-radius:8px;margin:28px 0}nav ul{padding-left:24px}.meta{font-size:.9rem;color:#53647a}@media(max-width:650px){main{padding:22px 16px}body{font-size:16px}h1{font-size:1.8rem}}@media print{body{background:white;font-size:10pt}main{max-width:none;padding:0}nav{display:none}pre{white-space:pre-wrap;background:#f1f3f6;color:#172238}table{display:table;font-size:8pt}h2,h3{break-after:avoid}tr,pre{break-inside:avoid}}</style></head><body><main><p class="meta">Developer reference · Native Glass Joe pose placement / modular Retro Workstation</p><nav aria-label="Contents"><strong>Contents</strong><ul>
   <li><a href="#nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</a>
   <ul>
     <li><a href="#1-choose-an-entry-point">1. Choose an entry point</a></li>
@@ -30,7 +30,10 @@
     <li><a href="#12-debugging-and-extending-the-project">12. Debugging and extending the project</a></li>
     <li><a href="#13-concrete-asset-edits-from-javascript-or-html">13. Concrete asset edits from JavaScript or HTML</a></li>
     <li><a href="#14-glass-joe-fight-references-mac-referee-and-hud">14. Glass Joe fight references: Mac, referee and HUD</a></li>
-    <li><a href="#15-dedicated-native-artwork-and-concurrent-playback">15. Dedicated native artwork and concurrent playback</a></li>
+    <li><a href="#15-dedicated-native-artwork-and-concurrent-playback">15. Dedicated native artwork and concurrent playback</a>
+    <ul>
+      <li><a href="#native-glass-joe-full-pose-position-extension">Native Glass Joe full-pose position extension</a></li>
+    </ul></li>
   </ul></li>
 </ul>
 </nav><h1 id="nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</h1>
@@ -845,4 +848,39 @@ node reviews/punch-out-fight-context-1/verify_lifecycle.cjs /path/to/private-rom
 <p><code>services/punch-out-art-project.js</code> registers physical CHR/color field ownership with NativeResourceProject. The source remains preserved, unknown fields remain protected and byte spans are disjoint from layout recipes. <code>services/punch-out-replay.js</code> uses the existing EmulatorBridge/Timeline, with real input, owned checkpoints and explicitly recorded temporary RAM seeds. It does not introduce a second CPU or enable MMC2 runtime Scene capture.</p>
 
 <p>The supplied Resources, Connected Workspace, metasprite context and Retro Workstation modules are now source-manifest inputs under <code>src/ui/</code>. Presentation preferences remain outside canonical projects. The full asset map, independent RE, code/hex paths, standalone application edits and separate authored-game workflow remain available alongside these title-specific extensions.</p>
+
+<h3 id="native-glass-joe-full-pose-position-extension">Native Glass Joe full-pose position extension</h3>
+
+<p>Section 16 of <code>projects/PUNCH_OUT.md</code> adds a dedicated native position view for each of Glass Joe's 30 full poses. The frame and source-art Scene are ordinary canonical assets. The signed native X/Y operands are derived from uniform piece displacement minus the frame origin, so no hidden placement recipe or alternate asset store is required. Individual pieces, shared geometry, delta poses and animation remain separate writing problems.</p>
+
+<table>
+<thead>
+<tr>
+  <th>Owner</th>
+  <th>Responsibility</th>
+  <th>Connection</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>re/punch-out-pose.js</code></td>
+  <td>Pure pointer/position codec; validates the output through the original CPU shape reader</td>
+  <td>Source bytes → canonical placement → two signed native bytes</td>
+</tr>
+<tr>
+  <td><code>services/punch-out-pose-project.js</code></td>
+  <td>Dedicated Scene/Metasprite ownership and bounded encoding</td>
+  <td>NativeResourceProject's existing encoder registry, projection gate and disjoint-span checks</td>
+</tr>
+<tr>
+  <td><code>re/punch-out-pose-ui.js</code></td>
+  <td>Pose selection, native X/Y controls, one Undo transaction and build check</td>
+  <td>Existing Metasprites, ProjectStore, history and RuntimeCompiler</td>
+</tr>
+</tbody>
+</table>
+
+<p>The native resource gate now accepts an optional <code>metaspriteViews</code> callback on a registered encoder. It compares declared baseline origin/piece positions while retaining every unrelated project field in the signature. The encoder separately proves uniform movement, unchanged piece identities/order/tiles/flags, signed-byte range and exact owned-byte writes. Masking a recognition range or registering a projection never grants permission to write another resource. With no native pose view present, the preceding projection and output remain unchanged.</p>
+
+<p>For standalone HTML work, change these authoritative modules and re-bundle. For independent hex work, the title lesson identifies the actual position operands and validation steps. Moving a visual pose leaves the original damage/attack/collision code in place, so check alignment in the running game. Native pose editing is scoped to whole-pose placement; it is not complete fighter or animation recovery.</p>
 </main></body></html>

@@ -381,3 +381,17 @@ The current combined candidate adds dedicated **Native artwork · CHR banks and 
 `services/punch-out-art-project.js` registers physical CHR/color field ownership with NativeResourceProject. The source remains preserved, unknown fields remain protected and byte spans are disjoint from layout recipes. `services/punch-out-replay.js` uses the existing EmulatorBridge/Timeline, with real input, owned checkpoints and explicitly recorded temporary RAM seeds. It does not introduce a second CPU or enable MMC2 runtime Scene capture.
 
 The supplied Resources, Connected Workspace, metasprite context and Retro Workstation modules are now source-manifest inputs under `src/ui/`. Presentation preferences remain outside canonical projects. The full asset map, independent RE, code/hex paths, standalone application edits and separate authored-game workflow remain available alongside these title-specific extensions.
+
+### Native Glass Joe full-pose position extension
+
+Section 16 of `projects/PUNCH_OUT.md` adds a dedicated native position view for each of Glass Joe's 30 full poses. The frame and source-art Scene are ordinary canonical assets. The signed native X/Y operands are derived from uniform piece displacement minus the frame origin, so no hidden placement recipe or alternate asset store is required. Individual pieces, shared geometry, delta poses and animation remain separate writing problems.
+
+| Owner | Responsibility | Connection |
+|---|---|---|
+| `re/punch-out-pose.js` | Pure pointer/position codec; validates the output through the original CPU shape reader | Source bytes → canonical placement → two signed native bytes |
+| `services/punch-out-pose-project.js` | Dedicated Scene/Metasprite ownership and bounded encoding | NativeResourceProject's existing encoder registry, projection gate and disjoint-span checks |
+| `re/punch-out-pose-ui.js` | Pose selection, native X/Y controls, one Undo transaction and build check | Existing Metasprites, ProjectStore, history and RuntimeCompiler |
+
+The native resource gate now accepts an optional `metaspriteViews` callback on a registered encoder. It compares declared baseline origin/piece positions while retaining every unrelated project field in the signature. The encoder separately proves uniform movement, unchanged piece identities/order/tiles/flags, signed-byte range and exact owned-byte writes. Masking a recognition range or registering a projection never grants permission to write another resource. With no native pose view present, the preceding projection and output remain unchanged.
+
+For standalone HTML work, change these authoritative modules and re-bundle. For independent hex work, the title lesson identifies the actual position operands and validation steps. Moving a visual pose leaves the original damage/attack/collision code in place, so check alignment in the running game. Native pose editing is scoped to whole-pose placement; it is not complete fighter or animation recovery.

@@ -1,4 +1,8 @@
-## Current: startup repair for the adopted workstation
+## Current: native Glass Joe full-pose placement
+
+Read `../reviews/punch-out-pose-position-1/HANDOFF.md` and section 16 of `docs/projects/PUNCH_OUT.md`. Three additive modules expose 30 full-pose X/Y records through ordinary Scene/Metasprite assets and the existing native build owner. A registered optional metasprite projection masks only this codec's position fields; encoding still proves unchanged piece identity/order/art/flags and uniform translation. Recognition admits only the two position operands of each supported record, with pointers/shared streams/code protected. Preserve schema and previous source/asset owners, the compact workstation, startup repair and all independent workflows. This is visual pose placement, not a damage/attack/collision editor, delta-pose writer, complete animation/fight recovery or native Audio writer.
+
+## Previous: startup repair for the adopted workstation
 
 Read `../reviews/workstation-startup-fix-1/HANDOFF.md` first. The preceding combined HTML threw `NotFoundError` before reaching any adopted UI module: replay UI tried to insert into `emuView` using the canvas after Play view had reparented it. The repaired insertion uses the view's direct containing child. Keep the existing Play view/canvas owner and supplied appearance/resource scripts intact. The tiny regression DOM now refuses invalid anchors once nodes have been mounted; a new jsdom check executes the complete delivered HTML with strict ancestry and actual events, reproduces the broken delivery and verifies the repaired controls. It also covers unavailable local-file preference storage and restoring stored appearance. This is DOM execution evidence, not browser layout, listening or device acceptance.
 
