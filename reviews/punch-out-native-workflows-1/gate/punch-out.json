@@ -1,0 +1,70 @@
+{
+  "suite": "punch-out",
+  "htmlSha256": "cf5825b600fc8f8c028e9df0def70cc1cac483408ad49b8327715b02a4598e08",
+  "total": 15,
+  "passed": 15,
+  "failed": 0,
+  "scope": "Original synthetic mapper, identity, isolation and recipe fixtures. Supplied-ROM evidence is separate.",
+  "results": [
+    {
+      "name": "MMC2 uses selected 8 KiB PRG plus the final fixed 24 KiB",
+      "passed": true
+    },
+    {
+      "name": "Both CHR halves retain independent FD and FE banks with documented latch ranges",
+      "passed": true
+    },
+    {
+      "name": "Mirroring and physical layout bounds refuse invalid mappings",
+      "passed": true
+    },
+    {
+      "name": "Live PPU returns the old bank byte before applying the latch and preserves original headers",
+      "passed": true
+    },
+    {
+      "name": "Existing mappers delegate to the exact prior reader and no schema owner changes",
+      "passed": true
+    },
+    {
+      "name": "MMC2 isolated audio requires explicit opt-in and cannot touch mapper or PPU buses",
+      "passed": true
+    },
+    {
+      "name": "Both native profiles expose exactly 711 writable literal bytes without asset payloads",
+      "passed": true
+    },
+    {
+      "name": "Synthetic filename-like content and caller hashes do not authorize commercial profiles",
+      "passed": true
+    },
+    {
+      "name": "Native recipes enforce unique writable physical operands and protect latch-control tile IDs",
+      "passed": true
+    },
+    {
+      "name": "Malformed PPU programs refuse under bounded source reads",
+      "passed": true
+    },
+    {
+      "name": "Empty native requests and stop controls refuse before isolated execution",
+      "passed": true
+    },
+    {
+      "name": "New audio profiles declare 8 KiB physical windows and read-only methods",
+      "passed": true
+    },
+    {
+      "name": "Resumable native routines preserve instruction timing, DAC writes and the single return",
+      "passed": true
+    },
+    {
+      "name": "Continuous routine windows keep instruction and bus refusal limits",
+      "passed": true
+    },
+    {
+      "name": "PCM audition never silently converts its bell into an editable substitute",
+      "passed": true
+    }
+  ]
+}

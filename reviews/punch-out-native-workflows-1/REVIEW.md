@@ -1,0 +1,11 @@
+# NES Forge — Retro Workstation and Punch-Out native workflows
+
+Open `NES_Forge_Retro_Punch_Out_Native_Workflows.html`. Enable Retro Workstation in the toolbar for the supplied compact skin; Comfortable and the original appearance remain available. Resources and Connected Workspace retain access to advanced editors.
+
+With your supported Punch-Out original or saved native project, open Recovered content. Native artwork exposes dedicated physical CHR banks and fight palettes. Open Glass Joe native replay for the reset/input sequence and clearly labeled seeded knockdown/count/round experiments; its controls remain above the emulator canvas. Save/reopen, download/reimport and original-engine playback are checked for representative native art edits on both revisions.
+
+`NES_Forge_Project_Tutorials.html` is the offline book, including the updated Punch-Out lesson, shared asset/developer guide, independent RE/6502/hex/HTML workflows and template for each future title. The Source directory contains the modular build, focused verification scripts and current evidence. Run `python3 app/tools/bundle.py --check` from Source. Private originals are required for supplied-input checks; no ROMs, commercial source-bearing projects, private emulator snapshots, frames or audio payloads are included.
+
+Current app SHA-256: cf5825b600fc8f8c028e9df0def70cc1cac483408ad49b8327715b02a4598e08. Both revisions complete four replay cases (eight total); all 104 available retained checks pass. The complete historical release gate is unavailable. The current modular integration has headless service/transaction coverage; new browser layout, listening, mobile/controllers, external-emulator and hardware acceptance remain owner checks. The supplied v0.5 browser evidence applies to that supplied candidate. Native timing remains approximate; MMC2 runtime Scene capture and native pose/animation/Audio writers are still unsupported. This is a review candidate, with no new public Git push.
+
+Use `Owner_Checklist.md` and `Handoff.md` for exact scope and reproduction commands. `Baseline/` contains the preceding verified app for the compatibility check, not the current candidate. Keep source ROM, saved project, application HTML and built ROM as separate files.

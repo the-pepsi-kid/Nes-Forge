@@ -1,0 +1,1761 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge — Project Tutorials</title><style>
+:root{color-scheme:light;--ink:#172238;--line:#c1ccda;--accent:#164f95}
+*{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:var(--ink);font:17px/1.65 system-ui,sans-serif}
+main{max-width:1100px;margin:auto;padding:36px 30px 90px}header{padding:24px 28px;background:#14273e;color:#f7fbff;border-radius:12px}
+header h1{margin:.2em 0;font-size:2.3rem}header p{margin:.6em 0}.meta,.part{font-size:.85rem;letter-spacing:.05em;text-transform:uppercase}
+nav{background:white;border:1px solid var(--line);padding:18px 24px;border-radius:10px;margin:26px 0}
+nav details{padding:9px 0;border-bottom:1px solid #e0e6ee}summary{cursor:pointer;font-weight:650}nav ul{margin:.6em 0;padding-left:24px}
+section{background:white;padding:25px 30px;margin:26px 0;border:1px solid var(--line);border-radius:10px}
+.part{color:#53647a}h1,h2,h3{line-height:1.25;scroll-margin-top:24px}h1{font-size:2rem}h2{margin-top:2em;padding-top:.9em;border-top:1px solid var(--line)}
+a{color:var(--accent)}table{display:block;overflow-x:auto;border-collapse:collapse;width:100%;font-size:.9rem;margin:1.4em 0}
+th,td{border:1px solid var(--line);padding:10px;vertical-align:top;text-align:left}th{background:#e6eef7}
+pre{overflow:auto;background:#14273e;color:#eef6ff;padding:18px;border-radius:8px;line-height:1.45}
+code{font-family:ui-monospace,monospace;font-size:.9em}p code,li code,td code{background:#e9eff6;padding:1px 4px;border-radius:3px}
+li{margin:.35em 0}blockquote{border-left:4px solid var(--line);padding-left:18px;margin-left:0}
+@media(max-width:650px){main{padding:18px 12px}header,section,nav{padding:18px 16px}body{font-size:16px}header h1{font-size:1.8rem}h1{font-size:1.65rem}}
+@media print{body{background:white;font-size:10pt}main,section{max-width:none;padding:0;border:0}header{background:white;color:var(--ink);padding:0}nav{display:none}section{break-before:page}pre{white-space:pre-wrap;background:#f0f3f7;color:var(--ink)}table{display:table;font-size:8pt}h1,h2,h3{break-after:avoid}tr{break-inside:avoid}}
+</style></head><body><main><header><p class="meta">Developer tutorials · 2026-10-24</p><h1>NES Forge project tutorials</h1><p>Learn the shared tools, then the method each imported game actually uses.</p><p>Punch-Out is the current worked lesson. Earlier title notes retain their checkpoint scope; their inclusion does not establish fresh acceptance or complete game recovery.</p></header><nav aria-label="Book contents"><h2>Choose a lesson</h2><details><summary>Title methods and tutorial requirements</summary><ul><li><a href="#projects-per-project-recovery-tutorials">Per-project recovery tutorials</a></li><li><a href="#projects-read-in-this-order">Read in this order</a></li><li><a href="#projects-current-title-methods-and-starting-workflows">Current title methods and starting workflows</a></li><li><a href="#projects-what-every-title-tutorial-must-deliver">What every title tutorial must deliver</a></li></ul></details><details><summary>Punch-Out worked tutorial</summary><ul><li><a href="#punch-out-punch-out-import-edit-rebuild-and-understand-the-method">Punch-Out: import, edit, rebuild and understand the method</a></li><li><a href="#punch-out-1-keep-the-right-files">1. Keep the right files</a></li><li><a href="#punch-out-2-first-lesson-change-the-shared-arena">2. First lesson: change the shared arena</a></li><li><a href="#punch-out-3-know-which-assets-you-are-editing">3. Know which assets you are editing</a></li><li><a href="#punch-out-4-staging-backgrounds-and-source-aliases">4. Staging backgrounds and source aliases</a></li><li><a href="#punch-out-5-fighter-poses-and-observed-opponent-animation">5. Fighter poses and observed opponent animation</a></li><li><a href="#punch-out-6-mac-referee-and-hud-composition">6. Mac, referee and HUD composition</a></li><li><a href="#punch-out-7-audio-including-the-startup-sample">7. Audio, including the startup sample</a></li><li><a href="#punch-out-8-how-this-particular-format-works">8. How this particular format works</a></li><li><a href="#punch-out-9-independent-re-code-and-hex-editing">9. Independent RE, code and hex editing</a></li><li><a href="#punch-out-10-modify-the-html-and-understand-the-connections">10. Modify the HTML and understand the connections</a></li><li><a href="#punch-out-11-build-a-separate-standalone-game">11. Build a separate standalone game</a></li><li><a href="#punch-out-12-reproduce-checks-and-diagnose-problems">12. Reproduce checks and diagnose problems</a></li><li><a href="#punch-out-13-edit-native-artwork-and-fight-colors">13. Edit native artwork and fight colors</a></li><li><a href="#punch-out-14-run-a-concurrent-glass-joe-sequence-and-explicit-experiments">14. Run a concurrent Glass Joe sequence and explicit experiments</a></li><li><a href="#punch-out-15-use-the-adopted-retro-workstation-interface">15. Use the adopted Retro Workstation interface</a></li></ul></details><details><summary>NES Forge developer and asset guide</summary><ul><li><a href="#general-nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</a></li><li><a href="#general-1-choose-an-entry-point">1. Choose an entry point</a></li><li><a href="#general-2-understand-the-three-representations">2. Understand the three representations</a></li><li><a href="#general-3-complete-asset-map">3. Complete asset map</a></li><li><a href="#general-4-visual-asset-editing-end-to-end">4. Visual asset editing, end to end</a></li><li><a href="#general-5-manual-re-workflow">5. Manual RE workflow</a></li><li><a href="#general-6-worked-native-codec-lesson">6. Worked native codec lesson</a></li><li><a href="#general-7-installing-another-decoder-or-encoder">7. Installing another decoder or encoder</a></li><li><a href="#general-8-writing-6502-code-yourself">8. Writing 6502 code yourself</a></li><li><a href="#general-9-hex-editing-yourself">9. Hex editing yourself</a></li><li><a href="#general-10-editing-the-standalone-html-or-modular-source">10. Editing the standalone HTML or modular source</a></li><li><a href="#general-11-prove-the-workflow-not-just-the-helper">11. Prove the workflow, not just the helper</a></li><li><a href="#general-12-debugging-and-extending-the-project">12. Debugging and extending the project</a></li><li><a href="#general-13-concrete-asset-edits-from-javascript-or-html">13. Concrete asset edits from JavaScript or HTML</a></li><li><a href="#general-14-glass-joe-fight-references-mac-referee-and-hud">14. Glass Joe fight references: Mac, referee and HUD</a></li><li><a href="#general-15-dedicated-native-artwork-and-concurrent-playback">15. Dedicated native artwork and concurrent playback</a></li></ul></details><details><summary>Template for the next title</summary><ul><li><a href="#template-project-tutorial-template">Project tutorial template</a></li><li><a href="#template-1-outcome-and-exact-input">1. Outcome and exact input</a></li><li><a href="#template-2-first-successful-edit">2. First successful edit</a></li><li><a href="#template-3-every-asset-and-its-owner">3. Every asset and its owner</a></li><li><a href="#template-4-source-format-lesson">4. Source format lesson</a></li><li><a href="#template-5-visual-editing-recipes">5. Visual editing recipes</a></li><li><a href="#template-6-audio-recipe">6. Audio recipe</a></li><li><a href="#template-7-independent-re-assembly-and-external-hex-work">7. Independent RE, assembly and external hex work</a></li><li><a href="#template-8-modify-the-app-and-produce-standalone-html">8. Modify the app and produce standalone HTML</a></li><li><a href="#template-9-make-a-separate-standalone-game">9. Make a separate standalone game</a></li><li><a href="#template-10-evidence-troubleshooting-and-learner-checklist">10. Evidence, troubleshooting and learner checklist</a></li></ul></details><details><summary>Metroid room workflow</summary><ul><li><a href="#metroid-metroid-focused-verification-checkpoint">Metroid — focused verification checkpoint</a></li><li><a href="#metroid-what-changed">What changed</a></li><li><a href="#metroid-try-this-first">Try this first</a></li><li><a href="#metroid-verification-and-limits">Verification and limits</a></li><li><a href="#metroid-metroid-audio-update">Metroid Audio update</a></li><li><a href="#metroid-source-and-continuation">Source and continuation</a></li></ul></details><details><summary>Metroid Audio workflow</summary><ul><li><a href="#metroid-audio-metroid-audio">Metroid Audio</a></li></ul></details><details><summary>Lolo room acceptance</summary><ul><li><a href="#lolo-lolo-owner-acceptance">Lolo owner acceptance</a></li></ul></details><details><summary>Lolo Audio acceptance</summary><ul><li><a href="#lolo-audio-lolo-scene-audio-acceptance">Lolo Scene + Audio acceptance</a></li></ul></details><details><summary>River City Scene and Audio acceptance</summary><ul><li><a href="#river-city-river-city-owner-acceptance">River City owner acceptance</a></li></ul></details><details><summary>Shadowgate picture and Audio acceptance</summary><ul><li><a href="#shadowgate-shadowgate-owner-review">Shadowgate owner review</a></li></ul></details><details><summary>Per-title verification requirements</summary><ul><li><a href="#verification-per-project-recovery-verification">Per-project recovery verification</a></li><li><a href="#verification-per-title-tutorial-requirement">Per-title tutorial requirement</a></li></ul></details><p><a href="#synthetic">Runnable synthetic codec source</a></p></nav><section id="projects"><p class="part">Title methods and tutorial requirements</p><h1 id="projects-per-project-recovery-tutorials">Per-project recovery tutorials</h1>
+
+<p>Each supported title needs its own reproducible tutorial. The common NES Forge guide explains the editors and architecture; a title tutorial explains that game's revision, storage formats, bank context, editable fields and rebuild method. Importing a title does not establish support for every asset or a complete game.</p>
+
+<p>This documentation requirement applies to subsequent recovery checkpoints. It does not retroactively certify older adapters. The current worked title is Punch-Out. Earlier titles have the starting workflows and evidence listed below; expanding them into full lessons remains recorded work.</p>
+
+<h2 id="projects-read-in-this-order">Read in this order</h2>
+
+<ol>
+<li>Read the <a href="#general">developer and asset workflow guide</a> for the full asset map, independent RE, 6502, external hex editing and HTML changes.</li>
+<li>Read the title's own tutorial. <a href="#punch-out">Punch-Out</a> is the current worked example, with separate native editing, source-reference and standalone authoring paths.</li>
+<li>Use the <a href="#template">tutorial template</a> when adding another title or revising an existing one.</li>
+<li>Consult the title's verification reports and repeat the relevant workflow on your own input. Checkpoint evidence is dated; it is not evidence for a later changed application.</li>
+</ol>
+
+<p><code>PROJECT_HANDBOOK.html</code> in the parent documentation directory combines these lessons and the general guide into one offline reading file. The HTML is documentation. The NES Forge application remains a separate standalone HTML, saved projects are separate JSON files, and generated games are separate <code>.nes</code> files.</p>
+
+<p>To regenerate the reading file from the repository root, run <code>python3 app/tools/render_project_tutorials.py</code> with the Python <code>markdown2</code> package available. This optional documentation dependency is not part of the application runtime. The renderer embeds the existing title notes and the full synthetic codec source; it does not embed game assets.</p>
+
+<h2 id="projects-current-title-methods-and-starting-workflows">Current title methods and starting workflows</h2>
+
+<p>The table distinguishes actual installed paths. It is a documentation inventory, not a fresh all-title acceptance run. Use the exact investigated revision or an explicitly admitted derivative. Names and mapper numbers alone do not establish a match.</p>
+
+<table>
+<thead>
+<tr>
+  <th>Title</th>
+  <th>Start and make one bounded edit</th>
+  <th>Why its tutorial differs</th>
+  <th>Tutorial/evidence status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Mike Tyson's Punch-Out!!, US PRG0/PRG1</td>
+  <td>Open ROM / project → prepare recovered resources → import; Recovered content → Open ring and audience; paint supported tiles/attribute IDs, use dedicated native CHR/fight-palette views, or run the bounded Glass Joe sequence; save/reopen and Build &amp; Run</td>
+  <td>MMC2 pattern-read latches; two compressed arena pages; opponents are sprites, Mac/referee are background commands; reference copies have different ownership; knockdown/count/round experiments record explicit temporary RAM seeds</td>
+  <td><a href="#punch-out">Full current playbook</a>; <code>reviews/punch-out-fight-context-1/</code></td>
+</tr>
+<tr>
+  <td>Metroid, investigated US revision</td>
+  <td>Prepare/import recovered resources; Area library → Investigated source → area/room; NATIVE ROOM STRUCTURES → existing object → replacement structure → Replace selected structure</td>
+  <td>Ordered structures, fixed positions/palettes and overlapping attribute effects; replace a whole source structure rather than a Scene pixel</td>
+  <td><a href="#metroid">Room steps</a>, <a href="#metroid-audio">Audio steps</a>; full lesson expansion queued</td>
+</tr>
+<tr>
+  <td>Adventures of Lolo, investigated US revision</td>
+  <td>Prepare/import; choose source room 1; NATIVE SCREEN BLOCKS → column 2, row 2 → Floor → Replace selected cell; save/reopen/build/reimport</td>
+  <td>Bottom-up compressed rows in CHR-backed storage; limited terrain codes and interior cells; protected actor/settings cells; fixed per-room capacity</td>
+  <td><a href="#lolo">Room acceptance</a>, <a href="#lolo-audio">Audio acceptance</a>; full lesson expansion queued</td>
+</tr>
+<tr>
+  <td>River City Ransom, investigated US revision</td>
+  <td>Prepare/import; select an available street segment in Area library; substitute an existing native tile with NATIVE SCREEN BLOCKS; check shared appearances, save/reopen/build/reimport</td>
+  <td>Shared physical row bytes; 20-row background crop; interior/special screens use another path and remain unavailable</td>
+  <td><a href="#river-city">Scene and Audio steps</a>; full lesson expansion queued</td>
+</tr>
+<tr>
+  <td>Shadowgate, investigated US revision</td>
+  <td>Prepare/import; select an available picture; substitute an original tile in NATIVE SCREEN BLOCKS; save/reopen/build/reimport</td>
+  <td>A 112×112 picture crop, not a complete room; objects, doors, alternate states and puzzle logic are separate</td>
+  <td><a href="#shadowgate">Picture and Audio steps</a>; full lesson expansion queued</td>
+</tr>
+<tr>
+  <td>Mega Man, investigated US revision</td>
+  <td>Prepare/import; select an available source-room page in Area library; replace an existing 32×32 native block using NATIVE SCREEN BLOCKS</td>
+  <td>Column-major physical room storage; shared pointer slots; initial stage graphics differ from runtime transitions; 256-pixel room height spans views</td>
+  <td><code>re/native-megaman-resources.js</code>; full tutorial and current owner acceptance remain queued; this is Mega Man, separate from the Mega Man 2 Audio profile</td>
+</tr>
+<tr>
+  <td>Contra, investigated US revision</td>
+  <td>Prepare/import; select an available level/table slot and page; use NATIVE SCREEN BLOCKS to replace a source block; save/reopen/build/reimport</td>
+  <td>Compressed 32×32 blocks, row-copy commands, initial CHR-RAM loads; alternate graphics contexts can refuse</td>
+  <td><code>re/native-prg-resources.js</code>; full tutorial/current title-specific acceptance queued; no matching Contra Audio profile is installed in this catalog</td>
+</tr>
+<tr>
+  <td>Final Fantasy, two investigated US inputs</td>
+  <td>Prepare/import; choose standard map, palette context and page; replace a native 16×16 block with NATIVE SCREEN BLOCKS</td>
+  <td>64×64 compressed standard maps; normal/room palette views share a map; 256×240 view boundaries can split blocks; this path does not establish overworld support</td>
+  <td><code>re/native-prg-resources.js</code>; full tutorial/current title-specific acceptance queued; no matching Final Fantasy Audio profile is installed in this catalog</td>
+</tr>
+<tr>
+  <td>TMNT, investigated Area 1 input</td>
+  <td>Prepare the supported native layout project; select a source screen; NATIVE SCREEN BLOCKS → existing 32×32 block → replace cell</td>
+  <td>Bounded Area 1 side-view screen table, not the complete game; native block definitions and attributes are distinct</td>
+  <td><code>re/native-block-layout.js</code>, <code>services/native-layout-project.js</code>; full lesson/current acceptance queued; no matching TMNT Audio profile is installed in this catalog</td>
+</tr>
+<tr>
+  <td>Zelda II, investigated US revision</td>
+  <td>Open native World for the supported overworld path; select West Hyrule and paint terrain; save/reopen/build; separately use supported location fields or an available Scene stream in its declared context</td>
+  <td>Compressed overworld terrain, packed location records and Scene streams are separate formats; moving a location does not repaint terrain or prove travel</td>
+  <td><code>re/zelda-overworld.js</code>, <code>services/native-world-project.js</code>, <code>services/native-engine-project.js</code>; dedicated lesson expansion/current acceptance queued</td>
+</tr>
+<tr>
+  <td>Ninja Gaiden, investigated US revision</td>
+  <td>Open the supported source through the existing spatial/game recovery tools; select a recovered Scene, pose or script; inspect its current field/build capability before editing</td>
+  <td>Scene layout, metasprites, animation scripts and actor records are different native resources; recovery of each does not imply an inverse writer</td>
+  <td><code>re/game-re-native.js</code>, <code>re/spatial-native.js</code>; full lesson and exact editable-field inventory remain queued; keep the prior workflow accessible</td>
+</tr>
+<tr>
+  <td>Castlevania II and Mega Man 2, investigated US revisions</td>
+  <td>Inspect through the installed analysis/spatial and ROM Audio Library paths; inspect or audition a cue; explicitly preview any tracker conversion</td>
+  <td>Installed analysis/Audio paths do not establish a complete native game-editing workflow</td>
+  <td><code>re/spatial-native.js</code>, <code>re/native-audio-catalog.js</code>; title lessons and current acceptance remain queued</td>
+</tr>
+<tr>
+  <td>Any other ROM or unsupported revision</td>
+  <td>Open ROM / project → Inspect bytes / CHR; RE / DISASM; retain independent notes, mappings and external patches</td>
+  <td>No decoder/writer can be assumed; a pattern sheet is not an assembled scene</td>
+  <td>General guide, sections 5–9; record unresolved domains instead of substituting unrelated content</td>
+</tr>
+</tbody>
+</table>
+
+<p>All <code>re/</code> and <code>services/</code> paths in this table are below <code>app/src/</code>. Existing Audio profiles for Zelda II, Ninja Gaiden, Castlevania II, Mega Man 2, Metroid, Lolo, River City, Shadowgate and Punch-Out are revision-bound. Exact cue support and conversion limits differ. Missing Audio for a title remains an open verification item.</p>
+
+<h2 id="projects-what-every-title-tutorial-must-deliver">What every title tutorial must deliver</h2>
+
+<ul>
+<li>A beginner lesson: open the exact input, find the actual scene/area, make one declared supported edit, Undo/Redo, save/reopen, rebuild, reimport and inspect it in the original engine.</li>
+<li>A complete asset inventory with per-domain status: decoded, materialized, editable, native writer, verified context and remaining gaps. Cover graphics, palettes, placement, animation, actors, collisions, menus/text, Worlds/links, code, Audio and samples even when unsupported.</li>
+<li>A format lesson: bank/address-to-file mapping, pointer and compression rules, palette/raster state, source aliases, byte ownership and storage limits. Use a synthetic exercise when teaching data that should not be distributed.</li>
+<li>Independent workflows: do RE and write code without Forge, patch a copied ROM in a hex editor, and inspect/reimport the result. Show a worked expected-byte patch only after its exact revision and consumers are known.</li>
+<li>An application lesson: the decoder → projection → ProjectStore → editor → native writer connections; exact modules/HTML markers; how to bundle a customized standalone HTML.</li>
+<li>A separate authored-game lesson: bring supported material into a new project, create missing behavior explicitly, build a standalone ROM and test it outside Forge. State the current conversion gaps.</li>
+<li>Audio verification, original-engine checks, reproducible commands and an owner checklist. Automated checks never silently check listening, playability, controller or hardware boxes.</li>
+</ul>
+
+<p>A title checkpoint is documentation-complete only for its declared scope when someone can reproduce its lesson from the named application and exact input. Open fields remain open. Expanding a title's scope requires updating its tutorial in the same checkpoint.</p>
+</section><section id="punch-out"><p class="part">Punch-Out worked tutorial</p><h1 id="punch-out-punch-out-import-edit-rebuild-and-understand-the-method">Punch-Out: import, edit, rebuild and understand the method</h1>
+
+<p>This lesson covers the current Mike Tyson's Punch-Out!! US PRG0/PRG1 support. You will make a supported arena edit, preserve it in a project, build a separate ROM, inspect fighter/player/referee references, audition source Audio and find the code needed to extend the method. The bounded original-engine replay, reversible knockdown/round experiments and dedicated physical CHR/fight-palette writers extend that workflow. Complete fights, native pose/animation and Audio writers remain open.</p>
+
+<p>The combined review application is <code>NES_Forge_Retro_Punch_Out_Native_Workflows.html</code>, identical to <code>app/mainline/NES_Forge_2.0.0-alpha.11.html</code>. Its SHA-256 is <code>cf5825b600fc8f8c028e9df0def70cc1cac483408ad49b8327715b02a4598e08</code>. Sections 13–15 describe the new dedicated artwork, original-engine replay and Retro Workstation controls. The preceding verified fight-reference checkpoint remains separately available at local commit <code>e2d94cb</code> (app SHA-256 <code>aceb8cdd70e0839b4649bc56daa39519204b660bbbae100209ad9e66bb03b89a</code>).</p>
+
+<h2 id="punch-out-1-keep-the-right-files">1. Keep the right files</h2>
+
+<p>Keep four distinct files: the application HTML, your original ROM, your saved Forge project JSON and your rebuilt <code>.nes</code>. The project preserves the source and supported edits; the application supplies the tools. Later application versions can open saved projects, but unsaved browser state does not move between HTML files.</p>
+
+<table>
+<thead>
+<tr>
+  <th>Investigated input</th>
+  <th style="text-align:right;">Bytes</th>
+  <th>SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>US PRG0</td>
+  <td style="text-align:right;">262160</td>
+  <td><code>0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952</code></td>
+</tr>
+<tr>
+  <td>US PRG1</td>
+  <td style="text-align:right;">262160</td>
+  <td><code>22ce21aa9c477d87e9cdc386b185f2166b18d438257640aa1d8e75ee9960e06e</code></td>
+</tr>
+</tbody>
+</table>
+
+<p>The adapter also admits bounded derivatives in its declared native edit ranges after validating their streams and protected identity. Other regions, revisions and arbitrary hacks are not established by this lesson. Use your own source; no ROM or extracted game assets are included here.</p>
+
+<h2 id="punch-out-2-first-lesson-change-the-shared-arena">2. First lesson: change the shared arena</h2>
+
+<ol>
+<li>Open the current application in a browser. Save any current work. Choose <strong>Open ROM / project</strong>, choose your supported original, <strong>Prepare recovered resources (partial)</strong>, then <strong>Import as new project</strong>. If you already have a saved recovered project, open that JSON instead.</li>
+<li>Open <strong>Recovered content → Open ring and audience</strong>. Select <strong>Arena · ring and audience · source setup</strong>. This is assembled placement, not a raw pattern sheet. Fighter-source Scenes can intentionally have blank backgrounds.</li>
+<li>Before editing, use <strong>Build &amp; Run</strong> and retain a baseline output. An unchanged native build must preserve the input exactly. The original game starts; the source Scene is an editing view, not a replacement reset screen.</li>
+<li>In the arena Scene, choose an existing tile and change one ordinary ring/audience cell using the Scene tools. Use a small change that is easy to recognize. Record its zero-based column/row and original/new native tile IDs. Avoid <code>$FD</code>/<code>$FE</code> in the beginner exercise: pattern reads of those tiles control graphics-bank latches. Keep the other asset fields unchanged.</li>
+<li>Test <strong>Undo</strong>, then <strong>Redo</strong>. Use <strong>Check arena build</strong>. The writer supports layout tile IDs and visible attribute palette IDs. Changing an attribute chooses a palette group; it does not change the four actual NES color values.</li>
+<li>Use <strong>Save Project As</strong>. Close/reopen the JSON in a fresh application instance and confirm the intended arena edit. Use <strong>Build &amp; Run</strong> and download the built ROM through the existing build controls.</li>
+<li>Enter a fight in the original game and inspect the shared arena. HUD/player updates can overwrite cells; choose a stable ring/audience location and inspect multiple rows. Check that Audio remains present. External emulator play is a separate useful acceptance check.</li>
+<li>Reopen the rebuilt ROM through <strong>Open ROM / project</strong> and prepare/import again. Supported arena derivatives should retain recognition, the arena edit, recovered source content and the Audio catalog. Preserve the project JSON as the richer editing record.</li>
+</ol>
+
+<p>If the writer reports a capacity failure, simplify the pattern or Undo. Nothing should be silently dropped. A successful native build does not prove the edit preserves a playable fight or every later state.</p>
+
+<h2 id="punch-out-3-know-which-assets-you-are-editing">3. Know which assets you are editing</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Domain</th>
+  <th>Current recovery/editor</th>
+  <th>Native output and limits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Five staging backgrounds</td>
+  <td>Original PPU programs, placement, attributes and latch-aware background rows; source pages in Scene</td>
+  <td>Dedicated native brush supports declared literal substitutions; generated/inherited and protected aliases refuse</td>
+</tr>
+<tr>
+  <td>Ring/audience arena</td>
+  <td>Two original setup nametables projected across the source scroll seam; ordinary Scene layout</td>
+  <td>Arena writer supports <code>nt</code> and visible attribute bits within fixed capacity; shared native arena affects its game uses</td>
+</tr>
+<tr>
+  <td>Background and sprite CHR</td>
+  <td>32 physical 4 KiB banks; source banks and projected references available</td>
+  <td>Open a dedicated physical CHR view for native pixel writing; edits to copied reference art still have no reference writer</td>
+</tr>
+<tr>
+  <td>Palette colors</td>
+  <td>Source palettes retained for each declared context</td>
+  <td>Dedicated native fight-palette views now write color bits while preserving flags; reference copies remain protected</td>
+</tr>
+<tr>
+  <td>Opponents</td>
+  <td>14 fight configurations, source pose records, separate sprite CHR/OAM and explicit Metasprite materialization</td>
+  <td>Pose copies are editable/savable; native sprite, pose and position writers are absent; some source poses need prior state</td>
+</tr>
+<tr>
+  <td>Opponent animations</td>
+  <td>Bounded original state execution retains RAM/OAM, incremental poses and size changes; explicit Animation import</td>
+  <td>Observed excerpts have declared duration/initial state; no complete AI, fight timing or native animation writer</td>
+</tr>
+<tr>
+  <td>Little Mac</td>
+  <td>98 bank-11 background command descriptors; bounded player-state paths</td>
+  <td>Commands can clear cells or draw fragments; not all are complete poses; native command/art writing absent</td>
+</tr>
+<tr>
+  <td>Referee/count/speech</td>
+  <td>47 extended bank-11 command descriptors; available player/referee state paths</td>
+  <td>Same background system, not opponent metasprites; no native writer</td>
+</tr>
+<tr>
+  <td>HUD/scroll/raster</td>
+  <td>Original setup HUD routines plus declared bank/scroll context in fight references; canonical raster representation</td>
+  <td>Reference composition is savable; it is not a complete live HUD or captured fight; reference art edits block native building</td>
+</tr>
+<tr>
+  <td>Actors/AI/damage/collision</td>
+  <td>Pointer/state evidence and limited source observations</td>
+  <td>Complete concurrent behavior, hit/damage rules and editable native bindings remain unresolved</td>
+</tr>
+<tr>
+  <td>Menus/transitions/game phases</td>
+  <td>Five declared staging contexts plus separate source evidence</td>
+  <td>Complete menu graph, round controller, entrances and transitions remain unresolved</td>
+</tr>
+<tr>
+  <td>Worlds/entities/links</td>
+  <td>No complete boxing-game World or Forge gameplay conversion is supplied</td>
+  <td>Creating authored records does not patch original game behavior</td>
+</tr>
+<tr>
+  <td>Music/SFX</td>
+  <td>Original driver/catalog, native audition, finite explicit tracker adaptation</td>
+  <td>No native Punch-Out Audio writer; adapted tracker changes save but block native output</td>
+</tr>
+<tr>
+  <td>DPCM/startup PCM</td>
+  <td>Native sample/handler evidence and isolated audition</td>
+  <td>No generic sample tracker conversion or native Audio sample writer</td>
+</tr>
+<tr>
+  <td>Code/RAM</td>
+  <td>RE/disassembly plus source pointers and bounded interpreter evidence</td>
+  <td>Code and RAM experiments need their own independent patch/rebuild workflow; not automatic native code editing</td>
+</tr>
+</tbody>
+</table>
+
+<p>For the field-by-field canonical asset map and JavaScript transaction example, read the general developer guide, sections 3 and 13. A reference copy is an asset, but it is not the authority for writing every byte represented in the picture.</p>
+
+<h2 id="punch-out-4-staging-backgrounds-and-source-aliases">4. Staging backgrounds and source aliases</h2>
+
+<p>Use <strong>Area library → Investigated source</strong> to select an available staging context/page. The native block controls project a narrow physical-literal recipe. Choose the native block ID and cell through <strong>NATIVE SCREEN BLOCKS</strong> or its canvas brush. Ordinary unrestricted Scene painting is not a substitute for a recipe-owned staging edit.</p>
+
+<p>These five contexts come from declared combinations of source programs; 84 available command programs are decoded out of 95 table slots. There are 711 writable bytes in 97 spans per revision. A repeat operand can supply many displayed cells, and several contexts can share it. The native owner updates those aliases together. Refusal for inherited/generated cells or metadata aliases protects source semantics.</p>
+
+<p>Repeat the same Undo/Redo → save/reopen → build → original-engine → derivative-reimport exercise. Check the other affected contexts. Do not interpret the five staging views as five complete fights or all game menus.</p>
+
+<h2 id="punch-out-5-fighter-poses-and-observed-opponent-animation">5. Fighter poses and observed opponent animation</h2>
+
+<ol>
+<li>Open <strong>Recovered content</strong>. Choose <strong>Fighter / fight</strong> and <strong>Pose</strong>. Inspect the source bank, palette offsets and pointer evidence. The preview is centered for inspection; that centering does not change native placement and does not simulate hardware scanline clipping.</li>
+<li>Choose <strong>Open pose in Metasprites</strong> to materialize that supported source pose, or <strong>Recover background pages and fighter samples</strong> for the bounded overview. It uses existing Scenes/metasprites and one Undo transaction. It does not replace the source ROM.</li>
+<li>Expand <strong>State animation excerpts</strong>. Select a source state and a bounded <strong>Native updates</strong> window, then <strong>Trace state</strong>. Inspect observed frames, duration and sprite-size changes. Some entries require context and can refuse an isolated pose while a valid preceding trace establishes it.</li>
+<li>Choose <strong>Open recovered animation</strong> to add the canonical excerpt. Save/reopen and inspect Animation/Metasprites. <strong>Inspect linked sound</strong> opens observed source Audio requests; those requests are not automatically authored runtime events.</li>
+<li>Save animation/art experiments separately. Editing them is useful, but native rebuilding requires undoing unsupported changes or returning to a saved native-buildable baseline. Reopening a copied animation does not create a missing native writer.</li>
+</ol>
+
+<p>Use <strong>Browse all CHR banks</strong> for physical patterns. Tile patterns, assembled poses and timed state execution answer different questions. The game changes sprite size and CHR context, so decoding each shape as an independent static picture can produce the wrong result.</p>
+
+<h2 id="punch-out-6-mac-referee-and-hud-composition">6. Mac, referee and HUD composition</h2>
+
+<ol>
+<li>In <strong>Recovered content</strong>, expand <strong>Glass Joe fight reference · Little Mac / referee / HUD</strong>.</li>
+<li>Start with Mac command 0, referee command 144 and Glass Joe source pose 0; choose <strong>Preview pose composition</strong>. It uses original setup health/hearts/stars/score/clock routines. The opponent is at the original configuration's upper-right opening position; this is a declared setup reference.</li>
+<li>Change a <strong>Little Mac command</strong> or <strong>Referee / speech command</strong>, then preview again. Commands can update only a fragment, clear cells or change speech/count data. Do not expect every entry to be a full self-contained character.</li>
+<li>Choose <strong>Native player state</strong>, set <strong>Native updates</strong> from 1 to 600 and choose <strong>Trace player / referee state</strong>. Select an <strong>Observed excerpt frame</strong>. The 23 available entries trace a declared zero-input path. <code>update-limit</code> means observation stopped at the budget; other game systems or input may be needed to progress.</li>
+<li>Choose <strong>Open selected fight reference</strong>. This adds an ordinary Scene with separate opponent OAM and bank/scroll/raster provenance in one Undo transaction. Save/reopen it. It is labeled as a recovered source reference, not verified runtime capture.</li>
+<li>Choose <strong>Edit native arena layout</strong> to return to the actual arena write owner. Paint there, then preview again: the composition uses the current encoded arena when native building succeeds. If unsupported work blocks building, inspection can explicitly fall back to preserved source plus existing literal recipes; read its warning.</li>
+</ol>
+
+<p>Editing the reference's own CHR, palettes, sprites or background remains savable and blocks native building. Such work cannot be silently re-signed as unchanged source. Preview guards also reject materialization when the project changed after preview; preview again after a legitimate edit.</p>
+
+<p>The trace updates source state then uploads its command immediately. It does not reproduce original NMI arbitration, concurrent opponent AI, damage or complete fight phases. Fine scroll and MMC2 reads remain modeled rather than flattened into an ordinary tile grid.</p>
+
+<h2 id="punch-out-7-audio-including-the-startup-sample">7. Audio, including the startup sample</h2>
+
+<ol>
+<li>Choose <strong>Open source Audio</strong>, or <strong>AUDIO → ROM Audio Library</strong> after import/reopen. Check that the source profile matches your revision. There are 84 entries, including six empty slots and two stop controls; a catalog entry is not always a sounding cue.</li>
+<li>Select music or an effect; choose <strong>Inspect cue</strong>, then <strong>Play native</strong>. Stop playback before another experiment. The bank-8 driver supplies 23 sounding music selections, 45 procedural effects and seven DPCM selections.</li>
+<li>Select <strong>Startup PCM + native bell</strong> and use at least 199 native updates for the full isolated routine. Shorter windows report truncation. This separate bank-6 routine produces direct DAC writes; it is not ordinary tracker music.</li>
+<li>For representable music/effects, choose <strong>Preview editable score</strong>, review the declared losses, then explicitly import into the tracker. Check Undo/Redo and save/reopen. A music import changes the canonical order/tempo; preserve a separate experiment if you want to continue native arena building.</li>
+<li>Undo an unsupported Audio import before the next native build. Reopen the arena derivative and check its native Audio catalog/audition again. Source sample bytes and original driver code should remain preserved.</li>
+</ol>
+
+<p>The native machine executes original timing/driver requests in a repeatable isolated context. Tracker conversion is finite and frame-sampled; DPCM and short-mode noise can be omitted or conversion refused. It does not recover complete song loop structure, native instruments or game event routing. Automated APU/PCM checks do not establish browser listening quality.</p>
+
+<h2 id="punch-out-8-how-this-particular-format-works">8. How this particular format works</h2>
+
+<p>This investigated iNES layout has a 16-byte header, 128 KiB PRG and 128 KiB CHR. MMC2 selects PRG/CHR banks; a CPU address is not a unique file offset. For a declared 8 KiB PRG bank mapped at <code>$8000–$9FFF</code>, the physical offset is <code>16 + bank * 8192 + (cpuAddress - $8000)</code>. Fixed windows need their actual selected physical bank too.</p>
+
+<p>The arena writer owns four two-byte pointers in physical bank 12 at CPU addresses <code>$917B</code>, <code>$917E</code>, <code>$9184</code>, <code>$9187</code>, plus 381 bytes at <code>$9190–$930C</code>. Their file offsets are respectively <code>$1918B</code>, <code>$1918E</code>, <code>$19194</code>, <code>$19197</code>, and the storage range is <code>$191A0–$1931C</code>. End addresses here are inclusive. These are exact-source arena ownership ranges, not general free space.</p>
+
+<p>The writer starts from original raw nametables, maps visible cells across the scroll seam through <code>cellSources</code>, updates visible attributes, compresses each page into at most two source streams, and updates the owned pointers. It refuses total-capacity or per-stream overflow and decodes the candidate with the original loader. Offscreen cells and unrelated code/CHR/Audio stay protected.</p>
+
+<p>The native literal brush instead owns individual source operands. Its writer is not interchangeable with the arena compressor. Both flow through <code>NativeResourceProject</code> and the existing native backend.</p>
+
+<p>MMC2 switches CHR during pattern-address reads. A tile outside the visible viewport can select the bank for a subsequent row. Rendering retains 34 background fetches per scanline; clipping pixels cannot remove those reads. Mac and referee use bank-11 nametable commands, while opponent poses use OAM/shape routines. These differences explain the separate recovery modules.</p>
+
+<h2 id="punch-out-9-independent-re-code-and-hex-editing">9. Independent RE, code and hex editing</h2>
+
+<p>You can investigate without using the recovery buttons. Hash a copied original; record its bank map; disassemble a declared bank at its CPU origin; follow native pointer consumers; record inputs, RAM changes, PPU/OAM writes and sound requests. Keep notes about starting state and stop conditions. General analysis is read-only; reversible RAM experiments affect an emulator session rather than the ROM.</p>
+
+<p>As a read-only source exercise, run Node from the repository root. Save the following as <code>inspect-punch-out.cjs</code> there and pass your own original path. It writes only summaries to the terminal:</p>
+
+<pre><code>const fs = require('node:fs');
+const crypto = require('node:crypto');
+const bytes = new Uint8Array(fs.readFileSync(process.argv[2]));
+const hash = crypto.createHash('sha256').update(bytes).digest('hex');
+const formats = require('./app/src/re/native-punch-out-resources.js');
+const profile = formats.profiles.find(p =&gt; p.kind === 'punch-out' &amp;&amp; p.sha256 === hash);
+if (!profile) throw Error('Use an investigated original for this exercise.');
+const content = require('./app/src/re/punch-out-content.js').open(bytes);
+const arena = require('./app/src/re/punch-out-arena.js').open(bytes);
+const fight = require('./app/src/re/punch-out-fight.js').open(bytes);
+console.log({profile: profile.id, fights: content.fights.length,
+  arenaCells: arena.nt.length, commands: fight.poses.length,
+  availablePlayerStates: fight.states.filter(s =&gt; s.available).length});
+</code></pre>
+
+<pre><code>node inspect-punch-out.cjs /path/to/original.nes
+node app/docs/native-codec-exercise.cjs
+</code></pre>
+
+<p>Expected current counts are 14 fight configurations, 960 arena cells, 145 combined Mac/referee command descriptors and 23 available state entries. The second command teaches decode → edit → encode → reopen → reimport using a deliberately synthetic format. Its bytes are not Punch-Out command bytes.</p>
+
+<p>For external hex work, use the mapped offsets above to inspect arena pointers and compare an app-built candidate with the exact original. Verify every changed byte falls within the declared owners for the edit you made. Those compressed bytes do not have one visual-cell-to-byte correspondence; a layout edit can change stream lengths and pointer values. Do not type a tile number into a guessed compressed offset.</p>
+
+<p>For your own supported arena encoder, follow <code>PunchOutArenaEncoder.encode(bytes, {nt, attr})</code> and its <code>spans</code>/<code>capacity</code> contract on a copy, then validate with the independent original-loader checks. The service adds project-signature, alias and unsupported-field checks beyond this low-level helper. Using the helper alone is not complete project build validation.</p>
+
+<p>For a code patch, identify its callers, native bank, CPU origin, owned space, vectors, stack/RAM effects and timing; assemble externally or through the supported assembler into a separate patched ROM. Verify exact expected original bytes and all changed ranges. CODE text in a preserved native project is not automatically injected. Changes outside admitted native ranges can lose specialized recognition and still be inspectable through general RE.</p>
+
+<h2 id="punch-out-10-modify-the-html-and-understand-the-connections">10. Modify the HTML and understand the connections</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Task</th>
+  <th>Owner below <code>app/src/</code></th>
+  <th>Connection</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Detect revision and decode staging programs</td>
+  <td><code>re/native-punch-out-resources.js</code>, <code>re/punch-out-layout.js</code></td>
+  <td>Source catalog → native resource recipe/Scene projection</td>
+</tr>
+<tr>
+  <td>Decode opponents and bounded state paths</td>
+  <td><code>re/punch-out-content.js</code>, <code>re/punch-out-states.js</code></td>
+  <td>Shared CPU core/private bus → source pose/state evidence</td>
+</tr>
+<tr>
+  <td>Materialize opponents/animations</td>
+  <td><code>services/punch-out-content-recovery.js</code>, <code>services/punch-out-state-recovery.js</code></td>
+  <td>Canonical Scenes/metasprites/animations → ProjectStore</td>
+</tr>
+<tr>
+  <td>Decode and project arena</td>
+  <td><code>re/punch-out-arena.js</code>, <code>services/punch-out-arena-recovery.js</code></td>
+  <td>Original setup programs → ordinary arena Scene</td>
+</tr>
+<tr>
+  <td>Encode arena</td>
+  <td><code>re/punch-out-arena-encoder.js</code>, <code>services/punch-out-arena-writer.js</code></td>
+  <td>Registered writer → NativeResourceProject → BuildGraph/RuntimeCompiler</td>
+</tr>
+<tr>
+  <td>Compose Mac/referee/HUD</td>
+  <td><code>re/punch-out-fight.js</code></td>
+  <td>Private source execution → canonical raster/CHR/OAM projection</td>
+</tr>
+<tr>
+  <td>Preserve source references</td>
+  <td><code>services/punch-out-fight-recovery.js</code></td>
+  <td>Prior-build validation → detached projection → guarded canonical addition</td>
+</tr>
+<tr>
+  <td>Connect buttons</td>
+  <td><code>re/punch-out-content-ui.js</code>, <code>re/punch-out-states-ui.js</code>, <code>re/punch-out-arena-ui.js</code>, <code>re/punch-out-fight-ui.js</code></td>
+  <td>Preview → epoch/serialization guard → snapshot → ProjectStore commit → existing editor</td>
+</tr>
+<tr>
+  <td>Native Audio</td>
+  <td><code>re/punch-out-audio.js</code>, <code>re/native-audio-machine.js</code>, <code>audio/native-audio-library-ui.js</code></td>
+  <td>Source driver/catalog → isolated native execution → explicit adaptation</td>
+</tr>
+<tr>
+  <td>Mapper/player</td>
+  <td><code>re/mmc2.js</code>, <code>services/mmc2-emulator.js</code></td>
+  <td>PRG/CHR/mirroring/latch state → existing emulator; live capture remains unsupported</td>
+</tr>
+</tbody>
+</table>
+
+<p>For a small worked app change, copy the HTML, search <code>NES FORGE MODULE: src/re/punch-out-fight-ui.js</code>, then locate the help paragraph that starts <code>Source-defined opening placement</code>. Change its explanatory wording without changing source evidence/signatures. Reopen the copy and check startup, Recovered content, an old saved project and Audio. This changes application help for future sessions, not game data.</p>
+
+<p>For the maintained source version, make the same change in <code>app/src/re/punch-out-fight-ui.js</code>, then run:</p>
+
+<pre><code>python3 app/tools/bundle.py
+python3 app/tools/bundle.py --check
+</code></pre>
+
+<p><code>app/source-manifest.json</code> controls dependency order. The output is a complete standalone HTML; the bundler does not fetch game assets or require a server. Direct-only HTML edits disappear when you regenerate it. JavaScript inside each module has its own scope; use documented service boundaries rather than a second project store.</p>
+
+<h2 id="punch-out-11-build-a-separate-standalone-game">11. Build a separate standalone game</h2>
+
+<p>There are three distinct outcomes. The preceding native lesson produces a standalone <code>.nes</code> using the preserved original engine. The HTML lesson produces a customized standalone NES Forge application. Creating a new original game is an authored-project workflow with its own behavior and build backend.</p>
+
+<p>For that new game, start a separate authored project and save it immediately. Create original or otherwise usable art; explicitly import only supported asset types through existing tools, or recreate a small asset with the editors. Select the appropriate Scene/CHR/palettes, assemble metasprites/animation, add the supported actor/behavior or custom assembly, then author collision, state transitions, Audio and persistence deliberately. Preserve referenced IDs and test the chosen runtime's compiled subset.</p>
+
+<p>Recovered Mac/referee raster commands do not currently convert into a complete playable authored boxing actor. No one-click whole-Punch-Out conversion exists. Do not delete the native descriptor from a recovered JSON and assume all source relationships become authored behavior. Keep the native source project as a reference and maintain the authored project separately.</p>
+
+<p>Build the authored ROM, save/reopen the project and test the ROM in another emulator. Check reset, input, animation, collisions, Audio and transitions. Browser controls, physical controllers and NES hardware require their own acceptance. The app HTML and the authored ROM remain separate deliverables.</p>
+
+<h2 id="punch-out-12-reproduce-checks-and-diagnose-problems">12. Reproduce checks and diagnose problems</h2>
+
+<p>From the repository root:</p>
+
+<pre><code>python3 app/tools/bundle.py --check
+node app/docs/native-codec-exercise.cjs
+python3 reviews/punch-out-fight-context-1/run_checks.py
+node reviews/punch-out-fight-context-1/verify_fight.cjs /path/to/private-roms
+node reviews/punch-out-fight-context-1/verify_lifecycle.cjs /path/to/private-roms
+node reviews/punch-out-developer-1/verify_reimport.cjs /path/to/private-roms
+</code></pre>
+
+<p>The supplied-input scripts use the investigated original filenames; read the script arguments before running against another directory. No original is bundled. <code>reviews/punch-out-fight-context-1/</code> records the application identity and scope: both revisions, 145 native command comparisons, 2,224 observed state updates and seven representative full composite comparisons per revision; lifecycle checks retain 84 Audio entries. The available public gate passed 104 checks. These are checkpoint results, not a claim that this documentation reruns every historical release test or verifies a complete fight.</p>
+
+<table>
+<thead>
+<tr>
+  <th>Symptom</th>
+  <th>Inspect and recover</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Blank background beside a boxer</td>
+  <td>Select the actual arena or explicit fight reference; the fighter source Scene is a separate sprite resource</td>
+</tr>
+<tr>
+  <td>Arena compression exceeds capacity</td>
+  <td>Reduce layout complexity or Undo; preserve the experiment in a separate JSON</td>
+</tr>
+<tr>
+  <td>Save works but native build refuses</td>
+  <td>Read the unsupported-field diagnostic; restore the native baseline or implement the missing writer</td>
+</tr>
+<tr>
+  <td>Pose is unavailable/context-required</td>
+  <td>Use a valid preceding state path; do not invent missing CHR/OAM context</td>
+</tr>
+<tr>
+  <td>Reference preview is stale</td>
+  <td>Preview again after the project change, then materialize</td>
+</tr>
+<tr>
+  <td>Fight reference shows old arena</td>
+  <td>Read the build/fallback warning and check the actual arena owner; reference edits do not update it</td>
+</tr>
+<tr>
+  <td>Latch rows look wrong</td>
+  <td>Compare untouched source too; inspect offscreen pattern reads, banks and scrolling before blaming compression</td>
+</tr>
+<tr>
+  <td>Rebuilt output loses recognition</td>
+  <td>Compare protected ranges and exact stream validity; unrelated patches need separate support</td>
+</tr>
+<tr>
+  <td>Audio tracker import blocks build</td>
+  <td>Save the adaptation separately and Undo it in the native project; no Punch-Out Audio writer is installed</td>
+</tr>
+<tr>
+  <td>Startup sample stops early</td>
+  <td>Use at least 199 updates; inspect truncation and stop state</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="punch-out-learner-acceptance">Learner acceptance</h3>
+
+<ul>
+<li>[ ] I can identify my source revision, app version and separate output files.</li>
+<li>[ ] I can reproduce one arena edit, Undo/Redo it, save/reopen, rebuild and reimport it.</li>
+<li>[ ] I inspected that edit during an actual fight and checked its shared uses and Audio.</li>
+<li>[ ] I can distinguish raw CHR, fighter samples, opponent animation and Mac/referee background references.</li>
+<li>[ ] I can audition music, an effect and startup PCM; I understand tracker adaptation and native writer limits.</li>
+<li>[ ] I can locate the format, recovery, UI and writer owners in source or HTML.</li>
+<li>[ ] I can inspect my own input independently and map a declared bank address without confusing it with a file offset.</li>
+<li>[ ] I know which unsupported experiments are safely saved and how to return to a native-buildable baseline.</li>
+<li>[ ] I understand the separate steps and missing conversion work for a new authored game.</li>
+</ul>
+
+<p>These boxes require the learner's observations. Headless command/lifecycle checks do not check browser layout, listening, controls, complete fights or hardware for you.</p>
+
+<h2 id="punch-out-13-edit-native-artwork-and-fight-colors">13. Edit native artwork and fight colors</h2>
+
+<p>The <strong>Native artwork · CHR banks and fight palettes</strong> section under <strong>Recovered content</strong> is the native write path. Existing recovered poses, arena and fight-reference Scenes retain their original snapshot ownership. Editing a copy does not automatically identify a unique physical source byte.</p>
+
+<ol>
+<li>Save a native-buildable baseline. Open <strong>Recovered content → Native artwork · CHR banks and fight palettes</strong>.</li>
+<li>Choose a physical CHR bank (0–31), then <strong>Edit physical CHR bank</strong>. This adds/selects an ordinary, explicitly named Scene and opens <strong>CHR SHEET</strong>. Its 256 patterns are a source-bank editing view, not an assembled game room. Both background and sprite art live in physical banks; use the <strong>background CHR</strong> buffer of this dedicated bank view to edit its native pixels.</li>
+<li>Select a tile and edit a pixel using the normal CHR controls. Undo/Redo, Save Project As and reopen. The dedicated view owns exactly that 4 KiB bank's bitplanes. Its display palette is for inspection; change actual game colors through the next dedicated view.</li>
+<li>Choose a fight palette from the same section, then <strong>Edit native fight palette</strong>. This selects a dedicated color-table Scene. Use the background/sprite palette controls for the corresponding halves. Pixel edits on this palette-only Scene remain unsupported. Universal slot-zero colors are linked across both halves.</li>
+<li>Choose <strong>Check native artwork build</strong>, then <strong>Build &amp; Run</strong>. Download the output and reimport it. The derived ROM should retain recognition, edited physical art/colors and its original Audio driver. Native arena layout edits compose with the dedicated art writes.</li>
+<li>Open a new fight reference or run the native replay to inspect the current encoded output. Earlier reference Scenes retain their source snapshots. This distinction prevents a refreshed view from silently overwriting locally edited reference material.</li>
+</ol>
+
+<p>The writer preserves original high palette flag bits and changes only the six NES color bits. For example, changing the displayed color of an original <code>$8F</code> entry retains its <code>$80</code> flags. Re-import identity also protects those upper bits and all unrelated code/pointers/Audio. Palette slots overridden by native setup/fade/game routines can look different in particular phases; the Glass Joe setup deliberately overrides slot 13. A color-table edit does not add new palettes, change palette selection rules or remove those source routines.</p>
+
+<p>Physical CHR art is shared by every game use of that bank/tile. This writer changes pixels, not OAM geometry, pose commands, animation scripts, collision or actor behavior. Up to 64 Scene working slots remain the shared limit; opening an additional art view refuses when no slot is available rather than deleting work.</p>
+
+<p>The original WIP signature failure is corrected by initializing the dedicated view's zero collision-property array before signing it. Scene selection already installs that array; merely opening the view must not become a hidden edit. Unsupported fields still block native building and cannot be re-signed by opening another resource.</p>
+
+<h2 id="punch-out-14-run-a-concurrent-glass-joe-sequence-and-explicit-experiments">14. Run a concurrent Glass Joe sequence and explicit experiments</h2>
+
+<p>Choose <strong>Recovered content → Open Glass Joe native replay</strong>. The controls appear above the emulator canvas and remain available while it runs. Each UI Run loads your <strong>current native output</strong>, replaces the emulator session and uses the existing Timeline's bounded controller scripting. It pauses at the result. The project and preserved source remain unchanged.</p>
+
+<table>
+<thead>
+<tr>
+  <th>Selection</th>
+  <th>What the engine runs</th>
+  <th>Declared intervention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Reset → opening → punch → dodge → stance</td>
+  <td>Original startup/title/fight opening; A body punch, Right dodge and return to idle, including simultaneous opponent, HUD, CHR/scroll and Audio work</td>
+  <td>Controller input only; no RAM patch</td>
+</tr>
+<tr>
+  <td>Seeded opponent knockdown → count → get-up</td>
+  <td>Native hit/knockdown, referee counts 1–4 and opponent get-up</td>
+  <td>After the real opening: target HP 1, clock near the first taunt; after knockdown, explicit native get-up target 4</td>
+</tr>
+<tr>
+  <td>Seeded Mac knockdown → count-out</td>
+  <td>Native opponent hit, Mac knockdown, referee counts 1–10 and loss phase</td>
+  <td>After the real opening: player target HP 1 and clock near the first attack</td>
+</tr>
+<tr>
+  <td>Seeded round end → round two</td>
+  <td>Original 3:00 round-end controller, break/continuation and active second round</td>
+  <td>After the real opening: set the clock to 2:59 with its declared fraction; Start pulses continue through the break</td>
+</tr>
+</tbody>
+</table>
+
+<p>Use <strong>Load current build and replay</strong>, watch the milestones and evidence summary, and use <strong>Stop replay</strong> to interrupt. <strong>Restore fight start</strong> uses the Timeline-owned physical checkpoint immediately before the experiment. The evidence panel retains the observed experiment; the emulator's frame/readout shows the restored current state. A new ROM/session invalidates the old checkpoint. The API additionally supports <code>run(kind, {reuseReady: true})</code> for repeating a case from a matching, source-guarded ready checkpoint without replaying the opening; each report records whether it was reused.</p>
+
+<p>The original controller routine requires stable input across consecutive polls; a one-frame press may never become a new button-history event. The replay holds Start/A for four frames and Right for twelve. It does not write fake pose states to pretend a normal sequence happened.</p>
+
+<p>Count decoding uses RAM <code>$C1</code> for the count selector: <code>$9A</code> through <code>$A3</code> mean counts 1 through 10. <code>$C2</code> is the referee's X position in this context. An earlier research note named that coordinate as the count; the original initialization/drawing routines and observed count progression resolve the distinction. Do not treat a large coordinate such as <code>$E3</code> as count four.</p>
+
+<p>Temporary seed values, before/after bytes, frame numbers, state/health/clock transitions, video hashes and APU-write activity are included in the evidence. The original CPU/NMI/mapper/PPU/APU run concurrently. This is bounded playback on Forge's approximate MMC2 model, not a cycle-accurate hardware result or newly supported runtime Scene capture. Native animation/AI/damage editing and native Audio writing remain separate work.</p>
+
+<pre><code>node reviews/punch-out-native-workflows-1/verify_art.cjs /path/to/private-roms
+node reviews/punch-out-native-workflows-1/verify_replay.cjs /path/to/private-roms
+node reviews/punch-out-native-workflows-1/verify_art_playback.cjs /path/to/private-roms
+node reviews/punch-out-native-workflows-1/verify_replay_guards.cjs /path/to/private-roms
+python3 reviews/punch-out-native-workflows-1/run_checks.py
+</code></pre>
+
+<p>The export/playback check opens edited CHR/palette output as a new native source, runs its actual original opening and fight sequence, checks the live PPU pattern byte and palette entry, compares pixels and retains Audio. It does not certify all art changes, all fights, external emulators, listening or physical hardware.</p>
+
+<h2 id="punch-out-15-use-the-adopted-retro-workstation-interface">15. Use the adopted Retro Workstation interface</h2>
+
+<p>Click <strong>Retro Workstation</strong> in the toolbar to enable the supplied skin; choose <strong>Compact</strong> or <strong>Comfortable</strong>. The default remains off and clicking again restores the original appearance. Appearance preferences are local settings, excluded from saved project data. All advanced tabs and existing controls remain accessible.</p>
+
+<p><strong>Resources</strong> opens the provided read-only relationship explorer; <strong>Connected Workspace</strong> offers context and shortcuts into the existing owners. Neither is a second asset store or a universal importer. The metasprite banner identifies the actual selected pose's source Scene; a different source is not an inferred sprite/collision assignment.</p>
+
+<p>The kit's Zelda II native-overworld routes are also ported: the Area Library can reopen a linked native World or request the exact matching source when investigation has discarded its transient bytes. Revision/identity and stale-selection checks remain in place. These navigation fixes do not grant another game's missing terrain writer.</p>
+
+<p>The supplied v0.5 browser evidence applies to that supplied HTML. The current modular integration has its own checks; any remaining browser/device acceptance is listed separately in the review notes. The source ports live under <code>app/src/ui/</code>, and the deterministic source manifest includes them. Directly replacing this app with the older review HTML would discard the new Punch-Out work, so continue from the integrated output.</p>
+</section><section id="general"><p class="part">NES Forge developer and asset guide</p><h1 id="general-nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</h1>
+
+<p>This guide describes the current source checkpoint, using Punch-Out as a worked recovery example. It is intended for people who want to use the visual editors, investigate an unknown ROM, write an adapter, write 6502 code, patch bytes independently, or modify NES Forge itself. Game recognition is optional for general inspection. Each game's editable native output depends on the encoders actually installed for that revision.</p>
+
+<p>The standalone HTML contains the application, not your subsequently saved project or an embedded commercial ROM. Keep the HTML, your project JSON, original input and any rebuilt output separately. An updated HTML can open your saved project; replacing the HTML does not transfer unsaved browser state automatically.</p>
+
+<h2 id="general-1-choose-an-entry-point">1. Choose an entry point</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Goal</th>
+  <th>Starting workflow</th>
+  <th>Result</th>
+  <th>What must be verified</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Create original art or a game</td>
+  <td>Start a separate authored project; use the asset tabs and chosen Forge runtime</td>
+  <td>Canonical assets and a generated Forge ROM within that runtime's capabilities</td>
+  <td>Build backend, references, limits and play behavior</td>
+</tr>
+<tr>
+  <td>Inspect an unfamiliar ROM</td>
+  <td>Open ROM / project → Inspect bytes / CHR; RE / DISASM</td>
+  <td>Physical layout, byte ranges, candidate disassembly, notes and explicit gaps</td>
+  <td>Bank mapping, code/data distinction, runtime observations</td>
+</tr>
+<tr>
+  <td>Edit a recognized game's supported data</td>
+  <td>Prepare recovered resources → Import as new project; Area library or Recovered content</td>
+  <td>Source-preserving project, native recipes and/or editable copies</td>
+  <td>The selected field has a native encoder; save/reopen; original-engine output</td>
+</tr>
+<tr>
+  <td>Write 6502 code</td>
+  <td>CODE in a separate authored project; assembler templates</td>
+  <td>Assembly source, symbols and emitted bytes</td>
+  <td>Reset/NMI/IRQ vectors, memory placement and live custom build settings</td>
+</tr>
+<tr>
+  <td>Hex edit a ROM yourself</td>
+  <td>Export/copy bytes to your external hex editor, or use a narrow supported native-command editor</td>
+  <td>A separately patched ROM</td>
+  <td>File offsets, bank mapping, aliases, checksums, execution and recognition after patching</td>
+</tr>
+<tr>
+  <td>Change the app</td>
+  <td>Edit modular source and bundle, or edit a separate standalone HTML copy</td>
+  <td>A modified NES Forge executable</td>
+  <td>Syntax, UI lifecycle, saved projects, native output and retained features</td>
+</tr>
+<tr>
+  <td>Reuse recovered material in a different engine</td>
+  <td>Explicitly convert/import supported assets into an authored project</td>
+  <td>Forge adaptations</td>
+  <td>Conversion fidelity and the new runtime's rules; original-game patching is separate</td>
+</tr>
+</tbody>
+</table>
+
+<p>The general-analysis hex pane currently displays bytes; it is <strong>not a general inline ROM hex editor</strong>. Reversible RAM experiments affect the loaded emulator session, not the source ROM. The dedicated native command-byte Audio editor is narrow and profile-specific; it does not provide a general Punch-Out Audio writer. These are different tools with different output ownership.</p>
+
+<h2 id="general-2-understand-the-three-representations">2. Understand the three representations</h2>
+
+<ol>
+<li><strong>Source:</strong> <code>importedRom</code> preserves the input bytes. In project JSON it is Base64; the live editor holds bytes. <code>nativeGame.sourceSha256</code> identifies those bytes. Never edit one without updating and validating the complete source descriptor and associated evidence.</li>
+<li><strong>Evidence:</strong> <code>investigation</code> and decoder catalogs describe observations, source ranges, profiles and gaps. They are not a second asset database or executable game source. Viewing a catalog does not mean every item has been materialized into an editing tab.</li>
+<li><strong>Canonical authoring assets:</strong> <code>scenes</code>, <code>worlds</code>, <code>metasprites</code>, <code>animations</code>, Audio collections and gameplay records are the editable project. Some are linked to native recipes; others are recovered copies or adaptations with no inverse writer.</li>
+</ol>
+
+<p>A useful recovery must state separately: <em>recognized, decoded, materialized, editable, natively encodable, and verified in play</em>. A source can be recognized without complete assets. A recovered animation can be edited and saved without being patchable into the original game. A byte-preserving native build can succeed without showing that a new visual edit works.</p>
+
+<p><code>ProjectStore</code> owns serialization and lifecycle. <code>AssetRegistry</code> resolves authoring references and reports missing/duplicate IDs. <code>BuildGraph</code> and <code>RuntimeCompiler</code> choose and execute the build path. Recovery adapters use those owners rather than creating another lifecycle or replacing the editor.</p>
+
+<h2 id="general-3-complete-asset-map">3. Complete asset map</h2>
+
+<p>The fields below identify the important records, not every optional extension. Use a saved project produced by the current app as the schema example. <code>ProjectStore.prepareLoad()</code> and the relevant model validators are authoritative for exact accepted fields and limits.</p>
+
+<table>
+<thead>
+<tr>
+  <th>Asset</th>
+  <th>Canonical location and meaning</th>
+  <th>Editor workflow</th>
+  <th>Code to inspect first</th>
+  <th>Native-ROM implication</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Scene</td>
+  <td><code>scenes[]</code>: stable ID, name, background, sprites, palette, entities, links, settings</td>
+  <td>Select a Scene, edit its resources, save; use Area library for source pages</td>
+  <td><code>legacy/05-foundation.js</code>, <code>services/scene-context.js</code>, <code>services/area-library.js</code></td>
+  <td>Only the adapter's supported fields become native edits</td>
+</tr>
+<tr>
+  <td>Background CHR</td>
+  <td><code>scene.chr[tile][y][x]</code>: 8×8 pixel indices 0–3</td>
+  <td>CHR editor; select background bank and tile; change pixels</td>
+  <td><code>legacy/04-saveas-chr.js</code>, <code>re/re-native-assets.js</code></td>
+  <td>Copied pixels are not a physical ROM patch without a CHR encoder</td>
+</tr>
+<tr>
+  <td>Sprite CHR</td>
+  <td><code>scene.sprChr</code>: separate sprite pixel bank</td>
+  <td>Select sprite graphics in CHR; check the sprite palette and frame using it</td>
+  <td>Same CHR owners; <code>re/punch-out-content.js</code> for native banks</td>
+  <td>Physical bank/latch context and shared uses must be resolved before writing</td>
+</tr>
+<tr>
+  <td>Background arrangement</td>
+  <td><code>scene.nt</code>: 960 tile references, 32×30</td>
+  <td>SCENE paint, fill and eyedrop tools; choose the correct selected Scene</td>
+  <td><code>legacy/00-editor.js</code>, native resource/arena modules</td>
+  <td>Native tile IDs may differ from projected CHR atlas indices</td>
+</tr>
+<tr>
+  <td>Attribute bytes</td>
+  <td><code>scene.attr</code>: 64 bytes selecting background palette IDs by 16×16 quadrants</td>
+  <td>Paint palette IDs with tiles; inspect neighboring cells</td>
+  <td>Scene paint code; arena projection/encoder</td>
+  <td>This selects an existing palette; it does not change palette colors</td>
+</tr>
+<tr>
+  <td>Palette colors</td>
+  <td><code>scene.pal</code>, <code>scene.sprPal</code>: four color groups</td>
+  <td>Palette picker, then inspect tiles and scenes sharing those colors</td>
+  <td>Scene/CHR renderers and native decoder palette provenance</td>
+  <td>Color-table writing is separate from attribute writing</td>
+</tr>
+<tr>
+  <td>Sprite placements</td>
+  <td><code>scene.oam[]</code>: x/y, tile/tile2, attribute, height, active, optional provenance</td>
+  <td>Sprite/Scene tools; verify flips, priority and size</td>
+  <td><code>legacy/00-editor.js</code>, <code>re/punch-out-content.js</code></td>
+  <td>Original OAM is runtime state; editing a copied placement is not editing original animation code</td>
+</tr>
+<tr>
+  <td>Metatile definitions</td>
+  <td><code>scene.metatiles[]</code>: groups of CHR tiles, palette/collision data</td>
+  <td>Build/edit a metatile library, then place it on a map</td>
+  <td><code>legacy/07-metatiles.js</code></td>
+  <td>A native game's block format may require an adapter-specific mapping</td>
+</tr>
+<tr>
+  <td>Metatile map</td>
+  <td><code>scene.metaMap</code>: 16×15 metatile references for a Scene</td>
+  <td>Edit using the metatile tools; verify underlying tile projection</td>
+  <td>Same metatile owner</td>
+  <td>Do not assume a visual block equals a native record</td>
+</tr>
+<tr>
+  <td>Collision properties</td>
+  <td><code>scene.tileProps</code> and applicable per-cell/metatile extensions</td>
+  <td>COLLISION; assign properties and inspect runtime behavior</td>
+  <td>Metatile/World compilers; <code>services/build-services.js</code></td>
+  <td>No collision meaning can be inferred reliably from tile appearance alone</td>
+</tr>
+<tr>
+  <td>Metasprite pose</td>
+  <td><code>metasprites[]</code>: ID, <code>sceneId</code>, size, origin, pieces with offsets/palette/flips</td>
+  <td>METASPRITES; assemble pieces from sprite CHR</td>
+  <td><code>legacy/13-metasprites.js</code>, <code>services/punch-out-content-recovery.js</code></td>
+  <td>A pose copy can be editable without a native pose writer</td>
+</tr>
+<tr>
+  <td>Animation</td>
+  <td><code>animations[]</code>: timed frames, pose references, loop/state, boxes/events</td>
+  <td>ANIMATION; edit frames/durations and preview transitions</td>
+  <td><code>legacy/14-composed-animation.js</code>, <code>legacy/16-model.js</code></td>
+  <td>Native timing/control-flow translation needs a separate writer</td>
+</tr>
+<tr>
+  <td>Hitboxes/hurtboxes</td>
+  <td>Animation frame <code>hitboxes</code> / <code>hurtboxes</code></td>
+  <td>Edit contact boxes at the relevant frame and test runtime support</td>
+  <td><code>legacy/16-model.js</code>, gameplay compiler/engine</td>
+  <td>Editor boxes are not automatically the native game's collision routine</td>
+</tr>
+<tr>
+  <td>Frame events</td>
+  <td>Frame <code>events[]</code> with typed marker information</td>
+  <td>Add/reorder events; inspect when the consuming runtime triggers them</td>
+  <td>Same model plus Audio/gameplay runtime</td>
+  <td>Observed native sound-request metadata is not an authored event by itself</td>
+</tr>
+<tr>
+  <td>Scene entities</td>
+  <td><code>scene.entities[]</code>: placed authoring objects and animation bindings</td>
+  <td>Entity tools; place objects, bind states and destinations</td>
+  <td><code>legacy/18-entity-studio.js</code>, <code>legacy/16-model.js</code></td>
+  <td>Native object placement/AI formats are separate recovery work</td>
+</tr>
+<tr>
+  <td>Gameplay actors</td>
+  <td><code>gameplayCore.actorDefinitions</code>, <code>actorInstances</code>, <code>behaviors</code></td>
+  <td>Gameplay editor; choose supported components and typed behavior operations</td>
+  <td><code>gameplay/gameplay-model.js</code>, compiler/engine/UI</td>
+  <td>Available authoring operations exceed the bounded compiled runtime subset; validate the backend</td>
+</tr>
+<tr>
+  <td>Persistent variables</td>
+  <td><code>gameplayCore.persistentVariables</code> plus instance bindings</td>
+  <td>Define type/scope, bind actors and test room/world transitions</td>
+  <td>Gameplay model/compiler/engine</td>
+  <td>Native save flags and RAM addresses require an explicit mapping</td>
+</tr>
+<tr>
+  <td>Scene links / doors</td>
+  <td><code>scene.links</code>, entity destinations and corresponding World markers</td>
+  <td>Connect scenes; verify destination IDs and build inclusion</td>
+  <td>Scene, entity and World services</td>
+  <td>A destination coordinate alone does not establish reachable/safe native travel</td>
+</tr>
+<tr>
+  <td>World</td>
+  <td><code>worlds[]</code>: dimensions, <code>tilesetSceneId</code>, metatile map, rooms/markers/cameras</td>
+  <td>WORLD; choose tileset, paint, configure rooms and test transitions</td>
+  <td><code>world/</code>, <code>legacy/08-world.js</code>, <code>legacy/09-world-codec.js</code></td>
+  <td>A source-native World adapter and a Forge-authored World are different build paths</td>
+</tr>
+<tr>
+  <td>Runtime settings</td>
+  <td><code>gameplay</code>, <code>gameplayCore</code>, <code>worldRuntime</code>, <code>audioRuntime</code></td>
+  <td>Select the intended mode and enable only supported runtime features</td>
+  <td>Config/model modules; <code>services/build-services.js</code></td>
+  <td>These do not rewrite a preserved game's engine without an encoder</td>
+</tr>
+<tr>
+  <td>Instruments</td>
+  <td><code>instruments[]</code>: duty/volume/arpeggio/pitch envelope data</td>
+  <td>AUDIO instrument editor; audition in context</td>
+  <td><code>audio/audio-engine.js</code>, UI/compiler/import modules</td>
+  <td>A native envelope table may not have an equivalent canonical instrument</td>
+</tr>
+<tr>
+  <td>Patterns</td>
+  <td><code>patterns[].rows[row][channel]</code>: notes, instruments, volume, effects fields</td>
+  <td>AUDIO tracker note entry; inspect rows/channels and preview</td>
+  <td><code>audio/audio-ui.js</code>, engine/compiler</td>
+  <td>Supported effects depend on the preview/compiler; storing fields does not imply execution</td>
+</tr>
+<tr>
+  <td>Order list</td>
+  <td><code>orderList</code>: pattern selections over song sequence positions</td>
+  <td>AUDIO sequence/order editing</td>
+  <td>Audio engine/compiler</td>
+  <td>Native loops, section dispatch and channel arbitration may not map 1:1</td>
+</tr>
+<tr>
+  <td>Tempo/speed</td>
+  <td><code>tempo</code>, <code>speed</code>, <code>audRows</code></td>
+  <td>AUDIO timing controls; compare expected musical timing</td>
+  <td>Audio model/compiler</td>
+  <td>Native update timing and per-driver duration tokens may differ</td>
+</tr>
+<tr>
+  <td>SFX</td>
+  <td><code>sfx[]</code> plus runtime scheduling/event references</td>
+  <td>AUDIO SFX tools; inspect priority and channel use</td>
+  <td>Audio compiler/engine/config</td>
+  <td>Procedural native effects cannot always be represented as tracker notes</td>
+</tr>
+<tr>
+  <td>Native Audio cues</td>
+  <td>Source-owned catalog, stream descriptors and sample references</td>
+  <td>AUDIO → ROM Audio Library → inspect/audition/explicit conversion</td>
+  <td><code>re/native-audio-*</code>, <code>re/punch-out-audio.js</code></td>
+  <td>Native audition, canonical adaptation and native rewriting are distinct</td>
+</tr>
+<tr>
+  <td>DPCM / direct PCM</td>
+  <td>Original sample bytes and/or DAC-producing native routine</td>
+  <td>Native audition where installed</td>
+  <td><code>re/native-audio-machine.js</code>, Punch-Out Audio module</td>
+  <td>No generic tracker PCM/sample authoring or Punch-Out native Audio writer</td>
+</tr>
+<tr>
+  <td>Assembly</td>
+  <td><code>asmSource</code>; live assembler emits symbols/binary/write addresses</td>
+  <td>CODE; assemble, inspect errors/symbols and build in supported custom mode</td>
+  <td><code>legacy/00-editor.js</code>, <code>services/build-services.js</code></td>
+  <td>Disassembly of native bytes is not a rebuildable assembly project</td>
+</tr>
+<tr>
+  <td>Code/byte evidence</td>
+  <td>Analysis sessions, annotations, ranges, candidate symbols</td>
+  <td>RE / DISASM; choose offsets, CPU origin and bank labels</td>
+  <td><code>re/re-analysis.js</code>, UI, source workspace modules</td>
+  <td>General analysis is read-only; exports/evidence do not patch ROMs</td>
+</tr>
+<tr>
+  <td>Raster state</td>
+  <td>Optional Scene <code>raster</code> and capture/source metadata</td>
+  <td>Inspect whether recovery preserved bank/scroll/palette changes</td>
+  <td><code>legacy/03-runtime-capture.js</code>, native renderers</td>
+  <td>Mid-frame behavior must remain modeled or explicitly unsupported</td>
+</tr>
+<tr>
+  <td>Native recipes</td>
+  <td><code>nativeGame.edits</code> plus bindings and registered Scene writers</td>
+  <td>Native brush or declared supported Scene edits</td>
+  <td><code>services/native-resource-project.js</code></td>
+  <td>Recipes refer to physical operands; aliases must agree</td>
+</tr>
+<tr>
+  <td>Source metadata</td>
+  <td><code>captureMeta</code>, <code>investigation</code>, source hashes</td>
+  <td>Inspect provenance and limits; preserve on save</td>
+  <td>ProjectStore and adapter validation</td>
+  <td>Changing evidence/hashes to silence an error is not implementing an encoder</td>
+</tr>
+</tbody>
+</table>
+
+<p>For a Scene currently selected in the UI, <code>S.chr</code>, <code>S.nt</code>, palettes and other top-level working arrays mirror its content. <code>saveCurrentScene()</code> synchronizes them before capture. Editing a detached project JSON is different from changing the live <code>S</code> buffers; avoid creating competing versions of the same Scene.</p>
+
+<p>Raw CHR banks contain patterns. A sprite sheet is a view of those patterns; OAM places them; a metasprite assembles a pose; an animation sequences poses; an actor combines appearance and behavior; a complete scene adds background, UI, palette/bank/raster context and runtime relationships. Recovering one layer never proves the others exist.</p>
+
+<h2 id="general-4-visual-asset-editing-end-to-end">4. Visual asset editing, end to end</h2>
+
+<h3 id="general-backgrounds-tiles-and-palettes">Backgrounds, tiles and palettes</h3>
+
+<ol>
+<li>Save a baseline project. Select the actual target Scene or source page. A fighter-source Scene intentionally has a blank background; an intro Scene is not the fight arena.</li>
+<li>Inspect its CHR and palette. If source graphics are banked, record physical bank and runtime latch/scroll context. Do not replace missing placement data with a tile sheet and call it a recovered scene.</li>
+<li>Paint the Scene layout, or edit CHR pixels deliberately. Palette-ID painting changes attributes; the color picker changes palette colors. These require different native writers.</li>
+<li>For a native project, check the declared supported fields. Punch-Out arena <code>nt</code>/visible attribute edits are encodable. For native artwork/color edits, open the dedicated physical CHR or fight-palette views described in section 15; direct edits to copied arena/fight-reference art remain unsupported. Unsupported edits remain savable but block native builds.</li>
+<li>Undo, Redo, save, reopen and rebuild. Enter the game state that uses the data. Test neighboring rows, page seams, offscreen dependencies and shared uses.</li>
+<li>Re-import the rebuilt ROM if continuing from it. This checkpoint restores Punch-Out recognition for bounded arena derivatives; arbitrary patches outside recognized ranges still need adapter investigation.</li>
+</ol>
+
+<p>Background CHR pixel 0 is the background color selection; sprite pixel 0 is transparent. Sprite/background palettes and bank selection are separate. Some projected source Scenes can use more than 256 logical tiles to preserve bank-dependent rows; those logical indices cannot be written directly to an 8-bit native tile stream.</p>
+
+<h3 id="general-sprites-metasprites-and-animation">Sprites, metasprites and animation</h3>
+
+<p>Open <strong>Recovered content</strong> for source poses or the regular editors for authored work. Select fight/pose, preview, then explicitly open a supported pose in Metasprites. Verify the pose's source Scene, sprite size, origin, piece order, flips, palette and CHR bank.</p>
+
+<p>For timed source recovery: <strong>State animation excerpts → Trace state → Open recovered animation</strong>. Inspect assumptions and stop conditions. Frames changing size must retain the native tile stride; incremental poses must retain the preceding OAM. Adjust canonical frame timing or pieces, preview, save and reopen. This does not yet encode those changes into Punch-Out's original animation streams.</p>
+
+<p>When creating authored animation, keep stable metasprite IDs, reference their Scenes, set duration/loop behavior and bind entity states to animation IDs. Test hitboxes, hurtboxes and events in the intended runtime; the editor preview alone does not establish compiled behavior. Do not delete a referenced Scene or pose to make room without reviewing the references reported by AssetRegistry.</p>
+
+<h3 id="general-worlds-collision-actors-and-interactions">Worlds, collision, actors and interactions</h3>
+
+<p>For an authored World, establish the tileset Scene and metatile library before painting its map. Define rooms, markers, destinations and camera regions; test travel in both directions and after room reload. Enable the intended World/runtime settings. A saved marker is not evidence that a native game's original travel code uses it.</p>
+
+<p>For authored collision, choose properties based on intended mechanics, then test actor movement/contact. Verify per-cell overrides and metatile projection where applicable. For actors, distinguish a reusable definition from placed instances. Keep variables typed and scoped, use only operations supported by the compiled backend, and test deterministic transition priority, spawn/despawn, slot reuse and persistence across rooms. Refer to <code>GameplayModel.runtimeProfile</code> for the bounded native runtime subset rather than assuming every UI operation is compiled.</p>
+
+<p>For native projects, recover these domains from original tables/code independently. Tile appearance, pose geometry and enemy labels cannot establish physics, damage, AI or save-state semantics.</p>
+
+<h3 id="general-audio">Audio</h3>
+
+<p>On every project verify driver detection, cue inventory, native audition, explicit editable conversion where supported, save/reopen and preservation after Scene rebuilding. Empty/stop/unavailable cue slots should be labeled rather than counted as sounding music.</p>
+
+<p>Native audition runs original driver code with native sample sources. Tracker conversion makes finite canonical patterns/instruments where representable; listen for differences in envelopes, pitch slides, channel ownership, noise, loops and DPCM. Save the project, reopen, audition again and compare Scene-edited output. Audio writing requires its own native encoder.</p>
+
+<p>Punch-Out's startup PCM runs a separate one-shot routine across continuous CPU-cycle windows, with native bell writes. Select at least 199 updates for full isolated playback. Shorter windows report truncation. It is auditionable, but PCM tracker editing and native sample rewriting remain open.</p>
+
+<h2 id="general-5-manual-re-workflow">5. Manual RE workflow</h2>
+
+<ol>
+<li><strong>Identify the input.</strong> Record size, full hash, header, trainer/trailing data and physical PRG/CHR layout. Preserve the input unchanged. A legacy header can disagree with observed bank-switching code; keep the disagreement explicit.</li>
+<li><strong>Choose an explicit range.</strong> General analysis accepts physical file offsets, length, CPU origin when known, and bank labels. File offset and CPU address are not interchangeable.</li>
+<li><strong>Separate code from data.</strong> Linear disassembly is a hypothesis. Check reset/NMI/IRQ vectors, reachable calls, indirect pointers, bank changes and data reads. Label uncertain ranges.</li>
+<li><strong>Find consumers.</strong> Trace PPU writes for backgrounds/palettes, OAM construction for sprites, APU writes for sound and RAM/state routines for behavior. The code consuming a record establishes its meaning.</li>
+<li><strong>Make a reproducible observation.</strong> Save an emulator checkpoint, replay scripted input or apply a reversible RAM experiment. Record starting state and stopping condition. Runtime experiments do not patch the ROM or authored project.</li>
+<li><strong>Retain evidence.</strong> Record bank + CPU address + physical offset, operand width/endian order, bounds, aliases, decoded meaning and unknown context. Export notes/report separately from project changes.</li>
+<li><strong>Implement only an established claim.</strong> A private decoder can return a read-only catalog before any visual import or writer exists. Unknown sources remain inspectable without a guessed adapter.</li>
+</ol>
+
+<p>For 8 KiB banks in a standard header/no-trainer example:</p>
+
+<pre><code>fileOffset = 16 + physicalBank * 8192 + (cpuAddress - windowStart)
+</code></pre>
+
+<p>This formula requires a known mapped window. A trainer changes the payload start; NES 2.0 and other layouts need their actual container description. Read the container/layout owner instead of hard-coding 16 for an arbitrary game.</p>
+
+<h2 id="general-6-worked-native-codec-lesson">6. Worked native codec lesson</h2>
+
+<p>Run the included exercise with Node:</p>
+
+<pre><code>node app/docs/native-codec-exercise.cjs
+</code></pre>
+
+<p>It defines an original teaching format, not a commercial ROM. A header points to fixed-capacity <code>[count, tile]</code> RLE data describing eight cells. Read its <code>decode</code>, <code>encode</code> and <code>exercise</code> functions in order.</p>
+
+<p>The exercise demonstrates: strict bounds; a canonical grid; edits on a detached copy; run compression; capacity refusal; preservation of unrelated bytes; decoding the candidate; JSON save/reopen; and byte-identical unchanged derivative output. Extend it by adding a second shared view, then ensure editing a shared operand updates both views. Next add attributes as a separate record and reject mismatched ownership spans.</p>
+
+<p>In Punch-Out, the method becomes:</p>
+
+<ol>
+<li><code>punch-out-layout.js</code> independently interprets native PPU commands and records which output cells share literal operands.</li>
+<li><code>native-punch-out-resources.js</code> projects static backgrounds while retaining actual CHR-latch row context. The physical operand, not each visible cell, owns a native literal recipe.</li>
+<li><code>punch-out-arena.js</code> executes the original setup loader on a private bus, recovers two raw nametables, then projects a viewport using NT1 and scroll <code>$B0</code>.</li>
+<li>Each visible cell retains <code>cellSources</code>: its source nametable and native cell. This is the inverse map required by the writer.</li>
+<li><code>punch-out-arena-encoder.js</code> copies raw pages, applies supported tile/attribute changes back through that map, compresses into four streams, and stays inside the original 381-byte area plus four pointer words.</li>
+<li>The encoder executes the original loader again on the candidate and compares all raw pages and the visible projection. Oversized or unrepresentable edits refuse with a useful error.</li>
+<li><code>punch-out-arena-writer.js</code> registers the encoder with the existing native build owner. It masks only <code>nt</code>/<code>attr</code> during projection-signature validation; CHR, colors, actors and unrelated settings remain protected.</li>
+<li>The shared native owner composes literal recipes with arena writes, rejects overlapping claims, checks every changed byte and returns an artifact to the existing RuntimeCompiler.</li>
+</ol>
+
+<p>The compressor searches native literal, repeat, increment and repeated-sequence operations. Each page has two streams indexed by an 8-bit Y register: command bytes plus a terminating zero must fit before wrap. Minimal encoded byte cost and successful stream partitioning are different requirements; both must be checked. No general relocation/expansion is implemented.</p>
+
+<p>The 2026-10-24 derivative correction adds a separate immutable identity for those supported arena write ranges. Recognition may ignore only declared mutable data and must still decode bounded valid programs. This does <strong>not</strong> grant the literal brush ownership of the arena. Current stream pointers must stay in the owned area, terminate without Y wrap and initialize exactly both pages. Changes to header, code, Audio or CHR remain outside that identity.</p>
+
+<h2 id="general-7-installing-another-decoder-or-encoder">7. Installing another decoder or encoder</h2>
+
+<p>Keep four responsibilities separate:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Layer</th>
+  <th>Inputs and outputs</th>
+  <th>Project side effects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Decoder/model</td>
+  <td>Source bytes → bounded records, geometry, provenance and gaps</td>
+  <td>None</td>
+</tr>
+<tr>
+  <td>Projection/recovery service</td>
+  <td>Validated records → canonical Scenes/poses/Animation and bindings</td>
+  <td>Returns a prepared copy; does not commit UI state</td>
+</tr>
+<tr>
+  <td>UI</td>
+  <td>Selection → preview → validated, guarded import</td>
+  <td>One existing snapshot/ProjectStore transaction</td>
+</tr>
+<tr>
+  <td>Encoder</td>
+  <td>Preserved bytes + supported edit intent → candidate bytes + diagnostics</td>
+  <td>Returns a copy; never mutates source in place</td>
+</tr>
+</tbody>
+</table>
+
+<p>Add your module at the correct place in <code>app/source-manifest.json</code>. Dependencies must execute before their consumers, and <code>composition.js</code> initializes the application after services/UI registration. Existing Punch-Out recovery wraps prior <code>NativeResourceProject.create</code> implementations; capture the preceding function instead of recursively calling the newly installed service.</p>
+
+<p>For a Scene writer the current registration contract is:</p>
+
+<pre><code>// Sketch of the existing interface; provide real implementations and verified
+// source ranges for your adapter. This is not a universal encoder.
+owner.registerSceneEncoder({
+  id: 'your-verified-scene-format-v1',
+  matches(project, info) { /* identify supported project and Scene */ },
+  views(project, info) { /* [{id, nt: sourceNT, attr: sourceAttr}] */ },
+  spans(project, info) { /* [{offset, length}] exclusively owned ROM bytes */ },
+  encode(bytes, project, info) { /* {bytes: candidate, diagnostics: []} */ }
+});
+</code></pre>
+
+<p><code>views</code> controls supported-field signature comparison. It must not hide unrelated changed fields or accept Scenes from another source. <code>spans</code> declares writes, not generic permissions to modify the ROM. <code>encode</code> must preserve all preceding disjoint edits and reject anything it cannot represent. Dedicated Punch-Out art views now use explicitly bounded <code>chr</code>, <code>pal</code>, <code>sprPal</code> and <code>bgColor</code> masks through that same owner. Unknown fields and duplicate claims refuse; unrelated Scene state stays protected.</p>
+
+<p>Before rebasing <code>projectionSha256</code> when adding recovered assets, validate the preceding project's native build. Otherwise unsupported user edits can accidentally become accepted baseline data. Re-sign only deliberate, validated source-derived additions. Do not hand-edit the hash to bypass a refusal.</p>
+
+<h2 id="general-8-writing-6502-code-yourself">8. Writing 6502 code yourself</h2>
+
+<p>Use a separate authored project for custom assembly. Save the native recovery project first. In CODE choose the Minimal boot ROM or Scene viewer template; inspect the code before replacing any existing source. Use Assemble / Ctrl+Enter and review errors, symbols, origin and emitted bytes.</p>
+
+<p>The assembler supports the implemented syntax including labels, <code>.org</code>, <code>.byte</code>, <code>.word</code> and supported instructions/addressing modes. Consult <code>asm_assemble</code> for exact syntax. Overlapping addresses, out-of-range branches and unresolved operands must be fixed before output.</p>
+
+<p>A minimal boot template intentionally shows no graphics: it disables rendering, establishes a stack and loops, with reset/NMI/IRQ vectors. Add PPU initialization, graphics upload, NMI updates and controls deliberately. Use a complete live custom project build and test the emitted reset path.</p>
+
+<p><code>BuildGraph.backendFor</code> selects <code>native-engine</code> when a preserved native descriptor is present. Writing text into CODE does not turn that descriptor into a safe arbitrary native code patch. For authored custom output, use the matching viewer/custom settings; <code>packScenes=false</code> plus assembly and no conflicting gameplay/World mode selects unpacked custom output. Runtime Audio cannot be automatically injected into custom assembly. Detached compilation cannot invoke the live assembler.</p>
+
+<p>For editing an existing game's code, assemble the replacement with your toolchain or the supported assembler, map CPU writes into the correct physical bank, reserve/verify owned space, and produce a separate patched ROM. Recover relocations, callers, vectors and timing as needed. Re-import for inspection; adding native adapter recognition/build support is a separate step. A disassembly listing alone is not complete linkable source.</p>
+
+<h2 id="general-9-hex-editing-yourself">9. Hex editing yourself</h2>
+
+<p>Create a copy and record the exact original hash. Locate the physical offset using the active bank and container layout; verify expected original bytes before a patch. Change one field, export a distinct ROM and compare all changed ranges. Preserve your patch recipe separately so it can be reapplied and reviewed.</p>
+
+<p>For a one-byte observation, check every consumer: compressed operands can expand into many cells; pointers can be little-endian and bank-relative; palette bits can affect four neighboring tiles; CHR patterns can be shared across unrelated Scenes. A value used as both graphics and a latch control has runtime side effects.</p>
+
+<p>Reopen the patched ROM in general analysis regardless of whether a specialized adapter recognizes it. If a protected code/CHR/Audio byte changed, the adapter may correctly stop recognizing the derivative. To support it as an editable native project, establish its new identity, verify its structures and add bounded writer support. Do not relax detection to a filename, mapper number or broad checksum mask.</p>
+
+<p>For RAM hypotheses use the reversible experiment controls: checkpoint, apply, replay, restore or keep. Keeping changes only that emulator session. To make the behavior persistent, identify and patch the native initialization/update code or save format separately.</p>
+
+<p>The read-only analysis pane, reversible RAM editor, narrow native command editor and external hex editor remain complementary workflows. None should silently replace or modify the current saved project.</p>
+
+<h2 id="general-10-editing-the-standalone-html-or-modular-source">10. Editing the standalone HTML or modular source</h2>
+
+<h3 id="general-edit-the-html-directly">Edit the HTML directly</h3>
+
+<ol>
+<li>Copy the working HTML and save your project JSON. Open the HTML in a text/code editor.</li>
+<li>Search for <code>NES FORGE DEVELOPER MAP</code>, then the relevant <code>NES FORGE MODULE:</code> or <code>NES FORGE CONNECTION:</code> marker. For unchanged legacy modules search the function names in the source index near the top.</li>
+<li>Change one function, string, UI style or explicitly defined data structure. App JS/CSS lives in the HTML; native game assets appear only after your input is loaded. There is no hidden fixed bank of every game's assets in the application source.</li>
+<li>Keep the script structure intact, avoid a literal closing script tag inside JavaScript data, and check DevTools Console after reopening the edited file. IIFE-local variables are scoped to their modules; the documented <code>Forge.services</code> APIs connect modules.</li>
+<li>Test fresh startup, existing project load, the changed workflow, Undo/Redo, save/reopen, native output and Audio where applicable. Keep the last working HTML alongside the candidate.</li>
+<li>Port a successful direct change back to its source module before running the bundler. Bundling regenerates the HTML from source and overwrites direct-only changes.</li>
+</ol>
+
+<p>Changing an HTML function changes the application for future sessions. Changing a saved JSON field changes that project. Changing bytes in a rebuilt <code>.nes</code> changes the game. Pick the intended artifact rather than replacing all three.</p>
+
+<h3 id="general-edit-modular-source">Edit modular source</h3>
+
+<p><code>app/source-manifest.json</code> lists the ordered parts. <code>app/tools/bundle.py</code> concatenates them deterministically; it does not transpile, install packages or fetch runtime dependencies. Work in <code>app/src/</code>, then run from the repository root:</p>
+
+<pre><code>python3 app/tools/bundle.py
+python3 app/tools/bundle.py --check
+node app/docs/native-codec-exercise.cjs
+python3 reviews/punch-out-developer-1/run_checks.py
+</code></pre>
+
+<p>The generated standalone app remains <code>app/mainline/NES_Forge_2.0.0-alpha.11.html</code>. The downloadable filename can differ while containing the identical bytes. <code>app/build-inputs.json</code> records input sizes/hashes and the generated identity. No server is required for the standalone editor; browser/device APIs still have their own capabilities.</p>
+
+<p>Keep comments near decisions: source ownership, pointer mapping, private buses, work limits, stale-source checks, signature masking, alias updates, compression limits and failure behavior. Avoid comments that merely repeat a variable name. Historical metadata strings can be part of saved projection signatures; changing them may require a compatibility plan, not just a wording replacement.</p>
+
+<h3 id="general-source-navigation">Source navigation</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Responsibility</th>
+  <th>Files below <code>app/src/</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Shell/CSS/static controls</td>
+  <td><code>shell-prefix.html</code>, <code>shell-suffix.html</code></td>
+</tr>
+<tr>
+  <td>Original editor/assembler/undo and historical layers</td>
+  <td><code>legacy/00-editor.js</code> through <code>legacy/29-release166.js</code>; follow later wrappers in manifest order</td>
+</tr>
+<tr>
+  <td>Shared CPU instruction behavior</td>
+  <td><code>services/cpu6502-core.js</code></td>
+</tr>
+<tr>
+  <td>Persistence and reference lookup</td>
+  <td><code>services/project-store.js</code>, <code>services/asset-registry.js</code></td>
+</tr>
+<tr>
+  <td>Build planning and output</td>
+  <td><code>services/build-services.js</code>; runtime-specific compilers</td>
+</tr>
+<tr>
+  <td>Emulator/player</td>
+  <td><code>legacy/01-emulator.js</code>, <code>services/emulator-*</code>, <code>services/mmc2-emulator.js</code>, <code>re/mmc2.js</code></td>
+</tr>
+<tr>
+  <td>Input and analysis</td>
+  <td><code>services/project-gateway.js</code>, <code>re/project-gateway-ui.js</code>, <code>re/re-analysis*</code>, <code>source/</code></td>
+</tr>
+<tr>
+  <td>Native resource ownership</td>
+  <td><code>services/rom-project.js</code>, <code>services/investigation-project.js</code>, <code>services/native-resource-project.js</code></td>
+</tr>
+<tr>
+  <td>Scenes and navigation</td>
+  <td><code>services/scene-context.js</code>, <code>services/stage-context.js</code>, <code>services/area-library.js</code></td>
+</tr>
+<tr>
+  <td>Punch-Out native formats</td>
+  <td><code>re/punch-out-*.js</code>, <code>re/native-punch-out-resources.js</code></td>
+</tr>
+<tr>
+  <td>Punch-Out asset projection/build registration</td>
+  <td><code>services/punch-out-*.js</code></td>
+</tr>
+<tr>
+  <td>Native Audio catalog/playback/import</td>
+  <td><code>re/native-audio-*.js</code>, <code>audio/native-audio-library-ui.js</code>, driver-specific modules</td>
+</tr>
+<tr>
+  <td>Authored Audio</td>
+  <td><code>audio/</code></td>
+</tr>
+<tr>
+  <td>Worlds and gameplay</td>
+  <td><code>world/</code>, <code>gameplay/</code></td>
+</tr>
+<tr>
+  <td>Mashup/donor conversion</td>
+  <td><code>mashup/</code>, source asset import services</td>
+</tr>
+<tr>
+  <td>Final initialization</td>
+  <td><code>composition.js</code></td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="general-11-prove-the-workflow-not-just-the-helper">11. Prove the workflow, not just the helper</h2>
+
+<p>A decoder and its tests can share a wrong assumption. Earlier Punch-Out tests missed an import-path difference and mirrored rendering assumptions. Test original loaders and independent observations, and exercise the actual UI entry points.</p>
+
+<p>For each supported asset/field, record:</p>
+
+<ul>
+<li>Original-byte identity and revision; decoder bounds and explicit unresolved states.</li>
+<li>Native/reference output agreement, including banks, palettes, flips and timing assumptions.</li>
+<li>Actual Open ROM / project → prepare → import path, not only direct <code>create()</code>.</li>
+<li>Preview without mutation; stale preview rejection; one Undo transaction for import.</li>
+<li>Edit → Undo → Redo → Save Project As → reopen in a fresh app instance.</li>
+<li>Unchanged build preserves original bytes; changed build modifies only owned ranges.</li>
+<li>Original engine reload reproduces edits; derived-ROM re-import retains supported content.</li>
+<li>Shared operand edits affect all aliases; unsupported/overflow/malformed edits refuse clearly.</li>
+<li>Audio driver/cues/audition/conversion/reopen and Scene-build preservation.</li>
+<li>Retained core tools and other verified projects; browser appearance, listening and play acceptance separately.</li>
+</ul>
+
+<p>For Punch-Out, preserve offscreen PPU fetch side effects. Its mapper selects CHR banks when particular pattern addresses are read, even if the fetched tile is outside the displayed viewport. The current mapper-9 renderer retains 34 background pattern fetches per scanline; clipping output pixels must not remove bus activity. The prior visual corruption also occurred with the untouched ROM, which separated the player defect from the arena writer.</p>
+
+<p>This correction does not establish a cycle-accurate NES PPU. Full fights, alternate states, sprite/prefetch ordering, browser listening, controls and hardware remain separate acceptance work. MMC2 runtime capture is still explicitly unavailable.</p>
+
+<h3 id="general-current-verification-commands">Current verification commands</h3>
+
+<p>Public synthetic/retained suites and the tutorial exercise:</p>
+
+<pre><code>python3 reviews/punch-out-developer-1/run_checks.py
+</code></pre>
+
+<p>Supplied-input workflow checks (local ROM directory required; no game assets are distributed):</p>
+
+<pre><code>node reviews/punch-out-developer-1/verify_reimport.cjs /path/to/private-roms
+</code></pre>
+
+<p>Additional retained original-loader/build and player comparison scripts live in <code>reviews/punch-out-arena-runtime-1/</code>. Their reports are dated checkpoints, not automatic evidence for later edits. The restored snapshot lacks some historical full-release suite scripts; the current available gate must not be described as the complete historical release gate.</p>
+
+<h2 id="general-12-debugging-and-extending-the-project">12. Debugging and extending the project</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Symptom</th>
+  <th>Inspect first</th>
+  <th>What the result tells you</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>CHR sheet displayed as a scene</td>
+  <td>Selected context, layout decoder, bank/palette projection</td>
+  <td>Patterns may be recovered while placement is missing</td>
+</tr>
+<tr>
+  <td>Recognized original becomes generic after rebuild</td>
+  <td>Immutable identity ranges and current command validity</td>
+  <td>Output may be valid but outside the adapter's admitted derivative format</td>
+</tr>
+<tr>
+  <td>Correct intro but missing ring</td>
+  <td>Scene catalog vs arena source programs/scroll</td>
+  <td>Different runtime contexts must be assembled separately</td>
+</tr>
+<tr>
+  <td>Fighter garbled after a size change</td>
+  <td>Native sprite-size and tile-stride state, prior OAM and CHR</td>
+  <td>Independent frame decoding may have discarded required context</td>
+</tr>
+<tr>
+  <td>Scene edit saves but build refuses</td>
+  <td>Projection signature and registered encoder scope</td>
+  <td>Saving is working; an inverse writer is missing or edit is unsupported</td>
+</tr>
+<tr>
+  <td>Native load reads correct bytes but live picture is wrong</td>
+  <td>Untouched ROM, PPU bank/latch/scroll timing</td>
+  <td>The player can be the defect rather than the writer</td>
+</tr>
+<tr>
+  <td>Audio missing after reopen</td>
+  <td>Investigation restore lifecycle, input bytes, profile identity and catalog</td>
+  <td>Check shared loading path before inventing another driver</td>
+</tr>
+<tr>
+  <td>Hex patch loses recognition</td>
+  <td>Protected ranges and revised data/control flow</td>
+  <td>Investigate the new revision; do not silently weaken recognition</td>
+</tr>
+<tr>
+  <td>Asset changes disappear after selection</td>
+  <td>Active <code>S</code> working buffers vs Scene serialization</td>
+  <td>Update through existing owners and capture/commit consistently</td>
+</tr>
+<tr>
+  <td>Direct HTML changes disappear</td>
+  <td>Source module vs generated output</td>
+  <td>Port the change into <code>app/src</code> before rebundling</td>
+</tr>
+</tbody>
+</table>
+
+<p>A useful contribution includes a bounded claim, source references, readable module comments, owned data ranges, failure behavior, lifecycle/Audio evidence and a clear list of remaining gaps. Another developer should be able to replace the decoder, use an external toolchain, or patch a separate ROM without losing access to the rest of NES Forge.</p>
+
+<h2 id="general-13-concrete-asset-edits-from-javascript-or-html">13. Concrete asset edits from JavaScript or HTML</h2>
+
+<p>To make a deliberate one-time project change from DevTools, use a captured copy and the same transaction as the recovery UI. This example paints an existing tile in the selected Scene. Use it on an authored Scene or the supported recovered arena, with a valid tile number for that Scene:</p>
+
+<pre><code>const store = Forge.services.ProjectStore;
+const project = store.capture();
+const scene = project.scenes[project.activeScene];
+const x = 12, y = 19;
+scene.nt[y * 32 + x] = 36;
+const prepared = store.prepareLoad(project);
+if (snapshot() === false) throw Error('History could not retain the current project');
+store.commit(prepared, {sync: true, intent: 'manual-scene-tile'});
+notify('manual-scene-tile');
+</code></pre>
+
+<p>The transaction preserves ordinary Undo/Redo and lets ProjectStore normalize/validate data. Save Project As to make the edit portable. A native recipe-owned intro page may refuse this direct Scene edit because its physical recipe must be changed through the native brush; the arena has its own Scene encoder. This example grants no new native writer capability.</p>
+
+<p>The same detached-copy transaction can deliberately change a pixel (<code>scene.chr[tile][y][x] = colorIndex</code>), a palette color (<code>scene.pal[group][slot] = nesColor</code>), a sprite piece, or an animation duration, provided the relevant validator accepts the value and all IDs/references remain valid. Native output can still refuse when those fields lack writers. For a multi-asset change, prepare and commit the full project once instead of repeatedly mutating live arrays.</p>
+
+<p>To bake an application change into HTML, edit the owner function rather than pasting project data into a random global. Examples:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Intended change</th>
+  <th>Edit location / method</th>
+  <th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Change button text/help</td>
+  <td>Search the control ID and its <code>textContent</code> or shell markup</td>
+  <td>Fresh load and the workflow that updates that label again</td>
+</tr>
+<tr>
+  <td>Change editor appearance</td>
+  <td>Relevant CSS in the shell or module's generated style</td>
+  <td>Desktop/narrow widths, scrolling and controls</td>
+</tr>
+<tr>
+  <td>Change a default authored asset</td>
+  <td>Find its factory such as <code>makeScene</code> or the relevant model defaults; distinguish later wrappers</td>
+  <td>New authored project plus loading an older saved project</td>
+</tr>
+<tr>
+  <td>Change native scene projection</td>
+  <td>The decoder's placement/palette/bank mapping; preserve provenance and inverse map</td>
+  <td>Independent original-loader/render comparisons and native edit rebuild</td>
+</tr>
+<tr>
+  <td>Add a recovered asset tab connection</td>
+  <td>Recovery service + explicit UI materialization through ProjectStore</td>
+  <td>Source selection, stale preview, Undo/Redo and save/reopen</td>
+</tr>
+<tr>
+  <td>Change an animation recovery rule</td>
+  <td>State decoder plus canonical projection, not only the preview renderer</td>
+  <td>Full observed update sequence, durations and source context</td>
+</tr>
+<tr>
+  <td>Change native build behavior</td>
+  <td>Existing owner/registered encoder and its exclusive write ranges</td>
+  <td>Original-engine decode, protected bytes and derivative re-import</td>
+</tr>
+<tr>
+  <td>Change sound recognition/playback</td>
+  <td>Driver identity/catalog or NativeAudioMachine as appropriate</td>
+  <td>Every affected cue, native register timing, cancellation and reopening</td>
+</tr>
+<tr>
+  <td>Patch game bytes</td>
+  <td>Separate copied ROM plus documented physical patch ranges</td>
+  <td>Binary diff and original-engine run; revised adapter identity if needed</td>
+</tr>
+</tbody>
+</table>
+
+<p>For an HTML-only experiment, put the change inside the relevant existing module closure or at a documented service extension point. Simply appending code after the closing script does not execute it as JavaScript; installing code after application startup can also miss required registrations. Port the final change into the corresponding source module and manifest order.</p>
+
+<p>Do not paste a private source-bearing project into the application template. Ordinary asset exports/imports and saved JSON provide portable asset work; the application remains reusable across projects.</p>
+
+<h2 id="general-14-glass-joe-fight-references-mac-referee-and-hud">14. Glass Joe fight references: Mac, referee and HUD</h2>
+
+<p>The next recovery pass adds a <strong>Glass Joe fight reference · Little Mac / referee / HUD</strong> section inside <strong>Recovered content</strong>. Open the supported original or an existing recovered project, click <strong>Recovered content</strong>, then expand that section.</p>
+
+<ul>
+<li>Choose a <strong>Little Mac command</strong> and a <strong>Referee / speech command</strong>, then <strong>Preview pose composition</strong>. There are 98 Mac and 47 extended referee/speech command descriptors. These are source commands: some clear cells, draw a fragment or update a count/speech bubble. They are not all self-contained full poses.</li>
+<li>The default combines Mac command 0, referee command 144, and Glass Joe source pose 0. The opponent starts at the source configuration's opening position near the upper right; this is a setup/reference composition, not a simulated active fight. Full initial health, hearts, stars, score and clock come from the original HUD routines.</li>
+<li>Choose a <strong>Native player state</strong>, set <strong>Native updates</strong> (1–600), and use <strong>Trace player / referee state</strong>. The 23 available state entries produce bounded zero-input paths. Pick an <strong>Observed excerpt frame</strong> to inspect its duration, fine scroll and graphics-bank context. A state can wait for input or another game system; <code>update-limit</code> means the excerpt is bounded, not that every branch has been recovered.</li>
+<li><strong>Open selected fight reference</strong> adds the selected composition/frame as an ordinary Scene in one Undo transaction. Save Project As and reopen to preserve its native bitplanes, per-scanline tile/palette placement, separate opponent OAM and source metadata. This uses the existing raster representation; it does not turn the source into a screenshot overlay or a new animation schema.</li>
+<li><strong>Edit native arena layout</strong> returns to the existing native arena Scene and writer. Paint supported tiles/attributes there, build, then make a new reference to inspect the current encoded arena beneath the characters. Changing the reference copy's CHR, palette, sprites or background remains savable but blocks native builds because those fields have no reference encoder.</li>
+<li><strong>Open source Audio</strong> retains the original Audio library. Observed state sound requests remain source evidence; they do not become runtime bindings or native Audio edits automatically.</li>
+<li><strong>Browse all CHR banks</strong>, from a fight reference, first selects the source arena and then opens the existing raw bank browser. The reference's raster atlas and physical CHR banks remain separate views of source graphics.</li>
+</ul>
+
+<p>The implementation is additive: <code>re/punch-out-fight.js</code> supplies a bounded private CPU/PPU bus and source projection; <code>services/punch-out-fight-recovery.js</code> validates and prepares canonical additions; <code>re/punch-out-fight-ui.js</code> owns detached preview and guarded ProjectStore transactions. All 168 preceding application inputs remain byte-identical, in their original order.</p>
+
+<p>Why background commands? Punch-Out draws Little Mac and the referee through bank-11 nametable streams. Their placement, partial updates and CHR-bank changes are different from the opponents' sprite/metasprite system. Recovery keeps those differences. The projector retains 34 background fetches per scanline, including offscreen latch controls, and the source OAM order/scanline limit. Fine scrolling is represented by raster runs rather than flattened into an inaccurate 8×8 grid.</p>
+
+<p>Verification compares every catalogued command and each observed state update with the original routines through the actual emulator CPU/mapper/PPU bus. Representative compositions and fine-scroll frames also compare background and sprite composite pixels. These checks establish the declared source reference and projection; they do not establish original NMI transfer arbitration, a complete concurrent fight, cycle-accurate hardware behavior or native Mac/referee animation or Audio writers. Dedicated physical CHR/fight-palette writing is a separate path below.</p>
+
+<pre><code>node reviews/punch-out-fight-context-1/verify_fight.cjs /path/to/private-roms
+node reviews/punch-out-fight-context-1/verify_lifecycle.cjs /path/to/private-roms
+</code></pre>
+
+<p>Source ROMs, source-bearing projects and decoded screenshots stay outside the repository and review deliverables. Native writing of these reference copies and complete gameplay-context recovery remain separate work; dedicated physical art/color editing is described below.</p>
+
+<h2 id="general-15-dedicated-native-artwork-and-concurrent-playback">15. Dedicated native artwork and concurrent playback</h2>
+
+<p>The current combined candidate adds dedicated <strong>Native artwork · CHR banks and fight palettes</strong> editing and <strong>Open Glass Joe native replay</strong>. Read sections 13–15 of <code>projects/PUNCH_OUT.md</code> for the complete current steps, native ownership ranges, color-flag preservation, original-engine sequence, reversible knockdown/count/round experiments and adopted Retro Workstation controls. The earlier reference-copy limitations in this guide still apply to those copies; native writes belong to the dedicated physical art views.</p>
+
+<p><code>services/punch-out-art-project.js</code> registers physical CHR/color field ownership with NativeResourceProject. The source remains preserved, unknown fields remain protected and byte spans are disjoint from layout recipes. <code>services/punch-out-replay.js</code> uses the existing EmulatorBridge/Timeline, with real input, owned checkpoints and explicitly recorded temporary RAM seeds. It does not introduce a second CPU or enable MMC2 runtime Scene capture.</p>
+
+<p>The supplied Resources, Connected Workspace, metasprite context and Retro Workstation modules are now source-manifest inputs under <code>src/ui/</code>. Presentation preferences remain outside canonical projects. The full asset map, independent RE, code/hex paths, standalone application edits and separate authored-game workflow remain available alongside these title-specific extensions.</p>
+</section><section id="template"><p class="part">Template for the next title</p><h1 id="template-project-tutorial-template">Project tutorial template</h1>
+
+<p>Copy this structure for a newly supported title. Replace the instructions with actual observed steps and source-backed facts; do not publish an unfilled template as a verified title tutorial. The template is reusable for games with different methods. It does not prescribe a common game data format.</p>
+
+<h2 id="template-1-outcome-and-exact-input">1. Outcome and exact input</h2>
+
+<p>State one concrete learner outcome and the scope of the checkpoint. Record title, region/revision, byte length, source SHA-256, mapper/container, application SHA-256, source commit and relevant adapter IDs. List admitted derivatives separately. Explain how the learner obtains and keeps their own input. Do not embed source-bearing projects or game payloads in the tutorial.</p>
+
+<p>Name each deliverable: the standalone application HTML, project JSON, native rebuilt ROM, independent patch/notes, and any separate authored ROM. Explain what is preserved in each and how to reopen it. Record the exact tested browser/tool/runtime versions when they are known; do not infer them.</p>
+
+<h2 id="template-2-first-successful-edit">2. First successful edit</h2>
+
+<p>Give numbered steps from a fresh app, using actual button labels and selectors. Include the source area/page/state, coordinate convention, valid replacement ID, expected visual change, and any aliases it also changes. Identify a route or reproducible setup for seeing it in the original engine. If that route has not been verified, say so.</p>
+
+<p>Require the learner to check an unchanged native build first, then edit → Undo → Redo → Save Project As → reopen → build → reimport → inspect/play. Explain whether a reference image is derived from setup code, a bounded trace or actual live capture. Each result needs the right claim.</p>
+
+<h2 id="template-3-every-asset-and-its-owner">3. Every asset and its owner</h2>
+
+<p>Use a table with columns: domain, source format/ranges, runtime context, canonical record/editor, supported edits, native writer, evidence and gaps. Include at least:</p>
+
+<ul>
+<li>Background/sprite CHR, raw versus assembled views, graphics loads and bank selection.</li>
+<li>Tile/metatile placement, attributes, color palettes, scrolling and raster effects.</li>
+<li>Sprite placement/priority, metasprites, animations, duration units and state dependencies.</li>
+<li>Collision, actors/AI, behavior, hitboxes, entities, items and persistence.</li>
+<li>World layout, scene links, doors/entrances/exits, camera and travel rules.</li>
+<li>Menus, text, HUD, alternate states and transitions.</li>
+<li>Code, RAM, pointers, executable routines and source/disassembly distinctions.</li>
+<li>Music, SFX, instruments/envelopes, sample banks, request routing and event links.</li>
+</ul>
+
+<p>Use explicit statuses such as source inspection only, copied editable asset, supported native field, or unresolved. A blank cell cannot stand for support. Document the actual shared-write owner and all affected views.</p>
+
+<h2 id="template-4-source-format-lesson">4. Source format lesson</h2>
+
+<p>Show the relevant container and bank windows, a verified CPU-address-to-file-offset example, endianness and pointer base. Explain compression, termination, budgets, inherited state, clipping and aliases. Separate physical tile IDs from any projected atlas indices.</p>
+
+<p>Show the original loader's inputs and outputs. Explain how an independent comparison avoids reproducing the decoder's own mistake. Include a small synthetic codec exercise with no commercial asset bytes. Document fixed-capacity refusal, malformed input, unsupported state and conflicting-alias behavior.</p>
+
+<h2 id="template-5-visual-editing-recipes">5. Visual editing recipes</h2>
+
+<p>Write a separate worked recipe for each supported domain. Each needs prerequisites, actual control labels, an expected result, save/reopen, build path, original-engine check and failure recovery. Describe which tabs are populated on intake and which require an explicit materialization action. Never send a learner to an empty tab without explaining why.</p>
+
+<p>For a blocked domain, explain what can be inspected or saved, why native rebuilding refuses, and what decoder/writer work is still needed. Explain how to preserve that experiment separately and return to a native-buildable baseline.</p>
+
+<h2 id="template-6-audio-recipe">6. Audio recipe</h2>
+
+<p>Record the exact driver/profile, catalog counts by cue type, valid controls, default selection, source banks and request meaning. Give a native audition example and an editable-conversion example when available. Show the declared timing window, representability limits, import effect on order/tempo, Undo/Redo and reopening.</p>
+
+<p>Check Audio from the rebuilt native Scene output as well. Explain whether authored tracker changes have a native writer. A finite score or APU trace does not establish lossless music recovery, game event bindings or native Audio writing. Missing Audio remains an explicit open item under <code>reviews/PROJECT_VERIFICATION.md</code>.</p>
+
+<h2 id="template-7-independent-re-assembly-and-external-hex-work">7. Independent RE, assembly and external hex work</h2>
+
+<p>Give a workflow that does not require Forge automation: record identities, choose an external debugger/disassembler/toolchain, map the active bank, follow source consumers, form a hypothesis and compare its outputs. Refer to capabilities rather than recommending unverified tool versions.</p>
+
+<p>For a worked hex patch, record exact source hash, physical offset, expected original bytes, new bytes and every affected consumer. Write a new output, compare all changed ranges and test the original engine. Different code/palette/CHR edits may require new recognition; never disable identity checks merely to accept them.</p>
+
+<p>For code edits, explain entry/callers, CPU versus file addresses, reserved space, relocations, vectors, stack, RAM and timing. The CODE editor in a preserved native project is not an unrestricted native code injector. Disassembly is not automatically complete rebuildable assembly.</p>
+
+<h2 id="template-8-modify-the-app-and-produce-standalone-html">8. Modify the app and produce standalone HTML</h2>
+
+<p>List exact source modules and their contracts, public APIs, manifest order, HTML module markers and transaction boundaries. Explain how UI preview stays detached, how stale materialization is rejected, how Undo/Redo and save/reopen work, and how the writer restricts bytes.</p>
+
+<p>Provide deterministic bundle/check commands and a small worked application modification. Explain that direct HTML edits need to be ported back to modular source before regeneration. Verify the application contains no embedded private game/project data.</p>
+
+<h2 id="template-9-make-a-separate-standalone-game">9. Make a separate standalone game</h2>
+
+<p>Name the intended output: a rebuilt original-engine ROM, a newly authored Forge ROM, or a customized Forge HTML. They are separate exercises.</p>
+
+<p>For a new authored ROM, begin with a separate authored project; import only supported asset types, preserve stable IDs/references, select a supported build backend, and implement missing gameplay deliberately. List retained semantics and adaptations. Do not imply that deleting <code>nativeGame</code> converts an arbitrary imported game into an authored one. Validate the separate ROM in another emulator and explain the outstanding controller/hardware tests.</p>
+
+<h2 id="template-10-evidence-troubleshooting-and-learner-checklist">10. Evidence, troubleshooting and learner checklist</h2>
+
+<p>Link source files, commands, reports and owner acceptance. Record report identities and distinguish historical evidence from checks rerun for this checkpoint. Include likely symptoms, diagnosis and recovery. Add checks for malformed input, overflow, aliases, protected bytes, stale preview, one Undo transaction, persistence and retained features.</p>
+
+<p>End with the learner's concrete outputs and remaining work, including unrecovered domains and unsupported writers. Keep a change log of documentation scope. Update this chapter whenever the title's method changes; do not call its tutorial finished because the importer recognizes a filename.</p>
+</section><section id="metroid"><p class="part">Metroid room workflow</p><h1 id="metroid-metroid-focused-verification-checkpoint">Metroid — focused verification checkpoint</h1>
+
+<p>The recovered starting HTML is preserved. The earlier Mega Man implementation is retained. Work in this checkpoint is bounded to Metroid; the remaining batch stays queued until owner review.</p>
+
+<h2 id="metroid-what-changed">What changed</h2>
+
+<p>Metroid (U), exact source SHA-256 <code>c5eea06e1e1128b576bd789f1a4f63bb154d6d31579c2f319382fb77a72d34a6</code>, now imports 193 source room slots across five areas, backed by 191 physical room records. Rooms display assembled backgrounds using native structures, initial area graphics, original tile placement and native palette attributes. These are source-table slots, not a reconstructed world itinerary.</p>
+
+<p>The renderer retains blank tile 255, native structure-row offsets and clipping, and ordered attribute updates. A structure using the room's default palette leaves previous overlapping attribute bits intact. All 193 slots have source-backed initial background graphics; none use a raw CHR sheet as their room layout.</p>
+
+<p>The Scene tab exposes <strong>NATIVE ROOM STRUCTURES</strong>. Replace an existing room object's structure while retaining that object's position, palette and place in the draw order. The recipe changes only the object's original structure-index byte. Source records shared by two room slots remain one owner. A replacement may change the visible footprint, collision behavior or accessibility through the native engine; the editor does not prove that the resulting room is playable.</p>
+
+<p>The existing canonical Scene/ProjectStore/history/native-build workflow remains authoritative. No second editable stage store is introduced. Ordinary projects remain schema 12; portable native-resource projects remain schema 16. Readers without this adapter reject it rather than drop the recipe.</p>
+
+<h2 id="metroid-try-this-first">Try this first</h2>
+
+<ol>
+<li>Open <code>NES_Forge.html</code> in a desktop browser. Choose <strong>Open ROM / project</strong>, select your original <strong>Metroid (U).nes</strong>, choose <strong>Prepare recovered resources (partial)</strong>, then <strong>Import as new project</strong>.</li>
+<li>In <strong>Area library → Investigated source</strong>, choose an area and source room; open its recovered page in <strong>Scene</strong>. Inspect Brinstar, Norfair, Tourian, Kraid hideout and Ridley hideout separately.</li>
+<li>In <strong>NATIVE ROOM STRUCTURES</strong>, choose an existing object. Its label shows the native 16-pixel X/Y position, current structure index and palette. Choose another native structure ID and click <strong>Replace selected structure</strong>. This control replaces a whole structure, not a single tile.</li>
+<li>Confirm the visible change. Undo and Redo. Use <strong>Save Project As</strong>, reopen the saved project, then <strong>Build &amp; Run</strong>. Also download the rebuilt ROM for an external emulator check.</li>
+<li>Reimport the rebuilt ROM. Confirm the intended room edit remains. Verify the actual affected room in gameplay; opening the source page does not demonstrate a safe route to it.</li>
+<li>Try an unsupported ordinary Scene/CHR edit. It must remain savable and block native output until undone. Native structure replacement is the supported edit for this checkpoint.</li>
+</ol>
+
+<h2 id="metroid-verification-and-limits">Verification and limits</h2>
+
+<p><code>Metroid_Verification.json</code> records five passing verification groups, including every original room's tile and attribute RAM against the original 6502 loaders, all five initial graphics/palette states, intake, Undo/Redo, save/reopen, rebuilding, reimport, aliases and rejection guards. The supported example edit changes one byte. The original 6502 loader also reproduces all rooms from that edited ROM.</p>
+
+<p><code>targeted-gate/Summary.json</code> records the focused compatibility run against the exact final HTML hash. The earlier full gate was intentionally stopped at 63 suites / 1,393 checks before Metroid integration. Those partial results are historical and do not certify this build. A fresh full release regression run is not claimed.</p>
+
+<p>Real browser appearance, file downloads, controllers, mobile touch, listening and full gameplay traversal require owner/device acceptance. Background room recovery and structure substitution are partial support. World-map placement and travel, menus, actors, items, doors, collision-rule editing, animation, dynamic palette states, native Audio writing and complete behavior recovery remain unfinished. No title in the 17-title batch is complete.</p>
+
+<h2 id="metroid-metroid-audio-update">Metroid Audio update</h2>
+
+<p>The AUDIO / ROM Audio Library now offers 12 music cues, 24 SFX and one reset control. It restores automatically from the original source when a recovered Metroid project is opened or reopened. See <code>METROID_AUDIO.md</code> for steps, revision limits and the distinction between a tracker excerpt and original-engine audio.</p>
+
+<h2 id="metroid-source-and-continuation">Source and continuation</h2>
+
+<p><code>Developer/Current_Source.zip</code> contains every current bundle input, the deterministic bundler, a standalone built HTML, focused tests and verification scripts. Extract it, run <code>python3 app/tools/bundle.py --check</code>, and run <code>node app/tests/native-metroid-resources.cjs</code>. Private native-loader verification additionally requires the owner's original ROM directory via <code>FORGE_CORPUS_DIR</code>.</p>
+
+<p>The source archive is a current rebuildable snapshot; historical Git objects and the complete historical regression fixtures remain in the recovered full repository. <code>Developer/Recovery_2_Source.patch</code> is a supplementary patch against recovered baseline <code>7c66042c8dde8621f042581421a584bfd959e6ea</code>.</p>
+
+<p>The original tutorial, documentation and earlier evidence remain included in the documented kit. Review Metroid first; do not start Lolo or another title until the owner selects the next project.</p>
+</section><section id="metroid-audio"><p class="part">Metroid Audio workflow</p><h1 id="metroid-audio-metroid-audio">Metroid Audio</h1>
+
+<p>Open the original Metroid (U) ROM through <strong>Open ROM / project → Open source Audio catalog</strong>, or prepare/import its recovered project and switch to <strong>AUDIO → ROM Audio Library</strong>. Opening or reopening the recovered project restores the Audio source automatically. Brinstar is selected first.</p>
+
+<ol>
+<li>Choose one of 12 music cues or 24 SFX in <strong>Native audio cue</strong>. The additional Silence/reset entry is a control, so playback/conversion is disabled for it.</li>
+<li>Choose <strong>Inspect cue</strong>, then browse Native commands, volume envelopes and source locations. Music has 41 physical channel streams across six banks. Procedural SFX have handler/request evidence; their timed notes come from execution.</li>
+<li>Choose <strong>Play native</strong> to audition the original driver for 1–1024 updates. Title/ending music uses bank 0; area music uses its declared bank. Playback uses cleared driver RAM, original startup random seeds $11/$FF and one native random-number update each frame. This repeatable context is not a gameplay recording. Stop ends the preview.</li>
+<li>Choose <strong>Preview editable score</strong>, review the differences, then <strong>Import into tracker</strong> and confirm. This appends a finite excerpt and replaces the music order/tempo for music imports. Use <strong>Tracker</strong> to edit; one Undo restores the previous project. Save Project As preserves the adaptation. Single-channel SFX import requires a short, representable selection; other effects can be previewed as music excerpts.</li>
+</ol>
+
+<p>The installed profile matches the supplied US revision, SHA-256 <code>c5eea06e1e1128b576bd789f1a4f63bb154d6d31579c2f319382fb77a72d34a6</code>. Different revisions, hacks and rebuilt ROMs with changed bytes do not silently reuse this profile. A recovered project's preserved original ROM remains the catalog source after room edits.</p>
+
+<p>Native playback executes the original driver through Forge's shared CPU/APU. Static tables are decoded from the current source, with bounded stream walking and explicit music-end/loop boundaries. Human cue names and request routing follow the reviewed Metroid disassembly. Source reference: nmikstas/metroid-disassembly revision 4270d57, banks 01/07, B3B4/BBFA/BD31/BADC/BB1C and C000.</p>
+
+<p><strong>Tracker import is a frame-sampled adaptation.</strong> It preserves neither original engine commands nor sub-frame articulation. Nearest-pitch tuning, envelope adaptation, finite-window cuts and unsupported short-noise/DPCM are disclosed in the preview. It does not import whole song loop structure or gameplay triggers.</p>
+
+<p><strong>Audio writing back into the original Metroid ROM remains unsupported.</strong> If a tracker adaptation changes a native room project's Audio, native output must refuse it until undone. Keep an adaptation in a separate saved project if continuing native room edits. Native structure replacement remains the supported ROM writer.</p>
+
+<p>Verification: <code>Metroid_Audio_Public_Tests.json</code> uses independent synthetic fixtures. <code>Metroid_Audio_Verification.json</code> records all 36 playable supplied-ROM cues, high-bit-first SFX dispatch, source guards, source restoration, preview/import and Undo/Redo. <code>audio-gate/Summary.json</code> records the focused shared compatibility suites. No full release regression or listening/hardware equivalence is claimed. Browser checks are explicitly blocked because this runtime has no Chromium executable; desktop/mobile controls still need owner acceptance.</p>
+
+<p>Reproduction: <code>python3 app/tools/bundle.py --check</code>, then <code>node app/tests/metroid-audio.cjs</code>. Supplied-input checks: <code>node reviews/native-resource-recovery-2/verify_metroid_audio.cjs /path/to/Metroid.nes /path/to/report.json</code>. No ROM, extracted music or sample payload is included in this kit or the source checkpoint.</p>
+</section><section id="lolo"><p class="part">Lolo room acceptance</p><h1 id="lolo-lolo-owner-acceptance">Lolo owner acceptance</h1>
+
+<p>Automated results do not check these boxes.</p>
+
+<ul>
+<li>[ ] Import the exact original Lolo ROM and open an assembled source room.</li>
+<li>[ ] Inspect rooms 1, 25, 41 and 50, including the lava palette states.</li>
+<li>[ ] Replace room 1's boulder at column 2, row 2 with Floor.</li>
+<li>[ ] Check canvas brush and keyboard/select controls.</li>
+<li>[ ] Undo, Redo, Save Project As, close and reopen.</li>
+<li>[ ] Build, download and reimport; confirm the intended source room edit.</li>
+<li>[ ] Verify the modified room in actual gameplay or another emulator.</li>
+<li>[ ] Open distant rooms and return; retain earlier native recipes.</li>
+<li>[ ] Confirm player/enemy/chest/border/setting cells refuse terrain edits.</li>
+<li>[ ] Confirm an over-capacity edit refuses atomically.</li>
+<li>[ ] Confirm unsupported ordinary CHR edits remain saved and block native output.</li>
+<li>[ ] Record failures by source room, row, column, selected code and action.</li>
+</ul>
+
+<p>Audio follow-up: use ../lolo-audio-1/Owner_Checklist.md for the installed Lolo catalog and current Scene + Audio verification. Moving sprites, menus, animation, live HUD and full gameplay traversal remain separate work. The next title waits for owner selection.</p>
+</section><section id="lolo-audio"><p class="part">Lolo Audio acceptance</p><h1 id="lolo-audio-lolo-scene-audio-acceptance">Lolo Scene + Audio acceptance</h1>
+
+<p>Automated checks do not check these owner boxes.</p>
+
+<ul>
+<li>[ ] Open the updated app; import your exact original Lolo ROM or reopen your saved native Lolo project.</li>
+<li>[ ] Confirm the assembled rooms still look correct.</li>
+<li>[ ] Audio → ROM Audio Library shows Adventures of Lolo, 34 cues and Music 01 selected.</li>
+<li>[ ] Inspect a music cue, play it, stop it and listen for glitches; repeat with SFX.</li>
+<li>[ ] Preview/import music; check tracker rows, Undo/Redo and Save Project As/reopen.</li>
+<li>[ ] Try SFX 01 as Single-channel SFX using 16 native updates.</li>
+<li>[ ] Confirm tracker audio edits are preserved but native builds refuse without an audio encoder. Undo the import to resume native room rebuilding.</li>
+<li>[ ] Edit room 1's boulder at column 2, row 2 to Floor; save/reopen, build and open the derivative ROM. Confirm Audio still finds all 34 cues.</li>
+<li>[ ] Play the edited room and its music in gameplay or another emulator.</li>
+<li>[ ] Report source filename/hash, cue, frame window, action and browser for any failure.</li>
+</ul>
+
+<p>Every next project must check Audio using ../PROJECT_VERIFICATION.md before closing its verification checkpoint. Missing drivers stay explicitly open.</p>
+</section><section id="river-city"><p class="part">River City Scene and Audio acceptance</p><h1 id="river-city-river-city-owner-acceptance">River City owner acceptance</h1>
+
+<p>Automated checks do not check these boxes.</p>
+
+<ul>
+<li>[ ] Open the updated app and import your exact original River City Ransom ROM.</li>
+<li>[ ] Inspect street locations 0, 7, 21 and 32 through Area library. The view is a 20-row crop of the native background, with original CHR/palette state.</li>
+<li>[ ] Confirm an interior/special location reports unavailable instead of showing a substituted street or CHR sheet.</li>
+<li>[ ] Replace a native tile using the row/column controls; repeat with the canvas brush. Check shared aliases in another segment.</li>
+<li>[ ] Undo/Redo, Save Project As, close/reopen, build and reimport.</li>
+<li>[ ] Play the edited street in the native engine or another emulator; check the intended visual change and its native aliases.</li>
+<li>[ ] Audio → ROM Audio Library shows 63 entries and defaults to Music 02.</li>
+<li>[ ] Inspect, play and stop several music/SFX selections; listen for glitches or timing problems.</li>
+<li>[ ] Preview/import music, Undo/Redo and save/reopen the tracker rows.</li>
+<li>[ ] Try SFX 20 using 16 native updates and Single-channel SFX.</li>
+<li>[ ] Verify tracker edits are preserved but native Audio writing refuses. Undo the Audio import before building a street edit.</li>
+<li>[ ] Rebuild a street edit and reopen that ROM; confirm its Audio catalog and native playback remain available.</li>
+<li>[ ] Report source hash, location/segment, cell, cue/window, action and browser with any issue.</li>
+</ul>
+
+<p>The remaining 22 special/interior locations and other unrecovered domains remain open. Review this checkpoint before selecting another title. Audio is mandatory for each project's verification; see ../PROJECT_VERIFICATION.md.</p>
+</section><section id="shadowgate"><p class="part">Shadowgate picture and Audio acceptance</p><h1 id="shadowgate-shadowgate-owner-review">Shadowgate owner review</h1>
+
+<p>Extract NF6.zip into a short folder such as C:\NF6. Open NF/START<em>HERE.html, then this kit's NES</em>Forge.html. Use your own original Shadowgate ROM.</p>
+
+<ul>
+<li>[ ] Import as recovered resources. Area library → Investigated source lists 130 picture slots. Confirm representative pictures, including 0, 75, 76 and 129. Only the 112×112 crop belongs to the resource; objects/doors and room-state overlays remain unresolved.</li>
+<li>[ ] Select an original native tile ID, replace a cell, Undo/Redo, Save Project As, reopen, Build &amp; Run, and reimport the output. Confirm the edited picture and unchanged surrounding native behavior. The legacy source header remains unchanged.</li>
+<li>[ ] Open Audio → ROM Audio Library immediately after import and again after reopening. Confirm 35 entries and the installed Shadowgate driver. Request 13 is selected initially.</li>
+<li>[ ] Inspect and listen to representative music requests and SFX. Request 24 must remain inspectable with playback/conversion disabled because its standalone header is invalid. Automated PCM/register checks do not replace this listening step.</li>
+<li>[ ] Preview editable music, review the listed adaptation losses, import, Undo/Redo, save/reopen and audition the tracker. For a short single-channel effect try request 21 with 16 updates and Single-channel SFX.</li>
+<li>[ ] Confirm native building refuses after importing editable Audio; Undo the import to resume native picture rebuilding. No native Audio encoder is available.</li>
+<li>[ ] Rebuild a native picture edit and confirm the Audio driver/catalog still loads and auditions from the rebuilt file.</li>
+<li>[ ] Record browser, OS, controller/touch and full-game findings separately. No automated report establishes these acceptances.</li>
+</ul>
+
+<p>Open domains: alternate room/palette states, object/door overlays, UI/text, puzzle logic and interactions, animation, full gameplay and native Audio writing.</p>
+</section><section id="verification"><p class="part">Per-title verification requirements</p><h1 id="verification-per-project-recovery-verification">Per-project recovery verification</h1>
+
+<p>Owner requirement, 2026-10-23: check the audio driver for every project as part of verification. A correct Scene alone does not close a project checkpoint.</p>
+
+<p>For each supplied title and revision, record the exact source identity and the current app hash. Keep separate results for Scene and Audio. Missing or unsupported audio remains an explicit open item; do not silently mark that project verified or move to the next title without reporting it.</p>
+
+<ul>
+<li>[ ] Scene: assembled native placement, graphics and palettes match the source.</li>
+<li>[ ] Scene lifecycle: edit, Undo/Redo, save/reopen, native build and derivative reimport.</li>
+<li>[ ] Audio detection: the exact source has an installed driver/catalog, or an explicit unresolved result with a reason.</li>
+<li>[ ] Audio inventory: music/SFX cue identities, physical banks, channels and instrument/sample evidence are checked against actual bytes; names are not guessed.</li>
+<li>[ ] Audio native execution: every available cue produces bounded native APU activity; check representative music and SFX by listening in the owner browser. Automated PCM checks do not replace listening.</li>
+<li>[ ] Audio workflow: Audio tab loads the catalog directly after project import and after save/reopen; cue inspection and native preview work.</li>
+<li>[ ] Editable Audio: where available, preview/import representative music and SFX through Undo/Redo and save/reopen; report adaptation losses and conversion refusals explicitly.</li>
+<li>[ ] Combined preservation: a native Scene edit/rebuild retains audio bytes and driver detection. When derivatives are supported, prove their audio identity independently of a filename or original full-ROM hash.</li>
+<li>[ ] Audio writing: report whether edited scores can be encoded into the original native driver. A canonical excerpt alone is not native audio writing; unsupported native builds must refuse.</li>
+<li>[ ] Retained compatibility: existing importers, Audio and project persistence keep their checks. Report the tested scope and any outstanding browser, controller or gameplay checks.</li>
+</ul>
+
+<p>A missing decoder blocks an Audio pass. Existing unsupported audio writers and other partial domains must be disclosed. Whole-game recovery remains separate from bounded Scene and Audio verification.</p>
+
+<h2 id="verification-per-title-tutorial-requirement">Per-title tutorial requirement</h2>
+
+<p>Owner requirement, 2026-10-24: each imported/supported title needs instructions for its own methods, alongside the general NES Forge tutorial. Use <code>app/docs/projects/PROJECT_TUTORIAL_TEMPLATE.md</code> and the current <code>PUNCH_OUT.md</code> lesson. Older guides awaiting expansion are listed in <code>app/docs/projects/README.md</code>; their inclusion does not establish a new acceptance pass.</p>
+
+<ul>
+<li>[ ] Exact input/application identities and a reproducible supported edit with actual control labels.</li>
+<li>[ ] Per-domain asset inventory, source ownership, native writer scope and explicit gaps.</li>
+<li>[ ] Format lesson: bank mapping, pointers, compression, raster context, aliases and capacity.</li>
+<li>[ ] Independent RE, assembly and external hex workflows, plus source/HTML module connections.</li>
+<li>[ ] Separate native rebuilt-ROM, authored-game and customized standalone-HTML outcomes.</li>
+<li>[ ] Audio steps, Undo/Redo, save/reopen, native rebuild/reimport and original-engine checks.</li>
+<li>[ ] Reproduction commands and clearly separated automated evidence and learner/device acceptance.</li>
+</ul>
+
+<p>Update the title lesson in the same checkpoint that changes its method. A tutorial can be complete for a bounded supported workflow while unrecovered domains stay open; importing a ROM is not whole-game recovery.</p>
+</section><section id="synthetic"><p class="part">Runnable synthetic exercise</p><h1>Synthetic codec source</h1><p>Save this as <code>native-codec-exercise.cjs</code> and run <code>node native-codec-exercise.cjs</code>. This is an invented 48-byte teaching format, not an NES ROM or a Punch-Out decoder.</p><pre><code>&#x27;use strict&#x27;;
+// Synthetic teaching format, authored for this tutorial. This is NOT an NES
+// game decoder or evidence that any commercial title is supported.
+const assert = require(&#x27;node:assert/strict&#x27;);
+
+// File layout: 16-byte header, 16-byte RLE storage, 16 protected sentinel bytes.
+// Header [0..3] identifies this format; [4..5] is a little-endian data pointer.
+// Each stream pair is [count, tile], with count=0 terminating the stream.
+const DATA = 16, CAPACITY = 16, CELLS = 8;
+function decode(rom) {
+  assert.equal(rom.length, 48);
+  assert.deepEqual([...rom.slice(0, 4)], [0x4e, 0x46, 0x45, 1]);
+  const start = rom[4] | rom[5] &lt;&lt; 8;
+  assert.equal(start, DATA);
+  const cells = [];
+  let ended = false;
+  for (let p = start; p &lt; DATA + CAPACITY;) {
+    const count = rom[p++];
+    if (!count) { ended = true; break; }
+    assert(p &lt; DATA + CAPACITY, &#x27;Missing RLE operand&#x27;);
+    const tile = rom[p++];
+    assert(cells.length + count &lt;= CELLS, &#x27;RLE overrun&#x27;);
+    cells.push(...Array(count).fill(tile));
+  }
+  assert(ended &amp;&amp; cells.length === CELLS, &#x27;Missing terminator or incomplete room&#x27;);
+  return {width: 4, height: 2, cells};
+}
+function encode(source, room) {
+  decode(source); // Validate the source before deriving a new candidate.
+  assert.equal(room.cells.length, CELLS);
+  assert(room.cells.every(n =&gt; Number.isInteger(n) &amp;&amp; n &gt;= 0 &amp;&amp; n &lt;= 255));
+  const stream = [];
+  for (let i = 0; i &lt; CELLS;) {
+    let count = 1;
+    while (i + count &lt; CELLS &amp;&amp; room.cells[i + count] === room.cells[i]) count++;
+    stream.push(count, room.cells[i]);
+    i += count;
+  }
+  stream.push(0);
+  assert(stream.length &lt;= CAPACITY, &#x27;Fixed native storage capacity exceeded&#x27;);
+  const candidate = source.slice();
+  candidate.set(stream, DATA); // Do not rewrite the header or protected bytes.
+  assert.deepEqual(decode(candidate).cells, room.cells);
+  for (let i = 0; i &lt; source.length; i++) {
+    if (i &lt; DATA || i &gt;= DATA + CAPACITY) assert.equal(candidate[i], source[i]);
+  }
+  return candidate;
+}
+function exercise() {
+  const source = new Uint8Array(48).fill(0xaa);
+  source.set([0x4e, 0x46, 0x45, 1, DATA, 0], 0);
+  source.fill(0, DATA, DATA + CAPACITY);
+  source.set([4, 1, 4, 2, 0], DATA);
+  const frozen = source.slice();
+  const room = decode(source);
+  assert.deepEqual(room.cells, [1, 1, 1, 1, 2, 2, 2, 2]);
+  room.cells[1] = 3;
+  const built = encode(source, room);
+  assert.deepEqual(decode(built), room);
+  assert.deepEqual(source, frozen, &#x27;The source must remain unchanged&#x27;);
+  const saved = JSON.stringify({source: [...source], room});
+  const reopened = JSON.parse(saved);
+  assert.deepEqual(encode(Uint8Array.from(reopened.source), reopened.room), built);
+  assert.deepEqual(encode(built, decode(built)), built, &#x27;Unchanged derivative is byte-identical&#x27;);
+  assert.throws(() =&gt; encode(source, {cells: [0, 1, 2, 3, 4, 5, 6, 7]}), /capacity/);
+  const invalid = source.slice(); invalid[4] = 47;
+  assert.throws(() =&gt; decode(invalid));
+  console.log(&#x27;Synthetic codec exercise passed: decode, edit, encode, reopen, re-import, bounds, protected bytes.&#x27;);
+}
+if (require.main === module) exercise();
+module.exports = {decode, encode, exercise};
+</code></pre></section></main></body></html>
