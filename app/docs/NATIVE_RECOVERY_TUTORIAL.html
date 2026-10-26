@@ -1,44 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge Developer and Asset Workflows</title><style>body{margin:0;background:#f5f7fa;color:#172238;font:17px/1.65 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:36px 28px 80px}h1,h2,h3{line-height:1.25;scroll-margin-top:24px}h1{font-size:2.25rem}h2{margin-top:2.2em;padding-top:1em;border-top:1px solid #ccd5e1}a{color:#124d9a}table{border-collapse:collapse;display:block;overflow-x:auto;width:100%;font-size:.9rem;margin:1.4em 0}th,td{border:1px solid #bbc8d8;padding:10px;vertical-align:top;text-align:left}th{background:#e3ebf5}pre{overflow:auto;background:#132136;color:#eaf3ff;padding:18px;border-radius:8px;line-height:1.45}code{font-family:ui-monospace,monospace;font-size:.9em}p code,li code,td code{background:#e5ebf3;padding:1px 4px;border-radius:3px}nav{border:1px solid #bdcddd;background:#fff;padding:20px;border-radius:8px;margin:28px 0}nav ul{padding-left:24px}.meta{font-size:.9rem;color:#53647a}@media(max-width:650px){main{padding:22px 16px}body{font-size:16px}h1{font-size:1.8rem}}@media print{body{background:white;font-size:10pt}main{max-width:none;padding:0}nav{display:none}pre{white-space:pre-wrap;background:#f1f3f6;color:#172238}table{display:table;font-size:8pt}h2,h3{break-after:avoid}tr,pre{break-inside:avoid}}</style></head><body><main><p class="meta">Developer reference · Connected native workflows / modular Retro Workstation</p><nav aria-label="Contents"><strong>Contents</strong><ul>
-  <li><a href="#nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</a>
-  <ul>
-    <li><a href="#1-choose-an-entry-point">1. Choose an entry point</a></li>
-    <li><a href="#2-understand-the-three-representations">2. Understand the three representations</a></li>
-    <li><a href="#3-complete-asset-map">3. Complete asset map</a></li>
-    <li><a href="#4-visual-asset-editing-end-to-end">4. Visual asset editing, end to end</a>
-    <ul>
-      <li><a href="#backgrounds-tiles-and-palettes">Backgrounds, tiles and palettes</a></li>
-      <li><a href="#sprites-metasprites-and-animation">Sprites, metasprites and animation</a></li>
-      <li><a href="#worlds-collision-actors-and-interactions">Worlds, collision, actors and interactions</a></li>
-      <li><a href="#audio">Audio</a></li>
-    </ul></li>
-    <li><a href="#5-manual-re-workflow">5. Manual RE workflow</a></li>
-    <li><a href="#6-worked-native-codec-lesson">6. Worked native codec lesson</a></li>
-    <li><a href="#7-installing-another-decoder-or-encoder">7. Installing another decoder or encoder</a></li>
-    <li><a href="#8-writing-6502-code-yourself">8. Writing 6502 code yourself</a></li>
-    <li><a href="#9-hex-editing-yourself">9. Hex editing yourself</a></li>
-    <li><a href="#10-editing-the-standalone-html-or-modular-source">10. Editing the standalone HTML or modular source</a>
-    <ul>
-      <li><a href="#edit-the-html-directly">Edit the HTML directly</a></li>
-      <li><a href="#edit-modular-source">Edit modular source</a></li>
-      <li><a href="#source-navigation">Source navigation</a></li>
-    </ul></li>
-    <li><a href="#11-prove-the-workflow-not-just-the-helper">11. Prove the workflow, not just the helper</a>
-    <ul>
-      <li><a href="#current-verification-commands">Current verification commands</a></li>
-    </ul></li>
-    <li><a href="#12-debugging-and-extending-the-project">12. Debugging and extending the project</a></li>
-    <li><a href="#13-concrete-asset-edits-from-javascript-or-html">13. Concrete asset edits from JavaScript or HTML</a></li>
-    <li><a href="#14-glass-joe-fight-references-mac-referee-and-hud">14. Glass Joe fight references: Mac, referee and HUD</a></li>
-    <li><a href="#15-dedicated-native-artwork-and-concurrent-playback">15. Dedicated native artwork and concurrent playback</a>
-    <ul>
-      <li><a href="#native-glass-joe-full-pose-position-extension">Native Glass Joe full-pose position extension</a></li>
-      <li><a href="#native-idle-and-incremental-position-extension">Native idle and incremental position extension</a></li>
-      <li><a href="#pose-and-chr-navigation">Pose and CHR navigation</a></li>
-    </ul></li>
-  </ul></li>
-</ul>
-</nav><h1 id="nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</h1>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge Developer and Asset Workflows</title><style>body{margin:0;background:#f5f7fa;color:#172238;font:17px/1.65 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:36px 28px 80px}h1,h2,h3{line-height:1.25;scroll-margin-top:24px}h1{font-size:2.25rem}h2{margin-top:2.2em;padding-top:1em;border-top:1px solid #ccd5e1}a{color:#124d9a}table{border-collapse:collapse;display:block;overflow-x:auto;width:100%;font-size:.9rem;margin:1.4em 0}th,td{border:1px solid #bbc8d8;padding:10px;vertical-align:top;text-align:left}th{background:#e3ebf5}pre{overflow:auto;background:#132136;color:#eaf3ff;padding:18px;border-radius:8px;line-height:1.45}code{font-family:ui-monospace,monospace;font-size:.9em}p code,li code,td code{background:#e5ebf3;padding:1px 4px;border-radius:3px}nav{border:1px solid #bdcddd;background:#fff;padding:20px;border-radius:8px;margin:28px 0}nav ul{padding-left:24px}.meta{font-size:.9rem;color:#53647a}@media(max-width:650px){main{padding:22px 16px}body{font-size:16px}h1{font-size:1.8rem}}@media print{body{background:white;font-size:10pt}main{max-width:none;padding:0}nav{display:none}pre{white-space:pre-wrap;background:#f1f3f6;color:#172238}table{display:table;font-size:8pt}h2,h3{break-after:avoid}tr,pre{break-inside:avoid}}</style></head><body><main><h1 id="nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</h1><p class="meta">Developer reference · Connected native workflows / modular Retro Workstation</p><nav aria-label="Developer guide contents"><strong>Contents</strong><ul><li><a href="#1-choose-an-entry-point">1. Choose an entry point</a></li><li><a href="#2-understand-the-three-representations">2. Understand the three representations</a></li><li><a href="#3-complete-asset-map">3. Complete asset map</a></li><li><a href="#4-visual-asset-editing-end-to-end">4. Visual asset editing, end to end</a></li><li><a href="#5-manual-re-workflow">5. Manual RE workflow</a></li><li><a href="#6-worked-native-codec-lesson">6. Worked native codec lesson</a></li><li><a href="#7-installing-another-decoder-or-encoder">7. Installing another decoder or encoder</a></li><li><a href="#8-writing-6502-code-yourself">8. Writing 6502 code yourself</a></li><li><a href="#9-hex-editing-yourself">9. Hex editing yourself</a></li><li><a href="#10-editing-the-standalone-html-or-modular-source">10. Editing the standalone HTML or modular source</a></li><li><a href="#11-prove-the-workflow-not-just-the-helper">11. Prove the workflow, not just the helper</a></li><li><a href="#12-debugging-and-extending-the-project">12. Debugging and extending the project</a></li><li><a href="#13-concrete-asset-edits-from-javascript-or-html">13. Concrete asset edits from JavaScript or HTML</a></li><li><a href="#14-glass-joe-fight-references-mac-referee-and-hud">14. Glass Joe fight references: Mac, referee and HUD</a></li><li><a href="#15-dedicated-native-artwork-and-concurrent-playback">15. Dedicated native artwork and concurrent playback</a></li><li><a href="#16-save-and-restore-editor-context-without-changing-the-game">16. Save and restore editor context without changing the game</a></li></ul></nav>
 
 <p>This guide describes the current source checkpoint, using Punch-Out as a worked recovery example. It is intended for people who want to use the visual editors, investigate an unknown ROM, write an adapter, write 6502 code, patch bytes independently, or modify NES Forge itself. Game recognition is optional for general inspection. Each game's editable native output depends on the encoders actually installed for that revision.</p>
 
@@ -907,4 +868,37 @@ node reviews/punch-out-fight-context-1/verify_lifecycle.cjs /path/to/private-rom
 <p>The native pose picker is expanded above the source-reference preview in Recovered content. The native position panel links to <strong>View pose sprite tiles</strong> and <strong>Edit native sprite artwork</strong>. Entering CHR Sheet with an owned pose Scene selects its sprite buffer; the sheet's contextual strip also exposes the source-verified physical bank and a return to position editing. Opening a dedicated physical CHR view selects its background buffer, which is the registered pixel writer. A deliberate bank toggle still works in the current sheet.</p>
 
 <p>The reference sprite buffer and the physical writer remain separate existing assets. Navigation does not copy pixels, replace snapshots, re-sign unsupported work, patch source or create an alternate encoder. <code>PunchOutPoseProject.describe</code> returns the verified <code>chrBank4KiB</code> for UI routing. Existing native validation still runs before a physical view can be added/selected; copied-reference pixel changes refuse native building and cannot be adopted as a new baseline by following the shortcut. See the Punch-Out handbook's section 17 for the click-by-click path and save/build/reimport exercise.</p>
+
+<h2 id="16-save-and-restore-editor-context-without-changing-the-game">16. Save and restore editor context without changing the game</h2>
+
+<p>Portable <strong>Save Project As</strong>, browser project saves, recovery and Export's <code>project.json</code> include optional browsing preferences. A fresh open can return to the same Metasprite and piece, core editor tab, selected World, CHR buffer/tile and used-pose view. The active Scene and selected pose remain independent when their declared source references differ. Choosing another World in the editor does not change <code>worldRuntime.worldId</code> or its spawn.</p>
+
+<p>For independent JSON or HTML work, the additional metadata has this shape:</p>
+
+<pre><code>{
+  "editorView": {
+    "version": 1,
+    "worldId": "an-existing-world-id",
+    "metaspriteId": "an-existing-pose-id",
+    "pieceId": "a-piece-in-that-pose",
+    "tab": "chr",
+    "chrUsage": "pose"
+  }
+}
+</code></pre>
+
+<p>These are existing asset IDs and a few bounded view values, not new asset records. <code>chrUsage</code> is <code>pose</code> or <code>whole</code>; <code>tab</code> must name an available core editor. Existing top-level <code>activeScene</code>, <code>chrBank</code> and tile/Animation selections retain their current formats. A deliberately empty <code>metaspriteId</code> preserves an unselected composer. A stale or invalid ID does not bind a different Scene or regenerate assets. With no valid saved pose, a unique pose using the active Scene can be selected; several matches produce an explicit choice, and no matching pose leaves the composer unselected.</p>
+
+<p><code>ProjectStore.capture({includeEditorView:true})</code> includes this block for saves. Default <code>capture()</code> / <code>serialize()</code> and <code>authoringData()</code> keep the existing build/authoring boundaries; the latter removes view metadata. Native signatures, source bytes, encoder spans and raw recipe hashing rules are unchanged. Ordinary projects remain schema 12; existing native formats and the reader ceiling of 16 stay intact. An older reader may discard optional browsing preferences safely. Unknown future preference versions can retain the old World hint but do not introduce new navigation rules.</p>
+
+<p>The implementation uses the existing owners:</p>
+
+<ul>
+<li><code>services/editor-view.js</code> reads a whitelist of bounded hints, captures current UI IDs and restores them through the existing Metasprite/World/CHR editors. It owns no asset store, encoder or persistent database.</li>
+<li><code>services/project-store.js</code> owns save/load/history and includes the block only at explicit save boundaries. Validation of canonical project data still runs before UI state is touched.</li>
+<li><code>legacy/13-metasprites.js</code> exposes <code>restoreSelection</code> for UI IDs and an explicit chooser when fallback would be ambiguous. It adds no pieces, Scene OAM or source references.</li>
+<li><code>re/punch-out-pose-ui.js</code> can resolve a native CHR return shortcut from the restored canonical pose, instead of requiring a previous click history in the same document.</li>
+</ul>
+
+<p>To change this behavior in the standalone HTML, save a copy and locate those module comments. To maintain source, edit their files under <code>app/src</code>, rebuild the native/root and hosted outputs, and check them. Do not put view preferences into a native projection signature or refresh copied source pixels merely to align a preview. Verify fresh-document reopening, intentional mismatches, old/malformed hints, Undo/Redo, all save transports and byte-identical output. Optional metadata does not save emulator RAM, resume playback or establish a recovered runtime binding.</p>
 </main></body></html>

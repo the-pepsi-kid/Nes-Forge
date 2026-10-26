@@ -49,7 +49,7 @@ function capture(options={}){
     importedRom:S.importedRom?bytesToBase64(S.importedRom):null,
     ...(S.nativeGame?{nativeGame:cp(S.nativeGame)}:{}),
     ...(S.investigation?{investigation:cp(S.investigation)}:{}),
-    ...(options.includeEditorView===true&&S.worlds[Forge161.worlds.state.selected]?{editorView:{worldId:S.worlds[Forge161.worlds.state.selected].id}}:{}),
+    ...(options.includeEditorView===true?{editorView:Forge.services.EditorView?.capture()||{worldId:S.worlds[Forge161.worlds.state.selected]?.id}}:{}),
     selTile:S.selTile,editTile:S.editTile,selSprite:S.selSprite,selEntity:S.selEntity,chrBank:S.chrBank,
     _selAnim:S._selAnim||0,_animFrame:S._animFrame||0,gameplay:Forge165.config.get(),worldRuntime:Forge.services.WorldConfig.get(),audioRuntime:Forge.services.AudioConfig.get(),gameplayCore:cp(S.gameplayCore||Forge.services.GameplayModel.defaults())});
 }
@@ -141,7 +141,7 @@ function prepareLoad(input){
   // normalizeWorld preserves numeric unresolved IDs and target strings. Unlike
   // the old loader, no reconcileWorld call may replace unresolved cells by -1.
   const worlds=(d.worlds||[]).map(w=>Forge161.worlds.normalize({...w,tilesetSceneId:w.tilesetSceneId||scenes[0].id}));
-  const prepared={data:d,scenes,active,rom,chrBanks:rom&&!Forge.services.ROMProject?.matches(d)?romChrBanks(rom):[],patterns,instruments,sfx,animations,metasprites:cp(frames),worlds,gameplay:cp(gameplay),worldRuntime:cp(worldRuntime),audioRuntime:Forge.services.AudioConfig.normalize(audioRuntime),gameplayCore:cp(gameplayCore)};
+  const prepared={data:d,editorView:Forge.services.EditorView?.read(d.editorView)||null,scenes,active,rom,chrBanks:rom&&!Forge.services.ROMProject?.matches(d)?romChrBanks(rom):[],patterns,instruments,sfx,animations,metasprites:cp(frames),worlds,gameplay:cp(gameplay),worldRuntime:cp(worldRuntime),audioRuntime:Forge.services.AudioConfig.normalize(audioRuntime),gameplayCore:cp(gameplayCore)};
   preparedLoads.add(prepared);return prepared;
 }
 function refresh(){
@@ -158,7 +158,7 @@ function refresh(){
 }
 function commit(prepared,options={}){
   if(!preparedLoads.has(prepared))fail('ProjectStore.commit requires a prepared project');
-  const p=prepared,d=p.data,external=!options.history&&!options.sync,priorWorldId=S.worlds[Forge161.worlds.state.selected]?.id;
+  const p=prepared,d=p.data,external=!options.history&&!options.sync,priorWorldId=S.worlds[Forge161.worlds.state.selected]?.id,priorView=!external&&options.replace!==true?Forge.services.EditorView?.capture():null;
   if(external||options.replace===true){
     emuPause();aud_stop();anim_stopPreview();emu.loaded=false;window._lastBuiltRom=null;disasm_output='';disasm_asmText='';
     if(external){undoStack.length=0;redoStack.length=0;undoBytes=0;}S.projectId=null;
@@ -182,12 +182,13 @@ function commit(prepared,options={}){
   const w=Forge161.worlds.state;
   // Optional browsing state is not gameplay ownership or runtime start. Older
   // readers may discard it; absent, malformed or stale IDs use the old default.
-  const viewId=d.editorView&&typeof d.editorView==='object'&&!Array.isArray(d.editorView)&&typeof d.editorView.worldId==='string'?d.editorView.worldId:null;
+  const viewId=p.editorView?.worldId||null;
   const selectedId=viewId||(!external?priorWorldId:null);
   w.selected=Math.max(0,S.worlds.findIndex(world=>world.id===selectedId));w.panX=w.panY=0;
   $('undoBtn').disabled=!undoStack.length;
   if(external){Forge15.dirty=false;status('Loaded project');}
-  refresh();Forge.services.InvestigationUI?.projectChanged();return true;
+  if(Forge.services.EditorView)Forge.services.EditorView.restore(p.editorView,priorView,refresh);else refresh();
+  Forge.services.InvestigationUI?.projectChanged();return true;
 }
 function load(input,options={}){return Store.commit(Store.prepareLoad(input),options);}
 // Bounded canonical edits are not project replacement. Only private preparers

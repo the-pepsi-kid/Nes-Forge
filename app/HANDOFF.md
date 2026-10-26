@@ -1,4 +1,21 @@
-## Current: connected pose, Resources and native graphics workflow
+## Current: workspace resume and connected native resources
+
+Read `../reviews/workspace-resume-1/HANDOFF.md`, Punch-Out section 20 and developer
+guide section 16. Optional save preferences restore the selected pose/piece, core
+editor tab, World and CHR view. Independent contexts survive reopening. Older or
+stale hints select a unique matching pose or show an explicit choice; no unrelated
+first boxer is silently chosen. Native CHR can return to the restored pose in a
+fresh document. Save/load/history remain owned by ProjectStore.
+
+Default authoring/build captures exclude this metadata. Native signatures,
+encoders/spans, runtime/recipe algorithms and schemas are unchanged. Both outputs
+share 188 inputs plus eleven opt-in hosted extensions (199 total). Fresh report
+hashes and bounded compatibility/browser checks are in the handoff. Current native
+workflows, Retro Workstation, Resources, original Pepsi artifacts and concurrent
+design documents are retained. Main merge, tags and public deployment remain
+separate decisions.
+
+## Previous: connected pose, Resources and native graphics workflow
 
 Read `../reviews/connected-resource-workflow-1/HANDOFF.md` and Punch-Out tutorial
 section 19. Resources follows the actual selected pose/clip/tile; supported native

@@ -64,6 +64,17 @@
     }
     return metadata;
   }
+  // Reopening can restore a canonical native pose without any prior navigation
+  // in this document. Derive its return route from the actual selected pose;
+  // the short-lived shortcut receipt remains a fallback for independent browsing.
+  function returnPosition(scene) {
+    const art=scene?.captureMeta?.punchOutArt;
+    if(art?.kind!=='chr')return null;
+    const frame=active(),origin=services.ResourceContext.native(S.scenes.find(sc=>sc.id===frame?.sceneId));
+    if(origin?.role==='pose-snapshot'&&origin.source.sha256===art.sourceSha256&&origin.bank===art.index)
+      return {sourceSha256:origin.source.sha256,selector:origin.selector,bank:origin.bank};
+    return returnPose?.sourceSha256===art.sourceSha256&&returnPose.bank===art.index?returnPose:null;
+  }
   function refreshChrContext() {
     const scene = S.scenes[S.activeScene], marker = poseMarker(scene), art = scene?.captureMeta?.punchOutArt;
     const physical = art?.kind === 'chr';
@@ -82,7 +93,7 @@
     try {
       const value = marker ? poseMetadata(scene) : null;
       if (marker && !value) throw Error('The native pose frame is missing. Reopen its native pose shortcut.');
-      const back = physical && returnPose?.sourceSha256 === art.sourceSha256 && returnPose.bank === art.index;
+      const back = physical && returnPosition(scene);
       chrTiles.hidden = chrArtwork.hidden = !value;
       chrPose.hidden = !value && !back;
       chrArtwork.disabled = !value;
@@ -120,7 +131,9 @@
   chrArtwork.onclick = safeNavigation(() => editArtwork(poseMetadata(S.scenes[S.activeScene])?.frameId), chrInfo);
   chrPose.onclick = safeNavigation(() => {
     const marker = poseMarker(S.scenes[S.activeScene]);
-    openPose(marker ? marker.selector : returnPose.selector);
+    const back=marker||returnPosition(S.scenes[S.activeScene]);
+    if(!back)throw Error('Select a matching native pose to open its position view.');
+    openPose(back.selector);
   }, chrInfo);
   for (const button of [tiles, artwork, chrTiles, chrArtwork, chrPose]) button.type = 'button';
   const previousRender = render;

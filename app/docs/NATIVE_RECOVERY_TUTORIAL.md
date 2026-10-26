@@ -414,3 +414,34 @@ Derivative recognition adds exactly ten physical operand bytes; it does not wide
 The native pose picker is expanded above the source-reference preview in Recovered content. The native position panel links to **View pose sprite tiles** and **Edit native sprite artwork**. Entering CHR Sheet with an owned pose Scene selects its sprite buffer; the sheet's contextual strip also exposes the source-verified physical bank and a return to position editing. Opening a dedicated physical CHR view selects its background buffer, which is the registered pixel writer. A deliberate bank toggle still works in the current sheet.
 
 The reference sprite buffer and the physical writer remain separate existing assets. Navigation does not copy pixels, replace snapshots, re-sign unsupported work, patch source or create an alternate encoder. `PunchOutPoseProject.describe` returns the verified `chrBank4KiB` for UI routing. Existing native validation still runs before a physical view can be added/selected; copied-reference pixel changes refuse native building and cannot be adopted as a new baseline by following the shortcut. See the Punch-Out handbook's section 17 for the click-by-click path and save/build/reimport exercise.
+## 16. Save and restore editor context without changing the game
+
+Portable **Save Project As**, browser project saves, recovery and Export's `project.json` include optional browsing preferences. A fresh open can return to the same Metasprite and piece, core editor tab, selected World, CHR buffer/tile and used-pose view. The active Scene and selected pose remain independent when their declared source references differ. Choosing another World in the editor does not change `worldRuntime.worldId` or its spawn.
+
+For independent JSON or HTML work, the additional metadata has this shape:
+
+```json
+{
+  "editorView": {
+    "version": 1,
+    "worldId": "an-existing-world-id",
+    "metaspriteId": "an-existing-pose-id",
+    "pieceId": "a-piece-in-that-pose",
+    "tab": "chr",
+    "chrUsage": "pose"
+  }
+}
+```
+
+These are existing asset IDs and a few bounded view values, not new asset records. `chrUsage` is `pose` or `whole`; `tab` must name an available core editor. Existing top-level `activeScene`, `chrBank` and tile/Animation selections retain their current formats. A deliberately empty `metaspriteId` preserves an unselected composer. A stale or invalid ID does not bind a different Scene or regenerate assets. With no valid saved pose, a unique pose using the active Scene can be selected; several matches produce an explicit choice, and no matching pose leaves the composer unselected.
+
+`ProjectStore.capture({includeEditorView:true})` includes this block for saves. Default `capture()` / `serialize()` and `authoringData()` keep the existing build/authoring boundaries; the latter removes view metadata. Native signatures, source bytes, encoder spans and raw recipe hashing rules are unchanged. Ordinary projects remain schema 12; existing native formats and the reader ceiling of 16 stay intact. An older reader may discard optional browsing preferences safely. Unknown future preference versions can retain the old World hint but do not introduce new navigation rules.
+
+The implementation uses the existing owners:
+
+- `services/editor-view.js` reads a whitelist of bounded hints, captures current UI IDs and restores them through the existing Metasprite/World/CHR editors. It owns no asset store, encoder or persistent database.
+- `services/project-store.js` owns save/load/history and includes the block only at explicit save boundaries. Validation of canonical project data still runs before UI state is touched.
+- `legacy/13-metasprites.js` exposes `restoreSelection` for UI IDs and an explicit chooser when fallback would be ambiguous. It adds no pieces, Scene OAM or source references.
+- `re/punch-out-pose-ui.js` can resolve a native CHR return shortcut from the restored canonical pose, instead of requiring a previous click history in the same document.
+
+To change this behavior in the standalone HTML, save a copy and locate those module comments. To maintain source, edit their files under `app/src`, rebuild the native/root and hosted outputs, and check them. Do not put view preferences into a native projection signature or refresh copied source pixels merely to align a preview. Verify fresh-document reopening, intentional mismatches, old/malformed hints, Undo/Redo, all save transports and byte-identical output. Optional metadata does not save emulator RAM, resume playback or establish a recovered runtime binding.

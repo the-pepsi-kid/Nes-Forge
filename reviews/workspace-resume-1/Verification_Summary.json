@@ -1,0 +1,56 @@
+{
+  "status": "passed",
+  "nativeHtmlSha256": "3c8e8ec1ab2b44a986fc9af7c47cae6f891d7bf6c6a1439af6add7bf7182a379",
+  "hostedHtmlSha256": "3dc5a5a68e63556f1b50b964434bd18a32c15b95f255f35aa84f8c850872f70a",
+  "checks": {
+    "resumeDom": {
+      "passed": 22,
+      "total": 22
+    },
+    "connectedWorkflowDom": {
+      "passed": 20,
+      "total": 20
+    },
+    "capabilitiesDom": {
+      "passed": 12,
+      "total": 12
+    },
+    "resumeBrowser": {
+      "passed": 36,
+      "total": 36,
+      "revisions": 2
+    },
+    "startupNative": {
+      "passed": 10,
+      "total": 10
+    },
+    "publicNative": {
+      "passed": 104,
+      "total": 104,
+      "suites": 9
+    },
+    "startupHosted": {
+      "passed": 10,
+      "total": 10
+    },
+    "publicHosted": {
+      "passed": 104,
+      "total": 104,
+      "suites": 9
+    },
+    "hostedAcceptance": {
+      "passed": 114,
+      "total": 114,
+      "suites": 10
+    }
+  },
+  "sourceConvergence": "Source_Convergence.json",
+  "documentation": "Documentation_Verification.json",
+  "scope": "Optional UI resume only; native code/encoder spans, AssetRegistry, BuildGraph, runtime/recipe algorithms and schemas unchanged. Fresh document, preceding reader, independent contexts, runtime start, actual project download/open, isolated browser storage and explicit recovery are covered.",
+  "limits": [
+    "DOM canvas/layout/timers and Save As transport are stubbed in the DOM probe.",
+    "Actual Chromium uses the explicit download fallback with native OS picker disabled. Initial ROM intake uses the existing factory.",
+    "No full-fight, listening/controller/hardware or exhaustive native-use acceptance.",
+    "Hosted gameplay fidelity and public deployment remain separate work."
+  ]
+}
