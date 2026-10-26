@@ -194,7 +194,7 @@ const exportButton=document.querySelector('button[onclick="exportAll()"]');if(ex
 const controls=document.createElement('section');controls.id='chrPreviewControls';
 controls.innerHTML=`<label for="chrPreviewMode">Color preview</label><select id="chrPreviewMode"><option value="scene">Scene colors (auto)</option><option value="manual">Selected palette</option><option value="indices">Pixel values (grayscale)</option></select><div id="chrAppearanceRow"><label for="chrAppearance">Tile appearance</label><select id="chrAppearance"></select></div><div id="chrManualStateRow"><label for="chrManualState">Captured palette state</label><select id="chrManualState"></select></div><div id="chrPreviewInfo"></div><p id="chrPreviewHint">The sheet and editor use the same colors. Changing a preview does not recolor the scene. Pencil buttons edit the actual palette.</p>`;
 $('sideChr').insertBefore(controls,$('chrBankBrowser').nextSibling);
-let mode='scene',manualState=0,usageIndex=new Map(),indexScene=null,indexBank='',selectedContext=null;
+let mode='scene',manualState=0,usageIndex=new Map(),indexScene=null,indexBank='',selectedContext=null,poseUsageActive=false;
 const preferred=new Map();
 function scene(){return forgeCapture.liveScene();}
 function contextKey(ctx){return [ctx.set,ctx.pal,ctx.gray?1:0].join(':');}
@@ -202,6 +202,9 @@ function preferenceKey(ti){return [S.scenes[S.activeScene]?.id,S.chrBank,ti].joi
 function manualPal(){return clamp(S.chrBank==='spr'?S.selSprPal:S.selPal,0,3);}
 function putManualPal(value){if(S.chrBank==='spr')S.selSprPal=value;else S.selPal=value;}
 function palette(ctx,sc=scene(),bank=S.chrBank){
+  // A selected pose can read this sheet through Metasprite pieces even when
+  // Scene OAM is empty. Its palette is display context, not another native writer.
+  if(ctx.poseColors)return ctx.poseColors.slice();
   const row=bank==='spr'?sc.sprPal:sc.pal,r=sc.raster;
   const bytes=ctx.set>0?r?.palettes?.[ctx.set]:null,off=(bank==='spr'?16:0)+ctx.pal*4;
   return Array.from({length:4},(_,i)=>{
@@ -215,6 +218,12 @@ function buildIndex(){
   function add(ti,pal,set,gray,count,y){
     let group=usageIndex.get(ti);if(!group){group=new Map();usageIndex.set(ti,group);}
     const key=[set,pal,gray?1:0].join(':');let c=group.get(key);if(!c){c={pal,set,gray:!!gray,count:0,firstY:y,key};group.set(key,c);}c.count+=count;
+  }
+  const pose=window.Forge?.services?.ResourceContext?.chrUsage();poseUsageActive=!!pose;
+  if(pose){
+    for(const use of pose.uses)add(use.tile,use.pal,0,false,64,use.displayHalf*8);
+    for(const [ti,group]of usageIndex)usageIndex.set(ti,Array.from(group.values()).map(c=>({...c,poseId:pose.frame.id,poseColors:Array.from(pose.paletteScene?.sprPal?.[c.pal]||[15,0,16,48]),transparent:true})).sort((a,b)=>b.count-a.count||a.pal-b.pal));
+    return;
   }
   if(S.chrBank==='spr'){
     for(const spr of S.oam){if(!spr.active)continue;const height=spr.height===16?16:8;
@@ -243,7 +252,7 @@ function resolve(ti){
 }
 function pixelRGB(ci,x,y,context,colors){
   if(mode==='indices')return [ci*85,ci*85,ci*85];
-  if(S.chrBank==='spr'&&ci===0){const c=(x+y)%2?38:57;return [c,c,c];}
+  if((S.chrBank==='spr'||context.transparent)&&ci===0){const c=(x+y)%2?38:57;return [c,c,c];}
   return NP[colors[ci]]||NP[15];
 }
 function drawPreview(ctx,tile,context,ox,oy,scale,grid=false){
@@ -253,21 +262,21 @@ function drawPreview(ctx,tile,context,ox,oy,scale,grid=false){
     if(grid){ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.strokeRect(ox+x*scale+.5,oy+y*scale+.5,scale-1,scale-1);}
   }
 }
-function contextLabel(c){return (S.chrBank==='spr'?'SP':'P')+c.pal+' · state '+c.set+(c.gray?' · grayscale':'');}
+function contextLabel(c){return (S.chrBank==='spr'||c.poseId?'SP':'P')+c.pal+' · state '+c.set+(c.gray?' · grayscale':'');}
 function updateControls(context){
   $('chrPreviewMode').value=mode;const list=appearances(S.editTile),sel=$('chrAppearance');sel.innerHTML='';
-  for(const c of list){const o=document.createElement('option');o.value=c.key;o.textContent=contextLabel(c)+' · '+c.count.toLocaleString()+' source px';o.selected=c.key===contextKey(context);sel.appendChild(o);}
+  for(const c of list){const o=document.createElement('option');o.value=c.key;o.textContent=contextLabel(c)+' · '+c.count.toLocaleString()+(poseUsageActive?' source pixel positions in pose pieces':' source px');o.selected=c.key===contextKey(context);sel.appendChild(o);}
   $('chrAppearanceRow').style.display=mode==='scene'&&list.length>1?'block':'none';
   const r=S.scenes[S.activeScene]?.raster,states=$('chrManualState');states.innerHTML='';
   for(let i=0;i<(r?.palettes?.length||1);i++){const o=document.createElement('option');o.value=i;o.textContent='State '+i+(r?' · first Y='+r.linePal.indexOf(i):'');o.selected=i===context.set;states.appendChild(o);}
   $('chrManualStateRow').style.display=mode==='manual'&&(r?.palettes?.length||0)>1?'block':'none';
-  $('chrPreviewInfo').textContent=mode==='indices'?'Raw pixel values 0–3. Palette-independent; no usage tint.':(mode==='manual'?'Preview: ':list.length?'Scene use: ':'Unused tile preview: ')+contextLabel(context)+(mode==='scene'&&list.length>1?' · '+list.length+' appearances; choose above':'')+(S.chrBank==='spr'?' · index 0 is transparent':'');
+  $('chrPreviewInfo').textContent=mode==='indices'?'Raw pixel values 0–3. Palette-independent; no usage tint.':(mode==='manual'?'Preview: ':list.length?(context.poseId?'Pose use: ':'Scene use: '):'No use recorded in this view: ')+contextLabel(context)+(mode==='scene'&&list.length>1?' · '+list.length+' appearances; choose above':'')+(S.chrBank==='spr'?' · index 0 is transparent':'');
 }
 function chooseManual(pal,set=selectedContext?.set||0,pix){
   mode='manual';manualState=set;putManualPal(clamp(pal,0,3));if(pix!==undefined)S.selPixColor=pix;render();
 }
 function editorSwatch(pi,i,context,previewRow=false){
-  const c={...context,pal:pi},colors=palette(c),sw=document.createElement('div');sw.className='ps'+(pi===context.pal&&i===S.selPixColor?' sel':'');
+  const c={...context,pal:pi};if(c.poseId){const u=window.Forge.services.ResourceContext.chrUsage();c.poseColors=Array.from(u?.paletteScene?.sprPal?.[pi]||[15,0,16,48]);}const colors=palette(c),sw=document.createElement('div');sw.className='ps'+(pi===context.pal&&i===S.selPixColor?' sel':'');
   sw.dataset.palette=pi;sw.dataset.color=i;
   const rgb=mode==='indices'&&!previewRow?[i*85,i*85,i*85]:NP[colors[i]]||NP[15];sw.style.background='rgb('+rgb.join(',')+')';
   sw.title=(S.chrBank==='spr'&&i===0?'Transparent index 0':'Pixel index '+i)+' · '+hex(colors[i]);
@@ -276,6 +285,7 @@ function editorSwatch(pi,i,context,previewRow=false){
 }
 function palettePencil(context,pi){
   const button=document.createElement('button');button.type='button';button.className='pal-edit';button.textContent='✎';button.disabled=mode==='indices';
+  if(context.poseId&&S.chrBank==='bg'){button.disabled=true;button.title='Pose colors are read-only display context. Open the native fight palette writer to edit exported colors.';return button;}
   button.title='Edit actual '+contextLabel({...context,pal:pi})+' color '+S.selPixColor+' (changes every use of this palette slot)';
   button.onclick=()=>openPicker(pi,S.selPixColor,button,S.chrBank==='spr',context.set);return button;
 }
@@ -295,7 +305,7 @@ updateCHREditor=function(){
 renderCHR=function(){
   updateChrBankBrowser();const tiles=activeChr();S.editTile=clamp(S.editTile,0,tiles.length-1);buildIndex();
   const page=Math.floor(S.editTile/256);cv.width=cv.height=384;cx.imageSmoothingEnabled=false;cx.fillStyle='#0c0c10';cx.fillRect(0,0,384,384);
-  for(let j=0;j<256;j++){const i=page*256+j,tile=tiles[i],x=(j%16)*24,y=(j>>4)*24;if(tile)drawPreview(cx,tile,resolve(i),x,y,3);}
+  for(let j=0;j<256;j++){const i=page*256+j,tile=tiles[i],x=(j%16)*24,y=(j>>4)*24;if(tile&&(!window.forgeCHR?.usageOnly||!poseUsageActive||usageIndex.has(i)))drawPreview(cx,tile,resolve(i),x,y,3);}
   cx.strokeStyle='rgba(100,160,190,0.15)';cx.lineWidth=1;for(let i=0;i<=16;i++){cx.beginPath();cx.moveTo(i*24,0);cx.lineTo(i*24,384);cx.stroke();cx.beginPath();cx.moveTo(0,i*24);cx.lineTo(384,i*24);cx.stroke();}
   const selected=S.editTile%256;cx.strokeStyle='#5ad4ff';cx.lineWidth=2;cx.strokeRect((selected%16)*24+1,(selected>>4)*24+1,22,22);
   const panel=$('captureChrPages');panel.style.display=tiles.length>256?'block':'none';const select=$('captureChrPage');select.innerHTML='';
@@ -306,7 +316,7 @@ window.chooseCaptureChrPage=function(n){const page=clamp(n,0,Math.ceil(activeChr
 document.addEventListener('mousedown',e=>{
   if(e.target!==cv||S.tab!=='chr')return;e.preventDefault();e.stopImmediatePropagation();
   const p=canvasPoint(cv,e,128,128);if(p.x<0||p.y<0||p.x>=128||p.y>=128)return;
-  const ti=Math.floor(S.editTile/256)*256+(p.y>>3)*16+(p.x>>3);if(ti<activeChr().length){S.editTile=S.selTile=ti;render();}
+  const ti=Math.floor(S.editTile/256)*256+(p.y>>3)*16+(p.x>>3);if(ti<activeChr().length&&(!window.forgeCHR?.usageOnly||!poseUsageActive||usageIndex.has(ti))){S.editTile=S.selTile=ti;render();}
 },true);
 $('chrPreviewMode').onchange=function(){mode=this.value;if(mode==='manual'&&selectedContext){manualState=selectedContext.set;putManualPal(selectedContext.pal);}render();};
 $('chrAppearance').onchange=function(){preferred.set(preferenceKey(S.editTile),this.value);render();};
@@ -315,6 +325,8 @@ const oldLoadScene=loadSceneData;loadSceneData=function(i){oldLoadScene(i);manua
 const oldBank=setChrBank;setChrBank=function(bank){indexScene=null;findLastTile=-1;oldBank(bank);};
 // Find-in-scene used to search BG even while editing sprite CHR.
 const oldFind=findTileInScene;findTileInScene=function(){
+  const pose=window.Forge?.services?.ResourceContext?.chrUsage();
+  if(pose){const uses=pose.uses.filter(use=>use.tile===S.editTile);$('findMiniScene').getContext('2d').clearRect(0,0,256,240);$('findTileHex').textContent=hex(S.editTile).slice(1);$('findResults').textContent=uses.length+' selected pose piece use(s). See the pose tile context for palettes and flips; Scene OAM is separate.';findLastTile=S.editTile;return;}
   if(S.chrBank!=='spr')return oldFind();
   const sc=scene(),image=forgeCapture.scenePixels(sc,true).rgba,used=new Uint8Array(256*240);let count=0;
   for(const s of S.oam){if(!s.active)continue;const h=s.height===16?16:8;let matched=false;
@@ -326,9 +338,9 @@ const oldFind=findTileInScene;findTileInScene=function(){
   $('findMiniScene').getContext('2d').putImageData(new ImageData(image,256,240),0,0);$('findTileHex').textContent=hex(S.editTile).slice(1);$('findResults').textContent=count+' active sprite placement(s) use this tile';findLastTile=S.editTile;
 };
 // Keep usage counts numerical instead of tinting the tile's artwork.
-const oldStats=updateStats;updateStats=function(){oldStats();if(S.tab!=='chr')return;const top=Array.from(usageIndex,([ti,cs])=>[ti,cs.reduce((n,c)=>n+c.count,0)]).sort((a,b)=>b[1]-a[1]).slice(0,10);$('chrUsageStats').innerHTML='<h3>Top used '+(S.chrBank==='spr'?'sprite':'background')+' assets</h3>'+top.map(([i,n])=>'<div class="st"><span>'+hex(i)+'</span><span class="v">'+n.toLocaleString()+' source px</span></div>').join('');if($('findAutoTrack').checked)findTileInScene();};
+const oldStats=updateStats;updateStats=function(){oldStats();if(S.tab!=='chr')return;const top=Array.from(usageIndex,([ti,cs])=>[ti,cs.reduce((n,c)=>n+c.count,0)]).sort((a,b)=>b[1]-a[1]).slice(0,10);$('chrUsageStats').innerHTML='<h3>Top used '+(S.chrBank==='spr'?'sprite':'background')+' assets</h3>'+top.map(([i,n])=>'<div class="st"><span>'+hex(i)+'</span><span class="v">'+(poseUsageActive?(n/64).toLocaleString()+' piece references':n.toLocaleString()+' source px')+'</span></div>').join('');if($('findAutoTrack').checked)findTileInScene();};
 const oldDocs=renderDocs;renderDocs=function(){oldDocs();const section=document.createElement('section');section.innerHTML='<h2>1.4.3 — Save As &amp; CHR colors</h2><p>Export, Save Project As, Build .NES ROM and assembly download share one Save As flow. Supported secure browser contexts open the system picker from a direct click. In blocked/unsupported previews the app offers an explicit browser-download fallback and explains the browser-controlled destination. Cancelling never starts a fallback download. “Saved” appears only after the writable file is closed successfully. Browser database Save/Load remains separate.</p><p>CHR Sheet defaults to Scene colors (auto), selecting the most-used palette appearance for each native tile. Sheet, selected pixel editor and swatches use one palette resolver, including captured raster palette states. A tile can have multiple legitimate appearances; the appearance dropdown selects among them. Choosing a palette row switches to Selected palette mode for a uniform sheet preview. Pixel values mode displays raw 0–3 indices in grayscale. Usage counts no longer tint artwork. Preview changes do not modify assets. Pencil controls edit the real palette slot and support Undo.</p><p>Native sprite tiles are shown unflipped; transparent index 0 is checkerboard. Find in Scene searches active OAM when Sprite Bank is selected. Existing 1.4.2 project JSON/ZIP captures open without recapture; CPU, PPU, audio, scheduling and capture validation are unchanged.</p>';document.querySelector('#sideDocs .doc').prepend(section);};
-window.forgeCHR={resolve,palette,buildIndex,appearances,drawPreview,get mode(){return mode;},get context(){return selectedContext;}};
+window.forgeCHR={usageOnly:false,resolve,palette,buildIndex,appearances,drawPreview,get mode(){return mode;},get context(){return selectedContext;}};
 document.querySelector('h1').innerHTML='NES FORGE <small style="color:var(--grn)">1.4.4 SAVE CONTEXT FIX</small>';
 document.title='NES Forge 1.4.3 — Save As & CHR Colors';
 render();

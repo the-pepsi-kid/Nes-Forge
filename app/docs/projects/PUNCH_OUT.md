@@ -392,3 +392,65 @@ The pose/art shortcuts show the picker without adding a Scene or silently choosi
 The generated **Build Scene Set**, **Include first 7**, Scene Build/Order and ROM configuration controls are unavailable in native projects. Native output follows preserved source bindings and registered writers; marking a source view as included is not a native edit. In original NES Forge projects, generated packed builds still use the seven-Scene selection. World output follows saved World/player dependencies, and unpacked custom assembly uses active CHR buffers.
 
 Native animation/AI/collision and native Audio writing remain separate work. The capability page changes navigation and guidance; it adds no new native writer. Independent RE, assembly, external hex edits and direct HTML/source modifications remain available through the general developer guide.
+
+## 19. Follow a pose, its tiles, and the shared native writers
+
+A physical CHR bank is a collection of indexed pixel patterns. It is not a character folder. Glass Joe and Don Flamenco use physical bank **29** in observed source contexts. Seeing Don Flamenco artwork in that whole bank is expected. It does not establish that every tile belongs to both boxers or that every pixel change affects both.
+
+### What each resource represents
+
+| Resource | Canonical owner / source | What editing it does |
+|---|---|---|
+| Selected pose | `S.metasprites`, owned by the existing Metasprite editor and ProjectStore | Stores piece tile IDs, palette IDs, flips, priority and positions. Only supported Glass Joe whole-pose positions have native writeback here. |
+| Pose-source Scene | Explicit `frame.sceneId`; copied `sprChr` and `sprPal` | Supplies the pose's reference pixels and colors. Direct unsupported pixel/color changes remain savable but block native building. |
+| Pose tile footprint | Read-only projection of the selected pose's pieces | Shows tile IDs, piece references, palette and flips, including both halves of an 8×16 piece. It adds no Scene OAM. |
+| Whole bank | All 256 tile slots in the current Scene buffer | Exposes the complete indexed sheet. The whole bank can include artwork outside the selected pose or character. |
+| Physical CHR write owner | Existing dedicated `punchOutArt` Scene, kind `chr` | Its **BG** CHR buffer writes the selected 4096-byte native bank. Shared uses of those bytes change together. |
+| Fight palette write owner | Existing dedicated `punchOutArt` Scene, kind `palette` | Writes one native fight palette table through its existing codec. Some original game phases override table colors. |
+| Source identity | Existing native receipt and investigation SHA-256 | Identifies the preserved ROM. A source relationship alone does not certify a native encoder or a build. |
+| Known native consumers | Bounded execution of original full-pose shape records | Reports observed references to a bank/tile. It does not add characters, poses or animations to the project. |
+| ROM bank chooser | Existing independent browser over imported raw banks | Merely selecting a bank does not change the displayed Scene buffer. The arrow buttons explicitly copy pixels into BG or Sprite buffers. |
+| Audio library | Existing title-specific source decoder and canonical authored Audio | Available independently. A pose has no invented song binding. Native Audio writing remains separate. |
+
+### Inspect, edit and verify through the visual workflow
+
+1. Open the supported ROM or saved native project. Use **Native tools → Glass Joe pose positions**, choose **incremental $C0 · idle**, and open the position view. The native controls still handle whole-pose X/Y.
+2. Click either **Resources** entry while in **Metasprites**. Resources selects the actual pose even if the active Scene is independently browsing another source. Its isolated preview uses the existing canonical pose renderer: piece order, palette IDs, horizontal/vertical flips and transparent pixels. Background priority needs a background to judge in game.
+3. Inspect the pose's dependencies. Its source Scene, sprite CHR, sprite palettes, preserved source identity, physical CHR bank and fight palette writer are distinct links. Source-receipt edges are labeled. Browsing these links adds no assets. **Follow selection across editors** remains an explicit option; selecting a pose with Follow on selects that exact pose and its source Scene.
+4. Choose **Used pose tiles** in Resources, or **View pose sprite tiles** in the pose controls. In CHR, set **Tile view → Used by selected pose**. `$C0` contains **52 pieces and 38 distinct tile IDs**. Unreferenced slots are masked while their original grid indices stay fixed. **Whole bank / Scene buffer** restores the full sheet. These view controls do not change pixels or build bytes.
+5. Select a used tile. **Pose use** supplies its actual palette context instead of claiming it is unused because Scene OAM is empty. The sheet and pixel editor retain unflipped source indices. The small appearance canvases show recorded palette, H/V flips, priority and, for 8×16 pieces, the displayed top/bottom half. A tile can have several appearances. Changing the preview is separate from changing palette data.
+6. Choose **Inspect known native uses of this tile**. For bank 29, tile `$08` has observed Glass Joe full-pose consumers; tile `$53` (83) has Don Flamenco first-fight/rematch consumers; `$FF` has observed consumers from all three configurations. A reference can point to a blank or transparent pattern. The current source inventory decodes **367 initial-mode full poses**, with **176 needing other context**. Incremental states, alternate banking contexts, backgrounds and hidden uses are not exhaustively covered. No observed consumer means **unknown beyond this coverage**, not safe or unused.
+7. Choose **Edit native CHR bank 29**. This explicitly opens the registered physical writer; if needed, its dedicated Scene is added in one ordinary Undo transaction. The writer uses the BG buffer even for sprite art. The selected pose's tile footprint remains available when the physical source matches. Its appearance previews now read **current physical pixels with the selected pose's snapshot colors**. The pose-source Scene keeps its copied art.
+8. Paint a pixel in the ordinary pixel editor. Inspect known consumers before changing additional tiles. Undo and Redo, then Build & Run or export. Native output changes only within that physical bank's owned bytes. Use **Edit native fight palette** for exported fight colors; a physical-bank display palette is not a native color-table edit.
+9. Return to the native pose view and apply the grouped idle X=-12 example from section 17. Build again. Position operands and physical art writes compose through their existing separate byte spans. Save Project As, reopen in a fresh document, build and compare the generated bytes. An earlier source snapshot is not silently refreshed or accepted as a new baseline.
+10. Verify the exported game in the original engine and another emulator: enter Glass Joe's fight, inspect idle movement and edited art, then inspect other observed consumers of the changed tile. Check the relevant fight palettes and Audio. Browser/DOM checks and a binary diff do not replace a full fight, listening, controller or hardware acceptance pass.
+
+### Work independently with code, hex or the standalone HTML
+
+Native CHR file offsets include the 16-byte iNES header. For the supported layout:
+
+```text
+bank start = $20010 + physical_bank * $1000
+tile start = bank start + tile_id * 16
+low bitplane row = tile start + row       (row 0..7)
+high bitplane row = tile start + row + 8
+```
+
+Bank 29 therefore starts at **`$3D010`**. These are file offsets, distinct from editor BG `$0000` / Sprite `$1000` labels and live PPU mappings. A pixel's two bits are read from the same bit position in the two row bytes. A hex edit can change one or both bytes. Preserve a source backup, compare the diff, reimport through verified recognition, and test all relevant observed uses. The source marker or a broader identity mask never authorizes writes outside an encoder's owned spans.
+
+To extend or restyle the connections, start with these commented modules:
+
+| Module under `app/src/` | Responsibility / connection |
+|---|---|
+| `services/resource-context.js` | Read-only editor selection, existing source receipts, physical writer routes, Metasprite footprint and bounded native consumer observations. Disposable decoded evidence cache only. |
+| `services/scene-context.js` | Displays source identity for newer native views and opens the matching existing source investigation. It does not invent a stage or Audio binding. |
+| `ui/resource-relationships.js` | Projects existing IDs/receipts into the explorer, previews poses through the canonical renderer, and explicitly opens existing editors/writers. Physical nodes are derived views. |
+| `ui/connected-workspace.js` | Uses the shared current-editor selection before opening Resources. Metasprites no longer falls back to the unrelated active Scene. |
+| `ui/resource-usage.js` | Tile-view controls, appearance canvases, known-consumer report, palette route and independent ROM-browser explanation. UI state is not serialized. |
+| `legacy/04-saveas-chr.js` | Existing CHR color resolver, pixel editor and sheet hit tests. Uses pose pieces when applicable; keeps raw pixel orientation and stable tile indices. |
+| `services/punch-out-art-project.js` / `re/punch-out-art.js` | Existing validated physical bank/palette owners and codecs. The workflow changes do not expand their writable fields. |
+| `services/punch-out-pose-project.js` / `re/punch-out-pose.js` | Existing whole-pose writer, incremental context and idle transaction. Geometry/animation/hit rules retain their limits. |
+
+For a direct HTML experiment, make a separate copy, search for a module's opening comment or a control ID such as `chrUsageScope`, and edit that module's HTML-building code or styles. For maintained source, edit `app/src`, rebuild the ordinary and optional hosted manifests, and check both generated outputs. Both builds share these modules; do not reintroduce a second editor snapshot. Ordinary projects remain schema 12 and the reader ceiling stays 16.
+
+The generic footprint/selection projection also works for authored poses. Additional native adapters need verified source-to-physical mappings; a normalized captured tile index cannot be assumed to equal a native ROM tile ID. Unknown links must stay unknown. Keep canonical assets, history, source validation and byte writers with their existing owners when adding another title.

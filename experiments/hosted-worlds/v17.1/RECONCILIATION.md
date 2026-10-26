@@ -1,7 +1,7 @@
 # Shared editor source
 
 The active hosted editor is generated from `app/hosted-source-manifest.json` in
-the repository root. Its 185 common inputs are the same files used by the native
+the repository root. Its 187 common inputs are the same files used by the native
 editor, plus eleven hosted/RE extension modules. Rebuild with:
 
 ```sh

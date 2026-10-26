@@ -1,4 +1,21 @@
-## Current: shared editor and hosted-world integration
+## Current: connected pose, Resources and native graphics workflow
+
+Read `../reviews/connected-resource-workflow-1/HANDOFF.md` and Punch-Out tutorial
+section 19. Resources follows the actual selected pose/clip/tile; supported native
+views expose their source identity and separate physical CHR/palette writers.
+CHR's pose footprint uses canonical pieces, real palette/flips and stable indices,
+without fabricating Scene OAM. Known native tile consumers disclose partial
+coverage. Pose previews use the existing canonical renderer. Earlier snapshots
+remain copied art and native writers still reject unsupported edits.
+
+Both outputs share 187 inputs, with eleven unchanged optional hosted extensions.
+Core project/build/emulator owners, native codecs/spans, schemas and original
+Pepsi artifacts are unchanged. Fresh verification and remaining review items are
+in the new handoff. The hosted server/client remain experimental. Source work
+continues on the experimental PR; main merge, tags and public deployment are
+separate decisions.
+
+## Previous: shared editor and hosted-world integration
 
 Read `../reviews/hosted-integration-1/HANDOFF.md`. Native and hosted editors now use
 one canonical `app/src` tree, with separate manifests/output inventories. The

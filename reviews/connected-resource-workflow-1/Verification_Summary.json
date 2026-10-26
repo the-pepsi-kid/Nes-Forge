@@ -1,0 +1,54 @@
+{
+  "status": "passed",
+  "nativeHtmlSha256": "927c98b263cd6a74652f4a747324832474e30568103c351347e21e0cf2dd92d2",
+  "hostedHtmlSha256": "0bf378548b0201f78a4e88be587e65995cff4d8bf35eaf28a3c4ef2f2bc2771d",
+  "checks": {
+    "startupNative": {
+      "passed": 10,
+      "total": 10
+    },
+    "publicNative": {
+      "passed": 104,
+      "total": 104,
+      "suites": 9
+    },
+    "startupHosted": {
+      "passed": 10,
+      "total": 10
+    },
+    "publicHosted": {
+      "passed": 104,
+      "total": 104,
+      "suites": 9
+    },
+    "workflowDom": {
+      "passed": 20,
+      "total": 20,
+      "privatePunchOutRevisions": 2
+    },
+    "workflowBrowser": {
+      "passed": 28,
+      "total": 28,
+      "privatePunchOutRevisions": 2
+    },
+    "capabilitiesDom": {
+      "passed": 12,
+      "total": 12,
+      "zeldaTerrainContinuity": true
+    },
+    "hostedAcceptance": {
+      "passed": 114,
+      "total": 114,
+      "suites": 10
+    }
+  },
+  "sourceConvergence": "Source_Convergence.json",
+  "documentation": "Documentation_Verification.json",
+  "scope": "Actual Chromium file-page and parsed-DOM workflow checks are separate. Factory project intake. Both supplied Punch-Out revisions. Native codecs/owners/spans unchanged.",
+  "limits": [
+    "No full-fight, listening, controller, independent-emulator or hardware acceptance.",
+    "Known native consumer coverage is partial, not an exhaustive runtime graph.",
+    "Hosted gameplay fidelity and public network deployment remain experimental.",
+    "The missing historical full release gate is not replaced by these bounded checks."
+  ]
+}

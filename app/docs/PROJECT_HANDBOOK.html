@@ -15,7 +15,7 @@ code{font-family:ui-monospace,monospace;font-size:.9em}p code,li code,td code{ba
 li{margin:.35em 0}blockquote{border-left:4px solid var(--line);padding-left:18px;margin-left:0}
 @media(max-width:650px){main{padding:18px 12px}header,section,nav{padding:18px 16px}body{font-size:16px}header h1{font-size:1.8rem}h1{font-size:1.65rem}}
 @media print{body{background:white;font-size:10pt}main,section{max-width:none;padding:0;border:0}header{background:white;color:var(--ink);padding:0}nav{display:none}section{break-before:page}pre{white-space:pre-wrap;background:#f0f3f7;color:var(--ink)}table{display:table;font-size:8pt}h1,h2,h3{break-after:avoid}tr{break-inside:avoid}}
-</style></head><body><main><header><p class="meta">Developer tutorials · 2026-10-25</p><h1>NES Forge project tutorials</h1><p>Learn the shared tools, then the method each imported game actually uses.</p><p>Punch-Out is the current worked lesson. Earlier title notes retain their checkpoint scope; their inclusion does not establish fresh acceptance or complete game recovery.</p></header><nav aria-label="Book contents"><h2>Choose a lesson</h2><details><summary>Hosted Worlds and shared editor workflow</summary><ul><li><a href="#hosted-hosted-worlds-shared-editor-localhost-workflow">Hosted Worlds: shared-editor localhost workflow</a></li><li><a href="#hosted-open-and-run">Open and run</a></li><li><a href="#hosted-editing-owner-and-impact">Editing owner and impact</a></li><li><a href="#hosted-rebuild-or-change-html">Rebuild or change HTML</a></li><li><a href="#hosted-current-limits">Current limits</a></li></ul></details><details><summary>Title methods and tutorial requirements</summary><ul><li><a href="#projects-per-project-recovery-tutorials">Per-project recovery tutorials</a></li><li><a href="#projects-read-in-this-order">Read in this order</a></li><li><a href="#projects-current-title-methods-and-starting-workflows">Current title methods and starting workflows</a></li><li><a href="#projects-what-every-title-tutorial-must-deliver">What every title tutorial must deliver</a></li></ul></details><details><summary>Punch-Out worked tutorial</summary><ul><li><a href="#punch-out-punch-out-import-edit-rebuild-and-understand-the-method">Punch-Out: import, edit, rebuild and understand the method</a></li><li><a href="#punch-out-1-keep-the-right-files">1. Keep the right files</a></li><li><a href="#punch-out-2-first-lesson-change-the-shared-arena">2. First lesson: change the shared arena</a></li><li><a href="#punch-out-3-know-which-assets-you-are-editing">3. Know which assets you are editing</a></li><li><a href="#punch-out-4-staging-backgrounds-and-source-aliases">4. Staging backgrounds and source aliases</a></li><li><a href="#punch-out-5-fighter-poses-and-observed-opponent-animation">5. Fighter poses and observed opponent animation</a></li><li><a href="#punch-out-6-mac-referee-and-hud-composition">6. Mac, referee and HUD composition</a></li><li><a href="#punch-out-7-audio-including-the-startup-sample">7. Audio, including the startup sample</a></li><li><a href="#punch-out-8-how-this-particular-format-works">8. How this particular format works</a></li><li><a href="#punch-out-9-independent-re-code-and-hex-editing">9. Independent RE, code and hex editing</a></li><li><a href="#punch-out-10-modify-the-html-and-understand-the-connections">10. Modify the HTML and understand the connections</a></li><li><a href="#punch-out-11-build-a-separate-standalone-game">11. Build a separate standalone game</a></li><li><a href="#punch-out-12-reproduce-checks-and-diagnose-problems">12. Reproduce checks and diagnose problems</a></li><li><a href="#punch-out-13-edit-native-artwork-and-fight-colors">13. Edit native artwork and fight colors</a></li><li><a href="#punch-out-14-run-a-concurrent-glass-joe-sequence-and-explicit-experiments">14. Run a concurrent Glass Joe sequence and explicit experiments</a></li><li><a href="#punch-out-15-use-the-adopted-retro-workstation-interface">15. Use the adopted Retro Workstation interface</a></li><li><a href="#punch-out-16-move-a-native-glass-joe-full-pose">16. Move a native Glass Joe full pose</a></li><li><a href="#punch-out-17-edit-native-idle-and-incremental-poses">17. Edit native idle and incremental poses</a></li><li><a href="#punch-out-18-find-the-supported-native-editing-workflow">18. Find the supported native editing workflow</a></li></ul></details><details><summary>NES Forge developer and asset guide</summary><ul><li><a href="#general-nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</a></li><li><a href="#general-1-choose-an-entry-point">1. Choose an entry point</a></li><li><a href="#general-2-understand-the-three-representations">2. Understand the three representations</a></li><li><a href="#general-3-complete-asset-map">3. Complete asset map</a></li><li><a href="#general-4-visual-asset-editing-end-to-end">4. Visual asset editing, end to end</a></li><li><a href="#general-5-manual-re-workflow">5. Manual RE workflow</a></li><li><a href="#general-6-worked-native-codec-lesson">6. Worked native codec lesson</a></li><li><a href="#general-7-installing-another-decoder-or-encoder">7. Installing another decoder or encoder</a></li><li><a href="#general-8-writing-6502-code-yourself">8. Writing 6502 code yourself</a></li><li><a href="#general-9-hex-editing-yourself">9. Hex editing yourself</a></li><li><a href="#general-10-editing-the-standalone-html-or-modular-source">10. Editing the standalone HTML or modular source</a></li><li><a href="#general-11-prove-the-workflow-not-just-the-helper">11. Prove the workflow, not just the helper</a></li><li><a href="#general-12-debugging-and-extending-the-project">12. Debugging and extending the project</a></li><li><a href="#general-13-concrete-asset-edits-from-javascript-or-html">13. Concrete asset edits from JavaScript or HTML</a></li><li><a href="#general-14-glass-joe-fight-references-mac-referee-and-hud">14. Glass Joe fight references: Mac, referee and HUD</a></li><li><a href="#general-15-dedicated-native-artwork-and-concurrent-playback">15. Dedicated native artwork and concurrent playback</a></li></ul></details><details><summary>Template for the next title</summary><ul><li><a href="#template-project-tutorial-template">Project tutorial template</a></li><li><a href="#template-1-outcome-and-exact-input">1. Outcome and exact input</a></li><li><a href="#template-2-first-successful-edit">2. First successful edit</a></li><li><a href="#template-3-every-asset-and-its-owner">3. Every asset and its owner</a></li><li><a href="#template-4-source-format-lesson">4. Source format lesson</a></li><li><a href="#template-5-visual-editing-recipes">5. Visual editing recipes</a></li><li><a href="#template-6-audio-recipe">6. Audio recipe</a></li><li><a href="#template-7-independent-re-assembly-and-external-hex-work">7. Independent RE, assembly and external hex work</a></li><li><a href="#template-8-modify-the-app-and-produce-standalone-html">8. Modify the app and produce standalone HTML</a></li><li><a href="#template-9-make-a-separate-standalone-game">9. Make a separate standalone game</a></li><li><a href="#template-10-evidence-troubleshooting-and-learner-checklist">10. Evidence, troubleshooting and learner checklist</a></li></ul></details><details><summary>Metroid room workflow</summary><ul><li><a href="#metroid-metroid-focused-verification-checkpoint">Metroid — focused verification checkpoint</a></li><li><a href="#metroid-what-changed">What changed</a></li><li><a href="#metroid-try-this-first">Try this first</a></li><li><a href="#metroid-verification-and-limits">Verification and limits</a></li><li><a href="#metroid-metroid-audio-update">Metroid Audio update</a></li><li><a href="#metroid-source-and-continuation">Source and continuation</a></li></ul></details><details><summary>Metroid Audio workflow</summary><ul><li><a href="#metroid-audio-metroid-audio">Metroid Audio</a></li></ul></details><details><summary>Lolo room acceptance</summary><ul><li><a href="#lolo-lolo-owner-acceptance">Lolo owner acceptance</a></li></ul></details><details><summary>Lolo Audio acceptance</summary><ul><li><a href="#lolo-audio-lolo-scene-audio-acceptance">Lolo Scene + Audio acceptance</a></li></ul></details><details><summary>River City Scene and Audio acceptance</summary><ul><li><a href="#river-city-river-city-owner-acceptance">River City owner acceptance</a></li></ul></details><details><summary>Shadowgate picture and Audio acceptance</summary><ul><li><a href="#shadowgate-shadowgate-owner-review">Shadowgate owner review</a></li></ul></details><details><summary>Per-title verification requirements</summary><ul><li><a href="#verification-per-project-recovery-verification">Per-project recovery verification</a></li><li><a href="#verification-per-title-tutorial-requirement">Per-title tutorial requirement</a></li></ul></details><p><a href="#synthetic">Runnable synthetic codec source</a></p></nav><section id="hosted"><p class="part">Hosted Worlds and shared editor workflow</p><h1 id="hosted-hosted-worlds-shared-editor-localhost-workflow">Hosted Worlds: shared-editor localhost workflow</h1>
+</style></head><body><main><header><p class="meta">Developer tutorials · 2026-10-25</p><h1>NES Forge project tutorials</h1><p>Learn the shared tools, then the method each imported game actually uses.</p><p>Punch-Out is the current worked lesson. Earlier title notes retain their checkpoint scope; their inclusion does not establish fresh acceptance or complete game recovery.</p></header><nav aria-label="Book contents"><h2>Choose a lesson</h2><details><summary>Hosted Worlds and shared editor workflow</summary><ul><li><a href="#hosted-hosted-worlds-shared-editor-localhost-workflow">Hosted Worlds: shared-editor localhost workflow</a></li><li><a href="#hosted-open-and-run">Open and run</a></li><li><a href="#hosted-editing-owner-and-impact">Editing owner and impact</a></li><li><a href="#hosted-rebuild-or-change-html">Rebuild or change HTML</a></li><li><a href="#hosted-current-limits">Current limits</a></li></ul></details><details><summary>Title methods and tutorial requirements</summary><ul><li><a href="#projects-per-project-recovery-tutorials">Per-project recovery tutorials</a></li><li><a href="#projects-read-in-this-order">Read in this order</a></li><li><a href="#projects-current-title-methods-and-starting-workflows">Current title methods and starting workflows</a></li><li><a href="#projects-what-every-title-tutorial-must-deliver">What every title tutorial must deliver</a></li></ul></details><details><summary>Punch-Out worked tutorial</summary><ul><li><a href="#punch-out-punch-out-import-edit-rebuild-and-understand-the-method">Punch-Out: import, edit, rebuild and understand the method</a></li><li><a href="#punch-out-1-keep-the-right-files">1. Keep the right files</a></li><li><a href="#punch-out-2-first-lesson-change-the-shared-arena">2. First lesson: change the shared arena</a></li><li><a href="#punch-out-3-know-which-assets-you-are-editing">3. Know which assets you are editing</a></li><li><a href="#punch-out-4-staging-backgrounds-and-source-aliases">4. Staging backgrounds and source aliases</a></li><li><a href="#punch-out-5-fighter-poses-and-observed-opponent-animation">5. Fighter poses and observed opponent animation</a></li><li><a href="#punch-out-6-mac-referee-and-hud-composition">6. Mac, referee and HUD composition</a></li><li><a href="#punch-out-7-audio-including-the-startup-sample">7. Audio, including the startup sample</a></li><li><a href="#punch-out-8-how-this-particular-format-works">8. How this particular format works</a></li><li><a href="#punch-out-9-independent-re-code-and-hex-editing">9. Independent RE, code and hex editing</a></li><li><a href="#punch-out-10-modify-the-html-and-understand-the-connections">10. Modify the HTML and understand the connections</a></li><li><a href="#punch-out-11-build-a-separate-standalone-game">11. Build a separate standalone game</a></li><li><a href="#punch-out-12-reproduce-checks-and-diagnose-problems">12. Reproduce checks and diagnose problems</a></li><li><a href="#punch-out-13-edit-native-artwork-and-fight-colors">13. Edit native artwork and fight colors</a></li><li><a href="#punch-out-14-run-a-concurrent-glass-joe-sequence-and-explicit-experiments">14. Run a concurrent Glass Joe sequence and explicit experiments</a></li><li><a href="#punch-out-15-use-the-adopted-retro-workstation-interface">15. Use the adopted Retro Workstation interface</a></li><li><a href="#punch-out-16-move-a-native-glass-joe-full-pose">16. Move a native Glass Joe full pose</a></li><li><a href="#punch-out-17-edit-native-idle-and-incremental-poses">17. Edit native idle and incremental poses</a></li><li><a href="#punch-out-18-find-the-supported-native-editing-workflow">18. Find the supported native editing workflow</a></li><li><a href="#punch-out-19-follow-a-pose-its-tiles-and-the-shared-native-writers">19. Follow a pose, its tiles, and the shared native writers</a></li></ul></details><details><summary>NES Forge developer and asset guide</summary><ul><li><a href="#general-nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</a></li><li><a href="#general-1-choose-an-entry-point">1. Choose an entry point</a></li><li><a href="#general-2-understand-the-three-representations">2. Understand the three representations</a></li><li><a href="#general-3-complete-asset-map">3. Complete asset map</a></li><li><a href="#general-4-visual-asset-editing-end-to-end">4. Visual asset editing, end to end</a></li><li><a href="#general-5-manual-re-workflow">5. Manual RE workflow</a></li><li><a href="#general-6-worked-native-codec-lesson">6. Worked native codec lesson</a></li><li><a href="#general-7-installing-another-decoder-or-encoder">7. Installing another decoder or encoder</a></li><li><a href="#general-8-writing-6502-code-yourself">8. Writing 6502 code yourself</a></li><li><a href="#general-9-hex-editing-yourself">9. Hex editing yourself</a></li><li><a href="#general-10-editing-the-standalone-html-or-modular-source">10. Editing the standalone HTML or modular source</a></li><li><a href="#general-11-prove-the-workflow-not-just-the-helper">11. Prove the workflow, not just the helper</a></li><li><a href="#general-12-debugging-and-extending-the-project">12. Debugging and extending the project</a></li><li><a href="#general-13-concrete-asset-edits-from-javascript-or-html">13. Concrete asset edits from JavaScript or HTML</a></li><li><a href="#general-14-glass-joe-fight-references-mac-referee-and-hud">14. Glass Joe fight references: Mac, referee and HUD</a></li><li><a href="#general-15-dedicated-native-artwork-and-concurrent-playback">15. Dedicated native artwork and concurrent playback</a></li></ul></details><details><summary>Template for the next title</summary><ul><li><a href="#template-project-tutorial-template">Project tutorial template</a></li><li><a href="#template-1-outcome-and-exact-input">1. Outcome and exact input</a></li><li><a href="#template-2-first-successful-edit">2. First successful edit</a></li><li><a href="#template-3-every-asset-and-its-owner">3. Every asset and its owner</a></li><li><a href="#template-4-source-format-lesson">4. Source format lesson</a></li><li><a href="#template-5-visual-editing-recipes">5. Visual editing recipes</a></li><li><a href="#template-6-audio-recipe">6. Audio recipe</a></li><li><a href="#template-7-independent-re-assembly-and-external-hex-work">7. Independent RE, assembly and external hex work</a></li><li><a href="#template-8-modify-the-app-and-produce-standalone-html">8. Modify the app and produce standalone HTML</a></li><li><a href="#template-9-make-a-separate-standalone-game">9. Make a separate standalone game</a></li><li><a href="#template-10-evidence-troubleshooting-and-learner-checklist">10. Evidence, troubleshooting and learner checklist</a></li></ul></details><details><summary>Metroid room workflow</summary><ul><li><a href="#metroid-metroid-focused-verification-checkpoint">Metroid — focused verification checkpoint</a></li><li><a href="#metroid-what-changed">What changed</a></li><li><a href="#metroid-try-this-first">Try this first</a></li><li><a href="#metroid-verification-and-limits">Verification and limits</a></li><li><a href="#metroid-metroid-audio-update">Metroid Audio update</a></li><li><a href="#metroid-source-and-continuation">Source and continuation</a></li></ul></details><details><summary>Metroid Audio workflow</summary><ul><li><a href="#metroid-audio-metroid-audio">Metroid Audio</a></li></ul></details><details><summary>Lolo room acceptance</summary><ul><li><a href="#lolo-lolo-owner-acceptance">Lolo owner acceptance</a></li></ul></details><details><summary>Lolo Audio acceptance</summary><ul><li><a href="#lolo-audio-lolo-scene-audio-acceptance">Lolo Scene + Audio acceptance</a></li></ul></details><details><summary>River City Scene and Audio acceptance</summary><ul><li><a href="#river-city-river-city-owner-acceptance">River City owner acceptance</a></li></ul></details><details><summary>Shadowgate picture and Audio acceptance</summary><ul><li><a href="#shadowgate-shadowgate-owner-review">Shadowgate owner review</a></li></ul></details><details><summary>Per-title verification requirements</summary><ul><li><a href="#verification-per-project-recovery-verification">Per-project recovery verification</a></li><li><a href="#verification-per-title-tutorial-requirement">Per-title tutorial requirement</a></li></ul></details><p><a href="#synthetic">Runnable synthetic codec source</a></p></nav><section id="hosted"><p class="part">Hosted Worlds and shared editor workflow</p><h1 id="hosted-hosted-worlds-shared-editor-localhost-workflow">Hosted Worlds: shared-editor localhost workflow</h1>
 
 <p>The hosted editor is a second build of the canonical NES Forge editor. Its
 native import/edit/build paths retain the ordinary schema and registered native
@@ -919,6 +919,150 @@ python3 reviews/punch-out-incremental-pose-1/run_checks.py
 <p>The generated <strong>Build Scene Set</strong>, <strong>Include first 7</strong>, Scene Build/Order and ROM configuration controls are unavailable in native projects. Native output follows preserved source bindings and registered writers; marking a source view as included is not a native edit. In original NES Forge projects, generated packed builds still use the seven-Scene selection. World output follows saved World/player dependencies, and unpacked custom assembly uses active CHR buffers.</p>
 
 <p>Native animation/AI/collision and native Audio writing remain separate work. The capability page changes navigation and guidance; it adds no new native writer. Independent RE, assembly, external hex edits and direct HTML/source modifications remain available through the general developer guide.</p>
+
+<h2 id="punch-out-19-follow-a-pose-its-tiles-and-the-shared-native-writers">19. Follow a pose, its tiles, and the shared native writers</h2>
+
+<p>A physical CHR bank is a collection of indexed pixel patterns. It is not a character folder. Glass Joe and Don Flamenco use physical bank <strong>29</strong> in observed source contexts. Seeing Don Flamenco artwork in that whole bank is expected. It does not establish that every tile belongs to both boxers or that every pixel change affects both.</p>
+
+<h3 id="punch-out-what-each-resource-represents">What each resource represents</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Resource</th>
+  <th>Canonical owner / source</th>
+  <th>What editing it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Selected pose</td>
+  <td><code>S.metasprites</code>, owned by the existing Metasprite editor and ProjectStore</td>
+  <td>Stores piece tile IDs, palette IDs, flips, priority and positions. Only supported Glass Joe whole-pose positions have native writeback here.</td>
+</tr>
+<tr>
+  <td>Pose-source Scene</td>
+  <td>Explicit <code>frame.sceneId</code>; copied <code>sprChr</code> and <code>sprPal</code></td>
+  <td>Supplies the pose's reference pixels and colors. Direct unsupported pixel/color changes remain savable but block native building.</td>
+</tr>
+<tr>
+  <td>Pose tile footprint</td>
+  <td>Read-only projection of the selected pose's pieces</td>
+  <td>Shows tile IDs, piece references, palette and flips, including both halves of an 8×16 piece. It adds no Scene OAM.</td>
+</tr>
+<tr>
+  <td>Whole bank</td>
+  <td>All 256 tile slots in the current Scene buffer</td>
+  <td>Exposes the complete indexed sheet. The whole bank can include artwork outside the selected pose or character.</td>
+</tr>
+<tr>
+  <td>Physical CHR write owner</td>
+  <td>Existing dedicated <code>punchOutArt</code> Scene, kind <code>chr</code></td>
+  <td>Its <strong>BG</strong> CHR buffer writes the selected 4096-byte native bank. Shared uses of those bytes change together.</td>
+</tr>
+<tr>
+  <td>Fight palette write owner</td>
+  <td>Existing dedicated <code>punchOutArt</code> Scene, kind <code>palette</code></td>
+  <td>Writes one native fight palette table through its existing codec. Some original game phases override table colors.</td>
+</tr>
+<tr>
+  <td>Source identity</td>
+  <td>Existing native receipt and investigation SHA-256</td>
+  <td>Identifies the preserved ROM. A source relationship alone does not certify a native encoder or a build.</td>
+</tr>
+<tr>
+  <td>Known native consumers</td>
+  <td>Bounded execution of original full-pose shape records</td>
+  <td>Reports observed references to a bank/tile. It does not add characters, poses or animations to the project.</td>
+</tr>
+<tr>
+  <td>ROM bank chooser</td>
+  <td>Existing independent browser over imported raw banks</td>
+  <td>Merely selecting a bank does not change the displayed Scene buffer. The arrow buttons explicitly copy pixels into BG or Sprite buffers.</td>
+</tr>
+<tr>
+  <td>Audio library</td>
+  <td>Existing title-specific source decoder and canonical authored Audio</td>
+  <td>Available independently. A pose has no invented song binding. Native Audio writing remains separate.</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="punch-out-inspect-edit-and-verify-through-the-visual-workflow">Inspect, edit and verify through the visual workflow</h3>
+
+<ol>
+<li>Open the supported ROM or saved native project. Use <strong>Native tools → Glass Joe pose positions</strong>, choose <strong>incremental $C0 · idle</strong>, and open the position view. The native controls still handle whole-pose X/Y.</li>
+<li>Click either <strong>Resources</strong> entry while in <strong>Metasprites</strong>. Resources selects the actual pose even if the active Scene is independently browsing another source. Its isolated preview uses the existing canonical pose renderer: piece order, palette IDs, horizontal/vertical flips and transparent pixels. Background priority needs a background to judge in game.</li>
+<li>Inspect the pose's dependencies. Its source Scene, sprite CHR, sprite palettes, preserved source identity, physical CHR bank and fight palette writer are distinct links. Source-receipt edges are labeled. Browsing these links adds no assets. <strong>Follow selection across editors</strong> remains an explicit option; selecting a pose with Follow on selects that exact pose and its source Scene.</li>
+<li>Choose <strong>Used pose tiles</strong> in Resources, or <strong>View pose sprite tiles</strong> in the pose controls. In CHR, set <strong>Tile view → Used by selected pose</strong>. <code>$C0</code> contains <strong>52 pieces and 38 distinct tile IDs</strong>. Unreferenced slots are masked while their original grid indices stay fixed. <strong>Whole bank / Scene buffer</strong> restores the full sheet. These view controls do not change pixels or build bytes.</li>
+<li>Select a used tile. <strong>Pose use</strong> supplies its actual palette context instead of claiming it is unused because Scene OAM is empty. The sheet and pixel editor retain unflipped source indices. The small appearance canvases show recorded palette, H/V flips, priority and, for 8×16 pieces, the displayed top/bottom half. A tile can have several appearances. Changing the preview is separate from changing palette data.</li>
+<li>Choose <strong>Inspect known native uses of this tile</strong>. For bank 29, tile <code>$08</code> has observed Glass Joe full-pose consumers; tile <code>$53</code> (83) has Don Flamenco first-fight/rematch consumers; <code>$FF</code> has observed consumers from all three configurations. A reference can point to a blank or transparent pattern. The current source inventory decodes <strong>367 initial-mode full poses</strong>, with <strong>176 needing other context</strong>. Incremental states, alternate banking contexts, backgrounds and hidden uses are not exhaustively covered. No observed consumer means <strong>unknown beyond this coverage</strong>, not safe or unused.</li>
+<li>Choose <strong>Edit native CHR bank 29</strong>. This explicitly opens the registered physical writer; if needed, its dedicated Scene is added in one ordinary Undo transaction. The writer uses the BG buffer even for sprite art. The selected pose's tile footprint remains available when the physical source matches. Its appearance previews now read <strong>current physical pixels with the selected pose's snapshot colors</strong>. The pose-source Scene keeps its copied art.</li>
+<li>Paint a pixel in the ordinary pixel editor. Inspect known consumers before changing additional tiles. Undo and Redo, then Build &amp; Run or export. Native output changes only within that physical bank's owned bytes. Use <strong>Edit native fight palette</strong> for exported fight colors; a physical-bank display palette is not a native color-table edit.</li>
+<li>Return to the native pose view and apply the grouped idle X=-12 example from section 17. Build again. Position operands and physical art writes compose through their existing separate byte spans. Save Project As, reopen in a fresh document, build and compare the generated bytes. An earlier source snapshot is not silently refreshed or accepted as a new baseline.</li>
+<li>Verify the exported game in the original engine and another emulator: enter Glass Joe's fight, inspect idle movement and edited art, then inspect other observed consumers of the changed tile. Check the relevant fight palettes and Audio. Browser/DOM checks and a binary diff do not replace a full fight, listening, controller or hardware acceptance pass.</li>
+</ol>
+
+<h3 id="punch-out-work-independently-with-code-hex-or-the-standalone-html">Work independently with code, hex or the standalone HTML</h3>
+
+<p>Native CHR file offsets include the 16-byte iNES header. For the supported layout:</p>
+
+<pre><code>bank start = $20010 + physical_bank * $1000
+tile start = bank start + tile_id * 16
+low bitplane row = tile start + row       (row 0..7)
+high bitplane row = tile start + row + 8
+</code></pre>
+
+<p>Bank 29 therefore starts at <strong><code>$3D010</code></strong>. These are file offsets, distinct from editor BG <code>$0000</code> / Sprite <code>$1000</code> labels and live PPU mappings. A pixel's two bits are read from the same bit position in the two row bytes. A hex edit can change one or both bytes. Preserve a source backup, compare the diff, reimport through verified recognition, and test all relevant observed uses. The source marker or a broader identity mask never authorizes writes outside an encoder's owned spans.</p>
+
+<p>To extend or restyle the connections, start with these commented modules:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Module under <code>app/src/</code></th>
+  <th>Responsibility / connection</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>services/resource-context.js</code></td>
+  <td>Read-only editor selection, existing source receipts, physical writer routes, Metasprite footprint and bounded native consumer observations. Disposable decoded evidence cache only.</td>
+</tr>
+<tr>
+  <td><code>services/scene-context.js</code></td>
+  <td>Displays source identity for newer native views and opens the matching existing source investigation. It does not invent a stage or Audio binding.</td>
+</tr>
+<tr>
+  <td><code>ui/resource-relationships.js</code></td>
+  <td>Projects existing IDs/receipts into the explorer, previews poses through the canonical renderer, and explicitly opens existing editors/writers. Physical nodes are derived views.</td>
+</tr>
+<tr>
+  <td><code>ui/connected-workspace.js</code></td>
+  <td>Uses the shared current-editor selection before opening Resources. Metasprites no longer falls back to the unrelated active Scene.</td>
+</tr>
+<tr>
+  <td><code>ui/resource-usage.js</code></td>
+  <td>Tile-view controls, appearance canvases, known-consumer report, palette route and independent ROM-browser explanation. UI state is not serialized.</td>
+</tr>
+<tr>
+  <td><code>legacy/04-saveas-chr.js</code></td>
+  <td>Existing CHR color resolver, pixel editor and sheet hit tests. Uses pose pieces when applicable; keeps raw pixel orientation and stable tile indices.</td>
+</tr>
+<tr>
+  <td><code>services/punch-out-art-project.js</code> / <code>re/punch-out-art.js</code></td>
+  <td>Existing validated physical bank/palette owners and codecs. The workflow changes do not expand their writable fields.</td>
+</tr>
+<tr>
+  <td><code>services/punch-out-pose-project.js</code> / <code>re/punch-out-pose.js</code></td>
+  <td>Existing whole-pose writer, incremental context and idle transaction. Geometry/animation/hit rules retain their limits.</td>
+</tr>
+</tbody>
+</table>
+
+<p>For a direct HTML experiment, make a separate copy, search for a module's opening comment or a control ID such as <code>chrUsageScope</code>, and edit that module's HTML-building code or styles. For maintained source, edit <code>app/src</code>, rebuild the ordinary and optional hosted manifests, and check both generated outputs. Both builds share these modules; do not reintroduce a second editor snapshot. Ordinary projects remain schema 12 and the reader ceiling stays 16.</p>
+
+<p>The generic footprint/selection projection also works for authored poses. Additional native adapters need verified source-to-physical mappings; a normalized captured tile index cannot be assumed to equal a native ROM tile ID. Unknown links must stay unknown. Keep canonical assets, history, source validation and byte writers with their existing owners when adding another title.</p>
 </section><section id="general"><p class="part">NES Forge developer and asset guide</p><h1 id="general-nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</h1>
 
 <p>This guide describes the current source checkpoint, using Punch-Out as a worked recovery example. It is intended for people who want to use the visual editors, investigate an unknown ROM, write an adapter, write 6502 code, patch bytes independently, or modify NES Forge itself. Game recognition is optional for general inspection. Each game's editable native output depends on the encoders actually installed for that revision.</p>

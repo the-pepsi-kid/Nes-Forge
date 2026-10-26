@@ -1,13 +1,13 @@
 {
-  "candidate": "hosted-integration-1",
+  "candidate": "connected-resource-workflow-1",
   "version": "3.0.0-alpha.1",
   "status": "development-candidate",
   "promoted": false,
-  "branch": "implementation/punch-out-pose-edit-2",
+  "branch": "experiment/hosted-worlds-layout-v17-1",
   "html": "nes-forge.html",
   "sourceHtml": "app/mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "0be56290249d2f3b03289b1b95b977181f5e423eb357f2919bb1b87da31d90f7",
-  "htmlBytes": 3025249,
+  "htmlSha256": "927c98b263cd6a74652f4a747324832474e30568103c351347e21e0cf2dd92d2",
+  "htmlBytes": 3048197,
   "schemas": {
     "ordinary": 12,
     "native": 13,
@@ -16,32 +16,34 @@
     "selectedTerrain": 15,
     "portableRom": 16
   },
-  "sourceParent": "130511d",
+  "sourceParent": "ca992a4209dba8a3ede669b9ae6ffd14cd36f468",
   "baselinePublicMainCommit": "6d07f1875074f1b3388cd647ff6177423d45acc7",
   "scope": [
     "One canonical editor source for native and hosted builds.",
-    "Reconcile current native workflow and Punch-Out fixes with v17.1 hosting/RE extensions.",
-    "Publish full source on experimental PR, preserving main and original Pepsi archive."
+    "Exact current-editor Resources selection and native source/physical-writer relationships.",
+    "Pose tile footprint, palette/flip appearances and bounded native consumer coverage.",
+    "Full review kit and tutorials for visual, independent RE/code/hex/HTML workflows."
   ],
   "limits": [
+    "Native consumer observations cover initial-mode full poses only; alternate state/bank/background uses remain incomplete.",
     "Individual geometry, position-less incremental writing, other opponents and native animation/Audio writing remain open.",
-    "Bounded source contexts and approximate MMC2 playback do not establish complete fights or hardware/device/listening acceptance.",
-    "Shared-resource footprint/ownership, exact selection, fresh pose resume, previews, health diagnosis and in-app lessons remain tracked in the connected-workflow review."
+    "Fresh resume, broader previews, actionable build health, detached-source display and in-app title lessons remain tracked.",
+    "Hosted gameplay fidelity and hardware/controller/listening/full-fight acceptance remain open."
   ],
   "verification": {
-    "report": "reviews/hosted-integration-1/HANDOFF.md",
-    "publicChecks": 104,
-    "publicSuites": 9,
-    "strictDomStartupChecks": 10,
-    "nativeArtworkNavigationRevisions": 2,
+    "report": "reviews/connected-resource-workflow-1/Verification_Summary.json",
+    "earlierIntegration": "reviews/hosted-integration-1/HANDOFF.md",
     "previousNativePlaybackEvidence": "reviews/punch-out-incremental-pose-1/Idle_Playback_Verification.json",
     "fullHistoricalGate": "unavailable in restored snapshot",
-    "capabilityDomChecks": 12,
+    "publicChecks": 104,
+    "publicSuites": 9,
     "hostedPublicChecks": 104,
+    "strictDomStartupChecksPerBuild": 10,
+    "resourceWorkflowDomChecks": 20,
+    "resourceWorkflowBrowserChecks": 28,
+    "capabilityDomChecks": 12,
     "hostedAcceptanceChecks": 114,
-    "hostedAcceptanceSuites": 10,
-    "browserNativeWorkflowChecks": 6,
-    "privateZeldaBrowserChecks": 29
+    "hostedAcceptanceSuites": 10
   },
   "distribution": {
     "privateRomsIncluded": false,
@@ -49,9 +51,9 @@
     "sourceBearingCommercialProjectsIncluded": false,
     "standaloneHTML": "nes-forge.html",
     "hostedHTML": "experiments/hosted-worlds/v17.1/NES_Forge_3x_v17_Hosted_Link_Actions_Experimental.html",
-    "reviewKit": "NES_Forge_3.0.0-alpha.1_Integrated_Review_Kit.zip"
+    "reviewKit": "NES_Forge_Connected_Resources_Complete_Review_Kit.zip"
   },
   "audioVerificationRequiredForEveryProject": true,
   "hostedHtml": "experiments/hosted-worlds/v17.1/NES_Forge_3x_v17_Hosted_Link_Actions_Experimental.html",
-  "hostedHtmlSha256": "697a22717152968f3a382c6da1e271a5457db251ec0643a96024900f8328b799"
+  "hostedHtmlSha256": "0bf378548b0201f78a4e88be587e65995cff4d8bf35eaf28a3c4ef2f2bc2771d"
 }

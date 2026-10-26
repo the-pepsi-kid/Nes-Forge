@@ -38,14 +38,10 @@ function gotoTab(tab){close();if(typeof window.switchTab!=='function')throw Erro
 function openZ2(){const c=current();close();if(c.nativeWorld){const worldId=S.worlds?.[Forge161.worlds.state.selected]?.id,sceneId=S.scenes?.[S.activeScene]?.id;const bindings=S.nativeGame?.resources?.filter(r=>r.mapId)||[];const binding=bindings.find(r=>r.worldId===worldId)||bindings.find(r=>r.sceneId===sceneId)||(bindings.length===1?bindings[0]:null);if(!binding)throw Error('Several native World maps exist. Select the intended World or resource first; no map has been changed.');svc.NativeWorldUI.choose(binding.mapId);refreshRibbon();return;}
  const b=document.getElementById('nativeWorldOpen');if(!b)throw Error('Native World importer unavailable in this build.');b.click();}
 function browseZ2(mapId){close();svc.NativeWorldUI.choose(mapId);refreshRibbon();}
-function activeKey(){const scene=S.scenes?.[S.activeScene],sid=scene?.id||'';
- if(S.tab==='chr')return 'tile:'+(S.chrBank==='spr'?'spr':'bg')+':'+sid+':'+S.editTile;
- if(S.tab==='world')return 'world:'+(S.worlds?.[Forge161.worlds.state.selected]?.id||'');
- if(S.tab==='anim')return 'animation:'+(S.animations?.[S._selAnim]?.id||'');
- if(S.tab==='audio')return 'audio:project';
- if(S.tab==='sprites')return 'sprite:'+sid;
- return 'scene:'+sid;
-}
+// Resolve the actual editor selection before opening a related context. A pose
+// may deliberately use a different Scene than the independently selected Scene.
+function activeKey(){return svc.ResourceContext.selection().key;}
+
 function openRelationships(){close();if(svc.ResourceRelationshipPreview?.openAt)svc.ResourceRelationshipPreview.openAt(activeKey());else document.getElementById('frx-open')?.click();}
 // Routes open the existing writer or its explicit resource picker. Merely reading
 // capabilities never materializes a Scene or silently picks a physical bank.

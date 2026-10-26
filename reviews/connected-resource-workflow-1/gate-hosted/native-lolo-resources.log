@@ -1,0 +1,13 @@
+PASS Bottom-up streams use the imaginary zero row and native repeat counts
+PASS Display-order rows and columns survive packing without transposition
+PASS The native consumer stops after 240 cells and preserves allocated tail bytes
+PASS Truncated commands, row overflow and repeated meta operands refuse
+PASS Packing is deterministic and favors a bounded row-copy representation
+PASS Only the edited room allocation changes; untouched source and allocated padding remain exact
+PASS No-op recipes preserve every byte, rather than normalizing compression
+PASS Native marker, border and room-setting cells cannot be changed by a terrain recipe
+PASS A compressed edit that cannot fit its original allocation fails before source mutation
+PASS Unknown room profiles and filenames cannot activate recovery or mutate the project
+PASS Shared source validation preserves generic CHR ownership and source identity rejection
+PASS Previously installed native adapters retain exact order and behavior
+12/12 passed
