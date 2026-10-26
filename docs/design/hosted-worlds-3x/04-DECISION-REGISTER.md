@@ -100,3 +100,15 @@ Further detail: [07 — Playable characters and spell compatibility](07-PLAYABLE
 | D-30 | Follow-and-fight AI deferred until source enemy combat, collision and traversal are understood; native animation playback alone is insufficient | Owner acknowledges dependency; technical safeguard |
 
 See [08 — Encounter drops and ally control](08-ENCOUNTER-DROPS-AND-ALLY-CONTROL.md). **Open:** mint timing, token/placement count, drop chances, AI recovery fidelity, borrowed-unit death and XP awards. No new functionality is asserted by this document.
+
+## Level-weighted encounter drops, XP and server configurations (2026-10-26)
+
+| ID | Decision / proposal | Status |
+| --- | --- | --- |
+| D-31 | Enemy collectibles have a server-awarded hosted placement level 1–8, influenced by character progression | User-defined design intent; source RPG level distinct |
+| D-32 | Above level 5 (levels 6, 7, 8) is **incredibly rare**, even for high-level players | User-defined rarity intent; exact chance open |
+| D-33 | Minting locks and preserves a found enemy and its level; no mint-induced power upgrade | Recommended realization of owner intent |
+| D-34 | A Quick Raid server without blockchain/minting and a longer-lived optional-mint World use the **same engine** | User-proposed mode split; match reset/config to be finalized |
+| D-35 | XP system must be implemented/verified next as server-authoritative ledger retaining earned levels and unspent XP on Game Over | User-directed next design phase; XP accounting formula still open |
+
+**Open:** drop chance separately from collectible level, Attack/Magic/Life reference function, enemy-level scaling, level-6/7/8 probabilities and supply limits, one XP ledger versus split economy, no-mint match character/XP reset, exact construction prices and reward provenance. Do not implement invented probabilities from an illustrative chart. [Detailed contract](09-LEVELED-DROPS-XP-AND-SERVER-MODES.md).

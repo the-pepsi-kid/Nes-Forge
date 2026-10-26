@@ -10,6 +10,11 @@ Example: while fighting original enemies in PvE, a player earns a **Moblin (tier
 
 **Terminology risk:** “level 1 Moblin” here is a proposed collectible/placement tier, **not a claim that the original Zelda II Moblin has Attack, Magic or Life level 1**. Native enemy HP, AI and attack must not be silently remapped to the player's 1–8 attributes. Rarity is a different axis from placement tier or native enemy behavior. Do not invent native enemy levels.
 
+
+## Level-weighted World collection (2026-10-26)
+
+The owner clarified that a found **level-1 Moblin** is the first possible hosted combat/placement level of a collectible, **not merely a cosmetic rarity label**. As players advance through Attack/Magic/Life (1–8), the server weights encounter rewards toward collectible levels near their progression; a player around levels 2–3 should be comparatively likely to encounter level 2. **Collectibles above level 5 must be exceptionally rare**, including at player level 8. The generated level is preserved when minted, and unlocks valid hosted deployment behavior; it never implies native Zelda II mobs already had player-like numeric levels. Exact odds, XP rewards, tier scaling, and level weight formula need empirical testing. See [09 — Leveled drops, XP and server modes](09-LEVELED-DROPS-XP-AND-SERVER-MODES.md) for design and acceptance.
+
 ## Roles of one collectible
 
 | Mode | What happens | Required fidelity |

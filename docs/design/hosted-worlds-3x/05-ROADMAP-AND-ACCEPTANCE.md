@@ -52,6 +52,20 @@
 - [ ] Ruleset changes are separate, pinned, and applied exclusively by authoritative server.
 - [ ] Browser crowd rendering and room-based server interest management. Capacity claims only after measuring actual concurrency.
 
+
+## Next bounded implementation: XP and leveled enemy drops (design not yet executed)
+
+- [ ] Recover and test source-accurate Zelda II enemy XP rewards, Attack/Magic/Life upgrade thresholds, spell/quest prerequisites and Game Over baseline, keeping hosted XP retention explicitly separate.
+- [ ] Owner selects shared XP versus separated construction accounting and how the player's 3 levels produce a drop-progression reference; version the ruleset.
+- [ ] Implement idempotent, server-authoritative XP awards and atomic spend ledger with permanent unspent-XP and earned-level retention.
+- [ ] Implement drop existence roll **separately** from server-awarded level 1–8; native enemy type/AI unchanged. Levels **6–8 incredibly rare** with tests for all progression bands and audited RNG.
+- [ ] Collectible award level locked on discovery and preserved by optional minting; unminted entitlement forfeited after final life; prevent owned-unit XP farms/replay dupes.
+- [ ] Run no-mint match/server modes without wallet dependencies, retaining one canonical runtime and shared combat/placement contracts.
+- [ ] Decide whether No-Mint XP/character levels reset each match; don't leak match rewards into mintable persistent server by default.
+- [ ] Establish exact probabilities, drop economy and playability only after measured reward rates / playtesting; no undocumented power modifiers.
+
+See [09 — Leveled drops, XP and server modes](09-LEVELED-DROPS-XP-AND-SERVER-MODES.md).
+
 ## Required acceptance scenarios
 
 | ID | Scenario | Required observation |

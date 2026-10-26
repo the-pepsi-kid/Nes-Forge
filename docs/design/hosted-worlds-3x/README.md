@@ -20,6 +20,7 @@ The 3.x Hosted Worlds direction explored here uses **Zelda II** as its leading i
 | [06 — Mintable NPCs, defenders and playable avatars](06-MINTABLE-ACTORS-AND-AVATARS.md) | Character/NPC service entitlements, elite defenders, palace-only bosses, playable avatars and native-item preservation |
 | [07 — Playable characters and magic compatibility](07-PLAYABLE-CHARACTERS-AND-SPELL-COMPATIBILITY.md) | Play as Moblins and other actors, retain existing spells when sensible, avoid rarity power creep and invented spells |
 | [08 — Encounter drops, deployments and delegated control](08-ENCOUNTER-DROPS-AND-ALLY-CONTROL.md) | Earn a Moblin in-world, optionally mint it, deploy native-style defenders, and later delegate control or add follower AI |
+| [09 — Leveled drops, XP and server modes](09-LEVELED-DROPS-XP-AND-SERVER-MODES.md) | Level-weighted enemy collection (6–8 exceptionally rare), XP ledger and quick-raid vs persistent server configuration |
 
 ## Vocabulary and status
 

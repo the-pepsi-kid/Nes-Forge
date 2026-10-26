@@ -47,6 +47,11 @@ Wallet connect must prove address control with a signed, scoped, expiring nonce;
 
 **Eight rarity tiers**: proposed 1–3 common, 4–5 uncommon, 6–7 very rare, 8 exceptional. Rarity primarily governs collectible scarcity/visual distinctions and eligibility; it does *not* become a combat stat, permanent 1-UP generator, or higher-level Hammer. NPC/native quest items retain native functionality.
 
+
+## Leveled collectible enemies and server-mode refinement (2026-10-26)
+
+Actor collectible **levels 1–8** are a **hosted extension**, distinct from native Zelda II character stats and source enemy combat values. The server awards a fixed level when an eligible actor is found; odds are weighted by the player's existing progression and encounter conditions. **Actor levels 6–8 are incredibly rare even for advanced players.** Minting preserves the awarded actor/level and does not upgrade it. For enemy collectibles, level-linked scarcity is the default; avoid inventing an unrelated second rarity roll. Drop percentages are **not settled**. The original eight collectible color/rarity ideas remain visual classifications only until owner-approved supply rules exist. A No-Mint Quick Raid mode uses the same XP/drop/combat algorithms but no chain connection or durable NFTs; match XP persistence is pending. [See full specification](09-LEVELED-DROPS-XP-AND-SERVER-MODES.md).
+
 ## Colored item variants
 
 Palette variants, a consistent small badge/outline, and optional **browser-only** sparkle can signal rarity. Native NES sprite hardware offers four sprite palettes per frame, each with three visible colors and transparency; a full set of eight distinct simultaneously assigned sprite palettes cannot be assumed compatible. Hardware export uses strict palette validation; browser skins may offer more colors but should retain recognizable silhouettes and non-color cues.
