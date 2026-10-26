@@ -17,6 +17,7 @@ The 3.x Hosted Worlds direction explored here uses **Zelda II** as its leading i
 | [03 — Engine, skins and browser rendering](03-ENGINE-RENDERER-AND-SKINS.md) | Assetless simulation, native/browser renderer separation, alternate skins, rulesets |
 | [04 — Decisions and unresolved questions](04-DECISION-REGISTER.md) | Agreed intent, recommended proposals, deferred questions and explicit safeguards |
 | [05 — Roadmap and test contracts](05-ROADMAP-AND-ACCEPTANCE.md) | Safe implementation sequence, deterministic tests, compatibility gates |
+| [06 — Mintable NPCs, defenders and playable avatars](06-MINTABLE-ACTORS-AND-AVATARS.md) | Character/NPC service entitlements, elite defenders, palace-only bosses, playable avatars and native-item preservation |
 
 ## Vocabulary and status
 

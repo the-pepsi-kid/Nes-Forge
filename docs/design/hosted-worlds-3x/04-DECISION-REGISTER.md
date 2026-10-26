@@ -63,3 +63,17 @@
 - Do not hardcode Zelda II terminology or data into platform-level abstractions; adapters bring title-specific support.
 - Old original Pepsi archive and accepted 2.0 editor remain intact; new 3.0 implementation belongs to review branch until complete source/tests uploaded and explicitly approved.
 - A design document is not a shipped runtime feature, and a local ZIP is not a GitHub source commit.
+
+## Subsequent design proposal — collectible actor rights (2026-10-26)
+
+See [06 — Mintable NPCs, defenders and playable avatars](06-MINTABLE-ACTORS-AND-AVATARS.md).
+
+| ID | Proposed direction | Status |
+| --- | --- | --- |
+| D-17 | Character/NPC minting primarily unlocks legal actor placement and optional playable roles; original items/spells have no rarity-derived combat levels | User-proposed, implementation pending |
+| D-18 | Blue Iron Knuckle can be a placed elite defender and an avatar with balanced player-level stats | User-proposed, requires control adapter |
+| D-19 | Shadow Link may be rare palace-only guardian and playable avatar; native Great Palace boss remains unchanged | User-proposed, hosted extension |
+| D-20 | Healers, magic restorers, River Man-style services and side-quest NPCs may populate towns subject to original quest safeguards | User-proposed, placement/service policy open |
+| D-21 | New spells, if pursued, are explicit non-native hosted ruleset features | Deferred |
+
+**Unresolved:** permission to mint source-owned IP on a public blockchain, active-instance quotas, availability of free native services, boss rarity and eligibility, whether deployed entities can also be used as avatars. Do not silently implement them as agreed balance rules.
