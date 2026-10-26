@@ -18,7 +18,7 @@
     digest = x => f.sha256(new TextEncoder().encode(JSON.stringify(x)));
   const profile = 'native-resource-project-v1',
     scope =
-    'Partial native resources. Existing block substitutions are encoded within each source record’s fixed capacity. Sprites, animation, collision rules, actors, Audio, menus and event relationships remain unresolved.',
+    'Partial native resources. Existing block substitutions are encoded within each source record’s fixed capacity. Additional edits require a registered title-specific writer. Unsupported fields and runtime changes remain blocked.',
     fail = m => {
       throw Error('Native resource project: ' + m);
     },
@@ -33,8 +33,20 @@
       ].some(k => typeof codec[k] !== 'function')) fail(
       'Invalid or duplicate native Scene encoder');
     sceneEncoders.push(Object.freeze({
-      ...codec
+      ...codec,
+      ...(codec.capability ? {capability: Object.freeze({...codec.capability})} : {})
     }));
+  }
+
+  /* Read-only discovery, separate from matches(): a writer can be available
+   * before its explicit editing view has been opened. This metadata grants no
+   * write permission; validate/build still enforce the original spans/recipes. */
+  function writerCapabilities(p) {
+    if (!matches(p)) return [];
+    const adapter = api.profiles.find(a => a.id === p.nativeGame.adapter);
+    if (!adapter) return [];
+    return sceneEncoders.filter(c => c.capability?.adapterKind === adapter.kind)
+      .map(c => ({id: c.id, ...c.capability}));
   }
 
   function freeze(v, seen = new WeakSet()) {
@@ -670,6 +682,7 @@
     brush,
     requiredScene,
     registerSceneEncoder,
+    writerCapabilities,
     projectionSignature: baseSignature
   });
 })();

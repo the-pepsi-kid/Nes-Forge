@@ -48,6 +48,8 @@
   const matches = (p, info) => info.adapter.kind === 'punch-out' && p.scenes.some(marker);
   owner.registerSceneEncoder({
     id: 'punch-out-physical-art-v1', matches,
+    capability: {adapterKind: 'punch-out', title: 'Physical CHR and fight palettes', route: 'punch-out-art',
+      scope: 'Edit explicitly opened physical CHR banks or fight palette tables. Shared native uses change together; recovered reference Scenes remain source snapshots.'},
     views(p, info) { return entries(p, info).map(({sc, baseline, kind}) => kind === 'chr' ?
       {id: sc.id, chr: baseline.chr} : {id: sc.id, pal: baseline.pal, sprPal: baseline.sprPal, bgColor: baseline.bgColor}); },
     spans(p, info) { return entries(p, info).map(({record, kind}) => ({offset: record.offset, length: kind === 'chr' ? 4096 : 32})); },

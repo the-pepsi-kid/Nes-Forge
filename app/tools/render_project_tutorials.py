@@ -15,6 +15,7 @@ except ImportError as error:
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / 'app/docs'
 CHAPTERS = [
+    ('hosted', 'Hosted Worlds and shared editor workflow', DOCS / 'projects/HOSTED_WORLDS.md'),
     ('projects', 'Title methods and tutorial requirements', DOCS / 'projects/README.md'),
     ('punch-out', 'Punch-Out worked tutorial', DOCS / 'projects/PUNCH_OUT.md'),
     ('general', 'NES Forge developer and asset guide', DOCS / 'NATIVE_RECOVERY_TUTORIAL.md'),
@@ -79,7 +80,7 @@ li{margin:.35em 0}blockquote{border-left:4px solid var(--line);padding-left:18px
 output = ('<!doctype html>\n<html lang="en"><head><meta charset="utf-8">'
     '<meta name="viewport" content="width=device-width,initial-scale=1">'
     '<title>NES Forge — Project Tutorials</title><style>' + STYLE + '</style></head><body><main>'
-    '<header><p class="meta">Developer tutorials · 2026-10-24</p><h1>NES Forge project tutorials</h1>'
+    '<header><p class="meta">Developer tutorials · 2026-10-25</p><h1>NES Forge project tutorials</h1>'
     '<p>Learn the shared tools, then the method each imported game actually uses.</p>'
     '<p>Punch-Out is the current worked lesson. Earlier title notes retain their checkpoint scope; '
     'their inclusion does not establish fresh acceptance or complete game recovery.</p></header>'

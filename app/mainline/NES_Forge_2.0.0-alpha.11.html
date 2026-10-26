@@ -645,7 +645,7 @@ input[type=file]{display:none}
 </select></label>
 <label><input type="checkbox" id="cfgSRAM" onchange="rom_updateConfig()"> Battery-backed SRAM ($6000-$7FFF)</label>
 </div>
-<label style="font-size:9px"><input type="checkbox" id="cfgPackScenes" checked onchange="S.packScenes=this.checked"> Pack scene data at $D000</label><p style="font-size:8px;color:var(--ylw)">Default build is a scene viewer. Entities, collision and tracker data do not become gameplay automatically.</p><h3>Memory Map</h3>
+<label style="font-size:9px"><input type="checkbox" id="cfgPackScenes" checked onchange="if(S.nativeGame){this.checked=S.packScenes!==false;}else{S.packScenes=this.checked;}"> Pack scene data at $D000</label><p style="font-size:8px;color:var(--ylw)">Generated builds use the configured viewer or runtime. Native projects preserve their original engine configuration.</p><h3>Memory Map</h3>
 <div class="memmap" id="memMap">
 <div class="memmap-region"><div class="memmap-bar" style="width:20px;background:#446"></div><span class="memmap-label">$0000-$07FF RAM</span><span class="memmap-size">2KB</span></div>
 <div class="memmap-region"><div class="memmap-bar" style="width:60px;background:#464"></div><span class="memmap-label">$8000-$BFFF PRG</span><span class="memmap-size">16KB</span></div>
@@ -3608,7 +3608,7 @@ function anim_stopPreview(){
 // ═══════════════════════════════════════════════
 // v8: ROM CONFIG
 // ═══════════════════════════════════════════════
-function rom_updateConfig(){snapshot();S.mirroring=document.getElementById('cfgMirror').value;S.hasSRAM=document.getElementById('cfgSRAM').checked;notify('romConfig');}
+function rom_updateConfig(){if(S.nativeGame)return;/* Native configuration belongs to the preserved source. */snapshot();S.mirroring=document.getElementById('cfgMirror').value;S.hasSRAM=document.getElementById('cfgSRAM').checked;notify('romConfig');}
 
 // ═══════════════════════════════════════════════
 // v8: PROJECT PERSISTENCE (IndexedDB)
@@ -4311,6 +4311,9 @@ function emuRunFrame(){if(!emu.loaded)return;const deadline=performance.now()+20
   const stepTo=target=>{let steps=0;while(emu.cycles<target){if((emu.irqPending||apuCore.irq)&&!emu.I){cpuPush(emu.PC>>8);cpuPush(emu.PC&255);cpuPush(cpuGetP()&~16);emu.I=1;emu.PC=cpuRead16(0xFFFE);emu.cycles+=7;apuClock(7);}cpuStep();emu.PC&=65535;if(++steps>20000)throw new Error('CPU did not advance safely');}};
   try{for(let line=0;line<262;line++){if((line&15)===0&&performance.now()>deadline)throw Error("Frame exceeded 200 ms safety budget; paused to protect the page");const lineStart=start+line*341/3;emu._ppuFrameLine=line;if(line<240){const hit=renderEmuLine(line,emu._rasterYBase,emu._rasterNTY);if(hit>=0&&!(emu.ppuStatus&64)){stepTo(lineStart+hit/3);emu.ppuStatus|=64;emu.spr0Line=line;}stepTo(start+(line+1)*341/3);if(emu.mapper===4)mmc3ScanlineTick();}else {if(line===241){emu.ppuStatus|=128;if(emu.ppuCtrl&128)cpuNmi();}stepTo(start+(line+1)*341/3);}}
   }finally{emu._ppuFrameLine=-1;}emu._nextFrameCycle=start+262*341/3;emu.tAddrPost=emu.tAddr;emu.fineXPost=emu.fineX;emu.chrBank0Post=emu.chrBank0;emu.chrBank1Post=emu.chrBank1;emu.frameCount++;
+  // Read-only ROM-frame evidence hook. No native engine or emulator state changes.
+  try{window.Forge?.services?.NativeAnimationTrace?.sample?.(emu,emuReadJoyState());}
+  catch(err){window.Forge?.services?.NativeAnimationTrace?.disable?.('Trace stopped: '+String(err?.message||err));}
 }
 
 // ── Reset ──
@@ -5546,7 +5549,7 @@ buildSceneSel=function(){
     const row=document.createElement('div');row.className='scene-thumb'+(i===S.activeScene?' active':'');row.dataset.f15Index=i;row.onclick=()=>switchScene(i);
     try{row.appendChild(renderSceneThumb(sc,52,46));}catch(_){}
     const text=document.createElement('div');text.style.minWidth='0';text.style.flex='1';const name=document.createElement('div');name.className='st-name';name.textContent=(i+1)+': '+sc.name;text.appendChild(name);
-    const badges=document.createElement('div');badges.innerHTML=sceneSourceBadge(sc)+' <span class="st-badge '+(sc.buildInclude!==false?'authored':'imported')+'">'+(sc.buildInclude!==false?'build':'skip')+'</span>';text.appendChild(badges);row.appendChild(text);browser.appendChild(row);
+    const badges=document.createElement('div');badges.innerHTML=sceneSourceBadge(sc)+(sceneBuildSetAllowed()?' <span class="st-badge '+(sc.buildInclude!==false?'authored':'imported')+'">'+(sc.buildInclude!==false?'build':'skip')+'</span>':'');text.appendChild(badges);row.appendChild(text);browser.appendChild(row);
   });
   revealActiveSceneThumb();
   buildSceneSetUI();
@@ -5562,17 +5565,33 @@ broadcastState=function(reason){if(!BC||syncApplying)return;clearTimeout(F15.syn
 const codeSide=$15('sideCode');
 const packBox=$15('cfgPackScenes');
 const buildSetSection=document.createElement('section');
-buildSetSection.innerHTML='<h3>Build Scene Set</h3><p style="font-size:8px;color:var(--dim)">Workspace may contain 64 scenes. NROM viewer builds up to 7 selected scenes. Door targets are remapped to build order.</p><div id="buildSceneSet"></div><div style="display:flex;gap:4px;margin:4px 0"><button class="f15-mini" id="forge15PreflightBtn">Preflight Build</button><button class="f15-mini" id="forge15IncludeFirst7">Include first 7</button></div><div id="forge15Preflight"><span class="warn">Run preflight before exporting a ROM.</span></div>';
+buildSetSection.innerHTML='<h3>Build Scene Set</h3><p id="forge15BuildScope" style="font-size:10px;color:var(--dim)">Workspace may contain 64 scenes. NROM viewer builds up to 7 selected scenes. Door targets are remapped to build order.</p><div id="buildSceneSet"></div><div style="display:flex;gap:4px;margin:4px 0"><button class="f15-mini" id="forge15PreflightBtn">Preflight Build</button><button class="f15-mini" id="forge15IncludeFirst7">Include first 7</button></div><div id="forge15Preflight"><span class="warn">Run preflight before exporting a ROM.</span></div>';
 if(packBox){const parent=packBox.closest('label')?.parentElement||packBox.parentElement;parent?.after(buildSetSection);}else codeSide?.appendChild(buildSetSection);
 function selectedSceneEntries(){return S.scenes.map((sc,index)=>({sc,index,order:clamp(sc.buildOrder??index,0,9999,index)})).filter(x=>x.sc.buildInclude!==false).sort((a,b)=>a.order-b.order||a.index-b.index);}
-function buildSceneSetUI(){const box=$15('buildSceneSet');if(!box)return;box.innerHTML='';S.scenes.forEach((sc,i)=>{const row=document.createElement('div');row.className='f15-build-row'+(i===S.activeScene?' active':'');const check=document.createElement('input');check.type='checkbox';check.checked=sc.buildInclude!==false;check.title='Include in ROM build';check.onchange=()=>{snapshot();sc.buildInclude=check.checked;setDirty('buildSet');buildSceneSel();};const order=document.createElement('input');order.type='number';order.min=0;order.max=9999;order.value=sc.buildOrder??i;order.title='Build order';order.onchange=()=>{snapshot();sc.buildOrder=clamp(order.value,0,9999,i);setDirty('buildSet');buildSceneSetUI();};const name=document.createElement('span');name.textContent=(i+1)+': '+sc.name;name.title=sc.name;row.append(check,order,name);box.appendChild(row);});}
-$15('forge15IncludeFirst7').onclick=()=>{snapshot();S.scenes.forEach((sc,i)=>{sc.buildInclude=i<7;sc.buildOrder=i;});setDirty('buildSet');buildSceneSel();};
+// Inclusion/order belong to generated packed builds, not native source recipes.
+// Guard handlers as well as disabling controls, including stale DOM references
+// left over from a previous project. No baseline or native signature is changed.
+function sceneBuildSetAllowed(){return window.Forge?.services?.ProjectCapabilities?.describe(S).buildSceneSet??!S.nativeGame;}
+function refreshBuildSetScope(){
+ const c=window.Forge?.services?.ProjectCapabilities?.describe(S),allowed=c?.buildSceneSet??!S.nativeGame;
+ const note=$15('forge15BuildScope');if(note&&c)note.textContent=c.buildSceneSetReason;
+ const box=$15('buildSceneSet');if(box){box.hidden=!allowed;for(const input of box.querySelectorAll('input'))input.disabled=!allowed;}
+ $15('forge15IncludeFirst7').disabled=!allowed;
+ for(const id of ['spBuildInclude','spBuildOrder'])if($15(id))$15(id).disabled=!allowed;
+ if($15('forge15SceneBuild'))$15('forge15SceneBuild').hidden=!allowed;
+ // These settings describe generated ROMs. Native headers and mapping remain
+ // owned by the preserved source, so a navigation click cannot rewrite them.
+ for(const id of ['cfgMapper','cfgMirror','cfgSRAM','cfgPackScenes']){const input=$15(id);if(input){input.disabled=!!S.nativeGame;input.title=S.nativeGame?'Original engine configuration is preserved by this native project.':'';}}
+ const mapper=$15('cfgMapper');if(mapper){for(const o of mapper.querySelectorAll('[data-native-mapper]'))o.remove();if(S.nativeGame&&!Array.from(mapper.options).some(o=>o.value===String(S.mapper))){const o=document.createElement('option');o.value=String(S.mapper);o.textContent=S.mapper+' — preserved source mapper';o.dataset.nativeMapper='true';mapper.appendChild(o);}mapper.value=String(S.mapper);}
+}
+function buildSceneSetUI(){const box=$15('buildSceneSet');if(!box)return;box.innerHTML='';S.scenes.forEach((sc,i)=>{const row=document.createElement('div');row.className='f15-build-row'+(i===S.activeScene?' active':'');const check=document.createElement('input');check.type='checkbox';check.checked=sc.buildInclude!==false;check.title='Include in ROM build';check.onchange=()=>{if(!sceneBuildSetAllowed())return refreshBuildSetScope();snapshot();sc.buildInclude=check.checked;setDirty('buildSet');buildSceneSel();};const order=document.createElement('input');order.type='number';order.min=0;order.max=9999;order.value=sc.buildOrder??i;order.title='Build order';order.onchange=()=>{if(!sceneBuildSetAllowed())return refreshBuildSetScope();snapshot();sc.buildOrder=clamp(order.value,0,9999,i);setDirty('buildSet');buildSceneSetUI();};const name=document.createElement('span');name.textContent=(i+1)+': '+sc.name;name.title=sc.name;row.append(check,order,name);box.appendChild(row);});refreshBuildSetScope();}
+$15('forge15IncludeFirst7').onclick=()=>{if(!sceneBuildSetAllowed())return refreshBuildSetScope();snapshot();S.scenes.forEach((sc,i)=>{sc.buildInclude=i<7;sc.buildOrder=i;});setDirty('buildSet');buildSceneSel();};
 
 // Also expose build membership in the active scene properties panel.
 const buildFields=document.createElement('div');buildFields.id='forge15SceneBuild';buildFields.innerHTML='<label>Build</label><input id="spBuildInclude" type="checkbox"><label>Order</label><input id="spBuildOrder" type="number" min="0" max="9999">';
 $15('scenePropsPanel')?.appendChild(buildFields);
-$15('spBuildInclude').onchange=function(){const sc=S.scenes[S.activeScene];snapshot();sc.buildInclude=this.checked;setDirty('buildSet');buildSceneSel();};
-$15('spBuildOrder').onchange=function(){const sc=S.scenes[S.activeScene];snapshot();sc.buildOrder=clamp(this.value,0,9999,S.activeScene);setDirty('buildSet');buildSceneSetUI();};
+$15('spBuildInclude').onchange=function(){if(!sceneBuildSetAllowed())return refreshBuildSetScope();const sc=S.scenes[S.activeScene];snapshot();sc.buildInclude=this.checked;setDirty('buildSet');buildSceneSel();};
+$15('spBuildOrder').onchange=function(){if(!sceneBuildSetAllowed())return refreshBuildSetScope();const sc=S.scenes[S.activeScene];snapshot();sc.buildOrder=clamp(this.value,0,9999,S.activeScene);setDirty('buildSet');buildSceneSetUI();};
 const spLoad14=sp_loadUI;
 sp_loadUI=function(sc){spLoad14(sc);if($15('spBuildInclude'))$15('spBuildInclude').checked=sc.buildInclude!==false;if($15('spBuildOrder'))$15('spBuildOrder').value=sc.buildOrder??S.activeScene;};
 
@@ -5641,7 +5660,7 @@ buildNesRom=function(){
   }catch(e){log(e.message,'bl-err');reportError(e);return null;}
 };
 
-F15.build={selectedSceneEntries,plan:planBuild15,encodeExtension:buildExtension15,showPreflight:showPreflight15};
+F15.build={selectedSceneEntries,plan:planBuild15,encodeExtension:buildExtension15,showPreflight:showPreflight15,refreshScope:refreshBuildSetScope};
 
 // ── IndexedDB crash recovery (migrates old localStorage recovery) ──
 const REC_DB_VER=2;
@@ -10855,7 +10874,9 @@ function planSource(source,options){
   if(source.nativeGame){
     if(backend!=='native-engine')throw Error('Native projects must use their native engine backend.');
     services.NativeEngineProject.validate(source,{build:true});
-    const p={source,backend,profile:{id:source.nativeGame.profile,mapper:source.mapper},phases:['prepare-snapshot','native-validation'],diagnostics:[]};completedPlans.add(p);return p;
+    const diagnostics=[diagnostic('info','native-validation','Native recipe validation passed for this snapshot. Compile and verify the rebuilt game to check the visible result.','native-validation'),
+      diagnostic('info','native-writer-scope',services.ProjectCapabilities?.describe(source).scope||services.NativeEngineProject.capabilities(source.nativeGame.profile).buildScope,'native-validation')];
+    const p={source,backend,profile:{id:source.nativeGame.profile,mapper:source.mapper},phases:['prepare-snapshot','native-validation'],diagnostics};completedPlans.add(p);return p;
   }
   if(!['packed','unpacked-custom','single-room','world'].includes(backend))throw Error('Unsupported build backend: '+backend);
   const gameplayCore=backend==='world'?null:services.GameplayCompiler.plan(source,{backend});
@@ -11022,7 +11043,9 @@ function build(options){
     BuildGraph.lastDiagnostics=[diagnostic('error','build-failed',error.message,'compile')];log(error.message,'bl-err');reportError(error);return null;
   }
 }
-const BuildGraph=services.BuildGraph={profile,phaseOrder,selectedSceneEntries,plan,planDetached,preflight,lastDiagnostics:[],
+// UI capability labels ask this same dispatcher which backend owns output.
+// Reading the route neither captures editor buffers nor validates/builds a ROM.
+const BuildGraph=services.BuildGraph={profile,phaseOrder,backendFor,selectedSceneEntries,plan,planDetached,preflight,lastDiagnostics:[],
   ownership:'Live capture or detached validation prepares the source. Generated plans pass copied sources to existing codecs once; custom assembly is live-only.'};
 const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world','native-engine']),compile,compileDetached:(project,options)=>compile(planDetached(project,options)),commit,build,lastArtifact:null};
 // These assignments replace active routes; no previous planner/builder is called.
@@ -17418,6 +17441,14 @@ function verifyAudioSource(profile,bytes,value){
  return bytes[receipt.source.fileOffset]===Number(receipt.cueId)&&anchor.every((b,i)=>bytes[at+i]===b);
 }
 const profiles=spatial().profiles.filter(p=>['ninja-gaiden-us','zelda2-us'].includes(p.id));
+// A Zelda II native ROM may contain *authorized* edits to overworld terrain
+// and location fields while preserving every protected engine, graphics and
+// scene-construction byte. The canonical ZeldaOverworld fingerprint masks ONLY
+// those verified editable spans. Never relax identity to a name/mapper guess.
+const verifiedZeldaSource=bytes=>!!dependency('ZeldaOverworld','./zelda-overworld.js')?.recognizes?.(bytes);
+const profileFor=bytes=>profiles.find(p=>p.sha256===hash(bytes))||
+ ((dependency('NativeEngineFormat','./native-engine-format.js')?.recognizes?.(bytes)||verifiedZeldaSource(bytes))?
+ profiles.find(p=>p.id==='zelda2-us'):null);
 
 function sourceReader(bytes){
  function loc(bank,cpu,length=1){
@@ -17433,7 +17464,7 @@ function sourceReader(bytes){
 function inputSnapshot(input,name){
  need(input instanceof Uint8Array&&input.length===262160,'choose one of the two investigated 262,160-byte iNES revisions');
  need(input[0]===78&&input[1]===69&&input[2]===83&&input[3]===26,'not an iNES source');
- const bytes=Uint8Array.from(input),sha256=hash(bytes),profile=profiles.find(p=>p.sha256===sha256)||(root.NativeEngineFormat?.recognizes(bytes)?profiles.find(p=>p.id==='zelda2-us'):null);
+ const bytes=Uint8Array.from(input),sha256=hash(bytes),profile=profileFor(bytes);
  return {bytes,profile,source:{name:String(name||'ROM').slice(0,160),sha256,byteLength:bytes.length}};
 }
 function symbolAt(profile,bank,cpu){return index()[profile].symbols.find(s=>s[0]===bank&&s[1]===cpu)?.[2]||null;}
@@ -17578,7 +17609,7 @@ function zeldaCatalog(r){
 function inspect(input,name='ROM'){
  // Unknown revisions have the same safe inspection result as other RE tools.
  if(!(input instanceof Uint8Array)||input.length<16||input.length>64*1024*1024)fail('choose a bounded ROM byte buffer');
- const sha256=hash(input),profile=profiles.find(p=>p.sha256===sha256)||(root.NativeEngineFormat?.recognizes(input)?profiles.find(p=>p.id==='zelda2-us'):null),source={name:String(name).slice(0,160),sha256,byteLength:input.length};
+ const sha256=hash(input),profile=profileFor(input),source={name:String(name).slice(0,160),sha256,byteLength:input.length};
  if(!profile)return {format:'NESForgeNativeGameEvidence',version:1,status:'unknown',source,profile:null,scenes:[],actors:[],poses:[],animations:[],locations:[],graphics:[],symbols:[],ram:[],limits:['No verified native game catalog for this exact revision. No scene, object or behavior was guessed.']};
  const bytes=Uint8Array.from(input),r=sourceReader(bytes),data=profile.id==='ninja-gaiden-us'?ninjaCatalog(r,bytes):zeldaCatalog(r);
  if(profile.id==='zelda2-us')data.poses=zeldaPlayerPoses(bytes);
@@ -19211,10 +19242,12 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
   const paletteOffsets = Object.freeze([4806, 21043, 47065, 4838, 11326, 21075, 30759, 47097, 39016, 30791, 4870, 30823, 38984, 47033]);
   const artSpans = Object.freeze([{offset: 0x20010, length: 0x20000},
     ...paletteOffsets.map(offset => ({offset, length: 32, mask: 63}))]);
-  // Recognition only: Glass Joe full-pose X/Y operands. Shared geometry,
-  // attributes, tiles, pointers and state programs remain protected.
+  // Recognition only: thirty full-pose pairs and five explicit incremental
+  // pairs. Their leading flags, geometry, tiles, pointers and state programs
+  // remain protected; these ranges do not grant generic brush permissions.
   const poseSpans = Object.freeze([156,169,182,195,208,221,234,243,252,263,274,285,294,303,312,
-    323,332,343,352,363,372,381,390,399,408,417,426,435,444,453].map(offset => ({offset, length: 2})));
+    323,332,343,352,363,372,381,390,399,408,417,426,435,444,453,
+    479,490,497,504,511].map(offset => ({offset, length: 2})));
   const profiles = Object.freeze([{
     "id": "punch-out-us-prg0-screens-v1",
     "kind": "punch-out",
@@ -19533,7 +19566,7 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
       "protectedSha256": "356e71dc75ecf38ef6218b74904361739992badbc35b726392bb210e84e10366"
     },
     artDerivativeIdentity: {spans: artSpans, protectedSha256: "85c39327f56fbc72c8bb122393739748613f5cb1d0dd072aa90febf21a8575b6"},
-    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "046b39ff59e88d8b30f6486beb301293ef0b65f8c32ca28e1c25d023404b0ccf"}
+    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "9cbd439407dd9a0904f3bdb73fa781d8bf2c527bcee1a15b5854c6575462087b"}
   }, {
     "id": "punch-out-us-prg1-screens-v1",
     "kind": "punch-out",
@@ -19852,7 +19885,7 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
       "protectedSha256": "db6923c2291d91385edc738de85c12aedd8d9a422dd831d51b70875e83aac994"
     },
     artDerivativeIdentity: {spans: artSpans, protectedSha256: "fc48479aebb4aa3f9e07315030839130de9f7cd42b34abc8a03f366896516739"},
-    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "af53c9b5eed8bfd254e824af9c6f8b2dc16f76c0d7b3a4fc9336024c89a163c5"}
+    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "78af4b7e2399e9db52849d63729760e77bb52792d73b5e8d8a4920355af07636"}
   }]);
   const contexts = Object.freeze([{
       key: 'b70e',
@@ -20354,7 +20387,7 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
     digest = x => f.sha256(new TextEncoder().encode(JSON.stringify(x)));
   const profile = 'native-resource-project-v1',
     scope =
-    'Partial native resources. Existing block substitutions are encoded within each source record’s fixed capacity. Sprites, animation, collision rules, actors, Audio, menus and event relationships remain unresolved.',
+    'Partial native resources. Existing block substitutions are encoded within each source record’s fixed capacity. Additional edits require a registered title-specific writer. Unsupported fields and runtime changes remain blocked.',
     fail = m => {
       throw Error('Native resource project: ' + m);
     },
@@ -20369,8 +20402,20 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
       ].some(k => typeof codec[k] !== 'function')) fail(
       'Invalid or duplicate native Scene encoder');
     sceneEncoders.push(Object.freeze({
-      ...codec
+      ...codec,
+      ...(codec.capability ? {capability: Object.freeze({...codec.capability})} : {})
     }));
+  }
+
+  /* Read-only discovery, separate from matches(): a writer can be available
+   * before its explicit editing view has been opened. This metadata grants no
+   * write permission; validate/build still enforce the original spans/recipes. */
+  function writerCapabilities(p) {
+    if (!matches(p)) return [];
+    const adapter = api.profiles.find(a => a.id === p.nativeGame.adapter);
+    if (!adapter) return [];
+    return sceneEncoders.filter(c => c.capability?.adapterKind === adapter.kind)
+      .map(c => ({id: c.id, ...c.capability}));
   }
 
   function freeze(v, seen = new WeakSet()) {
@@ -21006,6 +21051,7 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
     brush,
     requiredScene,
     registerSceneEncoder,
+    writerCapabilities,
     projectionSignature: baseSignature
   });
 })();
@@ -22275,65 +22321,152 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
   }
   return Object.freeze({version: 1, open, packChr, paletteBytes});
 });
-/* Native Glass Joe full-pose placement codec.
- * A full pose starts with signed X/Y offsets, followed by shared geometry,
- * attribute and tile-stream pointers. Only the two offsets belong to this
- * writer. The original CPU shape reader independently checks the result.
- * This module is pure: no project, editor, live emulator or source mutation.
+/* Native Glass Joe pose positions: thirty full records and five incremental
+ * records with explicit signed X/Y operands. Position-less incremental records
+ * inherit earlier OAM/offsets and are deliberately not invented as editable data.
+ *
+ * Full poses use PunchOutContent's original shape dispatcher. Incremental views
+ * use PunchOutStates to retain real preceding OAM along a declared state path.
+ * This pure codec owns no project, live emulator, hidden placement or timing.
  */
 (function(root, factory) {
   const node = typeof module !== 'undefined' && module.exports;
-  const api = factory(node ? require('./punch-out-content.js') : root.PunchOutContent);
+  const api = factory(node ? require('./punch-out-content.js') : root.PunchOutContent,
+    node ? require('./punch-out-states.js') : root.PunchOutStates);
   if (node) module.exports = api; else root.PunchOutPose = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function(content) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function(content, states) {
   'use strict';
   const fail = message => { throw Error('Punch-Out native pose: ' + message); };
   const signed = value => ((value + 128) & 255) - 128;
   const integer = value => Number.isInteger(value) && value >= -128 && value <= 127;
+  const copy = value => JSON.parse(JSON.stringify(value));
+  const hex = value => value.toString(16).toUpperCase().padStart(2, '0');
   const offsets = Object.freeze([156,169,182,195,208,221,234,243,252,263,274,285,294,303,312,
     323,332,343,352,363,372,381,390,399,408,417,426,435,444,453]);
+
+  // File offsets include the iNES header. The protected byte immediately before
+  // each pair is the native "explicit position" flag. Table pointers/streams,
+  // that flag, tile inheritance and all state commands remain protected.
+  const incrementalPositions = Object.freeze([
+    {selector: 0x84, recordOffset: 478, offset: 479, table: 1, state: 3, update: 6},
+    {selector: 0xC0, recordOffset: 489, offset: 490, table: 2, state: 1, update: 0},
+    {selector: 0xC2, recordOffset: 496, offset: 497, table: 2, state: 1, update: 11},
+    {selector: 0xC4, recordOffset: 503, offset: 504, table: 2, state: 1, update: 6},
+    {selector: 0xC6, recordOffset: 510, offset: 511, table: 2, state: 5, update: 10}
+  ].map(Object.freeze));
+  const idleSelectors = Object.freeze([0xC0, 0xC2, 0xC4]);
+
+  // The source $D043 routine derives priority for the $C0-family records:
+  // native OAM Y >= $50 is behind the background. This is a consequence of
+  // position, not permission to write attribute streams or arbitrary flags.
+  const derivedPriority = record => record.kind === 'incremental' && record.selector >= 0xC0;
+  const positionAttributes = (record, piece, dy) => derivedPriority(record)
+    ? (piece.attributes & 223) | (piece.y - 1 + dy >= 0x50 ? 32 : 0) : piece.attributes;
+
+  function inventory() {
+    return [...offsets.map((_, i) => ({selector: i * 2, kind: 'full',
+      label: 'Glass Joe · pose $' + hex(i * 2)})),
+    ...incrementalPositions.map(item => ({selector: item.selector, kind: 'incremental',
+      label: 'Glass Joe · incremental $' + hex(item.selector) +
+        (idleSelectors.includes(item.selector) ? ' · idle' : ' · state $' + hex(item.state))}))];
+  }
+
   function frame(pose, fight, id, sceneId) {
-    return {id, name: 'Native Glass Joe · pose $' + pose.selector.toString(16).toUpperCase().padStart(2, '0'),
+    const anchorX = pose.anchorX ?? fight.baseX, anchorY = pose.anchorY ?? fight.baseY;
+    return {id, name: 'Native Glass Joe · ' + (pose.selector >= 128 ? 'incremental pose $' : 'pose $') + hex(pose.selector),
       sceneId, spriteMode: pose.spriteMode, originX: 0, originY: 0,
       pieces: pose.pieces.map(piece => ({id: 'oam-' + piece.slot, tile: piece.tile,
-        tile2: (piece.tile + 1) & 255, x: signed(piece.x - fight.baseX),
-        y: signed(piece.y - 1 - fight.baseY) + 1, pal: piece.attributes & 3,
+        tile2: (piece.tile + 1) & 255, x: signed(piece.x - anchorX),
+        y: signed(piece.y - 1 - anchorY) + 1, pal: piece.attributes & 3,
         flipH: !!(piece.attributes & 64), flipV: !!(piece.attributes & 128), behind: !!(piece.attributes & 32)}))};
   }
+
   function open(input) {
     const bytes = Uint8Array.from(input), model = content.open(bytes), fight = model.fights[0];
     if (fight.bank8KiB !== 0 || fight.spriteMode !== 8 || fight.poses.length !== offsets.length ||
       fight.poses.some((record, i) => record.fileOffset !== offsets[i] || record.selector !== i * 2))
       fail('Glass Joe full-pose pointer graph differs from the supported source.');
+    for (const item of incrementalPositions) {
+      const at = 16 + fight.shapeTables[item.table] - 0x8000 + (item.selector & 63);
+      const address = bytes[at] | bytes[at + 1] << 8;
+      if (address !== 0x8000 + item.recordOffset - 16 || bytes[item.recordOffset] !== 1)
+        fail('The incremental pose does not retain its verified pointer and explicit-position flag.');
+    }
+    let stateReader;
+    const observed = new Map();
+
+    function incrementalPose(item) {
+      if (!observed.has(item.selector)) {
+        stateReader ||= states.open(bytes);
+        let sample;
+        const trace = stateReader.trace(0, item.state, {maxUpdates: item.update + 1,
+          onUpdate(value) {if (value.update === item.update) sample = value;}});
+        const display = trace.frames.at(-1);
+        if (!trace.editable || !sample || sample.ram[0xA1] !== item.selector ||
+          display?.spriteMode !== 8 || display.status !== 'decoded' || !display.pieces.length)
+          fail('The declared incremental pose requires unsupported prior state.');
+        // Display holds may coalesce equal OAM across selectors. RAM at the exact
+        // native update proves which command ran; a coalesced display label does not.
+        observed.set(item.selector, {...display, fight: 0, selector: item.selector,
+          anchorX: sample.ram[0xB0], anchorY: sample.ram[0xB1]});
+      }
+      return copy(observed.get(item.selector));
+    }
+
     function record(selector) {
+      const item = incrementalPositions.find(item => item.selector === selector);
+      if (item) {
+        const pose = incrementalPose(item);
+        return {selector, kind: 'incremental', offset: item.offset,
+          x: signed(bytes[item.offset]), y: signed(bytes[item.offset + 1]),
+          context: {state: item.state, update: item.update, initialFullPose: 0,
+            anchorX: pose.anchorX, anchorY: pose.anchorY}, pose, fight};
+      }
       if (!Number.isInteger(selector) || selector < 0 || selector > 58 || selector & 1)
-        fail('Choose a Glass Joe full-pose selector from $00 through $3A.');
+        fail('Choose a listed full pose or an incremental pose with explicit position bytes.');
       const source = fight.poses[selector / 2], pose = model.pose(0, selector);
       if (pose.status !== 'decoded' || pose.spriteMode !== 8 || !pose.pieces.length)
         fail('This pose requires unsupported prior state.');
-      return {selector, offset: source.fileOffset, x: signed(bytes[source.fileOffset]),
-        y: signed(bytes[source.fileOffset + 1]), pose, fight};
+      return {selector, kind: 'full', offset: source.fileOffset, x: signed(bytes[source.fileOffset]),
+        y: signed(bytes[source.fileOffset + 1]), context: null, pose, fight};
     }
+
     function placement(selector, actual, baseline) {
       const r = record(selector);
-      if (!actual || actual.pieces?.length !== baseline.pieces.length || !baseline.pieces.length)
+      if (!actual || !baseline || actual.pieces?.length !== baseline.pieces.length || !baseline.pieces.length)
         fail('The native pose must retain every original OAM piece and its order.');
       let dx, dy;
       actual.pieces.forEach((piece, index) => {
         const original = baseline.pieces[index];
         if (Object.keys(piece).sort().join(',') !== Object.keys(original).sort().join(',') ||
-          Object.keys(original).some(key => !['x', 'y'].includes(key) && piece[key] !== original[key]))
+          Object.keys(original).some(key => !['x', 'y', ...(derivedPriority(r) ? ['behind'] : [])].includes(key) && piece[key] !== original[key]))
           fail('Only whole-pose position has a native writer here. Preserve piece tiles, flags, order and identity.');
         const x = piece.x - actual.originX - original.x + baseline.originX;
         const y = piece.y - actual.originY - original.y + baseline.originY;
         if (!Number.isInteger(x) || !Number.isInteger(y) || index && (x !== dx || y !== dy))
           fail('Move the complete pose together. Individual geometry edits remain savable but cannot build natively.');
+        if (derivedPriority(r) && piece.behind !== !!(positionAttributes(r, r.pose.pieces[index], y) & 32))
+          fail('Native priority follows the OAM Y=$50 divider. Use Native X/Y controls to update the derived flag; manual priority edits have no writer.');
         dx = x; dy = y;
       });
       const x = r.x + dx, y = r.y + dy;
       if (!integer(x) || !integer(y)) fail('Native pose offsets must stay between -128 and 127.');
-      return {selector, offset: r.offset, x, y, dx, dy};
+      return {selector, offset: r.offset, x, y, dx, dy, kind: r.kind, context: r.context};
     }
+
+    function moveFrame(selector, actual, x, y) {
+      const r = record(selector), baseline = frame(r.pose, fight, actual.id, actual.sceneId);
+      placement(selector, actual, baseline);
+      if (!integer(x) || !integer(y)) fail('Native X/Y offsets must be -128 through 127.');
+      const next = copy(actual), dx = x - r.x, dy = y - r.y;
+      next.originX = 0; next.originY = 0;
+      next.pieces.forEach((piece, i) => {
+        piece.x = baseline.pieces[i].x + dx; piece.y = baseline.pieces[i].y + dy;
+        piece.behind = !!(positionAttributes(r, r.pose.pieces[i], dy) & 32);
+      });
+      return next;
+    }
+
     function encode(inputBytes, edits) {
       const output = Uint8Array.from(inputBytes), seen = new Set();
       if (output.length !== bytes.length) fail('Source container length changed.');
@@ -22342,24 +22475,26 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
         if (seen.has(edit.selector) || !integer(edit.x) || !integer(edit.y)) fail('Invalid or duplicate placement.');
         seen.add(edit.selector); output[r.offset] = edit.x & 255; output[r.offset + 1] = edit.y & 255;
       }
-      const candidate = content.open(output);
+      const candidate = open(output);
       for (const edit of edits) {
-        const r = record(edit.selector), next = candidate.pose(0, edit.selector), dx = edit.x - r.x, dy = edit.y - r.y;
+        const r = record(edit.selector), next = candidate.record(edit.selector).pose;
+        const dx = edit.x - r.x, dy = edit.y - r.y;
         if (next.status !== 'decoded' || next.pieces.length !== r.pose.pieces.length || next.chrBank4KiB !== r.pose.chrBank4KiB)
           fail('This position changes source visibility or shape context. Choose a smaller offset.');
         r.pose.pieces.forEach((piece, i) => {
           const q = next.pieces[i];
           if (q.slot !== piece.slot || q.x !== ((piece.x + dx) & 255) || q.y !== piece.y + dy ||
-            q.tile !== piece.tile || q.attributes !== piece.attributes)
+            q.tile !== piece.tile || q.attributes !== positionAttributes(r, piece, dy))
             fail('The original shape reader did not reproduce the requested placement.');
         });
       }
       return output;
     }
-    return Object.freeze({record, placement, encode, frame: (selector, id, sceneId) => frame(record(selector).pose, fight, id, sceneId),
-      inventory: fight.poses.map(record => ({selector: record.selector, label: 'Glass Joe · pose $' + record.selector.toString(16).toUpperCase().padStart(2, '0')}))});
+
+    return Object.freeze({record, placement, moveFrame, encode,
+      frame: (selector, id, sceneId) => frame(record(selector).pose, fight, id, sceneId), inventory: inventory()});
   }
-  return Object.freeze({version: 1, open, offsets});
+  return Object.freeze({version: 2, open, offsets, incrementalPositions, idleSelectors, inventory});
 });
 /*
  * NES FORGE MODULE: src/services/punch-out-content-recovery.js
@@ -23009,6 +23144,8 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
   const matches = (p, info) => info.adapter.kind === 'punch-out' && p.scenes.some(marker);
   owner.registerSceneEncoder({
     id: 'punch-out-physical-art-v1', matches,
+    capability: {adapterKind: 'punch-out', title: 'Physical CHR and fight palettes', route: 'punch-out-art',
+      scope: 'Edit explicitly opened physical CHR banks or fight palette tables. Shared native uses change together; recovered reference Scenes remain source snapshots.'},
     views(p, info) { return entries(p, info).map(({sc, baseline, kind}) => kind === 'chr' ?
       {id: sc.id, chr: baseline.chr} : {id: sc.id, pal: baseline.pal, sprPal: baseline.sprPal, bgColor: baseline.bgColor}); },
     spans(p, info) { return entries(p, info).map(({record, kind}) => ({offset: record.offset, length: kind === 'chr' ? 4096 : 32})); },
@@ -23037,89 +23174,210 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
   services.PunchOutArtProject = Object.freeze({prepare, sceneId,
     inventory(p) { const info = owner.validate(p); if (info.adapter.kind !== 'punch-out') throw Error('Open Punch-Out first.'); return source(info).fights; }});
 })();
-/* Canonical native pose positions use ordinary Metasprites and a source Scene.
- * The existing native resource owner validates signatures, disjoint spans and
- * source identity. Opening a view never adopts unsupported edits as a baseline.
- * ProjectStore owns save/reopen and Undo/Redo; copied recovery poses stay snapshots.
+/* Native pose positions are ordinary Metasprites plus a source-art Scene.
+ * NativeResourceProject owns source/signature/span validation. ProjectStore
+ * owns saving and history; the UI commits each returned detached project once.
+ *
+ * Incremental views use a distinct marker so a previous full-pose-only reader
+ * can preserve their ordinary assets and refuse unsupported native building.
+ * The idle helper edits three canonical frames; it stores no parallel recipe.
  */
 (() => {
   'use strict';
   const services = Forge.services, owner = services.NativeResourceProject, codec = PunchOutPose;
   const copy = value => JSON.parse(JSON.stringify(value));
-  const sceneId = selector => 'po-native-pose-source-f0-s' + selector;
-  const frameId = selector => 'po-native-pose-f0-s' + selector;
-  const marker = scene => scene.captureMeta?.punchOutPose;
+  const prefix = selector => selector >= 128 ? 'po-native-incremental-pose' : 'po-native-pose';
+  const sceneId = selector => prefix(selector) + '-source-f0-s' + selector;
+  const frameId = selector => prefix(selector) + '-f0-s' + selector;
+  const marker = scene => scene.captureMeta?.punchOutPose || scene.captureMeta?.punchOutIncrementalPose;
   let cache;
+
   function source(info) {
     if (!cache || cache.hash !== info.descriptor.sourceSha256)
       cache = {hash: info.descriptor.sourceSha256, model: codec.open(info.bytes)};
     return cache.model;
   }
+
   function entries(project, info) {
     return project.scenes.filter(marker).map(scene => {
       const m = marker(scene);
-      if (Object.keys(m).sort().join(',') !== 'fight,selector,sourceSha256,version' || m.version !== 1 || m.fight !== 0 ||
-        m.sourceSha256 !== info.descriptor.sourceSha256 || scene.id !== sceneId(m.selector))
-        throw Error('Native pose view has invalid source ownership.');
-      const model = source(info), record = model.record(m.selector), baseline = model.frame(m.selector, frameId(m.selector), scene.id);
+      if (scene.captureMeta.punchOutPose && scene.captureMeta.punchOutIncrementalPose ||
+        Object.keys(m).sort().join(',') !== 'fight,selector,sourceSha256,version' ||
+        m.version !== 1 || m.fight !== 0 || m.sourceSha256 !== info.descriptor.sourceSha256 ||
+        scene.id !== sceneId(m.selector)) throw Error('Native pose view has invalid source ownership.');
+      const model = source(info), record = model.record(m.selector);
+      if ((record.kind === 'incremental') !== !!scene.captureMeta.punchOutIncrementalPose)
+        throw Error('The native pose marker does not match its full/incremental source record.');
+      const baseline = model.frame(m.selector, frameId(m.selector), scene.id);
       const frame = project.metasprites.find(frame => frame.id === baseline.id);
       if (!frame) throw Error('A required native pose frame was removed. Restore it before building.');
       return {scene, frame, baseline, record, model};
     });
   }
+
   owner.registerSceneEncoder({
     id: 'punch-out-glass-joe-pose-placement-v1',
+    capability: {adapterKind: 'punch-out', title: 'Glass Joe pose positions', route: 'punch-out-pose',
+      scope: 'Whole-pose X/Y for 30 full poses and five explicit incremental poses; grouped idle $C0/$C2/$C4. Piece geometry, native animation, attack and collision rules have no writer here.'},
     matches: (project, info) => info.adapter.kind === 'punch-out' && project.scenes.some(marker),
     views: () => [],
-    metaspriteViews(project, info) {return entries(project, info).map(({baseline}) =>
-      ({id: baseline.id, originX: baseline.originX, originY: baseline.originY, pieces: baseline.pieces}));},
-    spans(project, info) {return entries(project, info).map(({record}) => ({offset: record.offset, length: 2}));},
+    metaspriteViews(project, info) {
+      return entries(project, info).map(({baseline}) => ({id: baseline.id,
+        originX: baseline.originX, originY: baseline.originY, pieces: baseline.pieces}));
+    },
+    spans(project, info) {
+      return entries(project, info).map(({record}) => ({offset: record.offset, length: 2}));
+    },
     encode(bytes, project, info) {
-      const list = entries(project, info), edits = list.map(({frame, baseline, record, model}) => model.placement(record.selector, frame, baseline));
-      const output = source(info).encode(bytes, edits);
-      return {bytes: output, diagnostics: [{severity: 'info', code: 'punch-out-native-pose-position', phase: 'native-encode',
-        message: edits.filter(edit => edit.dx || edit.dy).length + ' Glass Joe pose position(s) changed. Only full-pose X/Y operands are written; shared geometry, animation, damage rules and Audio remain intact. Check native playback.'}]};
+      const edits = entries(project, info).map(({frame, baseline, record, model}) =>
+        model.placement(record.selector, frame, baseline));
+      return {bytes: source(info).encode(bytes, edits), diagnostics: [{severity: 'info',
+        code: 'punch-out-native-pose-position', phase: 'native-encode',
+        message: edits.filter(edit => edit.dx || edit.dy).length +
+          ' Glass Joe pose position(s) changed. Only owned full/incremental X/Y operands are written; source flags, inherited tile streams, timing, damage rules and Audio remain intact. Native priority follows the original position rule. Check native playback.'}]};
     }
   });
+
+  // Called only after validating the old project. Each new source view receives
+  // current encoded CHR/colors, while its canonical position baseline comes from
+  // the preserved source. Copied source artwork is not another native art writer.
+  function addView(project, info, selector, current) {
+    const model = source(info), record = model.record(selector);
+    const id = frameId(selector), sid = sceneId(selector);
+    if (project.scenes.some(scene => scene.id === sid)) {
+      entries(project, info); return {frameId: id, sceneId: sid, added: false};
+    }
+    if (project.metasprites.some(frame => frame.id === id))
+      throw Error('Native pose frame ID already belongs to another asset.');
+    if (project.scenes.length >= 64 || project.metasprites.length >= 256)
+      throw Error('No free Scene or Metasprite slot. Preserve existing work first.');
+    const pose = current.record(selector).pose;
+    const colors = Array.from({length: 4}, (_, i) =>
+      [pose.palette[0], ...pose.palette.slice(i * 4 + 1, i * 4 + 4)]);
+    const baseline = model.frame(selector, id, sid);
+    const key = record.kind === 'incremental' ? 'punchOutIncrementalPose' : 'punchOutPose';
+    project.scenes.push(makeScene({id: sid, name: baseline.name + ' source',
+      chr: normalizeTiles(), sprChr: PunchOutContent.open(info.sceneEncoded.bytes).chr(pose.chrBank4KiB),
+      pal: Array.from({length: 4}, () => [15,0,0,0]), sprPal: colors,
+      nt: Array(960).fill(0), attr: Array(64).fill(0), tileProps: Array(256).fill(0),
+      oam: [], entities: [], links: [], buildInclude: false, buildOrder: 0, gravity: 0,
+      scrollDir: 'none', sceneType: 'static', captureMeta: {
+        mode: record.kind === 'incremental' ? 'native-incremental-pose-placement-view' : 'native-pose-placement-view',
+        [key]: {version: 1, sourceSha256: info.descriptor.sourceSha256, fight: 0, selector}}}));
+    project.metasprites.push(baseline);
+    return {frameId: id, sceneId: sid, added: true};
+  }
+
   function prepare(project, selector) {
     const info = owner.validate(project, {build: true});
     if (info.adapter.kind !== 'punch-out') throw Error('Open a recovered Punch-Out project first.');
-    const model = source(info), record = model.record(selector), id = frameId(selector), sid = sceneId(selector);
-    if (project.scenes.some(scene => scene.id === sid)) {
-      entries(project, info); return {project, frameId: id, sceneId: sid, added: false};
-    }
-    if (project.metasprites.some(frame => frame.id === id)) throw Error('Native pose frame ID already belongs to another asset.');
-    if (project.scenes.length >= 64 || project.metasprites.length >= 256) throw Error('No free Scene or Metasprite slot. Preserve existing work first.');
-    const p = copy(project), current = PunchOutContent.open(info.sceneEncoded.bytes), pose = current.pose(0, selector), fight = current.fights[0];
-    const colors = Array.from({length: 4}, (_, i) => [fight.palette[16], ...fight.palette.slice(17 + i * 4, 20 + i * 4)]);
-    p.scenes.push(makeScene({id: sid, name: 'Native Glass Joe · pose $' + selector.toString(16).toUpperCase().padStart(2, '0') + ' source',
-      chr: normalizeTiles(), sprChr: current.chr(pose.chrBank4KiB), pal: Array.from({length: 4}, () => [15,0,0,0]),
-      sprPal: colors, nt: Array(960).fill(0), attr: Array(64).fill(0), tileProps: Array(256).fill(0),
-      oam: [], entities: [], links: [], buildInclude: false, buildOrder: 0, gravity: 0, scrollDir: 'none', sceneType: 'static',
-      captureMeta: {mode: 'native-pose-placement-view', punchOutPose: {version: 1,
-        sourceSha256: info.descriptor.sourceSha256, fight: 0, selector}}}));
-    p.metasprites.push(model.frame(selector, id, sid));
+    source(info).record(selector);
+    const p = copy(project), result = addView(p, info, selector, codec.open(info.sceneEncoded.bytes));
+    if (!result.added) return {project, ...result};
     p.nativeGame.projectionSha256 = owner.projectionSignature(p);
     owner.validate(p, {build: true});
-    return {project: p, frameId: id, sceneId: sid, added: true};
+    return {project: p, ...result};
   }
+
   function describe(project, id) {
     const info = owner.validate(project), entry = entries(project, info).find(entry => entry.frame.id === id);
     if (!entry) return null;
-    return {...entry.model.placement(entry.record.selector, entry.frame, entry.baseline), frameId: id, sceneId: entry.scene.id};
+    return {...entry.model.placement(entry.record.selector, entry.frame, entry.baseline),
+      frameId: id, sceneId: entry.scene.id, chrBank4KiB: entry.record.pose.chrBank4KiB};
   }
+
+  function setPosition(entry, x, y) {
+    if (![x,y].every(value => Number.isInteger(value) && value >= -128 && value <= 127))
+      throw Error('Native X/Y offsets must be -128 through 127.');
+    // The codec also derives the C-family priority flags from the original
+    // screen divider, keeping the canonical preview aligned with source logic.
+    Object.assign(entry.frame, entry.model.moveFrame(entry.record.selector, entry.frame, x, y));
+  }
+
   function move(project, id, x, y) {
-    const info = owner.validate(project, {build: true}), entry = entries(project, info).find(entry => entry.frame.id === id);
+    const info = owner.validate(project, {build: true}), p = copy(project);
+    const entry = entries(p, info).find(entry => entry.frame.id === id);
     if (!entry) throw Error('Select a native Glass Joe pose position view.');
-    if (![x,y].every(value => Number.isInteger(value) && value >= -128 && value <= 127)) throw Error('Native X/Y offsets must be -128 through 127.');
-    const p = copy(project), frame = p.metasprites.find(frame => frame.id === id), dx = x - entry.record.x, dy = y - entry.record.y;
-    // Change canonical positions in one project transaction. No hidden delta store.
-    frame.originX = 0; frame.originY = 0;
-    frame.pieces.forEach((piece, i) => {piece.x = entry.baseline.pieces[i].x + dx; piece.y = entry.baseline.pieces[i].y + dy;});
-    owner.validate(p, {build: true}); return p;
+    setPosition(entry, x, y);
+    owner.validate(p, {build: true});
+    return p;
   }
-  services.PunchOutPoseProject = Object.freeze({prepare, describe, move, sceneId, frameId,
-    inventory: () => Array.from({length: 30}, (_, i) => ({selector: i * 2, label: 'Glass Joe · pose $' + (i * 2).toString(16).toUpperCase().padStart(2, '0')}))});
+
+  function moveIdle(project, id, x, y) {
+    const info = owner.validate(project, {build: true});
+    const active = entries(project, info).find(entry => entry.frame.id === id);
+    if (!active || !codec.idleSelectors.includes(active.record.selector))
+      throw Error('Select idle pose $C0, $C2 or $C4 before moving the idle set.');
+    const old = active.model.placement(active.record.selector, active.frame, active.baseline);
+    const dx = x - old.x, dy = y - old.y, p = copy(project);
+    const current = codec.open(info.sceneEncoded.bytes);
+    let added = false;
+    for (const selector of codec.idleSelectors) added = addView(p, info, selector, current).added || added;
+    for (const entry of entries(p, info).filter(entry => codec.idleSelectors.includes(entry.record.selector))) {
+      const before = entry.model.placement(entry.record.selector, entry.frame, entry.baseline);
+      setPosition(entry, before.x + dx, before.y + dy);
+    }
+    // Only derived new views and owned position fields changed after the initial
+    // validation. Re-sign additions, then independently validate actual encoding.
+    if (added) p.nativeGame.projectionSha256 = owner.projectionSignature(p);
+    owner.validate(p, {build: true});
+    return p;
+  }
+
+  services.PunchOutPoseProject = Object.freeze({prepare, describe, move, moveIdle, sceneId, frameId,
+    idleSelectors: codec.idleSelectors, inventory: () => codec.inventory()});
+})();
+/* NES FORGE CONNECTION: src/services/project-capabilities.js
+ * A read-only description of the existing build route and native write owners.
+ * Connected Workspace, intake and Area Library use the same projection. It
+ * creates no assets, signatures, schema fields, native permissions or state.
+ * BuildGraph/NativeEngineProject remain authoritative for build acceptance.
+ * Native Scene encoders declare their own discoverable scope at registration;
+ * an available writer is distinct from an editing view already being opened.
+ */
+(()=>{
+'use strict';
+const services=Forge.services;
+const titleByKind={'punch-out':'Punch-Out',contra:'Contra',ff:'Final Fantasy',megaman:'Mega Man',metroid:'Metroid',lolo:'Adventures of Lolo','river-city':'River City Ransom',shadowgate:'Shadowgate'};
+function describe(project=S){
+ const backend=services.BuildGraph.backendFor(project),native=project.nativeGame;
+ const buildSceneSet=backend==='packed'||backend==='single-room';
+ const result={backend,kind:'author',label:'Original NES Forge game',title:'NES Forge',nativeWorld:false,locationFields:false,
+  preservationOnly:false,buildSceneSet,scope:'Generated '+(backend==='world'?'World runtime':backend==='single-room'?'single-room runtime':backend==='unpacked-custom'?'custom assembly with active CHR':'Scene viewer / custom assembly')+'; existing compiler checks apply.',writers:[]};
+ if(!native){
+  if(project.investigation){result.kind='inspection';result.label='Investigated source · authored output';}
+ }else{
+  result.kind='native';
+  const cap=services.NativeEngineProject.capabilities(native.profile);
+  result.nativeWorld=!!cap.terrain;result.locationFields=!!cap.locationFields;
+  result.scope=cap.buildScope;
+  if(services.NativeResourceProject.matches(project)){
+   const adapter=window.NativePRGResources.profiles.find(a=>a.id===native.adapter);
+   result.title=titleByKind[adapter?.kind]||'Native resources';
+   result.writers=[{id:'native-resource-blocks',title:'Native source pages',route:'library',
+    scope:'Use native block controls for available recovered pages. Only verified source substitutions within the original record capacity rebuild.'},
+    ...services.NativeResourceProject.writerCapabilities(project)];
+   result.scope=result.writers.map(w=>w.title+': '+w.scope).join(' ');
+  }else if(services.NativeLayoutProject.matches(project)){
+   result.title='Native screen layout';
+   result.writers=[{id:'native-layout-blocks',title:'Area 1 native screen blocks',route:'project-library',scope:cap.buildScope}];
+  }else if(cap.terrain){
+   result.title='Zelda II';result.writers=[{id:'z2-terrain',title:'Native overworld terrain',route:'native-world',scope:cap.buildScope},
+    {id:'native-location-fields',title:'Native location fields',route:'native-locations',scope:'Location X/Y, scene selector and entry code only.'}];
+  }else if(cap.locationFields){
+   result.title='Zelda II';result.writers=[{id:'native-location-fields',title:'Native location fields',route:'native-locations',scope:cap.buildScope}];
+  }else{
+   result.kind='inspection';result.preservationOnly=true;result.title='Preserved ROM';
+  }
+  result.label=result.preservationOnly?'Preserved ROM · unchanged output':result.title+' · bounded native editing';
+ }
+ result.buildSceneSetReason=buildSceneSet?'Select and order up to seven Scenes for this generated build.':native?
+  'Native output uses its verified source bindings and writers. Scene inclusion and order do not select native content.':backend==='world'?
+  'World output follows saved World and player dependencies. Scene inclusion and order are not used.':
+  'Unpacked custom assembly uses the active CHR buffers. Scene inclusion and order are not used.';
+ return result;
+}
+services.ProjectCapabilities=Object.freeze({describe});
 })();
 /*
  * NES FORGE MODULE: src/services/punch-out-replay.js
@@ -23407,7 +23665,7 @@ function describe(){
  const canOpenAudio=audio.bindings.length>0&&!stage?.conflict&&((library?.isCurrent&&library.status==='decoded'&&!library.busy&&library.sourceSha256===source?.sha256&&library.profile===audio.bindings[0].audioProfile)||(spatial?.status==='supported'&&!spatial.busy&&spatial.sha256===source?.sha256));
  const inspected=(S.scenes||[]).filter(s=>{const r=s.captureMeta?.nativeAssets;return context.nativeKey(s)&&r.source.sha256===loaded?.sha256&&r.profile===loaded?.profile&&r.sceneId===loaded?.selectedScene;});
  return {audio,canOpenAudio:!!canOpenAudio,resourceSceneIds,stages,stage,rooms:stage?.rooms||[],activeRoomId:stage?receipt.sceneId:null,canUseInspected:inspected.length>0,scene:sc?{id:sc.id,name:sc.name}:null,scenes,groups,worlds,poses:poses.map(p=>({id:p.id,name:p.name,sceneId:p.sceneId})),clips,source,canOpenSource:!!source&&loaded?.sha256===source.sha256&&loaded?.profile===source.profile,
-  audioScope:'Project-wide Audio; source event receipts below are navigation evidence, not runtime bindings.',nativeProject:!!S.nativeGame,nativeBuildScope:S.nativeGame?services.NativeEngineProject.capabilities(S.nativeGame.profile).buildScope:'',selectedWorldId:Forge161.worlds.current?.id||''};
+  audioScope:'Project-wide Audio; source event receipts below are navigation evidence, not runtime bindings.',nativeProject:!!S.nativeGame,nativeBuildScope:S.nativeGame?services.ProjectCapabilities.describe(S).scope:'',selectedWorldId:Forge161.worlds.current?.id||''};
 }
 function navigation(fn){navigating++;try{return fn();}finally{navigating--;}}
 function syncWorld(){
@@ -23536,7 +23794,10 @@ function matchingPages(source,id){
  return S.scenes.filter(s=>{const r=s.captureMeta?.nativeAssets;return services.StageContext.nativeKey(s)&&r.source.sha256===source.source.sha256&&r.profile===source.profile?.id&&r.sceneId===id;}).sort((a,b)=>(a.captureMeta.nativeAssets.page||0)-(b.captureMeta.nativeAssets.page||0));
 }
 function resources(scope,scene,item,source){
- if(S.investigation?.version===4)return [{name:'Background / layout / palette',inspect:item?.reason||'Verified static source resource',edit:item?.status==='Unavailable native slot'?'Unavailable state':'Open a recovered page in Scene or CHR',build:'Existing native block substitutions; source capacity checked'},...['Sprites / animation','Collision / actors / behavior','Audio / menus / events'].map(name=>({name,inspect:'Unresolved',edit:'Authoring tools remain available; source recovery pending',build:'Native encoder pending'}))];
+ if(S.investigation?.version===4){const cap=services.ProjectCapabilities.describe(S);return [
+  {name:'Background / layout / palette IDs',inspect:item?.reason||'Verified static source resource',edit:item?.status==='Unavailable native slot'?'Unavailable state':'Open a recovered page; use its native block controls',build:'Existing native block substitutions; source capacity checked'},
+  ...cap.writers.filter(w=>w.id!=='native-resource-blocks').map(w=>({name:w.title,inspect:'Project-wide native writer; the selected page may be a source snapshot',edit:w.scope,build:'Open its dedicated editor through Connected Workspace → Native tools'})),
+  ...['Collision / actors / native animation','Native Audio / menus / events'].map(name=>({name,inspect:'Recovery is title-specific; source inspection does not establish a writer',edit:'Authoring copies remain savable; unsupported native changes can block output',build:'No native writer in this workflow'}))];}
  const native=!!S.nativeGame,editable=scope==='project'||!!scene,recovered=scope==='source'||!!scene?.captureMeta?.nativeAssets;
  const build=services.NativeResourceProject?.matches(S)?'Existing native block substitutions; source capacity checked':scene?.captureMeta?.nativeLayout?'Native screen blocks brush only':native?'Native encoder pending':'Generated build, subject to checks';
  const terrain=services.NativeEngineProject.capabilities(S.nativeGame?.profile).terrain&&S.nativeGame?.resources?.some(b=>b.sceneId===scene?.id);
@@ -23585,7 +23846,7 @@ function describe(){
  return {scope,sourceKey:key,source:source?{name:source.source.name,sha256:source.source.sha256,profile:source.profile?.id||null}:null,contexts,context,items,selected,pages:pages.map(s=>({id:s.id,name:s.name,...(s.resource?{resource:s.resource,page:s.page}:{})})),page:page?{id:page.id,name:page.name,...(page.resource?{resource:page.resource,page:page.page}:{})}:null,conflicts,resources:selected?resources(scope,page,selected,source):[],shared,
   imported:source?source.scenes.filter(s=>matchingPages(source,s.id).length).length:0,catalogued:source?.scenes.length||0,maps:source?.maps.length||0,
   nativeProject:!!S.nativeGame,canUseSaved:!!S.nativeGame&&!!S.importedRom?.length,busy:state.busy,
-  buildScope:S.nativeGame?services.NativeEngineProject.capabilities(S.nativeGame.profile).buildScope:'Generated project: builds use existing runtime settings and capacity checks.',
+  buildScope:services.ProjectCapabilities.describe(S).scope,
   projectScene:project.scene?.name||'No scene',project};
 }
 function sync(){
@@ -23780,7 +24041,7 @@ const entry=el('button','investigationOpen','Project investigation');entry.type=
 const style=el('style');style.textContent='#investigationWorkspace{padding:14px;border:1px solid #568087;border-radius:8px;margin:12px 0;overflow-wrap:anywhere}#investigationWorkspace button,#investigationOpen{min-height:44px;max-width:100%;white-space:normal}#investigationWorkspace pre{white-space:pre-wrap;overflow-wrap:anywhere}#investigationWorkspace .spatial-row{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}#investigationOpen{padding:6px 14px;background:#23485c;color:#e7fff9;border:1px solid #568087;border-radius:5px;cursor:pointer}#investigationWorkspace [data-error=true]{color:#ffbf96}#investigationSummary{line-height:1.8}';document.head.appendChild(style);
 function refresh(){
  const d=api.describe(S.investigation);donorExport.hidden=donorNote.hidden=!['container','native-layout'].includes(d?.kind);donorExport.disabled=!['container','native-layout'].includes(d?.kind)||!S.nativeGame?.resources?.some(b=>b.sceneId===S.scenes[S.activeScene]?.id);for(const b of navigation)b.disabled=!d||(['container','native-layout','native-resources'].includes(d.kind)&&!['library','graphics','code','coverage',...(['native-layout','native-resources'].includes(d.kind)?['scenes']:[])].some(k=>b.id==='investigationOpen-'+k));
- summary.textContent=d?.kind==='container'?d.source.name+' · '+d.source.byteLength+' bytes · mapper declaration '+d.header.mapper+' · '+d.chrBanks+' physical CHR sheets · no decoded stage/actor/Audio catalog. '+services.NativeEngineProject.capabilities(S.nativeGame?.profile).buildScope:d?d.source.name+' · '+d.contexts+' contexts · '+d.rooms+' room / slot entries · '+d.maps+' maps · '+d.actors+' actor entries · '+d.poses+' poses · '+d.scripts+' scripts · '+d.chrBanks+' CHR banks · '+d.symbols+' source labels · '+d.ram+' RAM annotations · '+d.cues+' Audio cue / control entries. '+services.NativeEngineProject.capabilities(S.nativeGame?.profile).buildScope:'Choose Open ROM / project to prepare a portable source project. Verified engine adapters add recovered catalogs when available; existing selected-resource import remains available below.';
+ summary.textContent=d?.kind==='native-resources'?d.source.name+' · native page catalog · '+d.contexts+' contexts · '+d.rooms+' room / slot entries. '+services.ProjectCapabilities.describe(S).scope:d?.kind==='container'?d.source.name+' · '+d.source.byteLength+' bytes · mapper declaration '+d.header.mapper+' · '+d.chrBanks+' physical CHR sheets · no decoded stage/actor/Audio catalog. '+services.ProjectCapabilities.describe(S).scope:d?d.source.name+' · '+d.contexts+' contexts · '+d.rooms+' room / slot entries · '+d.maps+' maps · '+d.actors+' actor entries · '+d.poses+' poses · '+d.scripts+' scripts · '+d.chrBanks+' CHR banks · '+d.symbols+' source labels · '+d.ram+' RAM annotations · '+d.cues+' Audio cue / control entries. '+services.ProjectCapabilities.describe(S).scope:'Choose Open ROM / project to prepare a portable source project. Verified engine adapters add recovered catalogs when available; existing selected-resource import remains available below.';
  gaps.textContent=d?'Source SHA-256: '+d.source.sha256+'\n'+d.gaps.concat(d.audioGaps).map(x=>typeof x==='string'?x:JSON.stringify(x)).join('\n'):'';
 }
 async function preview(input){
@@ -23789,7 +24050,7 @@ async function preview(input){
   const project=await api.create(source.bytes,source.name);if(own!==token)return false;
   if(input?.isCurrent&&!input.isCurrent())throw Error('Intake source changed. Prepare again.');
   const current=input?.bytes?source:services.SpatialREUI.sourceSnapshot();if(!current||window.NativeEngineFormat.sha256(current.bytes)!==project.investigation.source.sha256||before.epoch!==store.state.epoch||before.snapshot!==store.serialize())throw Error('Source or project changed during preview. Prepare again.');
-  staged=project;guard={...before,source:input?.bytes?{bytes:source.bytes.slice(),name:source.name}:null,isCurrent:input?.isCurrent||null};apply.disabled=false;const d=api.describe(project.investigation);message(d.kind==='container'?'Ready: preserved ROM, physical container evidence and '+project.nativeGame.resources.length+' editable CHR sheets. Stages, actors and Audio remain unresolved. Import replaces the current project. '+services.NativeEngineProject.capabilities(project.nativeGame.profile).buildScope:d.kind==='native-resources'?'Ready: '+d.rooms+' catalog entries with verified layouts and static graphics. '+services.NativeResourceProject.scope+' Import replaces the current project.':d.kind==='native-layout'?'Ready: '+d.rooms+' source screen layouts with initial background graphics and palette. '+services.NativeLayoutProject.scope+' Import replaces the current project.':'Ready: '+d.rooms+' room / slot entries, '+d.maps+' maps and all recovered actor, pose, script, CHR, code, RAM and Audio catalogs. The original ROM is retained privately in your project. '+services.NativeEngineProject.capabilities(project.nativeGame.profile).buildScope+' Import replaces the current project.');return true;
+  staged=project;guard={...before,source:input?.bytes?{bytes:source.bytes.slice(),name:source.name}:null,isCurrent:input?.isCurrent||null};apply.disabled=false;const d=api.describe(project.investigation);message(d.kind==='container'?'Ready: preserved ROM, physical container evidence and '+project.nativeGame.resources.length+' editable CHR sheets. Stages, actors and Audio remain unresolved. Import replaces the current project. '+services.ProjectCapabilities.describe(project).scope:d.kind==='native-resources'?'Ready: '+d.rooms+' catalog entries with verified layouts and static graphics. '+services.ProjectCapabilities.describe(project).scope+' Import replaces the current project.':d.kind==='native-layout'?'Ready: '+d.rooms+' source screen layouts with initial background graphics and palette. '+services.NativeLayoutProject.scope+' Import replaces the current project.':'Ready: '+d.rooms+' room / slot entries, '+d.maps+' maps and all recovered actor, pose, script, CHR, code, RAM and Audio catalogs. The original ROM is retained privately in your project. '+services.ProjectCapabilities.describe(project).scope+' Import replaces the current project.');return true;
  }catch(e){message(e.message,true);return false;}finally{if(own===token)prepare.disabled=false;}
 }
 function importProject(){
@@ -24693,6 +24954,8 @@ const beforeTab=switchTab;switchTab=function(...args){const result=beforeTab(...
   }
   owner.registerSceneEncoder({
     id: 'punch-out-arena-layout-v1',
+    capability: {adapterKind: 'punch-out', title: 'Shared arena layout', route: 'punch-out-arena',
+      scope: 'Arena tile placement and attribute palette IDs, within 381 compressed bytes shared by both pages. The layout is shared by fights; live game drawing can overwrite cells.'},
     matches,
     /* Only these fields have an inverse encoder. Returning the unedited source view
      * for signature checks does not rewrite or discard the edited Scene. */
@@ -24938,7 +25201,11 @@ const beforeTab=switchTab;switchTab=function(...args){const result=beforeTab(...
       if (snapshot() === false) throw Error('History could not preserve the current project. Save it first.');
       store.commit(prepared, {sync: true, intent: 'punch-out-native-art'}); notify('punchOutNativeArt');
     }
-    services.SceneContext.selectScene(result.sceneId); switchTab('chr');
+    services.SceneContext.selectScene(result.sceneId);
+    // Physical-bank views own the background CHR buffer, even when the source
+    // artwork is used by sprites. Do not inherit a pose's Sprite Bank selection.
+    if (kind === 'chr') setChrBank('bg');
+    switchTab('chr');
     status.textContent = kind === 'chr' ? 'Edit background CHR pixels in this physical bank view. Its display palette is not a native palette edit. Save/reopen and Build & Run; shared uses change together.' :
       'Edit background/sprite palette colors in this dedicated table view. Save/reopen and Build & Run. Universal color slots are linked; game routines can override some entries.';
     return result.sceneId;
@@ -24967,33 +25234,136 @@ const beforeTab=switchTab;switchTab=function(...args){const result=beforeTab(...
   const open = make('button', 'punchOutPoseOpen', 'Edit native Glass Joe pose position');
   for (const item of api.inventory()) {const option = make('option', null, item.label); option.value = String(item.selector); choice.appendChild(option);}
   choice.value = '0'; open.type = 'button';
-  const note = make('p', 'punchOutPoseNote', 'Move a complete Glass Joe full pose in the original engine. Each view uses an ordinary Metasprite and a source-art snapshot. The two native X/Y offsets are writable; individual pieces, shared geometry, tile streams and animation timing need separate writers. Check the built game after moving a pose.');
-  launch.append(make('summary', null, 'Native pose positions · Glass Joe'), note, choice, open);
-  document.getElementById('punchOutContentPanel').appendChild(launch);
+  const noteText = 'Move a complete Glass Joe pose in the original engine: 30 full poses and 5 incremental poses with explicit X/Y. Incremental previews retain preceding OAM from a declared native state. Idle uses $C0/$C2/$C4; keep them together to preserve the original bob. Each physical record affects all its native uses. The C-family uses the original screen-height priority rule, so vertical moves can place pieces behind ring graphics. Position-less records inherit earlier offsets. Shared geometry, tile streams and animation timing need separate writers.';
+  const note = make('p', 'punchOutPoseNote', noteText);
+  launch.append(make('summary', null, 'Native pose positions · Glass Joe'), choice, open, note);
+  // Keep the native writer beside the source pickers, above the tall reference
+  // preview. The ordinary Pose picker below remains a source-inspection tool.
+  launch.open = true;
+  document.getElementById('punchOutContentInventory').after(launch);
   const controls = make('section', 'punchOutPoseControls'), x = make('input', 'punchOutPoseX'), y = make('input', 'punchOutPoseY');
   const apply = make('button', 'punchOutPoseApply', 'Apply native pose position'), check = make('button', 'punchOutPoseCheck', 'Check native pose build');
+  const tiles = make('button', 'punchOutPoseTiles', 'View pose sprite tiles');
+  const artwork = make('button', 'punchOutPoseArtwork', 'Edit native sprite artwork');
+  const idle = make('input', 'punchOutPoseIdleGroup'), idleLabel = make('label', 'punchOutPoseIdleLabel');
+  idle.type = 'checkbox'; idle.checked = false; idleLabel.hidden = true;
+  idle.setAttribute('aria-label', 'Keep idle poses together');
+  idleLabel.append(idle, make('span', null, ' Keep idle poses together ($C0/$C2/$C4; adds missing views)'));
   const status = make('p', 'punchOutPoseStatus'); status.setAttribute('role', 'status');
   for (const [input, axis] of [[x, 'X'], [y, 'Y']]) {input.type = 'number'; input.min = '-128'; input.max = '127'; input.step = '1';
-    input.setAttribute('aria-label', 'Native full-pose offset ' + axis);}
+    input.setAttribute('aria-label', 'Native pose offset ' + axis);}
   apply.type = check.type = 'button'; controls.hidden = true;
   controls.append(make('h3', null, 'NATIVE GLASS JOE POSE POSITION'), make('p', null,
-    'X/Y are signed source offsets relative to the game’s moving opponent anchor. Apply moves every original piece together in one Undo step. Individual piece changes remain editable/savable but have no native geometry writer.'),
-    make('label', null, 'Native X '), x, make('label', null, ' Y '), y, apply, check, status);
+    'X/Y are signed source offsets relative to the game’s moving opponent anchor. Apply moves every original piece together in one Undo step. C-family priority follows the original OAM Y=$50 divider. Individual geometry and manual flag changes have no native writer.'),
+    make('label', null, 'Native X '), x, make('label', null, ' Y '), y, idleLabel, apply, check, tiles, artwork, status);
   document.getElementById('msEditor163').before(controls);
   controls.style.cssText = 'border:1px solid var(--bdr);padding:8px;margin:8px 0;font-size:11px';
   x.style.width = y.style.width = '65px';
   const active = () => window.Forge163?.metasprites?.current;
+
+  // This strip sits with the sheet, so navigation survives a scrolled inspector.
+  // It links existing owners: pose sprChr is a reference; physical-bank chr is
+  // the registered ROM writer. No pixels, signatures or project recipes move
+  // between those buffers merely because the user changes editor tabs.
+  const chrContext = make('section', 'punchOutChrContext');
+  const chrInfo = make('p', 'punchOutChrInfo');
+  const chrTiles = make('button', 'punchOutChrTiles', 'Show pose sprite tiles');
+  const chrArtwork = make('button', 'punchOutChrArtwork', 'Edit native sprite artwork');
+  const chrPose = make('button', 'punchOutChrPose', 'Open native pose position');
+  chrContext.setAttribute('aria-label', 'Punch-Out artwork context');
+  chrContext.hidden = true; chrContext.append(chrInfo, chrTiles, chrArtwork, chrPose);
+  document.getElementById('cv').before(chrContext);
+  const css = make('style');
+  css.textContent = '#punchOutChrContext[hidden]{display:none!important}#punchOutChrContext{align-self:stretch;flex:0 0 auto;box-sizing:border-box;max-width:100%;padding:10px;border:1px solid var(--bdr);background:var(--bg2);font:12px/1.5 system-ui;overflow-wrap:anywhere}#punchOutChrContext p{margin:0 0 8px}#punchOutChrContext button{margin:3px;min-height:36px;padding:6px 9px;background:var(--bg3);color:var(--txt);border:1px solid var(--bdr);cursor:pointer}#leftP.punch-out-chr-context{flex-direction:column}#leftP.punch-out-chr-context>#cv{flex-shrink:0}';
+  document.head.appendChild(css);
+  let chrSceneKey = '', chrSceneRef = null, metadataKey = '', metadata = null, returnPose = null;
+  const poseMarker = scene => scene?.captureMeta?.punchOutPose || scene?.captureMeta?.punchOutIncrementalPose;
+  function poseMetadata(scene) {
+    const marker = poseMarker(scene);
+    if (!marker || !S.metasprites.some(frame => frame.id === api.frameId(marker.selector) && frame.sceneId === scene.id)) return null;
+    const key = marker.sourceSha256 + ':' + scene.id;
+    if (key !== metadataKey) {
+      metadataKey = ''; metadata = api.describe(store.capture(), api.frameId(marker.selector)); metadataKey = key;
+    }
+    return metadata;
+  }
+  function refreshChrContext() {
+    const scene = S.scenes[S.activeScene], marker = poseMarker(scene), art = scene?.captureMeta?.punchOutArt;
+    const physical = art?.kind === 'chr';
+    const visible = S.tab === 'chr' && !!(marker || physical);
+    chrContext.hidden = !visible;
+    document.getElementById('leftP').classList.toggle('punch-out-chr-context', visible);
+    if (!visible) {chrSceneKey = ''; chrSceneRef = null; return;}
+    const key = (marker || art).sourceSha256 + ':' + scene.id;
+    // Select the correct buffer on entry/Scene change, while still allowing an
+    // explicit BG/Sprite toggle in the current sheet. This is editor view state.
+    if (key !== chrSceneKey || scene !== chrSceneRef) {
+      S.chrBank = marker ? 'spr' : 'bg'; chrSceneKey = key; chrSceneRef = scene;
+      document.getElementById('bankBg').classList.toggle('on', S.chrBank === 'bg');
+      document.getElementById('bankSpr').classList.toggle('on', S.chrBank === 'spr');
+    }
+    try {
+      const value = marker ? poseMetadata(scene) : null;
+      if (marker && !value) throw Error('The native pose frame is missing. Reopen its native pose shortcut.');
+      const back = physical && returnPose?.sourceSha256 === art.sourceSha256 && returnPose.bank === art.index;
+      chrTiles.hidden = chrArtwork.hidden = !value;
+      chrPose.hidden = !value && !back;
+      chrArtwork.disabled = !value;
+      if (value) {
+        chrArtwork.textContent = 'Edit native CHR bank ' + value.chrBank4KiB;
+        chrInfo.textContent = 'Glass Joe pose $' + value.selector.toString(16).toUpperCase().padStart(2, '0') +
+          ' · ' + (S.chrBank === 'spr' ? 'Sprite Bank ($1000)' : 'Background bank selected — choose Show pose sprite tiles') +
+          '. These tiles are a pose-source snapshot. Use Edit native CHR bank ' + value.chrBank4KiB +
+          ' to change shared game pixels; use Metasprites to change pose position.';
+      } else chrInfo.textContent = 'Native artwork · physical CHR bank ' + art.index +
+        '. Edit pixels in BG Bank ($0000). Build & Run uses these changes across shared game uses. Earlier pose previews retain their source snapshots.';
+    } catch (error) {
+      chrInfo.textContent = error.message;
+      chrTiles.hidden = chrArtwork.hidden = chrPose.hidden = true;
+    }
+  }
+  function viewTiles(id) {
+    const frame = S.metasprites.find(frame => frame.id === id);
+    if (!frame) throw Error('Select a native pose first.');
+    services.SceneContext.selectScene(frame.sceneId); setChrBank('spr'); switchTab('chr');
+    chrContext.scrollIntoView?.({block: 'nearest'});
+  }
+  function editArtwork(id) {
+    const value = api.describe(store.capture(), id);
+    if (!value) throw Error('Select a native pose first.');
+    const sourceSha256 = poseMarker(S.scenes.find(scene => scene.id === value.sceneId)).sourceSha256;
+    services.PunchOutArtUI.open('chr', value.chrBank4KiB);
+    returnPose = {sourceSha256, selector: value.selector, bank: value.chrBank4KiB};
+    refreshChrContext(); chrContext.scrollIntoView?.({block: 'nearest'});
+  }
+  const safeNavigation = (fn, target) => () => {try {fn();} catch (error) {target.textContent = error.message;}};
+  tiles.onclick = safeNavigation(() => viewTiles(active()?.id), status);
+  artwork.onclick = safeNavigation(() => editArtwork(active()?.id), status);
+  chrTiles.onclick = safeNavigation(() => viewTiles(poseMetadata(S.scenes[S.activeScene])?.frameId), chrInfo);
+  chrArtwork.onclick = safeNavigation(() => editArtwork(poseMetadata(S.scenes[S.activeScene])?.frameId), chrInfo);
+  chrPose.onclick = safeNavigation(() => {
+    const marker = poseMarker(S.scenes[S.activeScene]);
+    openPose(marker ? marker.selector : returnPose.selector);
+  }, chrInfo);
+  for (const button of [tiles, artwork, chrTiles, chrArtwork, chrPose]) button.type = 'button';
+  const previousRender = render;
+  render = function() {refreshChrContext(); return previousRender();};
+  const previousSwitch = switchTab;
+  switchTab = function(tab) {const result = previousSwitch(tab); refreshChrContext(); return result;};
   function refresh() {
     const frame = active(), scene = S.scenes.find(scene => scene.id === frame?.sceneId);
-    controls.hidden = !scene?.captureMeta?.punchOutPose;
+    controls.hidden = !(scene?.captureMeta?.punchOutPose || scene?.captureMeta?.punchOutIncrementalPose);
     if (controls.hidden) return;
     try {
       const value = api.describe(store.capture(), frame.id);
       if (!value) throw Error('This frame is not an owned native pose view.');
       if (document.activeElement !== x) x.value = String(value.x);
       if (document.activeElement !== y) y.value = String(value.y);
-      status.textContent = 'Pose $' + value.selector.toString(16).toUpperCase().padStart(2, '0') +
+      idleLabel.hidden = !api.idleSelectors.includes(value.selector);
+      status.textContent = (value.kind === 'incremental' ? 'Incremental pose $' : 'Pose $') + value.selector.toString(16).toUpperCase().padStart(2, '0') +
         ' · source offsets ' + value.x + ', ' + value.y + ' · movement ' + value.dx + ', ' + value.dy +
+        (value.context ? ' · observed state $' + value.context.state.toString(16).toUpperCase().padStart(2, '0') + ', update ' + value.context.update +
+          ' · native anchor ' + value.context.anchorX + ', ' + value.context.anchorY : '') +
         '. Position changes visual placement; attack/damage rules retain their original code.';
     } catch (error) {status.textContent = error.message;}
   }
@@ -25006,16 +25376,20 @@ const beforeTab=switchTab;switchTab=function(...args){const result=beforeTab(...
     const expected = store.serialize(), epoch = store.state.epoch, result = api.prepare(store.capture(), selector);
     if (expected !== store.serialize() || epoch !== store.state.epoch) throw Error('Project changed. Select the native pose again.');
     if (result.added) install(result.project, 'nativePoseOpen');
-    services.SceneContext.selectScene(result.sceneId); Forge163.metasprites.select(result.frameId); switchTab('metasprites'); refresh();
+    services.SceneContext.selectScene(result.sceneId); Forge163.metasprites.select(result.frameId); setChrBank('spr'); switchTab('metasprites'); refresh();
     return result.frameId;
   }
-  open.onclick = () => {try {return openPose(Number(choice.value));} catch (error) {note.textContent = error.message; return false;}};
+  open.onclick = () => {try {const id = openPose(Number(choice.value)); note.textContent = noteText; return id;} catch (error) {note.textContent = error.message; return false;}};
   apply.onclick = () => {try {
     const frame = active(), expected = store.serialize(), epoch = store.state.epoch;
     if (!x.value.trim() || !y.value.trim()) throw Error('Enter both signed native offsets.');
-    const next = api.move(store.capture(), frame?.id, Number(x.value), Number(y.value));
+    const project = store.capture(), value = api.describe(project, frame?.id);
+    const next = idle.checked && value && api.idleSelectors.includes(value.selector)
+      ? api.moveIdle(project, frame.id, Number(x.value), Number(y.value))
+      : api.move(project, frame?.id, Number(x.value), Number(y.value));
     if (expected !== store.serialize() || epoch !== store.state.epoch) throw Error('Project changed. Apply again from the current pose.');
     if (JSON.stringify(next) !== JSON.stringify(store.capture())) install(next, 'nativePosePosition');
+    Forge163.metasprites.select(frame.id);
     refresh(); return true;
   } catch (error) {status.textContent = error.message; return false;}};
   check.onclick = () => {try {
@@ -25361,7 +25735,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&root.classL
 window.Forge.services.ResourceRelationshipPreview=Object.freeze({open,openAt:(resourceKey)=>{open();setMode('live');if(graph.nodes.has(resourceKey))choose(resourceKey);},close,refresh:()=>{graph=mode==='live'?liveGraph():sampleGraph();render();},summary:()=>({mode,follow,nodes:graph?.nodes.size||0,edges:graph?.edges.length||0,issues:graph?.issues.length||0,selected:active,contextNote}),liveGraph});
 })();
 
-/* NES Forge Connected Workspace v0.2 — optional review layer.
+/* NES Forge Connected Workspace v0.3 — context and supported editing routes.
  * Read-only context, health previews, workflow shortcuts & staged file inspection.
  * NO project write, schema mutation, native encoder changes or automatic imports.
  */
@@ -25386,18 +25760,17 @@ const css=document.createElement('style');css.id='fcw-styles';css.textContent=`
 `;document.head.appendChild(css);
 const ribbon=el('div');ribbon.id='fcw-ribbon';ribbon.innerHTML='<span class="fcw-label">Working context</span><strong id="fcw-project">Untitled</strong><span id="fcw-status" class="fcw-status"></span><span id="fcw-location" class="fcw-muted"></span><span class="fcw-spacer"></span><button type="button" id="fcw-z2">Native World</button><button type="button" id="fcw-relations">▣ Resources</button><button type="button" id="fcw-open">Connected Workspace</button>';
 const originalTop=document.querySelector('.top');originalTop?.parentNode.insertBefore(ribbon,originalTop.nextSibling);
-const overlay=el('div');overlay.id='fcw-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','NES Forge Connected Workspace');overlay.innerHTML=`<div id="fcw-dialog"><header class="fcw-header"><div><div class="fcw-k">NES Forge / Integration preview</div><h2>Connected Workspace</h2><div class="fcw-subtitle">Your project, its assets, supported operations and the next editing step</div></div><span class="fcw-flex"></span><button id="fcw-close" type="button">✕ Close</button></header><nav class="fcw-tabs" role="tablist"><button type="button" data-fcw-tab="overview" aria-selected="true">Overview</button><button type="button" data-fcw-tab="create" aria-selected="false">Create a Game</button><button type="button" data-fcw-tab="native" aria-selected="false">Native / Z2</button><button type="button" data-fcw-tab="health" aria-selected="false">Project Health</button><button type="button" data-fcw-tab="import" aria-selected="false">Import Preview</button></nav><div class="fcw-scroll"><section class="fcw-panel show" id="fcw-panel-overview"></section><section class="fcw-panel" id="fcw-panel-create"></section><section class="fcw-panel" id="fcw-panel-native"></section><section class="fcw-panel" id="fcw-panel-health"></section><section class="fcw-panel" id="fcw-panel-import"></section></div><footer class="fcw-foot" id="fcw-footer">Prototype only · existing project/ROM lifecycle remains authoritative · no Git push</footer></div>`;
+const overlay=el('div');overlay.id='fcw-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','NES Forge Connected Workspace');overlay.innerHTML=`<div id="fcw-dialog"><header class="fcw-header"><div><div class="fcw-k">NES Forge / Integration preview</div><h2>Connected Workspace</h2><div class="fcw-subtitle">Your project, its assets, supported operations and the next editing step</div></div><span class="fcw-flex"></span><button id="fcw-close" type="button">✕ Close</button></header><nav class="fcw-tabs" role="tablist"><button type="button" data-fcw-tab="overview" aria-selected="true">Overview</button><button type="button" data-fcw-tab="create" aria-selected="false">Create a Game</button><button type="button" data-fcw-tab="native" aria-selected="false">Native tools</button><button type="button" data-fcw-tab="health" aria-selected="false">Project Health</button><button type="button" data-fcw-tab="import" aria-selected="false">Import Preview</button></nav><div class="fcw-scroll"><section class="fcw-panel show" id="fcw-panel-overview"></section><section class="fcw-panel" id="fcw-panel-create"></section><section class="fcw-panel" id="fcw-panel-native"></section><section class="fcw-panel" id="fcw-panel-health"></section><section class="fcw-panel" id="fcw-panel-import"></section></div><footer class="fcw-foot" id="fcw-footer">Save Project As preserves your work · Preflight Build checks current output eligibility</footer></div>`;
 document.body.appendChild(overlay);
 let view='overview',lastFocus=null,staged=[],lastIdentity='';
-function button(label,handler,cls=''){const b=el('button',cls,label);b.type='button';b.addEventListener('click',()=>{try{handler();}catch(e){$('footer').textContent='Action unavailable: '+e.message;}});return b;}
+function button(label,handler,cls=''){const b=el('button',cls,label);b.type='button';b.addEventListener('click',()=>{try{Promise.resolve(handler()).catch(e=>{$('footer').textContent='Action unavailable: '+e.message;});}catch(e){$('footer').textContent='Action unavailable: '+e.message;}});return b;}
 function line(title,detail,indicator,kind){const r=el('div','fcw-row'),left=el('span');left.append(el('strong',null,title),el('div','fcw-muted',detail));r.append(left,el('span','fcw-indicator '+(kind||''),indicator));return r;}
 function card(title,desc){const c=el('div','fcw-card');c.append(el('h4',null,title),el('p',null,desc));return c;}
-function current(){const nat=S.nativeGame,profile=nat?.profile||null,res=Array.isArray(nat?.resources)?nat.resources:[],z2id=window.ZeldaOverworld?.id;
- const nativeWorld=profile&&profile===z2id;const selectedWorld=S.worlds?.[Forge161?.worlds?.state?.selected||0];
+function current(){const nat=S.nativeGame,profile=nat?.profile||null,res=Array.isArray(nat?.resources)?nat.resources:[],capabilities=svc.ProjectCapabilities.describe(S);
+ const nativeWorld=capabilities.nativeWorld;const selectedWorld=S.worlds?.[Forge161?.worlds?.state?.selected||0];
  const linked=res.find(b=>b.worldId===selectedWorld?.id&&b.mapId);
- const mode=nativeWorld?'Editable Z2 original engine':S.investigation?'Investigated source · inspection':nat?'Native engine · bounded editing':'Original NES Forge game';
- return {mode,nativeWorld,nat,res,linked,selectedWorld,profile,scene:S.scenes?.[S.activeScene],project:S.projectName||'Untitled'};}
-function refreshRibbon(){const c=current();$('project').textContent=c.project;$('status').textContent=c.mode;$('status').dataset.kind=c.nativeWorld?'native':S.investigation?'inspection':'author';const focus=S.tab==='chr'?'CHR tile '+S.editTile:S.tab==='anim'?'Animation '+(S.animations?.[S._selAnim]?.name||'none'):S.tab==='world'?'World '+(c.selectedWorld?.name||'none'):S.tab==='audio'?'Project Audio':S.tab==='code'?'6502 source':S.tab.toUpperCase();$('location').textContent=focus+' · Scene: '+(c.scene?.name||'none');$('z2').textContent=c.nativeWorld?'Edit native World':'Open native World';$('z2').title=c.nativeWorld?'Navigate to the selected original-engine terrain map; no ROM re-import.':'Use the original native World importer for supported Zelda II ROM revisions. General ROM investigation remains available separately.';}
+ return {mode:capabilities.label,capabilities,nativeWorld,nat,res,linked,selectedWorld,profile,scene:S.scenes?.[S.activeScene],project:S.projectName||'Untitled'};}
+function refreshRibbon(){const c=current();$('project').textContent=c.project;$('status').textContent=c.mode;$('status').dataset.kind=c.capabilities.kind;const focus=S.tab==='chr'?'CHR tile '+S.editTile:S.tab==='anim'?'Animation '+(S.animations?.[S._selAnim]?.name||'none'):S.tab==='world'?'World '+(c.selectedWorld?.name||'none'):S.tab==='audio'?'Project Audio':S.tab==='code'?'6502 source':S.tab.toUpperCase();$('location').textContent=focus+' · Scene: '+(c.scene?.name||'none');$('z2').textContent=c.nativeWorld?'Edit native World':'Native tools';$('z2').title=c.nativeWorld?'Open this project’s native terrain editor.':c.nat?'See supported native writers and preserved-source limits for this project.':'Explore native project workflows.';window.Forge15?.build?.refreshScope?.();}
 function gotoTab(tab){close();if(typeof window.switchTab!=='function')throw Error('The existing editor is unavailable');window.switchTab(tab);refreshRibbon();}
 function openZ2(){const c=current();close();if(c.nativeWorld){const worldId=S.worlds?.[Forge161.worlds.state.selected]?.id,sceneId=S.scenes?.[S.activeScene]?.id;const bindings=S.nativeGame?.resources?.filter(r=>r.mapId)||[];const binding=bindings.find(r=>r.worldId===worldId)||bindings.find(r=>r.sceneId===sceneId)||(bindings.length===1?bindings[0]:null);if(!binding)throw Error('Several native World maps exist. Select the intended World or resource first; no map has been changed.');svc.NativeWorldUI.choose(binding.mapId);refreshRibbon();return;}
  const b=document.getElementById('nativeWorldOpen');if(!b)throw Error('Native World importer unavailable in this build.');b.click();}
@@ -25411,13 +25784,34 @@ function activeKey(){const scene=S.scenes?.[S.activeScene],sid=scene?.id||'';
  return 'scene:'+sid;
 }
 function openRelationships(){close();if(svc.ResourceRelationshipPreview?.openAt)svc.ResourceRelationshipPreview.openAt(activeKey());else document.getElementById('frx-open')?.click();}
+// Routes open the existing writer or its explicit resource picker. Merely reading
+// capabilities never materializes a Scene or silently picks a physical bank.
+function openWriter(route){
+ const c=current();if(!c.capabilities.writers.some(w=>w.route===route))throw Error('This project has no registered writer for that action.');
+ if(route==='native-world')return openZ2();
+ close();
+ if(route==='library'||route==='project-library'){svc.AreaLibrary.show();svc.AreaLibrary.selectScope(route==='library'?'source':'project');return;}
+ if(route==='native-locations')return svc.AreaLibrary.openNativeEditor();
+ if(route==='punch-out-arena')return svc.PunchOutArenaUI.open();
+ if(route==='punch-out-pose'||route==='punch-out-art'){
+  if(!svc.PunchOutContentUI.open())throw Error('Open the current recovered source again before choosing a native resource.');
+  window.switchTab('disasm');
+  const panel=document.getElementById(route==='punch-out-pose'?'punchOutPosePanel':'punchOutArtPanel');
+  panel.open=true;panel.scrollIntoView?.({block:'start'});
+  document.getElementById(route==='punch-out-pose'?'punchOutPoseChoice':'punchOutArtBank').focus();return;
+ }
+ throw Error('The native writer editor is unavailable.');
+}
+function writerCards(host,c){for(const writer of c.capabilities.writers){const box=card(writer.title,writer.scope);const b=button('Open '+writer.title+' ↗',()=>openWriter(writer.route));b.dataset.fcwWriter=writer.id;box.appendChild(b);host.appendChild(box);}}
 function buildOverview(){const c=current(),host=$('panel-overview');host.replaceChildren(el('h3',null,'What am I working on?'),el('p',null,'Choose a resource, understand its owner and consumers, then open the exact editor. The active project stays untouched until you use the original authoring tools.'));
  const grid=el('div','fcw-grid');const project=card('Current project',c.project);project.append(el('div','fcw-muted','Mode: '+c.mode),el('div','fcw-muted','Current Scene: '+(c.scene?.name||'none')),el('div','fcw-muted','Current World: '+(c.selectedWorld?.name||'none')));grid.appendChild(project);
  const graph=svc.ResourceRelationshipPreview.liveGraph(),links=card('Declared resources and links',graph.nodes.size+' resources · '+graph.edges.length+' explicit relationships · '+graph.issues.length+' diagnostic notes.');links.appendChild(button('Inspect relationships ↗',openRelationships));grid.appendChild(links);host.append(grid);
- const tools=card('Your next action','Original game editing and native ROM investigation are different workflows. Choose the one you intend.');for(const [name,fn] of [['Draw CHR pixels',()=>gotoTab('chr')],['Edit Scene layout',()=>gotoTab('scene')],['Edit Gameplay',()=>gotoTab('scene')],['Compose Audio',()=>gotoTab('audio')],['Edit Zelda II terrain',openZ2]])tools.appendChild(button(name,fn));host.appendChild(tools);
- if(S.investigation&&!c.nativeWorld)host.append(line('Source is in investigation mode','Recovered evidence does not automatically create an editable native terrain project. Use the dedicated native Z2 opener.','Inspection only','warn'));
+ if(c.nat){host.appendChild(card('Current output scope',c.capabilities.scope));writerCards(host,c);
+  if(c.capabilities.preservationOnly)host.append(line('Preserved source','This project can output its unchanged source. Editable copies can be saved or exported separately; no native asset writer is registered.','Unchanged output','warn'));
+ }else{const tools=card('Your next action','These editors author the current NES Forge project.');for(const [name,fn] of [['Draw CHR pixels',()=>gotoTab('chr')],['Edit Scene layout',()=>gotoTab('scene')],['Edit Gameplay',()=>{close();svc.SceneContext.openAsset('gameplay');}],['Compose Audio',()=>gotoTab('audio')]])tools.appendChild(button(name,fn));host.appendChild(tools);}
 }
 function buildCreate(){const host=$('panel-create');host.replaceChildren(el('h3',null,'Build an original NES game from scratch'),el('p',null,'These actions take you into the working NES Forge editors. This guide does not overwrite an existing project or auto-create placeholder assets. Use the existing New Project command when you want a clean slate.'));
+ if(current().nat){host.appendChild(card('A separate authored project','The current project preserves an original game engine. Save it first, then use New Project to begin an original NES Forge game. Use Native tools for the supported edits in the current project.'));host.appendChild(button('View current native tools',()=>tab('native')));return;}
  const steps=[
   ['1. Project','Start a new project using NES Forge’s existing New Project command, or continue with your active project.',null],
   ['2. Draw CHR graphics','Edit pixel tiles in the CHR editor. Background and sprite graphics share the Scene’s canonical tile ownership.','chr'],
@@ -25433,17 +25827,16 @@ function buildCreate(){const host=$('panel-create');host.replaceChildren(el('h3'
  for(const [name,info,target] of steps){const row=el('div','fcw-step');row.append(el('strong',null,name),el('div',null,info));if(target)row.appendChild(button('Open '+target.replace(/^./,s=>s.toUpperCase())+' editor ↗',()=>{if(target==='gameplay'){close();svc.SceneContext?.openAsset?.('gameplay');}else gotoTab(target);}));host.appendChild(row);}
  host.append(line('Tutorial coverage','Guided instructions use existing controls; no claim of a complete no-code demo project in this preview.','Prototype','warn'));
 }
-function buildNative(){const c=current(),host=$('panel-native');host.replaceChildren(el('h3',null,'Zelda II — editable overworld'),el('p',null,'The original-engine terrain editor is a distinct project workflow. Generic ROM investigation and source map previews are not necessarily editable. Import the supported ROM into its native World project, then paint, save, rebuild, and verify.'));
- host.append(line('Current project type',c.mode,c.nativeWorld?'Native terrain editor available':'Native terrain editor requires a supported ROM project',c.nativeWorld?'good':'warn'));
- const box=card(c.nativeWorld?'Open an existing native region':'Open a supported Zelda II ROM','Only use a ROM revision recognized by the existing ZeldaOverworld adapter. Importing it as a new native project may replace unsaved work. The underlying importer handles confirmation and validation.');
- if(c.nativeWorld){for(const r of window.ZeldaOverworld.resources){box.appendChild(button('Edit '+r.name+' ↗',()=>browseZ2(r.id)));}if(c.linked)box.append(el('div','fcw-muted','Selected native binding: '+c.linked.mapId));}
- else box.append(button('Open native World · choose supported ROM',openZ2));host.appendChild(box);
- const compare=card('How to tell the difference','Editable native project: the World panel displays a terrain palette, editable canvas, and compressed-map byte budget. Investigation mode: recovered source evidence, which does not itself authorize writing back.');compare.appendChild(button('Inspect current relationships',openRelationships));host.appendChild(compare);
- host.append(line('Native output limitation','Verified scope in this code: overworld terrain and four location fields. Other graphics, Audio, collision and runtime changes may block native builds.','Bounded','warn'));
+function buildNative(){const c=current(),host=$('panel-native');host.replaceChildren(el('h3',null,c.nat?c.capabilities.title+' — native tools':'Native project workflows'),el('p',null,c.nat?c.capabilities.scope:'Open a supported ROM through Open ROM / project to discover its preserved source, recovered resources and available native writers. Current authoring tools keep their existing generated build route.'));
+ if(c.nat){host.append(line('Current project type',c.mode,c.capabilities.preservationOnly?'Unchanged source output':'Bounded native editing',c.capabilities.preservationOnly?'warn':'good'));writerCards(host,c);
+  if(c.nativeWorld){const box=card('Choose a native region','Each region uses its existing terrain palette and compressed-map budget.');for(const r of window.ZeldaOverworld.resources)box.appendChild(button('Edit '+r.name+' ↗',()=>browseZ2(r.id)));host.appendChild(box);}
+  host.append(line('Build acceptance','Available writers describe supported fields. Unsupported edits remain savable and can block native output; use Preflight Build for the current project.','Validation required','warn'));
+ }else{const box=card('Choose a source','Open ROM / project prepares the title-specific workflow. The native World importer also supports recognized Zelda II revisions. The importer validates the source and handles replacement of unsaved work.');box.append(button('Open ROM / project',()=>{close();document.getElementById('projectGatewayOpen').click();}),button('Open native Zelda II World',openZ2));host.appendChild(box);}
+ const compare=card('Editing owner and reference copies','Recovered reference Scenes can be inspected or saved as copies. Native output changes only through the declared writer and its owned fields. Physical banks and source records can have shared uses.');compare.appendChild(button('Inspect current relationships',openRelationships));host.appendChild(compare);
 }
 function buildHealth(){const c=current(),host=$('panel-health'),g=svc.ResourceRelationshipPreview.liveGraph();host.replaceChildren(el('h3',null,'Project Health — preliminary checks'),el('p',null,'These are project/reference diagnostics, not a ROM compatibility certification or native build acceptance pass.'));host.append(line('Canonical Scene assets',String(S.scenes?.length||0)+' Scene(s) in project',S.scenes?.length?'Present':'Missing',S.scenes?.length?'good':'bad'));
  host.append(line('Declared references',g.edges.length+' relationship(s); '+g.issues.length+' issue(s) detected',g.issues.length?'Review issues':'No detected issues',g.issues.length?'warn':'good'));
- host.append(line('Native encoder eligibility',c.nativeWorld?'Zelda II terrain writer registered; precise validation happens during the actual build.':c.nat?'Native build scope is profile-specific; unsupported changes remain blocked.':'Regular generated ROM workflow, subject to existing compiler checks.','Not pre-certified','warn'));
+ host.append(line('Build backend',c.capabilities.scope,'Not pre-certified','warn'));
  host.append(line('Audio associations','Tracker audio is project-wide. Event bindings require declared references; no triggers are invented.','Not inferred','warn'));
  host.append(line('Save and round trip','Save/reopen and target emulator verification require explicit tests for this project.','Not tested here','warn'));
  const issues=card('Asset registry and relationship diagnostics',g.issues.length?g.issues.slice(0,12).join('\n'):'No issues surfaced by the current relationship graph. This does not prove the project will build.');issues.style.whiteSpace='pre-wrap';host.appendChild(issues);host.append(button('Refresh current project checks',()=>buildHealth()));
@@ -25468,7 +25861,7 @@ function render(){refreshRibbon();buildOverview();buildCreate();buildNative();bu
 function tab(id){view=id;render();}
 function open(id='overview'){lastFocus=document.activeElement;view=id;render();overlay.classList.add('show');document.body.dataset.fcwOpen='true';$('close').focus();}
 function close(){overlay.classList.remove('show');delete document.body.dataset.fcwOpen;lastFocus?.focus?.();}
-$('z2').onclick=()=>{try{openZ2();}catch(e){open('native');$('footer').textContent=e.message;}};$('relations').onclick=openRelationships;$('open').onclick=()=>open();$('close').onclick=close;
+$('z2').onclick=()=>{try{if(current().nativeWorld)openZ2();else open('native');}catch(e){open('native');$('footer').textContent=e.message;}};$('relations').onclick=openRelationships;$('open').onclick=()=>open();$('close').onclick=close;
 for(const b of overlay.querySelectorAll('[data-fcw-tab]'))b.addEventListener('click',()=>tab(b.dataset.fcwTab));
 overlay.addEventListener('mousedown',e=>{if(e.target===overlay)close();});overlay.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();}else if(e.key==='Tab'){const vis=[...overlay.querySelectorAll('button:not([disabled]),input:not([disabled])')].filter(x=>x.offsetParent!==null);if(vis.length){const first=vis[0],last=vis[vis.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}e.stopPropagation();});
 // Refresh context after user interactions, rather than installing a second project lifecycle or polling snapshots.

@@ -1,14 +1,21 @@
-# Hosted Worlds — 3.x experiment
+# Hosted Worlds (3.x experimental track)
 
-This directory is reserved for independently runnable, versioned 3.x hosted-world experiments. The accepted Forge 2.0 mainline remains in the top-level `app/` and `nes-forge.html`.
+The optional hosted build reuses canonical `app/src` with a separate manifest. The `v17.1/` directory contains its runnable HTML, localhost host/client and launchers. The native/offline entry remains `nes-forge.html`.
 
-## Folder contract
+## Launch v17.1
 
-Each version (for example `v17.1/`) must contain the entire reviewed distribution: standalone HTML editor, Windows and macOS/Linux launcher, `host/server.py`, `host/client.html` and `host/client.js`, Forge source, synthetic fixtures, tests, docs, and checksum manifest. Do not commit local ROMs, secrets, private SQLite data or generated ZIPs.
+- Windows: `cd experiments\hosted-worlds\v17.1` then `START_LOCALHOST_WINDOWS.cmd`.
+- macOS/Linux: `cd experiments/hosted-worlds/v17.1 && sh START_LOCALHOST_MAC_LINUX.sh`.
+- In a browser open `NES_Forge_3x_v17_Hosted_Link_Actions_Experimental.html` from the **same directory**.
+- Select the Zelda II World; `Test localhost` must say protocol 13 verified, then publish with `Load selected World on host`.
+- Never run both old and new localhost servers on port 8765. Back up your private SQLite database before transferring hosts.
+- Validation: `python tests/test_v17_world_load_compatibility.py` from within `v17.1/`.
 
-Runtime execution should remain localhost-only and opt-in. An administrator must explicitly approve World publication. A host protocol mismatch must block publication. Experimental multiplayer action physics and provisional combat do not constitute 1:1 recovered original Zelda II gameplay.
+ROMs are user-owned and must remain local; never commit ROMs, private keys, tokens, or local-world databases.
 
-**Current GitHub status:** Layout/checkpoint staged on this review branch; the v17.1 **complete source-bearing kit is not checked into GitHub yet**. The full runnable version is delivered separately in the user-facing v17.1 repo-ready review ZIP. This branch does not claim to contain a runnable hosted server.
+## Integration policy
+
+Stable authoring lives in `app/`; hosted experiments live under `experiments/hosted-worlds/<version>/`. Do not promote prototype mechanics as recovered original Zelda II gameplay. All cross-track changes need explicit compatibility and native asset checks.
 
 ## Proposed game modes and visuals
 

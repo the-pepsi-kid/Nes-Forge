@@ -2774,7 +2774,7 @@ function anim_stopPreview(){
 // ═══════════════════════════════════════════════
 // v8: ROM CONFIG
 // ═══════════════════════════════════════════════
-function rom_updateConfig(){snapshot();S.mirroring=document.getElementById('cfgMirror').value;S.hasSRAM=document.getElementById('cfgSRAM').checked;notify('romConfig');}
+function rom_updateConfig(){if(S.nativeGame)return;/* Native configuration belongs to the preserved source. */snapshot();S.mirroring=document.getElementById('cfgMirror').value;S.hasSRAM=document.getElementById('cfgSRAM').checked;notify('romConfig');}
 
 // ═══════════════════════════════════════════════
 // v8: PROJECT PERSISTENCE (IndexedDB)

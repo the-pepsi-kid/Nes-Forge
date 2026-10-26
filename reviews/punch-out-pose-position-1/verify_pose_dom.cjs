@@ -14,7 +14,7 @@ const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
     await s.InvestigationUI.whenReady();
     get('nf-skin-toggle').click(); assert(d.body.classList.contains('nf-retro'));
     get('punchOutContentOpen').click(); assert.equal(get('punchOutContentPanel').hidden, false);
-    assert.equal(get('punchOutPoseChoice').options.length, 30);
+    assert.equal(Array.from(get('punchOutPoseChoice').options).filter(option => Number(option.value) < 128).length, 30);
     get('punchOutPoseChoice').value = '0'; get('punchOutPoseOpen').click();
     assert.equal(get('punchOutPoseControls').hidden, false); assert.equal(w.eval('S.tab'), 'metasprites');
     assert.equal(get('punchOutPoseX').value, '-16'); assert.equal(get('punchOutPoseY').value, '-96');

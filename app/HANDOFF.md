@@ -1,4 +1,27 @@
-## Current repository baseline: working alpha on main
+## Current: shared editor and hosted-world integration
+
+Read `../reviews/hosted-integration-1/HANDOFF.md`. Native and hosted editors now use
+one canonical `app/src` tree, with separate manifests/output inventories. The
+hosted version adds eleven opt-in modules and retains current native build scope,
+Glass Joe idle/incremental, CHR routing and Retro Workstation work. Original
+engine fidelity and public hosting remain bounded as documented. The main branch
+and original Pepsi archive are preserved; publication targets draft PR #3.
+
+## Previous: connected native workflows, first repair batch
+
+Read `../reviews/connected-workflow-repair-1/HANDOFF.md` first. The shared read-only capability projection follows BuildGraph’s existing backend and registered native writers. Punch-Out is labeled bounded native editing and exposes source-page, pose, physical-art and arena routes. Intake, Scene context, Area Library and native preflight agree. Inapplicable Scene selection/order and generated ROM configuration controls cannot mutate a native project. The authored Gameplay shortcut opens its actual panel. Root and generated app are identical, SHA-256 `4e316191f5b1046841530d225372072663412f1f399c08ecf79b018441e8799c`.
+
+This resolves review WF-01/WF-02 and the Gameplay part of WF-05. The wider selection/provenance/resource-usage, fresh-resume, preview, health-diagnosis and contextual-lesson work remains open. No new native writer, schema, asset store or emulator was added. Preserve the original Pepsi archive, current project owners and independent RE/ASM/hex/HTML workflows. This checkpoint is local; GitHub publication is separate.
+
+## Previous: pose and native artwork navigation repair
+
+Read `../reviews/punch-out-artwork-navigation-1/HANDOFF.md` and the Punch-Out handbook section 17. The native pose picker is expanded above the source reference preview. Metasprites links directly to sprite CHR and the existing physical-bank writer; CHR Sheet shows a contextual strip. Pose entry selects Sprite Bank, physical artwork entry selects BG Bank, and explicit toggles still work within the current sheet. Reference art remains a snapshot; unsupported edits cannot be re-signed through navigation. Three of 184 runtime inputs change from bb264f4; core codecs, native encoders, emulator, schemas and all five workstation inputs remain identical. Application SHA-256: `9ac2c6750561f3e8c2dd5f542f6c6d9930383771000f1fd3cf751d70feb09d66`. This remains a local development candidate on the existing feature branch.
+
+## Previous checkpoint: native idle and incremental pose positions
+
+Read `../reviews/punch-out-incremental-pose-1/HANDOFF.md` and section 17 of `docs/projects/PUNCH_OUT.md`. This development candidate extends accepted main 6d07f18 on a feature branch. It retains 30 full poses, adds five explicit incremental X/Y records, and moves the three idle records together in one canonical transaction. Preceding OAM and the observed anchor are required; C-family priority follows original OAM Y=$50. Physical flags/pointers/geometry/code remain protected, and unsupported manual fields still refuse. Application SHA-256: `3cf862ba5210fabe972f1d5c3f7eda32a0e6f7db08b718d35b829de00fb273fc`. Four of 184 runtime inputs change; all five workstation modules, core owners, schemas and emulator remain unchanged. No new public Git push is part of this checkpoint.
+
+## Previous accepted repository baseline: working alpha on main
 
 The owner approved preserving original main as `archive/original-pepsi` and `original-pepsi`, then promoting the accepted alpha into `main`. Read `../reviews/main-alpha-promotion-1/HANDOFF.md`, `../CANDIDATE.json` and `../README.md` first. Root `nes-forge.html` and the source-owned generated app have the same SHA-256 `90c179abf3360821dc2dd93168ef74fa6ae2282a78ee6c7357958424612c4322`. All 184 runtime inputs are unchanged; this promotion updates repository entry points, metadata and documentation. From the repository root, rebuild with the existing bundler and run `python3 tools/sync_main_entry.py`. The historical sections below describe their own recorded checkpoints, including failures that have since been fixed; they do not override the current baseline.
 

@@ -1,9 +1,8 @@
-# Private copyrighted ROM inputs
 *.nes
 *.fds
 *.unf
 *.unif
-# Private localhost state and credentials
+*.zip
 *.db
 *.db-*
 *.sqlite
@@ -13,11 +12,15 @@
 .env.*
 *.pem
 *.key
-# Generated artifacts and caches
-*.zip
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
 node_modules/
 .DS_Store
+experiments/hosted-worlds/**/evidence/
+experiments/hosted-worlds/**/tests/_local_*
+experiments/hosted-worlds/**/*.png
+experiments/hosted-worlds/**/*.jpg
+experiments/hosted-worlds/**/*.jpeg
+experiments/hosted-worlds/**/*.webp

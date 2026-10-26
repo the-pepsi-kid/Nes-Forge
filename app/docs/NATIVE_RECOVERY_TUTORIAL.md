@@ -245,6 +245,7 @@ Keep comments near decisions: source ownership, pointer mapping, private buses, 
 | Shared CPU instruction behavior | `services/cpu6502-core.js` |
 | Persistence and reference lookup | `services/project-store.js`, `services/asset-registry.js` |
 | Build planning and output | `services/build-services.js`; runtime-specific compilers |
+| Project capabilities and applicable controls | `services/project-capabilities.js` projects `BuildGraph.backendFor` and native owners; encoder registrations declare their own available scope. `ui/connected-workspace.js`, intake, Scene context and Area Library display it. `legacy/05-foundation.js` guards generated build-selection controls; `legacy/00-editor.js` and the shell guard native ROM configuration. |
 | Emulator/player | `legacy/01-emulator.js`, `services/emulator-*`, `services/mmc2-emulator.js`, `re/mmc2.js` |
 | Input and analysis | `services/project-gateway.js`, `re/project-gateway-ui.js`, `re/re-analysis*`, `source/` |
 | Native resource ownership | `services/rom-project.js`, `services/investigation-project.js`, `services/native-resource-project.js` |
@@ -258,6 +259,8 @@ Keep comments near decisions: source ownership, pointer mapping, private buses, 
 | Final initialization | `composition.js` |
 
 ## 11. Prove the workflow, not just the helper
+
+Begin with the current backend in **Connected Workspace**. Native tools lists the current project's registered writers, with explicit pickers for resources such as Punch-Out CHR banks and Glass Joe poses. Availability is separate from build acceptance: an unsupported copied edit can still block output. Native projects preserve their original engine configuration and do not use the generated Scene inclusion/order controls. Generated packed builds retain that selection; World output follows its saved dependencies, and unpacked custom assembly uses active CHR. No capability label changes a project signature or supplies an encoder.
 
 A decoder and its tests can share a wrong assumption. Earlier Punch-Out tests missed an import-path difference and mirrored rendering assumptions. Test original loaders and independent observations, and exercise the actual UI entry points.
 
@@ -384,14 +387,30 @@ The supplied Resources, Connected Workspace, metasprite context and Retro Workst
 
 ### Native Glass Joe full-pose position extension
 
-Section 16 of `projects/PUNCH_OUT.md` adds a dedicated native position view for each of Glass Joe's 30 full poses. The frame and source-art Scene are ordinary canonical assets. The signed native X/Y operands are derived from uniform piece displacement minus the frame origin, so no hidden placement recipe or alternate asset store is required. Individual pieces, shared geometry, delta poses and animation remain separate writing problems.
+Section 16 of `projects/PUNCH_OUT.md` adds a dedicated native position view for each of Glass Joe's 30 full poses. The frame and source-art Scene are ordinary canonical assets. The signed native X/Y operands are derived from uniform piece displacement minus the frame origin, so no hidden placement recipe or alternate asset store is required. Individual pieces, shared geometry, position-less incremental records and animation remain separate writing problems. Five explicit incremental positions extend this method below.
 
 | Owner | Responsibility | Connection |
 |---|---|---|
 | `re/punch-out-pose.js` | Pure pointer/position codec; validates the output through the original CPU shape reader | Source bytes → canonical placement → two signed native bytes |
 | `services/punch-out-pose-project.js` | Dedicated Scene/Metasprite ownership and bounded encoding | NativeResourceProject's existing encoder registry, projection gate and disjoint-span checks |
-| `re/punch-out-pose-ui.js` | Pose selection, native X/Y controls, one Undo transaction and build check | Existing Metasprites, ProjectStore, history and RuntimeCompiler |
+| `re/punch-out-pose-ui.js` | Pose selection, native X/Y controls, one Undo transaction, build check and contextual artwork shortcuts | Existing Metasprites, CHR Sheet, native artwork UI, ProjectStore, history and RuntimeCompiler |
 
 The native resource gate now accepts an optional `metaspriteViews` callback on a registered encoder. It compares declared baseline origin/piece positions while retaining every unrelated project field in the signature. The encoder separately proves uniform movement, unchanged piece identities/order/tiles/flags, signed-byte range and exact owned-byte writes. Masking a recognition range or registering a projection never grants permission to write another resource. With no native pose view present, the preceding projection and output remain unchanged.
 
 For standalone HTML work, change these authoritative modules and re-bundle. For independent hex work, the title lesson identifies the actual position operands and validation steps. Moving a visual pose leaves the original damage/attack/collision code in place, so check alignment in the running game. Native pose editing is scoped to whole-pose placement; it is not complete fighter or animation recovery.
+
+### Native idle and incremental position extension
+
+Section 17 of `projects/PUNCH_OUT.md`, included in the offline handbook, covers five additional explicit X/Y pairs, the grouped `$C0/$C2/$C4` idle workflow, file offsets, external hex editing and direct HTML/source changes. The existing codec now calls `PunchOutStates` to preserve preceding OAM and the observed moving anchor; reading incremental frames independently would lose that context. All 30 earlier full-pose views retain their original identities and source ownership.
+
+The same native encoder owns these pairs through ordinary Metasprites. Incremental views use a separate `punchOutIncrementalPose` marker so older full-pose-only readers preserve the ordinary assets and refuse unsupported native building. The idle helper adds missing derived views and changes three existing canonical frames in one guarded project transaction. It preserves their current relative displacement and original timing; it does not create a second animation/runtime store.
+
+For the `$C0` family, source routine `$D043` derives priority from native OAM Y at the `$50` divider. `moveFrame` updates canonical `behind` flags to match that consequence of position. The encoder independently checks this exact derivation; manual flag changes still refuse. Source attribute streams, flags, pointers and code remain protected. Full-pose and other incremental attribute handling keep their earlier rules.
+
+Derivative recognition adds exactly ten physical operand bytes; it does not widen generic recipe writes. Existing native art/palette and arena owners still encode separate spans. Tests check every earlier full pose, all five new records, observed primary-state contexts, priority consequences, one-step grouped Undo/Redo, save/reopen, older-reader refusal, composed native output and real exported/reimported idle playback. The title lesson keeps unobserved paths and complete-fight/animation/Audio writing limits explicit.
+
+### Pose and CHR navigation
+
+The native pose picker is expanded above the source-reference preview in Recovered content. The native position panel links to **View pose sprite tiles** and **Edit native sprite artwork**. Entering CHR Sheet with an owned pose Scene selects its sprite buffer; the sheet's contextual strip also exposes the source-verified physical bank and a return to position editing. Opening a dedicated physical CHR view selects its background buffer, which is the registered pixel writer. A deliberate bank toggle still works in the current sheet.
+
+The reference sprite buffer and the physical writer remain separate existing assets. Navigation does not copy pixels, replace snapshots, re-sign unsupported work, patch source or create an alternate encoder. `PunchOutPoseProject.describe` returns the verified `chrBank4KiB` for UI routing. Existing native validation still runs before a physical view can be added/selected; copied-reference pixel changes refuse native building and cannot be adopted as a new baseline by following the shortcut. See the Punch-Out handbook's section 17 for the click-by-click path and save/build/reimport exercise.

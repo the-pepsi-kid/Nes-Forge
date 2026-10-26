@@ -21,10 +21,12 @@
   const paletteOffsets = Object.freeze([4806, 21043, 47065, 4838, 11326, 21075, 30759, 47097, 39016, 30791, 4870, 30823, 38984, 47033]);
   const artSpans = Object.freeze([{offset: 0x20010, length: 0x20000},
     ...paletteOffsets.map(offset => ({offset, length: 32, mask: 63}))]);
-  // Recognition only: Glass Joe full-pose X/Y operands. Shared geometry,
-  // attributes, tiles, pointers and state programs remain protected.
+  // Recognition only: thirty full-pose pairs and five explicit incremental
+  // pairs. Their leading flags, geometry, tiles, pointers and state programs
+  // remain protected; these ranges do not grant generic brush permissions.
   const poseSpans = Object.freeze([156,169,182,195,208,221,234,243,252,263,274,285,294,303,312,
-    323,332,343,352,363,372,381,390,399,408,417,426,435,444,453].map(offset => ({offset, length: 2})));
+    323,332,343,352,363,372,381,390,399,408,417,426,435,444,453,
+    479,490,497,504,511].map(offset => ({offset, length: 2})));
   const profiles = Object.freeze([{
     "id": "punch-out-us-prg0-screens-v1",
     "kind": "punch-out",
@@ -343,7 +345,7 @@
       "protectedSha256": "356e71dc75ecf38ef6218b74904361739992badbc35b726392bb210e84e10366"
     },
     artDerivativeIdentity: {spans: artSpans, protectedSha256: "85c39327f56fbc72c8bb122393739748613f5cb1d0dd072aa90febf21a8575b6"},
-    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "046b39ff59e88d8b30f6486beb301293ef0b65f8c32ca28e1c25d023404b0ccf"}
+    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "9cbd439407dd9a0904f3bdb73fa781d8bf2c527bcee1a15b5854c6575462087b"}
   }, {
     "id": "punch-out-us-prg1-screens-v1",
     "kind": "punch-out",
@@ -662,7 +664,7 @@
       "protectedSha256": "db6923c2291d91385edc738de85c12aedd8d9a422dd831d51b70875e83aac994"
     },
     artDerivativeIdentity: {spans: artSpans, protectedSha256: "fc48479aebb4aa3f9e07315030839130de9f7cd42b34abc8a03f366896516739"},
-    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "af53c9b5eed8bfd254e824af9c6f8b2dc16f76c0d7b3a4fc9336024c89a163c5"}
+    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "78af4b7e2399e9db52849d63729760e77bb52792d73b5e8d8a4920355af07636"}
   }]);
   const contexts = Object.freeze([{
       key: 'b70e',

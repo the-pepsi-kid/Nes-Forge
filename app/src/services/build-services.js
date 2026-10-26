@@ -60,7 +60,9 @@ function planSource(source,options){
   if(source.nativeGame){
     if(backend!=='native-engine')throw Error('Native projects must use their native engine backend.');
     services.NativeEngineProject.validate(source,{build:true});
-    const p={source,backend,profile:{id:source.nativeGame.profile,mapper:source.mapper},phases:['prepare-snapshot','native-validation'],diagnostics:[]};completedPlans.add(p);return p;
+    const diagnostics=[diagnostic('info','native-validation','Native recipe validation passed for this snapshot. Compile and verify the rebuilt game to check the visible result.','native-validation'),
+      diagnostic('info','native-writer-scope',services.ProjectCapabilities?.describe(source).scope||services.NativeEngineProject.capabilities(source.nativeGame.profile).buildScope,'native-validation')];
+    const p={source,backend,profile:{id:source.nativeGame.profile,mapper:source.mapper},phases:['prepare-snapshot','native-validation'],diagnostics};completedPlans.add(p);return p;
   }
   if(!['packed','unpacked-custom','single-room','world'].includes(backend))throw Error('Unsupported build backend: '+backend);
   const gameplayCore=backend==='world'?null:services.GameplayCompiler.plan(source,{backend});
@@ -227,7 +229,9 @@ function build(options){
     BuildGraph.lastDiagnostics=[diagnostic('error','build-failed',error.message,'compile')];log(error.message,'bl-err');reportError(error);return null;
   }
 }
-const BuildGraph=services.BuildGraph={profile,phaseOrder,selectedSceneEntries,plan,planDetached,preflight,lastDiagnostics:[],
+// UI capability labels ask this same dispatcher which backend owns output.
+// Reading the route neither captures editor buffers nor validates/builds a ROM.
+const BuildGraph=services.BuildGraph={profile,phaseOrder,backendFor,selectedSceneEntries,plan,planDetached,preflight,lastDiagnostics:[],
   ownership:'Live capture or detached validation prepares the source. Generated plans pass copied sources to existing codecs once; custom assembly is live-only.'};
 const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world','native-engine']),compile,compileDetached:(project,options)=>compile(planDetached(project,options)),commit,build,lastArtifact:null};
 // These assignments replace active routes; no previous planner/builder is called.

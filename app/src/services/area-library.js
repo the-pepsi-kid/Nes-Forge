@@ -26,7 +26,10 @@ function matchingPages(source,id){
  return S.scenes.filter(s=>{const r=s.captureMeta?.nativeAssets;return services.StageContext.nativeKey(s)&&r.source.sha256===source.source.sha256&&r.profile===source.profile?.id&&r.sceneId===id;}).sort((a,b)=>(a.captureMeta.nativeAssets.page||0)-(b.captureMeta.nativeAssets.page||0));
 }
 function resources(scope,scene,item,source){
- if(S.investigation?.version===4)return [{name:'Background / layout / palette',inspect:item?.reason||'Verified static source resource',edit:item?.status==='Unavailable native slot'?'Unavailable state':'Open a recovered page in Scene or CHR',build:'Existing native block substitutions; source capacity checked'},...['Sprites / animation','Collision / actors / behavior','Audio / menus / events'].map(name=>({name,inspect:'Unresolved',edit:'Authoring tools remain available; source recovery pending',build:'Native encoder pending'}))];
+ if(S.investigation?.version===4){const cap=services.ProjectCapabilities.describe(S);return [
+  {name:'Background / layout / palette IDs',inspect:item?.reason||'Verified static source resource',edit:item?.status==='Unavailable native slot'?'Unavailable state':'Open a recovered page; use its native block controls',build:'Existing native block substitutions; source capacity checked'},
+  ...cap.writers.filter(w=>w.id!=='native-resource-blocks').map(w=>({name:w.title,inspect:'Project-wide native writer; the selected page may be a source snapshot',edit:w.scope,build:'Open its dedicated editor through Connected Workspace → Native tools'})),
+  ...['Collision / actors / native animation','Native Audio / menus / events'].map(name=>({name,inspect:'Recovery is title-specific; source inspection does not establish a writer',edit:'Authoring copies remain savable; unsupported native changes can block output',build:'No native writer in this workflow'}))];}
  const native=!!S.nativeGame,editable=scope==='project'||!!scene,recovered=scope==='source'||!!scene?.captureMeta?.nativeAssets;
  const build=services.NativeResourceProject?.matches(S)?'Existing native block substitutions; source capacity checked':scene?.captureMeta?.nativeLayout?'Native screen blocks brush only':native?'Native encoder pending':'Generated build, subject to checks';
  const terrain=services.NativeEngineProject.capabilities(S.nativeGame?.profile).terrain&&S.nativeGame?.resources?.some(b=>b.sceneId===scene?.id);
@@ -75,7 +78,7 @@ function describe(){
  return {scope,sourceKey:key,source:source?{name:source.source.name,sha256:source.source.sha256,profile:source.profile?.id||null}:null,contexts,context,items,selected,pages:pages.map(s=>({id:s.id,name:s.name,...(s.resource?{resource:s.resource,page:s.page}:{})})),page:page?{id:page.id,name:page.name,...(page.resource?{resource:page.resource,page:page.page}:{})}:null,conflicts,resources:selected?resources(scope,page,selected,source):[],shared,
   imported:source?source.scenes.filter(s=>matchingPages(source,s.id).length).length:0,catalogued:source?.scenes.length||0,maps:source?.maps.length||0,
   nativeProject:!!S.nativeGame,canUseSaved:!!S.nativeGame&&!!S.importedRom?.length,busy:state.busy,
-  buildScope:S.nativeGame?services.NativeEngineProject.capabilities(S.nativeGame.profile).buildScope:'Generated project: builds use existing runtime settings and capacity checks.',
+  buildScope:services.ProjectCapabilities.describe(S).scope,
   projectScene:project.scene?.name||'No scene',project};
 }
 function sync(){

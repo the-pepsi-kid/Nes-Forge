@@ -1,4 +1,27 @@
-# Current baseline: working alpha on main
+## Current: shared editor and hosted-world integration
+
+Read `../reviews/hosted-integration-1/HANDOFF.md`. Native and hosted editors now use
+one canonical `app/src` tree, with separate manifests/output inventories. The
+hosted version adds eleven opt-in modules and retains current native build scope,
+Glass Joe idle/incremental, CHR routing and Retro Workstation work. Original
+engine fidelity and public hosting remain bounded as documented. The main branch
+and original Pepsi archive are preserved; publication targets draft PR #3.
+
+## Previous: connected native workflows, first repair batch
+
+Read `../reviews/connected-workflow-repair-1/HANDOFF.md` first. The shared read-only capability projection follows BuildGraph’s existing backend and registered native writers. Punch-Out is labeled bounded native editing and exposes source-page, pose, physical-art and arena routes. Intake, Scene context, Area Library and native preflight agree. Inapplicable Scene selection/order and generated ROM configuration controls cannot mutate a native project. The authored Gameplay shortcut opens its actual panel. Root and generated app are identical, SHA-256 `4e316191f5b1046841530d225372072663412f1f399c08ecf79b018441e8799c`.
+
+This resolves review WF-01/WF-02 and the Gameplay part of WF-05. The wider selection/provenance/resource-usage, fresh-resume, preview, health-diagnosis and contextual-lesson work remains open. No new native writer, schema, asset store or emulator was added. Preserve the original Pepsi archive, current project owners and independent RE/ASM/hex/HTML workflows. This checkpoint is local; GitHub publication is separate.
+
+## Previous: pose and native artwork navigation repair
+
+Read `../reviews/punch-out-artwork-navigation-1/HANDOFF.md` and the Punch-Out handbook section 17. The native pose picker is expanded above the source reference preview. Metasprites links directly to sprite CHR and the existing physical-bank writer; CHR Sheet shows a contextual strip. Pose entry selects Sprite Bank, physical artwork entry selects BG Bank, and explicit toggles still work within the current sheet. Reference art remains a snapshot; unsupported edits cannot be re-signed through navigation. Three of 184 runtime inputs change from bb264f4; core codecs, native encoders, emulator, schemas and all five workstation inputs remain identical. Application SHA-256: `9ac2c6750561f3e8c2dd5f542f6c6d9930383771000f1fd3cf751d70feb09d66`. This remains a local development candidate on the existing feature branch.
+
+# Current branch: idle/incremental pose position candidate
+
+See [the current handoff](../reviews/punch-out-incremental-pose-1/HANDOFF.md) and [title lesson, section 17](docs/projects/PUNCH_OUT.md#17-edit-native-idle-and-incremental-poses). The existing native pose writer now supports 30 full and five explicit incremental records, grouped idle movement and source-derived priority previews. The original full-pose/art/palette/arena workflows remain. Source state observations, real exported/reimported idle playback, canonical lifecycle and the 104 available checks have separate reports. This is a development candidate on `implementation/punch-out-pose-edit-2`; the accepted public main baseline is recorded below.
+
+## Accepted main baseline before this candidate
 
 **2.0.0-alpha.11 · Retro Workstation and native Glass Joe full-pose positions.** The owner approved this development baseline for `main`, with the original Pepsi version preserved on `archive/original-pepsi` and tag `original-pepsi`. Open `../nes-forge.html`; its bytes match `mainline/NES_Forge_2.0.0-alpha.11.html` (SHA-256 `90c179abf3360821dc2dd93168ef74fa6ae2282a78ee6c7357958424612c4322`).
 

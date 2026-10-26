@@ -1,0 +1,457 @@
+{
+  "status": "completed",
+  "htmlSha256": "9ac2c6750561f3e8c2dd5f542f6c6d9930383771000f1fd3cf751d70feb09d66",
+  "applicationUnchanged": true,
+  "privateInputUnchanged": true,
+  "scope": "Review-only isolated parsed-DOM actions and source-model inspection. Canvas/layout/timers stubbed. No fresh real-browser/device acceptance.",
+  "checks": [
+    {
+      "id": "explicit-authored-references",
+      "passed": true,
+      "scope": "Metasprite, animation, World and actor Render source references are preserved in the generic graph."
+    }
+  ],
+  "observations": [
+    {
+      "id": "R01-active-resource-focus",
+      "kind": "navigation-gap",
+      "observed": {
+        "scene": {
+          "id": "review-scene-a",
+          "name": "Review room A"
+        },
+        "selectedPose": "review-pose-b",
+        "explorer": {
+          "mode": "live",
+          "follow": false,
+          "nodes": 23,
+          "edges": 22,
+          "issues": 0,
+          "selected": "scene:review-scene-a",
+          "contextNote": ""
+        },
+        "mismatchBanner": "DIFFERENT CONTEXT · Active Scene is Review room A; selected pose is Review pose B (source: Review room B). This is NOT a sprite assignment or collision binding.1 pose(s) use Review room AReview pose AOpen matching pose"
+      }
+    },
+    {
+      "id": "P01-exact-resource-follow",
+      "kind": "working",
+      "observed": {
+        "scene": {
+          "id": "review-scene-b",
+          "name": "Review room B"
+        },
+        "pose": "review-pose-b",
+        "explorer": {
+          "mode": "live",
+          "follow": true,
+          "nodes": 23,
+          "edges": 22,
+          "issues": 0,
+          "selected": "metasprite:review-pose-b",
+          "contextNote": "Linked: Review room B · Scene, CHR and Collision now share the selected resource context · selected exact metasprite pose."
+        }
+      }
+    },
+    {
+      "id": "P02-related-world-validation",
+      "kind": "working",
+      "observed": {
+        "tab": "world",
+        "scene": {
+          "id": "review-scene-b",
+          "name": "Review room B"
+        },
+        "world": "review-world-b"
+      }
+    },
+    {
+      "id": "R02-reopen-selected-pose",
+      "kind": "resume-gap",
+      "observed": {
+        "savedActiveScene": "review-scene-b",
+        "savedSelectedPose": "review-pose-b",
+        "reopened": {
+          "sceneId": "review-scene-b",
+          "poseId": "review-pose-a",
+          "poseSceneId": "review-scene-a",
+          "matches": false
+        },
+        "world": "review-world-b",
+        "canonicalPoses": [
+          "review-pose-a",
+          "review-pose-b"
+        ]
+      }
+    },
+    {
+      "id": "R03-gameplay-shortcut",
+      "kind": "navigation-gap",
+      "observed": {
+        "tab": "scene",
+        "gameplayPanelOpen": false
+      }
+    },
+    {
+      "id": "P03-authoring-tab-mounts",
+      "kind": "bounded-smoke",
+      "observed": {
+        "tabs": [
+          {
+            "label": "SCENE",
+            "requested": "scene",
+            "actual": "scene"
+          },
+          {
+            "label": "CHR SHEET",
+            "requested": "chr",
+            "actual": "chr"
+          },
+          {
+            "label": "METATILES",
+            "requested": "meta",
+            "actual": "meta"
+          },
+          {
+            "label": "WORLD",
+            "requested": "world",
+            "actual": "world"
+          },
+          {
+            "label": "ATTR MAP",
+            "requested": "attr",
+            "actual": "attr"
+          },
+          {
+            "label": "SPRITES",
+            "requested": "sprites",
+            "actual": "sprites"
+          },
+          {
+            "label": "METASPRITES",
+            "requested": "metasprites",
+            "actual": "metasprites"
+          },
+          {
+            "label": "CODE",
+            "requested": "code",
+            "actual": "code"
+          },
+          {
+            "label": "AUDIO",
+            "requested": "audio",
+            "actual": "audio"
+          },
+          {
+            "label": "COLLISION",
+            "requested": "collision",
+            "actual": "collision"
+          },
+          {
+            "label": "ANIM",
+            "requested": "anim",
+            "actual": "anim"
+          },
+          {
+            "label": "ENTITY STUDIO",
+            "requested": "entity-studio",
+            "actual": "entity-studio"
+          },
+          {
+            "label": "TECH DOCS",
+            "requested": "docs",
+            "actual": "docs"
+          },
+          {
+            "label": "EMULATOR",
+            "requested": "emu",
+            "actual": "emu"
+          },
+          {
+            "label": "RE / DISASM",
+            "requested": "disasm",
+            "actual": "disasm"
+          }
+        ],
+        "uncaughtErrors": [],
+        "consoleErrors": [],
+        "domErrors": []
+      }
+    },
+    {
+      "id": "R12-in-app-workflow-help",
+      "kind": "documentation-gap",
+      "observed": {
+        "currentWorkflowTerms": {
+          "Native pose positions": false,
+          "Keep idle poses together": false,
+          "Edit native CHR bank": false,
+          "Punch-Out": false
+        },
+        "headings": [
+          "NES Forge 2.0.0-alpha.11 — Native Resource Recovery 2 (Partial)"
+        ]
+      }
+    },
+    {
+      "id": "R04-native-mode-classification",
+      "kind": "capability-gap",
+      "observed": {
+        "nativeProfile": "native-resource-project-v1",
+        "hasInvestigation": true,
+        "ribbon": "Investigated source · inspection",
+        "overview": "What am I working on?Choose a resource, understand its owner and consumers, then open the exact editor. The active project stays untouched until you use the original authoring tools.Current projectPunch-Out connected review · partial native resourcesMode: Investigated source · inspectionCurrent Scene: Native Glass Joe · incremental pose $C0 sourceCurrent World: noneDeclared resources and links165 resources · 147 explicit relationships · 0 diagnostic notes.Inspect relationships ↗Your next actionOriginal game editing and native ROM investigation are different workflows. Choose the one you intend.Draw CHR pixelsEdit Scene layoutEdit GameplayCompose AudioEdit Zelda II terrainSource is in investigation modeRecovered evidence does not automatically create an editable native terrain project. Use the dedicated native Z2 opener.Inspection only",
+        "nativeGuide": "Zelda II — editable overworldThe original-engine terrain editor is a distinct project workflow. Generic ROM investigation and source map previews are not necessarily editable. Import the supported ROM into its native World project, then paint, save, rebuild, and verify.Current project typeInvestigated source · inspectionNative terrain editor requires a supported ROM projectOpen a supported Zelda II ROMOnly use a ROM revision recognized by the existing ZeldaOverworld adapter. Importing it as a new native project may replace unsaved work. The underlying importer handles confirmation and validation.Open native World · choose supported ROMHow to tell the differenceEditable native project: the World panel displays a terrain palette, editable canvas, and compressed-map byte budget. Investigation mode: recovered source evidence, which does not itself authorize writing back.Inspect current relationshipsNative output limitationVerified scope in this code: overworld terrain and four location fields. Other graphics, Audio, collision and runtime changes may block native builds.Bounded"
+      }
+    },
+    {
+      "id": "R05-pose-used-tile-context",
+      "kind": "mapping-gap",
+      "observed": {
+        "pose": "Native Glass Joe · incremental pose $C0",
+        "posePieces": 52,
+        "poseDistinctTiles": 38,
+        "sceneOam": 0,
+        "usageText": "Unused tile preview: SP0 · state 0 · index 0 is transparent",
+        "bankPicker": "4 KB bank 0",
+        "poseBank": 29
+      }
+    },
+    {
+      "id": "R06-shared-source-context",
+      "kind": "coverage-gap",
+      "observed": {
+        "nativeProject": true,
+        "source": null,
+        "stage": null,
+        "canOpenSource": false,
+        "audio": {
+          "status": "unresolved",
+          "bindings": [],
+          "message": "Project-wide Audio. No verified source-event receipt for this scene; choosing a room does not choose a song."
+        },
+        "nativeAudio": {
+          "busy": false,
+          "opened": true,
+          "sourceSha256": "0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952",
+          "profile": "punch-out-us-prg0",
+          "status": "decoded",
+          "sourceMode": "detached-re",
+          "isCurrent": true,
+          "selectedCue": "music:12",
+          "cues": 84,
+          "hasStage": false,
+          "hasTrace": false,
+          "generation": 4
+        },
+        "areaResources": [
+          {
+            "name": "Background / layout / palette",
+            "inspect": "Verified static source resource",
+            "edit": "Open a recovered page in Scene or CHR",
+            "build": "Existing native block substitutions; source capacity checked"
+          },
+          {
+            "name": "Sprites / animation",
+            "inspect": "Unresolved",
+            "edit": "Authoring tools remain available; source recovery pending",
+            "build": "Native encoder pending"
+          },
+          {
+            "name": "Collision / actors / behavior",
+            "inspect": "Unresolved",
+            "edit": "Authoring tools remain available; source recovery pending",
+            "build": "Native encoder pending"
+          },
+          {
+            "name": "Audio / menus / events",
+            "inspect": "Unresolved",
+            "edit": "Authoring tools remain available; source recovery pending",
+            "build": "Native encoder pending"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R07-native-resource-graph",
+      "kind": "coverage-gap",
+      "observed": {
+        "sourceEdges": [
+          {
+            "from": "scene:native-prg-punch-out-us-prg0-screens-v1-punch-out_b70e-0",
+            "to": "source:0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952",
+            "why": "recovered from matching source receipt",
+            "confidence": "explicit"
+          },
+          {
+            "from": "scene:native-prg-punch-out-us-prg0-screens-v1-punch-out_b88d-0",
+            "to": "source:0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952",
+            "why": "recovered from matching source receipt",
+            "confidence": "explicit"
+          },
+          {
+            "from": "scene:native-prg-punch-out-us-prg0-screens-v1-punch-out_b8cb-0",
+            "to": "source:0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952",
+            "why": "recovered from matching source receipt",
+            "confidence": "explicit"
+          },
+          {
+            "from": "scene:native-prg-punch-out-us-prg0-screens-v1-punch-out_b961-0-0",
+            "to": "source:0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952",
+            "why": "recovered from matching source receipt",
+            "confidence": "explicit"
+          },
+          {
+            "from": "scene:native-prg-punch-out-us-prg0-screens-v1-punch-out_b961-2-0",
+            "to": "source:0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952",
+            "why": "recovered from matching source receipt",
+            "confidence": "explicit"
+          }
+        ],
+        "nativeCueNodes": [
+          {
+            "key": "audio:project",
+            "scope": "Project-wide authoring"
+          }
+        ],
+        "poseEdges": [
+          {
+            "from": "metasprite:po-native-incremental-pose-f0-s192",
+            "to": "scene:po-native-incremental-pose-source-f0-s192",
+            "why": "uses source Scene graphics",
+            "confidence": "explicit"
+          }
+        ],
+        "sourceNodePresent": true,
+        "issues": []
+      }
+    },
+    {
+      "id": "R13-resource-pose-preview",
+      "kind": "preview-gap",
+      "observed": {
+        "selected": "metasprite:po-native-incremental-pose-f0-s192",
+        "preview": "Canonical resource metadata available; no image renderer for this type.Preview is read-only; original Scene/CHR/Collision editors remain authoritative.",
+        "canvasCount": 0
+      }
+    },
+    {
+      "id": "R08-native-build-controls",
+      "kind": "build-workflow-gap",
+      "observed": {
+        "button": "Include first 7",
+        "result": {
+          "built": false,
+          "error": "Native resource project: A recovered Scene differs from its native recipe. Undo unsupported Scene, CHR, palette, actor or collision edits to build."
+        },
+        "help": "Build Scene SetWorkspace may contain 64 scenes. NROM viewer builds up to 7 selected scenes. Door targets are remapped to build order.1: Screen context 1 · native background · page 02: Screen context 2 · native background · page 03: Screen context 3 · native background · page 04: Screen context 4 · native background · page 05: Screen context 5 · native background · page 06: Glass Joe · sprite CHR 297: Von Kaiser · sprite CHR 26"
+      }
+    },
+    {
+      "id": "R09-native-art-owner-discovery",
+      "kind": "coverage-gap",
+      "observed": {
+        "scene": "Native artwork · physical CHR bank 29",
+        "marker": {
+          "version": 1,
+          "sourceSha256": "0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952",
+          "kind": "chr",
+          "index": 29
+        },
+        "linkedNativePose": false,
+        "artSourceEdges": []
+      }
+    },
+    {
+      "id": "P04-native-reference-guard",
+      "kind": "working",
+      "observed": {
+        "savedAndReopened": true,
+        "refusal": "Native resource project: An asset or runtime setting changed without a native encoder. Unsupported work remains savable.",
+        "pixelsPreserved": 2
+      }
+    },
+    {
+      "id": "R10-health-before-build",
+      "kind": "diagnostic-gap",
+      "observed": {
+        "health": "Project Health — preliminary checksThese are project/reference diagnostics, not a ROM compatibility certification or native build acceptance pass.Canonical Scene assets22 Scene(s) in projectPresentDeclared references153 relationship(s); 0 issue(s) detectedNo detected issuesNative encoder eligibilityNative build scope is profile-specific; unsupported changes remain blocked.Not pre-certifiedAudio associationsTracker audio is project-wide. Event bindings require declared references; no triggers are invented.Not inferredSave and round tripSave/reopen and target emulator verification require explicit tests for this project.Not tested hereAsset registry and relationship diagnosticsNo issues surfaced by the current relationship graph. This does not prove the project will build.Refresh current project checks",
+        "nativeBuildRefusal": "Native resource project: An asset or runtime setting changed without a native encoder. Unsupported work remains savable."
+      }
+    },
+    {
+      "id": "R11-intake-lifecycle",
+      "kind": "stale-context-gap",
+      "observed": {
+        "activeProject": "Synthetic connected workflow review",
+        "intakeIdentity": "Punch-Out review source · 262160 bytes · punch-out-us-prg0-screens-v1 · SHA-256 0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952",
+        "intakeVisible": true,
+        "intakeReady": true,
+        "staleActionRefusal": "The active project changed. Open the input again before continuing.",
+        "audio": {
+          "busy": false,
+          "opened": true,
+          "sourceSha256": "0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952",
+          "profile": "punch-out-us-prg0",
+          "status": "decoded",
+          "sourceMode": "detached-re",
+          "isCurrent": false,
+          "selectedCue": "music:12",
+          "cues": 84,
+          "hasStage": false,
+          "hasTrace": false,
+          "generation": 8
+        }
+      }
+    },
+    {
+      "id": "P05-shared-bank-explanation",
+      "kind": "working-source-mapping",
+      "observed": {
+        "banks": [
+          {
+            "revision": 0,
+            "rows": [
+              {
+                "fight": "Glass Joe",
+                "bank": 29,
+                "distinctTiles": 43
+              },
+              {
+                "fight": "Don Flamenco · first fight",
+                "bank": 29,
+                "distinctTiles": 40
+              },
+              {
+                "fight": "Don Flamenco · rematch",
+                "bank": 29,
+                "distinctTiles": 40
+              }
+            ]
+          },
+          {
+            "revision": 1,
+            "rows": [
+              {
+                "fight": "Glass Joe",
+                "bank": 29,
+                "distinctTiles": 43
+              },
+              {
+                "fight": "Don Flamenco · first fight",
+                "bank": 29,
+                "distinctTiles": 40
+              },
+              {
+                "fight": "Don Flamenco · rematch",
+                "bank": 29,
+                "distinctTiles": 40
+              }
+            ]
+          }
+        ],
+        "scope": "Shared physical CHR identity, not exclusive character ownership. The screenshot is consistent with a full shared-bank view."
+      }
+    }
+  ]
+}

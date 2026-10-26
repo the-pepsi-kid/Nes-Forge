@@ -1,3 +1,16 @@
+## Current reconciled source candidate
+
+The current source shares canonical `app/src` across native and hosted builds,
+retaining the newer native workflow and Glass Joe fixes. Host/client and runtime
+launchers remain under the versioned experiment. See
+`reviews/hosted-integration-1/HANDOFF.md` and `app/hosted-source-manifest.json`.
+Actual branch upload status and commit identity are recorded in PR #3 and its
+publication receipt; main merge/tag remain separate decisions.
+
+The checkpoint below is historical and describes the earlier offline-only kit.
+
+---
+
 # v17.1 hosted-world release checkpoint (source pending Git import)
 
 - Experiment: NES Forge 3.x; not a native ROM patch.

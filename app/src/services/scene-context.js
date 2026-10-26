@@ -27,7 +27,7 @@ function describe(){
  const canOpenAudio=audio.bindings.length>0&&!stage?.conflict&&((library?.isCurrent&&library.status==='decoded'&&!library.busy&&library.sourceSha256===source?.sha256&&library.profile===audio.bindings[0].audioProfile)||(spatial?.status==='supported'&&!spatial.busy&&spatial.sha256===source?.sha256));
  const inspected=(S.scenes||[]).filter(s=>{const r=s.captureMeta?.nativeAssets;return context.nativeKey(s)&&r.source.sha256===loaded?.sha256&&r.profile===loaded?.profile&&r.sceneId===loaded?.selectedScene;});
  return {audio,canOpenAudio:!!canOpenAudio,resourceSceneIds,stages,stage,rooms:stage?.rooms||[],activeRoomId:stage?receipt.sceneId:null,canUseInspected:inspected.length>0,scene:sc?{id:sc.id,name:sc.name}:null,scenes,groups,worlds,poses:poses.map(p=>({id:p.id,name:p.name,sceneId:p.sceneId})),clips,source,canOpenSource:!!source&&loaded?.sha256===source.sha256&&loaded?.profile===source.profile,
-  audioScope:'Project-wide Audio; source event receipts below are navigation evidence, not runtime bindings.',nativeProject:!!S.nativeGame,nativeBuildScope:S.nativeGame?services.NativeEngineProject.capabilities(S.nativeGame.profile).buildScope:'',selectedWorldId:Forge161.worlds.current?.id||''};
+  audioScope:'Project-wide Audio; source event receipts below are navigation evidence, not runtime bindings.',nativeProject:!!S.nativeGame,nativeBuildScope:S.nativeGame?services.ProjectCapabilities.describe(S).scope:'',selectedWorldId:Forge161.worlds.current?.id||''};
 }
 function navigation(fn){navigating++;try{return fn();}finally{navigating--;}}
 function syncWorld(){

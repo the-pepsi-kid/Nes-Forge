@@ -1,6 +1,6 @@
 # Punch-Out: import, edit, rebuild and understand the method
 
-This lesson covers the current Mike Tyson's Punch-Out!! US PRG0/PRG1 support. You will make a supported arena edit, preserve it in a project, build a separate ROM, inspect fighter/player/referee references, audition source Audio and find the code needed to extend the method. The bounded original-engine replay, reversible knockdown/round experiments, physical CHR/fight-palette writers and Glass Joe full-pose position writer extend that workflow. Complete fights, individual native pose geometry, native animation and Audio writers remain open.
+This lesson covers the current Mike Tyson's Punch-Out!! US PRG0/PRG1 support. You will make a supported arena edit, preserve it in a project, build a separate ROM, inspect fighter/player/referee references, audition source Audio and find the code needed to extend the method. The bounded original-engine replay, reversible knockdown/round experiments, physical CHR/fight-palette writers and Glass Joe full/explicit-incremental position writer extend that workflow. Complete fights, individual native pose geometry, native animation and Audio writers remain open.
 
 The combined review application is `NES_Forge_Retro_Punch_Out_Native_Workflows.html`, identical to `app/mainline/NES_Forge_2.0.0-alpha.11.html`. Its SHA-256 is `cf5825b600fc8f8c028e9df0def70cc1cac483408ad49b8327715b02a4598e08`. Sections 13–15 describe the new dedicated artwork, original-engine replay and Retro Workstation controls. The preceding verified fight-reference checkpoint remains separately available at local commit `e2d94cb` (app SHA-256 `aceb8cdd70e0839b4649bc56daa39519204b660bbbae100209ad9e66bb03b89a`).
 
@@ -36,7 +36,7 @@ If the writer reports a capacity failure, simplify the pattern or Undo. Nothing 
 | Ring/audience arena | Two original setup nametables projected across the source scroll seam; ordinary Scene layout | Arena writer supports `nt` and visible attribute bits within fixed capacity; shared native arena affects its game uses |
 | Background and sprite CHR | 32 physical 4 KiB banks; source banks and projected references available | Open a dedicated physical CHR view for native pixel writing; edits to copied reference art still have no reference writer |
 | Palette colors | Source palettes retained for each declared context | Dedicated native fight-palette views now write color bits while preserving flags; reference copies remain protected |
-| Opponents | 14 fight configurations, source pose records, separate sprite CHR/OAM and explicit Metasprite materialization | Dedicated Glass Joe full-pose views write whole-pose X/Y; copied reference poses remain snapshots; individual geometry, tiles, flags and other opponents need separate pose writers |
+| Opponents | 14 fight configurations, source pose records, separate sprite CHR/OAM and explicit Metasprite materialization | Dedicated Glass Joe views write 30 full and five explicit incremental X/Y records; the idle set can move together, with native priority derived from Y; copied reference poses remain snapshots; individual geometry, tiles, flags and other opponents need separate pose writers |
 | Opponent animations | Bounded original state execution retains RAM/OAM, incremental poses and size changes; explicit Animation import | Observed excerpts have declared duration/initial state; no complete AI, fight timing or native animation writer |
 | Little Mac | 98 bank-11 background command descriptors; bounded player-state paths | Commands can clear cells or draw fragments; not all are complete poses; native command/art writing absent |
 | Referee/count/speech | 47 extended bank-11 command descriptors; available player/referee state paths | Same background system, not opponent metasprites; no native writer |
@@ -290,10 +290,105 @@ The Glass Joe full-pose pointer table is in physical PRG bank 0. A pose record s
 
 `re/punch-out-pose.js` reads the pointer graph, converts canonical placement to signed native operands, and executes the original shape reader to check the candidate. `services/punch-out-pose-project.js` creates the ordinary Scene/Metasprite views and registers exclusive two-byte ownership with NativeResourceProject. Its optional `metaspriteViews` hook substitutes only declared canonical positions for signature comparison; the encoder still rejects every unsupported piece edit. `re/punch-out-pose-ui.js` performs guarded ProjectStore transactions. Add these modules to the source manifest in dependency order and re-run the bundler when changing the HTML.
 
-No schema bump, copied ROM in the HTML, alternate asset store or second live CPU is involved. Other opponents, delta poses, shared geometry streams, animation/timing, AI/damage/collision, native Audio and complete game conversion remain separate work. The original shape reader and representative live original-engine playback are different checks; neither establishes hardware or browser listening acceptance.
+No schema bump, copied ROM in the HTML, alternate asset store or second live CPU is involved. Explicit incremental positions are covered in section 17. Other opponents, position-less incremental records, shared geometry streams, animation/timing, AI/damage/collision, native Audio and complete game conversion remain separate work. The original shape reader and representative live original-engine playback are different checks; neither establishes hardware or browser listening acceptance.
 
 ```bash
 node reviews/punch-out-pose-position-1/verify_pose.cjs /path/to/private-roms /path/to/previous-startup-fixed.html
 node reviews/punch-out-pose-position-1/verify_pose_playback.cjs /path/to/private-roms
 NODE_PATH=/path/to/jsdom/node_modules node reviews/punch-out-pose-position-1/verify_pose_dom.cjs /path/to/private-roms
 ```
+
+## 17. Edit native idle and incremental poses
+
+The position picker now includes **30 full poses and five explicit incremental poses**: `$84`, `$C0`, `$C2`, `$C4` and `$C6`. The incremental reader retains the original preceding OAM instead of starting each frame from empty sprite memory. Its preview comes from a declared native state/update with the original full pose `$00` and fight configuration as initial conditions. The status shows that state, update and actual native opponent anchor. The anchor can move during the state; the source offsets and canonical pose remain relative to that observed anchor.
+
+### Move the idle cycle in one transaction
+
+1. Open a supported original or saved native project. Click **Recovered content** near **Area library**. **Native pose positions · Glass Joe** is expanded near the top, above the source-reference pose preview. Choose **Glass Joe · incremental $C0 · idle**, then **Edit native Glass Joe pose position**. The separate **Pose $0000** picker below browses source references.
+2. An unchanged view rebuilds byte-for-byte. The original `$C0` offsets are X=-14 and Y=-97. Its source Scene contains current encoded sprite art/colors; its Metasprite owns the editable position. Copied recovered reference frames still have their earlier meaning.
+3. Check **Keep idle poses together ($C0/$C2/$C4; adds missing views)**. Set **Native X** to -12, leave Y=-97, and **Apply native pose position**. The same +2 movement is applied to the current positions of all three idle records. Starting from an untouched source, their X values become -12, -14 and -13; their different original Y values retain the native bob. Earlier deliberate differences are preserved when moving an already-edited set.
+4. Missing idle views are added as ordinary Scenes/Metasprites. Creation plus movement is one project transaction: one Undo returns to the pre-apply project, and Redo restores the entire change. An invalid group target or insufficient asset slots refuses the whole operation before the UI commits it. Opening `$C0` initially is its own earlier Undo step.
+5. Use **Check native pose build**, Save Project As, reopen, reselect `$C0`, and check the offsets. Save the original, project JSON and generated output separately.
+6. Build & Run, or choose **Open Glass Joe native replay → Reset → opening → punch → dodge → stance → Load current build and replay**. This case uses real controller input from reset. Inspect the idle cycle during the fight; it can use these incremental records after the separate full-pose intro.
+7. Export the native ROM and reimport it in this build. An unchanged rebuild should match the exported bytes. Reopen the native pose view to inspect its new source baseline. The Audio library still contains 84 entries; check source audition and edited-game Audio on your device.
+
+The checkbox appears only for `$C0`, `$C2` and `$C4`. Leave it unchecked to move just the selected record. `$84` and `$C6` have individual native position views. Every edited physical record affects **all** game paths that use it; one representative preview does not isolate a copy of that record to a single animation.
+
+Earlier recovered state Animations and reference poses remain snapshots of the preserved source. Inspect native edits through the owned position views and the current-build replay. Editing a copied Animation does not patch the original state program, and the grouped position operation does not replace that program with an invented three-frame loop.
+
+### Follow a pose into CHR and native pixel editing
+
+1. From the native position controls in **Metasprites**, choose **View pose sprite tiles**, or click **CHR SHEET** while its source Scene is selected. The sheet selects **Sprite Bank ($1000)** automatically. It shows the component tiles, not the assembled boxer. Moving native X/Y changes placement; the tile pixels themselves stay the same.
+2. A context strip above the sheet identifies the pose and its physical bank. Its **Show pose sprite tiles** button restores the sprite buffer after a deliberate **BG Bank ($0000)** selection. Manual buffer selection still works within the current sheet; unrelated authoring Scenes retain their existing selection.
+3. Choose **Edit native CHR bank 29** in that strip, or **Edit native sprite artwork** in the pose controls. The exact bank comes from the verified pose record, not a guessed global bank choice. This opens the existing dedicated physical-bank Scene and selects **BG Bank ($0000)**, because that Scene's background CHR buffer owns the physical ROM pixels even when the game uses them for sprites.
+4. Select a tile and paint through the ordinary CHR pixel editor. Undo/Redo, Save Project As/reopen, then Build & Run or export/reimport. The native write affects every use of that physical bank. Use **Open native pose position** to return to the originating pose during this navigation; the existing Metasprites controls also provide the two artwork shortcuts.
+5. Earlier pose-source tiles remain their original snapshot; returning does not silently replace or re-sign reference art. Inspect changed pixels through the dedicated physical-bank Scene, a fresh fight reference or current-build replay. Unsupported pixel edits made in the pose's copied sprite buffer still save but refuse native builds; Undo those edits before opening a native writer.
+
+For developers, `re/punch-out-pose-ui.js` owns the sheet context and editor shortcuts, `PunchOutPoseProject.describe` supplies the source-verified `chrBank4KiB`, and `re/punch-out-art-ui.js` selects the dedicated writer's background buffer. These are view/navigation changes. Physical pixel ownership, pose position ownership, project schemas, source bytes and the emulator remain with their existing owners.
+
+### Vertical movement and native priority
+
+The original `$D043` routine compares native **OAM Y with `$50` (80)** for the `$C0` family. Pieces at or below that raw OAM boundary receive the background-priority bit; their visible top row is OAM Y+1. Moving the pose vertically can therefore put parts of it behind the ring graphics. The canonical preview derives the same `behind` flags for its declared native context. The writer changes only X/Y data bytes; it leaves that routine and the attribute streams intact.
+
+For a controlled example, select `$C0`, uncheck the idle-group option and change Y from -97 to -103. This moves the selected pose six pixels up and crosses the divider for the preview's first row. Undo restores the previous position and derived flags. In a different game state the moving anchor can put the same record at another screen height, so verify actual playback. Manually changing priority, flips, palettes, piece tiles/order or individual geometry is outside this writer; saving preserves such work and native builds refuse unsupported changes. Use the native X/Y controls for movements that need priority recomputation.
+
+Native position changes retain the original attack/damage/collision code and timing. Moving art can separate it from the original hit rules. This is position editing, not a native hitbox, animation-program or complete-fight editor.
+
+### Inspect or hex-edit the exact native operands
+
+All offsets below are **physical file offsets including the 16-byte iNES header**, for the supported US PRG0/PRG1 revisions. They are not CPU/RAM addresses; `$0200` in the last row is a file byte, not live OAM RAM.
+
+| Selector | Explicit-position flag (protected) | Writable X / Y file offsets | Declared preview |
+|---|---|---|---|
+| `$84` | `$01DE` = `$01` | `$01DF` / `$01E0` | State `$03`, update 6 |
+| `$C0` | `$01E9` = `$01` | `$01EA` / `$01EB` | State `$01`, update 0 |
+| `$C2` | `$01F0` = `$01` | `$01F1` / `$01F2` | State `$01`, update 11 |
+| `$C4` | `$01F7` = `$01` | `$01F8` / `$01F9` | State `$01`, update 6 |
+| `$C6` | `$01FE` = `$01` | `$01FF` / `$0200` | State `$05`, update 10 |
+
+For the idle X+2 example, an external hex editor makes exactly three changes on an untouched supported source:
+
+| File offset | Original | Edited | Meaning |
+|---|---|---|---|
+| `$01EA` | `$F2` (-14) | `$F4` (-12) | `$C0` X+2 |
+| `$01F1` | `$F0` (-16) | `$F2` (-14) | `$C2` X+2 |
+| `$01F8` | `$F1` (-15) | `$F3` (-13) | `$C4` X+2 |
+
+Keep flags, pointer words, geometry/tile streams, state commands and other bytes unchanged. Compare the binary diff, reimport the edited file and test it in the original engine. The new derivative fingerprint masks exactly these ten additional operand bytes on top of the earlier bounded ranges. Recognition is not permission for a brush or encoder to write arbitrary bytes. Earlier full-pose-only builds do not recognize these new incremental derivatives; their supported unchanged-source projects still open here.
+
+Records such as `$80`, `$82`, `$C8`, `$CA` and `$CC` inherit position instead of carrying these two explicit operands. They are not added as fake independent X/Y resources. Recover their preceding state, inspect actual table bounds and follow the source relationship before implementing another writer. Shared geometry, timing/control flow, other opponents and native Audio writing remain separate work.
+
+### Modify the HTML or extend this method
+
+- `re/punch-out-pose.js` declares the five verified pointer/flag/operand records and preview contexts. It calls the existing `PunchOutStates` tracer, uses the observed anchor, validates whole-pose translation and derives only the original C-family priority bit.
+- `services/punch-out-pose-project.js` keeps the existing encoder registration and creates ordinary assets. Incremental Scenes use `captureMeta.punchOutIncrementalPose`; full views keep `punchOutPose`. `moveIdle` returns one detached project containing all three canonical changes. The UI performs the usual guarded ProjectStore/history transaction.
+- `re/punch-out-pose-ui.js` adds the five choices, conditional idle checkbox and observed-context status to the existing Metasprites controls. Resources, Connected Workspace, the compact appearance and editor shortcuts retain their owners.
+- `re/native-punch-out-resources.js` admits the exact new derivative operands. NativeResourceProject still checks projection signatures and disjoint byte ownership, and the pose encoder independently refuses unsupported canonical fields. Art, palette and arena writers compose through their existing ranges; EmulatorBridge/Timeline runs the current native output.
+
+For a direct standalone experiment, save another HTML copy, locate the module's opening comment and edit that module's code. For reproducible source development, edit the corresponding `app/src/` files, run `python3 app/tools/bundle.py`, then `python3 tools/sync_main_entry.py`; the root and generated HTML should match. New records require verified pointer/flag structure, correct preceding OAM/anchor context, a bounded inverse writer, protected-byte checks, old-project/reader checks, export/reimport and real original-engine verification. Expanding a hash mask alone does not supply those capabilities.
+
+```sh
+node reviews/punch-out-incremental-pose-1/verify_incremental.cjs /path/to/private-roms /path/to/previous-full-pose.html
+NODE_PATH=/path/to/jsdom/node_modules node reviews/punch-out-incremental-pose-1/verify_incremental_dom.cjs /path/to/private-roms
+node reviews/punch-out-incremental-pose-1/verify_idle_playback.cjs /path/to/private-roms
+python3 reviews/punch-out-incremental-pose-1/run_checks.py
+```
+
+These checks separate bounded native state/shape execution, actual project/UI lifecycle, parsed-DOM controls and live exported/reimported original-engine OAM/video. Parsed DOM uses canvas/timer stubs; Forge's MMC2 timing remains approximate. Browser layout/listening, controllers, independent-emulator and physical-hardware acceptance remain owner checks. No ROM, private saved commercial project, game frame or Audio payload is included in the kit.
+
+## 18. Find the supported native editing workflow
+
+After opening the recovered Punch-Out project, the working-context ribbon reads **Punch-Out · bounded native editing**. Choose **Native tools**, or **Connected Workspace → Native tools**. The same project scope appears in Project investigation, Area Library and native preflight.
+
+| Native tool | Where the shortcut leads | What changes native output |
+|---|---|---|
+| Native source pages | Investigated source in Area Library | Available staging records through their native block controls |
+| Glass Joe pose positions | Expanded native pose picker, focused for explicit selection | Supported whole-pose X/Y operands, including the grouped idle move in section 17 |
+| Physical CHR and fight palettes | Expanded bank/palette picker | The explicitly opened physical bank or palette table; source reference copies stay snapshots |
+| Shared arena layout | The existing recovered arena Scene | Tile placement and attribute palette IDs within its native compressed capacity |
+
+The pose/art shortcuts show the picker without adding a Scene or silently choosing a physical resource. Opening a chosen editing resource uses its existing explicit transaction and Undo behavior. An available writer describes the fields it supports; it does not certify every current edit. Use **Code → Preflight Build**, then save/reopen, build and verify the visible result in the original engine as described above.
+
+The generated **Build Scene Set**, **Include first 7**, Scene Build/Order and ROM configuration controls are unavailable in native projects. Native output follows preserved source bindings and registered writers; marking a source view as included is not a native edit. In original NES Forge projects, generated packed builds still use the seven-Scene selection. World output follows saved World/player dependencies, and unpacked custom assembly uses active CHR buffers.
+
+Native animation/AI/collision and native Audio writing remain separate work. The capability page changes navigation and guidance; it adds no new native writer. Independent RE, assembly, external hex edits and direct HTML/source modifications remain available through the general developer guide.
