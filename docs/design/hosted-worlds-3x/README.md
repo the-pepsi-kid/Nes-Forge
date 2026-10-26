@@ -18,6 +18,7 @@ The 3.x Hosted Worlds direction explored here uses **Zelda II** as its leading i
 | [04 — Decisions and unresolved questions](04-DECISION-REGISTER.md) | Agreed intent, recommended proposals, deferred questions and explicit safeguards |
 | [05 — Roadmap and test contracts](05-ROADMAP-AND-ACCEPTANCE.md) | Safe implementation sequence, deterministic tests, compatibility gates |
 | [06 — Mintable NPCs, defenders and playable avatars](06-MINTABLE-ACTORS-AND-AVATARS.md) | Character/NPC service entitlements, elite defenders, palace-only bosses, playable avatars and native-item preservation |
+| [07 — Playable characters and magic compatibility](07-PLAYABLE-CHARACTERS-AND-SPELL-COMPATIBILITY.md) | Play as Moblins and other actors, retain existing spells when sensible, avoid rarity power creep and invented spells |
 
 ## Vocabulary and status
 

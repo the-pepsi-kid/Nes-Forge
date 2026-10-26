@@ -83,3 +83,7 @@ Nintendo characters, sprites, names and derived artwork do **not** become freely
 - Two concurrent clients can't duplicate limited placements, XP rewards or NPC service consumption.
 - Skin swap and alternative playable avatar leave authoritative PvP hitboxes unchanged unless a distinct, reviewed ruleset explicitly alters them.
 - Tokenized public content undergoes provenance/legal review before release.
+
+## Playable actor spell compatibility refinement (2026-10-26)
+
+The owner wants collectible characters to feel like their **actual characters**, not an additional paid damage tier or costume. The Moblin example is a playable spear-throwing actor whose original Zelda II spells work when their gameplay and animation semantics can be legitimately mapped. **No new spells merely because an animation adapter is missing.** Evaluate Fire/Reflect/Fairy and progression-critical spells individually. Preserve Level 8 caps, spell acquisition prerequisites and PvP balance. See [07 — Playable characters and spell compatibility](07-PLAYABLE-CHARACTERS-AND-SPELL-COMPATIBILITY.md) for the proposed adapter contract, explicit unresolved mapping and tests.

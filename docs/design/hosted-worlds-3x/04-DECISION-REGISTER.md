@@ -77,3 +77,14 @@ See [06 — Mintable NPCs, defenders and playable avatars](06-MINTABLE-ACTORS-AN
 | D-21 | New spells, if pursued, are explicit non-native hosted ruleset features | Deferred |
 
 **Unresolved:** permission to mint source-owned IP on a public blockchain, active-instance quotas, availability of free native services, boss rarity and eligibility, whether deployed entities can also be used as avatars. Do not silently implement them as agreed balance rules.
+
+## Playable enemy magic refinement (2026-10-26)
+
+| ID | Direction | Status |
+| --- | --- | --- |
+| D-22 | Distinct playable actor identity rather than bonus damage, costumes or NFT-granted stats | User-stated design intent |
+| D-23 | Existing Zelda II spells should remain available when actor physiology, gameplay and source recovery make sense | User-stated design intent; per-spell mapping open |
+| D-24 | Do not add spells merely to hide missing control/animation adapters; evaluate only genuine gameplay fit gaps | Proposed technical guideline |
+| D-25 | Use a Moblin as first example for a source-identified spear-throwing playable enemy with capped player progression | Example, not a verified implemented adapter |
+
+Further detail: [07 — Playable characters and spell compatibility](07-PLAYABLE-CHARACTERS-AND-SPELL-COMPATIBILITY.md).
