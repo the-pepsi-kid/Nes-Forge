@@ -30,3 +30,7 @@ Recovered original Link pose selectors and sourced display assets do **not** est
 - Merge into `main` only after a complete source import, fresh checkout, all available tests, browser walkthrough, no-asset-leak review, explicit decision, and a documented rollback path.
 
 See `docs/releases/3.0.0-alpha.1.md` and `docs/RELEASE_AND_RECOVERY.md`.
+
+## Detailed gameplay and rendering design (proposed, not shipped)
+
+The [3.x design index](../design/hosted-worlds-3x/README.md) captures round XP and minting, persistent territory and player-selected respawn, palace/town/cave conquest, original Hammer/Raft/Flute rules, skin and browser rendering separation, unresolved decisions and acceptance tests. These **do not** describe verified alpha.1 features. Honor the [decision register](../design/hosted-worlds-3x/04-DECISION-REGISTER.md) before changing executable contracts.
