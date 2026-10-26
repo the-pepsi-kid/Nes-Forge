@@ -88,3 +88,15 @@ See [06 — Mintable NPCs, defenders and playable avatars](06-MINTABLE-ACTORS-AN
 | D-25 | Use a Moblin as first example for a source-identified spear-throwing playable enemy with capped player progression | Example, not a verified implemented adapter |
 
 Further detail: [07 — Playable characters and spell compatibility](07-PLAYABLE-CHARACTERS-AND-SPELL-COMPATIBILITY.md).
+
+## Encounter-to-actor entitlement refinement (2026-10-26)
+
+| ID | Direction | Status |
+| --- | --- | --- |
+| D-26 | Real PvE/PvP World encounters yield eligible actor collectibles, e.g. a tier-1 Moblin | Owner design intent; drop odds/eligibility open |
+| D-27 | Unminted actor collectible is forfeited upon last-life Game Over; optional mint preserves it permanently | Owner design intent; finality rules open |
+| D-28 | Minted actors can be placed as defenders or used via approved playable roles; NPC/enemy identities not cosmetic stat-boost NFTs | Owner design intent; quotas pending |
+| D-29 | Another player may be permitted to control an owned deployed actor without taking ownership | Owner design intent; lease model recommended |
+| D-30 | Follow-and-fight AI deferred until source enemy combat, collision and traversal are understood; native animation playback alone is insufficient | Owner acknowledges dependency; technical safeguard |
+
+See [08 — Encounter drops and ally control](08-ENCOUNTER-DROPS-AND-ALLY-CONTROL.md). **Open:** mint timing, token/placement count, drop chances, AI recovery fidelity, borrowed-unit death and XP awards. No new functionality is asserted by this document.
