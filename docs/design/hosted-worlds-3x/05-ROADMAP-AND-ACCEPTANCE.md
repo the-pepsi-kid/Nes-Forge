@@ -8,10 +8,10 @@
 - [ ] Exclude copyrighted/private ROM data, original game screen captures, local DB files, wallet keys, seed phrases, Git tokens, credentials and generated ZIPs from public commit; independent human review of staging diff.
 - [ ] Fresh clone of PR branch launches Windows localhost server, editor, connected players without depending on chat ZIP.
 - [ ] Re-run all packaged synthetic/server/browser tests in checked-out tree, compare runtime file hashes to signed checkpoint, record Python/browser version, actual passed/skipped counts, and test DB cleanup.
-- [ ] Keep \`main\` 2.0 and \`archive/original-pepsi\` intact. Do not merge or tag release before owner approval.
+- [ ] Keep `main` 2.0 and `archive/original-pepsi` intact. Do not merge or tag release before owner approval.
 - [ ] Preserve full runnable review kit as reproducible output after every milestone. No piecemeal hotfix kit as the only artifact.
 
-**Existing local candidate check history is documented separately** under \`docs/releases/3.0.0-alpha.1*\`. It is not evidence that new contracts below are implemented.
+**Existing local candidate check history is documented separately** under `docs/releases/3.0.0-alpha.1*`. It is not evidence that new contracts below are implemented.
 
 ## Phase A — Deterministic canonical engine snapshots
 

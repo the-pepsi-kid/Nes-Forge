@@ -10,7 +10,7 @@ Forge is the **canonical project/engine**. A selected renderer and skin depict e
 
 ## Layer boundary and direction of data
 
-\`\`\`text
+```text
  NES ROM / authored project (source identity, compatibility coverage)
                  |
                  v
@@ -28,7 +28,7 @@ Forge is the **canonical project/engine**. A selected renderer and skin depict e
          v                             v
  Native-hardware-compatible       Enhanced browser
  NES renderer / exporter          renderer (Canvas/WebGL/etc.)
-\`\`\`
+```
 
 The **server** is authoritative for position, attacks, damage, health/magic, XP, inventory, quests, ownership, construction, and persistent World state in Hosted Worlds. Clients can request legitimate actions; they cannot submit arbitrary damage/XP, mint success, territory ownership, or invisible hitbox changes. The **renderer** consumes a stable scene/animation/event model. The **skin resolver** maps semantic asset IDs, states, poses and cues to presentation resources and visual effects. Input and presentation behavior must not mutate core state.
 
@@ -51,7 +51,7 @@ Never infer or silently flatten mid-frame PPU/mapper effects, palette changes, s
 
 ## Sample semantic binding (illustrative, not deployed schema)
 
-\`\`\`json
+```json
 {
   "entityId": "actor-instance-42",
   "source": {"project": "imported-project", "actorKey": "player", "confidence": "verified"},
@@ -60,9 +60,9 @@ Never infer or silently flatten mid-frame PPU/mapper effects, palette changes, s
   "skin": {"assetKey": "player.attack.right", "theme": "illustrated"},
   "events": [{"kind": "attack-frame", "id": "event-314"}]
 }
-\`\`\`
+```
 
-The runtime's \`hitboxId\`, positions and action event IDs determine gameplay. A skin may provide a frame mapping/visual offset, but must not push a larger or smaller attack hitbox to the server. Bind to source identities and validity ranges; unknown frames should fail clearly or fall back without fabricating recovered native behavior.
+The runtime's `hitboxId`, positions and action event IDs determine gameplay. A skin may provide a frame mapping/visual offset, but must not push a larger or smaller attack hitbox to the server. Bind to source identities and validity ranges; unknown frames should fail clearly or fall back without fabricating recovered native behavior.
 
 ## Multiple presentations of one World
 
