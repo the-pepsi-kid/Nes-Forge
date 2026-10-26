@@ -445,3 +445,25 @@ The implementation uses the existing owners:
 - `re/punch-out-pose-ui.js` can resolve a native CHR return shortcut from the restored canonical pose, instead of requiring a previous click history in the same document.
 
 To change this behavior in the standalone HTML, save a copy and locate those module comments. To maintain source, edit their files under `app/src`, rebuild the native/root and hosted outputs, and check them. Do not put view preferences into a native projection signature or refresh copied source pixels merely to align a preview. Verify fresh-document reopening, intentional mismatches, old/malformed hints, Undo/Redo, all save transports and byte-identical output. Optional metadata does not save emulator RAM, resume playback or establish a recovered runtime binding.
+
+## 17. Preview the actual resource and check the actual build
+
+A consistent preview needs explicit source, palette, composition and output scope. Resources Scene previews use `forgeCapture.scenePixels` for background plus active Scene OAM, including captured raster states. Pose previews use the canonical Metasprite compositor. CHR Resources uses the existing `forgeCHR` appearance resolver: current color mode/appearance for the displayed buffer, automatic source usage when browsing a different buffer, transparent sprite index 0, and the correct page of a capture atlas. These views do not create Scene placements or change assets.
+
+Supported native Glass Joe position views also offer **Preview current native output**. It captures the project through ProjectStore, calls the same live BuildGraph/RuntimeCompiler entry as Build & Run, which captures a detached source, and decodes the supported pose from the exact resulting ROM. The pose compositor receives detached encoded pixels/colors; the source snapshot remains untouched. A failed compile produces a refusal, not an original-ROM fallback. Incremental preview is limited to the declared state path, with no claim of a live fight or complete game palette/priority behavior.
+
+**Connected Workspace → Project Health → Check current ROM build** runs the real current backend without committing the result, downloading or changing emulator state. Relationship counts remain a separate diagnostic. A successful result is tied to the captured input and becomes stale after edits; it does not certify gameplay. Code preflight and failed builds surface the same available structured native refusal details.
+
+To repair a refusal, read its backend message, resource ID and confirmed field path, then use **Inspect this resource**. Save unsupported work before ordinary Undo. Make the intended change through the declared writer and recheck. Unsupported assets remain savable. A signature mismatch alone cannot locate every edit: native owners name a source-copy field only when a reproducible detached candidate restores the existing saved projection hash. Unproven differences stay explicitly unlocalized. Do not replace a signature or refresh a copied snapshot to make a refused project appear valid.
+
+Developer entry points:
+
+- `services/resource-preview.js` supplies explicit context to the existing Scene/CHR/pose renderers and the native compiler. It stores no assets or output cache.
+- `legacy/04-saveas-chr.js` keeps CHR usage/palette rules in one resolver, including captured palettes and selected-pose contexts. `legacy/13-metasprites.js` accepts an explicit detached draw source.
+- `services/build-diagnostics.js` carries error text/context into UI. `services/build-services.js` retains build routing and compilation; `checkCurrent` invokes those owners without commit.
+- `services/native-resource-project.js` still owns signatures, recipes and write spans. Registered title owners can expose reproducible diagnostic views; these do not mask fields or authorize edits. Zelda II terrain budget and native screen layout errors attach their actual World/Scene context at the refusing encoder.
+- `ui/resource-relationships.js` and `ui/connected-workspace.js` render preview scope and compiler results. The results are disposable and are not included in project schema or persistence.
+
+For an HTML-only experiment, copy the complete standalone HTML and search for these module comments or `fcw-check-build` / `frx-native-output`. For maintained work, edit `app/src`, update both manifests only if adding a module, and regenerate the native/root and optional hosted outputs. Keep one shared source and use the existing project lifecycle. Independent RE, assembly and external hex workflows continue to use explicit file/CPU/PPU addresses and verified diffs; a preview relationship does not grant byte ownership.
+
+Verification should compare actual canvas pixels (not just the existence of a canvas), include live and independently browsed Scenes, raster palettes, sprite transparency/flips/priority, CHR preview modes and atlas pages. Native cases must compare snapshot versus compiled output, preserve canonical assets/signatures, exercise real refusals and repair navigation, and recheck save/reopen and target playback. See the Punch-Out chapter section 21 for a complete worked sequence.

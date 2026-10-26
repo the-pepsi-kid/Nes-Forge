@@ -5334,20 +5334,21 @@ function palette(ctx,sc=scene(),bank=S.chrBank){
     return ctx.gray?(n&48):n;
   });
 }
-function buildIndex(){
-  const sc=scene(),r=sc.raster;indexScene=S.scenes[S.activeScene];indexBank=S.chrBank;usageIndex=new Map();
+// Resources asks for the same appearances without selecting that Scene/bank.
+// The index is disposable display data; it never writes palette or asset state.
+function indexFor(sc,bank,pose){
+  const r=sc.raster,index=new Map();
   function add(ti,pal,set,gray,count,y){
-    let group=usageIndex.get(ti);if(!group){group=new Map();usageIndex.set(ti,group);}
+    let group=index.get(ti);if(!group){group=new Map();index.set(ti,group);}
     const key=[set,pal,gray?1:0].join(':');let c=group.get(key);if(!c){c={pal,set,gray:!!gray,count:0,firstY:y,key};group.set(key,c);}c.count+=count;
   }
-  const pose=window.Forge?.services?.ResourceContext?.chrUsage();poseUsageActive=!!pose;
   if(pose){
     for(const use of pose.uses)add(use.tile,use.pal,0,false,64,use.displayHalf*8);
-    for(const [ti,group]of usageIndex)usageIndex.set(ti,Array.from(group.values()).map(c=>({...c,poseId:pose.frame.id,poseColors:Array.from(pose.paletteScene?.sprPal?.[c.pal]||[15,0,16,48]),transparent:true})).sort((a,b)=>b.count-a.count||a.pal-b.pal));
-    return;
+    for(const [ti,group]of index)index.set(ti,Array.from(group.values()).map(c=>({...c,poseId:pose.frame.id,poseColors:Array.from(pose.paletteScene?.sprPal?.[c.pal]||[15,0,16,48]),transparent:true})).sort((a,b)=>b.count-a.count||a.pal-b.pal));
+    return index;
   }
-  if(S.chrBank==='spr'){
-    for(const spr of S.oam){if(!spr.active)continue;const height=spr.height===16?16:8;
+  if(bank==='spr'){
+    for(const spr of sc.oam){if(!spr.active)continue;const height=spr.height===16?16:8;
       for(let py=0;py<height;py++){const y=spr.y+py;if(y<0||y>=240)continue;const mask=r&&r.useMask!==false?r.masks[y]:30;if(!(mask&16))continue;
         const fy=spr.attr&128?height-1-py:py,ti=fy>=8?(spr.tile2??((spr.tile+1)&255)):spr.tile;
         const w=Math.max(0,Math.min(256,spr.x+8)-Math.max(spr.x,(mask&4)?0:8));if(w)add(ti,spr.attr&3,r?r.linePal[y]:0,mask&1,w,y);
@@ -5361,9 +5362,15 @@ function buildIndex(){
       add(at.ti,at.pi,r.linePal[y],r.useMask!==false&&(r.masks[y]&1),1,y);
     }
   }else{
-    for(let y=0;y<30;y++)for(let x=0;x<32;x++)add(S.nt[y*32+x],getPal(x,y),0,false,64,y*8);
+    for(let y=0;y<30;y++)for(let x=0;x<32;x++){const packed=sc.attr[(y>>2)*8+(x>>2)]||0;
+      add(sc.nt[y*32+x],(packed>>((((y>>1)&1)*2+((x>>1)&1))*2))&3,0,false,64,y*8);}
   }
-  for(const [ti,group]of usageIndex)usageIndex.set(ti,Array.from(group.values()).sort((a,b)=>b.count-a.count||a.firstY-b.firstY||a.set-b.set||a.pal-b.pal));
+  for(const [ti,group]of index)index.set(ti,Array.from(group.values()).sort((a,b)=>b.count-a.count||a.firstY-b.firstY||a.set-b.set||a.pal-b.pal));
+  return index;
+}
+function buildIndex(){
+  const pose=window.Forge?.services?.ResourceContext?.chrUsage();poseUsageActive=!!pose;
+  indexScene=S.scenes[S.activeScene];indexBank=S.chrBank;usageIndex=indexFor(scene(),S.chrBank,pose);
 }
 function appearances(ti){if(indexScene!==S.scenes[S.activeScene]||indexBank!==S.chrBank)buildIndex();return usageIndex.get(ti)||[];}
 function resolve(ti){
@@ -5371,15 +5378,15 @@ function resolve(ti){
   if(mode==='manual')return fallback;
   const wanted=preferred.get(preferenceKey(ti));return contexts.find(c=>c.key===wanted)||contexts[0]||fallback;
 }
-function pixelRGB(ci,x,y,context,colors){
-  if(mode==='indices')return [ci*85,ci*85,ci*85];
-  if((S.chrBank==='spr'||context.transparent)&&ci===0){const c=(x+y)%2?38:57;return [c,c,c];}
+function pixelRGB(ci,x,y,context,colors,bank=S.chrBank,previewMode=mode){
+  if(previewMode==='indices')return [ci*85,ci*85,ci*85];
+  if((bank==='spr'||context.transparent)&&ci===0){const c=(x+y)%2?38:57;return [c,c,c];}
   return NP[colors[ci]]||NP[15];
 }
-function drawPreview(ctx,tile,context,ox,oy,scale,grid=false){
-  const colors=palette(context);
+function drawPreview(ctx,tile,context,ox,oy,scale,grid=false,options={}){
+  const bank=options.bank||S.chrBank,colors=palette(context,options.scene||scene(),bank);
   for(let y=0;y<8;y++)for(let x=0;x<8;x++){
-    const ci=tile?.[y]?.[x]||0,rgb=pixelRGB(ci,x,y,context,colors);ctx.fillStyle='rgb('+rgb.join(',')+')';ctx.fillRect(ox+x*scale,oy+y*scale,scale,scale);
+    const ci=tile?.[y]?.[x]||0,rgb=pixelRGB(ci,x,y,context,colors,bank,options.mode??mode);ctx.fillStyle='rgb('+rgb.join(',')+')';ctx.fillRect(ox+x*scale,oy+y*scale,scale,scale);
     if(grid){ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.strokeRect(ox+x*scale+.5,oy+y*scale+.5,scale-1,scale-1);}
   }
 }
@@ -5461,7 +5468,15 @@ const oldFind=findTileInScene;findTileInScene=function(){
 // Keep usage counts numerical instead of tinting the tile's artwork.
 const oldStats=updateStats;updateStats=function(){oldStats();if(S.tab!=='chr')return;const top=Array.from(usageIndex,([ti,cs])=>[ti,cs.reduce((n,c)=>n+c.count,0)]).sort((a,b)=>b[1]-a[1]).slice(0,10);$('chrUsageStats').innerHTML='<h3>Top used '+(S.chrBank==='spr'?'sprite':'background')+' assets</h3>'+top.map(([i,n])=>'<div class="st"><span>'+hex(i)+'</span><span class="v">'+(poseUsageActive?(n/64).toLocaleString()+' piece references':n.toLocaleString()+' source px')+'</span></div>').join('');if($('findAutoTrack').checked)findTileInScene();};
 const oldDocs=renderDocs;renderDocs=function(){oldDocs();const section=document.createElement('section');section.innerHTML='<h2>1.4.3 — Save As &amp; CHR colors</h2><p>Export, Save Project As, Build .NES ROM and assembly download share one Save As flow. Supported secure browser contexts open the system picker from a direct click. In blocked/unsupported previews the app offers an explicit browser-download fallback and explains the browser-controlled destination. Cancelling never starts a fallback download. “Saved” appears only after the writable file is closed successfully. Browser database Save/Load remains separate.</p><p>CHR Sheet defaults to Scene colors (auto), selecting the most-used palette appearance for each native tile. Sheet, selected pixel editor and swatches use one palette resolver, including captured raster palette states. A tile can have multiple legitimate appearances; the appearance dropdown selects among them. Choosing a palette row switches to Selected palette mode for a uniform sheet preview. Pixel values mode displays raw 0–3 indices in grayscale. Usage counts no longer tint artwork. Preview changes do not modify assets. Pencil controls edit the real palette slot and support Undo.</p><p>Native sprite tiles are shown unflipped; transparent index 0 is checkerboard. Find in Scene searches active OAM when Sprite Bank is selected. Existing 1.4.2 project JSON/ZIP captures open without recapture; CPU, PPU, audio, scheduling and capture validation are unchanged.</p>';document.querySelector('#sideDocs .doc').prepend(section);};
-window.forgeCHR={usageOnly:false,resolve,palette,buildIndex,appearances,drawPreview,get mode(){return mode;},get context(){return selectedContext;}};
+function previewFor(sc,bank,{pose=null,live=false}={}){
+  const index=indexFor(sc,bank,pose),previewMode=live?mode:'scene';
+  const choose=ti=>{const contexts=index.get(ti)||[],fallback={pal:live?manualPal():0,set:live?clamp(manualState,0,(sc.raster?.palettes?.length||1)-1):0,gray:false,count:0,unused:true};
+    if(previewMode==='manual')return fallback;
+    const wanted=live?preferred.get(preferenceKey(ti)):null;return contexts.find(c=>c.key===wanted)||contexts[0]||fallback;};
+  return {mode:previewMode,resolve:choose,appearances:ti=>index.get(ti)||[],
+    draw:(ctx,ti,x,y,scale)=>drawPreview(ctx,(bank==='spr'?sc.sprChr:sc.chr)?.[ti],choose(ti),x,y,scale,false,{scene:sc,bank,mode:previewMode})};
+}
+window.forgeCHR={usageOnly:false,resolve,palette,buildIndex,appearances,drawPreview,previewFor,get mode(){return mode;},get context(){return selectedContext;}};
 document.querySelector('h1').innerHTML='NES FORGE <small style="color:var(--grn)">1.4.4 SAVE CONTEXT FIX</small>';
 document.title='NES Forge 1.4.3 — Save As & CHR Colors';
 render();
@@ -6445,7 +6460,9 @@ function warnings(frame){
 }
 function pixel(frame,p,px,py,sc){const h=frame.spriteMode===16?16:8,fy=p.flipV?h-1-py:py,fx=p.flipH?7-px:px;return sc.sprChr?.[fy<8?p.tile:p.tile2]?.[fy&7]?.[fx]||0;}
 function draw(ctx,frame,anchorX=0,anchorY=0,scale=1,options={}){
-  const sc=source(frame);if(!sc||!ctx)return false;
+  // An explicit detached source lets Resources draw verified encoded output
+  // through this compositor without replacing the canonical source snapshot.
+  const sc=options.source||source(frame);if(!sc||!ctx)return false;
   const ps=frame.pieces||[],h=frame.spriteMode===16?16:8,claims=new Set(),lineCounts=new Map();
   ctx.imageSmoothingEnabled=false;
   for(let i=0;i<ps.length;i++){
@@ -10833,6 +10850,46 @@ function compile(p){
 }
 services.WorldCompiler={profile,phaseOrder,plan,compile,lastBuild:null};
 })();
+/* Structured context for actual build refusals. Native owners attach evidence
+ * where they already reject an edit. This module never decides build eligibility,
+ * reconstructs a signing baseline, writes an asset, or persists a report.
+ * BuildGraph supplies the real compiler result; UI renders text and navigation.
+ */
+(() => {
+  'use strict';
+  const services=Forge.services;
+  function difference(actual,expected,path='') {
+    if(actual===expected)return null;
+    if(actual&&expected&&typeof actual==='object'&&typeof expected==='object') {
+      const keys=[...new Set([...Object.keys(actual),...Object.keys(expected)])].sort((a,b)=>Number.isInteger(+a)&&Number.isInteger(+b)?+a-+b:a.localeCompare(b));
+      for(const key of keys){const next=Array.isArray(actual)?path+'['+key+']':path?path+'.'+key:key;
+        const found=difference(actual[key],expected[key],next);if(found)return found;}
+      return null;
+    }
+    return path||'(value)';
+  }
+  function attach(error,details) {
+    error.buildDiagnostics=[{severity:'error',code:'native-build-refused',phase:'native-validation',message:error.message,...details}];return error;
+  }
+  function from(error) {
+    return error.buildDiagnostics||[{severity:'error',code:'build-refused',phase:'compile',message:error.message,
+      repair:'Preserve the project with Save Project As, then correct the reported input and check again.'}];
+  }
+  function render(host,entries) {
+    host.replaceChildren();
+    for(const item of entries){const row=document.createElement('div');row.className=item.severity==='error'?'err':item.severity==='warning'?'warn':'ok';
+      const text=document.createElement('div');text.textContent=item.message;row.append(text);
+      for(const value of [item.assetName?'Resource: '+item.assetName+(item.assetId?' ['+item.assetId+']':''):'',item.field?'Field: '+(item.path||item.field):'',item.repair||''])
+        if(value){const line=document.createElement('div');line.textContent=value;row.append(line);}
+      if(item.resourceKey){const button=document.createElement('button');button.type='button';button.textContent='Inspect this resource';
+        button.onclick=()=>{services.ConnectedWorkspacePreview?.close();services.ResourceRelationshipPreview?.openAt(item.resourceKey);};row.append(button);}
+      if(item.writerRoute){const button=document.createElement('button');button.type='button';button.textContent='Review supported native tools';
+        button.onclick=()=>{services.ResourceRelationshipPreview?.close();services.ConnectedWorkspacePreview?.open('native');};row.append(button);}
+      host.append(row);
+    }
+  }
+  services.BuildDiagnostics=Object.freeze({difference,attach,from,render});
+})();
 /* NES FORGE CONNECTION: src/services/build-services.js
  * Build routing: BuildGraph/RuntimeCompiler select authored or native-engine output.
  * NativeResourceProject.build composes source recipes and registered Scene encoders;
@@ -10956,12 +11013,26 @@ function preflight(){
   try{
     const p=BuildGraph.plan();
     if(p.pack&&p.extension.length>profile.markerAddress-profile.metadataStart)throw Error('Combined authoring metadata needs '+p.extension.length+' bytes but at most '+(profile.markerAddress-profile.metadataStart)+' bytes fit before $CFF0. Reduce assets or disable scene packing.');
-    if(box)box.innerHTML=p.diagnostics.map(d=>'<div class="'+(d.severity==='warning'?'warn':d.severity==='error'?'err':'ok')+'">'+esc(d.message)+'</div>').join('');
+    if(box)services.BuildDiagnostics.render(box,p.diagnostics);
     BuildGraph.lastDiagnostics=p.diagnostics;return p;
   }catch(error){
-    BuildGraph.lastDiagnostics=[diagnostic('error','build-invalid',error.message,'validation')];
-    if(box)box.innerHTML='<div class="err">✗ '+esc(error.message)+'</div>';return null;
+    BuildGraph.lastDiagnostics=services.BuildDiagnostics.from(error);
+    if(box)services.BuildDiagnostics.render(box,BuildGraph.lastDiagnostics);return null;
   }
+}
+// Explicit Project Health checks run the real compiler without committing an
+// artifact, downloading it, or loading the emulator. Results are disposable and
+// tied to this capture; reference-graph health is never treated as eligibility.
+function identity(source=services.ProjectStore.capture()) {
+  return window.NativeEngineFormat.sha256(new TextEncoder().encode(JSON.stringify(source)));
+}
+function checkCurrent() {
+  let source,backend;
+  try{source=services.ProjectStore.prepareSnapshot({intent:'build-check'});backend=backendFor(source);
+    const artifact=compile(planSource(source,{}));
+    return {ok:true,backend,fingerprint:identity(source),diagnostics:artifact.diagnostics,
+      outputSha256:window.NativeEngineFormat.sha256(artifact.rom),bytes:artifact.rom.length};
+  }catch(error){return {ok:false,backend:backend||backendFor(S),fingerprint:source?identity(source):null,diagnostics:services.BuildDiagnostics.from(error)};}
 }
 function codeOccupancy(p){
   if(p.detached&&p.custom)throw Error('Detached builds cannot invoke the live assembler.');
@@ -11061,12 +11132,15 @@ function build(options){
   }catch(error){
     window._lastBuiltRom=null;Forge165.lastBuild=null;RuntimeCompiler.lastArtifact=null;
     if(services.WorldCompiler)services.WorldCompiler.lastBuild=null;
-    BuildGraph.lastDiagnostics=[diagnostic('error','build-failed',error.message,'compile')];log(error.message,'bl-err');reportError(error);return null;
+    BuildGraph.lastDiagnostics=services.BuildDiagnostics.from(error);
+    for(const item of BuildGraph.lastDiagnostics)log([item.message,item.assetName?'Resource: '+item.assetName:'',item.path||item.field||'',item.repair||''].filter(Boolean).join('\n'),'bl-err');
+    const preflightBox=$('forge15Preflight');if(preflightBox)services.BuildDiagnostics.render(preflightBox,BuildGraph.lastDiagnostics);
+    reportError(error);return null;
   }
 }
 // UI capability labels ask this same dispatcher which backend owns output.
 // Reading the route neither captures editor buffers nor validates/builds a ROM.
-const BuildGraph=services.BuildGraph={profile,phaseOrder,backendFor,selectedSceneEntries,plan,planDetached,preflight,lastDiagnostics:[],
+const BuildGraph=services.BuildGraph={profile,phaseOrder,backendFor,selectedSceneEntries,plan,planDetached,preflight,checkCurrent,identity,lastDiagnostics:[],
   ownership:'Live capture or detached validation prepares the source. Generated plans pass copied sources to existing codecs once; custom assembly is live-only.'};
 const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world','native-engine']),compile,compileDetached:(project,options)=>compile(planDetached(project,options)),commit,build,lastArtifact:null};
 // These assignments replace active routes; no previous planner/builder is called.
@@ -18416,7 +18490,10 @@ function validate(p,{build=false}={}){
  const bytes=base64ToBytes(p.importedRom);
  if(!adapter.recognizes(bytes)||format.sha256(bytes)!==n.sourceSha256)fail('Source revision or saved source hash differs.');
  format.validateTargets(bytes,n.edits);
- for(const b of bindings(p))adapter.encode(bytes,b.mapId,p.worlds.find(w=>w.id===b.worldId).map);
+ for(const b of bindings(p)){const world=p.worlds.find(w=>w.id===b.worldId);
+  try{adapter.encode(bytes,b.mapId,world.map);}catch(error){throw services.BuildDiagnostics.attach(error,
+   {assetId:world.id,assetName:world.name,resourceKey:'world:'+world.id,field:'map',writerRoute:'native-world',
+    repair:'The native terrain encoder refused this World. Preserve your project, then Undo/reduce the reported terrain change within the original compressed-map budget.'});}}
  if(build&&signature(p)!==n.projectionSha256)fail('An asset or runtime setting has no native encoder. Undo that change to rebuild. Supported: selected overworld terrain and four location fields.');
  return {bytes,descriptor:n};
 }
@@ -18618,7 +18695,11 @@ function validate(p,{build=false}={}){
  const info=inspect(p);if(build){
   const masked=cp(p),encoded=api.encode(info.bytes,info.catalog,p.nativeGame.edits),decoded=api.inspect(encoded.bytes,info.adapter);
   for(const b of p.nativeGame.areas){const sc=p.scenes.find(v=>v.id===b.sceneId),expected=api.projectScreen(decoded,b.screen),old=api.projectScreen(info.catalog,b.screen);
-   if(JSON.stringify(sc.nt)!==JSON.stringify(expected.nt)||JSON.stringify(sc.attr)!==JSON.stringify(expected.attr))fail('Scene painting differs from its native block recipe. Use the Native screen blocks brush for encodable layout changes. Other edits remain savable.');
+   if(JSON.stringify(sc.nt)!==JSON.stringify(expected.nt)||JSON.stringify(sc.attr)!==JSON.stringify(expected.attr)){
+    const field=JSON.stringify(sc.nt)!==JSON.stringify(expected.nt)?'nt':'attr';
+    throw s.BuildDiagnostics.attach(Error('Native layout project: Scene painting differs from its native block recipe. Use the Native screen blocks brush for encodable layout changes. Other edits remain savable.'),
+      {assetId:sc.id,assetName:sc.name,resourceKey:'scene:'+sc.id,field,path:s.BuildDiagnostics.difference(sc[field],expected[field],field),writerRoute:'project-library',
+        repair:'Save unsupported work, Undo local painting, then use Area 1 native screen blocks for encodable substitutions.'});}
    const target=masked.scenes.find(v=>v.id===b.sceneId);target.nt=old.nt;target.attr=old.attr;
   }
   if(s.NativeEngineProject.signature(masked)!==p.nativeGame.projectionSha256)fail('An editor asset or setting changed without a native encoder. This checkpoint writes existing native block substitutions only. Undo unsupported changes to build.');
@@ -20768,6 +20849,38 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
     return digest(a) === digest(b);
   }
 
+  // A projection hash cannot identify arbitrary edited fields. Ask existing
+  // codecs for reproducible source views, and name a protected field only if
+  // substituting its known value in a detached candidate reproduces the saved
+  // hash. This is diagnostic evidence, never a new signature or accepted edit.
+  function projectionDiagnostics(p,info) {
+    const candidates=[],helpers=s.BuildDiagnostics;
+    let encoded;try{encoded=encodeScenes(p,info).bytes;}catch(_){}
+    const codecs=sceneEncoders.filter(c=>c.matches(p,info));
+    const owned=new Set(codecs.flatMap(c=>c.views(p,info).flatMap(v=>Object.keys(v).filter(k=>k!=='id').map(k=>v.id+':'+k))));
+    for(const codec of codecs)for(const view of codec.diagnosticViews?.(p,info,encoded)||[]){
+      const scene=p.scenes.find(sc=>sc.id===view.id);if(!scene)continue;
+      for(const field of Object.keys(view.fields).filter(k=>k!=='id'&&!owned.has(view.id+':'+k))){
+        const path=helpers.difference(scene[field],view.fields[field],field);if(!path)continue;
+        candidates.push({scene,field,path,value:view.fields[field],repair:view.repair,writerRoute:view.writerRoute});
+      }
+    }
+    const replace=items=>({...p,scenes:p.scenes.map(sc=>({...sc,...Object.fromEntries(items.filter(i=>i.scene.id===sc.id).map(i=>[i.field,i.value]))}))});
+    const proves=items=>{try{return baseSignature(replace(items),info)===p.nativeGame.projectionSha256;}catch(_){return false;}};
+    const context=item=>({assetId:item.scene.id,assetName:item.scene.name,resourceKey:'scene:'+item.scene.id,
+      field:item.field,path:item.path,writerRoute:item.writerRoute,repair:item.repair,
+      evidence:'Known source value restores the saved protected projection hash.'});
+    for(const candidate of candidates.slice(0,32))if(proves([candidate]))return context(candidate);
+    // Multiple protected edits can be localized together when one complete
+    // source candidate set proves the same hash. Conflicting baseline guesses
+    // are not combined into a fabricated explanation.
+    const unique=[...new Map(candidates.map(c=>[c.scene.id+':'+c.field,c])).values()];
+    if(unique.length&&unique.length<=32&&proves(unique))return {...context(unique[0]),
+      relatedFields:unique.map(c=>({assetId:c.scene.id,assetName:c.scene.name,field:c.field,path:c.path})),
+      repair:unique[0].repair+' Confirmed protected changes: '+unique.map(c=>c.scene.name+' · '+c.path).join('; ')+'.'};
+    return {field:'protected project projection',repair:'Save Project As preserves unsupported work. Undo unsupported asset/runtime edits, then use the registered native writer. The saved hash alone cannot locate this change.',writerRoute:'native'};
+  }
+
   /* Loading preserves unsupported work. build:true additionally requires that all
    * differences have an encoder and that the resulting native bytes pass its checks. */
   function validate(p, {
@@ -20776,14 +20889,17 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
     const info = inspect(p);
     if (build) {
       const c = currentCatalog(info);
-      for (const b of p.nativeGame.bindings)
-        if (!sameScene(p.scenes.find(sc => sc.id === sceneId(info.adapter, b)), make(p, c, b)))
-          fail(
-            'A recovered Scene differs from its native recipe. Undo unsupported Scene, CHR, palette, actor or collision edits to build.'
-            );
-      if (baseSignature(p, info) !== p.nativeGame.projectionSha256) fail(
-        'An asset or runtime setting changed without a native encoder. Unsupported work remains savable.'
-        );
+      for (const b of p.nativeGame.bindings) {
+        const scene=p.scenes.find(sc=>sc.id===sceneId(info.adapter,b)),expected=make(p,c,b);
+        if (!sameScene(scene,expected)) {
+          const path=s.BuildDiagnostics.difference(scene,expected),field=path?.split(/[.\[]/)[0];
+          throw s.BuildDiagnostics.attach(Error('Native resource project: A recovered Scene differs from its native recipe. Undo unsupported Scene, CHR, palette, actor or collision edits to build.'),
+            {assetId:scene.id,assetName:scene.name,resourceKey:'scene:'+scene.id,field,path,writerRoute:'library',
+              repair:'Save unsupported work, then Undo the local edit. Use Native source pages for encodable block substitutions; physical CHR/fight palettes use their dedicated writer when available.'});
+        }
+      }
+      if (baseSignature(p, info) !== p.nativeGame.projectionSha256)
+        throw s.BuildDiagnostics.attach(Error('Native resource project: An asset or runtime setting changed without a native encoder. Unsupported work remains savable.'),projectionDiagnostics(p,info));
       info.sceneEncoded = encodeScenes(p, info);
     }
     return info;
@@ -23169,6 +23285,9 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
       scope: 'Edit explicitly opened physical CHR banks or fight palette tables. Shared native uses change together; recovered reference Scenes remain source snapshots.'},
     views(p, info) { return entries(p, info).map(({sc, baseline, kind}) => kind === 'chr' ?
       {id: sc.id, chr: baseline.chr} : {id: sc.id, pal: baseline.pal, sprPal: baseline.sprPal, bgColor: baseline.bgColor}); },
+    diagnosticViews(p,info) {return entries(p,info).map(({sc,baseline,kind})=>({id:sc.id,fields:baseline,writerRoute:'punch-out-art',
+      repair:kind==='chr'?'This physical bank writes its BG CHR buffer only. Save unsupported work, Undo changes to the surrounding Scene or Sprite buffer, and edit BG pixels here.':
+        'This fight palette writes its palette slots only. Save unsupported work, then Undo layout, pixel, sprite or collision changes; edit palette slots in this writer.'}));},
     spans(p, info) { return entries(p, info).map(({record, kind}) => ({offset: record.offset, length: kind === 'chr' ? 4096 : 32})); },
     encode(bytes, p, info) {
       const output = bytes.slice(); let changed = 0;
@@ -23242,6 +23361,12 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
       scope: 'Whole-pose X/Y for 30 full poses and five explicit incremental poses; grouped idle $C0/$C2/$C4. Piece geometry, native animation, attack and collision rules have no writer here.'},
     matches: (project, info) => info.adapter.kind === 'punch-out' && project.scenes.some(marker),
     views: () => [],
+    diagnosticViews(project,info,encoded) {
+      const models=[{model:source(info),bytes:info.bytes}];if(encoded)models.push({model:codec.open(encoded),bytes:encoded});
+      return entries(project,info).flatMap(({record,scene})=>models.map(current=>({id:scene.id,
+        fields:sourceScene(info,record.selector,current.model,current.bytes),writerRoute:'punch-out-art',
+        repair:'This pose Scene holds a protected artwork snapshot. Save it if needed, then Undo the copied-art edit. Change exported pixels with Physical CHR and fight palettes; use Glass Joe pose positions for whole-pose X/Y.'})));
+    },
     metaspriteViews(project, info) {
       return entries(project, info).map(({baseline}) => ({id: baseline.id,
         originX: baseline.originX, originY: baseline.originY, pieces: baseline.pieces}));
@@ -23250,8 +23375,12 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
       return entries(project, info).map(({record}) => ({offset: record.offset, length: 2}));
     },
     encode(bytes, project, info) {
-      const edits = entries(project, info).map(({frame, baseline, record, model}) =>
-        model.placement(record.selector, frame, baseline));
+      const edits = entries(project, info).map(({frame, baseline, record, model}) => {
+        try{return model.placement(record.selector,frame,baseline);}
+        catch(error){throw services.BuildDiagnostics.attach(error,{assetId:frame.id,assetName:frame.name,
+          resourceKey:'metasprite:'+frame.id,field:'pieces / origin',writerRoute:'punch-out-pose',
+          repair:'Save unsupported work, then Undo individual geometry, tile or flag edits. Use Glass Joe pose positions for complete-pose X/Y and grouped idle edits.'});}
+      });
       return {bytes: source(info).encode(bytes, edits), diagnostics: [{severity: 'info',
         code: 'punch-out-native-pose-position', phase: 'native-encode',
         message: edits.filter(edit => edit.dx || edit.dy).length +
@@ -23262,6 +23391,20 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
   // Called only after validating the old project. Each new source view receives
   // current encoded CHR/colors, while its canonical position baseline comes from
   // the preserved source. Copied source artwork is not another native art writer.
+  function sourceScene(info,selector,current,bytes=info.bytes) {
+    const model=source(info),record=model.record(selector),pose=current.record(selector).pose;
+    const baseline=model.frame(selector,frameId(selector),sceneId(selector));
+    const colors=Array.from({length:4},(_,i)=>[pose.palette[0],...pose.palette.slice(i*4+1,i*4+4)]);
+    const key=record.kind==='incremental'?'punchOutIncrementalPose':'punchOutPose';
+    return makeScene({id:sceneId(selector),name:baseline.name+' source',
+      chr:normalizeTiles(),sprChr:PunchOutContent.open(bytes).chr(pose.chrBank4KiB),
+      pal:Array.from({length:4},()=>[15,0,0,0]),sprPal:colors,
+      nt:Array(960).fill(0),attr:Array(64).fill(0),tileProps:Array(256).fill(0),
+      oam:[],entities:[],links:[],buildInclude:false,buildOrder:0,gravity:0,
+      scrollDir:'none',sceneType:'static',captureMeta:{
+        mode:record.kind==='incremental'?'native-incremental-pose-placement-view':'native-pose-placement-view',
+        [key]:{version:1,sourceSha256:info.descriptor.sourceSha256,fight:0,selector}}});
+  }
   function addView(project, info, selector, current) {
     const model = source(info), record = model.record(selector);
     const id = frameId(selector), sid = sceneId(selector);
@@ -23272,19 +23415,8 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
       throw Error('Native pose frame ID already belongs to another asset.');
     if (project.scenes.length >= 64 || project.metasprites.length >= 256)
       throw Error('No free Scene or Metasprite slot. Preserve existing work first.');
-    const pose = current.record(selector).pose;
-    const colors = Array.from({length: 4}, (_, i) =>
-      [pose.palette[0], ...pose.palette.slice(i * 4 + 1, i * 4 + 4)]);
     const baseline = model.frame(selector, id, sid);
-    const key = record.kind === 'incremental' ? 'punchOutIncrementalPose' : 'punchOutPose';
-    project.scenes.push(makeScene({id: sid, name: baseline.name + ' source',
-      chr: normalizeTiles(), sprChr: PunchOutContent.open(info.sceneEncoded.bytes).chr(pose.chrBank4KiB),
-      pal: Array.from({length: 4}, () => [15,0,0,0]), sprPal: colors,
-      nt: Array(960).fill(0), attr: Array(64).fill(0), tileProps: Array(256).fill(0),
-      oam: [], entities: [], links: [], buildInclude: false, buildOrder: 0, gravity: 0,
-      scrollDir: 'none', sceneType: 'static', captureMeta: {
-        mode: record.kind === 'incremental' ? 'native-incremental-pose-placement-view' : 'native-pose-placement-view',
-        [key]: {version: 1, sourceSha256: info.descriptor.sourceSha256, fight: 0, selector}}}));
+    project.scenes.push(sourceScene(info,selector,current,info.sceneEncoded.bytes));
     project.metasprites.push(baseline);
     return {frameId: id, sceneId: sid, added: true};
   }
@@ -23536,6 +23668,51 @@ services.ProjectCapabilities=Object.freeze({describe});
   }
 
   services.ResourceContext = Object.freeze({source, native, selection, footprint, chrUsage, consumers});
+})();
+/* Resources renders the same canonical inputs as the editors. Scene pixels are
+ * owned by forgeCapture, CHR appearances by forgeCHR, and poses by Metasprites.
+ * This service supplies explicit read-only context; it owns no assets or cache.
+ * Native output is an explicit snapshot compile through BuildGraph/RuntimeCompiler
+ * followed by the existing title codec. It never patches a source snapshot,
+ * commits a build, downloads a ROM, or touches the emulator.
+ */
+(() => {
+  'use strict';
+  const services=Forge.services;
+  function scene(id) {
+    const stored=S.scenes.find(item=>item.id===id);
+    if(!stored)throw Error('The preview Scene is no longer available.');
+    return stored===S.scenes[S.activeScene]?forgeCapture.liveScene():stored;
+  }
+  function chr(id,bank) {
+    const sc=scene(id),active=S.scenes[S.activeScene]?.id===id&&S.chrBank===bank;
+    const frame=Forge163.metasprites.current;
+    let pose=null;
+    if(active)pose=services.ResourceContext.chrUsage();
+    else if(bank==='spr'&&frame?.sceneId===id)
+      pose={frame,paletteScene:sc,...services.ResourceContext.footprint(frame)};
+    return {...forgeCHR.previewFor(sc,bank,{pose,live:active}),scene:sc,pose,active};
+  }
+  function nativePose(id) {
+    const project=services.ProjectStore.capture(),frame=project.metasprites.find(item=>item.id===id);
+    const sc=project.scenes.find(item=>item.id===frame?.sceneId);
+    const origin=sc?.captureMeta?.punchOutPose||sc?.captureMeta?.punchOutIncrementalPose;
+    if(!origin||origin.fight!==0)throw Error('Current-output pose preview requires a supported native Glass Joe position view.');
+    // Compile every current edit, including independent physical CHR/palette
+    // writers. A refusal is surfaced; no original-ROM fallback can hide it.
+    // Use the exact live compiler entry, whose plan captures a detached source.
+    // Reloading through prepareLoad could normalize an invalid edited value and
+    // hide a refusal that Build & Run would correctly report.
+    const artifact=services.RuntimeCompiler.compile();
+    const model=PunchOutPose.open(artifact.rom),record=model.record(origin.selector);
+    const outputFrame=model.frame(origin.selector,frame.id,frame.sceneId),palette=record.pose.palette;
+    const outputScene={sprChr:PunchOutContent.open(artifact.rom).chr(record.pose.chrBank4KiB),
+      sprPal:Array.from({length:4},(_,i)=>[palette[0],...palette.slice(i*4+1,i*4+4)])};
+    return {frame:outputFrame,scene:outputScene,bank:record.pose.chrBank4KiB,
+      outputSha256:NativeEngineFormat.sha256(artifact.rom),diagnostics:artifact.diagnostics,
+      scope:record.kind==='incremental'?'Declared native state path; not a live fight frame.':'Decoded full native pose; not a live fight frame.'};
+  }
+  services.ResourcePreview=Object.freeze({scene,chr,nativePose});
 })();
 /* Optional project browsing preferences, not canonical assets or runtime state.
  * ProjectStore includes this metadata only for portable/browser/recovery saves.
@@ -25779,6 +25956,7 @@ style.textContent=`
 @media(max-width:640px){#frx-root.frx-visible{padding:0}#frx-app{border-radius:0;height:100dvh;max-height:none}.frx-bar{gap:8px;flex-wrap:wrap}.frx-bar .frx-spacer{display:none}.frx-pill{display:none}.frx-body{display:flex;flex-direction:column;overflow:auto}.frx-nav{border-right:0;border-bottom:1px solid #203146;flex:0 0 153px;overflow:auto}.frx-center{flex:0 0 auto;overflow:visible;padding:14px}.frx-relgrid{grid-template-columns:1fr}.frx-inspector{flex:0 0 auto;max-height:none;padding:14px}.frx-toolbar{padding:8px;gap:7px}.frx-filter{max-width:140px}.frx-footer{font-size:10px}.frx-selected-name{font-size:18px}}
 `;
 document.head.appendChild(style);
+const outputStyle=document.createElement('style');outputStyle.textContent='.frx-viewer #frx-preview:has(#frx-native-output-result canvas){max-height:440px;overflow:auto}.frx-native-output-result{max-width:100%;text-align:center}.frx-native-output-result:empty{display:none}';document.head.append(outputStyle);
 const button=document.createElement('button');button.id='frx-open';button.type='button';button.textContent='▣ Resources';button.title='Unified resource explorer, preview and verified relationships';
 const target=document.querySelector('.top .project-bar')||document.querySelector('.top .scene-ctl')||document.querySelector('.top');
 target.parentNode.insertBefore(button,target.nextSibling);
@@ -25950,36 +26128,45 @@ function render(){
 }
 // Previews read canonical project buffers only. No canvas is written back to a Scene.
 function previewScene(n){const ctx=targetContext(n),id=ctx?.sceneId,idx=S.scenes.findIndex(sc=>sc.id===id);return idx<0?null:{scene:S.scenes[idx],live:idx===S.activeScene};}
-function drawPixels(ctx,x,y,pixels,palette,scale){if(!Array.isArray(pixels))return;for(let py=0;py<8;py++)for(let px=0;px<8;px++){const ci=Number(pixels?.[py]?.[px])||0;const index=Number(palette?.[ci])&63;const rgb=(typeof NP!=='undefined'?NP[index]:null)||[[10,20,30],[100,140,160],[180,210,220],[245,245,245]][ci%4];ctx.fillStyle=`rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;ctx.fillRect(x+px*scale,y+py*scale,scale,scale);}}
 function newCanvas(width,height,displayWidth){const c=elt('canvas','frx-preview-canvas');c.width=width;c.height=height;c.style.width=displayWidth||'100%';c.style.maxWidth='100%';c.style.height='auto';c.style.imageRendering='pixelated';c.setAttribute('role','img');return c;}
+function poseCanvas(frame,source){const composer=window.Forge163.metasprites,bounds=composer.bounds(frame),c=newCanvas(256,160,'256px'),g=c.getContext('2d'),scale=Math.min(2,248/Math.max(1,bounds.w),152/Math.max(1,bounds.h));
+ g.fillStyle='#172231';g.fillRect(0,0,c.width,c.height);composer.draw(g,frame,4+(frame.originX-bounds.x)*scale,4+(frame.originY-bounds.y)*scale,scale,source?{source}:{});return c;}
 function renderViewer(n){
  const host=$('preview'),tools=$('related-tools');host.replaceChildren();tools.replaceChildren();if(!n)return;
  const ctx=targetContext(n),res=n.type==='world'?null:previewScene(n),caption=$('viewer-caption');caption.textContent=mode==='demo'?'Example assets are not in the project.':res?'Reading '+res.scene.name+' from '+(res.live?'live editor buffers':'stored Scene buffers')+'.':'No unique image or scene binding established.';
  if(mode==='demo'){host.append(elt('div','frx-preview-message','Guided example · select Live project to inspect real tile, palette and layout data.'));$('context-result').textContent='No editor synchronization in the demonstration graph.';return;}
  if(res){
-  const scene=res.scene,bank=(n.type==='chr'||n.type==='tile'||n.type==='palette')&&n.id.startsWith('spr:')?'spr':'bg';
-  const chr=bank==='spr'?(res.live?S.sprChr:scene.sprChr||S.sprChr):(res.live?S.chr:scene.chr||S.chr);
-  const pal=bank==='spr'?(res.live?S.sprPal:scene.sprPal):(res.live?S.pal:scene.pal);
-  const nt=res.live?S.nt:scene.nt,attrs=res.live?S.attr:scene.attr;
+  const preview=window.Forge.services.ResourcePreview,scene=preview.scene(res.scene.id),bank=(n.type==='chr'||n.type==='tile'||n.type==='palette')&&n.id.startsWith('spr:')?'spr':'bg';
   if(n.type==='metasprite'){
-   const frame=S.metasprites.find(p=>p.id===n.open.poseId),composer=window.Forge163.metasprites;
-   if(frame?.pieces.length){const bounds=composer.bounds(frame),c=newCanvas(256,160,'256px'),g=c.getContext('2d'),scale=Math.min(2,248/Math.max(1,bounds.w),152/Math.max(1,bounds.h));
-    g.fillStyle='#172231';g.fillRect(0,0,c.width,c.height);composer.draw(g,frame,4+(frame.originX-bounds.x)*scale,4+(frame.originY-bounds.y)*scale,scale);
+   const frame=S.metasprites.find(p=>p.id===n.open.poseId);
+   if(frame?.pieces.length){const c=poseCanvas(frame);
     c.setAttribute('aria-label','Selected pose with its canonical sprite palettes, flips and piece order');host.append(c);
+    const marker=scene.captureMeta?.punchOutPose||scene.captureMeta?.punchOutIncrementalPose;
+    if(marker){caption.textContent='Canonical pose with its source-art snapshot. Physical native edits are separate.';
+     const output=elt('button','frx-context-shortcut','Preview current native output');output.type='button';output.id='frx-native-output';
+     const result=elt('div','frx-native-output-result');result.id='frx-native-output-result';result.setAttribute('role','status');
+     output.onclick=()=>{result.replaceChildren();try{const value=preview.nativePose(frame.id),canvas=poseCanvas(value.frame,value.scene);
+       canvas.setAttribute('aria-label','Current compiled native pose with encoded physical CHR and fight palette');
+       result.append(canvas,elt('div','frx-viewer-legend','Current compiled output · physical bank '+value.bank+' · SHA-256 '+value.outputSha256+'. '+value.scope+' Source snapshot unchanged.'));
+      }catch(error){result.append(elt('div','frx-preview-message','Current output unavailable: '+error.message));
+       const health=elt('button','frx-context-shortcut','Check build in Project Health');health.type='button';health.onclick=()=>{close();window.Forge.services.ConnectedWorkspacePreview.open('health');};result.append(health);}};
+     host.append(output,result);
+    }
    }else host.append(elt('div','frx-preview-message','Empty pose.'));
   }else if(['chr','tile','palette'].includes(n.type)){
+   const view=preview.chr(scene.id,bank),count=(bank==='spr'?scene.sprChr:scene.chr)?.length||256;
+   const selected=n.type==='tile'?Number(n.open.tileId):view.active?S.editTile:0,page=Math.floor((Number.isInteger(selected)?selected:0)/256);
    const c=newCanvas(256,256,'min(256px, 100%)'),g=c.getContext('2d');g.fillStyle='#000e1c';g.fillRect(0,0,256,256);
-   const selectedPose=window.Forge163?.metasprites?.current,footprint=bank==='spr'&&selectedPose?.sceneId===scene.id?window.Forge.services.ResourceContext.footprint(selectedPose):null;
-   for(let i=0;i<256;i++){const use=footprint?.uses.find(use=>use.tile===i);drawPixels(g,(i%16)*16,Math.floor(i/16)*16,chr?.[i],pal?.[use?.pal??0],2);}
-   if(footprint)caption.textContent+=' Colors use selected pose palette IDs where recorded; sheet tiles are unflipped.';
+   for(let j=0;j<256;j++){const i=page*256+j;if(i<count&&(!view.active||!window.forgeCHR.usageOnly||!view.pose||view.pose.tileIds.includes(i)))view.draw(g,i,(j%16)*16,(j>>4)*16,2);}
+   if(n.type==='tile'){const slot=selected%256;g.strokeStyle='#5ad4ff';g.lineWidth=2;g.strokeRect((slot%16)*16+1,(slot>>4)*16+1,14,14);}
+   caption.textContent+=' '+(view.active?'Current CHR color mode: '+view.mode+'.':'Scene colors (auto), independent of the displayed CHR bank.')+' Atlas page '+(page+1)+'. Transparent sprite index 0 is checkerboard; sheet pixels are unflipped.';
    c.setAttribute('aria-label',(bank==='spr'?'Sprite':'Background')+' CHR bank preview from '+scene.name);host.appendChild(c);
   }else if(n.type==='scene'||n.type==='collision'||n.type==='metatile'||n.type==='sprite'||n.type==='entity'){
-   const c=newCanvas(256,240,'min(400px, 100%)'),g=c.getContext('2d');g.fillStyle='#112030';g.fillRect(0,0,256,240);
-   for(let ty=0;ty<30;ty++)for(let tx=0;tx<32;tx++){
-    const id=Number(nt?.[ty*32+tx])||0,aid=(Math.floor(ty/4)*8+Math.floor(tx/4)),packed=Number(attrs?.[aid])||0,shift=((Math.floor(ty%4/2)*2)+Math.floor(tx%4/2))*2,pidx=(packed>>shift)&3;
-    drawPixels(g,tx*8,ty*8,chr?.[id],pal?.[pidx]||pal?.[0],1);
-    if(n.type==='collision'&&((res.live?S.tileProps:scene.tileProps)||[])[id]){g.fillStyle='rgba(255,107,112,.38)';g.fillRect(tx*8,ty*8,8,8);}
-   }
+   const c=newCanvas(256,240,'min(400px, 100%)'),g=c.getContext('2d');
+   const image=g.createImageData(256,240);image.data.set(window.forgeCapture.scenePixels(scene,true).rgba);g.putImageData(image,0,0);
+   if(n.type==='collision'){const raster=scene.raster?window.forgeCapture.rasterMap(scene.raster):null;
+    for(let y=0;y<240;y++)for(let x=0;x<256;x++){const sample=window.forgeCapture.sampledBackground(scene,x,y,raster);if(scene.tileProps?.[sample.ti]){g.fillStyle='rgba(255,107,112,.38)';g.fillRect(x,y,1,1);}}}
+   caption.textContent+=' Scene composite: BG and active OAM, palette states, flips, priority and scanline limits. Editor guides and entity boxes are omitted.';
    c.setAttribute('aria-label',scene.name+' layout'+(n.type==='collision'?' with collision hint overlay':''));host.appendChild(c);
   }
   if(!host.childNodes.length)host.append(elt('div','frx-preview-message','Canonical resource metadata available; no image renderer for this type.'));
@@ -26046,7 +26233,7 @@ const ribbon=el('div');ribbon.id='fcw-ribbon';ribbon.innerHTML='<span class="fcw
 const originalTop=document.querySelector('.top');originalTop?.parentNode.insertBefore(ribbon,originalTop.nextSibling);
 const overlay=el('div');overlay.id='fcw-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','NES Forge Connected Workspace');overlay.innerHTML=`<div id="fcw-dialog"><header class="fcw-header"><div><div class="fcw-k">NES Forge / Integration preview</div><h2>Connected Workspace</h2><div class="fcw-subtitle">Your project, its assets, supported operations and the next editing step</div></div><span class="fcw-flex"></span><button id="fcw-close" type="button">✕ Close</button></header><nav class="fcw-tabs" role="tablist"><button type="button" data-fcw-tab="overview" aria-selected="true">Overview</button><button type="button" data-fcw-tab="create" aria-selected="false">Create a Game</button><button type="button" data-fcw-tab="native" aria-selected="false">Native tools</button><button type="button" data-fcw-tab="health" aria-selected="false">Project Health</button><button type="button" data-fcw-tab="import" aria-selected="false">Import Preview</button></nav><div class="fcw-scroll"><section class="fcw-panel show" id="fcw-panel-overview"></section><section class="fcw-panel" id="fcw-panel-create"></section><section class="fcw-panel" id="fcw-panel-native"></section><section class="fcw-panel" id="fcw-panel-health"></section><section class="fcw-panel" id="fcw-panel-import"></section></div><footer class="fcw-foot" id="fcw-footer">Save Project As preserves your work · Preflight Build checks current output eligibility</footer></div>`;
 document.body.appendChild(overlay);
-let view='overview',lastFocus=null,staged=[],lastIdentity='';
+let view='overview',lastFocus=null,staged=[],lastIdentity='',buildReport=null;
 function button(label,handler,cls=''){const b=el('button',cls,label);b.type='button';b.addEventListener('click',()=>{try{Promise.resolve(handler()).catch(e=>{$('footer').textContent='Action unavailable: '+e.message;});}catch(e){$('footer').textContent='Action unavailable: '+e.message;}});return b;}
 function line(title,detail,indicator,kind){const r=el('div','fcw-row'),left=el('span');left.append(el('strong',null,title),el('div','fcw-muted',detail));r.append(left,el('span','fcw-indicator '+(kind||''),indicator));return r;}
 function card(title,desc){const c=el('div','fcw-card');c.append(el('h4',null,title),el('p',null,desc));return c;}
@@ -26114,9 +26301,17 @@ function buildNative(){const c=current(),host=$('panel-native');host.replaceChil
  }else{const box=card('Choose a source','Open ROM / project prepares the title-specific workflow. The native World importer also supports recognized Zelda II revisions. The importer validates the source and handles replacement of unsaved work.');box.append(button('Open ROM / project',()=>{close();document.getElementById('projectGatewayOpen').click();}),button('Open native Zelda II World',openZ2));host.appendChild(box);}
  const compare=card('Editing owner and reference copies','Recovered reference Scenes can be inspected or saved as copies. Native output changes only through the declared writer and its owned fields. Physical banks and source records can have shared uses.');compare.appendChild(button('Inspect current relationships',openRelationships));host.appendChild(compare);
 }
-function buildHealth(){const c=current(),host=$('panel-health'),g=svc.ResourceRelationshipPreview.liveGraph();host.replaceChildren(el('h3',null,'Project Health — preliminary checks'),el('p',null,'These are project/reference diagnostics, not a ROM compatibility certification or native build acceptance pass.'));host.append(line('Canonical Scene assets',String(S.scenes?.length||0)+' Scene(s) in project',S.scenes?.length?'Present':'Missing',S.scenes?.length?'good':'bad'));
+function buildHealth(){const c=current(),host=$('panel-health'),g=svc.ResourceRelationshipPreview.liveGraph();host.replaceChildren(el('h3',null,'Project Health — references and current ROM build'),el('p',null,'Reference integrity and compiler acceptance are separate checks. Check current ROM build runs the existing backend without downloading or starting the game.'));host.append(line('Canonical Scene assets',String(S.scenes?.length||0)+' Scene(s) in project',S.scenes?.length?'Present':'Missing',S.scenes?.length?'good':'bad'));
  host.append(line('Declared references',g.edges.length+' relationship(s); '+g.issues.length+' issue(s) detected',g.issues.length?'Review issues':'No detected issues',g.issues.length?'warn':'good'));
- host.append(line('Build backend',c.capabilities.scope,'Not pre-certified','warn'));
+ host.append(line('Build backend',c.capabilities.scope,'Compiler check below','warn'));
+ let currentReport=false;try{currentReport=!!buildReport?.fingerprint&&buildReport.fingerprint===svc.BuildGraph.identity();}catch(_){}
+ const state=currentReport?(buildReport.ok?'Compiler passed':'Build refused'):buildReport?'Check again':'Not checked';
+ host.append(line('Current ROM build',currentReport?(buildReport.ok?buildReport.bytes.toLocaleString()+' bytes compiled. Verify the visible result in the game.':'The actual backend refused this capture. Unsupported work remains savable.'):
+   'Run a fresh check after editing. A prior result does not certify the current capture.',state,currentReport&&buildReport.ok?'good':'warn'));
+ const check=button('Check current ROM build',()=>{buildReport=svc.BuildGraph.checkCurrent();buildHealth();});check.id='fcw-check-build';host.append(check);
+ const report=el('div','fcw-card');report.id='fcw-build-report';report.setAttribute('role','status');
+ if(currentReport)svc.BuildDiagnostics.render(report,buildReport.diagnostics);else report.textContent='No current compiler result. Reference counts do not prove build eligibility.';
+ host.append(report);
  host.append(line('Audio associations','Tracker audio is project-wide. Event bindings require declared references; no triggers are invented.','Not inferred','warn'));
  host.append(line('Save and round trip','Save/reopen and target emulator verification require explicit tests for this project.','Not tested here','warn'));
  const issues=card('Asset registry and relationship diagnostics',g.issues.length?g.issues.slice(0,12).join('\n'):'No issues surfaced by the current relationship graph. This does not prove the project will build.');issues.style.whiteSpace='pre-wrap';host.appendChild(issues);host.append(button('Refresh current project checks',()=>buildHealth()));

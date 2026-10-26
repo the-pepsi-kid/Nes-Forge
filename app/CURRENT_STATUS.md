@@ -1,4 +1,21 @@
-## Current: workspace resume and connected native resources
+## Current: resource preview consistency and build diagnostics
+
+Read `../reviews/preview-build-diagnostics-1/HANDOFF.md`, Punch-Out section 21 and
+developer section 17. Resources shares the existing Scene/CHR/pose renderers.
+Supported native poses can explicitly preview exact current compiled pixels/colors
+without changing source snapshots. Project Health runs the actual compiler and
+separates that result from reference health; native owners surface confirmed
+resource/field context and Save/Undo/correct-writer guidance. Unlocalizable hash
+changes remain explicit. Preflight and failed builds share those error details.
+
+Both outputs share 190 inputs plus eleven unchanged opt-in hosted extensions
+(201 total). ProjectStore, resume, AssetRegistry, emulator, signature algorithms,
+byte codecs/spans and schemas retain their owners and contracts. New verification,
+full tutorials and complete runnable kit are in the handoff. Detached-source display
+and in-app title lessons remain next; no new native write capability is claimed.
+Main/original Pepsi references and concurrent design notes are preserved.
+
+## Previous: workspace resume and connected native resources
 
 Read `../reviews/workspace-resume-1/HANDOFF.md`, Punch-Out section 20 and developer
 guide section 16. Optional save preferences restore the selected pose/piece, core

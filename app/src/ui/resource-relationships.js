@@ -84,6 +84,7 @@ style.textContent=`
 @media(max-width:640px){#frx-root.frx-visible{padding:0}#frx-app{border-radius:0;height:100dvh;max-height:none}.frx-bar{gap:8px;flex-wrap:wrap}.frx-bar .frx-spacer{display:none}.frx-pill{display:none}.frx-body{display:flex;flex-direction:column;overflow:auto}.frx-nav{border-right:0;border-bottom:1px solid #203146;flex:0 0 153px;overflow:auto}.frx-center{flex:0 0 auto;overflow:visible;padding:14px}.frx-relgrid{grid-template-columns:1fr}.frx-inspector{flex:0 0 auto;max-height:none;padding:14px}.frx-toolbar{padding:8px;gap:7px}.frx-filter{max-width:140px}.frx-footer{font-size:10px}.frx-selected-name{font-size:18px}}
 `;
 document.head.appendChild(style);
+const outputStyle=document.createElement('style');outputStyle.textContent='.frx-viewer #frx-preview:has(#frx-native-output-result canvas){max-height:440px;overflow:auto}.frx-native-output-result{max-width:100%;text-align:center}.frx-native-output-result:empty{display:none}';document.head.append(outputStyle);
 const button=document.createElement('button');button.id='frx-open';button.type='button';button.textContent='▣ Resources';button.title='Unified resource explorer, preview and verified relationships';
 const target=document.querySelector('.top .project-bar')||document.querySelector('.top .scene-ctl')||document.querySelector('.top');
 target.parentNode.insertBefore(button,target.nextSibling);
@@ -255,36 +256,45 @@ function render(){
 }
 // Previews read canonical project buffers only. No canvas is written back to a Scene.
 function previewScene(n){const ctx=targetContext(n),id=ctx?.sceneId,idx=S.scenes.findIndex(sc=>sc.id===id);return idx<0?null:{scene:S.scenes[idx],live:idx===S.activeScene};}
-function drawPixels(ctx,x,y,pixels,palette,scale){if(!Array.isArray(pixels))return;for(let py=0;py<8;py++)for(let px=0;px<8;px++){const ci=Number(pixels?.[py]?.[px])||0;const index=Number(palette?.[ci])&63;const rgb=(typeof NP!=='undefined'?NP[index]:null)||[[10,20,30],[100,140,160],[180,210,220],[245,245,245]][ci%4];ctx.fillStyle=`rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;ctx.fillRect(x+px*scale,y+py*scale,scale,scale);}}
 function newCanvas(width,height,displayWidth){const c=elt('canvas','frx-preview-canvas');c.width=width;c.height=height;c.style.width=displayWidth||'100%';c.style.maxWidth='100%';c.style.height='auto';c.style.imageRendering='pixelated';c.setAttribute('role','img');return c;}
+function poseCanvas(frame,source){const composer=window.Forge163.metasprites,bounds=composer.bounds(frame),c=newCanvas(256,160,'256px'),g=c.getContext('2d'),scale=Math.min(2,248/Math.max(1,bounds.w),152/Math.max(1,bounds.h));
+ g.fillStyle='#172231';g.fillRect(0,0,c.width,c.height);composer.draw(g,frame,4+(frame.originX-bounds.x)*scale,4+(frame.originY-bounds.y)*scale,scale,source?{source}:{});return c;}
 function renderViewer(n){
  const host=$('preview'),tools=$('related-tools');host.replaceChildren();tools.replaceChildren();if(!n)return;
  const ctx=targetContext(n),res=n.type==='world'?null:previewScene(n),caption=$('viewer-caption');caption.textContent=mode==='demo'?'Example assets are not in the project.':res?'Reading '+res.scene.name+' from '+(res.live?'live editor buffers':'stored Scene buffers')+'.':'No unique image or scene binding established.';
  if(mode==='demo'){host.append(elt('div','frx-preview-message','Guided example · select Live project to inspect real tile, palette and layout data.'));$('context-result').textContent='No editor synchronization in the demonstration graph.';return;}
  if(res){
-  const scene=res.scene,bank=(n.type==='chr'||n.type==='tile'||n.type==='palette')&&n.id.startsWith('spr:')?'spr':'bg';
-  const chr=bank==='spr'?(res.live?S.sprChr:scene.sprChr||S.sprChr):(res.live?S.chr:scene.chr||S.chr);
-  const pal=bank==='spr'?(res.live?S.sprPal:scene.sprPal):(res.live?S.pal:scene.pal);
-  const nt=res.live?S.nt:scene.nt,attrs=res.live?S.attr:scene.attr;
+  const preview=window.Forge.services.ResourcePreview,scene=preview.scene(res.scene.id),bank=(n.type==='chr'||n.type==='tile'||n.type==='palette')&&n.id.startsWith('spr:')?'spr':'bg';
   if(n.type==='metasprite'){
-   const frame=S.metasprites.find(p=>p.id===n.open.poseId),composer=window.Forge163.metasprites;
-   if(frame?.pieces.length){const bounds=composer.bounds(frame),c=newCanvas(256,160,'256px'),g=c.getContext('2d'),scale=Math.min(2,248/Math.max(1,bounds.w),152/Math.max(1,bounds.h));
-    g.fillStyle='#172231';g.fillRect(0,0,c.width,c.height);composer.draw(g,frame,4+(frame.originX-bounds.x)*scale,4+(frame.originY-bounds.y)*scale,scale);
+   const frame=S.metasprites.find(p=>p.id===n.open.poseId);
+   if(frame?.pieces.length){const c=poseCanvas(frame);
     c.setAttribute('aria-label','Selected pose with its canonical sprite palettes, flips and piece order');host.append(c);
+    const marker=scene.captureMeta?.punchOutPose||scene.captureMeta?.punchOutIncrementalPose;
+    if(marker){caption.textContent='Canonical pose with its source-art snapshot. Physical native edits are separate.';
+     const output=elt('button','frx-context-shortcut','Preview current native output');output.type='button';output.id='frx-native-output';
+     const result=elt('div','frx-native-output-result');result.id='frx-native-output-result';result.setAttribute('role','status');
+     output.onclick=()=>{result.replaceChildren();try{const value=preview.nativePose(frame.id),canvas=poseCanvas(value.frame,value.scene);
+       canvas.setAttribute('aria-label','Current compiled native pose with encoded physical CHR and fight palette');
+       result.append(canvas,elt('div','frx-viewer-legend','Current compiled output · physical bank '+value.bank+' · SHA-256 '+value.outputSha256+'. '+value.scope+' Source snapshot unchanged.'));
+      }catch(error){result.append(elt('div','frx-preview-message','Current output unavailable: '+error.message));
+       const health=elt('button','frx-context-shortcut','Check build in Project Health');health.type='button';health.onclick=()=>{close();window.Forge.services.ConnectedWorkspacePreview.open('health');};result.append(health);}};
+     host.append(output,result);
+    }
    }else host.append(elt('div','frx-preview-message','Empty pose.'));
   }else if(['chr','tile','palette'].includes(n.type)){
+   const view=preview.chr(scene.id,bank),count=(bank==='spr'?scene.sprChr:scene.chr)?.length||256;
+   const selected=n.type==='tile'?Number(n.open.tileId):view.active?S.editTile:0,page=Math.floor((Number.isInteger(selected)?selected:0)/256);
    const c=newCanvas(256,256,'min(256px, 100%)'),g=c.getContext('2d');g.fillStyle='#000e1c';g.fillRect(0,0,256,256);
-   const selectedPose=window.Forge163?.metasprites?.current,footprint=bank==='spr'&&selectedPose?.sceneId===scene.id?window.Forge.services.ResourceContext.footprint(selectedPose):null;
-   for(let i=0;i<256;i++){const use=footprint?.uses.find(use=>use.tile===i);drawPixels(g,(i%16)*16,Math.floor(i/16)*16,chr?.[i],pal?.[use?.pal??0],2);}
-   if(footprint)caption.textContent+=' Colors use selected pose palette IDs where recorded; sheet tiles are unflipped.';
+   for(let j=0;j<256;j++){const i=page*256+j;if(i<count&&(!view.active||!window.forgeCHR.usageOnly||!view.pose||view.pose.tileIds.includes(i)))view.draw(g,i,(j%16)*16,(j>>4)*16,2);}
+   if(n.type==='tile'){const slot=selected%256;g.strokeStyle='#5ad4ff';g.lineWidth=2;g.strokeRect((slot%16)*16+1,(slot>>4)*16+1,14,14);}
+   caption.textContent+=' '+(view.active?'Current CHR color mode: '+view.mode+'.':'Scene colors (auto), independent of the displayed CHR bank.')+' Atlas page '+(page+1)+'. Transparent sprite index 0 is checkerboard; sheet pixels are unflipped.';
    c.setAttribute('aria-label',(bank==='spr'?'Sprite':'Background')+' CHR bank preview from '+scene.name);host.appendChild(c);
   }else if(n.type==='scene'||n.type==='collision'||n.type==='metatile'||n.type==='sprite'||n.type==='entity'){
-   const c=newCanvas(256,240,'min(400px, 100%)'),g=c.getContext('2d');g.fillStyle='#112030';g.fillRect(0,0,256,240);
-   for(let ty=0;ty<30;ty++)for(let tx=0;tx<32;tx++){
-    const id=Number(nt?.[ty*32+tx])||0,aid=(Math.floor(ty/4)*8+Math.floor(tx/4)),packed=Number(attrs?.[aid])||0,shift=((Math.floor(ty%4/2)*2)+Math.floor(tx%4/2))*2,pidx=(packed>>shift)&3;
-    drawPixels(g,tx*8,ty*8,chr?.[id],pal?.[pidx]||pal?.[0],1);
-    if(n.type==='collision'&&((res.live?S.tileProps:scene.tileProps)||[])[id]){g.fillStyle='rgba(255,107,112,.38)';g.fillRect(tx*8,ty*8,8,8);}
-   }
+   const c=newCanvas(256,240,'min(400px, 100%)'),g=c.getContext('2d');
+   const image=g.createImageData(256,240);image.data.set(window.forgeCapture.scenePixels(scene,true).rgba);g.putImageData(image,0,0);
+   if(n.type==='collision'){const raster=scene.raster?window.forgeCapture.rasterMap(scene.raster):null;
+    for(let y=0;y<240;y++)for(let x=0;x<256;x++){const sample=window.forgeCapture.sampledBackground(scene,x,y,raster);if(scene.tileProps?.[sample.ti]){g.fillStyle='rgba(255,107,112,.38)';g.fillRect(x,y,1,1);}}}
+   caption.textContent+=' Scene composite: BG and active OAM, palette states, flips, priority and scanline limits. Editor guides and entity boxes are omitted.';
    c.setAttribute('aria-label',scene.name+' layout'+(n.type==='collision'?' with collision hint overlay':''));host.appendChild(c);
   }
   if(!host.childNodes.length)host.append(elt('div','frx-preview-message','Canonical resource metadata available; no image renderer for this type.'));

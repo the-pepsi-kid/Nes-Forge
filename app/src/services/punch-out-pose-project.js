@@ -45,6 +45,12 @@
       scope: 'Whole-pose X/Y for 30 full poses and five explicit incremental poses; grouped idle $C0/$C2/$C4. Piece geometry, native animation, attack and collision rules have no writer here.'},
     matches: (project, info) => info.adapter.kind === 'punch-out' && project.scenes.some(marker),
     views: () => [],
+    diagnosticViews(project,info,encoded) {
+      const models=[{model:source(info),bytes:info.bytes}];if(encoded)models.push({model:codec.open(encoded),bytes:encoded});
+      return entries(project,info).flatMap(({record,scene})=>models.map(current=>({id:scene.id,
+        fields:sourceScene(info,record.selector,current.model,current.bytes),writerRoute:'punch-out-art',
+        repair:'This pose Scene holds a protected artwork snapshot. Save it if needed, then Undo the copied-art edit. Change exported pixels with Physical CHR and fight palettes; use Glass Joe pose positions for whole-pose X/Y.'})));
+    },
     metaspriteViews(project, info) {
       return entries(project, info).map(({baseline}) => ({id: baseline.id,
         originX: baseline.originX, originY: baseline.originY, pieces: baseline.pieces}));
@@ -53,8 +59,12 @@
       return entries(project, info).map(({record}) => ({offset: record.offset, length: 2}));
     },
     encode(bytes, project, info) {
-      const edits = entries(project, info).map(({frame, baseline, record, model}) =>
-        model.placement(record.selector, frame, baseline));
+      const edits = entries(project, info).map(({frame, baseline, record, model}) => {
+        try{return model.placement(record.selector,frame,baseline);}
+        catch(error){throw services.BuildDiagnostics.attach(error,{assetId:frame.id,assetName:frame.name,
+          resourceKey:'metasprite:'+frame.id,field:'pieces / origin',writerRoute:'punch-out-pose',
+          repair:'Save unsupported work, then Undo individual geometry, tile or flag edits. Use Glass Joe pose positions for complete-pose X/Y and grouped idle edits.'});}
+      });
       return {bytes: source(info).encode(bytes, edits), diagnostics: [{severity: 'info',
         code: 'punch-out-native-pose-position', phase: 'native-encode',
         message: edits.filter(edit => edit.dx || edit.dy).length +
@@ -65,6 +75,20 @@
   // Called only after validating the old project. Each new source view receives
   // current encoded CHR/colors, while its canonical position baseline comes from
   // the preserved source. Copied source artwork is not another native art writer.
+  function sourceScene(info,selector,current,bytes=info.bytes) {
+    const model=source(info),record=model.record(selector),pose=current.record(selector).pose;
+    const baseline=model.frame(selector,frameId(selector),sceneId(selector));
+    const colors=Array.from({length:4},(_,i)=>[pose.palette[0],...pose.palette.slice(i*4+1,i*4+4)]);
+    const key=record.kind==='incremental'?'punchOutIncrementalPose':'punchOutPose';
+    return makeScene({id:sceneId(selector),name:baseline.name+' source',
+      chr:normalizeTiles(),sprChr:PunchOutContent.open(bytes).chr(pose.chrBank4KiB),
+      pal:Array.from({length:4},()=>[15,0,0,0]),sprPal:colors,
+      nt:Array(960).fill(0),attr:Array(64).fill(0),tileProps:Array(256).fill(0),
+      oam:[],entities:[],links:[],buildInclude:false,buildOrder:0,gravity:0,
+      scrollDir:'none',sceneType:'static',captureMeta:{
+        mode:record.kind==='incremental'?'native-incremental-pose-placement-view':'native-pose-placement-view',
+        [key]:{version:1,sourceSha256:info.descriptor.sourceSha256,fight:0,selector}}});
+  }
   function addView(project, info, selector, current) {
     const model = source(info), record = model.record(selector);
     const id = frameId(selector), sid = sceneId(selector);
@@ -75,19 +99,8 @@
       throw Error('Native pose frame ID already belongs to another asset.');
     if (project.scenes.length >= 64 || project.metasprites.length >= 256)
       throw Error('No free Scene or Metasprite slot. Preserve existing work first.');
-    const pose = current.record(selector).pose;
-    const colors = Array.from({length: 4}, (_, i) =>
-      [pose.palette[0], ...pose.palette.slice(i * 4 + 1, i * 4 + 4)]);
     const baseline = model.frame(selector, id, sid);
-    const key = record.kind === 'incremental' ? 'punchOutIncrementalPose' : 'punchOutPose';
-    project.scenes.push(makeScene({id: sid, name: baseline.name + ' source',
-      chr: normalizeTiles(), sprChr: PunchOutContent.open(info.sceneEncoded.bytes).chr(pose.chrBank4KiB),
-      pal: Array.from({length: 4}, () => [15,0,0,0]), sprPal: colors,
-      nt: Array(960).fill(0), attr: Array(64).fill(0), tileProps: Array(256).fill(0),
-      oam: [], entities: [], links: [], buildInclude: false, buildOrder: 0, gravity: 0,
-      scrollDir: 'none', sceneType: 'static', captureMeta: {
-        mode: record.kind === 'incremental' ? 'native-incremental-pose-placement-view' : 'native-pose-placement-view',
-        [key]: {version: 1, sourceSha256: info.descriptor.sourceSha256, fight: 0, selector}}}));
+    project.scenes.push(sourceScene(info,selector,current,info.sceneEncoded.bytes));
     project.metasprites.push(baseline);
     return {frameId: id, sceneId: sid, added: true};
   }

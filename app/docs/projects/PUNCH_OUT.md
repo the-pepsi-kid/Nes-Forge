@@ -470,3 +470,44 @@ Older projects with no pose preference choose a pose only when exactly one uses 
 The `editorView` block is optional UI metadata. It is excluded from default authoring/build captures and native signatures; schema 12 and the reader ceiling of 16 remain. Older readers can discard these extra preferences while retaining the project. Browser Save/Load and explicit recovery restoration use the same owner as portable saves. A saved editor tab does not preserve emulator RAM or resume playback.
 
 For developers, `services/editor-view.js` validates bounded preferences and coordinates existing UI owners. `services/project-store.js` owns capture/load/history; `Forge163.metasprites.restoreSelection` restores UI IDs without changing frames. `re/punch-out-pose-ui.js` resolves the return shortcut from the selected native pose and its verified physical bank. Change these commented modules, or locate their comments in a separate HTML copy, then rebuild both manifests. The general developer guide describes the optional JSON fields and compatibility boundaries.
+
+## 21. Compare previews and diagnose a refused native build
+
+Resources now reads Scene pixels through the same compositor used by captured Scene editing, including background attributes, universal color, active OAM, 8×16 halves, flips, transparency, priority, scanline limits and captured palette/mask states. Editor guides, entity boxes and selection outlines are omitted. A pose remains its own composed asset: it does not appear in a Scene unless that Scene actually has OAM placements.
+
+The CHR resource view uses the CHR editor's existing appearance resolver. For the displayed Scene/bank it retains the current **Scene colors (auto)**, **Selected palette** or **Pixel values** mode and appearance choice. Browsing another Scene/bank uses that source's automatic usage colors without selecting it. Sprite index 0 is checkerboard. Tiles stay unflipped, and capture atlases follow the selected tile's page above 255. Preview modes do not recolor an asset.
+
+### Compare a snapshot with the current encoded pose
+
+1. Open **Glass Joe pose positions → incremental $C0 · idle**, then **Resources**. The first canvas shows the canonical pose with its copied source artwork.
+2. Click **Preview current native output**. Forge runs the same compiler entry as Build & Run (without reloading/normalizing the project) without downloading a ROM or starting playback, then decodes the supported pose from those exact output bytes. The second canvas uses encoded physical CHR and fight palettes. Its caption includes physical bank, output SHA-256 and scope.
+3. Open the physical CHR bank through its declared writer, paint a pixel, and optionally edit the fight palette through its own writer. Return to the pose and preview again. The output can differ while the first snapshot stays unchanged. Position edits compose through the same native build owner.
+4. For an incremental pose, this preview uses the codec's declared state path. It is not a live fight frame and does not prove every phase, background-priority interaction or game-code palette override. Enter the fight in Build & Run and inspect other known consumers as described in section 19.
+5. If the current project cannot compile, the preview displays the real refusal. It never substitutes the original ROM to hide unsupported edits. Open **Project Health** to inspect the build problem.
+
+### Find the field blocking output
+
+1. Open **Connected Workspace → Project Health**. **Declared references** describes asset links; **Current ROM build** starts as **Not checked**. Zero relationship issues does not certify a build.
+2. Click **Check current ROM build**. This runs the existing full compiler without committing an artifact, downloading or changing emulator state. **Compiler passed** applies to that capture only. Edit the project and reopen/refresh Health to invalidate the previous result.
+3. On refusal, read the original backend message and any confirmed resource/field context. Examples: a recovered source page's `nt[0]`, a pose-source snapshot's `sprChr[8][0][0]`, a physical bank's incorrectly edited `sprChr`, or a native pose's unsupported piece geometry. **Inspect this resource** selects the named asset; **Review supported native tools** shows its available writers.
+4. **Save Project As** first if you want to keep unsupported work. Use ordinary Undo to remove the offending edit. Then make the intended native change with the proper writer: physical bank **BG** pixels, fight palette slots, native source blocks or complete-pose X/Y. Diagnostic navigation does not repair or discard anything automatically.
+5. A native projection hash does not contain the original value of every field. A source-copy field is named only when substituting a reproducible known source value in a detached diagnostic candidate restores the saved hash. If that proof is unavailable, the report explicitly says it cannot locate the protected change. Preserve the project and trace edits through history or independent JSON/hex/code comparison; do not reset the saved signature to force acceptance.
+6. **Code → Preflight Build** and failed **Build / Build & Run** use the same structured refusal details. Preflight remains a planning check; the explicit Health button runs compilation. Save/reopen, compare bytes and test the exported game after resolving the issue.
+
+### Change the HTML or extend the source
+
+Search the standalone HTML for `src/services/resource-preview.js`, `Preview current native output`, `fcw-check-build` or `src/services/build-diagnostics.js`. A separate HTML copy can change captions/layout for an experiment. Maintained changes belong in `app/src`, followed by the existing native/root and hosted rebuild commands. Both builds share the same modules.
+
+| File under `app/src` | What it does and connects to |
+|---|---|
+| `services/resource-preview.js` | Supplies explicit read-only Scene/CHR context; compiles and decodes supported current-output poses through existing owners. No cached canonical output or snapshot refresh. |
+| `legacy/04-saveas-chr.js` | Owns `indexFor`, `previewFor`, palette resolution and CHR drawing used by both editors and Resources. |
+| `legacy/03-runtime-capture.js` | Existing `scenePixels` compositor; Resources consumes it without changing capture or emulator behavior. |
+| `legacy/13-metasprites.js` | Existing pose compositor accepts an explicit detached source for output preview. Piece order, flips and transparency retain one renderer. |
+| `services/build-diagnostics.js` | Formats actual errors and resource navigation. It grants no native write permission. |
+| `services/build-services.js` | Existing BuildGraph/RuntimeCompiler; `checkCurrent` compiles without commit and binds the result to the captured input. |
+| `services/native-resource-project.js` | Existing acceptance/hash/span owner. Adds field evidence only after a real refusal, without changing signature calculation. |
+| `services/punch-out-pose-project.js` / `punch-out-art-project.js` | Existing writer-owned source-view constructors supply reproducible diagnostic candidates and contextual errors. Accepted fields/spans do not expand. |
+| `ui/resource-relationships.js` / `ui/connected-workspace.js` | Preview buttons, source/output captions, Health result and repair navigation. These UI results are disposable. |
+
+Additional titles should supply context at their actual decoder/encoder refusal, not infer eligibility from Resources links. Unknown historical snapshots must remain unknown. This workflow adds no animation, AI, collision, combat, referee/round or Audio write capability.

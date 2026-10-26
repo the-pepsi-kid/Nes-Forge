@@ -56,7 +56,9 @@ function warnings(frame){
 }
 function pixel(frame,p,px,py,sc){const h=frame.spriteMode===16?16:8,fy=p.flipV?h-1-py:py,fx=p.flipH?7-px:px;return sc.sprChr?.[fy<8?p.tile:p.tile2]?.[fy&7]?.[fx]||0;}
 function draw(ctx,frame,anchorX=0,anchorY=0,scale=1,options={}){
-  const sc=source(frame);if(!sc||!ctx)return false;
+  // An explicit detached source lets Resources draw verified encoded output
+  // through this compositor without replacing the canonical source snapshot.
+  const sc=options.source||source(frame);if(!sc||!ctx)return false;
   const ps=frame.pieces||[],h=frame.spriteMode===16?16:8,claims=new Set(),lineCounts=new Map();
   ctx.imageSmoothingEnabled=false;
   for(let i=0;i<ps.length;i++){

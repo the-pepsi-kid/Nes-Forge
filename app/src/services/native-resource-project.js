@@ -378,6 +378,38 @@
     return digest(a) === digest(b);
   }
 
+  // A projection hash cannot identify arbitrary edited fields. Ask existing
+  // codecs for reproducible source views, and name a protected field only if
+  // substituting its known value in a detached candidate reproduces the saved
+  // hash. This is diagnostic evidence, never a new signature or accepted edit.
+  function projectionDiagnostics(p,info) {
+    const candidates=[],helpers=s.BuildDiagnostics;
+    let encoded;try{encoded=encodeScenes(p,info).bytes;}catch(_){}
+    const codecs=sceneEncoders.filter(c=>c.matches(p,info));
+    const owned=new Set(codecs.flatMap(c=>c.views(p,info).flatMap(v=>Object.keys(v).filter(k=>k!=='id').map(k=>v.id+':'+k))));
+    for(const codec of codecs)for(const view of codec.diagnosticViews?.(p,info,encoded)||[]){
+      const scene=p.scenes.find(sc=>sc.id===view.id);if(!scene)continue;
+      for(const field of Object.keys(view.fields).filter(k=>k!=='id'&&!owned.has(view.id+':'+k))){
+        const path=helpers.difference(scene[field],view.fields[field],field);if(!path)continue;
+        candidates.push({scene,field,path,value:view.fields[field],repair:view.repair,writerRoute:view.writerRoute});
+      }
+    }
+    const replace=items=>({...p,scenes:p.scenes.map(sc=>({...sc,...Object.fromEntries(items.filter(i=>i.scene.id===sc.id).map(i=>[i.field,i.value]))}))});
+    const proves=items=>{try{return baseSignature(replace(items),info)===p.nativeGame.projectionSha256;}catch(_){return false;}};
+    const context=item=>({assetId:item.scene.id,assetName:item.scene.name,resourceKey:'scene:'+item.scene.id,
+      field:item.field,path:item.path,writerRoute:item.writerRoute,repair:item.repair,
+      evidence:'Known source value restores the saved protected projection hash.'});
+    for(const candidate of candidates.slice(0,32))if(proves([candidate]))return context(candidate);
+    // Multiple protected edits can be localized together when one complete
+    // source candidate set proves the same hash. Conflicting baseline guesses
+    // are not combined into a fabricated explanation.
+    const unique=[...new Map(candidates.map(c=>[c.scene.id+':'+c.field,c])).values()];
+    if(unique.length&&unique.length<=32&&proves(unique))return {...context(unique[0]),
+      relatedFields:unique.map(c=>({assetId:c.scene.id,assetName:c.scene.name,field:c.field,path:c.path})),
+      repair:unique[0].repair+' Confirmed protected changes: '+unique.map(c=>c.scene.name+' · '+c.path).join('; ')+'.'};
+    return {field:'protected project projection',repair:'Save Project As preserves unsupported work. Undo unsupported asset/runtime edits, then use the registered native writer. The saved hash alone cannot locate this change.',writerRoute:'native'};
+  }
+
   /* Loading preserves unsupported work. build:true additionally requires that all
    * differences have an encoder and that the resulting native bytes pass its checks. */
   function validate(p, {
@@ -386,14 +418,17 @@
     const info = inspect(p);
     if (build) {
       const c = currentCatalog(info);
-      for (const b of p.nativeGame.bindings)
-        if (!sameScene(p.scenes.find(sc => sc.id === sceneId(info.adapter, b)), make(p, c, b)))
-          fail(
-            'A recovered Scene differs from its native recipe. Undo unsupported Scene, CHR, palette, actor or collision edits to build.'
-            );
-      if (baseSignature(p, info) !== p.nativeGame.projectionSha256) fail(
-        'An asset or runtime setting changed without a native encoder. Unsupported work remains savable.'
-        );
+      for (const b of p.nativeGame.bindings) {
+        const scene=p.scenes.find(sc=>sc.id===sceneId(info.adapter,b)),expected=make(p,c,b);
+        if (!sameScene(scene,expected)) {
+          const path=s.BuildDiagnostics.difference(scene,expected),field=path?.split(/[.\[]/)[0];
+          throw s.BuildDiagnostics.attach(Error('Native resource project: A recovered Scene differs from its native recipe. Undo unsupported Scene, CHR, palette, actor or collision edits to build.'),
+            {assetId:scene.id,assetName:scene.name,resourceKey:'scene:'+scene.id,field,path,writerRoute:'library',
+              repair:'Save unsupported work, then Undo the local edit. Use Native source pages for encodable block substitutions; physical CHR/fight palettes use their dedicated writer when available.'});
+        }
+      }
+      if (baseSignature(p, info) !== p.nativeGame.projectionSha256)
+        throw s.BuildDiagnostics.attach(Error('Native resource project: An asset or runtime setting changed without a native encoder. Unsupported work remains savable.'),projectionDiagnostics(p,info));
       info.sceneEncoded = encodeScenes(p, info);
     }
     return info;
