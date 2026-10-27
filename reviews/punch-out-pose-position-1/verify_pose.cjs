@@ -9,7 +9,9 @@ const fresh = file => loadForge(file || html, {environment: {crypto: crypto.webc
   for (let revision = 0; revision < 2; revision++) {
     const name = `Mike Tyson's Punch-Out!! (U) (PRG ${revision}).nes`, bytes = new Uint8Array(fs.readFileSync(path.join(process.argv[2], name))), original = sha(bytes);
     const codec = Pose.open(bytes);
-    for (const item of codec.inventory) {
+    // Retain this checkpoint's thirty full-pose assertions as incremental
+    // capabilities are added; the new checkpoint verifies those records separately.
+    for (const item of codec.inventory.filter(item => item.kind === 'full')) {
       const r = codec.record(item.selector), baseline = codec.frame(item.selector, 'test', 'test-scene');
       const position = codec.placement(item.selector, baseline, baseline);
       assert.deepEqual(codec.encode(bytes, [position]), bytes);

@@ -1,0 +1,33 @@
+PASS Scene composite matches the actual editor pixel-for-pixel with flipped 8x16 OAM and priority
+PASS Scene Resources preview leaves canonical assets unchanged
+PASS Captured raster composite matches editor scanline palettes, grayscale and OAM pixels
+PASS Captured raster Resources preview leaves source and palette states unchanged
+PASS CHR scene Resources matches all 64 selected-editor pixels including transparency
+PASS CHR manual Resources matches all 64 selected-editor pixels including transparency
+PASS CHR indices Resources matches all 64 selected-editor pixels including transparency
+PASS CHR color preview changes leave canonical pixels/palettes untouched
+PASS Resources follows the selected tile above 255 to atlas page two
+PASS Atlas page two displays the selected tile color from its actual source
+PASS PRG0 native output preview is visible and declares its bounded state-path scope
+PASS PRG0 unmodified compiled pose preview matches canonical snapshot pixels
+PASS PRG0 native output preview leaves assets and original native bytes unchanged
+PASS PRG0 native art pixel edit changes the rendered compiled output
+PASS PRG0 canonical snapshot preview remains unchanged after physical edit
+PASS PRG0 preview reports the exact current compiled output SHA-256
+PASS PRG0 Project Health compiles supported native edits through real button
+PASS PRG0 previous passing result is invalidated after unsupported snapshot edit
+PASS PRG0 real copied-art refusal locates source Scene pixel field and correct writer
+PASS PRG0 diagnostic shortcut selects the confirmed source Scene resource
+PASS PRG0 blocked native preview reports refusal instead of falling back to original pixels
+PASS PRG1 native output preview is visible and declares its bounded state-path scope
+PASS PRG1 unmodified compiled pose preview matches canonical snapshot pixels
+PASS PRG1 native output preview leaves assets and original native bytes unchanged
+PASS PRG1 native art pixel edit changes the rendered compiled output
+PASS PRG1 canonical snapshot preview remains unchanged after physical edit
+PASS PRG1 preview reports the exact current compiled output SHA-256
+PASS PRG1 Project Health compiles supported native edits through real button
+PASS PRG1 previous passing result is invalidated after unsupported snapshot edit
+PASS PRG1 real copied-art refusal locates source Scene pixel field and correct writer
+PASS PRG1 diagnostic shortcut selects the confirmed source Scene resource
+PASS PRG1 blocked native preview reports refusal instead of falling back to original pixels
+{"passed": 32}

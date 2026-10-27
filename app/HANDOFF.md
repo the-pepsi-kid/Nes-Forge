@@ -1,4 +1,94 @@
-## Current repository baseline: working alpha on main
+## Current: Forge source context and in-app Punch-Out lessons
+
+Read `../reviews/source-context-lessons-1/HANDOFF.md`, Punch-Out section 22 and
+developer section 18. The standalone Forge app now labels current/independent/
+detached sources, disables and collapses stale intake, cancels stale Audio/import
+previews, and offers explicit current-project/independent Audio source routes.
+Project lessons embeds the maintained handbook in Tech Docs, with exact resource,
+Audio, RE and source-workspace context. Original Tech Docs and offline guides stay.
+
+There are 194 shared native inputs plus eleven unchanged optional hosted modules
+(205 total). Existing canonical owners, native codecs/signatures/spans, schemas
+and multiplayer gameplay are unchanged. This adds no new native Punch-Out behavior.
+Next: source-backed Glass Joe knockdown, referee count and round-transition work.
+Main and original Pepsi references remain protected; promotion/deployment are
+separate decisions.
+
+## Previous: resource preview consistency and build diagnostics
+
+Read `../reviews/preview-build-diagnostics-1/HANDOFF.md`, Punch-Out section 21 and
+developer section 17. Resources shares the existing Scene/CHR/pose renderers.
+Supported native poses can explicitly preview exact current compiled pixels/colors
+without changing source snapshots. Project Health runs the actual compiler and
+separates that result from reference health; native owners surface confirmed
+resource/field context and Save/Undo/correct-writer guidance. Unlocalizable hash
+changes remain explicit. Preflight and failed builds share those error details.
+
+Both outputs share 190 inputs plus eleven unchanged opt-in hosted extensions
+(201 total). ProjectStore, resume, AssetRegistry, emulator, signature algorithms,
+byte codecs/spans and schemas retain their owners and contracts. New verification,
+full tutorials and complete runnable kit are in the handoff. Detached-source display
+and in-app title lessons remain next; no new native write capability is claimed.
+Main/original Pepsi references and concurrent design notes are preserved.
+
+## Previous: workspace resume and connected native resources
+
+Read `../reviews/workspace-resume-1/HANDOFF.md`, Punch-Out section 20 and developer
+guide section 16. Optional save preferences restore the selected pose/piece, core
+editor tab, World and CHR view. Independent contexts survive reopening. Older or
+stale hints select a unique matching pose or show an explicit choice; no unrelated
+first boxer is silently chosen. Native CHR can return to the restored pose in a
+fresh document. Save/load/history remain owned by ProjectStore.
+
+Default authoring/build captures exclude this metadata. Native signatures,
+encoders/spans, runtime/recipe algorithms and schemas are unchanged. Both outputs
+share 188 inputs plus eleven opt-in hosted extensions (199 total). Fresh report
+hashes and bounded compatibility/browser checks are in the handoff. Current native
+workflows, Retro Workstation, Resources, original Pepsi artifacts and concurrent
+design documents are retained. Main merge, tags and public deployment remain
+separate decisions.
+
+## Previous: connected pose, Resources and native graphics workflow
+
+Read `../reviews/connected-resource-workflow-1/HANDOFF.md` and Punch-Out tutorial
+section 19. Resources follows the actual selected pose/clip/tile; supported native
+views expose their source identity and separate physical CHR/palette writers.
+CHR's pose footprint uses canonical pieces, real palette/flips and stable indices,
+without fabricating Scene OAM. Known native tile consumers disclose partial
+coverage. Pose previews use the existing canonical renderer. Earlier snapshots
+remain copied art and native writers still reject unsupported edits.
+
+Both outputs share 187 inputs, with eleven unchanged optional hosted extensions.
+Core project/build/emulator owners, native codecs/spans, schemas and original
+Pepsi artifacts are unchanged. Fresh verification and remaining review items are
+in the new handoff. The hosted server/client remain experimental. Source work
+continues on the experimental PR; main merge, tags and public deployment are
+separate decisions.
+
+## Previous: shared editor and hosted-world integration
+
+Read `../reviews/hosted-integration-1/HANDOFF.md`. Native and hosted editors now use
+one canonical `app/src` tree, with separate manifests/output inventories. The
+hosted version adds eleven opt-in modules and retains current native build scope,
+Glass Joe idle/incremental, CHR routing and Retro Workstation work. Original
+engine fidelity and public hosting remain bounded as documented. The main branch
+and original Pepsi archive are preserved; publication targets draft PR #3.
+
+## Previous: connected native workflows, first repair batch
+
+Read `../reviews/connected-workflow-repair-1/HANDOFF.md` first. The shared read-only capability projection follows BuildGraph’s existing backend and registered native writers. Punch-Out is labeled bounded native editing and exposes source-page, pose, physical-art and arena routes. Intake, Scene context, Area Library and native preflight agree. Inapplicable Scene selection/order and generated ROM configuration controls cannot mutate a native project. The authored Gameplay shortcut opens its actual panel. Root and generated app are identical, SHA-256 `4e316191f5b1046841530d225372072663412f1f399c08ecf79b018441e8799c`.
+
+This resolves review WF-01/WF-02 and the Gameplay part of WF-05. The wider selection/provenance/resource-usage, fresh-resume, preview, health-diagnosis and contextual-lesson work remains open. No new native writer, schema, asset store or emulator was added. Preserve the original Pepsi archive, current project owners and independent RE/ASM/hex/HTML workflows. This checkpoint is local; GitHub publication is separate.
+
+## Previous: pose and native artwork navigation repair
+
+Read `../reviews/punch-out-artwork-navigation-1/HANDOFF.md` and the Punch-Out handbook section 17. The native pose picker is expanded above the source reference preview. Metasprites links directly to sprite CHR and the existing physical-bank writer; CHR Sheet shows a contextual strip. Pose entry selects Sprite Bank, physical artwork entry selects BG Bank, and explicit toggles still work within the current sheet. Reference art remains a snapshot; unsupported edits cannot be re-signed through navigation. Three of 184 runtime inputs change from bb264f4; core codecs, native encoders, emulator, schemas and all five workstation inputs remain identical. Application SHA-256: `9ac2c6750561f3e8c2dd5f542f6c6d9930383771000f1fd3cf751d70feb09d66`. This remains a local development candidate on the existing feature branch.
+
+## Previous checkpoint: native idle and incremental pose positions
+
+Read `../reviews/punch-out-incremental-pose-1/HANDOFF.md` and section 17 of `docs/projects/PUNCH_OUT.md`. This development candidate extends accepted main 6d07f18 on a feature branch. It retains 30 full poses, adds five explicit incremental X/Y records, and moves the three idle records together in one canonical transaction. Preceding OAM and the observed anchor are required; C-family priority follows original OAM Y=$50. Physical flags/pointers/geometry/code remain protected, and unsupported manual fields still refuse. Application SHA-256: `3cf862ba5210fabe972f1d5c3f7eda32a0e6f7db08b718d35b829de00fb273fc`. Four of 184 runtime inputs change; all five workstation modules, core owners, schemas and emulator remain unchanged. No new public Git push is part of this checkpoint.
+
+## Previous accepted repository baseline: working alpha on main
 
 The owner approved preserving original main as `archive/original-pepsi` and `original-pepsi`, then promoting the accepted alpha into `main`. Read `../reviews/main-alpha-promotion-1/HANDOFF.md`, `../CANDIDATE.json` and `../README.md` first. Root `nes-forge.html` and the source-owned generated app have the same SHA-256 `90c179abf3360821dc2dd93168ef74fa6ae2282a78ee6c7357958424612c4322`. All 184 runtime inputs are unchanged; this promotion updates repository entry points, metadata and documentation. From the repository root, rebuild with the existing bundler and run `python3 tools/sync_main_entry.py`. The historical sections below describe their own recorded checkpoints, including failures that have since been fixed; they do not override the current baseline.
 

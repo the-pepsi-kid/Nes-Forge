@@ -645,7 +645,7 @@ input[type=file]{display:none}
 </select></label>
 <label><input type="checkbox" id="cfgSRAM" onchange="rom_updateConfig()"> Battery-backed SRAM ($6000-$7FFF)</label>
 </div>
-<label style="font-size:9px"><input type="checkbox" id="cfgPackScenes" checked onchange="S.packScenes=this.checked"> Pack scene data at $D000</label><p style="font-size:8px;color:var(--ylw)">Default build is a scene viewer. Entities, collision and tracker data do not become gameplay automatically.</p><h3>Memory Map</h3>
+<label style="font-size:9px"><input type="checkbox" id="cfgPackScenes" checked onchange="if(S.nativeGame){this.checked=S.packScenes!==false;}else{S.packScenes=this.checked;}"> Pack scene data at $D000</label><p style="font-size:8px;color:var(--ylw)">Generated builds use the configured viewer or runtime. Native projects preserve their original engine configuration.</p><h3>Memory Map</h3>
 <div class="memmap" id="memMap">
 <div class="memmap-region"><div class="memmap-bar" style="width:20px;background:#446"></div><span class="memmap-label">$0000-$07FF RAM</span><span class="memmap-size">2KB</span></div>
 <div class="memmap-region"><div class="memmap-bar" style="width:60px;background:#464"></div><span class="memmap-label">$8000-$BFFF PRG</span><span class="memmap-size">16KB</span></div>

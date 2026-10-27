@@ -1,0 +1,95 @@
+{
+  "status": "passed",
+  "htmlSha256": "863d7038a99fe687ff1a8f8184d066d415fe32e1f34fcca62202d3e508b6a73d",
+  "checks": [
+    {
+      "name": "Portable preferences restore a non-first pose, exact piece and editor in a fresh app",
+      "passed": true
+    },
+    {
+      "name": "View metadata is optional and excluded from authoring data, signatures and default capture",
+      "passed": true
+    },
+    {
+      "name": "Previous reader safely ignores extra preferences while preserving assets and output",
+      "passed": true
+    },
+    {
+      "name": "Save Project As exports the same optional resume metadata through the existing transport",
+      "passed": true
+    },
+    {
+      "name": "Independent pose, Scene and World selections reopen without rebinding assets",
+      "passed": true
+    },
+    {
+      "name": "Browsing another World does not change the configured runtime start or compiled ROM",
+      "passed": true
+    },
+    {
+      "name": "CHR buffer, tile and used-pose view restore without pixel changes",
+      "passed": true
+    },
+    {
+      "name": "Animation frame and editor restore independently of the selected pose",
+      "passed": true
+    },
+    {
+      "name": "Legacy save without pose metadata picks the sole matching pose, not library entry zero",
+      "passed": true
+    },
+    {
+      "name": "Ambiguous legacy matches require a visible choice without rewriting references",
+      "passed": true
+    },
+    {
+      "name": "Legacy Scene with no matching pose remains explicitly unselected",
+      "passed": true
+    },
+    {
+      "name": "Malformed, stale and future editor hints safely preserve canonical assets",
+      "passed": true
+    },
+    {
+      "name": "Explicit unselected pose survives reopen even when a matching pose exists",
+      "passed": true
+    },
+    {
+      "name": "Undo/Redo retains the selected pose and piece through canonical edit restoration",
+      "passed": true
+    },
+    {
+      "name": "PRG0 native non-first idle pose restores exact context and unchanged ROM",
+      "passed": true
+    },
+    {
+      "name": "PRG0 physical writer reopens with its exact pose footprint and owned bank",
+      "passed": true
+    },
+    {
+      "name": "PRG0 saved explicit pose buffer choice restores after the native entry default",
+      "passed": true
+    },
+    {
+      "name": "PRG0 edited idle output and snapshot refusal survive the new resume metadata",
+      "passed": true
+    },
+    {
+      "name": "PRG1 native non-first idle pose restores exact context and unchanged ROM",
+      "passed": true
+    },
+    {
+      "name": "PRG1 physical writer reopens with its exact pose footprint and owned bank",
+      "passed": true
+    },
+    {
+      "name": "PRG1 saved explicit pose buffer choice restores after the native entry default",
+      "passed": true
+    },
+    {
+      "name": "PRG1 edited idle output and snapshot refusal survive the new resume metadata",
+      "passed": true
+    }
+  ],
+  "scope": "Parsed HTML, fresh independent app instances and real editor/export handlers. Canvas/layout/timers and Save As transport stubbed. Private ROMs remain in RAM. No browser rendering, full-fight/listening/controller/hardware claim."
+}

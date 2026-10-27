@@ -1,13 +1,13 @@
 {
-  "candidate": "main-alpha-promotion-1",
-  "version": "2.0.0-alpha.11",
-  "status": "accepted-development-alpha",
-  "promoted": true,
-  "branch": "main",
+  "candidate": "source-context-lessons-1",
+  "version": "3.0.0-alpha.1",
+  "status": "development-candidate",
+  "promoted": false,
+  "branch": "experiment/hosted-worlds-layout-v17-1",
   "html": "nes-forge.html",
   "sourceHtml": "app/mainline/NES_Forge_2.0.0-alpha.11.html",
-  "htmlSha256": "90c179abf3360821dc2dd93168ef74fa6ae2282a78ee6c7357958424612c4322",
-  "htmlBytes": 2998472,
+  "htmlSha256": "863d7038a99fe687ff1a8f8184d066d415fe32e1f34fcca62202d3e508b6a73d",
+  "htmlBytes": 3358604,
   "schemas": {
     "ordinary": 12,
     "native": 13,
@@ -16,40 +16,51 @@
     "selectedTerrain": 15,
     "portableRom": 16
   },
-  "localImplementationCommit": "a648803f79c3ba194403cecd965bda409b9bc318",
-  "sourceInputs": 184,
+  "sourceParent": "7d182a57a7a84af78596de4cdf685b7f96a0319a",
+  "baselinePublicMainCommit": "6d07f1875074f1b3388cd647ff6177423d45acc7",
   "scope": [
-    "Promote the owner-accepted working alpha, compact Retro Workstation and existing recovery/authoring workflows to main.",
-    "Retain native Punch-Out arena, physical CHR/fight palettes, bounded Glass Joe replay and thirty full-pose X/Y views.",
-    "Preserve exact original Pepsi artifact and previous public history."
+    "Forge editor source roles and visible intake/Audio/import guard invalidation.",
+    "Explicit current-project and independent Audio source routes through existing owners.",
+    "Maintained offline handbook embedded in Tech Docs, with contextual Punch-Out/source/Audio/RE/code help.",
+    "Canonical owners, native write scope and existing multiplayer gameplay retained; complete runnable review kit."
   ],
   "limits": [
-    "Punch-Out recovery remains partial; per-title methods and limits are documented in app/docs/projects.",
-    "Native individual geometry, delta poses, animation, attack/damage/collision and Audio writers remain pending.",
-    "MMC2 timing is approximate; unavailable historical full release gate and browser/device/listening/controller/hardware acceptance remain separate."
+    "No new Punch-Out native behavior or writer; knockdown/referee/round recovery remains next.",
+    "Native animation/combat/collision/Audio writing and exhaustive use recovery remain open.",
+    "Historical title acceptance notes keep their scope; reading a lesson does not establish complete native recovery.",
+    "Full-fight, listening/controller/hardware, independent emulator and public hosting acceptance remain separate."
   ],
   "verification": {
-    "status": "targeted-passed",
+    "report": "reviews/source-context-lessons-1/Verification_Summary.json",
+    "earlierConnectedResources": "reviews/connected-resource-workflow-1/HANDOFF.md",
+    "earlierIntegration": "reviews/hosted-integration-1/HANDOFF.md",
+    "previousNativePlaybackEvidence": "reviews/punch-out-incremental-pose-1/Idle_Playback_Verification.json",
+    "fullHistoricalGate": "unavailable in restored snapshot",
     "publicChecks": 104,
     "publicSuites": 9,
-    "strictDomStartupChecks": 10,
-    "poseLifecycleRevisions": 2,
-    "artworkLifecycleRevisions": 2,
-    "fullHistoricalReleaseGate": "unavailable in restored snapshot",
-    "report": "reviews/main-alpha-promotion-1/Integration_Verification.json"
-  },
-  "originalArtifact": {
-    "branch": "archive/original-pepsi",
-    "tag": "original-pepsi",
-    "commit": "61dee20c4c36886c3fac143c0258d7fac27d5ff7",
-    "html": "archive/original-pepsi.html"
+    "hostedPublicChecks": 104,
+    "strictDomStartupChecksPerBuild": 10,
+    "resumeDomChecks": 22,
+    "resumeBrowserChecks": 36,
+    "connectedResourceDomChecks": 20,
+    "capabilityDomChecks": 12,
+    "hostedAcceptanceChecks": 138,
+    "hostedAcceptanceSuites": 12,
+    "previewDiagnosticDomChecks": 29,
+    "previewDiagnosticBrowserChecks": 32,
+    "sourceContextLessonsDomChecks": 40,
+    "sourceContextLessonsBrowserChecks": 42,
+    "inAppChaptersIncludingExercise": 16
   },
   "distribution": {
     "privateRomsIncluded": false,
     "commercialAssetPayloadsIncluded": false,
     "sourceBearingCommercialProjectsIncluded": false,
-    "standaloneHTML": "nes-forge.html"
+    "standaloneHTML": "nes-forge.html",
+    "hostedHTML": "experiments/hosted-worlds/v17.1/NES_Forge_3x_v17_Hosted_Link_Actions_Experimental.html",
+    "reviewKit": "NES_Forge_App_Workflow_and_Lessons_Complete_Review_Kit.zip"
   },
   "audioVerificationRequiredForEveryProject": true,
-  "publishedImplementationCommit": "2c795396ca91462dcd6bb631668976f6253795b9"
+  "hostedHtml": "experiments/hosted-worlds/v17.1/NES_Forge_3x_v17_Hosted_Link_Actions_Experimental.html",
+  "hostedHtmlSha256": "cb63f80295d413e3318808cfb77bdadec749bfb6f996a04b9bd6112d88a58a79"
 }

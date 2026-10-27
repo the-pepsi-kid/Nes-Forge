@@ -1,0 +1,45 @@
+{
+  "format": "nesforge.native-observation",
+  "version": 1,
+  "status": "observed-original-emulator",
+  "gameAdapter": "zelda2-us",
+  "source": {
+    "title": "Zelda II: The Adventure of Link",
+    "region": "US",
+    "sourceROM": "private-no-bytes-or-art-committed"
+  },
+  "event": {
+    "id": "z2-rauru-shield-wise-man-grant-v1",
+    "kind": "npc-ability-grant",
+    "area": 44,
+    "scene": 36,
+    "previousScene": 48,
+    "actorRole": "Rauru Wise Man",
+    "trigger": "approach the Wise Man using original NES Right held input after daughter invitation and house traversal",
+    "stateChange": {
+      "ramAddressHex": "0x077b",
+      "valueBefore": 0,
+      "valueAfter": 1,
+      "frameBefore": 4293,
+      "frameAfter": 4303
+    },
+    "unaffected": {
+      "swordTechniqueFlagsRam": "0x0796",
+      "value": 0
+    },
+    "provenance": "direct user-supplied ROM emulation; no RAM writes"
+  },
+  "verification": {
+    "sourceGameGrantObserved": true,
+    "directInputTraceAvailablePrivately": true,
+    "generic50StepReplay": "pending-emulator-frame-200ms-guard",
+    "spellCast": "not-tested",
+    "defenseMechanics": "not-tested",
+    "cpuBranch": "not-recovered",
+    "hostedMultiplayer": "not-implemented"
+  },
+  "limitations": [
+    "NPC contact observed but precise CPU predicate remains unverified",
+    "No original NES ROM/assets/screenshots committed"
+  ]
+}

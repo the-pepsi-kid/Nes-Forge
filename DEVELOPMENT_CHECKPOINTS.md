@@ -1,3 +1,7 @@
+## Current: connected workflow capability repair
+
+The first repair batch from the connected-workflow audit makes native project scope and applicable build controls consistent. See [the handoff](reviews/connected-workflow-repair-1/HANDOFF.md) and Punch-Out tutorial section 18. Shared-resource footprint and ownership navigation are the next repair batch; the full review is not closed.
+
 ## Current: Native Glass Joe full-pose positions
 
 Recovered content → Native pose positions · Glass Joe opens one of 30 dedicated native placement views in the existing Metasprites editor. Apply signed X/Y offsets in one Undo transaction, save/reopen, and rebuild the original game. The writer owns only each full pose's two position bytes; individual piece geometry, delta poses, native animation, attack/damage/collision and Audio writing remain separate work. Physical CHR/color and arena edits compose through the existing native owner.

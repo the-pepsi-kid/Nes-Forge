@@ -1,0 +1,64 @@
+{
+  "status": "passed",
+  "nativeHtmlSha256": "610ed7b9556e6b8e3cbb306adea4aae9f59391a2cf870b17bc2fde39ed7c8ad0",
+  "hostedHtmlSha256": "80733ff985f2653e23e0ad5bbc2db341e340d96a2eeb1f976ea3288c70e11ae6",
+  "checks": {
+    "previewDiagnosticsDom": {
+      "passed": 29,
+      "total": 29
+    },
+    "previewDiagnosticsBrowser": {
+      "passed": 32,
+      "total": 32
+    },
+    "resumeDom": {
+      "passed": 22,
+      "total": 22
+    },
+    "connectedResourceDom": {
+      "passed": 20,
+      "total": 20
+    },
+    "capabilityLifecycleDom": {
+      "passed": 12,
+      "total": 12
+    },
+    "resumeBrowser": {
+      "passed": 36,
+      "total": 36
+    },
+    "startupNative": {
+      "passed": 10,
+      "total": 10
+    },
+    "publicNative": {
+      "passed": 104,
+      "total": 104,
+      "suites": 9
+    },
+    "startupHosted": {
+      "passed": 10,
+      "total": 10
+    },
+    "publicHosted": {
+      "passed": 104,
+      "total": 104,
+      "suites": 9
+    },
+    "hostedAcceptance": {
+      "passed": 114,
+      "total": 114,
+      "suites": 10
+    }
+  },
+  "sourceConvergence": "Source_Convergence.json",
+  "documentation": "Documentation_Verification.json",
+  "scope": "Shared authoritative preview renderers, explicit current native pose output and actual compiler diagnostics with proven native context. Existing canonical lifecycle, schema, signature/projection algorithms and byte codecs/spans retained.",
+  "limits": [
+    "DOM canvas/layout/timers are stubbed; Chromium canvas pixel comparisons and UI actions are separate.",
+    "Native browser intake uses existing factories. Resume browser tests use explicit download fallback with native OS picker disabled; storage/recovery are isolated.",
+    "Current native output preview is limited to supported Glass Joe position views and declared incremental state paths.",
+    "Unknown historical snapshot/hash differences stay explicitly unlocalized.",
+    "No full-fight, listening/controller/hardware, independent emulator, exhaustive native-use or public hosting acceptance. Historical full gate remains unavailable."
+  ]
+}

@@ -88,7 +88,7 @@ buildSceneSel=function(){
     const row=document.createElement('div');row.className='scene-thumb'+(i===S.activeScene?' active':'');row.dataset.f15Index=i;row.onclick=()=>switchScene(i);
     try{row.appendChild(renderSceneThumb(sc,52,46));}catch(_){}
     const text=document.createElement('div');text.style.minWidth='0';text.style.flex='1';const name=document.createElement('div');name.className='st-name';name.textContent=(i+1)+': '+sc.name;text.appendChild(name);
-    const badges=document.createElement('div');badges.innerHTML=sceneSourceBadge(sc)+' <span class="st-badge '+(sc.buildInclude!==false?'authored':'imported')+'">'+(sc.buildInclude!==false?'build':'skip')+'</span>';text.appendChild(badges);row.appendChild(text);browser.appendChild(row);
+    const badges=document.createElement('div');badges.innerHTML=sceneSourceBadge(sc)+(sceneBuildSetAllowed()?' <span class="st-badge '+(sc.buildInclude!==false?'authored':'imported')+'">'+(sc.buildInclude!==false?'build':'skip')+'</span>':'');text.appendChild(badges);row.appendChild(text);browser.appendChild(row);
   });
   revealActiveSceneThumb();
   buildSceneSetUI();
@@ -104,17 +104,33 @@ broadcastState=function(reason){if(!BC||syncApplying)return;clearTimeout(F15.syn
 const codeSide=$15('sideCode');
 const packBox=$15('cfgPackScenes');
 const buildSetSection=document.createElement('section');
-buildSetSection.innerHTML='<h3>Build Scene Set</h3><p style="font-size:8px;color:var(--dim)">Workspace may contain 64 scenes. NROM viewer builds up to 7 selected scenes. Door targets are remapped to build order.</p><div id="buildSceneSet"></div><div style="display:flex;gap:4px;margin:4px 0"><button class="f15-mini" id="forge15PreflightBtn">Preflight Build</button><button class="f15-mini" id="forge15IncludeFirst7">Include first 7</button></div><div id="forge15Preflight"><span class="warn">Run preflight before exporting a ROM.</span></div>';
+buildSetSection.innerHTML='<h3>Build Scene Set</h3><p id="forge15BuildScope" style="font-size:10px;color:var(--dim)">Workspace may contain 64 scenes. NROM viewer builds up to 7 selected scenes. Door targets are remapped to build order.</p><div id="buildSceneSet"></div><div style="display:flex;gap:4px;margin:4px 0"><button class="f15-mini" id="forge15PreflightBtn">Preflight Build</button><button class="f15-mini" id="forge15IncludeFirst7">Include first 7</button></div><div id="forge15Preflight"><span class="warn">Run preflight before exporting a ROM.</span></div>';
 if(packBox){const parent=packBox.closest('label')?.parentElement||packBox.parentElement;parent?.after(buildSetSection);}else codeSide?.appendChild(buildSetSection);
 function selectedSceneEntries(){return S.scenes.map((sc,index)=>({sc,index,order:clamp(sc.buildOrder??index,0,9999,index)})).filter(x=>x.sc.buildInclude!==false).sort((a,b)=>a.order-b.order||a.index-b.index);}
-function buildSceneSetUI(){const box=$15('buildSceneSet');if(!box)return;box.innerHTML='';S.scenes.forEach((sc,i)=>{const row=document.createElement('div');row.className='f15-build-row'+(i===S.activeScene?' active':'');const check=document.createElement('input');check.type='checkbox';check.checked=sc.buildInclude!==false;check.title='Include in ROM build';check.onchange=()=>{snapshot();sc.buildInclude=check.checked;setDirty('buildSet');buildSceneSel();};const order=document.createElement('input');order.type='number';order.min=0;order.max=9999;order.value=sc.buildOrder??i;order.title='Build order';order.onchange=()=>{snapshot();sc.buildOrder=clamp(order.value,0,9999,i);setDirty('buildSet');buildSceneSetUI();};const name=document.createElement('span');name.textContent=(i+1)+': '+sc.name;name.title=sc.name;row.append(check,order,name);box.appendChild(row);});}
-$15('forge15IncludeFirst7').onclick=()=>{snapshot();S.scenes.forEach((sc,i)=>{sc.buildInclude=i<7;sc.buildOrder=i;});setDirty('buildSet');buildSceneSel();};
+// Inclusion/order belong to generated packed builds, not native source recipes.
+// Guard handlers as well as disabling controls, including stale DOM references
+// left over from a previous project. No baseline or native signature is changed.
+function sceneBuildSetAllowed(){return window.Forge?.services?.ProjectCapabilities?.describe(S).buildSceneSet??!S.nativeGame;}
+function refreshBuildSetScope(){
+ const c=window.Forge?.services?.ProjectCapabilities?.describe(S),allowed=c?.buildSceneSet??!S.nativeGame;
+ const note=$15('forge15BuildScope');if(note&&c)note.textContent=c.buildSceneSetReason;
+ const box=$15('buildSceneSet');if(box){box.hidden=!allowed;for(const input of box.querySelectorAll('input'))input.disabled=!allowed;}
+ $15('forge15IncludeFirst7').disabled=!allowed;
+ for(const id of ['spBuildInclude','spBuildOrder'])if($15(id))$15(id).disabled=!allowed;
+ if($15('forge15SceneBuild'))$15('forge15SceneBuild').hidden=!allowed;
+ // These settings describe generated ROMs. Native headers and mapping remain
+ // owned by the preserved source, so a navigation click cannot rewrite them.
+ for(const id of ['cfgMapper','cfgMirror','cfgSRAM','cfgPackScenes']){const input=$15(id);if(input){input.disabled=!!S.nativeGame;input.title=S.nativeGame?'Original engine configuration is preserved by this native project.':'';}}
+ const mapper=$15('cfgMapper');if(mapper){for(const o of mapper.querySelectorAll('[data-native-mapper]'))o.remove();if(S.nativeGame&&!Array.from(mapper.options).some(o=>o.value===String(S.mapper))){const o=document.createElement('option');o.value=String(S.mapper);o.textContent=S.mapper+' — preserved source mapper';o.dataset.nativeMapper='true';mapper.appendChild(o);}mapper.value=String(S.mapper);}
+}
+function buildSceneSetUI(){const box=$15('buildSceneSet');if(!box)return;box.innerHTML='';S.scenes.forEach((sc,i)=>{const row=document.createElement('div');row.className='f15-build-row'+(i===S.activeScene?' active':'');const check=document.createElement('input');check.type='checkbox';check.checked=sc.buildInclude!==false;check.title='Include in ROM build';check.onchange=()=>{if(!sceneBuildSetAllowed())return refreshBuildSetScope();snapshot();sc.buildInclude=check.checked;setDirty('buildSet');buildSceneSel();};const order=document.createElement('input');order.type='number';order.min=0;order.max=9999;order.value=sc.buildOrder??i;order.title='Build order';order.onchange=()=>{if(!sceneBuildSetAllowed())return refreshBuildSetScope();snapshot();sc.buildOrder=clamp(order.value,0,9999,i);setDirty('buildSet');buildSceneSetUI();};const name=document.createElement('span');name.textContent=(i+1)+': '+sc.name;name.title=sc.name;row.append(check,order,name);box.appendChild(row);});refreshBuildSetScope();}
+$15('forge15IncludeFirst7').onclick=()=>{if(!sceneBuildSetAllowed())return refreshBuildSetScope();snapshot();S.scenes.forEach((sc,i)=>{sc.buildInclude=i<7;sc.buildOrder=i;});setDirty('buildSet');buildSceneSel();};
 
 // Also expose build membership in the active scene properties panel.
 const buildFields=document.createElement('div');buildFields.id='forge15SceneBuild';buildFields.innerHTML='<label>Build</label><input id="spBuildInclude" type="checkbox"><label>Order</label><input id="spBuildOrder" type="number" min="0" max="9999">';
 $15('scenePropsPanel')?.appendChild(buildFields);
-$15('spBuildInclude').onchange=function(){const sc=S.scenes[S.activeScene];snapshot();sc.buildInclude=this.checked;setDirty('buildSet');buildSceneSel();};
-$15('spBuildOrder').onchange=function(){const sc=S.scenes[S.activeScene];snapshot();sc.buildOrder=clamp(this.value,0,9999,S.activeScene);setDirty('buildSet');buildSceneSetUI();};
+$15('spBuildInclude').onchange=function(){if(!sceneBuildSetAllowed())return refreshBuildSetScope();const sc=S.scenes[S.activeScene];snapshot();sc.buildInclude=this.checked;setDirty('buildSet');buildSceneSel();};
+$15('spBuildOrder').onchange=function(){if(!sceneBuildSetAllowed())return refreshBuildSetScope();const sc=S.scenes[S.activeScene];snapshot();sc.buildOrder=clamp(this.value,0,9999,S.activeScene);setDirty('buildSet');buildSceneSetUI();};
 const spLoad14=sp_loadUI;
 sp_loadUI=function(sc){spLoad14(sc);if($15('spBuildInclude'))$15('spBuildInclude').checked=sc.buildInclude!==false;if($15('spBuildOrder'))$15('spBuildOrder').value=sc.buildOrder??S.activeScene;};
 
@@ -183,7 +199,7 @@ buildNesRom=function(){
   }catch(e){log(e.message,'bl-err');reportError(e);return null;}
 };
 
-F15.build={selectedSceneEntries,plan:planBuild15,encodeExtension:buildExtension15,showPreflight:showPreflight15};
+F15.build={selectedSceneEntries,plan:planBuild15,encodeExtension:buildExtension15,showPreflight:showPreflight15,refreshScope:refreshBuildSetScope};
 
 // ── IndexedDB crash recovery (migrates old localStorage recovery) ──
 const REC_DB_VER=2;

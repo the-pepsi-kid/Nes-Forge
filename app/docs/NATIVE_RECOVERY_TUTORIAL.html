@@ -1,42 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge Developer and Asset Workflows</title><style>body{margin:0;background:#f5f7fa;color:#172238;font:17px/1.65 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:36px 28px 80px}h1,h2,h3{line-height:1.25;scroll-margin-top:24px}h1{font-size:2.25rem}h2{margin-top:2.2em;padding-top:1em;border-top:1px solid #ccd5e1}a{color:#124d9a}table{border-collapse:collapse;display:block;overflow-x:auto;width:100%;font-size:.9rem;margin:1.4em 0}th,td{border:1px solid #bbc8d8;padding:10px;vertical-align:top;text-align:left}th{background:#e3ebf5}pre{overflow:auto;background:#132136;color:#eaf3ff;padding:18px;border-radius:8px;line-height:1.45}code{font-family:ui-monospace,monospace;font-size:.9em}p code,li code,td code{background:#e5ebf3;padding:1px 4px;border-radius:3px}nav{border:1px solid #bdcddd;background:#fff;padding:20px;border-radius:8px;margin:28px 0}nav ul{padding-left:24px}.meta{font-size:.9rem;color:#53647a}@media(max-width:650px){main{padding:22px 16px}body{font-size:16px}h1{font-size:1.8rem}}@media print{body{background:white;font-size:10pt}main{max-width:none;padding:0}nav{display:none}pre{white-space:pre-wrap;background:#f1f3f6;color:#172238}table{display:table;font-size:8pt}h2,h3{break-after:avoid}tr,pre{break-inside:avoid}}</style></head><body><main><p class="meta">Developer reference · Native Glass Joe pose placement / modular Retro Workstation</p><nav aria-label="Contents"><strong>Contents</strong><ul>
-  <li><a href="#nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</a>
-  <ul>
-    <li><a href="#1-choose-an-entry-point">1. Choose an entry point</a></li>
-    <li><a href="#2-understand-the-three-representations">2. Understand the three representations</a></li>
-    <li><a href="#3-complete-asset-map">3. Complete asset map</a></li>
-    <li><a href="#4-visual-asset-editing-end-to-end">4. Visual asset editing, end to end</a>
-    <ul>
-      <li><a href="#backgrounds-tiles-and-palettes">Backgrounds, tiles and palettes</a></li>
-      <li><a href="#sprites-metasprites-and-animation">Sprites, metasprites and animation</a></li>
-      <li><a href="#worlds-collision-actors-and-interactions">Worlds, collision, actors and interactions</a></li>
-      <li><a href="#audio">Audio</a></li>
-    </ul></li>
-    <li><a href="#5-manual-re-workflow">5. Manual RE workflow</a></li>
-    <li><a href="#6-worked-native-codec-lesson">6. Worked native codec lesson</a></li>
-    <li><a href="#7-installing-another-decoder-or-encoder">7. Installing another decoder or encoder</a></li>
-    <li><a href="#8-writing-6502-code-yourself">8. Writing 6502 code yourself</a></li>
-    <li><a href="#9-hex-editing-yourself">9. Hex editing yourself</a></li>
-    <li><a href="#10-editing-the-standalone-html-or-modular-source">10. Editing the standalone HTML or modular source</a>
-    <ul>
-      <li><a href="#edit-the-html-directly">Edit the HTML directly</a></li>
-      <li><a href="#edit-modular-source">Edit modular source</a></li>
-      <li><a href="#source-navigation">Source navigation</a></li>
-    </ul></li>
-    <li><a href="#11-prove-the-workflow-not-just-the-helper">11. Prove the workflow, not just the helper</a>
-    <ul>
-      <li><a href="#current-verification-commands">Current verification commands</a></li>
-    </ul></li>
-    <li><a href="#12-debugging-and-extending-the-project">12. Debugging and extending the project</a></li>
-    <li><a href="#13-concrete-asset-edits-from-javascript-or-html">13. Concrete asset edits from JavaScript or HTML</a></li>
-    <li><a href="#14-glass-joe-fight-references-mac-referee-and-hud">14. Glass Joe fight references: Mac, referee and HUD</a></li>
-    <li><a href="#15-dedicated-native-artwork-and-concurrent-playback">15. Dedicated native artwork and concurrent playback</a>
-    <ul>
-      <li><a href="#native-glass-joe-full-pose-position-extension">Native Glass Joe full-pose position extension</a></li>
-    </ul></li>
-  </ul></li>
-</ul>
-</nav><h1 id="nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</h1>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NES Forge Developer and Asset Workflows</title><style>body{margin:0;background:#f5f7fa;color:#172238;font:17px/1.65 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:36px 28px 80px}h1,h2,h3{line-height:1.25;scroll-margin-top:24px}h1{font-size:2.25rem}h2{margin-top:2.2em;padding-top:1em;border-top:1px solid #ccd5e1}a{color:#124d9a}table{border-collapse:collapse;display:block;overflow-x:auto;width:100%;font-size:.9rem;margin:1.4em 0}th,td{border:1px solid #bbc8d8;padding:10px;vertical-align:top;text-align:left}th{background:#e3ebf5}pre{overflow:auto;background:#132136;color:#eaf3ff;padding:18px;border-radius:8px;line-height:1.45}code{font-family:ui-monospace,monospace;font-size:.9em}p code,li code,td code{background:#e5ebf3;padding:1px 4px;border-radius:3px}nav{border:1px solid #bdcddd;background:#fff;padding:20px;border-radius:8px;margin:28px 0}nav ul{padding-left:24px}.meta{font-size:.9rem;color:#53647a}@media(max-width:650px){main{padding:22px 16px}body{font-size:16px}h1{font-size:1.8rem}}@media print{body{background:white;font-size:10pt}main{max-width:none;padding:0}nav{display:none}pre{white-space:pre-wrap;background:#f1f3f6;color:#172238}table{display:table;font-size:8pt}h2,h3{break-after:avoid}tr,pre{break-inside:avoid}}</style></head><body><main><h1 id="nes-forge-developer-and-asset-workflow-guide">NES Forge developer and asset workflow guide</h1><p class="meta">Developer reference · Connected native workflows / modular Retro Workstation</p><nav aria-label="Developer guide contents"><strong>Contents</strong><ul><li><a href="#1-choose-an-entry-point">1. Choose an entry point</a></li><li><a href="#2-understand-the-three-representations">2. Understand the three representations</a></li><li><a href="#3-complete-asset-map">3. Complete asset map</a></li><li><a href="#4-visual-asset-editing-end-to-end">4. Visual asset editing, end to end</a></li><li><a href="#5-manual-re-workflow">5. Manual RE workflow</a></li><li><a href="#6-worked-native-codec-lesson">6. Worked native codec lesson</a></li><li><a href="#7-installing-another-decoder-or-encoder">7. Installing another decoder or encoder</a></li><li><a href="#8-writing-6502-code-yourself">8. Writing 6502 code yourself</a></li><li><a href="#9-hex-editing-yourself">9. Hex editing yourself</a></li><li><a href="#10-editing-the-standalone-html-or-modular-source">10. Editing the standalone HTML or modular source</a></li><li><a href="#11-prove-the-workflow-not-just-the-helper">11. Prove the workflow, not just the helper</a></li><li><a href="#12-debugging-and-extending-the-project">12. Debugging and extending the project</a></li><li><a href="#13-concrete-asset-edits-from-javascript-or-html">13. Concrete asset edits from JavaScript or HTML</a></li><li><a href="#14-glass-joe-fight-references-mac-referee-and-hud">14. Glass Joe fight references: Mac, referee and HUD</a></li><li><a href="#15-dedicated-native-artwork-and-concurrent-playback">15. Dedicated native artwork and concurrent playback</a></li><li><a href="#16-save-and-restore-editor-context-without-changing-the-game">16. Save and restore editor context without changing the game</a></li><li><a href="#17-preview-the-actual-resource-and-check-the-actual-build">17. Preview the actual resource and check the actual build</a></li><li><a href="#18-current-independent-and-detached-sources-in-app-lessons">18. Current, independent and detached sources; in-app lessons</a></li></ul></nav>
 
 <p>This guide describes the current source checkpoint, using Punch-Out as a worked recovery example. It is intended for people who want to use the visual editors, investigate an unknown ROM, write an adapter, write 6502 code, patch bytes independently, or modify NES Forge itself. Game recognition is optional for general inspection. Each game's editable native output depends on the encoders actually installed for that revision.</p>
 
@@ -584,6 +547,10 @@ python3 reviews/punch-out-developer-1/run_checks.py
   <td><code>services/build-services.js</code>; runtime-specific compilers</td>
 </tr>
 <tr>
+  <td>Project capabilities and applicable controls</td>
+  <td><code>services/project-capabilities.js</code> projects <code>BuildGraph.backendFor</code> and native owners; encoder registrations declare their own available scope. <code>ui/connected-workspace.js</code>, intake, Scene context and Area Library display it. <code>legacy/05-foundation.js</code> guards generated build-selection controls; <code>legacy/00-editor.js</code> and the shell guard native ROM configuration.</td>
+</tr>
+<tr>
   <td>Emulator/player</td>
   <td><code>legacy/01-emulator.js</code>, <code>services/emulator-*</code>, <code>services/mmc2-emulator.js</code>, <code>re/mmc2.js</code></td>
 </tr>
@@ -631,6 +598,8 @@ python3 reviews/punch-out-developer-1/run_checks.py
 </table>
 
 <h2 id="11-prove-the-workflow-not-just-the-helper">11. Prove the workflow, not just the helper</h2>
+
+<p>Begin with the current backend in <strong>Connected Workspace</strong>. Native tools lists the current project's registered writers, with explicit pickers for resources such as Punch-Out CHR banks and Glass Joe poses. Availability is separate from build acceptance: an unsupported copied edit can still block output. Native projects preserve their original engine configuration and do not use the generated Scene inclusion/order controls. Generated packed builds retain that selection; World output follows its saved dependencies, and unpacked custom assembly uses active CHR. No capability label changes a project signature or supplies an encoder.</p>
 
 <p>A decoder and its tests can share a wrong assumption. Earlier Punch-Out tests missed an import-path difference and mirrored rendering assumptions. Test original loaders and independent observations, and exercise the actual UI entry points.</p>
 
@@ -851,7 +820,7 @@ node reviews/punch-out-fight-context-1/verify_lifecycle.cjs /path/to/private-rom
 
 <h3 id="native-glass-joe-full-pose-position-extension">Native Glass Joe full-pose position extension</h3>
 
-<p>Section 16 of <code>projects/PUNCH_OUT.md</code> adds a dedicated native position view for each of Glass Joe's 30 full poses. The frame and source-art Scene are ordinary canonical assets. The signed native X/Y operands are derived from uniform piece displacement minus the frame origin, so no hidden placement recipe or alternate asset store is required. Individual pieces, shared geometry, delta poses and animation remain separate writing problems.</p>
+<p>Section 16 of <code>projects/PUNCH_OUT.md</code> adds a dedicated native position view for each of Glass Joe's 30 full poses. The frame and source-art Scene are ordinary canonical assets. The signed native X/Y operands are derived from uniform piece displacement minus the frame origin, so no hidden placement recipe or alternate asset store is required. Individual pieces, shared geometry, position-less incremental records and animation remain separate writing problems. Five explicit incremental positions extend this method below.</p>
 
 <table>
 <thead>
@@ -874,8 +843,8 @@ node reviews/punch-out-fight-context-1/verify_lifecycle.cjs /path/to/private-rom
 </tr>
 <tr>
   <td><code>re/punch-out-pose-ui.js</code></td>
-  <td>Pose selection, native X/Y controls, one Undo transaction and build check</td>
-  <td>Existing Metasprites, ProjectStore, history and RuntimeCompiler</td>
+  <td>Pose selection, native X/Y controls, one Undo transaction, build check and contextual artwork shortcuts</td>
+  <td>Existing Metasprites, CHR Sheet, native artwork UI, ProjectStore, history and RuntimeCompiler</td>
 </tr>
 </tbody>
 </table>
@@ -883,4 +852,101 @@ node reviews/punch-out-fight-context-1/verify_lifecycle.cjs /path/to/private-rom
 <p>The native resource gate now accepts an optional <code>metaspriteViews</code> callback on a registered encoder. It compares declared baseline origin/piece positions while retaining every unrelated project field in the signature. The encoder separately proves uniform movement, unchanged piece identities/order/tiles/flags, signed-byte range and exact owned-byte writes. Masking a recognition range or registering a projection never grants permission to write another resource. With no native pose view present, the preceding projection and output remain unchanged.</p>
 
 <p>For standalone HTML work, change these authoritative modules and re-bundle. For independent hex work, the title lesson identifies the actual position operands and validation steps. Moving a visual pose leaves the original damage/attack/collision code in place, so check alignment in the running game. Native pose editing is scoped to whole-pose placement; it is not complete fighter or animation recovery.</p>
+
+<h3 id="native-idle-and-incremental-position-extension">Native idle and incremental position extension</h3>
+
+<p>Section 17 of <code>projects/PUNCH_OUT.md</code>, included in the offline handbook, covers five additional explicit X/Y pairs, the grouped <code>$C0/$C2/$C4</code> idle workflow, file offsets, external hex editing and direct HTML/source changes. The existing codec now calls <code>PunchOutStates</code> to preserve preceding OAM and the observed moving anchor; reading incremental frames independently would lose that context. All 30 earlier full-pose views retain their original identities and source ownership.</p>
+
+<p>The same native encoder owns these pairs through ordinary Metasprites. Incremental views use a separate <code>punchOutIncrementalPose</code> marker so older full-pose-only readers preserve the ordinary assets and refuse unsupported native building. The idle helper adds missing derived views and changes three existing canonical frames in one guarded project transaction. It preserves their current relative displacement and original timing; it does not create a second animation/runtime store.</p>
+
+<p>For the <code>$C0</code> family, source routine <code>$D043</code> derives priority from native OAM Y at the <code>$50</code> divider. <code>moveFrame</code> updates canonical <code>behind</code> flags to match that consequence of position. The encoder independently checks this exact derivation; manual flag changes still refuse. Source attribute streams, flags, pointers and code remain protected. Full-pose and other incremental attribute handling keep their earlier rules.</p>
+
+<p>Derivative recognition adds exactly ten physical operand bytes; it does not widen generic recipe writes. Existing native art/palette and arena owners still encode separate spans. Tests check every earlier full pose, all five new records, observed primary-state contexts, priority consequences, one-step grouped Undo/Redo, save/reopen, older-reader refusal, composed native output and real exported/reimported idle playback. The title lesson keeps unobserved paths and complete-fight/animation/Audio writing limits explicit.</p>
+
+<h3 id="pose-and-chr-navigation">Pose and CHR navigation</h3>
+
+<p>The native pose picker is expanded above the source-reference preview in Recovered content. The native position panel links to <strong>View pose sprite tiles</strong> and <strong>Edit native sprite artwork</strong>. Entering CHR Sheet with an owned pose Scene selects its sprite buffer; the sheet's contextual strip also exposes the source-verified physical bank and a return to position editing. Opening a dedicated physical CHR view selects its background buffer, which is the registered pixel writer. A deliberate bank toggle still works in the current sheet.</p>
+
+<p>The reference sprite buffer and the physical writer remain separate existing assets. Navigation does not copy pixels, replace snapshots, re-sign unsupported work, patch source or create an alternate encoder. <code>PunchOutPoseProject.describe</code> returns the verified <code>chrBank4KiB</code> for UI routing. Existing native validation still runs before a physical view can be added/selected; copied-reference pixel changes refuse native building and cannot be adopted as a new baseline by following the shortcut. See the Punch-Out handbook's section 17 for the click-by-click path and save/build/reimport exercise.</p>
+
+<h2 id="16-save-and-restore-editor-context-without-changing-the-game">16. Save and restore editor context without changing the game</h2>
+
+<p>Portable <strong>Save Project As</strong>, browser project saves, recovery and Export's <code>project.json</code> include optional browsing preferences. A fresh open can return to the same Metasprite and piece, core editor tab, selected World, CHR buffer/tile and used-pose view. The active Scene and selected pose remain independent when their declared source references differ. Choosing another World in the editor does not change <code>worldRuntime.worldId</code> or its spawn.</p>
+
+<p>For independent JSON or HTML work, the additional metadata has this shape:</p>
+
+<pre><code>{
+  "editorView": {
+    "version": 1,
+    "worldId": "an-existing-world-id",
+    "metaspriteId": "an-existing-pose-id",
+    "pieceId": "a-piece-in-that-pose",
+    "tab": "chr",
+    "chrUsage": "pose"
+  }
+}
+</code></pre>
+
+<p>These are existing asset IDs and a few bounded view values, not new asset records. <code>chrUsage</code> is <code>pose</code> or <code>whole</code>; <code>tab</code> must name an available core editor. Existing top-level <code>activeScene</code>, <code>chrBank</code> and tile/Animation selections retain their current formats. A deliberately empty <code>metaspriteId</code> preserves an unselected composer. A stale or invalid ID does not bind a different Scene or regenerate assets. With no valid saved pose, a unique pose using the active Scene can be selected; several matches produce an explicit choice, and no matching pose leaves the composer unselected.</p>
+
+<p><code>ProjectStore.capture({includeEditorView:true})</code> includes this block for saves. Default <code>capture()</code> / <code>serialize()</code> and <code>authoringData()</code> keep the existing build/authoring boundaries; the latter removes view metadata. Native signatures, source bytes, encoder spans and raw recipe hashing rules are unchanged. Ordinary projects remain schema 12; existing native formats and the reader ceiling of 16 stay intact. An older reader may discard optional browsing preferences safely. Unknown future preference versions can retain the old World hint but do not introduce new navigation rules.</p>
+
+<p>The implementation uses the existing owners:</p>
+
+<ul>
+<li><code>services/editor-view.js</code> reads a whitelist of bounded hints, captures current UI IDs and restores them through the existing Metasprite/World/CHR editors. It owns no asset store, encoder or persistent database.</li>
+<li><code>services/project-store.js</code> owns save/load/history and includes the block only at explicit save boundaries. Validation of canonical project data still runs before UI state is touched.</li>
+<li><code>legacy/13-metasprites.js</code> exposes <code>restoreSelection</code> for UI IDs and an explicit chooser when fallback would be ambiguous. It adds no pieces, Scene OAM or source references.</li>
+<li><code>re/punch-out-pose-ui.js</code> can resolve a native CHR return shortcut from the restored canonical pose, instead of requiring a previous click history in the same document.</li>
+</ul>
+
+<p>To change this behavior in the standalone HTML, save a copy and locate those module comments. To maintain source, edit their files under <code>app/src</code>, rebuild the native/root and hosted outputs, and check them. Do not put view preferences into a native projection signature or refresh copied source pixels merely to align a preview. Verify fresh-document reopening, intentional mismatches, old/malformed hints, Undo/Redo, all save transports and byte-identical output. Optional metadata does not save emulator RAM, resume playback or establish a recovered runtime binding.</p>
+
+<h2 id="17-preview-the-actual-resource-and-check-the-actual-build">17. Preview the actual resource and check the actual build</h2>
+
+<p>A consistent preview needs explicit source, palette, composition and output scope. Resources Scene previews use <code>forgeCapture.scenePixels</code> for background plus active Scene OAM, including captured raster states. Pose previews use the canonical Metasprite compositor. CHR Resources uses the existing <code>forgeCHR</code> appearance resolver: current color mode/appearance for the displayed buffer, automatic source usage when browsing a different buffer, transparent sprite index 0, and the correct page of a capture atlas. These views do not create Scene placements or change assets.</p>
+
+<p>Supported native Glass Joe position views also offer <strong>Preview current native output</strong>. It captures the project through ProjectStore, calls the same live BuildGraph/RuntimeCompiler entry as Build &amp; Run, which captures a detached source, and decodes the supported pose from the exact resulting ROM. The pose compositor receives detached encoded pixels/colors; the source snapshot remains untouched. A failed compile produces a refusal, not an original-ROM fallback. Incremental preview is limited to the declared state path, with no claim of a live fight or complete game palette/priority behavior.</p>
+
+<p><strong>Connected Workspace → Project Health → Check current ROM build</strong> runs the real current backend without committing the result, downloading or changing emulator state. Relationship counts remain a separate diagnostic. A successful result is tied to the captured input and becomes stale after edits; it does not certify gameplay. Code preflight and failed builds surface the same available structured native refusal details.</p>
+
+<p>To repair a refusal, read its backend message, resource ID and confirmed field path, then use <strong>Inspect this resource</strong>. Save unsupported work before ordinary Undo. Make the intended change through the declared writer and recheck. Unsupported assets remain savable. A signature mismatch alone cannot locate every edit: native owners name a source-copy field only when a reproducible detached candidate restores the existing saved projection hash. Unproven differences stay explicitly unlocalized. Do not replace a signature or refresh a copied snapshot to make a refused project appear valid.</p>
+
+<p>Developer entry points:</p>
+
+<ul>
+<li><code>services/resource-preview.js</code> supplies explicit context to the existing Scene/CHR/pose renderers and the native compiler. It stores no assets or output cache.</li>
+<li><code>legacy/04-saveas-chr.js</code> keeps CHR usage/palette rules in one resolver, including captured palettes and selected-pose contexts. <code>legacy/13-metasprites.js</code> accepts an explicit detached draw source.</li>
+<li><code>services/build-diagnostics.js</code> carries error text/context into UI. <code>services/build-services.js</code> retains build routing and compilation; <code>checkCurrent</code> invokes those owners without commit.</li>
+<li><code>services/native-resource-project.js</code> still owns signatures, recipes and write spans. Registered title owners can expose reproducible diagnostic views; these do not mask fields or authorize edits. Zelda II terrain budget and native screen layout errors attach their actual World/Scene context at the refusing encoder.</li>
+<li><code>ui/resource-relationships.js</code> and <code>ui/connected-workspace.js</code> render preview scope and compiler results. The results are disposable and are not included in project schema or persistence.</li>
+</ul>
+
+<p>For an HTML-only experiment, copy the complete standalone HTML and search for these module comments or <code>fcw-check-build</code> / <code>frx-native-output</code>. For maintained work, edit <code>app/src</code>, update both manifests only if adding a module, and regenerate the native/root and optional hosted outputs. Keep one shared source and use the existing project lifecycle. Independent RE, assembly and external hex workflows continue to use explicit file/CPU/PPU addresses and verified diffs; a preview relationship does not grant byte ownership.</p>
+
+<p>Verification should compare actual canvas pixels (not just the existence of a canvas), include live and independently browsed Scenes, raster palettes, sprite transparency/flips/priority, CHR preview modes and atlas pages. Native cases must compare snapshot versus compiled output, preserve canonical assets/signatures, exercise real refusals and repair navigation, and recheck save/reopen and target playback. See the Punch-Out chapter section 21 for a complete worked sequence.</p>
+
+<h2 id="18-current-independent-and-detached-sources-in-app-lessons">18. Current, independent and detached sources; in-app lessons</h2>
+
+<p>Forge can hold a project, an inspected ROM, a native Audio catalog, an emulator ROM and a multi-file source workspace at the same time. They do not become one editable object because their names or pixels resemble one another.</p>
+
+<p><strong>Current project source</strong> means matching declared/preserved source identity with a valid owning session. It is not a claim that every recovered field has an encoder. <strong>Independent source</strong> means an explicitly chosen inspection separate from that project. <strong>Detached source</strong> means an earlier project/source guard has expired, even if a hash happens to match. <strong>Inspected project file</strong> identifies a saved JSON input rather than ROM bytes. The independent multi-file source workspace keeps its existing separate build/export path.</p>
+
+<p>Project intake expires after its guarded project snapshot changes. Its old report remains readable, but actions disable and the panel collapses with an explicit detached-input label; expand it to review the retained report. Prepare/import previews also invalidate visibly after project replacement or relevant edits. Audio retains a previous catalog as evidence with stale operations disabled and any staged import cancelled. <strong>Continue independent Audio inspection</strong> explicitly reopens those exact retained bytes through the original loader; it does not modify the current project or emulator. <strong>Use current project source</strong> instead reads the active project's preserved ROM through that same loader and guards its source/epoch without loading the emulator. A new conversion preview and the existing project/source guards are still required before tracker import. <code>NativeAudioLibraryUI.getState().isCurrent</code> continues to describe the source session; <code>sourceRole</code> explains its relationship to the project.</p>
+
+<p>Independent general RE and multi-file source remain available across project replacement. Their labels explain that distinction rather than deleting deliberate independent work. A selected-but-unopened RE file leaves the previous inspection visibly detached until a source is opened. Source labels are UI evidence only: they do not change schema, native signatures, recognition, recipes, byte ownership, asset references or runtime rules.</p>
+
+<p><strong>Project lessons</strong> opens the maintained offline chapters within <strong>TECH DOCS</strong>. The initial section follows the selected project/asset, including independently selected poses. Resources offers <strong>Lesson for this resource</strong>; Audio offers <strong>Lesson for this Audio source</strong>; intake offers <strong>Lesson for inspected input</strong>. Every chapter remains manually selectable, including source-page methods, Zelda II terrain/locations, Ninja source/copies, other title/Audio notes, the developer guide, verification requirements and synthetic exercise. The original Tech Docs and authoring reference remain below the reader. Historical acceptance notes retain their own scope; a chapter's presence does not certify complete title recovery.</p>
+
+<p>To extend this in source or HTML:</p>
+
+<ol>
+<li>Edit/add the title Markdown under <code>app/docs/projects</code>. Describe actual supported fields, source formats, shared consumers, limits, Audio, save/reopen/build and independent RE/ASM/hex/application paths.</li>
+<li>Add a chapter to <code>app/tools/render_project_tutorials.py</code> when needed. It renders the standalone handbook and <code>app/src/docs/project-lessons-data.js</code> from the same Markdown/anchors, escaping script delimiters. <code>--check</code> detects drift. The generated data contains documentation only, with source paths and hashes.</li>
+<li>Add a known profile/adapter mapping in <code>ui/project-lessons.js</code>. Choose by installed identifiers/source evidence, never by filename. Resolve the exact selected resource and keep current output scope separate from an independent source's lesson.</li>
+<li>Keep <code>services/source-context.js</code> read-only. The UI consumes existing ProjectStore epoch/snapshot and source callbacks; it must not weaken or replace those guards. <code>InvestigationUI.projectChanged</code> and existing edit/UI events refresh presentation. Stale inputs require fresh inspection, not a rewritten signature.</li>
+<li>Regenerate the native/root and optional hosted outputs from the shared manifests. Test source switching, authored replacement, delayed reads, cancelled/stale imports, explicit independent continuation, all lesson links/sections, source/workspace preservation, save/reopen and unchanged compiled bytes.</li>
+</ol>
+
+<p>For a quick HTML-only experiment, copy the standalone HTML and locate those module comments or <code>projectLessonsOpen</code>, <code>nativeAudioIndependent</code> and <code>projectGatewayPanel</code>. To change lesson text durably, edit Markdown and regenerate rather than maintaining a second HTML tutorial copy. Reading a lesson never imports the shown example or changes native game rules.</p>
 </main></body></html>

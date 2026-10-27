@@ -39,7 +39,7 @@
 <p>Connect a compatible wired/USB-C controller or pair Bluetooth in the device's settings, then press a controller button while this page is focused. Controller settings select one gamepad and map its buttons/axes to the eight NES controls. Availability depends on the device, browser and controller. After interruptions, release the controller to neutral before pressing again. Physical-device acceptance remains documented separately in the package; no universal compatibility claim is made.</p>
 <h3>Controls and limits</h3><p>Editor: Ctrl/Cmd+Z Undo, Ctrl/Cmd+Shift+Z Redo; text fields retain their normal shortcuts. Scene right-click samples tile/palette. Emulator: arrows move, Z=A, X=B, Shift=Select, Enter=Start. Input is released on interruption; opposite directions cancel to neutral. The emulator remains approximate for cycle/raster/IRQ/DMC timing. Current builds check 256 BG/256 sprite atlas tiles, 64 OAM entries and existing per-mode limits. Linked editor views retain whole-project synchronization; LiveLink is inactive.</p>
 <h3>Verification</h3><p>The release includes runnable tests, fixtures, checkpoint reports and the tested HTML checksum. Automated control-handler and bundled-emulator checks do not establish native browser interaction or independent NES hardware compatibility. See the packaged acceptance report for the exact verified and unverified scope.</p></div>`;
-    return d;
+    F.services.ProjectLessons?.mount(d);return d;
   }
   F.services.Documentation=Object.freeze({render});
   renderDocs=render;

@@ -1,4 +1,4 @@
-/* NES Forge Connected Workspace v0.2 — optional review layer.
+/* NES Forge Connected Workspace v0.3 — context and supported editing routes.
  * Read-only context, health previews, workflow shortcuts & staged file inspection.
  * NO project write, schema mutation, native encoder changes or automatic imports.
  */
@@ -23,38 +23,54 @@ const css=document.createElement('style');css.id='fcw-styles';css.textContent=`
 `;document.head.appendChild(css);
 const ribbon=el('div');ribbon.id='fcw-ribbon';ribbon.innerHTML='<span class="fcw-label">Working context</span><strong id="fcw-project">Untitled</strong><span id="fcw-status" class="fcw-status"></span><span id="fcw-location" class="fcw-muted"></span><span class="fcw-spacer"></span><button type="button" id="fcw-z2">Native World</button><button type="button" id="fcw-relations">▣ Resources</button><button type="button" id="fcw-open">Connected Workspace</button>';
 const originalTop=document.querySelector('.top');originalTop?.parentNode.insertBefore(ribbon,originalTop.nextSibling);
-const overlay=el('div');overlay.id='fcw-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','NES Forge Connected Workspace');overlay.innerHTML=`<div id="fcw-dialog"><header class="fcw-header"><div><div class="fcw-k">NES Forge / Integration preview</div><h2>Connected Workspace</h2><div class="fcw-subtitle">Your project, its assets, supported operations and the next editing step</div></div><span class="fcw-flex"></span><button id="fcw-close" type="button">✕ Close</button></header><nav class="fcw-tabs" role="tablist"><button type="button" data-fcw-tab="overview" aria-selected="true">Overview</button><button type="button" data-fcw-tab="create" aria-selected="false">Create a Game</button><button type="button" data-fcw-tab="native" aria-selected="false">Native / Z2</button><button type="button" data-fcw-tab="health" aria-selected="false">Project Health</button><button type="button" data-fcw-tab="import" aria-selected="false">Import Preview</button></nav><div class="fcw-scroll"><section class="fcw-panel show" id="fcw-panel-overview"></section><section class="fcw-panel" id="fcw-panel-create"></section><section class="fcw-panel" id="fcw-panel-native"></section><section class="fcw-panel" id="fcw-panel-health"></section><section class="fcw-panel" id="fcw-panel-import"></section></div><footer class="fcw-foot" id="fcw-footer">Prototype only · existing project/ROM lifecycle remains authoritative · no Git push</footer></div>`;
+const overlay=el('div');overlay.id='fcw-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','NES Forge Connected Workspace');overlay.innerHTML=`<div id="fcw-dialog"><header class="fcw-header"><div><div class="fcw-k">NES Forge / Integration preview</div><h2>Connected Workspace</h2><div class="fcw-subtitle">Your project, its assets, supported operations and the next editing step</div></div><span class="fcw-flex"></span><button id="fcw-close" type="button">✕ Close</button></header><nav class="fcw-tabs" role="tablist"><button type="button" data-fcw-tab="overview" aria-selected="true">Overview</button><button type="button" data-fcw-tab="create" aria-selected="false">Create a Game</button><button type="button" data-fcw-tab="native" aria-selected="false">Native tools</button><button type="button" data-fcw-tab="health" aria-selected="false">Project Health</button><button type="button" data-fcw-tab="import" aria-selected="false">Import Preview</button></nav><div class="fcw-scroll"><section class="fcw-panel show" id="fcw-panel-overview"></section><section class="fcw-panel" id="fcw-panel-create"></section><section class="fcw-panel" id="fcw-panel-native"></section><section class="fcw-panel" id="fcw-panel-health"></section><section class="fcw-panel" id="fcw-panel-import"></section></div><footer class="fcw-foot" id="fcw-footer">Save Project As preserves your work · Preflight Build checks current output eligibility</footer></div>`;
 document.body.appendChild(overlay);
-let view='overview',lastFocus=null,staged=[],lastIdentity='';
-function button(label,handler,cls=''){const b=el('button',cls,label);b.type='button';b.addEventListener('click',()=>{try{handler();}catch(e){$('footer').textContent='Action unavailable: '+e.message;}});return b;}
+let view='overview',lastFocus=null,staged=[],lastIdentity='',buildReport=null;
+function button(label,handler,cls=''){const b=el('button',cls,label);b.type='button';b.addEventListener('click',()=>{try{Promise.resolve(handler()).catch(e=>{$('footer').textContent='Action unavailable: '+e.message;});}catch(e){$('footer').textContent='Action unavailable: '+e.message;}});return b;}
 function line(title,detail,indicator,kind){const r=el('div','fcw-row'),left=el('span');left.append(el('strong',null,title),el('div','fcw-muted',detail));r.append(left,el('span','fcw-indicator '+(kind||''),indicator));return r;}
 function card(title,desc){const c=el('div','fcw-card');c.append(el('h4',null,title),el('p',null,desc));return c;}
-function current(){const nat=S.nativeGame,profile=nat?.profile||null,res=Array.isArray(nat?.resources)?nat.resources:[],z2id=window.ZeldaOverworld?.id;
- const nativeWorld=profile&&profile===z2id;const selectedWorld=S.worlds?.[Forge161?.worlds?.state?.selected||0];
+function current(){const nat=S.nativeGame,profile=nat?.profile||null,res=Array.isArray(nat?.resources)?nat.resources:[],capabilities=svc.ProjectCapabilities.describe(S);
+ const nativeWorld=capabilities.nativeWorld;const selectedWorld=S.worlds?.[Forge161?.worlds?.state?.selected||0];
  const linked=res.find(b=>b.worldId===selectedWorld?.id&&b.mapId);
- const mode=nativeWorld?'Editable Z2 original engine':S.investigation?'Investigated source · inspection':nat?'Native engine · bounded editing':'Original NES Forge game';
- return {mode,nativeWorld,nat,res,linked,selectedWorld,profile,scene:S.scenes?.[S.activeScene],project:S.projectName||'Untitled'};}
-function refreshRibbon(){const c=current();$('project').textContent=c.project;$('status').textContent=c.mode;$('status').dataset.kind=c.nativeWorld?'native':S.investigation?'inspection':'author';const focus=S.tab==='chr'?'CHR tile '+S.editTile:S.tab==='anim'?'Animation '+(S.animations?.[S._selAnim]?.name||'none'):S.tab==='world'?'World '+(c.selectedWorld?.name||'none'):S.tab==='audio'?'Project Audio':S.tab==='code'?'6502 source':S.tab.toUpperCase();$('location').textContent=focus+' · Scene: '+(c.scene?.name||'none');$('z2').textContent=c.nativeWorld?'Edit native World':'Open native World';$('z2').title=c.nativeWorld?'Navigate to the selected original-engine terrain map; no ROM re-import.':'Use the original native World importer for supported Zelda II ROM revisions. General ROM investigation remains available separately.';}
+ return {mode:capabilities.label,capabilities,nativeWorld,nat,res,linked,selectedWorld,profile,scene:S.scenes?.[S.activeScene],project:S.projectName||'Untitled'};}
+function refreshRibbon(){const c=current();$('project').textContent=c.project;$('status').textContent=c.mode;$('status').dataset.kind=c.capabilities.kind;const focus=S.tab==='chr'?'CHR tile '+S.editTile:S.tab==='anim'?'Animation '+(S.animations?.[S._selAnim]?.name||'none'):S.tab==='world'?'World '+(c.selectedWorld?.name||'none'):S.tab==='audio'?'Project Audio':S.tab==='code'?'6502 source':S.tab.toUpperCase();$('location').textContent=focus+' · Scene: '+(c.scene?.name||'none');$('z2').textContent=c.nativeWorld?'Edit native World':'Native tools';$('z2').title=c.nativeWorld?'Open this project’s native terrain editor.':c.nat?'See supported native writers and preserved-source limits for this project.':'Explore native project workflows.';window.Forge15?.build?.refreshScope?.();}
 function gotoTab(tab){close();if(typeof window.switchTab!=='function')throw Error('The existing editor is unavailable');window.switchTab(tab);refreshRibbon();}
 function openZ2(){const c=current();close();if(c.nativeWorld){const worldId=S.worlds?.[Forge161.worlds.state.selected]?.id,sceneId=S.scenes?.[S.activeScene]?.id;const bindings=S.nativeGame?.resources?.filter(r=>r.mapId)||[];const binding=bindings.find(r=>r.worldId===worldId)||bindings.find(r=>r.sceneId===sceneId)||(bindings.length===1?bindings[0]:null);if(!binding)throw Error('Several native World maps exist. Select the intended World or resource first; no map has been changed.');svc.NativeWorldUI.choose(binding.mapId);refreshRibbon();return;}
  const b=document.getElementById('nativeWorldOpen');if(!b)throw Error('Native World importer unavailable in this build.');b.click();}
 function browseZ2(mapId){close();svc.NativeWorldUI.choose(mapId);refreshRibbon();}
-function activeKey(){const scene=S.scenes?.[S.activeScene],sid=scene?.id||'';
- if(S.tab==='chr')return 'tile:'+(S.chrBank==='spr'?'spr':'bg')+':'+sid+':'+S.editTile;
- if(S.tab==='world')return 'world:'+(S.worlds?.[Forge161.worlds.state.selected]?.id||'');
- if(S.tab==='anim')return 'animation:'+(S.animations?.[S._selAnim]?.id||'');
- if(S.tab==='audio')return 'audio:project';
- if(S.tab==='sprites')return 'sprite:'+sid;
- return 'scene:'+sid;
-}
+// Resolve the actual editor selection before opening a related context. A pose
+// may deliberately use a different Scene than the independently selected Scene.
+function activeKey(){return svc.ResourceContext.selection().key;}
+
 function openRelationships(){close();if(svc.ResourceRelationshipPreview?.openAt)svc.ResourceRelationshipPreview.openAt(activeKey());else document.getElementById('frx-open')?.click();}
+// Routes open the existing writer or its explicit resource picker. Merely reading
+// capabilities never materializes a Scene or silently picks a physical bank.
+function openWriter(route){
+ const c=current();if(!c.capabilities.writers.some(w=>w.route===route))throw Error('This project has no registered writer for that action.');
+ if(route==='native-world')return openZ2();
+ close();
+ if(route==='library'||route==='project-library'){svc.AreaLibrary.show();svc.AreaLibrary.selectScope(route==='library'?'source':'project');return;}
+ if(route==='native-locations')return svc.AreaLibrary.openNativeEditor();
+ if(route==='punch-out-arena')return svc.PunchOutArenaUI.open();
+ if(route==='punch-out-pose'||route==='punch-out-art'){
+  if(!svc.PunchOutContentUI.open())throw Error('Open the current recovered source again before choosing a native resource.');
+  window.switchTab('disasm');
+  const panel=document.getElementById(route==='punch-out-pose'?'punchOutPosePanel':'punchOutArtPanel');
+  panel.open=true;panel.scrollIntoView?.({block:'start'});
+  document.getElementById(route==='punch-out-pose'?'punchOutPoseChoice':'punchOutArtBank').focus();return;
+ }
+ throw Error('The native writer editor is unavailable.');
+}
+function writerCards(host,c){for(const writer of c.capabilities.writers){const box=card(writer.title,writer.scope);const b=button('Open '+writer.title+' ↗',()=>openWriter(writer.route));b.dataset.fcwWriter=writer.id;box.appendChild(b);host.appendChild(box);}}
 function buildOverview(){const c=current(),host=$('panel-overview');host.replaceChildren(el('h3',null,'What am I working on?'),el('p',null,'Choose a resource, understand its owner and consumers, then open the exact editor. The active project stays untouched until you use the original authoring tools.'));
  const grid=el('div','fcw-grid');const project=card('Current project',c.project);project.append(el('div','fcw-muted','Mode: '+c.mode),el('div','fcw-muted','Current Scene: '+(c.scene?.name||'none')),el('div','fcw-muted','Current World: '+(c.selectedWorld?.name||'none')));grid.appendChild(project);
  const graph=svc.ResourceRelationshipPreview.liveGraph(),links=card('Declared resources and links',graph.nodes.size+' resources · '+graph.edges.length+' explicit relationships · '+graph.issues.length+' diagnostic notes.');links.appendChild(button('Inspect relationships ↗',openRelationships));grid.appendChild(links);host.append(grid);
- const tools=card('Your next action','Original game editing and native ROM investigation are different workflows. Choose the one you intend.');for(const [name,fn] of [['Draw CHR pixels',()=>gotoTab('chr')],['Edit Scene layout',()=>gotoTab('scene')],['Edit Gameplay',()=>gotoTab('scene')],['Compose Audio',()=>gotoTab('audio')],['Edit Zelda II terrain',openZ2]])tools.appendChild(button(name,fn));host.appendChild(tools);
- if(S.investigation&&!c.nativeWorld)host.append(line('Source is in investigation mode','Recovered evidence does not automatically create an editable native terrain project. Use the dedicated native Z2 opener.','Inspection only','warn'));
+ if(c.nat){host.appendChild(card('Current output scope',c.capabilities.scope));writerCards(host,c);
+  if(c.capabilities.preservationOnly)host.append(line('Preserved source','This project can output its unchanged source. Editable copies can be saved or exported separately; no native asset writer is registered.','Unchanged output','warn'));
+ }else{const tools=card('Your next action','These editors author the current NES Forge project.');for(const [name,fn] of [['Draw CHR pixels',()=>gotoTab('chr')],['Edit Scene layout',()=>gotoTab('scene')],['Edit Gameplay',()=>{close();svc.SceneContext.openAsset('gameplay');}],['Compose Audio',()=>gotoTab('audio')]])tools.appendChild(button(name,fn));host.appendChild(tools);}
 }
 function buildCreate(){const host=$('panel-create');host.replaceChildren(el('h3',null,'Build an original NES game from scratch'),el('p',null,'These actions take you into the working NES Forge editors. This guide does not overwrite an existing project or auto-create placeholder assets. Use the existing New Project command when you want a clean slate.'));
+ if(current().nat){host.appendChild(card('A separate authored project','The current project preserves an original game engine. Save it first, then use New Project to begin an original NES Forge game. Use Native tools for the supported edits in the current project.'));host.appendChild(button('View current native tools',()=>tab('native')));return;}
  const steps=[
   ['1. Project','Start a new project using NES Forge’s existing New Project command, or continue with your active project.',null],
   ['2. Draw CHR graphics','Edit pixel tiles in the CHR editor. Background and sprite graphics share the Scene’s canonical tile ownership.','chr'],
@@ -70,17 +86,24 @@ function buildCreate(){const host=$('panel-create');host.replaceChildren(el('h3'
  for(const [name,info,target] of steps){const row=el('div','fcw-step');row.append(el('strong',null,name),el('div',null,info));if(target)row.appendChild(button('Open '+target.replace(/^./,s=>s.toUpperCase())+' editor ↗',()=>{if(target==='gameplay'){close();svc.SceneContext?.openAsset?.('gameplay');}else gotoTab(target);}));host.appendChild(row);}
  host.append(line('Tutorial coverage','Guided instructions use existing controls; no claim of a complete no-code demo project in this preview.','Prototype','warn'));
 }
-function buildNative(){const c=current(),host=$('panel-native');host.replaceChildren(el('h3',null,'Zelda II — editable overworld'),el('p',null,'The original-engine terrain editor is a distinct project workflow. Generic ROM investigation and source map previews are not necessarily editable. Import the supported ROM into its native World project, then paint, save, rebuild, and verify.'));
- host.append(line('Current project type',c.mode,c.nativeWorld?'Native terrain editor available':'Native terrain editor requires a supported ROM project',c.nativeWorld?'good':'warn'));
- const box=card(c.nativeWorld?'Open an existing native region':'Open a supported Zelda II ROM','Only use a ROM revision recognized by the existing ZeldaOverworld adapter. Importing it as a new native project may replace unsaved work. The underlying importer handles confirmation and validation.');
- if(c.nativeWorld){for(const r of window.ZeldaOverworld.resources){box.appendChild(button('Edit '+r.name+' ↗',()=>browseZ2(r.id)));}if(c.linked)box.append(el('div','fcw-muted','Selected native binding: '+c.linked.mapId));}
- else box.append(button('Open native World · choose supported ROM',openZ2));host.appendChild(box);
- const compare=card('How to tell the difference','Editable native project: the World panel displays a terrain palette, editable canvas, and compressed-map byte budget. Investigation mode: recovered source evidence, which does not itself authorize writing back.');compare.appendChild(button('Inspect current relationships',openRelationships));host.appendChild(compare);
- host.append(line('Native output limitation','Verified scope in this code: overworld terrain and four location fields. Other graphics, Audio, collision and runtime changes may block native builds.','Bounded','warn'));
+function buildNative(){const c=current(),host=$('panel-native');host.replaceChildren(el('h3',null,c.nat?c.capabilities.title+' — native tools':'Native project workflows'),el('p',null,c.nat?c.capabilities.scope:'Open a supported ROM through Open ROM / project to discover its preserved source, recovered resources and available native writers. Current authoring tools keep their existing generated build route.'));
+ if(c.nat){host.append(line('Current project type',c.mode,c.capabilities.preservationOnly?'Unchanged source output':'Bounded native editing',c.capabilities.preservationOnly?'warn':'good'));writerCards(host,c);
+  if(c.nativeWorld){const box=card('Choose a native region','Each region uses its existing terrain palette and compressed-map budget.');for(const r of window.ZeldaOverworld.resources)box.appendChild(button('Edit '+r.name+' ↗',()=>browseZ2(r.id)));host.appendChild(box);}
+  host.append(line('Build acceptance','Available writers describe supported fields. Unsupported edits remain savable and can block native output; use Preflight Build for the current project.','Validation required','warn'));
+ }else{const box=card('Choose a source','Open ROM / project prepares the title-specific workflow. The native World importer also supports recognized Zelda II revisions. The importer validates the source and handles replacement of unsaved work.');box.append(button('Open ROM / project',()=>{close();document.getElementById('projectGatewayOpen').click();}),button('Open native Zelda II World',openZ2));host.appendChild(box);}
+ const compare=card('Editing owner and reference copies','Recovered reference Scenes can be inspected or saved as copies. Native output changes only through the declared writer and its owned fields. Physical banks and source records can have shared uses.');compare.appendChild(button('Inspect current relationships',openRelationships));host.appendChild(compare);
 }
-function buildHealth(){const c=current(),host=$('panel-health'),g=svc.ResourceRelationshipPreview.liveGraph();host.replaceChildren(el('h3',null,'Project Health — preliminary checks'),el('p',null,'These are project/reference diagnostics, not a ROM compatibility certification or native build acceptance pass.'));host.append(line('Canonical Scene assets',String(S.scenes?.length||0)+' Scene(s) in project',S.scenes?.length?'Present':'Missing',S.scenes?.length?'good':'bad'));
+function buildHealth(){const c=current(),host=$('panel-health'),g=svc.ResourceRelationshipPreview.liveGraph();host.replaceChildren(el('h3',null,'Project Health — references and current ROM build'),el('p',null,'Reference integrity and compiler acceptance are separate checks. Check current ROM build runs the existing backend without downloading or starting the game.'));host.append(line('Canonical Scene assets',String(S.scenes?.length||0)+' Scene(s) in project',S.scenes?.length?'Present':'Missing',S.scenes?.length?'good':'bad'));
  host.append(line('Declared references',g.edges.length+' relationship(s); '+g.issues.length+' issue(s) detected',g.issues.length?'Review issues':'No detected issues',g.issues.length?'warn':'good'));
- host.append(line('Native encoder eligibility',c.nativeWorld?'Zelda II terrain writer registered; precise validation happens during the actual build.':c.nat?'Native build scope is profile-specific; unsupported changes remain blocked.':'Regular generated ROM workflow, subject to existing compiler checks.','Not pre-certified','warn'));
+ host.append(line('Build backend',c.capabilities.scope,'Compiler check below','warn'));
+ let currentReport=false;try{currentReport=!!buildReport?.fingerprint&&buildReport.fingerprint===svc.BuildGraph.identity();}catch(_){}
+ const state=currentReport?(buildReport.ok?'Compiler passed':'Build refused'):buildReport?'Check again':'Not checked';
+ host.append(line('Current ROM build',currentReport?(buildReport.ok?buildReport.bytes.toLocaleString()+' bytes compiled. Verify the visible result in the game.':'The actual backend refused this capture. Unsupported work remains savable.'):
+   'Run a fresh check after editing. A prior result does not certify the current capture.',state,currentReport&&buildReport.ok?'good':'warn'));
+ const check=button('Check current ROM build',()=>{buildReport=svc.BuildGraph.checkCurrent();buildHealth();});check.id='fcw-check-build';host.append(check);
+ const report=el('div','fcw-card');report.id='fcw-build-report';report.setAttribute('role','status');
+ if(currentReport)svc.BuildDiagnostics.render(report,buildReport.diagnostics);else report.textContent='No current compiler result. Reference counts do not prove build eligibility.';
+ host.append(report);
  host.append(line('Audio associations','Tracker audio is project-wide. Event bindings require declared references; no triggers are invented.','Not inferred','warn'));
  host.append(line('Save and round trip','Save/reopen and target emulator verification require explicit tests for this project.','Not tested here','warn'));
  const issues=card('Asset registry and relationship diagnostics',g.issues.length?g.issues.slice(0,12).join('\n'):'No issues surfaced by the current relationship graph. This does not prove the project will build.');issues.style.whiteSpace='pre-wrap';host.appendChild(issues);host.append(button('Refresh current project checks',()=>buildHealth()));
@@ -105,7 +128,7 @@ function render(){refreshRibbon();buildOverview();buildCreate();buildNative();bu
 function tab(id){view=id;render();}
 function open(id='overview'){lastFocus=document.activeElement;view=id;render();overlay.classList.add('show');document.body.dataset.fcwOpen='true';$('close').focus();}
 function close(){overlay.classList.remove('show');delete document.body.dataset.fcwOpen;lastFocus?.focus?.();}
-$('z2').onclick=()=>{try{openZ2();}catch(e){open('native');$('footer').textContent=e.message;}};$('relations').onclick=openRelationships;$('open').onclick=()=>open();$('close').onclick=close;
+$('z2').onclick=()=>{try{if(current().nativeWorld)openZ2();else open('native');}catch(e){open('native');$('footer').textContent=e.message;}};$('relations').onclick=openRelationships;$('open').onclick=()=>open();$('close').onclick=close;
 for(const b of overlay.querySelectorAll('[data-fcw-tab]'))b.addEventListener('click',()=>tab(b.dataset.fcwTab));
 overlay.addEventListener('mousedown',e=>{if(e.target===overlay)close();});overlay.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();}else if(e.key==='Tab'){const vis=[...overlay.querySelectorAll('button:not([disabled]),input:not([disabled])')].filter(x=>x.offsetParent!==null);if(vis.length){const first=vis[0],last=vis[vis.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}e.stopPropagation();});
 // Refresh context after user interactions, rather than installing a second project lifecycle or polling snapshots.

@@ -1,0 +1,73 @@
+{
+  "status": "passed",
+  "nativeHtmlSha256": "863d7038a99fe687ff1a8f8184d066d415fe32e1f34fcca62202d3e508b6a73d",
+  "hostedHtmlSha256": "cb63f80295d413e3318808cfb77bdadec749bfb6f996a04b9bd6112d88a58a79",
+  "checks": {
+    "sourceContextLessonsDom": {
+      "passed": 40,
+      "total": 40
+    },
+    "sourceContextLessonsBrowser": {
+      "passed": 42,
+      "total": 42
+    },
+    "previewDiagnosticsDom": {
+      "passed": 29,
+      "total": 29
+    },
+    "previewDiagnosticsBrowser": {
+      "passed": 32,
+      "total": 32
+    },
+    "resumeDom": {
+      "passed": 22,
+      "total": 22
+    },
+    "connectedResourceDom": {
+      "passed": 20,
+      "total": 20
+    },
+    "capabilityLifecycleDom": {
+      "passed": 12,
+      "total": 12
+    },
+    "resumeBrowser": {
+      "passed": 36,
+      "total": 36
+    },
+    "startupNative": {
+      "passed": 10,
+      "total": 10
+    },
+    "publicNative": {
+      "passed": 104,
+      "total": 104,
+      "suites": 9
+    },
+    "startupHosted": {
+      "passed": 10,
+      "total": 10
+    },
+    "publicHosted": {
+      "passed": 104,
+      "total": 104,
+      "suites": 9
+    },
+    "hostedAcceptance": {
+      "passed": 138,
+      "total": 138,
+      "suites": 12
+    }
+  },
+  "sourceConvergence": "Source_Convergence.json",
+  "documentation": "Documentation_Verification.json",
+  "concurrentIntegration": "Concurrent_Integration.json",
+  "scope": "Forge app source roles, visible stale-session invalidation, explicit Audio source routes and contextual offline lessons. Existing canonical owners, native behavior/codecs and multiplayer gameplay retained.",
+  "limits": [
+    "DOM canvas/layout/timers are stubbed; actual Chromium controls, native file intake and 390px layout are checked separately.",
+    "The new workflow browser probe uses real file inputs and import/open controls. Retained older browser suites keep their documented factory-input limits.",
+    "Source identity labels and reading lessons grant no build/write capability; native guards and bounded writers retain ownership.",
+    "No new Punch-Out native behavior or writer. Knockdown, referee-count and round-transition recovery remains next.",
+    "No full-fight, listening/controller/hardware, independent emulator, exhaustive native-use or public hosting acceptance. The historical full gate remains unavailable."
+  ]
+}

@@ -245,6 +245,7 @@ Keep comments near decisions: source ownership, pointer mapping, private buses, 
 | Shared CPU instruction behavior | `services/cpu6502-core.js` |
 | Persistence and reference lookup | `services/project-store.js`, `services/asset-registry.js` |
 | Build planning and output | `services/build-services.js`; runtime-specific compilers |
+| Project capabilities and applicable controls | `services/project-capabilities.js` projects `BuildGraph.backendFor` and native owners; encoder registrations declare their own available scope. `ui/connected-workspace.js`, intake, Scene context and Area Library display it. `legacy/05-foundation.js` guards generated build-selection controls; `legacy/00-editor.js` and the shell guard native ROM configuration. |
 | Emulator/player | `legacy/01-emulator.js`, `services/emulator-*`, `services/mmc2-emulator.js`, `re/mmc2.js` |
 | Input and analysis | `services/project-gateway.js`, `re/project-gateway-ui.js`, `re/re-analysis*`, `source/` |
 | Native resource ownership | `services/rom-project.js`, `services/investigation-project.js`, `services/native-resource-project.js` |
@@ -258,6 +259,8 @@ Keep comments near decisions: source ownership, pointer mapping, private buses, 
 | Final initialization | `composition.js` |
 
 ## 11. Prove the workflow, not just the helper
+
+Begin with the current backend in **Connected Workspace**. Native tools lists the current project's registered writers, with explicit pickers for resources such as Punch-Out CHR banks and Glass Joe poses. Availability is separate from build acceptance: an unsupported copied edit can still block output. Native projects preserve their original engine configuration and do not use the generated Scene inclusion/order controls. Generated packed builds retain that selection; World output follows its saved dependencies, and unpacked custom assembly uses active CHR. No capability label changes a project signature or supplies an encoder.
 
 A decoder and its tests can share a wrong assumption. Earlier Punch-Out tests missed an import-path difference and mirrored rendering assumptions. Test original loaders and independent observations, and exercise the actual UI entry points.
 
@@ -384,14 +387,105 @@ The supplied Resources, Connected Workspace, metasprite context and Retro Workst
 
 ### Native Glass Joe full-pose position extension
 
-Section 16 of `projects/PUNCH_OUT.md` adds a dedicated native position view for each of Glass Joe's 30 full poses. The frame and source-art Scene are ordinary canonical assets. The signed native X/Y operands are derived from uniform piece displacement minus the frame origin, so no hidden placement recipe or alternate asset store is required. Individual pieces, shared geometry, delta poses and animation remain separate writing problems.
+Section 16 of `projects/PUNCH_OUT.md` adds a dedicated native position view for each of Glass Joe's 30 full poses. The frame and source-art Scene are ordinary canonical assets. The signed native X/Y operands are derived from uniform piece displacement minus the frame origin, so no hidden placement recipe or alternate asset store is required. Individual pieces, shared geometry, position-less incremental records and animation remain separate writing problems. Five explicit incremental positions extend this method below.
 
 | Owner | Responsibility | Connection |
 |---|---|---|
 | `re/punch-out-pose.js` | Pure pointer/position codec; validates the output through the original CPU shape reader | Source bytes → canonical placement → two signed native bytes |
 | `services/punch-out-pose-project.js` | Dedicated Scene/Metasprite ownership and bounded encoding | NativeResourceProject's existing encoder registry, projection gate and disjoint-span checks |
-| `re/punch-out-pose-ui.js` | Pose selection, native X/Y controls, one Undo transaction and build check | Existing Metasprites, ProjectStore, history and RuntimeCompiler |
+| `re/punch-out-pose-ui.js` | Pose selection, native X/Y controls, one Undo transaction, build check and contextual artwork shortcuts | Existing Metasprites, CHR Sheet, native artwork UI, ProjectStore, history and RuntimeCompiler |
 
 The native resource gate now accepts an optional `metaspriteViews` callback on a registered encoder. It compares declared baseline origin/piece positions while retaining every unrelated project field in the signature. The encoder separately proves uniform movement, unchanged piece identities/order/tiles/flags, signed-byte range and exact owned-byte writes. Masking a recognition range or registering a projection never grants permission to write another resource. With no native pose view present, the preceding projection and output remain unchanged.
 
 For standalone HTML work, change these authoritative modules and re-bundle. For independent hex work, the title lesson identifies the actual position operands and validation steps. Moving a visual pose leaves the original damage/attack/collision code in place, so check alignment in the running game. Native pose editing is scoped to whole-pose placement; it is not complete fighter or animation recovery.
+
+### Native idle and incremental position extension
+
+Section 17 of `projects/PUNCH_OUT.md`, included in the offline handbook, covers five additional explicit X/Y pairs, the grouped `$C0/$C2/$C4` idle workflow, file offsets, external hex editing and direct HTML/source changes. The existing codec now calls `PunchOutStates` to preserve preceding OAM and the observed moving anchor; reading incremental frames independently would lose that context. All 30 earlier full-pose views retain their original identities and source ownership.
+
+The same native encoder owns these pairs through ordinary Metasprites. Incremental views use a separate `punchOutIncrementalPose` marker so older full-pose-only readers preserve the ordinary assets and refuse unsupported native building. The idle helper adds missing derived views and changes three existing canonical frames in one guarded project transaction. It preserves their current relative displacement and original timing; it does not create a second animation/runtime store.
+
+For the `$C0` family, source routine `$D043` derives priority from native OAM Y at the `$50` divider. `moveFrame` updates canonical `behind` flags to match that consequence of position. The encoder independently checks this exact derivation; manual flag changes still refuse. Source attribute streams, flags, pointers and code remain protected. Full-pose and other incremental attribute handling keep their earlier rules.
+
+Derivative recognition adds exactly ten physical operand bytes; it does not widen generic recipe writes. Existing native art/palette and arena owners still encode separate spans. Tests check every earlier full pose, all five new records, observed primary-state contexts, priority consequences, one-step grouped Undo/Redo, save/reopen, older-reader refusal, composed native output and real exported/reimported idle playback. The title lesson keeps unobserved paths and complete-fight/animation/Audio writing limits explicit.
+
+### Pose and CHR navigation
+
+The native pose picker is expanded above the source-reference preview in Recovered content. The native position panel links to **View pose sprite tiles** and **Edit native sprite artwork**. Entering CHR Sheet with an owned pose Scene selects its sprite buffer; the sheet's contextual strip also exposes the source-verified physical bank and a return to position editing. Opening a dedicated physical CHR view selects its background buffer, which is the registered pixel writer. A deliberate bank toggle still works in the current sheet.
+
+The reference sprite buffer and the physical writer remain separate existing assets. Navigation does not copy pixels, replace snapshots, re-sign unsupported work, patch source or create an alternate encoder. `PunchOutPoseProject.describe` returns the verified `chrBank4KiB` for UI routing. Existing native validation still runs before a physical view can be added/selected; copied-reference pixel changes refuse native building and cannot be adopted as a new baseline by following the shortcut. See the Punch-Out handbook's section 17 for the click-by-click path and save/build/reimport exercise.
+## 16. Save and restore editor context without changing the game
+
+Portable **Save Project As**, browser project saves, recovery and Export's `project.json` include optional browsing preferences. A fresh open can return to the same Metasprite and piece, core editor tab, selected World, CHR buffer/tile and used-pose view. The active Scene and selected pose remain independent when their declared source references differ. Choosing another World in the editor does not change `worldRuntime.worldId` or its spawn.
+
+For independent JSON or HTML work, the additional metadata has this shape:
+
+```json
+{
+  "editorView": {
+    "version": 1,
+    "worldId": "an-existing-world-id",
+    "metaspriteId": "an-existing-pose-id",
+    "pieceId": "a-piece-in-that-pose",
+    "tab": "chr",
+    "chrUsage": "pose"
+  }
+}
+```
+
+These are existing asset IDs and a few bounded view values, not new asset records. `chrUsage` is `pose` or `whole`; `tab` must name an available core editor. Existing top-level `activeScene`, `chrBank` and tile/Animation selections retain their current formats. A deliberately empty `metaspriteId` preserves an unselected composer. A stale or invalid ID does not bind a different Scene or regenerate assets. With no valid saved pose, a unique pose using the active Scene can be selected; several matches produce an explicit choice, and no matching pose leaves the composer unselected.
+
+`ProjectStore.capture({includeEditorView:true})` includes this block for saves. Default `capture()` / `serialize()` and `authoringData()` keep the existing build/authoring boundaries; the latter removes view metadata. Native signatures, source bytes, encoder spans and raw recipe hashing rules are unchanged. Ordinary projects remain schema 12; existing native formats and the reader ceiling of 16 stay intact. An older reader may discard optional browsing preferences safely. Unknown future preference versions can retain the old World hint but do not introduce new navigation rules.
+
+The implementation uses the existing owners:
+
+- `services/editor-view.js` reads a whitelist of bounded hints, captures current UI IDs and restores them through the existing Metasprite/World/CHR editors. It owns no asset store, encoder or persistent database.
+- `services/project-store.js` owns save/load/history and includes the block only at explicit save boundaries. Validation of canonical project data still runs before UI state is touched.
+- `legacy/13-metasprites.js` exposes `restoreSelection` for UI IDs and an explicit chooser when fallback would be ambiguous. It adds no pieces, Scene OAM or source references.
+- `re/punch-out-pose-ui.js` can resolve a native CHR return shortcut from the restored canonical pose, instead of requiring a previous click history in the same document.
+
+To change this behavior in the standalone HTML, save a copy and locate those module comments. To maintain source, edit their files under `app/src`, rebuild the native/root and hosted outputs, and check them. Do not put view preferences into a native projection signature or refresh copied source pixels merely to align a preview. Verify fresh-document reopening, intentional mismatches, old/malformed hints, Undo/Redo, all save transports and byte-identical output. Optional metadata does not save emulator RAM, resume playback or establish a recovered runtime binding.
+
+## 17. Preview the actual resource and check the actual build
+
+A consistent preview needs explicit source, palette, composition and output scope. Resources Scene previews use `forgeCapture.scenePixels` for background plus active Scene OAM, including captured raster states. Pose previews use the canonical Metasprite compositor. CHR Resources uses the existing `forgeCHR` appearance resolver: current color mode/appearance for the displayed buffer, automatic source usage when browsing a different buffer, transparent sprite index 0, and the correct page of a capture atlas. These views do not create Scene placements or change assets.
+
+Supported native Glass Joe position views also offer **Preview current native output**. It captures the project through ProjectStore, calls the same live BuildGraph/RuntimeCompiler entry as Build & Run, which captures a detached source, and decodes the supported pose from the exact resulting ROM. The pose compositor receives detached encoded pixels/colors; the source snapshot remains untouched. A failed compile produces a refusal, not an original-ROM fallback. Incremental preview is limited to the declared state path, with no claim of a live fight or complete game palette/priority behavior.
+
+**Connected Workspace → Project Health → Check current ROM build** runs the real current backend without committing the result, downloading or changing emulator state. Relationship counts remain a separate diagnostic. A successful result is tied to the captured input and becomes stale after edits; it does not certify gameplay. Code preflight and failed builds surface the same available structured native refusal details.
+
+To repair a refusal, read its backend message, resource ID and confirmed field path, then use **Inspect this resource**. Save unsupported work before ordinary Undo. Make the intended change through the declared writer and recheck. Unsupported assets remain savable. A signature mismatch alone cannot locate every edit: native owners name a source-copy field only when a reproducible detached candidate restores the existing saved projection hash. Unproven differences stay explicitly unlocalized. Do not replace a signature or refresh a copied snapshot to make a refused project appear valid.
+
+Developer entry points:
+
+- `services/resource-preview.js` supplies explicit context to the existing Scene/CHR/pose renderers and the native compiler. It stores no assets or output cache.
+- `legacy/04-saveas-chr.js` keeps CHR usage/palette rules in one resolver, including captured palettes and selected-pose contexts. `legacy/13-metasprites.js` accepts an explicit detached draw source.
+- `services/build-diagnostics.js` carries error text/context into UI. `services/build-services.js` retains build routing and compilation; `checkCurrent` invokes those owners without commit.
+- `services/native-resource-project.js` still owns signatures, recipes and write spans. Registered title owners can expose reproducible diagnostic views; these do not mask fields or authorize edits. Zelda II terrain budget and native screen layout errors attach their actual World/Scene context at the refusing encoder.
+- `ui/resource-relationships.js` and `ui/connected-workspace.js` render preview scope and compiler results. The results are disposable and are not included in project schema or persistence.
+
+For an HTML-only experiment, copy the complete standalone HTML and search for these module comments or `fcw-check-build` / `frx-native-output`. For maintained work, edit `app/src`, update both manifests only if adding a module, and regenerate the native/root and optional hosted outputs. Keep one shared source and use the existing project lifecycle. Independent RE, assembly and external hex workflows continue to use explicit file/CPU/PPU addresses and verified diffs; a preview relationship does not grant byte ownership.
+
+Verification should compare actual canvas pixels (not just the existence of a canvas), include live and independently browsed Scenes, raster palettes, sprite transparency/flips/priority, CHR preview modes and atlas pages. Native cases must compare snapshot versus compiled output, preserve canonical assets/signatures, exercise real refusals and repair navigation, and recheck save/reopen and target playback. See the Punch-Out chapter section 21 for a complete worked sequence.
+
+## 18. Current, independent and detached sources; in-app lessons
+
+Forge can hold a project, an inspected ROM, a native Audio catalog, an emulator ROM and a multi-file source workspace at the same time. They do not become one editable object because their names or pixels resemble one another.
+
+**Current project source** means matching declared/preserved source identity with a valid owning session. It is not a claim that every recovered field has an encoder. **Independent source** means an explicitly chosen inspection separate from that project. **Detached source** means an earlier project/source guard has expired, even if a hash happens to match. **Inspected project file** identifies a saved JSON input rather than ROM bytes. The independent multi-file source workspace keeps its existing separate build/export path.
+
+Project intake expires after its guarded project snapshot changes. Its old report remains readable, but actions disable and the panel collapses with an explicit detached-input label; expand it to review the retained report. Prepare/import previews also invalidate visibly after project replacement or relevant edits. Audio retains a previous catalog as evidence with stale operations disabled and any staged import cancelled. **Continue independent Audio inspection** explicitly reopens those exact retained bytes through the original loader; it does not modify the current project or emulator. **Use current project source** instead reads the active project's preserved ROM through that same loader and guards its source/epoch without loading the emulator. A new conversion preview and the existing project/source guards are still required before tracker import. `NativeAudioLibraryUI.getState().isCurrent` continues to describe the source session; `sourceRole` explains its relationship to the project.
+
+Independent general RE and multi-file source remain available across project replacement. Their labels explain that distinction rather than deleting deliberate independent work. A selected-but-unopened RE file leaves the previous inspection visibly detached until a source is opened. Source labels are UI evidence only: they do not change schema, native signatures, recognition, recipes, byte ownership, asset references or runtime rules.
+
+**Project lessons** opens the maintained offline chapters within **TECH DOCS**. The initial section follows the selected project/asset, including independently selected poses. Resources offers **Lesson for this resource**; Audio offers **Lesson for this Audio source**; intake offers **Lesson for inspected input**. Every chapter remains manually selectable, including source-page methods, Zelda II terrain/locations, Ninja source/copies, other title/Audio notes, the developer guide, verification requirements and synthetic exercise. The original Tech Docs and authoring reference remain below the reader. Historical acceptance notes retain their own scope; a chapter's presence does not certify complete title recovery.
+
+To extend this in source or HTML:
+
+1. Edit/add the title Markdown under `app/docs/projects`. Describe actual supported fields, source formats, shared consumers, limits, Audio, save/reopen/build and independent RE/ASM/hex/application paths.
+2. Add a chapter to `app/tools/render_project_tutorials.py` when needed. It renders the standalone handbook and `app/src/docs/project-lessons-data.js` from the same Markdown/anchors, escaping script delimiters. `--check` detects drift. The generated data contains documentation only, with source paths and hashes.
+3. Add a known profile/adapter mapping in `ui/project-lessons.js`. Choose by installed identifiers/source evidence, never by filename. Resolve the exact selected resource and keep current output scope separate from an independent source's lesson.
+4. Keep `services/source-context.js` read-only. The UI consumes existing ProjectStore epoch/snapshot and source callbacks; it must not weaken or replace those guards. `InvestigationUI.projectChanged` and existing edit/UI events refresh presentation. Stale inputs require fresh inspection, not a rewritten signature.
+5. Regenerate the native/root and optional hosted outputs from the shared manifests. Test source switching, authored replacement, delayed reads, cancelled/stale imports, explicit independent continuation, all lesson links/sections, source/workspace preservation, save/reopen and unchanged compiled bytes.
+
+For a quick HTML-only experiment, copy the standalone HTML and locate those module comments or `projectLessonsOpen`, `nativeAudioIndependent` and `projectGatewayPanel`. To change lesson text durably, edit Markdown and regenerate rather than maintaining a second HTML tutorial copy. Reading a lesson never imports the shown example or changes native game rules.

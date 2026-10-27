@@ -1,0 +1,25 @@
+{
+  "release": "3.0.0-alpha.1",
+  "track": "experiments/hosted-worlds",
+  "commit_ready": true,
+  "source": "Canonical shared editor plus reviewed v17.1 host/client",
+  "entrypoint": "NES_Forge_3x_v17_Hosted_Link_Actions_Experimental.html",
+  "expected_protocol": 13,
+  "client_sha256": "697a22717152968f3a382c6da1e271a5457db251ec0643a96024900f8328b799",
+  "host_sha256": "db4aeef39a511c60ccde8164bf6a7993d2c2c9f62e0ea2d52920b5c6c9266ca0",
+  "publication": "Complete source candidate; publication is recorded by the PR and receipt",
+  "tests": "python tests/run_alpha_acceptance.py (10 suites; private ROM fidelity excluded)",
+  "implementationCheckpoint": "v17.1",
+  "fixesSinceV17_1": [
+    "restore original Z2 authenticity policy manifest",
+    "correct stale authenticity test expectations",
+    "add bounded alpha acceptance test runner and documentation",
+    "retain current native capabilities/build controls and Punch-Out idle/artwork navigation",
+    "replace independently edited source snapshot with shared canonical inputs",
+    "run retained browser fixtures against current editor and protocol"
+  ],
+  "canonicalManifest": "app/hosted-source-manifest.json",
+  "canonicalEditorInputs": 185,
+  "hostedInputs": 196,
+  "nativeEditorSha256": "0be56290249d2f3b03289b1b95b977181f5e423eb357f2919bb1b87da31d90f7"
+}
