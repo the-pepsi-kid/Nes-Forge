@@ -47,3 +47,7 @@ Private original ROM validation is required for source authenticity; public synt
 From the experiment folder run `python tests/run_alpha_acceptance.py` on a fresh checkout and record actual results. With the legally obtained local Zelda II ROM loaded in Forge, publish West Hyrule World/room metadata; open **two different** localhost players and enter the same known town. Verify that both clients share an area *but do not mislabel the room source or pilot collision as original*. Inspect the native-room metadata in the editor and note the intended locationIndex, entry and exit descriptors before implementing authoritative transitions.
 
 The next coding step is **source room identity binding**, not NFT drops or big PvP raids.
+
+## Zelda II sword-technique fidelity prerequisite (2026-10-26)
+
+The hosted pose atlas is not a complete native technique import: original Mido/Darunia teaching events, learned capability flags and held Up/Down while airborne are not connected. The current X/C attack buttons and pilot hitboxes do not represent source-authentic Zelda II controls. See [the native sword-technique audit](Z2_NATIVE_SWORD_TECHNIQUES_AUDIT_2026-10-26.md) for required emulator traces, adapter design and acceptance tests. No gameplay implementation is claimed by this documentation.
