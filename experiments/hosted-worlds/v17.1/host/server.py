@@ -609,8 +609,10 @@ class Host:
             new_hp=max(0,p['hp']-taken)
             if new_hp==0:
                 new_hp=64; sx,sy=self.spawn(self.world)
-                self.db.execute("UPDATE players SET hp=?,x=?,y=?,xp=0,mode='overworld',encounter='',enemy_hp=0,steps=0,guard=0 WHERE id=?",(new_hp,sx,sy,pid))
-                self.event('encounter-defeat',pid,{'lostUnspentXp':p['xp'],'provisional':True})
+                # Hosted Worlds keeps attained stat levels and all unspent XP
+                # after pilot defeat; native Zelda II Game Over differs.
+                self.db.execute("UPDATE players SET hp=?,x=?,y=?,mode='overworld',encounter='',enemy_hp=0,steps=0,guard=0 WHERE id=?",(new_hp,sx,sy,pid))
+                self.event('encounter-defeat',pid,{'retainedUnspentXp':p['xp'],'hostedXpRetention':True,'provisional':True})
             else:self.db.execute('UPDATE players SET hp=? WHERE id=?',(new_hp,pid))
             return {'ok':True,'damage':damage,'damageTaken':taken}
         if p['mode']=='sideview':

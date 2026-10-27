@@ -20,6 +20,7 @@ SUITES=(
     ('authenticity_policy', ['tests/test_authenticity_guards.py']),
     ('live_patch', ['tests/test_live_patch.py']),
     ('progression', ['tests/test_progression_gameplay.py']),
+    ('hosted_defeat_xp_retention', ['tests/test_hosted_defeat_xp_retention.py']),
     ('pvp_gate', ['tests/test_v10_pvp.py']),
     ('room_camera', ['tests/test_v12_two_player_room_camera.py']),
 )
