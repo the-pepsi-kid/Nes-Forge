@@ -511,3 +511,25 @@ Search the standalone HTML for `src/services/resource-preview.js`, `Preview curr
 | `ui/resource-relationships.js` / `ui/connected-workspace.js` | Preview buttons, source/output captions, Health result and repair navigation. These UI results are disposable. |
 
 Additional titles should supply context at their actual decoder/encoder refusal, not infer eligibility from Resources links. Unknown historical snapshots must remain unknown. This workflow adds no animation, AI, collision, combat, referee/round or Audio write capability.
+
+## 22. Identify the source and find the lesson inside Forge
+
+**Project lessons** beside **Open ROM / project** opens this maintained tutorial inside **TECH DOCS**, even from the standalone HTML with no network. **Lesson for this resource** in Resources follows its exact Scene/pose/tile context; the idle pose opens section 17 and CHR usage opens section 19. **Lesson for this Audio source** opens section 7 for the catalog being inspected, including an independent ROM. Choose another chapter or section with the reader's controls, use cross-chapter links, or **Return to editor**. Reading lessons does not add assets, change the native recipe or modify the source snapshot.
+
+Source labels have specific meanings:
+
+| Label | Meaning | Available next step |
+|---|---|---|
+| Current project source | This input's SHA-256 matches the source preserved by the active project and its owning session guard is current | Inspect its supported resources; the existing native writer still decides whether an edit builds |
+| Independent source | You explicitly opened a source outside the active project's source/session | Inspect bytes or native cues and export evidence; conversion/import is still deliberate and guarded |
+| Detached source | The previous project or source guard is no longer current | Read the retained identity/evidence; stale intake and Audio operations are disabled |
+| Inspected project file | The input is a saved project JSON, not a ROM catalog | Open it explicitly to replace the active workspace |
+| Independent multi-file workspace | Separate source files, declarations, reports and source-ROM output | Edit/build/export that workspace independently; it is not the project's assembly buffer |
+
+An intake capability receipt is tied to the project snapshot at inspection. Editing or replacing that project invalidates its actions visibly and collapses the panel with a detached-input label. Expand it to review the old report, or open the input again. A native Audio catalog's source session has its own guard. After replacing Punch-Out with another project, an old catalog can remain for reference but cannot claim ready import/audition actions. Any pending staged import is discarded rather than retargeted.
+
+To keep using that old ROM intentionally, choose **Continue independent Audio inspection**. Forge reopens its retained bytes through the existing Audio source loader. It does not load the emulator, attach the ROM to the new project or enable native Audio writing. The independent label stays visible; **Import into tracker** still requires a fresh conversion preview, destination/project guard and the existing explicit confirmation. **Use current project source** opens the active project's preserved ROM in the same Audio loader with its own epoch/source guard, without starting the emulator or changing assets. Project investigation also restores its catalog.
+
+The reader's **Active project output** strip always describes the active build backend. An independent Punch-Out Audio lesson can therefore appear above an authored-project output strip; that does not grant Punch-Out a generated or foreign game's writer. The chapter selection and source role keep those contexts distinct.
+
+For code/HTML changes, `services/source-context.js` is a read-only identity/role projection. `ui/source-context.js` refreshes the existing panels on project lifecycle and UI events. `re/project-gateway-ui.js`, `re/investigation-ui.js` and `audio/native-audio-library-ui.js` retain their original guarded session/transaction owners. `ui/project-lessons.js` owns only reading/navigation. Its content is generated from the same maintained Markdown as the offline handbook by `app/tools/render_project_tutorials.py`; edit the Markdown rather than hand-editing `src/docs/project-lessons-data.js`.

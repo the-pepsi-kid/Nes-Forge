@@ -1,4 +1,20 @@
-## Current: resource preview consistency and build diagnostics
+## Current: Forge source context and in-app Punch-Out lessons
+
+Read `../reviews/source-context-lessons-1/HANDOFF.md`, Punch-Out section 22 and
+developer section 18. The standalone Forge app now labels current/independent/
+detached sources, disables and collapses stale intake, cancels stale Audio/import
+previews, and offers explicit current-project/independent Audio source routes.
+Project lessons embeds the maintained handbook in Tech Docs, with exact resource,
+Audio, RE and source-workspace context. Original Tech Docs and offline guides stay.
+
+There are 194 shared native inputs plus eleven unchanged optional hosted modules
+(205 total). Existing canonical owners, native codecs/signatures/spans, schemas
+and multiplayer gameplay are unchanged. This adds no new native Punch-Out behavior.
+Next: source-backed Glass Joe knockdown, referee count and round-transition work.
+Main and original Pepsi references remain protected; promotion/deployment are
+separate decisions.
+
+## Previous: resource preview consistency and build diagnostics
 
 Read `../reviews/preview-build-diagnostics-1/HANDOFF.md`, Punch-Out section 21 and
 developer section 17. Resources shares the existing Scene/CHR/pose renderers.

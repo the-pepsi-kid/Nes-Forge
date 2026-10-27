@@ -314,6 +314,7 @@ function renderViewer(n){
   for(const writer of [origin?.writer,origin?.paletteWriter].filter(Boolean)){const b=elt('button','frx-context-shortcut',writer.kind==='chr'?'Edit native CHR bank '+writer.index:'Edit native fight palette');b.type='button';b.onclick=()=>{try{window.Forge.services.PunchOutArtUI.open(writer.kind,writer.index);close();}catch(error){contextNote=error.message;render();}};tools.appendChild(b);}
   const relatedWorlds=S.worlds?.filter(w=>w.id===ctx.worldId||w.tilesetSceneId===ctx.sceneId)||[];for(const w of relatedWorlds.slice(0,6)){const b=elt('button','frx-context-shortcut','World: '+w.name);b.type='button';b.onclick=()=>openContextWorld(w.id);tools.appendChild(b);}
  }else{tools.append(elt('div','frx-preview-message','No unique Scene binding: editor context will not be changed automatically.'));}
+ window.Forge.services.ProjectLessons?.shortcut(tools,{...n.open,resourceKey:n.key});
  $('context-result').textContent=contextNote||(follow?'Follow on · choose a related asset to synchronize linked Scene/CHR/Collision.':'Independent browsing · selecting a resource does not modify editor selection.');
 }
 function openContextEditor(sceneId,kind,bank){try{const service=window.Forge?.services?.SceneContext;if(!service?.selectScene)throw Error('SceneContext unavailable');service.selectScene(sceneId);if(kind==='chr'&&bank){S.chrBank=bank;rebuildAllUI();}switchTab(kind);close();}catch(e){contextNote='Editor navigation refused: '+e.message;render();}}

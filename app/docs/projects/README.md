@@ -37,6 +37,12 @@ The table distinguishes actual installed paths. It is a documentation inventory,
 
 All `re/` and `services/` paths in this table are below `app/src/`. Existing Audio profiles for Zelda II, Ninja Gaiden, Castlevania II, Mega Man 2, Metroid, Lolo, River City, Shadowgate and Punch-Out are revision-bound. Exact cue support and conversion limits differ. Missing Audio for a title remains an open verification item.
 
+## Read the methods inside the standalone app
+
+**Project lessons** opens the maintained handbook chapters inside **TECH DOCS**. Resources and Audio have contextual lesson shortcuts; the chapter/section selectors retain independent browsing. The reader shows the active project's output scope separately from current/independent/detached source roles. Existing Tech Docs stay available below it.
+
+The [native source-page lesson](NATIVE_SOURCE_PAGES.md) covers the existing block/structure workflow and title-specific boundaries. [Zelda II](ZELDA_II.md) and [Ninja Gaiden](NINJA_GAIDEN.md) now have bounded native/source-copy lessons alongside the full [Punch-Out tutorial](PUNCH_OUT.md). These lessons do not claim complete inverse writers or whole-game acceptance for any title. Other title/checkpoint notes keep their documented limits; deeper format and owner verification work remains queued where shown above.
+
 ## What every title tutorial must deliver
 
 - A beginner lesson: open the exact input, find the actual scene/area, make one declared supported edit, Undo/Redo, save/reopen, rebuild, reimport and inspect it in the original engine.

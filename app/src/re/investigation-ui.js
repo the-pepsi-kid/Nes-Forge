@@ -20,6 +20,12 @@ for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropag
 const entry=el('button','investigationOpen','Project investigation');entry.type='button';entry.addEventListener('click',()=>{services.SpatialREUI.show();switchTab('disasm');root.scrollIntoView?.({block:'start'});refresh();});document.getElementById('areaLibraryOpen')?.parentNode?.insertBefore(entry,document.getElementById('areaLibraryOpen'));
 const style=el('style');style.textContent='#investigationWorkspace{padding:14px;border:1px solid #568087;border-radius:8px;margin:12px 0;overflow-wrap:anywhere}#investigationWorkspace button,#investigationOpen{min-height:44px;max-width:100%;white-space:normal}#investigationWorkspace pre{white-space:pre-wrap;overflow-wrap:anywhere}#investigationWorkspace .spatial-row{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}#investigationOpen{padding:6px 14px;background:#23485c;color:#e7fff9;border:1px solid #568087;border-radius:5px;cursor:pointer}#investigationWorkspace [data-error=true]{color:#ffbf96}#investigationSummary{line-height:1.8}';document.head.appendChild(style);
 function refresh(){
+ // A prepared replacement belongs to its exact project/source guard. Retain the
+ // source sessions, but do not leave a stale Import button looking ready.
+ const spatial=staged&&guard&&!guard.source?services.SpatialREUI.getState():null;
+ if(staged&&guard&&(guard.epoch!==store.state.epoch||guard.isCurrent&&!guard.isCurrent()||spatial&&(spatial.busy||spatial.sha256!==staged.investigation.source.sha256)||guard.snapshot!==store.serialize())){
+  staged=guard=null;apply.disabled=true;message('Prepared import detached: the project or source changed. Prepare again before importing.');
+ }
  const d=api.describe(S.investigation);donorExport.hidden=donorNote.hidden=!['container','native-layout'].includes(d?.kind);donorExport.disabled=!['container','native-layout'].includes(d?.kind)||!S.nativeGame?.resources?.some(b=>b.sceneId===S.scenes[S.activeScene]?.id);for(const b of navigation)b.disabled=!d||(['container','native-layout','native-resources'].includes(d.kind)&&!['library','graphics','code','coverage',...(['native-layout','native-resources'].includes(d.kind)?['scenes']:[])].some(k=>b.id==='investigationOpen-'+k));
  summary.textContent=d?.kind==='native-resources'?d.source.name+' · native page catalog · '+d.contexts+' contexts · '+d.rooms+' room / slot entries. '+services.ProjectCapabilities.describe(S).scope:d?.kind==='container'?d.source.name+' · '+d.source.byteLength+' bytes · mapper declaration '+d.header.mapper+' · '+d.chrBanks+' physical CHR sheets · no decoded stage/actor/Audio catalog. '+services.ProjectCapabilities.describe(S).scope:d?d.source.name+' · '+d.contexts+' contexts · '+d.rooms+' room / slot entries · '+d.maps+' maps · '+d.actors+' actor entries · '+d.poses+' poses · '+d.scripts+' scripts · '+d.chrBanks+' CHR banks · '+d.symbols+' source labels · '+d.ram+' RAM annotations · '+d.cues+' Audio cue / control entries. '+services.ProjectCapabilities.describe(S).scope:'Choose Open ROM / project to prepare a portable source project. Verified engine adapters add recovered catalogs when available; existing selected-resource import remains available below.';
  gaps.textContent=d?'Source SHA-256: '+d.source.sha256+'\n'+d.gaps.concat(d.audioGaps).map(x=>typeof x==='string'?x:JSON.stringify(x)).join('\n'):'';
@@ -49,7 +55,7 @@ function restore(){
  }catch(e){if(current())message('Saved investigation retained; source view could not be restored: '+e.message,true);return false;}})();
 }
 function projectChanged(){
- ++restoreToken;refresh();if(S.investigation){pending=restore();return pending;}
+ ++restoreToken;services.SourceContextUI?.refresh();refresh();if(S.investigation){pending=restore();return pending;}
  if(ownedHash&&services.SpatialREUI.getState().sha256===ownedHash)services.SpatialREUI.clear();ownedHash=null;pending=Promise.resolve(false);return pending;
 }
 async function open(kind){

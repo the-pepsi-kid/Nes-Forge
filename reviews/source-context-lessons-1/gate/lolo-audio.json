@@ -1,0 +1,42 @@
+{
+  "suite": "lolo-audio",
+  "htmlSha256": "863d7038a99fe687ff1a8f8184d066d415fe32e1f34fcca62202d3e508b6a73d",
+  "total": 8,
+  "passed": 8,
+  "failed": 0,
+  "scope": "Independent synthetic parser, bus and routing fixtures. Supplied-ROM verification is separate.",
+  "results": [
+    {
+      "name": "Installed Lolo profile uses the existing read-only catalog and keeps the schema boundary",
+      "passed": true
+    },
+    {
+      "name": "Filename, header and caller-supplied hashes cannot authorize unknown audio data",
+      "passed": true
+    },
+    {
+      "name": "Structural parser preserves explicit durations, relative pitch and counted-repeat termination",
+      "passed": true
+    },
+    {
+      "name": "Structural call/return and indefinite jumps remain bounded without inventing a timed score",
+      "passed": true
+    },
+    {
+      "name": "Only the explicit MMC1 unused-FDS bus policy ignores expansion writes; other bus guards remain strict",
+      "passed": true
+    },
+    {
+      "name": "Music and SFX dispatch through separate native entries and retain isolated execution",
+      "passed": true
+    },
+    {
+      "name": "Immutable audio-prefix recognition uses a typed physical read through the shared method context",
+      "passed": true
+    },
+    {
+      "name": "Repeated Lolo previews are deterministic and invalid update windows refuse",
+      "passed": true
+    }
+  ]
+}

@@ -126,5 +126,5 @@ function mount(){
  root.appendChild(audioNotes);tabs.parentNode.appendChild(root);ui={root,summary,group:contexts,room,scene,world,openWorld,pose,openPose,clip,openClip,audioEvent,openAudio,audioNotes,source,inspected,notes};
  for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation());root.addEventListener('toggle',()=>{if(root.open)refresh();});refresh();
 }
-services.SceneContext=Object.freeze({describe,selectScene,selectGroup,selectWorld,selectRoom,useInspectedRoom,openSourceAudio,openAsset});services.SceneContextUI=Object.freeze({refresh,worldSelected,changed:reason=>{if(/^(metasprite|animation|frame|world|nativeAssetImport|renameScene)/i.test(reason))refresh();}});mount();
+services.SceneContext=Object.freeze({describe,selectScene,selectGroup,selectWorld,selectRoom,useInspectedRoom,openSourceAudio,openAsset});services.SceneContextUI=Object.freeze({refresh,worldSelected,changed:reason=>{services.SourceContextUI?.refresh();if(/^(metasprite|animation|frame|world|nativeAssetImport|renameScene)/i.test(reason))refresh();}});mount();
 })();
