@@ -158,13 +158,14 @@ class Host:
                 if q['side_action']=='walk':selector=anim[2] if anim and clock<anim[1] else 0
                 q['side_pose']=selector
                 q['side_action_test_only']=True
+                q['sourceRoom']=self.source_binding_for_area(p['area_id'])
             q['nextUpgrades']={skill:(LEVEL_COSTS[skill][q[skill+'_level']+1] if q[skill+'_level']<8 else None) for skill in LEVEL_COSTS}
             players.append(q)
         structures=[dict(s) for s in self.db.execute('SELECT * FROM structures ORDER BY kind,id')]
         areas={}
         for p in players:
             if p['mode']=='sideview' and p['area_id']:
-                entry=areas.setdefault(p['area_id'],{'id':p['area_id'],'occupants':[],'sceneVerified':False})
+                entry=areas.setdefault(p['area_id'],{'id':p['area_id'],'occupants':[],'sceneVerified':False,'sourceRoom':p.get('sourceRoom')})
                 if p['online']:entry['occupants'].append(p['id'])
         return {'type':'state','areas':list(areas.values()),'stageFrames':[dict(row) for row in self.db.execute('SELECT x,y,content_sha AS revision,capture_method AS captureMethod,width_px AS widthPx FROM stage_frames WHERE world_id=? ORDER BY y,x',(self.world['sourceWorldId'] if self.world else '',))],'playerPoses':self.player_pose_summary(),'nativeRooms':[dict(row) for row in self.db.execute('SELECT location_index AS locationIndex,x,y,digest FROM native_room_records WHERE world_id=? ORDER BY location_index',(self.world['sourceWorldId'] if self.world else '',))],'online':len(self.clients),'world':self.world,'revision':self.revision,'players':players,'structures':structures,'costs':COSTS,'progression':{'profile':'z2-us-thresholds-pilot-v1','levels':LEVEL_COSTS,'encounterSteps':ENCOUNTER_STEPS,'exactEngineTiming':False,'encountersEnabled':self.experimental_encounters,'terrainEnemyTables':'provisional; original region/strong/weak tables NOT decoded','sprites':'Source-derived original Link 0..14 OAM selectors now driven by hosted action state; animation timing, CHR/palette and collision still provisional','abilityRoster':'Original Zelda II upward/downward stab OAM selectors 8/9 displayed for shared player actions; pilot vertical geometry, cooldowns and damage, NOT ROM-equivalent combat','sideView':'256x240 independent room crop; source-derived poses for walking, jumping and stabs; server-controlled pilot jump/vertical test combat; original physics, exact scrolling, Link animation NOT recovered as frame-accurate native behavior','overworldCamera':'256x240 per-player viewport with experimental camera-follow crop; not native Zelda II PPU timing','pvpTest':'localhost only: forward pilot and separately vertical pilot stabs, 8 test HP; original Link pose art but NOT recovered Zelda II hitboxes/damage/animation timing','fairyCamps':'hosted construction/respawn extension, not original Zelda II game over'},'seq':self.seq,'simulation':'Z2 source-rendered poses; original multi-screen artwork when published. Jump, action timing, vertical PvP test damage are server-side TEST mechanics, NOT native Zelda II combat.'}
     async def broadcast(self, world_changed=False):
@@ -380,6 +381,8 @@ class Host:
             w=self.world
             if not w or body['expectedRevision']!=self.revision or body['sourceWorldId']!=w['sourceWorldId'] or body['sourceDigest']!=w['sourceDigest']:
                 raise web.HTTPConflict(text='Hosted World changed; re-export native room records')
+            if self.db.execute("SELECT 1 FROM players WHERE mode='sideview' AND area_id LIKE '%:source-room:%' LIMIT 1").fetchone():
+                raise web.HTTPConflict(text='Leave source-bound rooms before replacing their native room catalog')
             seen=set();rows=[]
             for stage in stages:
                 encoded=self.validate_native_room(stage,w)
@@ -520,6 +523,47 @@ class Host:
         elif tile in (0,1,2):category={0:'town',1:'cave',2:'palace'}[tile]
         else:return None
         return f"{self.world['sourceWorldId']}:{category}:{x}:{y}"
+
+    def select_source_area(self,p):
+        """Resolve a playable *area identity* from published source records.
+
+        ROM metadata alone never verifies native collision, exits, or gameplay.
+        Ambiguous locations fail closed; never choose the first room by accident.
+        A source catalog is optional, so older pilots retain their old area IDs.
+        """
+        pilot=self.area_for(p)
+        if not pilot:return None
+        if ':fairy-camp:' in pilot:return {'areaId':pilot,'sourceRoom':None}
+        rows=self.db.execute('SELECT location_index,payload,digest FROM native_room_records WHERE world_id=? AND x=? AND y=? ORDER BY location_index',
+          (self.world['sourceWorldId'],p['x'],p['y'])).fetchall()
+        if len(rows)>1:
+            return {'error':'Ambiguous native entrance: multiple source location records at this coordinate; resolve entry identity in Forge before entering',
+              'candidateLocationIndices':[int(r['location_index']) for r in rows]}
+        if not rows:return {'areaId':pilot,'sourceRoom':None}
+        row=rows[0];record=json.loads(row['payload'])
+        loc,src=record['location'],record['source']
+        if loc['x']!=p['x'] or loc['y']!=p['y'] or loc['terrainSource']!=self.world['sourceWorldId']:
+            return {'error':'Source-room identity mismatch; republish source catalog'}
+        binding={'sourceWorldId':self.world['sourceWorldId'],'locationIndex':int(row['location_index']),
+            'sourceScene':src['scene'],'sourceBank':src['bank'],'sourceKind':src['kind'],
+            'entryCode':loc['entry'],'recordDigest':row['digest'],
+            'nativeSceneVerified':False,'originalEnginePlayable':False,'destinationVerified':False}
+        area=f"{self.world['sourceWorldId']}:source-room:{row['location_index']}:{row['digest']}"
+        return {'areaId':area,'sourceRoom':binding}
+
+    def source_binding_for_area(self,area):
+        """Show a stable, server-validated read-only binding after reconnect."""
+        if not self.world or ':source-room:' not in area:return None
+        world_part, _, suffix=area.partition(':source-room:')
+        if world_part!=self.world['sourceWorldId']:return None
+        parts=suffix.split(':')
+        if len(parts)!=2 or not parts[0].isdigit():return None
+        row=self.db.execute('SELECT x,y,payload,digest FROM native_room_records WHERE world_id=? AND location_index=?',
+            (world_part,int(parts[0]))).fetchone()
+        if not row or row['digest']!=parts[1]:return None
+        selection=self.select_source_area({'x':row['x'],'y':row['y']})
+        if not selection or selection.get('areaId')!=area:return None
+        return selection['sourceRoom']
 
     def available_side_x(self,area,pid):
         occupied={int(p['side_x']) for p in self.db.execute('SELECT id,side_x FROM players WHERE mode=? AND area_id=?',('sideview',area)) if p['id']!=pid}
@@ -711,12 +755,14 @@ class Host:
             return {'error':'In shared side-view area; leave it before overworld movement'}
         if p['mode']!='overworld':return {'error':'Resolve or exit the current encounter before returning to the overworld'}
         if typ=='enter_area':
-            area=self.area_for(p)
-            if not area:return {'error':'No supported pilot entrance on this overworld square; only Town, Cave, Palace, or a camp'}
+            selected=self.select_source_area(p)
+            if not selected:return {'error':'No supported pilot entrance on this overworld square; only Town, Cave, Palace, or a camp'}
+            if 'error' in selected:return selected
+            area=selected['areaId'];source=selected['sourceRoom']
             side_x=self.available_side_x(area,pid)
             self.db.execute("UPDATE players SET mode='sideview',area_id=?,side_x=? WHERE id=?",(area,side_x,pid))
-            self.event('sideview-enter',pid,{'areaId':area,'sceneVerified':False,'sharedInstance':True})
-            return {'ok':True,'areaId':area} 
+            self.event('sideview-enter',pid,{'areaId':area,'sceneVerified':False,'sharedInstance':True,'sourceRoom':source})
+            return {'ok':True,'areaId':area,'sourceRoom':source,'sceneVerified':False} 
         if typ=='move':
             dx,dy=body.get('dx'),body.get('dy')
             if type(dx)!=int or type(dy)!=int or abs(dx)+abs(dy)!=1:return {'error':'One adjacent tile only'}
@@ -724,17 +770,20 @@ class Host:
             if now()-prev<0.09:return {'error':'Move rate limited'}
             x,y=p['x']+dx,p['y']+dy
             if not self.can_step(x,y):return {'error':'Terrain blocked by pilot rule; native traversal not implemented'}
+            # Preflight native source identity BEFORE moving, so ambiguous record
+            # collisions never strand a player or increment the encounter counter.
+            candidate={**p,'x':x,'y':y}
+            selected=self.select_source_area(candidate)
+            if selected and 'error' in selected:return selected
             self.db.execute('UPDATE players SET x=?,y=?,steps=steps+1 WHERE id=?',(x,y,pid));self.cooldowns[pid]=now()
             terrain=self.world['terrain'][y*self.world['width']+x]
-            # One-way entry on ARRIVAL, not while standing on the cell. Leaving side-view
-            # returns to the cell; player must leave and step back to enter again.
-            arrived=self.player(pid)
-            area=self.area_for(arrived)
-            if area:
+            # One-way pilot entry on ARRIVAL; native destination remains unverified.
+            if selected:
+                area=selected['areaId'];source=selected['sourceRoom']
                 side_x=self.available_side_x(area,pid)
                 self.db.execute("UPDATE players SET mode='sideview',area_id=?,side_x=? WHERE id=?",(area,side_x,pid))
-                self.event('sideview-auto-enter',pid,{'areaId':area,'x':x,'y':y,'terrain':terrain,'sharedInstance':True,'nativePhysics':False})
-                return {'ok':True,'autoEntered':True,'areaId':area}
+                self.event('sideview-auto-enter',pid,{'areaId':area,'x':x,'y':y,'terrain':terrain,'sharedInstance':True,'nativePhysics':False,'sourceRoom':source})
+                return {'ok':True,'autoEntered':True,'areaId':area,'sourceRoom':source,'sceneVerified':False}
             if self.experimental_encounters and terrain in ENCOUNTER_TERRAIN and (p['steps']+1)%ENCOUNTER_STEPS==0:
                 self.encounter_start(pid,p,terrain)
             return {'ok':True}

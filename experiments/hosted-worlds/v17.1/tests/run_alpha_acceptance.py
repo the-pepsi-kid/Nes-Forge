@@ -14,6 +14,7 @@ ROOT=Path(__file__).resolve().parents[1]
 SUITES=(
     ('bundle_consistency', ['../../../app/tools/bundle.py','--manifest','hosted-source-manifest.json','--check']),
     ('protocol13_world_load', ['tests/test_v17_world_load_compatibility.py']),
+    ('source_room_identity_bridge', ['tests/test_source_room_identity_bridge.py']),
     ('hosted_actions', ['tests/test_v17_hosted_stabs.py']),
     ('localhost_persistence', ['tests/test_localhost_server.py']),
     ('shared_sideview', ['tests/test_shared_sideview.py']),
