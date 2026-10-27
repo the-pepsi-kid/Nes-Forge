@@ -1,0 +1,259 @@
+{
+  "schema": "nesforge.native-replay/1",
+  "name": "Zelda II US — North Palace to Rauru western scene via native controller input",
+  "watch": {
+    "gameMode": 1846,
+    "area": 1864,
+    "scene": 1377,
+    "playerX": 204,
+    "playerY": 41,
+    "swordTechniqueFlags": 1942,
+    "messageState": 1894
+  },
+  "actions": [
+    {
+      "name": "Boot through title",
+      "frames": 540,
+      "held": [],
+      "capture": "title"
+    },
+    {
+      "name": "Start title",
+      "frames": 6,
+      "held": [
+        "Start"
+      ]
+    },
+    {
+      "name": "Release",
+      "frames": 50,
+      "held": []
+    },
+    {
+      "name": "Start file entry",
+      "frames": 6,
+      "held": [
+        "Start"
+      ]
+    },
+    {
+      "name": "Release",
+      "frames": 50,
+      "held": []
+    },
+    {
+      "name": "Write character A 1",
+      "frames": 6,
+      "held": [
+        "A"
+      ]
+    },
+    {
+      "name": "Release A 1",
+      "frames": 6,
+      "held": []
+    },
+    {
+      "name": "Write character A 2",
+      "frames": 6,
+      "held": [
+        "A"
+      ]
+    },
+    {
+      "name": "Release A 2",
+      "frames": 6,
+      "held": []
+    },
+    {
+      "name": "Write character A 3",
+      "frames": 6,
+      "held": [
+        "A"
+      ]
+    },
+    {
+      "name": "Release A 3",
+      "frames": 6,
+      "held": []
+    },
+    {
+      "name": "Write character A 4",
+      "frames": 6,
+      "held": [
+        "A"
+      ]
+    },
+    {
+      "name": "Release A 4",
+      "frames": 6,
+      "held": []
+    },
+    {
+      "name": "Navigate name-entry END 1",
+      "frames": 6,
+      "held": [
+        "Select"
+      ]
+    },
+    {
+      "name": "Release Select 1",
+      "frames": 10,
+      "held": []
+    },
+    {
+      "name": "Navigate name-entry END 2",
+      "frames": 6,
+      "held": [
+        "Select"
+      ]
+    },
+    {
+      "name": "Release Select 2",
+      "frames": 10,
+      "held": []
+    },
+    {
+      "name": "Navigate name-entry END 3",
+      "frames": 6,
+      "held": [
+        "Select"
+      ]
+    },
+    {
+      "name": "Release Select 3",
+      "frames": 10,
+      "held": []
+    },
+    {
+      "name": "Confirm character name",
+      "frames": 6,
+      "held": [
+        "Start"
+      ]
+    },
+    {
+      "name": "Wait for file",
+      "frames": 90,
+      "held": []
+    },
+    {
+      "name": "Select new file",
+      "frames": 6,
+      "held": [
+        "Start"
+      ]
+    },
+    {
+      "name": "Enter North Palace",
+      "frames": 260,
+      "held": [],
+      "capture": "north_palace"
+    },
+    {
+      "name": "Walk out of North Palace",
+      "frames": 250,
+      "held": [
+        "Right"
+      ]
+    },
+    {
+      "name": "Finish entry into West Hyrule",
+      "frames": 560,
+      "held": [
+        "Right"
+      ],
+      "capture": "west_hyrule"
+    },
+    {
+      "name": "Approach Rauru west",
+      "frames": 80,
+      "held": [
+        "Left"
+      ]
+    },
+    {
+      "name": "Approach Rauru south",
+      "frames": 32,
+      "held": [
+        "Down"
+      ]
+    },
+    {
+      "name": "Wait for town entry",
+      "frames": 60,
+      "held": [],
+      "capture": "rauru_east",
+      "expect": {
+        "area": 44,
+        "scene": 2
+      }
+    },
+    {
+      "name": "Walk west through first segment",
+      "frames": 360,
+      "held": [
+        "Left"
+      ],
+      "capture": "east_houses",
+      "expect": {
+        "area": 44,
+        "scene": 2
+      }
+    },
+    {
+      "name": "Continue toward passage",
+      "frames": 160,
+      "held": [
+        "Left"
+      ]
+    },
+    {
+      "name": "Pass houses",
+      "frames": 60,
+      "held": [
+        "Left"
+      ]
+    },
+    {
+      "name": "Walk near inter-town tunnel",
+      "frames": 40,
+      "held": [
+        "Left"
+      ],
+      "capture": "east_tunnel",
+      "expect": {
+        "scene": 2
+      }
+    },
+    {
+      "name": "Cross toward scene boundary",
+      "frames": 30,
+      "held": [
+        "Left"
+      ]
+    },
+    {
+      "name": "Cross edge and trigger transition",
+      "frames": 30,
+      "held": [
+        "Left"
+      ],
+      "capture": "rauru_transition",
+      "expect": {
+        "area": 44,
+        "scene": 1
+      }
+    },
+    {
+      "name": "Wait for west room load",
+      "frames": 30,
+      "held": [],
+      "capture": "rauru_west",
+      "expect": {
+        "area": 44,
+        "scene": 1
+      }
+    }
+  ]
+}
