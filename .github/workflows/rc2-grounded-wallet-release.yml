@@ -28,6 +28,8 @@ jobs:
   build-check-publish:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - name: Checkout RC2 public repository
         uses: actions/checkout@v4
@@ -66,8 +68,14 @@ jobs:
           PY
       - name: Verify Python and client JavaScript syntax
         run: |
-          python -m compileall -q public-review/rc2-build5/wallet/host
-          python -m py_compile public-review/rc2-build5/wallet/PREPARE_PRIVATE_Z2_DEMO.py
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          root=Path('public-review/rc2-build5/wallet')
+          for file in (*sorted((root/'host').glob('*.py')),root/'PREPARE_PRIVATE_Z2_DEMO.py'):
+              ast.parse(file.read_text(encoding='utf-8'),filename=str(file))
+          print('PASS: Python AST syntax without bytecode artifacts')
+          PY
           for file in public-review/rc2-build5/wallet/host/*.js; do node --check "$file"; done
           python public-review/rc2-build5/wallet/host/diagnose.py
       - name: Verify Rev 8 source-frame continuity and ground alignment
@@ -92,7 +100,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public-review/rc2-build5/NES_Forge_RC2_Build_5_Grounded_Wallet_Review_Candidate_3.zip
-          git add public-review/rc2-build5/wallet/host
+          git add public-review/rc2-build5/wallet/host/*.py
+          git add public-review/rc2-build5/wallet/host/*.js
+          git add public-review/rc2-build5/wallet/host/*.html
           git add public-review/rc2-build5/wallet/PREPARE_PRIVATE_Z2_DEMO.py
           git add public-review/rc2-build5/wallet/Windows_02_Prepare_Private_ROM_Demo.cmd
           git add public-review/rc2-build5/wallet/tests/test_rev8_frame_presentation.py
