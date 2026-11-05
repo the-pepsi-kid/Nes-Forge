@@ -2,9 +2,25 @@
 
 Standalone NES/6502 game authoring and ROM investigation, with visual editors, source tools and guided workflows.
 
-**Current development baseline: 2.0.0-alpha.11 · Retro Workstation and native Glass Joe pose positions.** The owner approved this working alpha for `main`. Support and verification remain specific to the workflows documented below.
+## Start here — your first NES game
 
-## Open the current alpha
+New to Forge? Begin with **[Your First NES Game](docs/getting-started/Your_First_NES_Game.md)** — a hands-on nine-step walkthrough from drawing a tile to compiling a playable ROM. An [offline HTML edition](docs/getting-started/Your_First_NES_Game.html) ships in the repository download.
+
+The lesson was originally written for alpha.11. It is restored as part of RC2 onboarding, but its controls **still require RC2 compatibility testing**. Keep the [original version-matched tutorial kit](https://github.com/the-pepsi-kid/Nes-Forge/blob/415cf1926169c2426481fa75ddc4b885658687bd/tester-kit/alpha11-review-1/START_HERE.md) for historical comparisons.
+
+## RC2 Build 5 — next public alpha review candidate
+
+**Current review download: [RC2 Build 5 Public Review Candidate 1 ZIP](public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Review_Candidate_1.zip)** · [Package details, limitations and verification](public-review/rc2-build5/README.md)
+
+1. Download the ZIP, extract it and open `NES_Forge_Public_Review/NES_Forge.html` in a modern desktop browser.
+2. Read the [beginner tutorial](docs/getting-started/Your_First_NES_Game.md) and record differences from its alpha.11 instructions as RC2 issues.
+3. For advanced work, see the [offline project handbook](app/docs/PROJECT_HANDBOOK.html) and [per-project recovery guides](app/docs/projects/README.md).
+
+**This is a sanitized derivative, not the original 46.3 MB private RC2 Build 5.** Known proprietary recovery catalogs were removed or disabled, including Castlevania exact-match snapshot import. The deterministic build and starter-ROM smoke checks passed; full Chromium workflow acceptance, native editing parity, hardware, and remaining redistribution rights **have not been established**. This is an experimental alpha candidate, **not a production release**.
+
+The top-level [`nes-forge.html`](nes-forge.html) still contains the previously accepted **2.0.0-alpha.11** editor. It has *not* been silently replaced with RC2. Use the RC2 ZIP above for the newer editor until its root entry is promoted after review.
+
+## Previous alpha: 2.0.0-alpha.11 (retained on main)
 
 1. Download **Code → Download ZIP** from `main`, or clone this repository.
 2. Extract the ZIP and open [nes-forge.html](nes-forge.html) in a browser. No build command or local server is required.
