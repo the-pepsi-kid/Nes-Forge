@@ -14,6 +14,8 @@
 
 **[Download RC2 Build 5 Public Wallet Review Candidate 2](NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip)**
 
+**ZIP SHA-256:** `e04123021acfa750eba17086e3e068207ab14b128c4a9539b9fa90babb4618e1` · **2,390,482 bytes**. [Published by passing GitHub Actions run](https://github.com/the-pepsi-kid/Nes-Forge/actions/runs/41961842607).
+
 Extract it, open `NES_Forge_Public_Review/NES_Forge.html`, and run `START_LOCALHOST_WINDOWS.cmd` in that folder for wallet-enabled localhost play (macOS/Linux: `sh START_LOCALHOST_MAC_LINUX.sh`). The ZIP includes `host/server.py`, `host/client.html`, supporting JavaScript, signature verification, and `requirements.txt`. See the [local wallet test guide](wallet/README_WALLET_TEST.md).
 
 Candidate 2 is assembled by [the reproducible bundler](wallet/build_wallet_release.py), using Candidate 1's exact editor. [GitHub Actions](https://github.com/the-pepsi-kid/Nes-Forge/actions/workflows/rc2-wallet-package.yml) checks the package, server protocol, and wallet input validation before publishing it. **Two-browser wallet authentication and cross-build original-gameplay parity are not yet certified.**
