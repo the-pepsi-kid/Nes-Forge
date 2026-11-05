@@ -14,6 +14,8 @@
 
 **[Download Grounded Wallet Review Candidate 3](NES_Forge_RC2_Build_5_Grounded_Wallet_Review_Candidate_3.zip)**
 
+**Verified ZIP:** 2,437,650 bytes · SHA-256 `d1c685d5023508bcd139c3faabc91a3f8a7354e870ce78dc24971e241961ebcf`. [Successful publisher run](https://github.com/the-pepsi-kid/Nes-Forge/actions/runs/41966312280).
+
 - [Quick start and known limitations](wallet/README_GROUNDED_REVIEW.md)
 - [Grounded multiplayer regression checks](https://github.com/the-pepsi-kid/Nes-Forge/actions/workflows/rc2-grounded-wallet-release.yml)
 - Inside the ZIP: `NES_Forge.html`, `START_HERE.md`, numbered Windows multiplayer launchers, Python host/client, local original-ROM art preparation script, and offline first-game tutorial
