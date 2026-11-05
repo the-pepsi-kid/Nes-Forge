@@ -8,22 +8,24 @@ New to Forge? Begin with **[Your First NES Game](docs/getting-started/Your_First
 
 The lesson was originally written for alpha.11. It is restored as part of RC2 onboarding, but its controls **still require RC2 compatibility testing**. Keep the [original version-matched tutorial kit](https://github.com/the-pepsi-kid/Nes-Forge/blob/415cf1926169c2426481fa75ddc4b885658687bd/tester-kit/alpha11-review-1/START_HERE.md) for historical comparisons.
 
-## RC2 Build 5 — next public alpha review candidate
+## RC2 Build 5 — current public alpha review
 
-**Featured RC2 review download: [Build 5 Wallet-Enabled Review Candidate 2 ZIP](public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip)** · [Package details and known limitations](public-review/rc2-build5/README.md)
+**[Download RC2 Build 5 — Grounded Wallet Review Candidate 3](public-review/rc2-build5/NES_Forge_RC2_Build_5_Grounded_Wallet_Review_Candidate_3.zip)** · [Release and local multiplayer instructions](public-review/rc2-build5/wallet/README_GROUNDED_REVIEW.md)
 
-Candidate 2 verified ZIP: **2,390,482 bytes · SHA-256 `e04123021acfa750eba17086e3e068207ab14b128c4a9539b9fa90babb4618e1`**. [Passing build and wallet-host smoke](https://github.com/the-pepsi-kid/Nes-Forge/actions/runs/41961842607).
+This is the newer **sanitized RC2 Build 5** editor, packaged with the corrected local multiplayer server and wallet clients. The host now includes source-stage **visual floor alignment**, Rev 8 bounded frame-continuity, held-direction/crouch recovery, and original-ROM-source artwork preparation using **your own local ROM**. These are experimental hosted mechanics, **not certified original Zelda II physics or collision**.
 
-1. Download Candidate 2 and extract `NES_Forge_Public_Review/`. Open `NES_Forge.html` to use the **sanitized RC2 Build 5** editor.
-2. For the local two-wallet demo, run **`START_LOCALHOST_WINDOWS.cmd`** from that extracted folder (macOS/Linux: `sh START_LOCALHOST_MAC_LINUX.sh`). It checks Python prerequisites and runs the matching experimental `host/server.py`. Follow [wallet multiplayer instructions](public-review/rc2-build5/wallet/README_WALLET_TEST.md).
-3. In **WORLD → Live**, enter the token printed by the server, verify protocol 13, and publish a supported World. Visit `http://127.0.0.1:8765/` in two wallet-enabled browser profiles with separate test wallets. **RC2 ↔ host gameplay parity has not yet passed end-to-end acceptance.**
-4. For original game creation, start with the [nine-step beginner tutorial](docs/getting-started/Your_First_NES_Game.md), which still requires RC2 control compatibility review. Advanced authoring: [project handbook](app/docs/PROJECT_HANDBOOK.html) and [per-project recovery guides](app/docs/projects/README.md).
+To get started:
 
-The [earlier editor-only Candidate 1 ZIP](public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Review_Candidate_1.zip) remains available for reproducibility. Candidate 2 is mechanically assembled from that exact editor plus the protocol-13 wallet host/client and launchers; its build and smoke verification are tracked in [GitHub Actions](https://github.com/the-pepsi-kid/Nes-Forge/actions/workflows/rc2-wallet-package.yml).
+1. Extract the ZIP. Read **`NES_Forge_Public_Review/START_HERE.md`** and open `NES_Forge.html` in Chrome/Edge.
+2. For a two-wallet local test on Windows, run `01_START_MULTIPLAYER_SERVER_WINDOWS.cmd` from that folder, optionally run `02_PREPARE_PRIVATE_ROM_WINDOWS.cmd` for a **fresh** World, and open `03_OPEN_MULTIPLAYER_WINDOWS.cmd`. Python 3.11+, `aiohttp`, `pycryptodome`, and (for local ROM art preparation) Playwright Chromium are needed.
+3. Use **two different wallet-enabled browser profiles** and test wallets; neither private keys nor original ROM bytes are shipped. Wallet signing is an EVM message, not a blockchain transaction.
+4. Follow the [first-game beginner tutorial](docs/getting-started/Your_First_NES_Game.md), also available offline inside the download at `docs/getting-started/Your_First_NES_Game.html`.
+
+**[Candidate 2 — previous wallet/server smoke build](public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip)** and **[Candidate 1 — editor-only](public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Review_Candidate_1.zip)** are retained for audit and rollback. [Candidate 3 validation](https://github.com/the-pepsi-kid/Nes-Forge/actions/workflows/rc2-grounded-wallet-release.yml) includes synthetic source-floor/Rev8 motion tests, real localhost HTTP, archive identity, and the offline tutorial. Full two-browser/wallet and native-ROM fidelity acceptance remain separate.
 
 **This is a sanitized derivative, not the original 46.3 MB private RC2 Build 5.** Known proprietary recovery catalogs were removed or disabled, including Castlevania exact-match snapshot import. The deterministic build and starter-ROM smoke checks passed; full Chromium workflow acceptance, native editing parity, hardware, and remaining redistribution rights **have not been established**. This is an experimental alpha candidate, **not a production release**.
 
-The top-level [`nes-forge.html`](nes-forge.html) still contains the previously accepted **2.0.0-alpha.11** editor. It has *not* been silently replaced with RC2. Use the Candidate 2 ZIP above for the newer editor and local wallet-host test until its root entry is promoted after full acceptance.
+The top-level [`nes-forge.html`](nes-forge.html) still contains the previously accepted **2.0.0-alpha.11** editor. It has *not* been silently replaced with RC2. Use Candidate 3 above for the newer editor and grounded local multiplayer pilot until its root entry is promoted after full acceptance.
 
 ## Previous alpha: 2.0.0-alpha.11 (retained on main)
 
