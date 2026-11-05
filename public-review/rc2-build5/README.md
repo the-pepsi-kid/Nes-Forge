@@ -1,24 +1,30 @@
 # NES Forge RC2 — public alpha review candidates
 
-**Status:** Public rights-reduced RC2 Build 5 for owner review. Candidate 2 adds a protocol-13 localhost wallet server to the exact same sanitized editor. Neither is byte-identical to the owner-held private RC2 Build 5, and neither is an accepted production release.
+**Status:** Public rights-reduced RC2 Build 5 for owner review. Candidate 3 adds the corrected grounded multiplayer host and wallets to the exact same sanitized editor. Neither is byte-identical to the owner-held private RC2 Build 5, and neither is an accepted production release.
 
 ## Getting started
 
 - **[Your First NES Game](../../docs/getting-started/Your_First_NES_Game.md)**: restored nine-step beginner tutorial for tile art, collision, worlds, animation and a compiled NES ROM.
 - **[Offline HTML tutorial](../../docs/getting-started/Your_First_NES_Game.html)**: readable after downloading the repository ZIP.
-- **Compatibility note:** this tutorial originated with alpha.11; the instructions have **not yet been validated end-to-end** on sanitized RC2 Build 5. The tutorial is restored alongside the ZIP in the repository checkout and is not embedded inside either RC2 ZIP; its RC2 instructions remain unverified.
+- **Compatibility note:** this tutorial originated with alpha.11; the instructions have **not yet been validated end-to-end** on sanitized RC2 Build 5. The beginner tutorial is included in Candidate 3 as offline HTML and Markdown; its full nine-step RC2 walkthrough compatibility is still awaiting owner acceptance.
 
 ## Downloads
 
-### Featured — Candidate 2: RC2 editor + wallet-enabled localhost server
+### Featured — Candidate 3: grounded RC2 Build 5 + two-wallet localhost pilot
 
-**[Download RC2 Build 5 Public Wallet Review Candidate 2](NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip)**
+**[Download Grounded Wallet Review Candidate 3](NES_Forge_RC2_Build_5_Grounded_Wallet_Review_Candidate_3.zip)**
 
-**ZIP SHA-256:** `e04123021acfa750eba17086e3e068207ab14b128c4a9539b9fa90babb4618e1` · **2,390,482 bytes**. [Published by passing GitHub Actions run](https://github.com/the-pepsi-kid/Nes-Forge/actions/runs/41961842607).
+- [Quick start and known limitations](wallet/README_GROUNDED_REVIEW.md)
+- [Grounded multiplayer regression checks](https://github.com/the-pepsi-kid/Nes-Forge/actions/workflows/rc2-grounded-wallet-release.yml)
+- Inside the ZIP: `NES_Forge.html`, `START_HERE.md`, numbered Windows multiplayer launchers, Python host/client, local original-ROM art preparation script, and offline first-game tutorial
 
-Extract it, open `NES_Forge_Public_Review/NES_Forge.html`, and run `START_LOCALHOST_WINDOWS.cmd` in that folder for wallet-enabled localhost play (macOS/Linux: `sh START_LOCALHOST_MAC_LINUX.sh`). The ZIP includes `host/server.py`, `host/client.html`, supporting JavaScript, signature verification, and `requirements.txt`. See the [local wallet test guide](wallet/README_WALLET_TEST.md).
+The new host uses the locally published stage's visible ground line instead of hard-coded floating sprite placement, plus the source-observed horizontal and jump presentation from the owner-reviewed RC2 Build 5. Game graphics are generated from your own ROM on your machine; **no commercial ROM or original game assets are distributed**. Host gameplay remains a pilot rather than a verified 6502 multiplayer simulation.
 
-Candidate 2 is assembled by [the reproducible bundler](wallet/build_wallet_release.py), using Candidate 1's exact editor. [GitHub Actions](https://github.com/the-pepsi-kid/Nes-Forge/actions/workflows/rc2-wallet-package.yml) checks the package, server protocol, and wallet input validation before publishing it. **Two-browser wallet authentication and cross-build original-gameplay parity are not yet certified.**
+### Earlier — Candidate 2: wallet-enabled host, old floating presentation
+
+- [Download Candidate 2](NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip)
+- SHA-256 `e04123021acfa750eba17086e3e068207ab14b128c4a9539b9fa90babb4618e1` — preserved for rollback/audit
+- [Original protocol-13 smoke run](https://github.com/the-pepsi-kid/Nes-Forge/actions/runs/41961842607)
 
 ### Historical — Candidate 1: editor only
 
