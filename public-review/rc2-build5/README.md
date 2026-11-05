@@ -2,6 +2,12 @@
 
 **Status:** Experimental derivative for owner review; **not** a promoted release and **not** byte-identical to the original RC2 Build 5.
 
+## Getting started
+
+- **[Your First NES Game](../../docs/getting-started/Your_First_NES_Game.md)**: restored nine-step beginner tutorial for tile art, collision, worlds, animation and a compiled NES ROM.
+- **[Offline HTML tutorial](../../docs/getting-started/Your_First_NES_Game.html)**: readable after downloading the repository ZIP.
+- **Compatibility note:** this tutorial originated with alpha.11; the instructions have **not yet been validated end-to-end** on sanitized RC2 Build 5. The RC2 candidate ZIP itself does not yet embed this restored tutorial; it is supplied alongside the ZIP in the repository checkout.
+
 ## Download
 
 - [NES Forge RC2 Public Review Candidate 1 ZIP](../../public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Review_Candidate_1.zip)
