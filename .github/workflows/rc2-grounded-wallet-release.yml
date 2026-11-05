@@ -1,4 +1,4 @@
-name: RC2 grounded wallet alpha review
+name: RC2 grounded wallet alpha validation
 
 on:
   push:
@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: rc2-grounded-wallet-${{ github.ref }}
@@ -84,8 +84,34 @@ jobs:
           node public-review/rc2-build5/wallet/tests/test_grounded_client.cjs
       - name: Verify legacy wallet-protocol smoke
         run: python public-review/rc2-build5/wallet/tests/test_wallet_package.py
+      - name: Verify immutable published alpha archives
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from hashlib import sha256
+          root = Path("public-review/rc2-build5")
+          expected = {
+            "NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip": "e04123021acfa750eba17086e3e068207ab14b128c4a9539b9fa90babb4618e1",
+            "NES_Forge_RC2_Build_5_Grounded_Wallet_Review_Candidate_3.zip": "d1c685d5023508bcd139c3faabc91a3f8a7354e870ce78dc24971e241961ebcf",
+          }
+          for name, digest in expected.items():
+            f=root/name
+            assert f.is_file() and sha256(f.read_bytes()).hexdigest()==digest, "Published ZIP changed: "+name
+            print("PASS: immutable archive",name)
+          PY
       - name: Assemble new grounded Candidate 3 ZIP
         run: python public-review/rc2-build5/wallet/build_grounded_wallet_release.py
+      - name: Verify deterministic grounded Candidate 3 rebuild
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from hashlib import sha256
+          f=Path("public-review/rc2-build5/NES_Forge_RC2_Build_5_Grounded_Wallet_Review_Candidate_3.zip")
+          expected="d1c685d5023508bcd139c3faabc91a3f8a7354e870ce78dc24971e241961ebcf"
+          actual=sha256(f.read_bytes()).hexdigest()
+          assert actual==expected, "Rebuilt Candidate 3 changed: "+actual
+          print("PASS: Candidate 3 deterministic build",actual)
+          PY
       - name: Verify source/editor SHA, standalone host, tutorial and native editor
         run: python public-review/rc2-build5/wallet/tests/test_grounded_candidate.py
       - name: Upload validated ZIP artifact
@@ -94,20 +120,3 @@ jobs:
           name: RC2-Build-5-Grounded-Wallet-Review-Candidate-3
           path: public-review/rc2-build5/NES_Forge_RC2_Build_5_Grounded_Wallet_Review_Candidate_3.zip
           if-no-files-found: error
-      - name: Publish validated standalone ZIP and reviewed plain host sources to main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public-review/rc2-build5/NES_Forge_RC2_Build_5_Grounded_Wallet_Review_Candidate_3.zip
-          git add public-review/rc2-build5/wallet/host/*.py
-          git add public-review/rc2-build5/wallet/host/*.js
-          git add public-review/rc2-build5/wallet/host/*.html
-          git add public-review/rc2-build5/wallet/PREPARE_PRIVATE_Z2_DEMO.py
-          git add public-review/rc2-build5/wallet/Windows_02_Prepare_Private_ROM_Demo.cmd
-          git add public-review/rc2-build5/wallet/tests/test_rev8_frame_presentation.py
-          git add public-review/rc2-build5/wallet/tests/test_rev3_original_floor_browser.py
-          if ! git diff --cached --quiet; then
-            git commit -m "build(rc2): publish grounded Candidate 3 and reviewed localhost source"
-            git push origin HEAD:main
-          fi

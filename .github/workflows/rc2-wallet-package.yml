@@ -1,4 +1,4 @@
-name: RC2 wallet localhost review package
+name: RC2 legacy wallet protocol verification
 
 on:
   push:
@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   bundle-and-smoke:
@@ -37,23 +37,15 @@ jobs:
           node --check public-review/rc2-build5/wallet/host/client.js
           node --check public-review/rc2-build5/wallet/host/render-world.js
           python public-review/rc2-build5/wallet/host/diagnose.py
-      - name: Assemble candidate 2
-        run: python public-review/rc2-build5/wallet/build_wallet_release.py
-      - name: Smoke-test protocol 13, wallet auth rejection and bundled files
-        run: python public-review/rc2-build5/wallet/tests/test_wallet_package.py
-      - name: Upload self-contained ZIP
-        uses: actions/upload-artifact@v4
-        with:
-          name: RC2-Build-5-Public-Wallet-Review-Candidate-2
-          path: public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip
-          if-no-files-found: error
-      - name: Publish validated ZIP to main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Verify historical Candidate 2 archive is unchanged
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip
-          if ! git diff --cached --quiet; then
-            git commit -m "build(rc2): publish validated wallet-enabled candidate 2 ZIP"
-            git push origin HEAD:main
-          fi
+          python - <<'PY'
+          from pathlib import Path
+          from hashlib import sha256
+          p = Path("public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip")
+          expected = "e04123021acfa750eba17086e3e068207ab14b128c4a9539b9fa90babb4618e1"
+          assert p.exists() and sha256(p.read_bytes()).hexdigest() == expected, "Immutable Candidate 2 ZIP has drifted"
+          print("PASS: historical Candidate 2 ZIP unchanged")
+          PY
+      - name: Smoke-test protocol 13, wallet auth rejection and archived package
+        run: python public-review/rc2-build5/wallet/tests/test_wallet_package.py
