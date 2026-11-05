@@ -12,6 +12,8 @@ The lesson was originally written for alpha.11. It is restored as part of RC2 on
 
 **[Download RC2 Build 5 — Grounded Wallet Review Candidate 3](public-review/rc2-build5/NES_Forge_RC2_Build_5_Grounded_Wallet_Review_Candidate_3.zip)** · [Release and local multiplayer instructions](public-review/rc2-build5/wallet/README_GROUNDED_REVIEW.md)
 
+**Verified download:** 2,437,650 bytes · SHA-256 `d1c685d5023508bcd139c3faabc91a3f8a7354e870ce78dc24971e241961ebcf`. [Passing build and grounded-player smoke tests](https://github.com/the-pepsi-kid/Nes-Forge/actions/runs/41966312280).
+
 This is the newer **sanitized RC2 Build 5** editor, packaged with the corrected local multiplayer server and wallet clients. The host now includes source-stage **visual floor alignment**, Rev 8 bounded frame-continuity, held-direction/crouch recovery, and original-ROM-source artwork preparation using **your own local ROM**. These are experimental hosted mechanics, **not certified original Zelda II physics or collision**.
 
 To get started:
