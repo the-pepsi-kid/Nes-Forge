@@ -1,0 +1,59 @@
+name: RC2 wallet localhost review package
+
+on:
+  push:
+    branches:
+      - main
+      - review/rc2-build5-wallet-server-2026-11-04
+    paths:
+      - public-review/rc2-build5/wallet/**
+      - public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Review_Candidate_1.zip
+      - .github/workflows/rc2-wallet-package.yml
+  pull_request:
+    paths:
+      - public-review/rc2-build5/wallet/**
+      - .github/workflows/rc2-wallet-package.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bundle-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install localhost test dependencies
+        run: python -m pip install -r public-review/rc2-build5/wallet/requirements.txt
+      - name: Verify host Python and client JavaScript
+        run: |
+          python -m compileall -q public-review/rc2-build5/wallet/host
+          node --check public-review/rc2-build5/wallet/host/client.js
+          node --check public-review/rc2-build5/wallet/host/render-world.js
+          python public-review/rc2-build5/wallet/host/diagnose.py
+      - name: Assemble candidate 2
+        run: python public-review/rc2-build5/wallet/build_wallet_release.py
+      - name: Smoke-test protocol 13, wallet auth rejection and bundled files
+        run: python public-review/rc2-build5/wallet/tests/test_wallet_package.py
+      - name: Upload self-contained ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: RC2-Build-5-Public-Wallet-Review-Candidate-2
+          path: public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip
+          if-no-files-found: error
+      - name: Publish validated ZIP to main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip
+          if ! git diff --cached --quiet; then
+            git commit -m "build(rc2): publish validated wallet-enabled candidate 2 ZIP"
+            git push origin HEAD:main
+          fi
