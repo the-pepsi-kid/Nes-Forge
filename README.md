@@ -12,6 +12,8 @@ The lesson was originally written for alpha.11. It is restored as part of RC2 on
 
 **Featured RC2 review download: [Build 5 Wallet-Enabled Review Candidate 2 ZIP](public-review/rc2-build5/NES_Forge_RC2_Build_5_Public_Wallet_Review_Candidate_2.zip)** · [Package details and known limitations](public-review/rc2-build5/README.md)
 
+Candidate 2 verified ZIP: **2,390,482 bytes · SHA-256 `e04123021acfa750eba17086e3e068207ab14b128c4a9539b9fa90babb4618e1`**. [Passing build and wallet-host smoke](https://github.com/the-pepsi-kid/Nes-Forge/actions/runs/41961842607).
+
 1. Download Candidate 2 and extract `NES_Forge_Public_Review/`. Open `NES_Forge.html` to use the **sanitized RC2 Build 5** editor.
 2. For the local two-wallet demo, run **`START_LOCALHOST_WINDOWS.cmd`** from that extracted folder (macOS/Linux: `sh START_LOCALHOST_MAC_LINUX.sh`). It checks Python prerequisites and runs the matching experimental `host/server.py`. Follow [wallet multiplayer instructions](public-review/rc2-build5/wallet/README_WALLET_TEST.md).
 3. In **WORLD → Live**, enter the token printed by the server, verify protocol 13, and publish a supported World. Visit `http://127.0.0.1:8765/` in two wallet-enabled browser profiles with separate test wallets. **RC2 ↔ host gameplay parity has not yet passed end-to-end acceptance.**
