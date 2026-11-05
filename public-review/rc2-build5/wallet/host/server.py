@@ -8,6 +8,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from aiohttp import web, WSMsgType
 from eth_verify import recover_address, keccak256, checksum_address
+from native_horizontal import Actor, frame as horizontal_frame, pose as horizontal_pose, FPS as HORIZONTAL_FPS
+from native_jump import rise as native_jump_rise, airborne as native_jump_airborne, pose as native_jump_pose, MAX_FLIGHT_FRAMES
+from native_attack import ground_sword_pose, ground_sword_frames
 
 ROOT=Path(__file__).resolve().parent
 DOMAIN='127.0.0.1:8765'
@@ -26,9 +29,19 @@ LEVEL_COSTS={
 # Hosted vertical combat adapter: Link art selectors 8/9 are original ROM
 # display selectors; server jump arc, hit windows and damage are TEST rules,
 # not purported Zelda II physics/geometry/damage parity.
-SIDE_JUMP_SECONDS=0.64
+# Original Rauru jump depends on A-button hold duration, not one fixed arc.
+# Measured curves and their provenance live in native_jump.py.
+Z2_FPS=60.0988
+Z2_RISE_PX=(0,4,7,10,13,16,18,20,22,23,24,25,26,26,26,26,25,24,23,22,20,18,16,13,10,7,4,0) # legacy tap baseline, test compatibility
+SIDE_JUMP_SECONDS=MAX_FLIGHT_FRAMES/Z2_FPS
 SIDE_ATTACK_SECONDS=0.25
-SIDE_JUMP_HEIGHT_PX=49
+SIDE_JUMP_HEIGHT_PX=35
+# Recovered skill RAM $0796: up bit $04 -> original display pose 8;
+# down bit $10 -> original display pose 9. Private tests injected flags;
+# native teacher acquisition and sword collision are NOT yet hosted.
+Z2_UP_TECHNIQUE_BIT=0x04
+Z2_DOWN_TECHNIQUE_BIT=0x10
+Z2_UP_POSE_FRAMES=range(2,12)
 SIDE_ATTACK_COOLDOWN=0.34
 ENCOUNTER_STEPS=16
 ENCOUNTER_TERRAIN={4:'desert',5:'grass',6:'forest',7:'swamp',8:'graveyard'}
@@ -69,11 +82,14 @@ async def cors(req,handler):
         resp.headers['Vary']='Origin'
     resp.headers['Cache-Control']='no-store'
     resp.headers['X-Content-Type-Options']='nosniff'
-    resp.headers['Content-Security-Policy']="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://127.0.0.1:8765; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'"
+    resp.headers['Content-Security-Policy']=(
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://127.0.0.1:8765; img-src 'self' data: blob:; frame-ancestors 'none'; base-uri 'none'"
+      if req.path=='/native-editor' else
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://127.0.0.1:8765; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'")
     return resp
 
 class Host:
-    def __init__(self, dbpath, admin_token, experimental_encounters=False):
+    def __init__(self, dbpath, admin_token, experimental_encounters=False, pilot_sword_techniques=False):
         self.db=sqlite3.connect(dbpath, isolation_level=None, check_same_thread=False)
         self.db.row_factory=sqlite3.Row
         self.db.executescript('''PRAGMA journal_mode=WAL;
@@ -104,7 +120,9 @@ class Host:
             'area_id':"TEXT NOT NULL DEFAULT ''",
             'side_x':'INTEGER NOT NULL DEFAULT 8',
             'respawn_camp_id':"TEXT NOT NULL DEFAULT ''",
-            'side_facing':'INTEGER NOT NULL DEFAULT 1'
+            'side_facing':'INTEGER NOT NULL DEFAULT 1',
+            # Additive persistent 1/16-pixel position; old DB rows start from side_x * 8.
+            'side_pos16':'INTEGER'
         }.items():
             if name not in existing:self.db.execute(f'ALTER TABLE players ADD COLUMN {name} {definition}')
         if upgrading:self.db.execute('UPDATE players SET earned_xp=xp')
@@ -113,8 +131,9 @@ class Host:
         if 'width_px' not in stage_columns:
             self.db.execute('ALTER TABLE stage_frames ADD COLUMN width_px INTEGER NOT NULL DEFAULT 256')
         self.experimental_encounters=bool(experimental_encounters)
+        self.pilot_sword_techniques=bool(pilot_sword_techniques)
         self.admin_token=admin_token
-        self.world=None;self.revision=None;self.sessions={};self.challenges={};self.clients={};self.lock=asyncio.Lock();self.seq=0;self.cooldowns={};self.combat_cooldowns={};self.side_actions={};self.side_jumps={}
+        self.world=None;self.revision=None;self.sessions={};self.challenges={};self.clients={};self.lock=asyncio.Lock();self.seq=0;self.cooldowns={};self.combat_cooldowns={};self.side_actions={};self.side_jumps={};self.side_jump_releases={};self.side_crouches=set();self.native_observations={};self.side_held_vertical={};self.side_requested_horizontal={};self.side_native_hit_once=set();self.horizontal_actors={};self.horizontal_accumulator=0.0;self.horizontal_clock=now()
         saved=self.db.execute('SELECT payload,revision FROM worlds WHERE id=?',('active',)).fetchone()
         if saved:self.world=json.loads(saved['payload']);self.revision=saved['revision']
     def event(self,action,subject,detail):
@@ -136,27 +155,101 @@ class Host:
         row=self.db.execute('SELECT sha256,evidence FROM player_pose_assets WHERE world_id=? AND source_digest=?',(self.world['sourceWorldId'],self.world['sourceDigest'])).fetchone()
         return {'sha256':row['sha256'],'evidence':row['evidence'],'columns':15,'rows':2,'cellWidth':32,'cellHeight':40,'nativeAnimationVerified':False} if row else None
 
-    def side_air_height(self,pid,clock=None):
+    def side_jump_frame(self,pid,clock=None):
         at=self.side_jumps.get(pid)
-        if at is None:return 0
-        t=((now() if clock is None else clock)-at)/SIDE_JUMP_SECONDS
-        return round(SIDE_JUMP_HEIGHT_PX*4*t*(1-t)) if 0<=t<1 else 0
+        return int(max(0,((now() if clock is None else clock)-at)*Z2_FPS+1e-7)) if at is not None else -1
+    def side_air_height(self,pid,clock=None):
+        return native_jump_rise(self.side_jump_frame(pid,clock),self.side_jump_releases.get(pid))
+    def side_is_airborne(self,pid,clock=None):
+        frame=self.side_jump_frame(pid,clock)
+        return frame>=0 and native_jump_airborne(frame,self.side_jump_releases.get(pid))
+    def side_is_crouched(self,pid,clock=None):
+        # A held Down that began in midair becomes a crouch upon landing.
+        # Keep this derived from authoritative input, not an unrelated client pose.
+        return not self.side_is_airborne(pid,clock) and (pid in self.side_crouches or self.side_held_vertical.get(pid)=='down')
+    def native_held_pose(self,pid,clock=None):
+        if not self.pilot_sword_techniques or not self.side_is_airborne(pid,clock):return None
+        frame=self.side_jump_frame(pid,clock)
+        direction=self.side_held_vertical.get(pid)
+        if direction=='up' and frame in Z2_UP_POSE_FRAMES:return ('up_stab',8)
+        if direction=='down' and frame>=2:return ('down_stab',9)
+        return None
+    async def resolve_held_thrust(self,pid,clock=None):
+        held=self.native_held_pose(pid,clock)
+        if not held:return {'ignored':True,'reason':'not in observed airborne technique window'}
+        key=(pid,self.side_jumps.get(pid),held[0])
+        if key in self.side_native_hit_once:return {'ignored':True,'reason':'already fired in this jump'}
+        result=await self.action(pid,{'type':'side_action','action':held[0]})
+        if result.get('ok'):self.side_native_hit_once.add(key)
+        return result
+    def horizontal_for(self,pid,p=None):
+        actor=self.horizontal_actors.get(pid)
+        if actor is None:
+            p=p or self.player(pid)
+            actor=Actor(int(p['side_pos16']) if p['side_pos16'] is not None else int(p['side_x'])*128)
+            self.horizontal_actors[pid]=actor
+        return actor
+    def horizontal_tick(self):
+        """Frame-step authenticated sideview players; persists positions, never trusts client coords."""
+        changed=False
+        for pid in tuple(self.horizontal_actors):
+            p=self.player(pid)
+            if pid not in self.clients or not p or p['mode']!='sideview':
+                del self.horizontal_actors[pid];continue
+            actor=self.horizontal_actors[pid]
+            # Preserve held input across a crouch/landing interruption.  The
+            # crouch masks movement for this frame; it must not erase key state.
+            actor.held=0 if self.side_is_crouched(pid) else self.side_requested_horizontal.get(pid,actor.held)
+            art=self.db.execute('SELECT width_px FROM stage_frames WHERE world_id=? AND x=? AND y=? AND capture_method=?',
+                (self.world['sourceWorldId'],p['x'],p['y'],'executed-original-construction:first-screen')).fetchone()
+            width=int(art['width_px']) if art else 256
+            previous=(actor.position16,actor.velocity)
+            horizontal_frame(actor,0,width-1)
+            # Persist exact position. Coarse legacy column is for old clients and tests.
+            if (actor.position16,actor.velocity)!=previous:
+                px=actor.position16//16
+                self.db.execute('UPDATE players SET side_pos16=?,side_x=? WHERE id=?',
+                    (actor.position16,round(px/8),pid))
+                changed=True
+        return changed
     def player(self,pid):
         p=self.db.execute('SELECT * FROM players WHERE id=?',(pid,)).fetchone()
         return dict(p) if p else None
     def public(self):
         players=[]
-        for p in self.db.execute('SELECT id,x,y,xp,level,earned_xp,attack_level,magic_level,life_level,hp,mp,steps,mode,encounter,enemy_hp,area_id,side_x,side_facing,respawn_camp_id FROM players ORDER BY id').fetchall():
+        for p in self.db.execute('SELECT id,x,y,xp,level,earned_xp,attack_level,magic_level,life_level,hp,mp,steps,mode,encounter,enemy_hp,area_id,side_x,side_facing,respawn_camp_id,side_pos16 FROM players ORDER BY id').fetchall():
             q=dict(p);q['online']=p['id'] in self.clients
+            q.pop('side_pos16',None)  # only rounded public pixel position, no internal fixed point
             if p['mode']=='sideview':
-                clock=now();jump_at=self.side_jumps.get(p['id'],0)
-                t=(clock-jump_at)/SIDE_JUMP_SECONDS if jump_at else 2
-                q['side_air_px']=round(SIDE_JUMP_HEIGHT_PX*4*t*(1-t)) if 0<=t<1 else 0
+                clock=now();frame=self.side_jump_frame(p['id'],clock)
+                ha=self.horizontal_actors.get(p['id'])
+                q['side_px']=round(ha.position16/16,3) if ha else (p['side_pos16']/16 if p['side_pos16'] is not None else p['side_x']*8)
+                q['side_velocity_observed_adapter']=ha.velocity if ha else 0
+                airborne=self.side_is_airborne(p['id'],clock)
+                q['side_air_px']=self.side_air_height(p['id'],clock)
+                # Read-only one-frame endpoint for bounded CLIENT PRESENTATION.
+                # Authoritative collision, HP and position never use client interpolation.
+                q['side_air_next_px']=native_jump_rise(frame+1,self.side_jump_releases.get(p['id'])) if airborne else 0
+                q['side_air_phase_observed_adapter']=frame if airborne else -1
                 anim=self.side_actions.get(p['id'])
-                q['side_action']=anim[0] if anim and clock<anim[1] else ('jump' if 0<t<1 else 'idle')
-                selector={'up_stab':8,'down_stab':9,'forward_stab':4,'jump':6}.get(q['side_action'],3)
+                q['side_crouch']=self.side_is_crouched(p['id'],clock)
+                native_held=self.native_held_pose(p['id'],clock) if airborne else None
+                q['side_action']=native_held[0] if native_held else (anim[0] if anim and clock<anim[1] else ('jump' if airborne else ('crouch' if q['side_crouch'] else 'idle')))
+                # Original Rauru jump trace: initial jump pose 6, later airborne pose 2.
+                selector={'up_stab':8,'down_stab':9,'forward_stab':4,'crouch_stab':7,'crouch':6,'jump':native_jump_pose(frame,self.side_jump_releases.get(p['id']))}.get(q['side_action'],3)
+                # The native grounded B attack changes 4→5 after seven NES
+                # frames, and crouched B remains 7 for seven frames before 6.
+                # Never hold the first sword pose for an invented 250ms.
+                if anim and clock<anim[1] and anim[0] in ('forward_stab','crouch_stab') and len(anim)>3:
+                    attack_frame=max(0,int((clock-anim[3])*Z2_FPS))
+                    source_pose=ground_sword_pose(anim[0],attack_frame)
+                    if source_pose is not None:selector=source_pose
                 if q['side_action']=='walk':selector=anim[2] if anim and clock<anim[1] else 0
-                q['side_pose']=selector
+                elif q['side_action']=='idle' and ha and ha.velocity and not q['side_crouch']:
+                    q['side_action']='walk';selector=horizontal_pose(ha)
+                q['side_pose']=native_held[1] if native_held else selector
+                q['side_techniques_pilot_unlocked']=self.pilot_sword_techniques
+                q['native_trace_profile']='Rauru ROM-observed variable-height jump by held A duration; full physics and collision unverified' 
                 q['side_action_test_only']=True
                 q['sourceRoom']=self.source_binding_for_area(p['area_id'])
             q['nextUpgrades']={skill:(LEVEL_COSTS[skill][q[skill+'_level']+1] if q[skill+'_level']<8 else None) for skill in LEVEL_COSTS}
@@ -167,7 +260,10 @@ class Host:
             if p['mode']=='sideview' and p['area_id']:
                 entry=areas.setdefault(p['area_id'],{'id':p['area_id'],'occupants':[],'sceneVerified':False,'sourceRoom':p.get('sourceRoom')})
                 if p['online']:entry['occupants'].append(p['id'])
-        return {'type':'state','areas':list(areas.values()),'stageFrames':[dict(row) for row in self.db.execute('SELECT x,y,content_sha AS revision,capture_method AS captureMethod,width_px AS widthPx FROM stage_frames WHERE world_id=? ORDER BY y,x',(self.world['sourceWorldId'] if self.world else '',))],'playerPoses':self.player_pose_summary(),'nativeRooms':[dict(row) for row in self.db.execute('SELECT location_index AS locationIndex,x,y,digest FROM native_room_records WHERE world_id=? ORDER BY location_index',(self.world['sourceWorldId'] if self.world else '',))],'online':len(self.clients),'world':self.world,'revision':self.revision,'players':players,'structures':structures,'costs':COSTS,'progression':{'profile':'z2-us-thresholds-pilot-v1','levels':LEVEL_COSTS,'encounterSteps':ENCOUNTER_STEPS,'exactEngineTiming':False,'encountersEnabled':self.experimental_encounters,'terrainEnemyTables':'provisional; original region/strong/weak tables NOT decoded','sprites':'Source-derived original Link 0..14 OAM selectors now driven by hosted action state; animation timing, CHR/palette and collision still provisional','abilityRoster':'Original Zelda II upward/downward stab OAM selectors 8/9 displayed for shared player actions; pilot vertical geometry, cooldowns and damage, NOT ROM-equivalent combat','sideView':'256x240 independent room crop; source-derived poses for walking, jumping and stabs; server-controlled pilot jump/vertical test combat; original physics, exact scrolling, Link animation NOT recovered as frame-accurate native behavior','overworldCamera':'256x240 per-player viewport with experimental camera-follow crop; not native Zelda II PPU timing','pvpTest':'localhost only: forward pilot and separately vertical pilot stabs, 8 test HP; original Link pose art but NOT recovered Zelda II hitboxes/damage/animation timing','fairyCamps':'hosted construction/respawn extension, not original Zelda II game over'},'seq':self.seq,'simulation':'Z2 source-rendered poses; original multi-screen artwork when published. Jump, action timing, vertical PvP test damage are server-side TEST mechanics, NOT native Zelda II combat.'}
+        # Untrusted emulated state is presentation telemetry only, never gameplay state.
+        observations=[dict(obs,playerId=pid) for pid,(ts,obs) in self.native_observations.items()
+          if now()-ts<=2.0 and pid in self.clients and any(q['id']==pid and q['mode']=='sideview' and q['area_id']==obs['areaId'] for q in players)]
+        return {'type':'state','nativeObservations':observations,'areas':list(areas.values()),'stageFrames':[dict(row) for row in self.db.execute('SELECT x,y,content_sha AS revision,capture_method AS captureMethod,width_px AS widthPx FROM stage_frames WHERE world_id=? ORDER BY y,x',(self.world['sourceWorldId'] if self.world else '',))],'playerPoses':self.player_pose_summary(),'nativeRooms':[dict(row) for row in self.db.execute('SELECT location_index AS locationIndex,x,y,digest FROM native_room_records WHERE world_id=? ORDER BY location_index',(self.world['sourceWorldId'] if self.world else '',))],'online':len(self.clients),'world':self.world,'revision':self.revision,'players':players,'structures':structures,'costs':COSTS,'progression':{'profile':'z2-us-thresholds-pilot-v1','levels':LEVEL_COSTS,'encounterSteps':ENCOUNTER_STEPS,'exactEngineTiming':False,'encountersEnabled':self.experimental_encounters,'terrainEnemyTables':'provisional; original region/strong/weak tables NOT decoded','sprites':'Source-derived original Link 0..14 OAM selectors now driven by hosted action state; animation timing, CHR/palette and collision still provisional','abilityRoster':'Original Zelda II upward/downward stab OAM selectors 8/9 displayed for shared player actions; pilot vertical geometry, cooldowns and damage, NOT ROM-equivalent combat','sideView':'256x240 independent room crop; source-derived poses for walking, jumping and stabs; server-controlled pilot jump/vertical test combat; original physics, exact scrolling, Link animation NOT recovered as frame-accurate native behavior','overworldCamera':'256x240 per-player viewport with experimental camera-follow crop; not native Zelda II PPU timing','pvpTest':'localhost only: forward pilot and separately vertical pilot stabs, 8 test HP; original Link pose art but NOT recovered Zelda II hitboxes/damage/animation timing','fairyCamps':'hosted construction/respawn extension, not original Zelda II game over'},'seq':self.seq,'simulation':'Z2 source-rendered poses; original multi-screen artwork when published. Jump, action timing, vertical PvP test damage are server-side TEST mechanics, NOT native Zelda II combat.'}
     async def broadcast(self, world_changed=False):
         self.seq+=1;payload=self.public()
         if not world_changed:payload.pop('world',None) # snapshot-on-join; reduce large CHR-atlas resend under load
@@ -295,6 +391,7 @@ class Host:
         async with self.lock:
             if not self.world or body['expectedRevision']!=self.revision or body['sourceWorldId']!=self.world['sourceWorldId'] or body['sourceDigest']!=self.world['sourceDigest']:
                 raise web.HTTPConflict(text='Player art does not match the hosted source/revision')
+            self.require_missing(req, 'SELECT 1 FROM player_pose_assets WHERE world_id=?', (body['sourceWorldId'],))
             with self.db:
                 self.db.execute('REPLACE INTO player_pose_assets(world_id,source_digest,image,sha256,evidence) VALUES(?,?,?,?,?)',(self.world['sourceWorldId'],self.world['sourceDigest'],png,digest,body['evidence']))
                 self.event('player-poses-published','admin',{'sha256':digest,'rendering':body['rendering'],'animationVerified':False})
@@ -324,6 +421,7 @@ class Host:
             w=self.world
             if not w or body['expectedRevision']!=self.revision or body['sourceWorldId']!=w['sourceWorldId'] or body['sourceDigest']!=w['sourceDigest']:
                 raise web.HTTPConflict(text='Hosted World revision/identity mismatch')
+            self.require_missing(req, 'SELECT 1 FROM stage_frames WHERE world_id=? AND x=? AND y=?', (w['sourceWorldId'], x, y))
             if not (0<=x<w['width'] and 0<=y<w['height']):raise web.HTTPBadRequest(text='Out of world bounds')
             rows=self.db.execute('SELECT payload FROM native_room_records WHERE world_id=? AND x=? AND y=?',(w['sourceWorldId'],x,y)).fetchall()
             matching=[json.loads(row['payload']) for row in rows]
@@ -381,15 +479,20 @@ class Host:
             w=self.world
             if not w or body['expectedRevision']!=self.revision or body['sourceWorldId']!=w['sourceWorldId'] or body['sourceDigest']!=w['sourceDigest']:
                 raise web.HTTPConflict(text='Hosted World changed; re-export native room records')
-            if self.db.execute("SELECT 1 FROM players WHERE mode='sideview' AND area_id LIKE '%:source-room:%' LIMIT 1").fetchone():
-                raise web.HTTPConflict(text='Leave source-bound rooms before replacing their native room catalog')
+            self.require_missing(req, 'SELECT 1 FROM native_room_records WHERE world_id=?', (w['sourceWorldId'],))
             seen=set();rows=[]
             for stage in stages:
                 encoded=self.validate_native_room(stage,w)
                 i=stage['location']['index']
                 if i in seen:raise web.HTTPBadRequest(text='Duplicate source location index')
                 seen.add(i);loc=stage['location'];rows.append((w['sourceWorldId'],i,loc['x'],loc['y'],encoded,hashlib.sha256(encoded.encode()).hexdigest()))
+            occupants = list(self.db.execute("SELECT area_id,x,y FROM players WHERE mode='sideview' AND area_id LIKE '%:source-room:%'"))
+            if occupants:
+                bindings = {(f'{wid}:source-room:{index}:{digest}', x, y) for wid,index,x,y,_,digest in rows}
+                if req.headers.get('If-None-Match') != '*' or any(tuple(player) not in bindings for player in occupants):
+                    raise web.HTTPConflict(text='Leave source-bound rooms before replacing their native room catalog')
             with self.db:
+                self.db.execute('BEGIN')
                 self.db.execute('DELETE FROM native_room_records WHERE world_id=?',(w['sourceWorldId'],))
                 self.db.executemany('INSERT INTO native_room_records(world_id,location_index,x,y,payload,digest) VALUES(?,?,?,?,?,?)',rows)
                 self.event('source-rooms-recovered','admin',{'count':len(rows),'skipped':len(skipped),'nativeSceneVerified':False,'dataOnly':True})
@@ -426,9 +529,17 @@ class Host:
             for x in range(width):
                 if terrain[y*width+x] not in (10,11,12,14):return x,y
         raise web.HTTPBadRequest(text='No pilot-walkable terrain in selected map')
+    def require_missing(self, req, query, params=()):
+        """Setup may fill an empty slot but cannot overwrite a concurrent write."""
+        if req.headers.get('If-None-Match') == '*' and self.db.execute(query, params).fetchone():
+            raise web.HTTPPreconditionFailed(text='Already initialized. Refresh the world state.')
+
     async def load_world(self,req):
         self.admin(req);obj=self.verify_map(await self.read(req))
         async with self.lock:
+            self.require_missing(req, "SELECT 1 FROM worlds UNION ALL SELECT 1 FROM players UNION ALL "
+                                      "SELECT 1 FROM structures UNION ALL SELECT 1 FROM stage_frames UNION ALL "
+                                      "SELECT 1 FROM player_pose_assets UNION ALL SELECT 1 FROM native_room_records LIMIT 1")
             if self.clients:raise web.HTTPConflict(text='Stop all players before loading a new revision')
             revision=hashlib.sha256(canonical(obj).encode()).hexdigest()
             changed=self.revision!=revision
@@ -438,7 +549,7 @@ class Host:
                 self.db.execute('DELETE FROM player_pose_assets') # derived Link display art is revision-specific
                 self.db.execute('DELETE FROM native_room_records') # data-bound room catalog requires reimport on new World
                 sx,sy=self.spawn(obj)
-                self.db.execute("UPDATE players SET x=?,y=?,steps=0,mode='overworld',area_id='',side_x=8,respawn_camp_id='',encounter='',enemy_hp=0,guard=0,encounter_origin=''",(sx,sy))
+                self.db.execute("UPDATE players SET x=?,y=?,steps=0,mode='overworld',area_id='',side_x=8,side_pos16=NULL,respawn_camp_id='',encounter='',enemy_hp=0,guard=0,encounter_origin=''",(sx,sy))
                 self.db.execute('REPLACE INTO worlds(id,payload,revision) VALUES(?,?,?)',('active',canonical(obj),revision))
                 self.world=obj;self.revision=revision
                 self.event('world-load','admin',{'revision':revision,'sourceWorldId':obj['sourceWorldId']})
@@ -511,6 +622,7 @@ class Host:
     async def admin_state(self,req):
         self.admin(req)
         val=self.public()
+        val['demoCreateOnlyVersion'] = 1
         val['audit']=[dict(row) for row in self.db.execute('SELECT * FROM journal ORDER BY seq DESC LIMIT 30')]
         return web.json_response(val)
     def area_for(self,p):
@@ -525,20 +637,13 @@ class Host:
         return f"{self.world['sourceWorldId']}:{category}:{x}:{y}"
 
     def select_source_area(self,p):
-        """Resolve a playable *area identity* from published source records.
-
-        ROM metadata alone never verifies native collision, exits, or gameplay.
-        Ambiguous locations fail closed; never choose the first room by accident.
-        A source catalog is optional, so older pilots retain their old area IDs.
-        """
+        """Reject ambiguous ROM locations; source record identity is NOT native gameplay."""
         pilot=self.area_for(p)
         if not pilot:return None
         if ':fairy-camp:' in pilot:return {'areaId':pilot,'sourceRoom':None}
         rows=self.db.execute('SELECT location_index,payload,digest FROM native_room_records WHERE world_id=? AND x=? AND y=? ORDER BY location_index',
           (self.world['sourceWorldId'],p['x'],p['y'])).fetchall()
-        if len(rows)>1:
-            return {'error':'Ambiguous native entrance: multiple source location records at this coordinate; resolve entry identity in Forge before entering',
-              'candidateLocationIndices':[int(r['location_index']) for r in rows]}
+        if len(rows)>1:return {'error':'Ambiguous native entrance: multiple source location records at this coordinate; resolve entry identity in Forge before entering','candidateLocationIndices':[int(r['location_index']) for r in rows]}
         if not rows:return {'areaId':pilot,'sourceRoom':None}
         row=rows[0];record=json.loads(row['payload'])
         loc,src=record['location'],record['source']
@@ -552,7 +657,7 @@ class Host:
         return {'areaId':area,'sourceRoom':binding}
 
     def source_binding_for_area(self,area):
-        """Show a stable, server-validated read-only binding after reconnect."""
+        """Read only validation of a source-bound room after reconnection."""
         if not self.world or ':source-room:' not in area:return None
         world_part, _, suffix=area.partition(':source-room:')
         if world_part!=self.world['sourceWorldId']:return None
@@ -576,13 +681,23 @@ class Host:
         if p['respawn_camp_id']:
             camp=self.db.execute('SELECT * FROM structures WHERE id=? AND player_id=? AND kind=?',(p['respawn_camp_id'],pid,'camp')).fetchone()
             if camp and not self.can_step(camp['x'],camp['y']):camp=None
+        # The respawn chooses a new movement origin and releases the previous controls.
+        self.horizontal_actors.pop(pid, None)
+        self.side_requested_horizontal.pop(pid, None)
+        self.side_held_vertical.pop(pid, None)
+        self.side_actions.pop(pid, None)
+        self.side_jumps.pop(pid, None)
+        self.side_jump_releases.pop(pid, None)
+        self.side_crouches.discard(pid)
+        self.native_observations.pop(pid, None)
+        self.side_native_hit_once = {hit for hit in self.side_native_hit_once if hit[0] != pid}
         if camp:
             x,y=camp['x'],camp['y'];area=f"{self.world['sourceWorldId']}:fairy-camp:{x}:{y}"
             sx=self.available_side_x(area,pid)
-            self.db.execute("UPDATE players SET x=?,y=?,mode='sideview',area_id=?,side_x=?,hp=64,encounter='',enemy_hp=0,guard=0 WHERE id=?",(x,y,area,sx,pid))
+            self.db.execute("UPDATE players SET x=?,y=?,mode='sideview',area_id=?,side_x=?,side_pos16=?,hp=64,encounter='',enemy_hp=0,guard=0 WHERE id=?",(x,y,area,sx,sx*128,pid))
         else:
             x,y=self.spawn(self.world)
-            self.db.execute("UPDATE players SET x=?,y=?,mode='overworld',area_id='',side_x=8,respawn_camp_id='',hp=64,encounter='',enemy_hp=0,guard=0 WHERE id=?",(x,y,pid))
+            self.db.execute("UPDATE players SET x=?,y=?,mode='overworld',area_id='',side_x=8,side_pos16=NULL,respawn_camp_id='',hp=64,encounter='',enemy_hp=0,guard=0 WHERE id=?",(x,y,pid))
         self.event('test-defeat-respawn',pid,{'reason':reason,'campUsed':bool(camp),'areaId':area if camp else None,'x':x,'y':y,'notOriginalZ2DeathRule':True})
         return {'ok':True,'campUsed':bool(camp),'mode':'sideview' if camp else 'overworld'}
 
@@ -618,6 +733,35 @@ class Host:
     async def action(self,pid,body):
         if not self.world:return {'error':'Admin has not loaded a world'}
         typ=body.get('type');p=self.player(pid)
+        if typ=='native_observation':
+            # Do not trust samples for physics, hit detection, HP, XP, or item flags.
+            # Only a wallet-authenticated side-view client may publish ephemeral metrics.
+            required={'type','version','sourceDigest','frame','area','scene','x','y','xLow','xPage','pose','facing'}
+            if set(body)!=required or type(body['version']) is not int or body['version']!=2:
+                return {'error':'Invalid native observation schema'}
+            if p['mode']!='sideview' or not p['area_id']:
+                return {'error':'Native observation requires a hosted side-view session'}
+            if body['sourceDigest']!=self.world['sourceDigest']:
+                return {'error':'Original ROM source digest differs from hosted World'}
+            if type(body['frame']) is not int or not 0<=body['frame']<=2147483647:
+                return {'error':'Invalid original frame number'}
+            if any(type(body[k]) is not int or not 0<=body[k]<=255
+                    for k in ('area','scene','y','xLow','xPage','pose','facing')):
+                return {'error':'Invalid native RAM sample'}
+            if type(body['x']) is not int or body['x']!=body['xLow']+body['xPage']*256:
+                return {'error':'Invalid native RAM sample'}
+            prev=self.native_observations.get(pid)
+            if prev is not None and body['frame']<=prev[1]['frame'] and now()-prev[0]<2.0:
+                return {'error':'Stale original frame'}
+            if prev is not None and now()-prev[0]<0.095:
+                return {'ok':True}
+            self.native_observations[pid]=(now(),{
+              'sourceDigest':body['sourceDigest'],'frame':body['frame'],
+              'area':body['area'],'scene':body['scene'],'x':body['x'],'y':body['y'],
+              'xLow':body['xLow'],'xPage':body['xPage'],
+              'pose':body['pose'],'facing':body['facing'],'areaId':p['area_id'],
+              'authoritative':False,'nativeCollisionVerified':False})
+            return {'ok':True}
         if typ=='level_up':
             skill=body.get('skill')
             if skill not in LEVEL_COSTS:return {'error':'Unknown skill'}
@@ -653,19 +797,47 @@ class Host:
             new_hp=max(0,p['hp']-taken)
             if new_hp==0:
                 new_hp=64; sx,sy=self.spawn(self.world)
-                # Hosted Worlds keeps attained stat levels and all unspent XP
-                # after pilot defeat; native Zelda II Game Over differs.
+                # Hosted World extension retains XP and attained stat levels on pilot defeat.
                 self.db.execute("UPDATE players SET hp=?,x=?,y=?,mode='overworld',encounter='',enemy_hp=0,steps=0,guard=0 WHERE id=?",(new_hp,sx,sy,pid))
                 self.event('encounter-defeat',pid,{'retainedUnspentXp':p['xp'],'hostedXpRetention':True,'provisional':True})
             else:self.db.execute('UPDATE players SET hp=? WHERE id=?',(new_hp,pid))
             return {'ok':True,'damage':damage,'damageTaken':taken}
         if p['mode']=='sideview':
+            if typ=='side_nes_direction':
+                # NES-like held Up/Down input. Never trust client-supplied poses,
+                # ability flags, hitboxes, damage, or positions.
+                direction=body.get('direction')
+                if set(body)!={'type','direction'} or direction not in ('up','down','neutral'):
+                    return {'error':'Invalid NES vertical direction'}
+                if direction=='neutral':self.side_held_vertical.pop(pid,None)
+                else:self.side_held_vertical[pid]=direction
+                if direction=='down' and not self.side_is_airborne(pid):self.side_crouches.add(pid)
+                else:self.side_crouches.discard(pid)
+                return {'ok':True,'pilot':True,'direction':direction}
+            if typ=='side_crouch':
+                if set(body)!={'type','pressed'} or type(body['pressed']) is not bool:return {'error':'Invalid crouch input'}
+                if body['pressed'] and self.side_is_airborne(pid):return {'error':'Cannot crouch while airborne (pilot)'}
+                if body['pressed']:self.side_crouches.add(pid)
+                else:self.side_crouches.discard(pid)
+                return {'ok':True,'pilot':True,'crouch':body['pressed']}
+            if typ=='side_jump_release':
+                # The host measures held time itself, never accepts a client frame
+                # count. Repeated releases cannot change a committed jump arc.
+                if set(body)!={'type'}:return {'error':'Invalid jump-release command'}
+                if pid not in self.side_jumps:return {'ignored':True,'reason':'not jumping'}
+                if pid in self.side_jump_releases:return {'ignored':True,'reason':'already released'}
+                self.side_jump_releases[pid]=max(2,min(20,self.side_jump_frame(pid)))
+                return {'ok':True,'pilot':True,'releasedFrame':self.side_jump_releases[pid]}
             if typ=='side_jump':
                 if set(body)!={'type'}:return {'error':'Invalid side-view jump command'}
                 if p['hp']<=0:return {'error':'Defeated player cannot jump'}
                 clock=now()
-                if clock-self.side_jumps.get(pid,0)<SIDE_JUMP_SECONDS:return {'error':'Already in jump arc'}
+                if self.side_is_airborne(pid,clock):return {'error':'Already in jump arc'}
                 self.side_jumps[pid]=clock
+                self.side_jump_releases.pop(pid,None)
+                self.side_actions.pop(pid,None)
+                self.side_crouches.discard(pid)
+                self.side_native_hit_once={k for k in self.side_native_hit_once if k[0]!=pid}
                 self.event('side-jump-pilot',pid,{'areaId':p['area_id'],'provisionalPhysics':True})
                 return {'ok':True,'pilot':True}
             if typ=='side_action':
@@ -681,13 +853,17 @@ class Host:
                 air=self.side_air_height(pid,clock)
                 if act=='down_stab' and air<4:return {'error':'Downward Stab requires a jump (pilot)'}
                 self.combat_cooldowns[pid]=clock
-                self.side_actions[pid]=(act,clock+SIDE_ATTACK_SECONDS,{'forward_stab':4,'up_stab':8,'down_stab':9}[act])
+                crouched=self.side_is_crouched(pid,clock)
+                animation='crouch_stab' if act=='forward_stab' and crouched else act
+                pose={'forward_stab':(7 if crouched else 4),'up_stab':8,'down_stab':9}[act]
+                attack_duration=(ground_sword_frames(animation)/Z2_FPS) if animation in ('forward_stab','crouch_stab') else SIDE_ATTACK_SECONDS
+                self.side_actions[pid]=(animation,clock+attack_duration,pose,clock)
                 # Server owns both attacker/target coordinates. These are BOUNDED
                 # VERTICAL PILOT regions, NOT original Link sword OAM hitboxes.
                 candidates=[]
-                for enemy in self.db.execute('SELECT id,side_x,hp,mode,area_id FROM players WHERE id!=?',(pid,)).fetchall():
+                for enemy in self.db.execute('SELECT id,side_x,side_pos16,hp,mode,area_id FROM players WHERE id!=?',(pid,)).fetchall():
                     if enemy['mode']!='sideview' or enemy['area_id']!=p['area_id'] or enemy['hp']<=0 or enemy['id'] not in self.clients:continue
-                    delta_x=(enemy['side_x']-p['side_x'])*8
+                    delta_x=((enemy['side_pos16']/16 if enemy['side_pos16'] is not None else enemy['side_x']*8) - (p['side_pos16']/16 if p['side_pos16'] is not None else p['side_x']*8))
                     delta_y=self.side_air_height(enemy['id'],clock)-air
                     facing=p['side_facing'] if p['side_facing'] in (-1,1) else 1
                     if act=='forward_stab':within=0<=delta_x*facing<=19 and abs(delta_y)<=14
@@ -714,8 +890,8 @@ class Host:
                 self.combat_cooldowns[pid]=clock
                 direction=p['side_facing'] if p['side_facing'] in (-1,1) else 1
                 candidates=[]
-                for enemy in self.db.execute('SELECT id,side_x,hp,mode,area_id FROM players WHERE id!=?',(pid,)).fetchall():
-                    distance=(enemy['side_x']-p['side_x'])*direction
+                for enemy in self.db.execute('SELECT id,side_x,side_pos16,hp,mode,area_id FROM players WHERE id!=?',(pid,)).fetchall():
+                    distance=((enemy['side_pos16']/16 if enemy['side_pos16'] is not None else enemy['side_x']*8)-(p['side_pos16']/16 if p['side_pos16'] is not None else p['side_x']*8))*direction/8
                     if enemy['mode']=='sideview' and enemy['area_id']==p['area_id'] and 0<=distance<=2 and enemy['hp']>0 and enemy['id'] in self.clients:
                         candidates.append((distance,enemy['id']))
                 if not candidates:
@@ -728,11 +904,26 @@ class Host:
                 self.event('pvp-test-hit',pid,{'target':victim_id,'damage':dmg,'hpAfter':new_hp,'areaId':p['area_id'],'provisional':True,'xpReward':0})
                 if new_hp==0:self.respawn_player(victim_id,'pvp-network-test-no-xp')
                 return {'ok':True,'hit':True,'target':victim_id,'damage':dmg,'pilot':True,'respawned':new_hp==0}
+            if typ=='side_input':
+                if set(body)!={'type','direction'} or type(body.get('direction'))!=int or body['direction'] not in (-1,0,1):
+                    return {'error':'Invalid held side-view input'}
+                actor=self.horizontal_for(pid,p)
+                self.side_requested_horizontal[pid]=body['direction']
+                actor.held=0 if self.side_is_crouched(pid) else body['direction']
+                if body['direction']:pdir=body['direction']
+                else:pdir=p['side_facing']
+                if pdir!=p['side_facing']:
+                    self.db.execute('UPDATE players SET side_facing=? WHERE id=?',(pdir,pid))
+                return {'ok':True,'held':actor.held,'nativeMeasuredHorizontalPilot':True}
             if typ=='side_step':
+                if pid in self.side_crouches:return {'ignored':True,'reason':'pilot crouch holds position'}
                 direction=body.get('direction')
-                if type(direction)!=int or direction not in (-1,1):return {'error':'Side-view step must be -1 or +1'}
+                if set(body)!={'type','direction'} or type(direction)!=int or direction not in (-1,1):return {'error':'Side-view step must be -1 or +1'}
                 prev=self.cooldowns.get(pid,0)
-                if now()-prev<0.06:return {'error':'Side-view input rate limited'}
+                # Held-key network repeats can arrive earlier than the 60 ms pilot
+                # movement cadence. Treat them as a no-op, not a player-facing error.
+                # No broadcast should follow an ignored input.
+                if now()-prev<0.06:return {'ignored':True,'reason':'pilot movement cadence'}
                 next_x=p['side_x']+direction
                 # Only verified multi-screen art extends the provisional network walk boundary.
                 # Native collision and exit conditions are not implied by this pixel range.
@@ -740,16 +931,18 @@ class Host:
                    (self.world['sourceWorldId'],p['x'],p['y'],'executed-original-construction:first-screen')).fetchone()
                 max_x=max(31,art['width_px']//8-1) if art else 31
                 if not 0<=next_x<=max_x:return {'error':'At experimental room edge; use Leave side-view'}
-                self.db.execute('UPDATE players SET side_x=?,side_facing=? WHERE id=?',(next_x,direction,pid))
+                self.db.execute('UPDATE players SET side_x=?,side_facing=?,side_pos16=? WHERE id=?',(next_x,direction,next_x*128,pid))
+                self.horizontal_actors.pop(pid,None);self.side_requested_horizontal.pop(pid,None)
                 # Walking selector 0/1/2 recovered from emulator observations.
                 # Step-rate-to-frame mapping is a hosted approximation.
                 self.side_actions[pid]=('walk',now()+0.16, (0,1,2)[next_x%3])
                 self.cooldowns[pid]=now()
                 return {'ok':True}
             if typ=='leave_area':
+                self.side_crouches.discard(pid);self.side_held_vertical.pop(pid,None);self.horizontal_actors.pop(pid,None);self.side_requested_horizontal.pop(pid,None)
                 # This returns to the same overworld map cell, not a made-up exit destination.
                 if not self.can_step(p['x'],p['y']):return {'error':'Anchor terrain invalid; administrator must repair world'}
-                self.db.execute("UPDATE players SET mode='overworld',area_id='',side_x=8 WHERE id=?",(pid,))
+                self.db.execute("UPDATE players SET mode='overworld',area_id='',side_x=8,side_pos16=NULL WHERE id=?",(pid,))
                 self.event('sideview-exit',pid,{'areaId':p['area_id'],'x':p['x'],'y':p['y'],'destination':'same-overworld-cell'})
                 return {'ok':True}
             return {'error':'In shared side-view area; leave it before overworld movement'}
@@ -760,7 +953,7 @@ class Host:
             if 'error' in selected:return selected
             area=selected['areaId'];source=selected['sourceRoom']
             side_x=self.available_side_x(area,pid)
-            self.db.execute("UPDATE players SET mode='sideview',area_id=?,side_x=? WHERE id=?",(area,side_x,pid))
+            self.db.execute("UPDATE players SET mode='sideview',area_id=?,side_x=?,side_pos16=? WHERE id=?",(area,side_x,side_x*128,pid))
             self.event('sideview-enter',pid,{'areaId':area,'sceneVerified':False,'sharedInstance':True,'sourceRoom':source})
             return {'ok':True,'areaId':area,'sourceRoom':source,'sceneVerified':False} 
         if typ=='move':
@@ -770,18 +963,17 @@ class Host:
             if now()-prev<0.09:return {'error':'Move rate limited'}
             x,y=p['x']+dx,p['y']+dy
             if not self.can_step(x,y):return {'error':'Terrain blocked by pilot rule; native traversal not implemented'}
-            # Preflight native source identity BEFORE moving, so ambiguous record
-            # collisions never strand a player or increment the encounter counter.
+            # Preflight source identity before movement to avoid ambiguous entry.
             candidate={**p,'x':x,'y':y}
             selected=self.select_source_area(candidate)
             if selected and 'error' in selected:return selected
             self.db.execute('UPDATE players SET x=?,y=?,steps=steps+1 WHERE id=?',(x,y,pid));self.cooldowns[pid]=now()
             terrain=self.world['terrain'][y*self.world['width']+x]
-            # One-way pilot entry on ARRIVAL; native destination remains unverified.
+            # One-way pilot entry on ARRIVAL; original destination remains unverified.
             if selected:
                 area=selected['areaId'];source=selected['sourceRoom']
                 side_x=self.available_side_x(area,pid)
-                self.db.execute("UPDATE players SET mode='sideview',area_id=?,side_x=? WHERE id=?",(area,side_x,pid))
+                self.db.execute("UPDATE players SET mode='sideview',area_id=?,side_x=?,side_pos16=? WHERE id=?",(area,side_x,side_x*128,pid))
                 self.event('sideview-auto-enter',pid,{'areaId':area,'x':x,'y':y,'terrain':terrain,'sharedInstance':True,'nativePhysics':False,'sourceRoom':source})
                 return {'ok':True,'autoEntered':True,'areaId':area,'sourceRoom':source,'sceneVerified':False}
             if self.experimental_encounters and terrain in ENCOUNTER_TERRAIN and (p['steps']+1)%ENCOUNTER_STEPS==0:
@@ -844,28 +1036,61 @@ class Host:
                 async with self.lock:
                     with self.db:
                         result=await self.action(pid,body)
-                    if result.get('ok'):await self.broadcast()
+                    if result.get('ignored'):
+                        # The host remains authoritative; no state change or cosmetic error.
+                        continue
+                    if result.get('ok'):
+                        await self.broadcast()
+                        # This acknowledgement is informative only: damage and positions
+                        # are always read from the server broadcast, never from a client.
+                        if body.get('type') in ('side_action','pvp_test_attack'):
+                            await ws.send_json({'type':'action_result','action':body['type'],
+                                'hit':bool(result.get('hit')),'target':result.get('target'),
+                                'damage':result.get('damage',0),'pilot':True})
                     else:await ws.send_json({'type':'error','error':result.get('error','Rejected')})
         except (ValueError,asyncio.TimeoutError) as exc:
             await ws.send_json({'type':'error','error':str(exc)})
         finally:
             async with self.lock:
                 if pid and self.clients.get(pid) is ws:
-                    del self.clients[pid];await self.broadcast()
+                    del self.clients[pid];self.side_crouches.discard(pid);self.side_held_vertical.pop(pid,None);self.horizontal_actors.pop(pid,None);self.side_requested_horizontal.pop(pid,None);await self.broadcast()
         return ws
 
 async def side_animation_tick(app):
     host=app['host']
     try:
         while True:
-            await asyncio.sleep(0.055)
-            if not host.clients:continue
+            await asyncio.sleep(1/HORIZONTAL_FPS)
             clock=now()
+            elapsed=min(4/HORIZONTAL_FPS,max(0,clock-host.horizontal_clock))
+            host.horizontal_clock=clock
+            if not host.clients:
+                host.horizontal_accumulator=0;continue
+            host.horizontal_accumulator+=elapsed
+            tick_count=min(4,int(host.horizontal_accumulator*HORIZONTAL_FPS))
+            host.horizontal_accumulator-=tick_count/HORIZONTAL_FPS
             live={r['id'] for r in host.db.execute("SELECT id FROM players WHERE mode='sideview'")}
-            pending=any(pid in live and (clock-at<SIDE_JUMP_SECONDS) for pid,at in host.side_jumps.items())
-            pending|=any(pid in live and clock<act[1] for pid,act in host.side_actions.items())
-            if pending:
-                async with host.lock:await host.broadcast()
+            # An airborne direction can produce at most one pilot sword event
+            # per jump+technique. Pose timing is source-traced; hits still pilot.
+            async with host.lock:
+                jumping = live.intersection(host.side_jumps)
+                acting = live.intersection(host.side_actions)
+                # Include the expiry tick in the broadcasts, then quiet the stream.
+                pending = bool(jumping or acting)
+                for pid in jumping:
+                    if not host.side_is_airborne(pid, clock):
+                        host.side_jumps.pop(pid)
+                        host.side_jump_releases.pop(pid, None)
+                for pid in acting:
+                    if clock >= host.side_actions[pid][1]:
+                        host.side_actions.pop(pid)
+                for _ in range(tick_count):
+                    with host.db:pending=host.horizontal_tick() or pending
+                for pid in live.intersection(host.clients):
+                    if host.native_held_pose(pid,clock) is None:continue
+                    with host.db:res=await host.resolve_held_thrust(pid,clock)
+                    if res.get('ok'):pending=True
+                if pending:await host.broadcast()
     except asyncio.CancelledError:pass
 
 async def begin_side_tick(app):
@@ -875,8 +1100,8 @@ async def end_side_tick(app):
     try:await app['side_tick_task']
     except asyncio.CancelledError:pass
 
-def create_app(db,admin,experimental_encounters=False):
-    host=Host(db,admin,experimental_encounters=experimental_encounters)
+def create_app(db,admin,experimental_encounters=False,pilot_sword_techniques=False):
+    host=Host(db,admin,experimental_encounters=experimental_encounters,pilot_sword_techniques=pilot_sword_techniques)
     # Startup gate: fail closed if keccak unavailable. No SHA3 substitution.
     if keccak256(b'').hex()!='c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470':raise RuntimeError('Keccak provider self-test failed')
     app=web.Application(middlewares=[cors],client_max_size=2000000)
@@ -885,6 +1110,17 @@ def create_app(db,admin,experimental_encounters=False):
     app.router.add_get('/',lambda r:web.FileResponse(ROOT/'client.html'))
     app.router.add_get('/client.js',lambda r:web.FileResponse(ROOT/'client.js'))
     app.router.add_get('/render-world.js',lambda r:web.FileResponse(ROOT/'render-world.js'))
+    app.router.add_get('/native-link-client.js',lambda r:web.FileResponse(ROOT/'native-link-client.js'))
+    app.router.add_get('/playability.js',lambda r:web.FileResponse(ROOT/'playability.js'))
+    app.router.add_get('/native-observer.js',lambda r:web.FileResponse(ROOT/'native-observer.js'))
+    async def original_native_editor(req):
+        # Localhost-only full existing emulator. No ROM is accepted by this endpoint.
+        source=ROOT.parent/'NES_Forge.html'
+        html=source.read_text(encoding='utf-8')
+        if not html.rstrip().endswith('</body></html>'):raise web.HTTPInternalServerError(text='Unexpected editor packaging')
+        before,ending=html.rsplit('</body>',1)
+        return web.Response(text=before+'<script src="/native-observer.js"></script></body>'+ending,content_type='text/html')
+    app.router.add_get('/native-editor',original_native_editor)
     app.router.add_get('/api/health',lambda r:web.json_response({'ok':True,'host':'localhost','hasWorld':host.world is not None,'protocol':13,'maxRoomWidthPx':2048,'wallet':'EOA personal_sign','public':False}))
     app.router.add_post('/api/admin/world',host.load_world)
     app.router.add_post('/api/admin/patch',host.patch_world)
@@ -908,11 +1144,13 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--db',default=str(ROOT/'localhost-world.db'))
     parser.add_argument('--admin-token',default=os.environ.get('NES_FORGE_LOCAL_ADMIN_TOKEN'))
     parser.add_argument('--simulate-encounters',action='store_true',help='UNVERIFIED experimental placeholder encounter simulator; disabled by default')
+    parser.add_argument('--pilot-sword-techniques',action='store_true',help='LOCAL DEMO ONLY: temporarily allow both learnt sword techniques; no grant/persistence claim')
     args=parser.parse_args();token=args.admin_token or secrets.token_urlsafe(30)
     print('NES FORGE LOCALHOST HOST v0.17 (EXPERIMENTAL POC ONLY)')
     print(f'Player URL: http://{DOMAIN}/')
     print('Hosted room protocol: 13 · full source scene raster up to 2048x240 · native gameplay NOT recovered')
     print(f'WORLD Live admin token: {token}')
+    print('Sword techniques: '+('PILOT DEMO ENABLED (not earned in ROM)' if args.pilot_sword_techniques else 'LOCKED until native teacher grant recovery'))
     print('Unverified placeholder encounters: '+('OPTED IN (NOT Z2 GAMEPLAY)' if args.simulate_encounters else 'OFF (fidelity-safe default)'))
     print('Localhost only. NO production, LAN or public hosting. Ctrl+C stops it.',flush=True)
-    web.run_app(create_app(args.db,token,experimental_encounters=args.simulate_encounters),host='127.0.0.1',port=8765,access_log=None,print=lambda *_:None)
+    web.run_app(create_app(args.db,token,experimental_encounters=args.simulate_encounters,pilot_sword_techniques=args.pilot_sword_techniques),host='127.0.0.1',port=8765,access_log=None,print=lambda *_:None)

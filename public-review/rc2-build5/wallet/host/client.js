@@ -1,5 +1,51 @@
 (()=>{'use strict';
  const $=s=>document.getElementById(s),canvas=$('world'),ctx=canvas.getContext('2d');let activeCamera=null;let provider=null,addr='',token='',pid='',ws=null,state=null,target=null,selectedCamp=null,selectedBoss=null;let poseCache=new Map(),poseLoading=new Set(),stageCache=new Map(),stageLoading=new Set(),stageErrors=new Map(),nativeCache=new Map(),nativeLoading=new Set();
+ const smoothing=window.ForgePlayableMotion?.create?.()||{ingest:()=>{},sample:p=>p};
+ const sourceFloors=new WeakMap();
+ function stageGroundY(img){
+   if(!img)return 208;
+   if(sourceFloors.has(img))return sourceFloors.get(img);
+   // Detect a flat floor band in the ORIGINAL published stage pixels.
+   // This is only a drawing anchor. It does not infer solid walls/platform collision.
+   const probe=document.createElement('canvas');probe.width=img.naturalWidth;probe.height=240;
+   const ctx=probe.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
+   const data=ctx.getImageData(0,0,probe.width,240).data,w=probe.width,step=16;
+   const key=(x,y)=>{const i=(y*w+x)*4;return data[i]+','+data[i+1]+','+data[i+2];};
+   const cols=[];for(let x=8;x<w;x+=step)cols.push(x);
+   // The bottom ground texture alternates with black. Find its most frequent
+   // *opaque ground color*, not a single column's final scanline color.
+   const frequency=new Map();for(let y=224;y<240;y+=2)for(const x of cols){
+     const k=key(x,y);frequency.set(k,(frequency.get(k)||0)+1);
+   }
+   const groundColor=[...frequency].sort((a,b)=>b[1]-a[1])[0]?.[0];
+   let found=208;
+   for(let y=176;y<232;y++){
+     let matches=0;for(const x of cols)if(key(x,y)===groundColor)matches++;
+     if(matches>=cols.length*.92){found=y;break;}
+   }
+   sourceFloors.set(img,found);return found;
+ }
+ const hitEffects=new Map();let lastHudSignature='';
+ const readyStatus=(message,connected)=>{const el=$('walletLinkStatus');if(el)el.textContent=message;
+   $('walletHeading').textContent=connected?'Wallet verified':'Wallet connection';$('connect').textContent=connected?'Reconnect wallet':'Connect & Sign';};
+ const healthBar=(hp)=>Math.max(0,Math.min(100,100*hp/64));
+ function updateSideHud(me,occupants){
+   const names=new Map(state.players.map((p,i)=>[p.id,'P'+(i+1)]));
+   const sig=occupants.map(p=>[p.id,p.hp,p.side_x,p.side_action,p.id===pid].join(':')).join('|');
+   // DOM output is text only; wallet/player data never goes into HTML markup.
+   if(sig===lastHudSignature)return;lastHudSignature=sig;
+   const hud=$('sidePvpHud');hud.replaceChildren();
+   for(const p of occupants){
+     const entry=document.createElement('div');entry.className='pvp-entry'+(p.id===pid?' is-me':'')+(hitEffects.has(p.id)?' is-hurt':'');
+     const heading=document.createElement('div');heading.className='pvp-title';
+     const name=document.createElement('span');name.textContent=names.get(p.id)+(p.id===pid?' · YOU':' · REMOTE');
+     const hp=document.createElement('span');hp.textContent=p.hp+'/64 HP';heading.append(name,hp);
+     const bar=document.createElement('div');bar.className='pvp-hp-track';const fill=document.createElement('span');fill.style.width=healthBar(p.hp)+'%';bar.append(fill);
+     const position=document.createElement('div');position.textContent='Position '+p.side_x+' · '+(p.side_action||'idle')+' (pilot)';
+     entry.append(heading,bar,position);hud.append(entry);
+   }
+   if(occupants.length<2){const entry=document.createElement('div');entry.className='pvp-entry';entry.textContent='Waiting for another signed-in wallet to enter this room';hud.append(entry);}
+ }
  const colors=['#89b7a0','#4b4436','#9683a5','#c7bb83','#b9ab60','#6f9464','#356d44','#4d7e5b','#9d9674','#afaa70','#ce704b','#5d5c54','#47739f','#679fa1','#777475','#8f7353'];
  const log=s=>{const el=$('log');el.textContent=new Date().toLocaleTimeString()+' '+s+'\n'+el.textContent.slice(0,1600)};
  const api=async(path,body)=>{const r=await fetch(path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},...(body?{body:JSON.stringify(body)}:{})});if(!r.ok)throw Error((await r.text()).slice(0,280));return r.json();};
@@ -76,10 +122,13 @@ $('roster').textContent=state.players.map((p,i)=>`P${i+1} ${p.id.slice(0,8)} ${p
   const ref=state.stageFrames?.find(f=>f.x===me.x&&f.y===me.y);
   const key=ref?state.world.sourceWorldId+':'+me.x+':'+me.y+':'+ref.revision:'';
   const img=key?stageCache.get(key):null;
+  const cameraSample=smoothing.sample(me);
+  const cameraPx=Number.isFinite(cameraSample.side_px)?cameraSample.side_px:cameraSample.side_x*8;
+  const cameraX=img?Math.max(0,Math.min(img.naturalWidth-256,Math.round(cameraPx+4-128))):0;
+  const floorY=stageGroundY(img);
   if(img){
     // Camera follows this player over the original decoded raster; each client has its own camera.
     // This crop is NOT proof of Zelda II's original scroll algorithm, collision or PPU behavior.
-    const cameraX=Math.max(0,Math.min(img.naturalWidth-256,Math.round(me.side_x*8+4-128)));
     g.drawImage(img,cameraX,0,256,240,0,0,256,240);
     $('sideVisualStatus').textContent=ref.captureMethod==='executed-original-construction:first-screen'?'ORIGINAL ROOM ART · '+img.naturalWidth+'×240 source raster · client camera x='+cameraX+' · native scroll timing, sprites and physics still pending.':'CAPTURED SOURCE REFERENCE · 256×240 static image (not decoded room geometry).';
   }else{
@@ -103,28 +152,41 @@ $('roster').textContent=state.players.map((p,i)=>`P${i+1} ${p.id.slice(0,8)} ${p
     }
   }
   const occupants=state.players.filter(p=>p.mode==='sideview'&&p.area_id===me.area_id&&p.online);
+  updateSideHud(me,occupants);
   for(let i=0;i<occupants.length;i++){
-    const p=occupants[i],viewX=img?Math.max(0,Math.min(img.naturalWidth-256,Math.round(me.side_x*8+4-128))):0,x=p.side_x*8-viewX;
+    const p=occupants[i],display=smoothing.sample(p),x=(display.side_px??display.side_x*8)-cameraX;
     if(x<-16||x>256)continue;g.fillStyle=p.id===pid?'#79efc7':i%2?'#f6cb87':'#b4b4fa';
     const spriteDigest=state.playerPoses?.sha256,atlas=poseCache.get(spriteDigest);
     if(spriteDigest&&!atlas)loadPlayerPoses(spriteDigest);
+    const rise=Number.isFinite(display.side_air_px)?Math.max(0,Math.min(35,display.side_air_px)):0;
     if(atlas){
       // Reuse original OAM/CHR display pixels. Selector 0 is a static pose;
       // walking/attack/jump transitions are NOT inferred from movement direction.
       const facing=p.side_facing<0?2:1;
       const pose=Number.isInteger(p.side_pose)&&p.side_pose>=0&&p.side_pose<15?p.side_pose:0;
-      const rise=Number.isFinite(p.side_air_px)?Math.max(0,Math.min(49,p.side_air_px)):0;
-      g.drawImage(atlas,pose*32,(facing-1)*40,32,40,x-8,151-rise,32,40);
-    }else{
-      const rise=Number.isFinite(p.side_air_px)?Math.max(0,Math.min(49,p.side_air_px)):0;
-      g.fillRect(x,176-rise,7,14);g.strokeStyle='#10151f';g.strokeRect(x+.5,176.5-rise,7,14);
+      // Source OAM pose cells are 40px high; opaque feet end at cell row 35.
+      // Anchor the feet to the first verified Rauru ground band (row 208),
+      // instead of the old hard-coded top of 151 that left Link floating.
+      // NES palette-color pixels in the atlas are already fully opaque.
+      g.globalAlpha=1;g.globalCompositeOperation='source-over';
+      g.drawImage(atlas,pose*32,(facing-1)*40,32,40,Math.round(x-8),Math.round(floorY-36-rise),32,40);
     }
-    g.fillStyle='#171923';g.fillRect(x-1,167,9,3);
-    g.fillStyle=p.id===pid?'#6dfac1':'#f6a3a3';g.fillRect(x-1,167,Math.max(0,Math.round(9*p.hp/64)),3);
-    g.fillStyle='#fff4c8';g.font='7px monospace';g.fillText('P'+(state.players.indexOf(p)+1),x-1,163);
+    // No rectangle substitute: absent source art is a loading/recovery error,
+    // not a new-looking NES character. Make health/name move with the actor.
+    g.fillStyle='#171923';g.fillRect(x-5,floorY-46-rise,18,4);
+    g.fillStyle=p.id===pid?'#6dfac1':'#f6a3a3';g.fillRect(x-4,floorY-45-rise,Math.round(16*p.hp/64),2);
+    g.fillStyle='#fff4c8';g.font='7px monospace';g.fillText('P'+(state.players.indexOf(p)+1),x-3,floorY-51-rise);
+    const effect=hitEffects.get(p.id);
+    if(effect&&performance.now()-effect.at<650){
+      g.strokeStyle='#ffb8a8';g.lineWidth=1;g.strokeRect(Math.round(x-8)+.5,Math.round(floorY-37-rise)+.5,31,40);
+      g.fillStyle='#ffe4bf';g.fillText('-'+effect.damage,x+3,floorY-61-rise-(performance.now()-effect.at)/80);
+    }
   }
-  $('sideVisualStatus').textContent+=' · '+(poseCache.has(state.playerPoses?.sha256)?'LINK OAM/CHR ART LOADED — original pose selectors 8/9 mapped to player actions; physics, timing, hitboxes and damage remain PILOT':state.playerPoses?'Original Link pose atlas loading':'Original Link sprites not yet published from Forge');
-  $('sideRoster').textContent=occupants.length+' player(s) in the same server-owned room: '+occupants.map(p=>p.id.slice(0,8)+' HP '+p.hp).join(', ');
+  $('sideVisualStatus').textContent+=' · ROM-observed horizontal acceleration + bounded 1-frame display prediction; original ground sword poses 4→5, crouch stab pose 7 (native collision still unverified)';
+  $('sideVisualStatus').textContent+=(me.side_techniques_pilot_unlocked?' · TEST-ONLY THRUST UNLOCKS ACTIVE (not earned in ROM)':' · UP/DOWN TECHNIQUES LOCKED')+' · ROM-observed tap/hold jump · host-bounded next-frame rise presentation · native collision pending';
+  $('sideVisualStatus').textContent+=' · VISUAL FLOOR '+floorY+'px (ground-only placement; collision pending)'+' · '+(poseCache.has(state.playerPoses?.sha256)?'LINK OAM/CHR ART LOADED — original pose selectors 8/9 mapped to player actions; physics, timing, hitboxes and damage remain PILOT':state.playerPoses?'Original Link pose atlas loading':'Original Link sprites not yet published from Forge');
+  $('sideRoster').textContent=occupants.length+' player(s) in the same server-owned room: '+occupants.map(p=>p.id.slice(0,8)+' HP '+p.hp).join(', ')
+    +'\n'+(nativeBridge?.summary(state,me.area_id)||'Native observation bridge not available');
  }
  function drawEncounter(me){
  const c=$('battle'),b=c.getContext('2d');b.imageSmoothingEnabled=false;
@@ -139,31 +201,98 @@ $('roster').textContent=state.players.map((p,i)=>`P${i+1} ${p.id.slice(0,8)} ${p
  b.fillStyle='#f6ca85';b.fillText('HP '+me.hp,14,40);b.fillText('ENEMY '+me.enemy_hp,180,40);
  }
  const send=(msg)=>{if(!ws||ws.readyState!==1){$('notice').textContent='Sign in and connect to the host first.';return}ws.send(JSON.stringify(msg))};
- const move=(dx,dy)=>{const me=state?.players?.find(p=>p.id===pid);if(me?.mode==='sideview'){if(dx)send({type:'side_step',direction:dx});return;}send({type:'move',dx,dy});};
+ const nativeBridge=window.ForgeNativeLink?.create({send,getState:()=>state,getPlayerId:()=>pid});
+ let heldDirection=0;
+ const releaseHeld=()=>{if(heldDirection){heldDirection=0;send({type:'side_input',direction:0});}};
+ const move=(dx,dy)=>{const me=state?.players?.find(p=>p.id===pid);if(me?.mode==='sideview'){
+   if(dx)send({type:'side_step',direction:dx});return;
+ }send({type:'move',dx,dy});};
  $('enterArea').onclick=()=>send({type:'enter_area'});
- $('sideLeft').onclick=()=>send({type:'side_step',direction:-1});
- $('sideRight').onclick=()=>send({type:'side_step',direction:1});
+ // Pointer holds send only transitions; the authoritative host advances per NES frame.
+ for(const [id,dir] of [['sideLeft',-1],['sideRight',1]]){
+   const el=$(id);
+   el.onclick=e=>{if(e.detail===0)send({type:'side_step',direction:dir});}; // keyboard accessibility
+   el.addEventListener('pointerdown',e=>{e.preventDefault();send({type:'side_input',direction:dir});});
+   for(const name of ['pointerup','pointercancel','pointerleave'])el.addEventListener(name,()=>send({type:'side_input',direction:0}));
+ }
  $('sideForwardStab').onclick=()=>send({type:'side_action',action:'forward_stab'});
  $('pvpTestAttack').onclick=()=>send({type:'pvp_test_attack'});
  $('sideUpStab').onclick=()=>send({type:'side_action',action:'up_stab'});
  $('sideDownStab').onclick=()=>send({type:'side_action',action:'down_stab'});
- $('sideJump').onclick=()=>send({type:'side_jump'});
+ const jumpButton=$('sideJump');
+ let jumpHeld=false, jumpJustReleasedAt=-1000;
+ const jumpDown=()=>{if(jumpHeld)return;jumpHeld=true;releaseCrouch();send({type:'side_jump'});};
+ const jumpUp=()=>{if(!jumpHeld)return;jumpHeld=false;jumpJustReleasedAt=performance.now();send({type:'side_jump_release'});};
+ jumpButton.addEventListener('pointerdown',e=>{e.preventDefault();jumpDown();});
+ for(const ev of ['pointerup','pointercancel','pointerleave'])jumpButton.addEventListener(ev,jumpUp);
+ jumpButton.onclick=e=>{if(e.detail===0&&performance.now()-jumpJustReleasedAt>150){jumpDown();jumpUp();}};
+
+ for(const [id,dir] of [['sideHoldUp','up'],['sideHoldDown','down']]){
+   const el=$(id);if(!el)continue;
+   el.addEventListener('pointerdown',e=>{e.preventDefault();send({type:'side_nes_direction',direction:dir});});
+   for(const name of ['pointerup','pointercancel','pointerleave'])el.addEventListener(name,()=>send({type:'side_nes_direction',direction:'neutral'}));
+ }
+ let crouchHeld=false;const crouch=(pressed)=>{if(crouchHeld===pressed)return;crouchHeld=pressed;send({type:'side_crouch',pressed});};
+ const releaseCrouch=()=>crouch(false);
+ const crouchButton=$('sideCrouch');
+ crouchButton.addEventListener('pointerdown',e=>{e.preventDefault();crouch(true);});
+ for(const ev of ['pointerup','pointercancel','pointerleave'])crouchButton.addEventListener(ev,releaseCrouch);
  $('leaveArea').onclick=()=>send({type:'leave_area'});
  for(const [id,dx,dy] of [['up',0,-1],['down',0,1],['left',-1,0],['right',1,0]])$(id).onclick=()=>move(dx,dy);
  window.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;const k=e.key.toLowerCase(),moves={arrowup:[0,-1],w:[0,-1],arrowdown:[0,1],s:[0,1],arrowleft:[-1,0],a:[-1,0],arrowright:[1,0],d:[1,0]};if(state?.players?.find(p=>p.id===pid)?.mode==='sideview'){
-  const actions={z:'forward_stab',x:'up_stab',c:'down_stab'};
-  if(actions[k]){e.preventDefault();send({type:'side_action',action:actions[k]});return;}
-  if(k===' '){e.preventDefault();send({type:'side_jump'});return;}
+  const actions={z:'forward_stab',x:'up_stab',c:'down_stab'}; // X/C retained as explicit PILOT debug inputs
+  if(actions[k]){e.preventDefault();if(!e.repeat)send({type:'side_action',action:actions[k]});return;}
+   if(k===' '){e.preventDefault();if(!e.repeat)jumpDown();return;}
+   if(k==='arrowdown'||k==='s'){e.preventDefault();if(!e.repeat)send({type:'side_nes_direction',direction:'down'});return;}
+   if(k==='arrowup'||k==='w'){e.preventDefault();if(!e.repeat)send({type:'side_nes_direction',direction:'up'});return;}
+  if(k==='arrowleft'||k==='a'||k==='arrowright'||k==='d'){
+   e.preventDefault();const d=k==='arrowleft'||k==='a'?-1:1;
+   if(d!==heldDirection){releaseHeld();heldDirection=d;send({type:'side_input',direction:d});}
+   return;
+  }
  }
- if(moves[k]){e.preventDefault();if(!($('encounterPanel')&&!$('encounterPanel').hidden))move(...moves[k])}});
+ if(moves[k]){e.preventDefault();if(!e.repeat&&!($('encounterPanel')&&!$('encounterPanel').hidden))move(...moves[k])}});
+ window.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(k===' '){e.preventDefault();jumpUp();}if(['arrowdown','s','arrowup','w'].includes(k))send({type:'side_nes_direction',direction:'neutral'});if(heldDirection<0&&['arrowleft','a'].includes(k)||heldDirection>0&&['arrowright','d'].includes(k))releaseHeld();});
+ window.addEventListener('blur',()=>{
+   releaseHeld();releaseCrouch();jumpUp();
+   if(ws?.readyState===1 && state?.players?.some(p=>p.id===pid && p.mode==='sideview')){
+     send({type:'side_nes_direction',direction:'neutral'});
+   }
+ });
  for(const [id,kind] of [['buildCamp','camp'],['buildDefense','defense'],['buildBoss','boss']])$(id).onclick=()=>{if(!target){$('notice').textContent='Select a map cell first.';return}send({type:'build',kind,x:target.x,y:target.y,parentId:selectedCamp})};
  for(const stat of ['attack','magic','life'])$('upgrade'+stat.charAt(0).toUpperCase()+stat.slice(1)).onclick=()=>send({type:'level_up',skill:stat});
  for(const [id,action] of [['attackEnemy','strike'],['guardEnemy','guard'],['fleeEnemy','flee']])$(id).onclick=()=>send({type:'encounter_action',action});
  $('upgradeBoss').onclick=()=>{if(!selectedBoss){$('notice').textContent='Select your boss marker first.';return}send({type:'boss_hp',structureId:selectedBoss})};
- function connectSocket(){if(ws)ws.close();ws=new WebSocket('ws://127.0.0.1:8765/ws');ws.onopen=()=>{ws.send(JSON.stringify({type:'authenticate',sessionToken:token}));log('Socket connected')};ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='state'){if(!Object.hasOwn(m,'world')&&state?.world)m.world=state.world;state=m;render()}else if(m.type==='error'){$('notice').textContent=m.error;log('Rejected: '+m.error)}else if(m.type==='authenticated'){pid=m.playerId;log('Authenticated '+pid.slice(0,8))}};ws.onclose=()=>{log('Session socket disconnected');$('netStatus').textContent='Disconnected'};ws.onerror=()=>log('WebSocket transport error')}
+ function connectSocket(){if(ws)ws.close();ws=new WebSocket('ws://127.0.0.1:8765/ws');ws.onopen=()=>{ws.send(JSON.stringify({type:'authenticate',sessionToken:token}));log('Socket connected')};ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='state'){
+    if(!Object.hasOwn(m,'world')&&state?.world)m.world=state.world;
+    const oldHealth=new Map((state?.players||[]).map(p=>[p.id,p.hp]));
+    for(const p of m.players||[]){const previous=oldHealth.get(p.id);
+      if(Number.isFinite(previous)&&p.hp<previous)hitEffects.set(p.id,{at:performance.now(),damage:previous-p.hp});
+      else if(p.mode!=='sideview')hitEffects.delete(p.id);
+    }
+    smoothing.ingest(m);state=m;lastHudSignature='';render();
+   }else if(m.type==='error'){$('notice').textContent=m.error;log('Rejected: '+m.error)}
+   else if(m.type==='action_result'){
+    const response=m.hit?'Pilot hit · '+m.damage+' HP':'Pilot swing · no target hit';
+    $('sideActionFeedback').textContent=response;$('notice').textContent=response;
+   }else if(m.type==='authenticated'){
+    pid=m.playerId;readyStatus('Authenticated · session connected to localhost',true);
+    $('notice').textContent='Ready. Enter the same room as another wallet to test PvP.';
+    log('Authenticated '+pid.slice(0,8));
+   }};ws.onclose=()=>{releaseHeld();crouchHeld=false;jumpHeld=false;readyStatus('Session disconnected · reconnect wallet',false);log('Session socket disconnected');$('netStatus').textContent='Disconnected'};ws.onerror=()=>log('WebSocket transport error')}
  function findWallet(){if(window.ethereum)return Promise.resolve(window.ethereum);return new Promise(resolve=>{let found=null;const fn=e=>{if(!found)found=e.detail?.provider};window.addEventListener('eip6963:announceProvider',fn);window.dispatchEvent(new Event('eip6963:requestProvider'));setTimeout(()=>{window.removeEventListener('eip6963:announceProvider',fn);resolve(found)},300)})}
  $('connect').onclick=async()=>{const b=$('connect');b.disabled=true;try{provider=await findWallet();if(!provider)throw Error('No injected EVM wallet found. Open in a wallet-enabled browser on 127.0.0.1.');const accounts=await provider.request({method:'eth_requestAccounts'});addr=accounts?.[0];if(!addr)throw Error('Wallet did not provide an account');const chain=await provider.request({method:'eth_chainId'});if(parseInt(chain,16)!==1)throw Error('Select Ethereum mainnet identity (no transaction or fee).');const c=await api('/api/auth/challenge',{address:addr,chainId:1});const bytes='0x'+Array.from(new TextEncoder().encode(c.message)).map(x=>x.toString(16).padStart(2,'0')).join('');const sig=await provider.request({method:'personal_sign',params:[bytes,c.address||addr]});const v=await api('/api/auth/verify',{nonce:c.nonce,signature:sig});token=v.sessionToken;pid=v.playerId;$('authStatus').textContent=`Verified ${addr.slice(0,7)}…${addr.slice(-5)} · ID ${pid.slice(0,8)}`;log('EOA wallet signature verified; no transaction');connectSocket();}catch(e){$('authStatus').textContent=e.message;log('Wallet: '+e.message)}finally{b.disabled=false}};
  $('legend').innerHTML=colors.map((c,i)=>`<span><i class="swatch" style="background:${c}"></i>${['Town','Cave','Palace','Bridge','Desert','Grass','Forest','Swamp','Graveyard','Road','Lava','Mountain','Water','Walkable water','Rock','Spider'][i]}</span>`).join('');
  const gameSection=document.querySelector('main > section');const stage=$('sidePanel');if(gameSection&&stage)gameSection.insertBefore(stage,gameSection.firstChild);
  draw();
+ // Only the presentation layer interpolates; authoritative coordinates/HP remain untouched.
+ let animationAlive=true;function paintSmooth(){if(!animationAlive)return;
+  const me=state?.players?.find(p=>p.id===pid);
+  if(me?.mode==='sideview'&&!document.hidden){
+    for(const [key,value] of hitEffects)if(performance.now()-value.at>=650){hitEffects.delete(key);lastHudSignature='';}
+    drawSide(me);
+  }
+  requestAnimationFrame(paintSmooth);
+ }
+ requestAnimationFrame(paintSmooth);
 })();
