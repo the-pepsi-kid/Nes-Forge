@@ -103,6 +103,13 @@ def build():
         "03_OPEN_MULTIPLAYER_WINDOWS.cmd": (
             '@echo off\r\nstart "" "http://127.0.0.1:8765/"\r\n').encode(),
     }
+    # Bundle the standalone beginner tutorial; keep links on the GitHub home page.
+    repo_root = WALLET.parents[2]
+    for relative in ("Your_First_NES_Game.md", "Your_First_NES_Game.html"):
+        tutorial = repo_root / "docs" / "getting-started" / relative
+        additional["docs/getting-started/" + relative] = tutorial.read_bytes()
+    additional["START_HERE.md"] = documentation.read_bytes()
+
     additional.update({k: v for k, v in extra.items() if not k.startswith("tests/")})
     updates = {PREFIX + path: contents for path, contents in {**files, **additional}.items()}
     with zipfile.ZipFile(SOURCE) as old:
