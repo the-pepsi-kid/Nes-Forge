@@ -41,6 +41,8 @@
   }
   owner.registerSceneEncoder({
     id: 'punch-out-arena-layout-v1',
+    capability: {adapterKind: 'punch-out', title: 'Shared arena layout', route: 'punch-out-arena',
+      scope: 'Arena tile placement and attribute palette IDs, within 381 compressed bytes shared by both pages. The layout is shared by fights; live game drawing can overwrite cells.'},
     matches,
     /* Only these fields have an inverse encoder. Returning the unedited source view
      * for signature checks does not rewrite or discard the edited Scene. */

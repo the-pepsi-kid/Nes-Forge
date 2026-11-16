@@ -8,6 +8,11 @@
 const services=window.Forge.services;
 const LIMITS=Object.freeze({instructions:2000000,events:8192,coverage:4096,watches:8,page:256,snapshotBytes:10240,romBytes:64*1024*1024});
 const listeners=new Set(),watchMap=new Map();
+// Bounded consumers can observe changed RAM writes during Timeline playback.
+// This remains the one live CPU instrumentation owner: consumers get copied
+// values/provenance, never a bus, emulator object, ROM buffer or write function.
+const writeObservers=new Set();
+let observerPC=null,observerFileOffset=null;
 let epoch=0,startOperation=0,signature=null,identity=null,identityPending=null,tracing=false,loadDepth=0,internalReset=0,context=null;
 let instructionCount=0,eventLog=[],coverageMap=new Map(),memory={A:null,B:null},resourceData=null,traceMode='all';
 let message='Runtime observation is off.',startFrame=null,lastFrame=null,stopReason=null,lastNotifyFrame=-1;
@@ -73,7 +78,7 @@ function removeWatch(address){sync();const canonical=canonicalAddress(address);c
 function watches(){sync();return watchRows();}
 function romOffset(address){
  if(address<0x8000||!emu.prgRom||!emu.prgSize||!signature?.rom)return null;
- const within=emu.mapper===4?emu.prgPage[(address>>13)&3]+(address&0x1fff):(address>=0xc000?emu.prgBank1:emu.prgBank0)+(address&0x3fff);
+ const within=emu.mapper===9?(emu.mmc2&&typeof ForgeMMC2!=='undefined'?ForgeMMC2.cpu(emu.mmc2,address):null):emu.mapper===4?emu.prgPage[(address>>13)&3]+(address&0x1fff):(address>=0xc000?emu.prgBank1:emu.prgBank0)+(address&0x3fff);
  if(!Number.isSafeInteger(within)||within<0)return null;
  const start=16+((signature.rom[6]&4)?512:0),offset=start+(within%emu.prgSize);
  return offset<signature.rom.length?offset:null;
@@ -124,16 +129,46 @@ function audioDriverReport(){
 }
 function exportData(){sync();return {format:'NESForgeREInspection',version:2,kind:'runtime-observation',modelVersion:'re-runtime-1',runtimeObservationVersion:1,status:rawStatus(),identity:identity?{...identity}:null,coverage:copy(Array.from(coverageMap.values())),events:copy(eventLog),resources:resources(),snapshots:{A:memory.A?{...snapshotInfo('A'),ram:Array.from(memory.A.ram),sram:Array.from(memory.A.sram)}:null,B:memory.B?{...snapshotInfo('B'),ram:Array.from(memory.B.ram),sram:Array.from(memory.B.sram)}:null},warnings:['Instruction coverage records observed execution only; unvisited code and resources remain unknown.','APU writes are observed sound-chip commands, not recovered music, instruments, or sound-effect definitions.','Resource sourceEvent values identify the write instruction, not necessarily the original ROM data byte or its decoder.','Runtime timing, mapper behavior and raster behavior retain the emulator’s existing limitations.','RAM watches are user labels; gameplay meanings and stage controls are not inferred.']};}
 const oldStep=cpuStepRaw;
-cpuStepRaw=function(...args){
+function observeRAMWrites(options){
+ configuration(options);requireLoaded();
+ if(Object.keys(options).some(k=>!['addresses','sample','limit','onWrite'].includes(k))||typeof options.onWrite!=='function')fail('Invalid RAM-write observer.');
+ const fields=(list,name)=>{if(!Array.isArray(list)||list.length>32)fail(name+' must contain at most 32 RAM addresses.');const rows=list.map(canonicalAddress);if(new Set(rows.map(r=>r.address)).size!==rows.length)fail('Duplicate '+name+' address.');return rows;};
+ const addresses=fields(options.addresses,'Observed'),sample=fields(options.sample||[],'Sample');if(!addresses.length||writeObservers.size>=4)fail('Choose RAM addresses; at most four observers can be active.');
+ const row={addresses:new Set(addresses.map(r=>r.address)),sample,callback:options.onWrite,rom:emu.lastBuiltRom,limit:integer(options.limit??2048,1,8192,'Observer limit'),events:0,stopReason:null};
+ writeObservers.add(row);
+ const stop=reason=>{writeObservers.delete(row);row.stopReason=String(reason||'Stopped by consumer.');};
+ return Object.freeze({stop,status(){if(row.rom!==emu.lastBuiltRom)stop('ROM session changed.');return {active:writeObservers.has(row),events:row.events,limit:row.limit,stopReason:row.stopReason};}});
+}
+function expireWriteObservers(){for(const row of writeObservers)if(row.rom!==emu.lastBuiltRom){writeObservers.delete(row);row.stopReason='ROM session changed.';}}
+function stepWithInspection(...args){
  if(!tracing)return oldStep.apply(this,args);
  const previous=context;safely(()=>{sync();if(!tracing)return;const pc=emu.PC&65535,fileOffset=romOffset(pc),opcode=peek(pc),key=pc+':'+fileOffset+':'+opcode;let entry=coverageMap.get(key);if(!entry&&coverageMap.size>=LIMITS.coverage){stop('Trace stopped at the '+LIMITS.coverage+' coverage-entry limit.');return;}context={pc,fileOffset,opcode,...instructionSource(pc,fileOffset)};instructionCount++;lastFrame=emu.frameCount;if(entry){entry.count++;entry.lastFrame=emu.frameCount;}else{entry={pc,fileOffset,opcode,sourceLength:context.sourceLength,bytes:context.bytes.slice(),count:1,firstFrame:emu.frameCount,lastFrame:emu.frameCount};coverageMap.set(key,entry);}});
  try{return oldStep.apply(this,args);}finally{context=previous;safely(bounded);}
+}
+// Keep only scalar instruction location while a write observer is active. Byte
+// windows/register/sample DTOs are allocated for matching changed writes, not
+// for every instruction in a whole fight. Reentrant calls restore the location.
+cpuStepRaw=function(...args){
+ if(writeObservers.size)expireWriteObservers();
+ if(!tracing&&!writeObservers.size)return oldStep.apply(this,args);
+ if(!writeObservers.size)return stepWithInspection.apply(this,args);
+ const previousPC=observerPC,previousOffset=observerFileOffset;
+ observerPC=emu.PC&65535;observerFileOffset=romOffset(observerPC);
+ try{return stepWithInspection.apply(this,args);}finally{observerPC=previousPC;observerFileOffset=previousOffset;}
 };
 const oldWrite=cpuWrite;
 cpuWrite=function(...args){
- if(!tracing)return oldWrite.apply(this,args);
- let observed=null;safely(()=>{sync();if(!tracing)return;const address=args[0]&65535,value=args[1]&255;if(address<=0x4013&&address>=0x4000||address===0x4015||address===0x4017)observed={kind:'apu',address,value};else if(address<0x2000||address>=0x6000&&address<0x8000){const canonical=address<0x2000?address&0x7ff:address,watch=watchMap.get(canonical);if(watch)observed={kind:'watch',address:canonical,busAddress:address,value,before:safeValue(watch.region,watch.index),region:watch.region,label:watch.label};}});
+ if(!tracing&&!writeObservers.size)return oldWrite.apply(this,args);
+ const busAddress=args[0]&65535,value=args[1]&255,canonical=busAddress<0x2000?busAddress&0x7ff:busAddress;
+ const subscribers=[];
+ if(busAddress<0x2000||busAddress>=0x6000&&busAddress<0x8000)for(const row of writeObservers){
+  if(row.rom!==emu.lastBuiltRom||!row.addresses.has(canonical))continue;
+  const before=busAddress<0x2000?emu.ram[canonical]:emu.sram?.[canonical-0x6000];
+  if(before!==value)subscribers.push({row,event:{pc:observerPC,fileOffset:observerFileOffset,opcode:observerPC===null?null:peek(observerPC),...instructionSource(observerPC,observerFileOffset),frame:emu.frameCount,cycles:emu.cycles,kind:'changed-ram-write',address:canonical,busAddress,before,value,registers:observerPC===null?null:{a:emu.A,x:emu.X,y:emu.Y},sampledBeforeWrite:Object.fromEntries(row.sample.map(r=>[r.address,safeValue(r.region,r.index)]))}});
+ }
+ let observed=null;if(tracing)safely(()=>{sync();if(!tracing)return;const address=args[0]&65535,value=args[1]&255;if(address<=0x4013&&address>=0x4000||address===0x4015||address===0x4017)observed={kind:'apu',address,value};else if(address<0x2000||address>=0x6000&&address<0x8000){const canonical=address<0x2000?address&0x7ff:address,watch=watchMap.get(canonical);if(watch)observed={kind:'watch',address:canonical,busAddress:address,value,before:safeValue(watch.region,watch.index),region:watch.region,label:watch.label};}});
  const result=oldWrite.apply(this,args);
+ for(const {row,event} of subscribers){if(!writeObservers.has(row)||row.rom!==emu.lastBuiltRom)continue;try{row.events++;row.callback(event);}catch(_){row.stopReason='Consumer callback failed.';writeObservers.delete(row);}if(row.events>=row.limit){row.stopReason='Observer event limit reached.';writeObservers.delete(row);}}
  if(observed&&tracing)safely(()=>{const event=appendEvent(observed);if(event&&observed.kind==='watch'){const watch=watchMap.get(observed.address);if(watch){watch.writeCount++;watch.lastEvent=event.id;}}bounded();});
  return result;
 };
@@ -154,5 +189,5 @@ Forge166.project.replaceProject=function(...args){const result=oldReplace.apply(
 signature=liveSignature();resourceData=blankResources();
 let timelineBusy=false;
 services.EmulatorTimeline?.subscribe(state=>{if(state.busy&&!timelineBusy)invalidate('Frame navigation invalidated runtime observations and RAM snapshots.');timelineBusy=!!state.busy;});
-services.RERuntime=Object.freeze({limits:LIMITS,identify,start,stop,clear,snapshot,compare,addWatch,removeWatch,watches,coverage,events,resources,audioDriverReport,exportData,getROMSnapshot,status(){sync();return rawStatus();},subscribe(fn){if(typeof fn!=='function')return ()=>{};listeners.add(fn);try{fn(rawStatus());}catch(error){}return ()=>listeners.delete(fn);}});
+services.RERuntime=Object.freeze({limits:LIMITS,identify,start,stop,clear,snapshot,compare,addWatch,removeWatch,watches,coverage,events,resources,audioDriverReport,exportData,getROMSnapshot,observeRAMWrites,status(){sync();return rawStatus();},subscribe(fn){if(typeof fn!=='function')return ()=>{};listeners.add(fn);try{fn(rawStatus());}catch(error){}return ()=>listeners.delete(fn);}});
 })();

@@ -1,0 +1,43 @@
+{
+  "editorSha256": "f7e2cc99247c3bd413b9467ee5696f1869bdb4a14437b767d211cacce2c40ab7",
+  "checks": [
+    {
+      "name": "Unknown-ROM physical CHR opens as tile sheets without claiming recovered rooms",
+      "passed": true,
+      "evidence": {
+        "fixture": "Synthetic valid NROM with physical CHR; not the owner’s alternate Ninja Gaiden revision",
+        "sheets": 2,
+        "roomClaims": 0,
+        "unchangedNativeOutput": true
+      }
+    },
+    {
+      "name": "Authored scenes retain Scene previews and their existing build",
+      "passed": true,
+      "evidence": {
+        "scenes": 1,
+        "romSha256": "73a4ff175fdcbfa3135f2a0a0ed427de2ce0a3ac8ba40ce4d69049f8d8cc2088"
+      }
+    },
+    {
+      "name": "Resource packs refuse a native project from another source without changing the active project",
+      "passed": true
+    },
+    {
+      "name": "Multiple extraction roots refuse before a project can be selected",
+      "passed": true
+    },
+    {
+      "name": "Observed capture archives reject mismatched snapshot identity",
+      "passed": true
+    },
+    {
+      "name": "Malformed exported collision dimensions refuse without modifying project physics",
+      "passed": true
+    }
+  ],
+  "domErrors": [],
+  "passed": 6,
+  "total": 6,
+  "ok": true
+}

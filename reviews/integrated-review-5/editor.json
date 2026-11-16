@@ -1,0 +1,96 @@
+{
+  "suite": "editor-workflows-patch5",
+  "htmlSha256": "f7e2cc99247c3bd413b9467ee5696f1869bdb4a14437b767d211cacce2c40ab7",
+  "passed": 22,
+  "total": 22,
+  "results": [
+    {
+      "name": "Every authored animation is resolved, with its name, action and incoming edges",
+      "passed": true
+    },
+    {
+      "name": "A real dangling binding stays missing, retains both users and resolves on refresh",
+      "passed": true
+    },
+    {
+      "name": "Open in editor selects each bound animation by ID and starts on frame zero",
+      "passed": true
+    },
+    {
+      "name": "Guided-example, filter and refresh stay isolated from the live project",
+      "passed": true
+    },
+    {
+      "name": "Metatile item opens its exact definition, including ID zero, without making an edit",
+      "passed": true
+    },
+    {
+      "name": "Duplicate scene-local IDs select the correct owner with Follow on and off",
+      "passed": true
+    },
+    {
+      "name": "Stale metatile selection refuses before switching scenes and exposes a status",
+      "passed": true
+    },
+    {
+      "name": "A missing direct link clears the old target and lets the user select a real one",
+      "passed": true
+    },
+    {
+      "name": "Building a different size leaves the live overlay pinned, then Build & Run switches it",
+      "passed": true
+    },
+    {
+      "name": "A failed build cannot erase the loaded cartridge diagnostics",
+      "passed": true
+    },
+    {
+      "name": "External and mismatched bytes cannot inherit debug symbols, even under the build label",
+      "passed": true
+    },
+    {
+      "name": "Overlay announces availability transitions only and clears its timer when turned off",
+      "passed": true
+    },
+    {
+      "name": "Reset and checkpoint restore retain overlay binding while restoring the physical RAM state",
+      "passed": true
+    },
+    {
+      "name": "Out-of-order file inspection publishes only the most recent batch",
+      "passed": true
+    },
+    {
+      "name": "A superseded read failure cannot overwrite a newer successful report",
+      "passed": true
+    },
+    {
+      "name": "A current read failure exposes no partial batch and supports retry, clearing and the 25-file cap",
+      "passed": true
+    },
+    {
+      "name": "240 frames with diagnostics match the same ROM with diagnostics off",
+      "passed": true
+    },
+    {
+      "name": "All twelve installed native-audio profiles are read-only and reject an unrelated ROM",
+      "passed": true
+    },
+    {
+      "name": "Six World variants preserve source and rebuild deterministically; no-AI bytes stay unchanged",
+      "passed": true
+    },
+    {
+      "name": "Packed, single-room and unpacked custom backends retain their reference hashes",
+      "passed": true
+    },
+    {
+      "name": "Portable Save As and ROM reopen reproduce bytes with the same embedded project name",
+      "passed": true
+    },
+    {
+      "name": "One entity edit, Undo and Redo restore the corresponding ROMs",
+      "passed": true
+    }
+  ]
+}

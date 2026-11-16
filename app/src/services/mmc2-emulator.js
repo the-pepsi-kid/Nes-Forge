@@ -87,15 +87,21 @@
   };
   renderEmuLine = function(line, baseY, baseNTY) {
     if (emu.mapper !== 9) return prior.line(line, baseY, baseNTY);
+    // Reuse the same emulator-owned row buffers as the other mapper renderer.
+    // Clear coverage/priority every line so mask changes cannot retain pixels.
+    // Timeline's existing physical-state codec already owns these typed arrays;
+    // no project resource, separate cache or mapper-fetch shortcut is added.
     const mask = emu.ppuMask,
-      opaque = new Uint8Array(256),
-      colors = new Uint8Array(256),
-      claimed = new Uint8Array(256),
+      opaque = emu._lineOpaque || (emu._lineOpaque = new Uint8Array(256)),
+      colors = emu._lineColors || (emu._lineColors = new Uint8Array(256)),
+      claimed = emu._lineClaimed || (emu._lineClaimed = new Uint8Array(256)),
       scroll = (emu.tAddr & 31) * 8 + emu.fineX,
       ntx = (emu.tAddr >> 10) & 1,
       wy = baseY + line,
       ly = ((wy % 240) + 240) % 240,
       nty = baseNTY ^ (Math.floor(wy / 240) & 1);
+    opaque.fill(0);
+    claimed.fill(0);
     colors.fill(ppuBusRead(0x3f00));
     // PPU background work includes 34 pattern fetches, even when the last
     // tiles fall outside the visible 256 pixels. Punch-Out puts an MMC2 latch

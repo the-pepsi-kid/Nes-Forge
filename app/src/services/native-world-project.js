@@ -30,7 +30,10 @@ function validate(p,{build=false}={}){
  const bytes=base64ToBytes(p.importedRom);
  if(!adapter.recognizes(bytes)||format.sha256(bytes)!==n.sourceSha256)fail('Source revision or saved source hash differs.');
  format.validateTargets(bytes,n.edits);
- for(const b of bindings(p))adapter.encode(bytes,b.mapId,p.worlds.find(w=>w.id===b.worldId).map);
+ for(const b of bindings(p)){const world=p.worlds.find(w=>w.id===b.worldId);
+  try{adapter.encode(bytes,b.mapId,world.map);}catch(error){throw services.BuildDiagnostics.attach(error,
+   {assetId:world.id,assetName:world.name,resourceKey:'world:'+world.id,field:'map',writerRoute:'native-world',
+    repair:'The native terrain encoder refused this World. Preserve your project, then Undo/reduce the reported terrain change within the original compressed-map budget.'});}}
  if(build&&signature(p)!==n.projectionSha256)fail('An asset or runtime setting has no native encoder. Undo that change to rebuild. Supported: selected overworld terrain and four location fields.');
  return {bytes,descriptor:n};
 }

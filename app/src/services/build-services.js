@@ -60,7 +60,9 @@ function planSource(source,options){
   if(source.nativeGame){
     if(backend!=='native-engine')throw Error('Native projects must use their native engine backend.');
     services.NativeEngineProject.validate(source,{build:true});
-    const p={source,backend,profile:{id:source.nativeGame.profile,mapper:source.mapper},phases:['prepare-snapshot','native-validation'],diagnostics:[]};completedPlans.add(p);return p;
+    const diagnostics=[diagnostic('info','native-validation','Native recipe validation passed for this snapshot. Compile and verify the rebuilt game to check the visible result.','native-validation'),
+      diagnostic('info','native-writer-scope',services.ProjectCapabilities?.describe(source).scope||services.NativeEngineProject.capabilities(source.nativeGame.profile).buildScope,'native-validation')];
+    const p={source,backend,profile:{id:source.nativeGame.profile,mapper:source.mapper},phases:['prepare-snapshot','native-validation'],diagnostics};completedPlans.add(p);return p;
   }
   if(!['packed','unpacked-custom','single-room','world'].includes(backend))throw Error('Unsupported build backend: '+backend);
   const gameplayCore=backend==='world'?null:services.GameplayCompiler.plan(source,{backend});
@@ -119,12 +121,26 @@ function preflight(){
   try{
     const p=BuildGraph.plan();
     if(p.pack&&p.extension.length>profile.markerAddress-profile.metadataStart)throw Error('Combined authoring metadata needs '+p.extension.length+' bytes but at most '+(profile.markerAddress-profile.metadataStart)+' bytes fit before $CFF0. Reduce assets or disable scene packing.');
-    if(box)box.innerHTML=p.diagnostics.map(d=>'<div class="'+(d.severity==='warning'?'warn':d.severity==='error'?'err':'ok')+'">'+esc(d.message)+'</div>').join('');
+    if(box)services.BuildDiagnostics.render(box,p.diagnostics);
     BuildGraph.lastDiagnostics=p.diagnostics;return p;
   }catch(error){
-    BuildGraph.lastDiagnostics=[diagnostic('error','build-invalid',error.message,'validation')];
-    if(box)box.innerHTML='<div class="err">✗ '+esc(error.message)+'</div>';return null;
+    BuildGraph.lastDiagnostics=services.BuildDiagnostics.from(error);
+    if(box)services.BuildDiagnostics.render(box,BuildGraph.lastDiagnostics);return null;
   }
+}
+// Explicit Project Health checks run the real compiler without committing an
+// artifact, downloading it, or loading the emulator. Results are disposable and
+// tied to this capture; reference-graph health is never treated as eligibility.
+function identity(source=services.ProjectStore.capture()) {
+  return window.NativeEngineFormat.sha256(new TextEncoder().encode(JSON.stringify(source)));
+}
+function checkCurrent() {
+  let source,backend;
+  try{source=services.ProjectStore.prepareSnapshot({intent:'build-check'});backend=backendFor(source);
+    const artifact=compile(planSource(source,{}));
+    return {ok:true,backend,fingerprint:identity(source),diagnostics:artifact.diagnostics,
+      outputSha256:window.NativeEngineFormat.sha256(artifact.rom),bytes:artifact.rom.length};
+  }catch(error){return {ok:false,backend:backend||backendFor(S),fingerprint:source?identity(source):null,diagnostics:services.BuildDiagnostics.from(error)};}
 }
 function codeOccupancy(p){
   if(p.detached&&p.custom)throw Error('Detached builds cannot invoke the live assembler.');
@@ -224,10 +240,15 @@ function build(options){
   }catch(error){
     window._lastBuiltRom=null;Forge165.lastBuild=null;RuntimeCompiler.lastArtifact=null;
     if(services.WorldCompiler)services.WorldCompiler.lastBuild=null;
-    BuildGraph.lastDiagnostics=[diagnostic('error','build-failed',error.message,'compile')];log(error.message,'bl-err');reportError(error);return null;
+    BuildGraph.lastDiagnostics=services.BuildDiagnostics.from(error);
+    for(const item of BuildGraph.lastDiagnostics)log([item.message,item.assetName?'Resource: '+item.assetName:'',item.path||item.field||'',item.repair||''].filter(Boolean).join('\n'),'bl-err');
+    const preflightBox=$('forge15Preflight');if(preflightBox)services.BuildDiagnostics.render(preflightBox,BuildGraph.lastDiagnostics);
+    reportError(error);return null;
   }
 }
-const BuildGraph=services.BuildGraph={profile,phaseOrder,selectedSceneEntries,plan,planDetached,preflight,lastDiagnostics:[],
+// UI capability labels ask this same dispatcher which backend owns output.
+// Reading the route neither captures editor buffers nor validates/builds a ROM.
+const BuildGraph=services.BuildGraph={profile,phaseOrder,backendFor,selectedSceneEntries,plan,planDetached,preflight,checkCurrent,identity,lastDiagnostics:[],
   ownership:'Live capture or detached validation prepares the source. Generated plans pass copied sources to existing codecs once; custom assembly is live-only.'};
 const RuntimeCompiler=services.RuntimeCompiler={backends:Object.freeze(['packed','unpacked-custom','single-room','world','native-engine']),compile,compileDetached:(project,options)=>compile(planDetached(project,options)),commit,build,lastArtifact:null};
 // These assignments replace active routes; no previous planner/builder is called.

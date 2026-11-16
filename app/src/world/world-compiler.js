@@ -61,6 +61,13 @@ function plan(input,gameplayCore){
   }
  }
  const worlds=source.worlds.filter(w=>reached.has(w.id));if(worlds.length>profile.maxWorlds)fail('More than '+profile.maxWorlds+' reachable worlds');
+  const smooth=config.cameraMode==='smoothHorizontal';
+  if(smooth){
+    if(worlds.length!==1||startWorld.widthScreens<2||startWorld.widthScreens>16||startWorld.heightScreens!==1)fail('Smooth streaming currently requires exactly one reachable World of 2–16 screens wide and one screen high');
+    if(source.mirroring!=='v')fail('Smooth horizontal requires vertical NES nametable mirroring (set Mirroring to Vertical in CODE / ROM)');
+    if((startWorld.cameraRegions||[]).length)fail('Smooth streaming does not yet support Camera Regions. Remove these regions or switch to Discrete screens');
+    if((startWorld.markers||[]).some(m=>m.kind!=='spawn'&&(m.targetWorldId||m.targetMarkerId)))fail('Smooth streaming does not support linked exits/entrances');
+  }
  const startMarker=markersByWorld.get(startWorld.id)?.get(config.spawnId);
  if(!startMarker||!['spawn','entrance'].includes(startMarker.kind))fail('Choose an explicit Spawn or Entrance marker in the starting world');
  const phases=['prepare-snapshot','world-dependencies'],diagnostics=[];
@@ -130,6 +137,35 @@ function plan(input,gameplayCore){
  }
  for(const state of ['idle','walk','attack']){if(!states.has(state))fail('The player needs an "'+state+'" animation binding');animations[state]=animation(states.get(state),state);}
  if(states.has('jump'))animations.jump=animation(states.get('jump'),'jump');if(animations.attack.loop)fail('The player attack animation must be nonlooping');
+ // First reusable Flying Chaser runtime profile. No implicit behavior from type=enemy:
+ // the author must opt in in Entity Studio. A single actor is bounded deliberately.
+ const optedEnemies=source.scenes.flatMap(sc=>(sc.entities||[]).filter(e=>e.type==='enemy'&&e.ai?.kind==='flyingChaser').map(e=>({sc,e})));
+ if(optedEnemies.length>1)fail('Flying Chaser beta supports one enabled Enemy per World. Disable other enemy AI behaviors for this test.');
+ let flyingEnemy=null;
+ if(optedEnemies.length){
+  const {sc,e:entity}=optedEnemies[0];
+  if(sc.id!==config.playerSceneId)fail('Flying Chaser beta must use the Player source Scene in Entity Studio');
+  if(!smooth)fail('Flying Chaser beta currently requires Smooth horizontal camera mode');
+  if(!entity.animationBinding?.states?.length)fail('Flying Chaser requires an animation assigned in Entity Studio');
+  const state=entity.animationBinding.defaultState||'fly';
+  const record=entity.animationBinding.states.find(b=>b.state===state);
+  const clip=animationMap.get(record?.animationId);
+  if(!clip||clip.loop===false||clip.frames.length<1||clip.frames.length>8)fail('Flying Chaser requires a looping 1–8-frame default animation');
+  integer(entity.x,8,247,'Flying Chaser source X');integer(entity.y,20,190,'Flying Chaser source Y');
+  const frames=clip.frames.map((f,i)=>({duration:integer(f.duration,1,255,'Flying Chaser frame '+i+' duration'),pieces:pieces(f,'Flying Chaser frame '+i)}));
+  if(frames.some(f=>f.pieces.length>24))fail('Flying Chaser beta supports up to 24 hardware sprite pieces per frame');
+  const base={speedTicks:2,detectX:112,detectY:96,touchX:12,touchY:14,retreatTicks:52,hurtTicks:42,hoverTicks:16,pathMode:'loop',pathWait:0,contactBounce:false};
+  const aiSettings={...base,...(entity.ai.config||{})};const legacyProfile=entity.ai.version===1&&!entity.ai.config&&!(entity.ai.path||[]).length;if(legacyProfile)aiSettings.detectY=160;
+  const bounds={detectX:[16,120],detectY:[16,180],touchX:[4,24],touchY:[4,24],retreatTicks:[8,180],hurtTicks:[8,120],pathWait:[0,120]};
+  for(const [key,range] of Object.entries(bounds))integer(aiSettings[key],range[0],range[1],'Enemy '+key);
+  for(const [key,choices] of Object.entries({speedTicks:[1,2,4,8],hoverTicks:[8,16,32,64],pathMode:['loop','pingpong','once']}))if(!choices.includes(aiSettings[key]))fail('Unsupported Enemy '+key);
+  if(typeof aiSettings.contactBounce!=='boolean')fail('Enemy contactBounce must be true or false');
+  const path=entity.ai.path||[];
+  if(!Array.isArray(path)||path.length>8)fail('Flying Chaser supports at most eight authored world-coordinate waypoints');
+  const worldWidth=startWorld.widthScreens;
+  for(const p of path){integer(p.screen,0,worldWidth-1,'Waypoint screen');integer(p.x,0,255,'Waypoint X');integer(p.y,20,190,'Waypoint Y');}
+  flyingEnemy={id:entity.id,start:{screen:0,x:entity.x,y:entity.y},facing:entity.animationBinding.facing==='left'?1:0,frames,config:aiSettings,path,legacyProfile};
+ }
  phases.push('world-asset-link');
  function location(worldId,marker){const w=worldById.get(worldId),sx=Math.floor(marker.x/16),sy=Math.floor(marker.y/15);return {screen:w.screenStart+sy*w.widthScreens+sx,x:(marker.x%16)*16+8,y:(marker.y%15)*16+8};}
  function solid(w,x,y){const width=w.widthScreens*256,height=w.heightScreens*240;if(x<0||y<0||x>=width||y>=height)return true;const sx=Math.floor(x/256),sy=Math.floor(y/240),screen=screens[w.screenStart+sy*w.widthScreens+sx];return screen.collision[Math.floor((y%240)/8)*32+Math.floor((x%256)/8)]===1;}
@@ -152,16 +188,32 @@ function plan(input,gameplayCore){
  if(gameplayCore.enabled)for(const actor of gameplayCore.actors){if(actor.components.includes('Input'))continue;const sc=sceneMap.get(actor.render.sourceSceneId||config.playerSceneId);if(!sc)fail('Gameplay Core Actor '+actor.id+' references a missing sprite source Scene');paletteMatch(sc,actor.render.palette,'Gameplay Core Actor '+actor.id);actor.render.tile=spriteTile(sc,actor.render.tile,'Gameplay Core Actor '+actor.id);}
  const chr=new Uint8Array(8192),pad=tiles=>{while(tiles.length<256)tiles.push(Array.from({length:8},()=>Array(8).fill(0)));return tiles;};
  const backgroundTileCount=background.tiles.length,spriteTileCount=sprites.tiles.length;chr.set(encodeTiles(pad(background.tiles)),0);chr.set(encodeTiles(pad(sprites.tiles)),4096);
- const spec={physics,player:{facing:binding.facing==='left'?1:0,animations},start:startLocation,screens,audio,worlds:worldRecords,rooms,cameras,warnings:[],gameplayCore};
+ const spec={physics,player:{facing:binding.facing==='left'?1:0,animations},start:startLocation,screens,audio,worlds:worldRecords,rooms,cameras,warnings:[],gameplayCore,cameraMode:smooth?'smoothHorizontal':'screen',flyingEnemy};
  const resources=screens.flatMap(sc=>[{kind:'nametable',ownerId:sc.id,byteLength:1024,alignment:1,region:'PRG',bank:0,address:null},{kind:'collision',ownerId:sc.id,byteLength:120,alignment:1,region:'PRG',bank:0,address:null},{kind:'palette',ownerId:sc.id,byteLength:32,alignment:1,region:'PRG',bank:0,address:null}]);
  const minimumBytes=[['nt',1024],['collision',120],['palette',32]].reduce((sum,[key,size])=>sum+new Set(screens.map(sc=>sc[key].join(','))).size*size,0);
  if(minimumBytes>0x4FF0)fail('Reachable screen resources alone need '+minimumBytes+' bytes and exceed the '+0x4FF0+'-byte code/resource region; reduce the executable world set');
  phases.push('world-screen-pack');
  diagnostics.push(diagnostic('info','world-selection',worlds.length+' reachable world(s), '+screens.length+' screen(s), '+rooms.length+' room region(s), '+cameras.length+' camera region(s).','world-dependencies'));
  diagnostics.push(diagnostic('info','world-graphics',backgroundTileCount+'/256 background tiles and '+spriteTileCount+'/256 sprite tiles linked from actual world/animation/gameplay dependencies.','world-asset-link'));
- diagnostics.push(diagnostic('info','world-traversal','Screen transitions; Empty/Solid collision; Up enters a linked entrance/exit; Start returns to the selected spawn.','world-screen-pack'));
+ diagnostics.push(diagnostic('info','world-traversal',smooth?'Multi-screen NES PPU horizontal scroll with background-column streaming; Empty/Solid collision across screen boundaries; Start returns to the selected spawn.':'Screen transitions; Empty/Solid collision; Up enters a linked entrance/exit; Start returns to the selected spawn.','world-screen-pack'));
  diagnostics.push(diagnostic('warning','world-capacity-pending',minimumBytes+' screen-data bytes planned; final code, animation, and compressed authoring sizes are checked during ROM allocation.','world-allocation'));
- diagnostics.push(diagnostic('warning','world-authoring-limits','One bound player executes. Other scene entities, attack contacts and custom events remain authoring data. Scene Build Set applies to viewer/single-room builds; World mode follows saved world and player dependencies.','world-dependencies'));
+ diagnostics.push(diagnostic('warning','world-authoring-limits',flyingEnemy?'One opt-in Flying Chaser enemy executes with the Player. Other scene entities, player attack damage, and custom events remain authoring data.':'One bound Player executes. Other scene entities, attack contacts, and custom events remain authoring data.','world-dependencies'));
+ if(flyingEnemy){
+   const rowPeak=frame=>{const rows=new Map();for(const piece of frame.pieces||[])for(let y=piece.y;y<piece.y+8;y++)rows.set(y,(rows.get(y)||0)+1);return Math.max(0,...rows.values());};
+   const playerPeak=Math.max(...Object.values(animations).flatMap(a=>a.frames.map(rowPeak)));
+   const enemyPeak=Math.max(...flyingEnemy.frames.map(rowPeak));
+   const combined=playerPeak+enemyPeak;
+   const contactPieces=flyingEnemy.frames.flatMap(frame=>frame.pieces);
+   const contactExtentX=Math.max(...contactPieces.map(piece=>Math.max(-piece.x,piece.x+8)));
+   const contactExtentY=Math.max(...contactPieces.map(piece=>Math.max(-piece.y,piece.y+8)));
+   const touchX=Math.min(64,Math.max(flyingEnemy.config.touchX,Math.ceil(contactExtentX+spec.physics.bodyWidth/2-2)));
+   const touchY=Math.min(64,Math.max(flyingEnemy.config.touchY,Math.ceil(contactExtentY+spec.physics.bodyHeight/2-2)));
+   const recoveryFrames=Math.max(24,Math.min(48,Math.round(flyingEnemy.config.retreatTicks/2)));
+   const retreatSteps=Math.min(80,Math.max(8,touchX+10,(touchY+4)*2));const rearmX=touchX+2,rearmY=touchY+2;
+   diagnostics.push(diagnostic('info','world-ai-contact-envelope','Scaled enemy contact range: '+touchX+'×'+touchY+' pixels (authored minimum '+flyingEnemy.config.touchX+'×'+flyingEnemy.config.touchY+'). Retreat travels up to '+retreatSteps+' px horizontally / '+Math.ceil(retreatSteps/2)+' px vertically, then '+recoveryFrames+' frames recovery; resume pursuit after invulnerability ends and the actors separate by '+rearmX+'×'+rearmY+'px on either axis. Forced bounce '+(flyingEnemy.config.contactBounce?'ON':'OFF')+'.','world-asset-link'));
+   diagnostics.push(diagnostic('warning','world-flying-chaser','Flying Chaser beta includes two-axis pursuit, patrol, controlled contact flash, and optional bounce, not health or damage. One enemy per smooth World.','world-asset-link'));
+   if(combined>8)diagnostics.push(diagnostic('warning','world-ai-scanline','NES eight-sprite scanline risk, even when actors are horizontally separated: Player peak '+playerPeak+' + Enemy peak '+enemyPeak+' = '+combined+' 8×8 sprites on one scanline (NES limit 8). Actor priority alternates after each OAM DMA, preserving the authored piece order within each actor. Flicker can remain; the hardware limit is unchanged.','world-asset-link'));
+ }
  if(audio.enabled)diagnostics.push(diagnostic('info','audio-runtime',(audio.musicEnabled?'Tracker music and ':'')+audio.sfx.length+' named SFX compile into World Runtime; linked sound events execute on frame entry.','world-asset-link'));
  else if(source.instruments.length||source.sfx.length)diagnostics.push(diagnostic('warning','audio-authoring','Audio Runtime is disabled; tracker and SFX data remain authoring-only.','world-asset-link'));
  if(gameplayCore.enabled){diagnostics.push(...gameplayCore.diagnostics);diagnostics.push(diagnostic('info','gameplay-core-runtime',gameplayCore.actors.length+' canonical Actor Instance(s) and '+gameplayCore.variables.length+' scoped persistent variable(s) compile into World Runtime.','world-asset-link'));}

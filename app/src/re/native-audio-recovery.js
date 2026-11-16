@@ -12,13 +12,16 @@ async function run(input,options={},controls={}){
  const bytes=input.slice(),frames=integer(options.frames??256,1,MAX_FRAMES,'Native updates');aborted(controls.signal);
  const identity=await services.NativeAudioCatalog.identify(bytes);aborted(controls.signal);if(!identity.profile)throw Error('No installed decoder supports this ROM revision.');
  const catalog=await services.NativeAudioCatalog.inspect(bytes),cue=catalog.cues.find(c=>String(c.id)===String(options.cueId));if(!cue)throw Error('Select a cue from the decoded catalog.');if(cue.kind==='unavailable-request')throw Error(cue.reason||'This native request is unavailable.');if(['empty-request','control'].includes(cue.kind))throw Error('This is an empty request or control command, not a standalone sound. Inspect its native data instead.');
- const samples=[],machine=services.NativeAudioMachine.create(bytes,cue.bank??identity.profile.bank,{mmc2FixedBank:identity.profile.id.startsWith('punch-out-us-'),mmc3FixedPair:['river-city-us-1','shadowgate-us-1','punch-out-us-prg0','punch-out-us-prg1'].includes(identity.profile.id),ignoreFdsWrites:identity.profile.id==='lolo-us-1',onSample:options.samples===false?()=>{}:s=>samples.push(s)}),ram=machine.ram;let update,beforeUpdate=null,routineState=null;
+ const samples=[],machine=services.NativeAudioMachine.create(bytes,cue.bank??identity.profile.bank,{uxromFixedBank:identity.profile.mapper===2,mmc2FixedBank:identity.profile.id.startsWith('punch-out-us-'),mmc3FixedPair:['river-city-us-1','shadowgate-us-1','punch-out-us-prg0','punch-out-us-prg1'].includes(identity.profile.id),ignoreFdsWrites:identity.profile.id==='lolo-us-1',onSample:options.samples===false?()=>{}:s=>samples.push(s)}),ram=machine.ram;let update,beforeUpdate=null,routineState=null;
  machine.write(0x4015,15);machine.write(0x4017,0xc0);
  if(identity.profile.id==='zelda2-us-1'){
   update=cue.family==='title'||cue.driver==='title'?0x8000:0x9000;
   if(cue.family){ram[0x707]=({'game-context-0':0,'game-context-1-2':1,'game-context-3-4':3,'game-context-other':5})[cue.family]??0;}
   ram[cue.requestRegister]=cue.requestMask;
  }else if(identity.profile.id.startsWith('punch-out-us-')){if(cue.kind==='native-pcm')machine.startRoutine(cue.entry);else{update=0x8000;ram[cue.requestRegister]=cue.requestValue;}
+ }else if(identity.profile.id.startsWith('castlevania-us-prg')){
+  update=catalog.native.driver.update.cpu;
+  machine.call(catalog.native.driver.dispatch.cpu,cue.index);
  }else if(identity.profile.id==='shadowgate-us-1'){update=0xf526;machine.call(0xf3be);ram[0x3b]=0;ram[0x3c]=0x80;ram[0x44]=cue.index-1;machine.call(0xf416);
  }else if(identity.profile.id==='river-city-us-1'){update=0x8003;machine.call(0x8000);ram[0x7ff]=cue.index;machine.call(0x8000);
  }else if(identity.profile.id==='lolo-us-1'){update=0xde74;machine.call(0xdd05);machine.call(cue.kind==='music-request'?0xde35:0xdd4b,cue.index);
@@ -31,7 +34,7 @@ async function run(input,options={},controls={}){
   schedule.push({frame,channels:machine.channels(),dmc:{remaining:machine.apu.dmc.remaining,level:machine.apu.dmc.level,address:machine.apu.dmc.address}});
   if((frame&15)===15){controls.progress?.({frame:frame+1,total:frames});await new Promise(resolve=>setTimeout(resolve,0));aborted(controls.signal);}
  }
- const stats=machine.stats();return {format:'NESForgeNativeAudioPlayback',version:1,source:identity.source,profile:identity.profile,cue,physicalBank:cue.bank??identity.profile.bank,frames,sampleRate:48000,clock:29780,...(routineState?{routine:{...routineState,windowCycles:machine.apu.cycles,truncated:!routineState.complete}}:{}),schedule,writes:machine.writes,stats,limitations:[...limits,...(['metroid-us-1','lolo-us-1','river-city-us-1','shadowgate-us-1','punch-out-us-prg0','punch-out-us-prg1'].includes(identity.profile.id)?catalog.native.limitations:[])],samples:Float32Array.from(samples)};
+ const stats=machine.stats();return {format:'NESForgeNativeAudioPlayback',version:1,source:identity.source,profile:identity.profile,cue,physicalBank:cue.bank??identity.profile.bank,frames,sampleRate:48000,clock:29780,...(routineState?{routine:{...routineState,windowCycles:machine.apu.cycles,truncated:!routineState.complete}}:{}),schedule,writes:machine.writes,stats,limitations:[...limits,...(identity.profile.id.startsWith('castlevania-us-prg')||['metroid-us-1','lolo-us-1','river-city-us-1','shadowgate-us-1','punch-out-us-prg0','punch-out-us-prg1'].includes(identity.profile.id)?catalog.native.limitations:[])],samples:Float32Array.from(samples)};
 }
 function transcribe(trace,options={}){
  if(trace.cue?.kind==='native-pcm')throw Error('Startup PCM is available for native audition. The tracker has no PCM sample model; this routine cannot be converted into an editable score.');

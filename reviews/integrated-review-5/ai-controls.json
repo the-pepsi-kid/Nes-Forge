@@ -1,0 +1,180 @@
+{
+  "suite": "AI editor controls and recovery configuration",
+  "htmlSha256": "f7e2cc99247c3bd413b9467ee5696f1869bdb4a14437b767d211cacce2c40ab7",
+  "environment": "Node DOM stub, actual control handlers and shipped compiler/6502/PPU; injected contacts explicitly named",
+  "passed": 6,
+  "total": 6,
+  "cases": [
+    {
+      "name": "Entity Studio AI edits survive Save/Open and compile to the same cartridge",
+      "passed": true,
+      "evidence": {
+        "config": {
+          "speedTicks": 4,
+          "detectX": 112,
+          "detectY": 96,
+          "touchX": 10,
+          "touchY": 10,
+          "retreatTicks": 100,
+          "hurtTicks": 90,
+          "hoverTicks": 16,
+          "pathMode": "once",
+          "pathWait": 12,
+          "contactBounce": true
+        },
+        "romSha256": "7dfbbc9925331f33aded4533f9c0c9e3e886b454bf286441d17ecdc48f4ce664",
+        "sourceAndRebuildMatch": true,
+        "assetsPreserved": true
+      }
+    },
+    {
+      "name": "Undo and Redo of an AI control restore their exact ROMs",
+      "passed": true,
+      "evidence": {
+        "originalSha256": "f11d14399f4cfa718987a91c4ff5adbd9e5bbd18a126702692c32d48fc8ada0f",
+        "editedSha256": "773b72975faa298887dc3c8ef31f23013b199b07fc6b62f183b31c80a7e9b9e7",
+        "undoAndRedoByteExact": true
+      }
+    },
+    {
+      "name": "RAM-injected contact: Move every 1, Retreat 8, Invulnerable 120 rearms safely",
+      "passed": true,
+      "evidence": {
+        "parameters": {
+          "speed": 1,
+          "retreat": 8,
+          "hurt": 120
+        },
+        "hitFrame": 91,
+        "rearmFrame": 211,
+        "phases": [
+          {
+            "frame": 91,
+            "phase": 2,
+            "hurt": 120
+          },
+          {
+            "frame": 136,
+            "phase": 3,
+            "hurt": 75
+          },
+          {
+            "frame": 161,
+            "phase": 4,
+            "hurt": 50
+          },
+          {
+            "frame": 211,
+            "phase": 0,
+            "hurt": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "RAM-injected contact: Move every 2, Retreat 70, Invulnerable 50 rearms safely",
+      "passed": true,
+      "evidence": {
+        "parameters": {
+          "speed": 2,
+          "retreat": 70,
+          "hurt": 50
+        },
+        "hitFrame": 91,
+        "rearmFrame": 199,
+        "phases": [
+          {
+            "frame": 91,
+            "phase": 2,
+            "hurt": 50
+          },
+          {
+            "frame": 162,
+            "phase": 3,
+            "hurt": 0
+          },
+          {
+            "frame": 198,
+            "phase": 4,
+            "hurt": 0
+          },
+          {
+            "frame": 199,
+            "phase": 0,
+            "hurt": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "RAM-injected contact: Move every 4, Retreat 180, Invulnerable 8 rearms safely",
+      "passed": true,
+      "evidence": {
+        "parameters": {
+          "speed": 4,
+          "retreat": 180,
+          "hurt": 8
+        },
+        "hitFrame": 91,
+        "rearmFrame": 322,
+        "phases": [
+          {
+            "frame": 91,
+            "phase": 2,
+            "hurt": 8
+          },
+          {
+            "frame": 272,
+            "phase": 3,
+            "hurt": 0
+          },
+          {
+            "frame": 321,
+            "phase": 4,
+            "hurt": 0
+          },
+          {
+            "frame": 322,
+            "phase": 0,
+            "hurt": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "RAM-injected contact: Move every 8, Retreat 70, Invulnerable 50 rearms safely",
+      "passed": true,
+      "evidence": {
+        "parameters": {
+          "speed": 8,
+          "retreat": 70,
+          "hurt": 50
+        },
+        "hitFrame": 91,
+        "rearmFrame": 199,
+        "phases": [
+          {
+            "frame": 91,
+            "phase": 2,
+            "hurt": 50
+          },
+          {
+            "frame": 162,
+            "phase": 3,
+            "hurt": 0
+          },
+          {
+            "frame": 198,
+            "phase": 4,
+            "hurt": 0
+          },
+          {
+            "frame": 199,
+            "phase": 0,
+            "hurt": 0
+          }
+        ]
+      }
+    }
+  ]
+}

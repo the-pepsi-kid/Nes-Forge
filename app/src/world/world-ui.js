@@ -21,6 +21,7 @@
   }
   field('worldId','Start world','select');field('spawnId','Start marker','select');
   field('playerSceneId','Player source scene','select');field('playerId','Player','select');
+  field('cameraMode','Camera motion','select');
   const physics=node('details','wrPhysics170',undefined,panel);node('summary',null,'Movement and collision body',physics);
   for(const [key,label]of [['moveSpeed','Move speed'],['jumpSpeed','Jump speed'],['gravity','Gravity'],['maxFallSpeed','Maximum fall'],['bodyWidth','Body width'],['bodyHeight','Body height']])field(key,label,'number',physics);
   node('p',null,'Speeds are pixels per 60 Hz tick. Body dimensions are pixels; player coordinates mark the center of the feet.',physics);
@@ -53,6 +54,8 @@
       options(fields.spawnId,[['','Choose a Spawn or Entrance…'],...(world?.markers||[]).filter(m=>['spawn','entrance'].includes(m.kind)).map(m=>[m.id,m.name+' ['+m.kind+']'])],value.spawnId,'Missing start marker');
       options(fields.playerSceneId,[['','Choose a player source scene…'],...S.scenes.map(sc=>[sc.id,sc.name])],value.playerSceneId,'Missing player source scene');
       options(fields.playerId,[['','Choose a Player…'],...(scene?.entities||[]).filter(e=>e.type==='player').map((e,i)=>[e.id,e.name||'Player '+(i+1)])],value.playerId,'Missing Player');
+      options(fields.cameraMode,[['screen','Discrete screens (original)'],['smoothHorizontal','Smooth horizontal — streaming beta (2–16 screens)']],value.cameraMode||'screen','Invalid camera mode');
+      $('wrHelp170').textContent=(value.cameraMode==='smoothHorizontal'?'Streamed NES PPU scrolling across 2–16 side-by-side World screens, subject to NROM ROM capacity. Requires vertical mirroring, a shared NES palette, no camera regions or linked exits. Other projects retain discrete transitions.':'World Runtime uses screen transitions with rooms and cameras aligned to NES screens. Camera regions select the screen shown: follow tracks both axes, horizontal fixes the row, vertical fixes the column, and locked holds the region’s first screen. Movement can continue off that camera screen.');
       for(const [key,input]of Object.entries(fields)){
         input.disabled=key!=='enabled'&&!value.enabled;
         if(Object.hasOwn(config.limits,key)&&(force||document.activeElement!==input))input.value=String(value[key]);

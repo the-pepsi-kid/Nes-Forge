@@ -1,0 +1,96 @@
+{
+  "editorSha256": "f7e2cc99247c3bd413b9467ee5696f1869bdb4a14437b767d211cacce2c40ab7",
+  "checks": [
+    {
+      "name": "First-game tutorial is navigable inside Project lessons",
+      "passed": true,
+      "evidence": {
+        "steps": 9,
+        "embeddedChapters": 18,
+        "workshopGuide": true
+      }
+    },
+    {
+      "name": "Exported 6502 JSON and source ZIP open in Code and retain source locations",
+      "passed": true,
+      "evidence": {
+        "romSha256": "a2b2d20b1e7f33542de7e71cf1e1be3d1240e80120a4a871333cf586b283fc3a",
+        "dependencies": [
+          {
+            "from": "main.asm",
+            "line": 2,
+            "path": "src/constants.inc",
+            "kind": "include"
+          },
+          {
+            "from": "main.asm",
+            "line": 4,
+            "path": "src/boot.asm",
+            "kind": "include"
+          },
+          {
+            "from": "main.asm",
+            "line": 6,
+            "path": "assets/message.bin",
+            "kind": "incbin"
+          }
+        ],
+        "executedRamByte": 70
+      }
+    },
+    {
+      "name": "Main file picker opens project ZIP and raw CHR ZIP using the established project loader",
+      "passed": true,
+      "evidence": {
+        "scene": "Imported tile pack",
+        "firstPixel": 1
+      }
+    },
+    {
+      "name": "Corrupt CRC, unsafe names and ambiguous ZIPs refuse without altering the project",
+      "passed": true,
+      "evidence": [
+        "crc.zip",
+        "paths.zip",
+        "ambiguous.zip"
+      ]
+    },
+    {
+      "name": "A late file, a declined replacement and a detached receipt preserve the active project",
+      "passed": true,
+      "evidence": {
+        "lastFile": "latest.json",
+        "declinedChangePreserved": true,
+        "staleReceiptRejected": true
+      }
+    },
+    {
+      "name": "MIDI file import becomes tracker rows, four native channel records and a runnable audio ROM",
+      "passed": true,
+      "evidence": {
+        "notes": 1,
+        "channels": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "apuRegisters": [
+          "4015",
+          "4017",
+          "4000",
+          "4002",
+          "4003",
+          "4004",
+          "4008",
+          "400c"
+        ],
+        "romSha256": "5c7933c4c67fa319e48002d6f56e719e149dbfd4868f4147c84868780d303238"
+      }
+    }
+  ],
+  "domErrors": [],
+  "passed": 6,
+  "total": 6,
+  "ok": true
+}

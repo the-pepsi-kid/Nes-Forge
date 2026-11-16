@@ -1,0 +1,361 @@
+{
+  "suite": "DigiGhosts recovery Patch 5",
+  "environment": "Node VM running shipped compiler and embedded NES emulator; DOM stub, no browser layout validation",
+  "htmlSha256": "f7e2cc99247c3bd413b9467ee5696f1869bdb4a14437b767d211cacce2c40ab7",
+  "passed": 17,
+  "total": 17,
+  "applicationErrors": [],
+  "cases": [
+    {
+      "name": "Controller trace resumes pursuit after recovery without leaving the old encounter area",
+      "passed": true,
+      "evidence": {
+        "build": {
+          "bytes": 40976,
+          "codeBytes": 8016
+        },
+        "hitFrames": [
+          104,
+          234,
+          384,
+          536,
+          688,
+          801,
+          932
+        ],
+        "minimumHitInterval": 113,
+        "resumeFrame": 213
+      }
+    },
+    {
+      "name": "Long invulnerability prevents rearming before its timer expires",
+      "passed": true,
+      "evidence": {
+        "hitFrames": [
+          104,
+          246,
+          408
+        ],
+        "phases": [
+          {
+            "frame": 1,
+            "phase": 0,
+            "hurt": 0
+          },
+          {
+            "frame": 70,
+            "phase": 1,
+            "hurt": 0
+          },
+          {
+            "frame": 104,
+            "phase": 2,
+            "hurt": 120
+          },
+          {
+            "frame": 149,
+            "phase": 3,
+            "hurt": 75
+          },
+          {
+            "frame": 174,
+            "phase": 4,
+            "hurt": 50
+          },
+          {
+            "frame": 224,
+            "phase": 0,
+            "hurt": 0
+          },
+          {
+            "frame": 225,
+            "phase": 1,
+            "hurt": 0
+          },
+          {
+            "frame": 246,
+            "phase": 2,
+            "hurt": 120
+          },
+          {
+            "frame": 291,
+            "phase": 3,
+            "hurt": 75
+          },
+          {
+            "frame": 316,
+            "phase": 4,
+            "hurt": 50
+          },
+          {
+            "frame": 366,
+            "phase": 0,
+            "hurt": 0
+          },
+          {
+            "frame": 367,
+            "phase": 1,
+            "hurt": 0
+          },
+          {
+            "frame": 408,
+            "phase": 2,
+            "hurt": 120
+          },
+          {
+            "frame": 453,
+            "phase": 3,
+            "hurt": 75
+          },
+          {
+            "frame": 478,
+            "phase": 4,
+            "hurt": 50
+          }
+        ]
+      }
+    },
+    {
+      "name": "RAM injection: overlap during separation keeps escaping without another hit",
+      "passed": true,
+      "evidence": [
+        {
+          "frame": 28,
+          "phase": 0,
+          "x": 62,
+          "y": 182
+        }
+      ]
+    },
+    {
+      "name": "RAM injection: left boundary at Y=31 escapes and rearms",
+      "passed": true,
+      "evidence": {
+        "start": {
+          "x": 8,
+          "y": 31
+        },
+        "clear": {
+          "frame": 7,
+          "x": 2,
+          "y": 31,
+          "phase": 0
+        }
+      }
+    },
+    {
+      "name": "RAM injection: left boundary at Y=189 escapes and rearms",
+      "passed": true,
+      "evidence": {
+        "start": {
+          "x": 8,
+          "y": 189
+        },
+        "clear": {
+          "frame": 30,
+          "x": 0,
+          "y": 169,
+          "phase": 0
+        }
+      }
+    },
+    {
+      "name": "RAM injection: right boundary at Y=31 escapes and rearms",
+      "passed": true,
+      "evidence": {
+        "start": {
+          "x": 248,
+          "y": 31
+        },
+        "clear": {
+          "frame": 7,
+          "x": 254,
+          "y": 31,
+          "phase": 0
+        }
+      }
+    },
+    {
+      "name": "RAM injection: right boundary at Y=189 escapes and rearms",
+      "passed": true,
+      "evidence": {
+        "start": {
+          "x": 248,
+          "y": 189
+        },
+        "clear": {
+          "frame": 29,
+          "x": 255,
+          "y": 169,
+          "phase": 0
+        }
+      }
+    },
+    {
+      "name": "RAM injection: separation compares the complete gap across a screen seam",
+      "passed": true,
+      "evidence": {
+        "nearPhase": 4,
+        "farPhase": 0
+      }
+    },
+    {
+      "name": "RAM injection: both actor blocks get complete scanline priority on successive DMA frames",
+      "passed": true,
+      "evidence": {
+        "dmaActorOrder": [
+          "enemy",
+          "player",
+          "enemy",
+          "player"
+        ],
+        "pieces": 34,
+        "peakSpritesOnLine": 11,
+        "piecesVisibleAcrossPair": 34
+      }
+    },
+    {
+      "name": "Controller scrolling advances priority only when OAM is transferred",
+      "passed": true,
+      "evidence": {
+        "skipped": 15,
+        "transferred": 85,
+        "view": 126
+      }
+    },
+    {
+      "name": "ROM/source round trip: half.json",
+      "passed": true,
+      "evidence": {
+        "build": {
+          "bytes": 40976,
+          "codeBytes": 6713
+        },
+        "equal": true,
+        "screens": 8,
+        "zpMax": 127
+      }
+    },
+    {
+      "name": "ROM/source round trip: giant.json",
+      "passed": true,
+      "evidence": {
+        "build": {
+          "bytes": 40976,
+          "codeBytes": 6960
+        },
+        "equal": true,
+        "screens": 8,
+        "zpMax": 127
+      }
+    },
+    {
+      "name": "ROM/source round trip: game.json",
+      "passed": true,
+      "evidence": {
+        "build": {
+          "bytes": 40976,
+          "codeBytes": 8016
+        },
+        "equal": true,
+        "screens": 16,
+        "zpMax": 127
+      }
+    },
+    {
+      "name": "Controller idle far away preserves loop waypoint patrol",
+      "passed": true,
+      "evidence": {
+        "visited": [
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0
+        ],
+        "screens": [
+          0,
+          1
+        ],
+        "finalIndex": 0,
+        "x": 19,
+        "y": 96
+      }
+    },
+    {
+      "name": "Controller idle far away preserves pingpong waypoint patrol",
+      "passed": true,
+      "evidence": {
+        "visited": [
+          2,
+          1,
+          0,
+          1,
+          2,
+          1,
+          0,
+          1,
+          2,
+          1,
+          0,
+          1,
+          2,
+          1,
+          0,
+          1,
+          2
+        ],
+        "screens": [
+          0,
+          1
+        ],
+        "finalIndex": 2,
+        "x": 31,
+        "y": 86
+      }
+    },
+    {
+      "name": "Controller idle far away preserves once waypoint patrol",
+      "passed": true,
+      "evidence": {
+        "visited": [
+          2
+        ],
+        "screens": [
+          0,
+          1
+        ],
+        "finalIndex": 2,
+        "x": 40,
+        "y": 86
+      }
+    },
+    {
+      "name": "Controller traversal still covers all sixteen screens in both directions",
+      "passed": true,
+      "evidence": [
+        {
+          "screen": 15,
+          "x": 252,
+          "camera": 3840,
+          "frames": 2240
+        },
+        {
+          "screen": 0,
+          "x": 4,
+          "camera": 0,
+          "frames": 4480
+        }
+      ]
+    }
+  ]
+}

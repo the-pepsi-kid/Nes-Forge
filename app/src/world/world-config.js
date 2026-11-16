@@ -2,7 +2,7 @@
 (()=>{
   'use strict';
   const services=window.Forge.services,cp=value=>JSON.parse(JSON.stringify(value));
-  const defaults=()=>({enabled:false,worldId:'',spawnId:'',playerSceneId:'',playerId:'',moveSpeed:2,jumpSpeed:9,gravity:1,maxFallSpeed:6,bodyWidth:12,bodyHeight:22});
+  const defaults=()=>({enabled:false,worldId:'',spawnId:'',playerSceneId:'',playerId:'',moveSpeed:2,jumpSpeed:9,gravity:1,maxFallSpeed:6,bodyWidth:12,bodyHeight:22,cameraMode:'screen'});
   const limits=window.Forge165.config.limits;
   function validate(value,{references=false,project}={}){
     if(!value||typeof value!=='object'||Array.isArray(value))throw Error('World Runtime settings must be an object');
@@ -12,6 +12,7 @@
     for(const key of ['worldId','spawnId','playerSceneId','playerId']){
       if(typeof value[key]!=='string'||new TextEncoder().encode(value[key]).length>255)throw Error('World Runtime '+key+' must be text of at most 255 UTF-8 bytes');
     }
+    if(value.cameraMode!==undefined&&!['screen','smoothHorizontal'].includes(value.cameraMode))throw Error('World Runtime camera mode must be screen or smoothHorizontal');
     window.Forge165.config.validatePhysics(value,'World Runtime ');
     if(value.bodyWidth%2)throw Error('World Runtime body width must be even so the feet origin stays centered');
     if(references&&value.enabled){

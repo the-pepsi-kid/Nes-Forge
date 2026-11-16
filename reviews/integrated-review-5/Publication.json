@@ -1,0 +1,73 @@
+{
+  "candidate": "integrated-review-5-public",
+  "date": "2026-11-16",
+  "repository": "the-pepsi-kid/Nes-Forge",
+  "targetBranch": "main",
+  "baseCommit": "6ac1d59a145c0166116eae2bd94340372b3aaa06",
+  "sourceKit": {
+    "filename": "NES_Forge_Integrated_Review_5.zip",
+    "sha256": "9adb1b69cbc890d642986ebc877a7b659ea7372f56993cc3407923e6878163f1",
+    "privateEditorSha256": "060a700bd5a5e3371622adc0045c006cdea992f72dbb127adcf4e7f92556705f"
+  },
+  "suppliedAssetReport": {
+    "path": "docs/reviews/NES_Forge_Asset_Report_Review5.md",
+    "sha256": "2434495675177497d2463ea64c403aa2109b519141fae9d309448719777dc08f"
+  },
+  "publicEditor": {
+    "entries": [
+      "nes-forge.html",
+      "NES_Forge.html"
+    ],
+    "sha256": "f7e2cc99247c3bd413b9467ee5696f1869bdb4a14437b767d211cacce2c40ab7",
+    "bytes": 3970308,
+    "sourceParts": 219,
+    "sourceComparison": "Source_Comparison.json"
+  },
+  "freshVerification": {
+    "suiteJobsPassed": 31,
+    "suiteJobsRequested": 31,
+    "passed": true,
+    "report": "Public_Verification.json",
+    "testRunnerConcurrency": 1,
+    "publicProfileChecksPassed": 4,
+    "publicProfileReport": "Public_Profile.json",
+    "browser": "environment-blocked; see Browser.json",
+    "privateOriginalRomOrExtractionSuitesRerun": false
+  },
+  "historicalPrivateEvidence": {
+    "suiteJobsPassed": 36,
+    "suiteJobsRequested": 37,
+    "directOriginalRomLibraryChecksPassed": 8,
+    "originalByteStreams": 14,
+    "extractionArchives": 24,
+    "rerunOnPublicDerivative": false
+  },
+  "excludedEmbeddedSources": [
+    "app/src/re/external-recovery-catalog.js",
+    "app/src/re/recovery-evidence-catalog.js"
+  ],
+  "otherAppSourceChanges": [
+    "Review identity labels in shell-prefix.html and release-info.js"
+  ],
+  "unchangedSourceParts": 215,
+  "nativeDecoderSourceUnchanged": true,
+  "distribution": {
+    "commercialSourceRoms": false,
+    "privateCapturePayloads": false,
+    "sourceBearingCommercialProjects": false,
+    "privateExtractionArchives": false,
+    "walletCredentialsOrDatabases": false,
+    "authoredCartridgeRegressionFixtures": [
+      "QA/r/game.nes",
+      "QA/r/EightStages.nes",
+      "QA/r/Teapot418.nes",
+      "QA/r/BeaconIsland.nes"
+    ]
+  },
+  "remainingLimits": [
+    "Owner-reported pose ordering/composition issues remain open.",
+    "Full native recovery and native writers remain partial and title-specific.",
+    "Real-browser/device/listening/hardware and two-human hosted acceptance remain unverified.",
+    "DigiGhosts and Beacon Island recorded visual issues remain open."
+  ]
+}

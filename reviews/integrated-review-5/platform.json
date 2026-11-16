@@ -1,0 +1,308 @@
+{
+  "editorSha256": "f7e2cc99247c3bd413b9467ee5696f1869bdb4a14437b767d211cacce2c40ab7",
+  "dom": "jsdom 26.1.0",
+  "independentEmulator": "JSNES 2.0.0",
+  "checks": [
+    {
+      "name": "All visible editor tabs open and select their named views",
+      "passed": true,
+      "evidence": [
+        "scene",
+        "chr",
+        "meta",
+        "world",
+        "attr",
+        "sprites",
+        "metasprites",
+        "code",
+        "audio",
+        "collision",
+        "anim",
+        "entity-studio",
+        "docs",
+        "emu",
+        "disasm"
+      ]
+    },
+    {
+      "name": "Connected Workspace, Resources, cartridge workshop and hosted setup live in the same editor",
+      "passed": true,
+      "evidence": {
+        "registeredServices": 147,
+        "title": "NES Forge 2.0.0-alpha.11 — Integrated Review 5 — Alpha · Review candidate"
+      }
+    },
+    {
+      "name": "New project, Scene edit, Undo, Redo, Save As, reopen and deterministic rebuild",
+      "passed": true,
+      "evidence": {
+        "bytes": 24592,
+        "romSha256": "fe53303eca473bd50bd9393679cddb5d3e4a5db67f2eb5e1c1f2cea225af2095",
+        "independent": {
+          "frameSequenceSha256": "604e466d8659d27df425da431240ea80cdef279fcf9e95eb36b311e65d1191c9",
+          "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933",
+          "frames": 100,
+          "distinctFrames": 2,
+          "maxColors": 2,
+          "audioSamples": 79870,
+          "audioRange": 0.762664794921875
+        }
+      }
+    },
+    {
+      "name": "BeaconIsland.nesforge.json opens, builds, runs, saves and reopens",
+      "passed": true,
+      "evidence": {
+        "name": "BeaconIsland.nesforge.json",
+        "romBytes": 40976,
+        "romSha256": "2203f7a1122ebddb33c21a9bd2483a51476d4424693f730d79592b41946e7e9b",
+        "forgeFrames": 6,
+        "independent": {
+          "frameSequenceSha256": "75e7382847c86b10116c3b3838b50ec8edeff718828c85e9e32136f1bcd3049a",
+          "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933",
+          "frames": 100,
+          "distinctFrames": 53,
+          "maxColors": 9,
+          "audioSamples": 79870,
+          "audioRange": 0.762664794921875
+        },
+        "reference": {
+          "sha256": "a3280ef03d91b2521d7a61b7016e55891065407f83d033aae835fdae781accb0",
+          "bytesMatch": false,
+          "differingBytes": 5953,
+          "framesMatch": false,
+          "audioMatches": true,
+          "frameSequenceSha256": "efbb16feb30cf8fad89cf974b7526f21a79354d506c29df37de0452f0b832bbb",
+          "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933"
+        }
+      }
+    },
+    {
+      "name": "DigiGhosts.nesforge.json opens, builds, runs, saves and reopens",
+      "passed": true,
+      "evidence": {
+        "name": "DigiGhosts.nesforge.json",
+        "romBytes": 40976,
+        "romSha256": "f11d14399f4cfa718987a91c4ff5adbd9e5bbd18a126702692c32d48fc8ada0f",
+        "forgeFrames": 6,
+        "independent": {
+          "frameSequenceSha256": "4a5f18eedd0cc986ea6d565d379f8d8a0ee2aa595835be42453e6f954dfdc876",
+          "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933",
+          "frames": 100,
+          "distinctFrames": 86,
+          "maxColors": 11,
+          "audioSamples": 79870,
+          "audioRange": 0.762664794921875
+        },
+        "reference": {
+          "sha256": "f11d14399f4cfa718987a91c4ff5adbd9e5bbd18a126702692c32d48fc8ada0f",
+          "bytesMatch": true,
+          "differingBytes": 0,
+          "framesMatch": true,
+          "audioMatches": true,
+          "frameSequenceSha256": "4a5f18eedd0cc986ea6d565d379f8d8a0ee2aa595835be42453e6f954dfdc876",
+          "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933"
+        }
+      }
+    },
+    {
+      "name": "EightStages.nesforge.json opens, builds, runs, saves and reopens",
+      "passed": true,
+      "evidence": {
+        "name": "EightStages.nesforge.json",
+        "romBytes": 40976,
+        "romSha256": "541e081cfb59def407987588eef2794328082f063aa3761198db0a88a9e685a7",
+        "forgeFrames": 6,
+        "independent": {
+          "frameSequenceSha256": "666cc2f70f2beef36410c4a45c07e938d84984187e86721b0010d024d4260e8f",
+          "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933",
+          "frames": 100,
+          "distinctFrames": 52,
+          "maxColors": 7,
+          "audioSamples": 79870,
+          "audioRange": 0.762664794921875
+        },
+        "reference": {
+          "sha256": "541e081cfb59def407987588eef2794328082f063aa3761198db0a88a9e685a7",
+          "bytesMatch": true,
+          "differingBytes": 0,
+          "framesMatch": true,
+          "audioMatches": true,
+          "frameSequenceSha256": "666cc2f70f2beef36410c4a45c07e938d84984187e86721b0010d024d4260e8f",
+          "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933"
+        }
+      }
+    },
+    {
+      "name": "Teapot418.nesforge.json opens, builds, runs, saves and reopens",
+      "passed": true,
+      "evidence": {
+        "name": "Teapot418.nesforge.json",
+        "romBytes": 24592,
+        "romSha256": "12a6d3c2380c479f52c544a85bba30bcb2f3281e94a109c811c7e2e5c464ed6e",
+        "forgeFrames": 6,
+        "independent": {
+          "frameSequenceSha256": "d53ec44719a93d2ddbb8f9a4f08fb47ccc34d32ef31bc41a99298bfb90697599",
+          "audioSequenceSha256": "ac6bf76e272c99a123ac3eeed773652be8c31bff72abe8132a3c08c08f446ac1",
+          "frames": 100,
+          "distinctFrames": 77,
+          "maxColors": 4,
+          "audioSamples": 79870,
+          "audioRange": 0.89776611328125
+        },
+        "reference": {
+          "sha256": "12a6d3c2380c479f52c544a85bba30bcb2f3281e94a109c811c7e2e5c464ed6e",
+          "bytesMatch": true,
+          "differingBytes": 0,
+          "framesMatch": true,
+          "audioMatches": true,
+          "frameSequenceSha256": "d53ec44719a93d2ddbb8f9a4f08fb47ccc34d32ef31bc41a99298bfb90697599",
+          "audioSequenceSha256": "ac6bf76e272c99a123ac3eeed773652be8c31bff72abe8132a3c08c08f446ac1"
+        }
+      }
+    },
+    {
+      "name": "TwoStages.nesforge.json opens, builds, runs, saves and reopens",
+      "passed": true,
+      "evidence": {
+        "name": "TwoStages.nesforge.json",
+        "romBytes": 40976,
+        "romSha256": "73a4ff175fdcbfa3135f2a0a0ed427de2ce0a3ac8ba40ce4d69049f8d8cc2088",
+        "forgeFrames": 6,
+        "independent": {
+          "frameSequenceSha256": "666cc2f70f2beef36410c4a45c07e938d84984187e86721b0010d024d4260e8f",
+          "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933",
+          "frames": 100,
+          "distinctFrames": 52,
+          "maxColors": 7,
+          "audioSamples": 79870,
+          "audioRange": 0.762664794921875
+        }
+      }
+    },
+    {
+      "name": "Unknown ROM input stays an inspection and leaves the working project intact",
+      "passed": true,
+      "evidence": {
+        "profile": "unrecognized"
+      }
+    }
+  ],
+  "projects": [
+    {
+      "name": "BeaconIsland.nesforge.json",
+      "romBytes": 40976,
+      "romSha256": "2203f7a1122ebddb33c21a9bd2483a51476d4424693f730d79592b41946e7e9b",
+      "forgeFrames": 6,
+      "independent": {
+        "frameSequenceSha256": "75e7382847c86b10116c3b3838b50ec8edeff718828c85e9e32136f1bcd3049a",
+        "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933",
+        "frames": 100,
+        "distinctFrames": 53,
+        "maxColors": 9,
+        "audioSamples": 79870,
+        "audioRange": 0.762664794921875
+      },
+      "reference": {
+        "sha256": "a3280ef03d91b2521d7a61b7016e55891065407f83d033aae835fdae781accb0",
+        "bytesMatch": false,
+        "differingBytes": 5953,
+        "framesMatch": false,
+        "audioMatches": true,
+        "frameSequenceSha256": "efbb16feb30cf8fad89cf974b7526f21a79354d506c29df37de0452f0b832bbb",
+        "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933"
+      }
+    },
+    {
+      "name": "DigiGhosts.nesforge.json",
+      "romBytes": 40976,
+      "romSha256": "f11d14399f4cfa718987a91c4ff5adbd9e5bbd18a126702692c32d48fc8ada0f",
+      "forgeFrames": 6,
+      "independent": {
+        "frameSequenceSha256": "4a5f18eedd0cc986ea6d565d379f8d8a0ee2aa595835be42453e6f954dfdc876",
+        "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933",
+        "frames": 100,
+        "distinctFrames": 86,
+        "maxColors": 11,
+        "audioSamples": 79870,
+        "audioRange": 0.762664794921875
+      },
+      "reference": {
+        "sha256": "f11d14399f4cfa718987a91c4ff5adbd9e5bbd18a126702692c32d48fc8ada0f",
+        "bytesMatch": true,
+        "differingBytes": 0,
+        "framesMatch": true,
+        "audioMatches": true,
+        "frameSequenceSha256": "4a5f18eedd0cc986ea6d565d379f8d8a0ee2aa595835be42453e6f954dfdc876",
+        "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933"
+      }
+    },
+    {
+      "name": "EightStages.nesforge.json",
+      "romBytes": 40976,
+      "romSha256": "541e081cfb59def407987588eef2794328082f063aa3761198db0a88a9e685a7",
+      "forgeFrames": 6,
+      "independent": {
+        "frameSequenceSha256": "666cc2f70f2beef36410c4a45c07e938d84984187e86721b0010d024d4260e8f",
+        "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933",
+        "frames": 100,
+        "distinctFrames": 52,
+        "maxColors": 7,
+        "audioSamples": 79870,
+        "audioRange": 0.762664794921875
+      },
+      "reference": {
+        "sha256": "541e081cfb59def407987588eef2794328082f063aa3761198db0a88a9e685a7",
+        "bytesMatch": true,
+        "differingBytes": 0,
+        "framesMatch": true,
+        "audioMatches": true,
+        "frameSequenceSha256": "666cc2f70f2beef36410c4a45c07e938d84984187e86721b0010d024d4260e8f",
+        "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933"
+      }
+    },
+    {
+      "name": "Teapot418.nesforge.json",
+      "romBytes": 24592,
+      "romSha256": "12a6d3c2380c479f52c544a85bba30bcb2f3281e94a109c811c7e2e5c464ed6e",
+      "forgeFrames": 6,
+      "independent": {
+        "frameSequenceSha256": "d53ec44719a93d2ddbb8f9a4f08fb47ccc34d32ef31bc41a99298bfb90697599",
+        "audioSequenceSha256": "ac6bf76e272c99a123ac3eeed773652be8c31bff72abe8132a3c08c08f446ac1",
+        "frames": 100,
+        "distinctFrames": 77,
+        "maxColors": 4,
+        "audioSamples": 79870,
+        "audioRange": 0.89776611328125
+      },
+      "reference": {
+        "sha256": "12a6d3c2380c479f52c544a85bba30bcb2f3281e94a109c811c7e2e5c464ed6e",
+        "bytesMatch": true,
+        "differingBytes": 0,
+        "framesMatch": true,
+        "audioMatches": true,
+        "frameSequenceSha256": "d53ec44719a93d2ddbb8f9a4f08fb47ccc34d32ef31bc41a99298bfb90697599",
+        "audioSequenceSha256": "ac6bf76e272c99a123ac3eeed773652be8c31bff72abe8132a3c08c08f446ac1"
+      }
+    },
+    {
+      "name": "TwoStages.nesforge.json",
+      "romBytes": 40976,
+      "romSha256": "73a4ff175fdcbfa3135f2a0a0ed427de2ce0a3ac8ba40ce4d69049f8d8cc2088",
+      "forgeFrames": 6,
+      "independent": {
+        "frameSequenceSha256": "666cc2f70f2beef36410c4a45c07e938d84984187e86721b0010d024d4260e8f",
+        "audioSequenceSha256": "56ffbefbf28507dff7ad215f5e940686add25f2be12d66017a4feb51a5c66933",
+        "frames": 100,
+        "distinctFrames": 52,
+        "maxColors": 7,
+        "audioSamples": 79870,
+        "audioRange": 0.762664794921875
+      }
+    }
+  ],
+  "domErrors": [],
+  "passed": 9,
+  "total": 9,
+  "ok": true
+}

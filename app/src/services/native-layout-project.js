@@ -25,7 +25,11 @@ function validate(p,{build=false}={}){
  const info=inspect(p);if(build){
   const masked=cp(p),encoded=api.encode(info.bytes,info.catalog,p.nativeGame.edits),decoded=api.inspect(encoded.bytes,info.adapter);
   for(const b of p.nativeGame.areas){const sc=p.scenes.find(v=>v.id===b.sceneId),expected=api.projectScreen(decoded,b.screen),old=api.projectScreen(info.catalog,b.screen);
-   if(JSON.stringify(sc.nt)!==JSON.stringify(expected.nt)||JSON.stringify(sc.attr)!==JSON.stringify(expected.attr))fail('Scene painting differs from its native block recipe. Use the Native screen blocks brush for encodable layout changes. Other edits remain savable.');
+   if(JSON.stringify(sc.nt)!==JSON.stringify(expected.nt)||JSON.stringify(sc.attr)!==JSON.stringify(expected.attr)){
+    const field=JSON.stringify(sc.nt)!==JSON.stringify(expected.nt)?'nt':'attr';
+    throw s.BuildDiagnostics.attach(Error('Native layout project: Scene painting differs from its native block recipe. Use the Native screen blocks brush for encodable layout changes. Other edits remain savable.'),
+      {assetId:sc.id,assetName:sc.name,resourceKey:'scene:'+sc.id,field,path:s.BuildDiagnostics.difference(sc[field],expected[field],field),writerRoute:'project-library',
+        repair:'Save unsupported work, Undo local painting, then use Area 1 native screen blocks for encodable substitutions.'});}
    const target=masked.scenes.find(v=>v.id===b.sceneId);target.nt=old.nt;target.attr=old.attr;
   }
   if(s.NativeEngineProject.signature(masked)!==p.nativeGame.projectionSha256)fail('An editor asset or setting changed without a native encoder. This checkpoint writes existing native block substitutions only. Undo unsupported changes to build.');

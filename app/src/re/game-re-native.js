@@ -27,6 +27,14 @@ function verifyAudioSource(profile,bytes,value){
  return bytes[receipt.source.fileOffset]===Number(receipt.cueId)&&anchor.every((b,i)=>bytes[at+i]===b);
 }
 const profiles=spatial().profiles.filter(p=>['ninja-gaiden-us','zelda2-us'].includes(p.id));
+// A Zelda II native ROM may contain *authorized* edits to overworld terrain
+// and location fields while preserving every protected engine, graphics and
+// scene-construction byte. The canonical ZeldaOverworld fingerprint masks ONLY
+// those verified editable spans. Never relax identity to a name/mapper guess.
+const verifiedZeldaSource=bytes=>!!dependency('ZeldaOverworld','./zelda-overworld.js')?.recognizes?.(bytes);
+const profileFor=bytes=>profiles.find(p=>p.sha256===hash(bytes))||
+ ((dependency('NativeEngineFormat','./native-engine-format.js')?.recognizes?.(bytes)||verifiedZeldaSource(bytes))?
+ profiles.find(p=>p.id==='zelda2-us'):null);
 
 function sourceReader(bytes){
  function loc(bank,cpu,length=1){
@@ -42,7 +50,7 @@ function sourceReader(bytes){
 function inputSnapshot(input,name){
  need(input instanceof Uint8Array&&input.length===262160,'choose one of the two investigated 262,160-byte iNES revisions');
  need(input[0]===78&&input[1]===69&&input[2]===83&&input[3]===26,'not an iNES source');
- const bytes=Uint8Array.from(input),sha256=hash(bytes),profile=profiles.find(p=>p.sha256===sha256)||(root.NativeEngineFormat?.recognizes(bytes)?profiles.find(p=>p.id==='zelda2-us'):null);
+ const bytes=Uint8Array.from(input),sha256=hash(bytes),profile=profileFor(bytes);
  return {bytes,profile,source:{name:String(name||'ROM').slice(0,160),sha256,byteLength:bytes.length}};
 }
 function symbolAt(profile,bank,cpu){return index()[profile].symbols.find(s=>s[0]===bank&&s[1]===cpu)?.[2]||null;}
@@ -187,7 +195,7 @@ function zeldaCatalog(r){
 function inspect(input,name='ROM'){
  // Unknown revisions have the same safe inspection result as other RE tools.
  if(!(input instanceof Uint8Array)||input.length<16||input.length>64*1024*1024)fail('choose a bounded ROM byte buffer');
- const sha256=hash(input),profile=profiles.find(p=>p.sha256===sha256)||(root.NativeEngineFormat?.recognizes(input)?profiles.find(p=>p.id==='zelda2-us'):null),source={name:String(name).slice(0,160),sha256,byteLength:input.length};
+ const sha256=hash(input),profile=profileFor(input),source={name:String(name).slice(0,160),sha256,byteLength:input.length};
  if(!profile)return {format:'NESForgeNativeGameEvidence',version:1,status:'unknown',source,profile:null,scenes:[],actors:[],poses:[],animations:[],locations:[],graphics:[],symbols:[],ram:[],limits:['No verified native game catalog for this exact revision. No scene, object or behavior was guessed.']};
  const bytes=Uint8Array.from(input),r=sourceReader(bytes),data=profile.id==='ninja-gaiden-us'?ninjaCatalog(r,bytes):zeldaCatalog(r);
  if(profile.id==='zelda2-us')data.poses=zeldaPlayerPoses(bytes);

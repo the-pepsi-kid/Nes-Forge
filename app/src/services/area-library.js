@@ -26,7 +26,10 @@ function matchingPages(source,id){
  return S.scenes.filter(s=>{const r=s.captureMeta?.nativeAssets;return services.StageContext.nativeKey(s)&&r.source.sha256===source.source.sha256&&r.profile===source.profile?.id&&r.sceneId===id;}).sort((a,b)=>(a.captureMeta.nativeAssets.page||0)-(b.captureMeta.nativeAssets.page||0));
 }
 function resources(scope,scene,item,source){
- if(S.investigation?.version===4)return [{name:'Background / layout / palette',inspect:item?.reason||'Verified static source resource',edit:item?.status==='Unavailable native slot'?'Unavailable state':'Open a recovered page in Scene or CHR',build:'Existing native block substitutions; source capacity checked'},...['Sprites / animation','Collision / actors / behavior','Audio / menus / events'].map(name=>({name,inspect:'Unresolved',edit:'Authoring tools remain available; source recovery pending',build:'Native encoder pending'}))];
+ if(S.investigation?.version===4){const cap=services.ProjectCapabilities.describe(S);return [
+  {name:'Background / layout / palette IDs',inspect:item?.reason||'Verified static source resource',edit:item?.status==='Unavailable native slot'?'Unavailable state':'Open a recovered page; use its native block controls',build:'Existing native block substitutions; source capacity checked'},
+  ...cap.writers.filter(w=>w.id!=='native-resource-blocks').map(w=>({name:w.title,inspect:'Project-wide native writer; the selected page may be a source snapshot',edit:w.scope,build:'Open its dedicated editor through Connected Workspace → Native tools'})),
+  ...['Collision / actors / native animation','Native Audio / menus / events'].map(name=>({name,inspect:'Recovery is title-specific; source inspection does not establish a writer',edit:'Authoring copies remain savable; unsupported native changes can block output',build:'No native writer in this workflow'}))];}
  const native=!!S.nativeGame,editable=scope==='project'||!!scene,recovered=scope==='source'||!!scene?.captureMeta?.nativeAssets;
  const build=services.NativeResourceProject?.matches(S)?'Existing native block substitutions; source capacity checked':scene?.captureMeta?.nativeLayout?'Native screen blocks brush only':native?'Native encoder pending':'Generated build, subject to checks';
  const terrain=services.NativeEngineProject.capabilities(S.nativeGame?.profile).terrain&&S.nativeGame?.resources?.some(b=>b.sceneId===scene?.id);
@@ -75,7 +78,7 @@ function describe(){
  return {scope,sourceKey:key,source:source?{name:source.source.name,sha256:source.source.sha256,profile:source.profile?.id||null}:null,contexts,context,items,selected,pages:pages.map(s=>({id:s.id,name:s.name,...(s.resource?{resource:s.resource,page:s.page}:{})})),page:page?{id:page.id,name:page.name,...(page.resource?{resource:page.resource,page:page.page}:{})}:null,conflicts,resources:selected?resources(scope,page,selected,source):[],shared,
   imported:source?source.scenes.filter(s=>matchingPages(source,s.id).length).length:0,catalogued:source?.scenes.length||0,maps:source?.maps.length||0,
   nativeProject:!!S.nativeGame,canUseSaved:!!S.nativeGame&&!!S.importedRom?.length,busy:state.busy,
-  buildScope:S.nativeGame?services.NativeEngineProject.capabilities(S.nativeGame.profile).buildScope:'Generated project: builds use existing runtime settings and capacity checks.',
+  buildScope:services.ProjectCapabilities.describe(S).scope,
   projectScene:project.scene?.name||'No scene',project};
 }
 function sync(){
@@ -192,7 +195,7 @@ function refresh(){
   sync();const d=describe();state.context=d.context?.id||'';state.room=d.selected?.id||'';
   ui.scope.value=d.scope;ui.scope.children[1].disabled=!d.source;ui.saved.disabled=!d.canUseSaved||d.busy;ui.file.disabled=d.busy;ui.maps.disabled=!d.maps||d.busy;ui.native.disabled=!d.nativeProject||!services.NativeEngineProject.capabilities(S.nativeGame?.profile).locationFields;
   setOptions(ui.context,d.contexts,d.context?.id,'No contexts available');setOptions(ui.room,d.items,d.selected?.id,'No matching room / map');setOptions(ui.page,d.pages,d.page?.id,'No editable project copy');ui.page.disabled=ui.page.disabled||d.conflicts;ui.search.value=state.query;
-  ui.identity.textContent=d.scope==='source'?(d.source?.name||'No source')+' · '+d.catalogued+' catalog slots · '+d.imported+' rooms imported · '+d.maps+' decoded maps':'Project: '+(S.projectName||'Untitled')+' · '+S.scenes.length+' editable pages';
+  ui.identity.textContent=d.scope==='source'?services.SourceContext.describe(d.source).label+' · '+(d.source?.name||'No source')+' · '+d.catalogued+' catalog slots · '+d.imported+' rooms imported · '+d.maps+' decoded maps':'Project: '+(S.projectName||'Untitled')+' · '+S.scenes.length+' editable pages';
   ui.selection.textContent=d.selected?d.selected.name+' · '+d.selected.status:'No selection';
   ui.scopeNote.textContent=d.scope==='source'&&S.investigation?.version===2?'Preserved ROM source. No verified areas, stages or maps are decoded. Editable physical CHR sheets are under Editable project; use Project investigation for bytes and coverage.':d.scope==='source'?'Browsing source evidence. Active project page: '+d.projectScene+'. Open an editable copy explicitly to change project tabs.':'Project selection follows Scene, CHR, Collision and scene entities. Gameplay actors have an explicit placement destination; Audio remains project-wide.';
   ui.build.textContent=d.buildScope;

@@ -13,7 +13,7 @@ const fitsPosition=n=>Number.isInteger(n)&&n>=-2048&&n<=2047;
 const fitsText=s=>new TextEncoder().encode(String(s)).length<=255;
 function positionError(){showToast('Position must stay between -2048 and 2047. Move the piece or origin before this operation.');return null;}
 function namedCopy(name,suffix){let base=String(name);while(!fitsText(base+suffix))base=Array.from(base).slice(0,-1).join('');return base+suffix;}
-const UI={frameId:'',pieceId:'',tile:0,zoom:4,grid:true,boxes:true,hardware:false,snap:1,viewport:null,drag:null};
+const UI={frameId:'',pieceId:'',tile:0,zoom:4,grid:true,boxes:true,hardware:false,snap:1,viewport:null,drag:null,autoSelect:true,choiceReason:''};
 
 function normalize(raw={},index=0,usedIds=new Set()){
   if(!raw||typeof raw!=='object'||Array.isArray(raw))raw={};
@@ -28,10 +28,17 @@ function normalize(raw={},index=0,usedIds=new Set()){
   })};
 }
 function normalizeAll(value){if(Array.isArray(value)&&value.length>MAX_FRAMES)throw Error('Metasprite library exceeds '+MAX_FRAMES+' frames');const used=new Set();return (Array.isArray(value)?value:[]).map((v,i)=>normalize(v,i,used));}
-function ensure(){if(!Array.isArray(S.metasprites))S.metasprites=[];if(UI.frameId&&!S.metasprites.some(f=>f.id===UI.frameId))UI.frameId=S.metasprites[0]?.id||'';if(!UI.frameId&&S.metasprites.length)UI.frameId=S.metasprites[0].id;const f=current();if(UI.pieceId&&!f?.pieces?.some(p=>p.id===UI.pieceId))UI.pieceId=f?.pieces?.[0]?.id||'';return S.metasprites;}
+function ensure(){if(!Array.isArray(S.metasprites))S.metasprites=[];if(UI.frameId&&!S.metasprites.some(f=>f.id===UI.frameId))UI.frameId=S.metasprites[0]?.id||'';if(!UI.frameId&&UI.autoSelect&&S.metasprites.length)UI.frameId=S.metasprites[0].id;const f=current();if(UI.pieceId&&!f?.pieces?.some(p=>p.id===UI.pieceId))UI.pieceId=f?.pieces?.[0]?.id||'';return S.metasprites;}
 function current(){return S.metasprites?.find(f=>f.id===UI.frameId)||null;}
 function piece(){return current()?.pieces.find(p=>p.id===UI.pieceId)||null;}
 function get(id){return S.metasprites?.find(f=>f.id===id)||null;}
+// Called by ProjectStore's optional view restoration after assets are installed.
+// Suppress the legacy first-frame fallback when the user needs an explicit choice.
+function restoreSelection(id,pieceId,reason=''){
+ UI.autoSelect=false;UI.choiceReason=reason;UI.frameId=get(id)?id:'';
+ const f=current();UI.pieceId=typeof pieceId==='string'?(f?.pieces.some(p=>p.id===pieceId)?pieceId:''):(f?.pieces[0]?.id||'');
+ UI.viewport=null;UI.drag=null;
+}
 function source(frame){const sc=S.scenes.find(s=>s.id===frame?.sceneId);if(!sc)return null;return sc===S.scenes[S.activeScene]?{...sc,sprChr:S.sprChr,sprPal:S.sprPal,oam:S.oam}:sc;}
 function bounds(frame){
   const ps=frame?.pieces||[],h=frame?.spriteMode===16?16:8;
@@ -49,7 +56,9 @@ function warnings(frame){
 }
 function pixel(frame,p,px,py,sc){const h=frame.spriteMode===16?16:8,fy=p.flipV?h-1-py:py,fx=p.flipH?7-px:px;return sc.sprChr?.[fy<8?p.tile:p.tile2]?.[fy&7]?.[fx]||0;}
 function draw(ctx,frame,anchorX=0,anchorY=0,scale=1,options={}){
-  const sc=source(frame);if(!sc||!ctx)return false;
+  // An explicit detached source lets Resources draw verified encoded output
+  // through this compositor without replacing the canonical source snapshot.
+  const sc=options.source||source(frame);if(!sc||!ctx)return false;
   const ps=frame.pieces||[],h=frame.spriteMode===16?16:8,claims=new Set(),lineCounts=new Map();
   ctx.imageSmoothingEnabled=false;
   for(let i=0;i<ps.length;i++){
@@ -70,7 +79,7 @@ function draw(ctx,frame,anchorX=0,anchorY=0,scale=1,options={}){
 }
 function toOAM(frame,anchorX=0,anchorY=0){return (frame?.pieces||[]).map(p=>({x:anchorX+p.x-frame.originX,y:anchorY+p.y-frame.originY,tile:p.tile,tile2:p.tile2,attr:(p.pal&3)|(p.flipH?64:0)|(p.flipV?128:0)|(p.behind?32:0),height:frame.spriteMode===16?16:8,active:true}));}
 function changed(reason){ensure();notify(reason||'metaspriteEdit');renderUI();renderCanvas();window.dispatchEvent(new CustomEvent('forge:metasprites-changed',{detail:{reason,frameId:UI.frameId}}));}
-function select(id){if(id&&!get(id))return false;UI.frameId=id;UI.pieceId=get(id)?.pieces?.[0]?.id||'';UI.viewport=null;renderUI();renderCanvas();return true;}
+function select(id){if(id&&!get(id))return false;UI.autoSelect=false;UI.choiceReason='';UI.frameId=id;UI.pieceId=get(id)?.pieces?.[0]?.id||'';UI.viewport=null;renderUI();renderCanvas();return true;}
 function create(options={}){
   ensure();if(S.metasprites.length>=MAX_FRAMES){showToast('Metasprite frame limit is '+MAX_FRAMES);return null;}
   if(options.pieces?.length>MAX_PIECES){showToast('Metasprite piece limit is '+MAX_PIECES);return null;}
@@ -166,7 +175,8 @@ function renderSheet(){
 }
 function renderUI(){
   ensure();const f=current(),p=piece(),frames=$('msFrames163');if(!frames)return;
-  const desired=(S.metasprites||[]).map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' · '+x.pieces.length+' pieces</option>').join('')||'<option value="">No frames yet</option>';if(frames.innerHTML!==desired)frames.innerHTML=desired;value('msFrames163',f?.id||'');
+  const desired=(!f&&S.metasprites.length?'<option value="">Choose a pose…</option>':'')+(S.metasprites||[]).map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' · '+x.pieces.length+' pieces</option>').join('')||'<option value="">No frames yet</option>';if(frames.innerHTML!==desired)frames.innerHTML=desired;value('msFrames163',f?.id||'');
+  if(!f)$('msEmpty163').textContent=UI.choiceReason||'Start with a blank frame, or capture the active Scene OAM. Choose a pose or create one.';
   $('msEmpty163').style.display=f?'none':'block';$('msEditor163').style.display=f?'block':'none';for(const id of ['msDuplicate163','msMirror163','msDelete163'])$(id).disabled=!f;
   if(f){
     value('msName163',f.name);const scenes=S.scenes.map(sc=>'<option value="'+esc(sc.id)+'">'+esc(sc.name)+'</option>').join('');$('msSource163').innerHTML=(source(f)?'':'<option value="'+esc(f.sceneId)+'">Missing source scene</option>')+scenes;value('msSource163',f.sceneId);value('msMode163',f.spriteMode);value('msOriginX163',f.originX);value('msOriginY163',f.originY);
@@ -209,7 +219,7 @@ const previousSwitch=switchTab;switchTab=function(t){
 };
 const previousHash=getHashView;getHashView=function(){return location.hash==='#metasprites'?'metasprites':previousHash();};
 const previousDocs=renderDocs;renderDocs=function(){previousDocs();const doc=document.querySelector('#sideDocs .doc');if(!doc)return;const s=document.createElement('section');s.innerHTML='<h2>1.6.3 — Metasprite Composer</h2><p>METASPRITES stores named reusable frames, each tied to a source scene’s sprite CHR and four sprite palettes. Pieces preserve tile IDs, position, palette, horizontal/vertical flip and background priority. Drag pieces or use numeric controls; reorder OAM overlap priority, duplicate/mirror pieces and frames, and choose an explicit origin. Scene OAM capture preserves normalized 8×16 top/bottom tile pairs, including deduplicated nonadjacent tiles.</p><p>The size selector is global to a frame, as on NES hardware. An 8×16 pair counts as one OAM slot and covers sixteen scanlines; vertical flip swaps both tile order and pixels. The hardware preview applies the 64-slot and eight-sprites-per-line limits, including transparent pieces. Background priority is stored; the isolated frame canvas has no background. Normalized pairs requiring CHR resource packing are flagged. These definitions are authoring assets; automatic gameplay and runtime animation generation remain later milestones.</p>';doc.prepend(s);};
-F.metasprites={normalize,normalizeAll,ensure,get,source,bounds,warnings,draw,toOAM,create,capture,select,duplicate:duplicateFrame,render:()=>{renderUI();renderCanvas();},state:UI,limits:{frames:MAX_FRAMES,pieces:MAX_PIECES},get current(){return current();}};
+F.metasprites={normalize,normalizeAll,ensure,get,restoreSelection,source,bounds,warnings,draw,toOAM,create,capture,select,duplicate:duplicateFrame,render:()=>{renderUI();renderCanvas();},state:UI,limits:{frames:MAX_FRAMES,pieces:MAX_PIECES},get current(){return current();}};
 ensure();renderUI();if(location.hash==='#metasprites')setTimeout(()=>switchTab('metasprites'),0);
 })();
 

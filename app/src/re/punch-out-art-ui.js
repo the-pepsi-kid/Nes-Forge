@@ -32,7 +32,11 @@
       if (snapshot() === false) throw Error('History could not preserve the current project. Save it first.');
       store.commit(prepared, {sync: true, intent: 'punch-out-native-art'}); notify('punchOutNativeArt');
     }
-    services.SceneContext.selectScene(result.sceneId); switchTab('chr');
+    services.SceneContext.selectScene(result.sceneId);
+    // Physical-bank views own the background CHR buffer, even when the source
+    // artwork is used by sprites. Do not inherit a pose's Sprite Bank selection.
+    if (kind === 'chr') setChrBank('bg');
+    switchTab('chr');
     status.textContent = kind === 'chr' ? 'Edit background CHR pixels in this physical bank view. Its display palette is not a native palette edit. Save/reopen and Build & Run; shared uses change together.' :
       'Edit background/sprite palette colors in this dedicated table view. Save/reopen and Build & Run. Universal color slots are linked; game routines can override some entries.';
     return result.sceneId;

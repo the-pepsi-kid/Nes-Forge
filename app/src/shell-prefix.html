@@ -46,7 +46,7 @@ capabilities. Do not bypass source/signature checks to simulate support.
 -->
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NES Forge 2.0.0-alpha.11 — Agnostic ROM Projects</title>
+<title>NES Forge — Integrated Review 5</title>
 <style>
 :root{--bg:#0c0c10;--bg2:#101018;--bg3:#16161e;--bdr:#252530;--bdr2:#3a3a4a;--txt:#b8b8c8;--dim:#667;--acc:#5ad4ff;--acc2:#3a9abf;--grn:#8df57a;--red:#f57a7a;--ylw:#f5d07a;--orn:#f5a07a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -308,9 +308,10 @@ input[type=file]{display:none}
 @media(max-width:850px){.main{flex-direction:column;overflow:auto}.left-panel{flex:0 0 auto;max-width:100%;overflow:auto}.right-panel{width:100%;border-left:0;border-top:1px solid var(--bdr);overflow:visible}.top{max-height:35vh}.scene-browser{max-height:140px}.emu-screen{width:min(512px,92vw)!important}.code-wrap{height:65vh;min-width:0;min-height:350px}.bar{font-size:8px}}
 
 </style>
+<meta name="forge-build-tag" content="NES Forge Integrated Review 5">
 </head><body>
 <div class="top">
-<h1>NES FORGE <small style="font-size:8px;color:var(--grn)">1.6.7 ARCHITECTURE CONVERGENCE</small></h1>
+<h1>NES FORGE <small style="font-size:8px;color:var(--grn)">2.0.0-alpha.11 · Integrated Review 5</small></h1>
 <div class="tabs" id="tabBar">
 <button class="tab on" data-view="scene" onclick="switchTab('scene')" oncontextmenu="tabCtx(event,'scene')">SCENE</button>
 <button class="tab" data-view="chr" onclick="switchTab('chr')" oncontextmenu="tabCtx(event,'chr')">CHR SHEET</button>
@@ -406,6 +407,7 @@ input[type=file]{display:none}
 </div>
 <div id="emuPerformance" role="status" style="font-size:10px;color:var(--acc);max-width:650px;line-height:1.6">Paused · no ROM loaded</div>
 <canvas class="emu-screen" id="emuCanvas" tabindex="0" aria-label="NES emulator display" width="256" height="240" style="width:512px;height:480px"></canvas>
+<div style="margin:5px 0;font:11px monospace;color:#acd6e5"><label><input type="checkbox" id="dgAiDebugToggle" aria-controls="dgAiDebugStatus" onchange="renderEmu()"> Show AI phase + contact bounds (emulator only)</label><div id="dgAiDebugAnnounce" role="status" aria-live="polite" style="margin-top:3px">AI overlay off.</div><div id="dgAiDebugStatus" data-state="off" aria-live="off"></div></div>
 <div class="emu-regs" id="emuRegs">
 <div><span class="rl">A:</span> <span class="rv" id="rA">00</span></div>
 <div><span class="rl">X:</span> <span class="rv" id="rX">00</span></div>
@@ -645,7 +647,7 @@ input[type=file]{display:none}
 </select></label>
 <label><input type="checkbox" id="cfgSRAM" onchange="rom_updateConfig()"> Battery-backed SRAM ($6000-$7FFF)</label>
 </div>
-<label style="font-size:9px"><input type="checkbox" id="cfgPackScenes" checked onchange="S.packScenes=this.checked"> Pack scene data at $D000</label><p style="font-size:8px;color:var(--ylw)">Default build is a scene viewer. Entities, collision and tracker data do not become gameplay automatically.</p><h3>Memory Map</h3>
+<label style="font-size:9px"><input type="checkbox" id="cfgPackScenes" checked onchange="if(S.nativeGame){this.checked=S.packScenes!==false;}else{S.packScenes=this.checked;}"> Pack scene data at $D000</label><p style="font-size:8px;color:var(--ylw)">Generated builds use the configured viewer or runtime. Native projects preserve their original engine configuration.</p><h3>Memory Map</h3>
 <div class="memmap" id="memMap">
 <div class="memmap-region"><div class="memmap-bar" style="width:20px;background:#446"></div><span class="memmap-label">$0000-$07FF RAM</span><span class="memmap-size">2KB</span></div>
 <div class="memmap-region"><div class="memmap-bar" style="width:60px;background:#464"></div><span class="memmap-label">$8000-$BFFF PRG</span><span class="memmap-size">16KB</span></div>

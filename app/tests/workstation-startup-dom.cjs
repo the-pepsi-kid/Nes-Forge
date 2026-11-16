@@ -15,33 +15,8 @@ const baselinePath = process.argv[4] && path.resolve(process.argv[4]);
 const checks = [], report = {htmlSha256: sha(fs.readFileSync(htmlPath)), engine: 'jsdom ' + require('jsdom/package.json').version,
   scope: 'Full delivered HTML parsing/execution, strict DOM ancestry and actual control events. Canvas/timers stubbed; no browser layout/device acceptance.', checks};
 let activeDOM;
-function load(file, url = 'https://forge.test/', storedAppearance = false) {
-  const errors = [], consoleErrors = [], domErrors = [];
-  const canvas = new Proxy({createImageData: (w, h) => ({width: w, height: h, data: new Uint8ClampedArray(w * h * 4)}),
-    getImageData: (x, y, w, h) => ({width: w, height: h, data: new Uint8ClampedArray(w * h * 4)}),
-    measureText: value => ({width: String(value).length * 6}), createLinearGradient: () => ({addColorStop: noop})},
-  {get: (object, key) => key in object ? object[key] : noop});
-  const virtualConsole = new VirtualConsole();
-  virtualConsole.on('error', (...values) => consoleErrors.push(values.join(' ')));
-  virtualConsole.on('jsdomError', error => domErrors.push({type: error.type, message: error.message}));
-  const dom = new JSDOM(fs.readFileSync(file, 'utf8'), {url, runScripts: 'dangerously', virtualConsole,
-    beforeParse(window) {
-      window.addEventListener('error', event => errors.push({name: event.error?.name, message: event.message}));
-      window.HTMLCanvasElement.prototype.getContext = () => canvas;
-      window.HTMLCanvasElement.prototype.toDataURL = () => '';
-      window.ResizeObserver = class {observe() {} disconnect() {}};
-      window.requestAnimationFrame = () => 1; window.cancelAnimationFrame = noop;
-      window.setTimeout = () => 1; window.setInterval = () => 1;
-      window.URL.createObjectURL = () => '';
-      window.TextEncoder = TextEncoder; window.TextDecoder = TextDecoder;
-      window.alert = noop; window.confirm = () => true;
-      if (storedAppearance) {
-        window.localStorage.setItem('nesforge.appearance.skin', 'on');
-        window.localStorage.setItem('nesforge.appearance.density', 'comfortable');
-      }
-    }});
-  return {dom, window: dom.window, document: dom.window.document, errors, consoleErrors, domErrors};
-}
+const {load}=require('./dom-environment.cjs');
+function settleThenClose(dom) { setImmediate(() => dom.window.close()); }
 function check(name, fn) {fn(); checks.push({name, passed: true});}
 try {
   if (baselinePath) {
@@ -53,7 +28,7 @@ try {
       assert(old.errors.some(error => error.name === 'NotFoundError'));
       for (const id of ids) assert.equal(report.before.controls[id], false);
     });
-    old.dom.window.close();
+    settleThenClose(old.dom);
   }
   const current = load(htmlPath); activeDOM = current.dom;
   const w = current.window, d = current.document, services = w.Forge.services;
@@ -126,7 +101,7 @@ try {
   check('No application/DOM errors occur during the control interactions', () => {
     assert.deepEqual(current.errors, []); assert.deepEqual(current.consoleErrors, []); assert.deepEqual(current.domErrors, []);
   });
-  activeDOM.window.close(); activeDOM = null;
+  settleThenClose(activeDOM); activeDOM = null;
   for (const [url, stored] of [['file:///nes-forge.html', false], ['https://forge.test/', true]]) {
     const instance = load(htmlPath, url, stored); activeDOM = instance.dom;
     check(stored ? 'Stored Retro/Comfortable preference restores on a new document' : 'Local-file startup works when preference storage is unavailable', () => {
@@ -137,13 +112,13 @@ try {
       instance.document.getElementById('nf-skin-toggle').click();
       assert.equal(instance.window.NFWorkstationAppearance.status().enabled, !stored);
     });
-    activeDOM.window.close(); activeDOM = null;
+    settleThenClose(activeDOM); activeDOM = null;
   }
   report.status = 'passed';
 } catch (error) {
   report.status = 'failed'; report.error = error.stack; process.exitCode = 1;
 } finally {
-  activeDOM?.window.close(); report.passed = checks.filter(check => check.passed).length;
+  if(activeDOM)settleThenClose(activeDOM); report.passed = checks.filter(check => check.passed).length;
   if (reportPath) fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify(report, null, 2));
 }

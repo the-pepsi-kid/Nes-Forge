@@ -1,9 +1,9 @@
 /*
  * NES FORGE MODULE: src/re/native-punch-out-resources.js
  * Entry: NativePRGResources (adds Punch-Out adapters)
- * Purpose: Profiles and shared-operand recipes for the five static background contexts.
+ * Purpose: Native profiles, five shared background contexts and bounded recovery-entry fields.
  * Connections: Extends the preceding adapter chain; NativeResourceProject calls inspect(), projectPage(), and encode().
- * Contract: derivativeIdentity admits arena builds for recognition only. Recipe spans and Scene-encoder spans stay separate.
+ * Contract: Recognition masks do not grant writing. Literal, masked parameter and Scene-encoder ownership remain distinct.
  * Developer walkthrough: app/docs/NATIVE_RECOVERY_TUTORIAL.md
  * Bundle order: app/source-manifest.json; regenerate with app/tools/bundle.py.
  */
@@ -21,10 +21,57 @@
   const paletteOffsets = Object.freeze([4806, 21043, 47065, 4838, 11326, 21075, 30759, 47097, 39016, 30791, 4870, 30823, 38984, 47033]);
   const artSpans = Object.freeze([{offset: 0x20010, length: 0x20000},
     ...paletteOffsets.map(offset => ({offset, length: 32, mask: 63}))]);
-  // Recognition only: Glass Joe full-pose X/Y operands. Shared geometry,
-  // attributes, tiles, pointers and state programs remain protected.
+  // Recognition only: thirty full-pose pairs and five explicit incremental
+  // pairs. Their leading flags, geometry, tiles, pointers and state programs
+  // remain protected; these ranges do not grant generic brush permissions.
   const poseSpans = Object.freeze([156,169,182,195,208,221,234,243,252,263,274,285,294,303,312,
-    323,332,343,352,363,372,381,390,399,408,417,426,435,444,453].map(offset => ({offset, length: 2})));
+    323,332,343,352,363,372,381,390,399,408,417,426,435,444,453,
+    479,490,497,504,511].map(offset => ({offset, length: 2})));
+  // Trusted recovery fields: existing live entries, five row conditions and
+  // eight fallback selectors, and the three original fifth-attempt exit slots.
+  // The sixth row and code stay protected. Shared-byte fields have disjoint masks; pool counts use
+  // a trusted bias because native bytes encode $99 + count.
+  const recoveryEntries=Object.freeze(Array.from({length:5},(_,row)=>
+    (row<4?[1,2,3,4,5,6,7]:[1,2,4,6]).map(column=>Object.freeze({
+      attempt:row+1,column,role:column===1?'preferred':'alternative',slot:column-1,
+      multiplicity:column===1?null:column<4?2:1,offset:0x13d6+row*8+column
+    }))).flat());
+  const entryLabel=e=>'Glass Joe · attempt '+e.attempt+' · '+(e.role==='preferred'?'preferred':'alternative '+e.slot);
+  const entrySource=e=>Object.freeze({bank8KiB:0,cpuAddress:0x8000+e.offset-16,fileOffset:e.offset,length:1,kind:'table-data',label:entryLabel(e)+' packed recovery entry'});
+  const countId=e=>e.attempt===1?'punch-out.glass-joe.first-preferred-count':'punch-out.glass-joe.attempt-'+e.attempt+'.preferred-count';
+  const healthId=e=>'punch-out.glass-joe.attempt-'+e.attempt+'.'+(e.role==='preferred'?'preferred':'alternative-'+e.slot)+'-health';
+  const conditionValues=Object.freeze([0,...Array.from({length:96},(_,i)=>i+1),...Array.from({length:97},(_,i)=>128+i)]);
+  // These physical bytes retain their own owner after derivative reimport.
+  // Zero exits before health installation; 1..12 are fallback health nibbles.
+  // No high/direct-count nibble or sixth-row activation is admitted here.
+  const fifthExitEntries=Object.freeze([3,5,7].map(column=>Object.freeze({attempt:5,column,role:'alternative',slot:column-1,multiplicity:column===3?2:1,offset:0x13f6+column})));
+  const nativeFields=Object.freeze([
+    ...recoveryEntries.filter(e=>e.role==='preferred').map(e=>Object.freeze({id:countId(e),
+      label:e.attempt===1?'Glass Joe first preferred get-up count':entryLabel(e)+' get-up count',
+      offset:e.offset,mask:240,shift:4,scale:1,values:Object.freeze([1,2,3,4,5,6,7,8,9]),
+      recoveryField:'count',entry:e,route:'punch-out-recovery',adapterKind:'punch-out',source:entrySource(e)})),
+    ...recoveryEntries.map(e=>Object.freeze({id:healthId(e),label:entryLabel(e)+' health target',
+      offset:e.offset,mask:15,shift:0,scale:8,values:Object.freeze(Array.from({length:12},(_,i)=>(i+1)*8)),
+      recoveryField:'health',entry:e,route:'punch-out-recovery',adapterKind:'punch-out',source:entrySource(e)})),
+    // Pool bytes are native referee selectors ($99 + count), not count nibbles.
+    ...Array.from({length:8},(_,slot)=>Object.freeze({id:'punch-out.glass-joe.fallback-count-slot-'+(slot+1),
+      label:'Glass Joe fallback count pool slot '+(slot+1),offset:0x1366+slot,mask:255,shift:0,scale:1,bias:-0x99,
+      values:Object.freeze([1,2,3,4,5,6,7,8,9]),recoveryField:'fallback-count',poolSlot:slot,
+      route:'punch-out-recovery',adapterKind:'punch-out',source:Object.freeze({bank8KiB:0,cpuAddress:0x9356+slot,fileOffset:0x1366+slot,length:1,kind:'table-data',label:'Glass Joe fallback count pool slot '+(slot+1)})})),
+    ...Array.from({length:5},(_,row)=>Object.freeze({id:'punch-out.glass-joe.attempt-'+(row+1)+'.condition',
+      label:'Glass Joe attempt '+(row+1)+' preferred condition',offset:0x13d6+row*8,mask:255,shift:0,scale:1,
+      values:conditionValues,recoveryField:'condition',conditionAttempt:row+1,route:'punch-out-recovery',adapterKind:'punch-out',
+      source:Object.freeze({bank8KiB:0,cpuAddress:0x93c6+row*8,fileOffset:0x13d6+row*8,length:1,kind:'table-data',label:'Glass Joe attempt '+(row+1)+' preferred condition'})})),
+    ...fifthExitEntries.map(e=>Object.freeze({id:'punch-out.glass-joe.attempt-5.exit-alternative-'+e.slot+'-health',
+      label:entryLabel(e)+' exit / fallback health',offset:e.offset,mask:255,shift:0,scale:8,
+      values:Object.freeze(Array.from({length:13},(_,i)=>i*8)),recoveryField:'fifth-exit-health',entry:e,
+      route:'punch-out-recovery',adapterKind:'punch-out',source:entrySource(e)}))
+  ]);
+  const fieldSpans=Object.freeze(nativeFields.map(f=>Object.freeze({offset:f.offset,length:1,mask:f.mask})));
+  const nativeFieldCapabilities=Object.freeze([Object.freeze({id:'punch-out.glass-joe.first-preferred-count',
+    title:'Glass Joe recovery tools',route:'punch-out-recovery',
+    scope:'Five preferred counts, 32 established health targets, eight fallback counts, five conditions and three fifth-attempt exit/fallback slots. The sixth row and instructions stay protected. Direct counts 1/7/9 set native reaction tags; fallback results do not.'})]);
+  const fieldValue=(bytes,field)=>((bytes[field.offset]&field.mask)>>>field.shift)*(field.scale||1)+(field.bias||0);
   const profiles = Object.freeze([{
     "id": "punch-out-us-prg0-screens-v1",
     "kind": "punch-out",
@@ -343,7 +390,9 @@
       "protectedSha256": "356e71dc75ecf38ef6218b74904361739992badbc35b726392bb210e84e10366"
     },
     artDerivativeIdentity: {spans: artSpans, protectedSha256: "85c39327f56fbc72c8bb122393739748613f5cb1d0dd072aa90febf21a8575b6"},
-    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "046b39ff59e88d8b30f6486beb301293ef0b65f8c32ca28e1c25d023404b0ccf"}
+    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "9cbd439407dd9a0904f3bdb73fa781d8bf2c527bcee1a15b5854c6575462087b"},
+    nativeFields,fieldSpans,nativeFieldCapabilities,
+    parameterDerivativeIdentity:{spans:fieldSpans,protectedSha256:"951b191a2b6dbea5542c6811902670ef5668c333b9bd6ae229b1c229d65ffa20"}
   }, {
     "id": "punch-out-us-prg1-screens-v1",
     "kind": "punch-out",
@@ -662,7 +711,9 @@
       "protectedSha256": "db6923c2291d91385edc738de85c12aedd8d9a422dd831d51b70875e83aac994"
     },
     artDerivativeIdentity: {spans: artSpans, protectedSha256: "fc48479aebb4aa3f9e07315030839130de9f7cd42b34abc8a03f366896516739"},
-    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "af53c9b5eed8bfd254e824af9c6f8b2dc16f76c0d7b3a4fc9336024c89a163c5"}
+    poseDerivativeIdentity: {spans: poseSpans, protectedSha256: "78af4b7e2399e9db52849d63729760e77bb52792d73b5e8d8a4920355af07636"},
+    nativeFields,fieldSpans,nativeFieldCapabilities,
+    parameterDerivativeIdentity:{spans:fieldSpans,protectedSha256:"155fedd29c95e5fb5fbece744a6de51cc84f689fd99f99e03172857d7f2b791a"}
   }]);
   const contexts = Object.freeze([{
       key: 'b70e',
@@ -711,7 +762,12 @@
     if (!profiles.includes(p)) return parent.inspect(bytes, p);
     if (!(bytes instanceof Uint8Array) || bytes.length !== 262160 || bytes[4] !== 8 || bytes[
       5] !== 16 || bytes[6] !== 144 || bytes[7] !== 0) fail('Unsupported source header');
+    // Node Buffers are Uint8Array subclasses whose slice() aliases input. Own a
+    // plain copy before the arena validator creates its temporary probe image.
+    bytes=Uint8Array.from(bytes);
     codec.arenaPrograms(bytes);
+    for(const field of nativeFields)if(!field.values.includes(fieldValue(bytes,field)))
+      fail('Unsupported native recovery field: choose an admitted count, health target or preferred condition.');
     // Art admission does not permit code/pointer changes. Colors must remain
     // representable by the existing palette model, including universal aliases.
     for (const offset of paletteOffsets) {
@@ -851,7 +907,9 @@
       resources,
       layouts: [layout],
       totalCells: offsets.length,
-      sourceProgramCount: all.length
+      sourceProgramCount: all.length,
+      nativeFields:nativeFields.map(field=>({...field,sourceValue:fieldValue(bytes,field),
+        sourceByte:bytes[field.offset],...(['count','health'].includes(field.recoveryField)?{healthTarget:(bytes[field.offset]&15)*8}:{})}))
     };
   }
 
@@ -870,19 +928,29 @@
 
   function encode(bytes, c, edits) {
     if (!profiles.includes(c.profile)) return parent.encode(bytes, c, edits);
-    if (!Array.isArray(edits) || edits.length > c.totalCells) fail('Invalid recipes');
-    const out = bytes.slice(),
+    if (!Array.isArray(edits) || edits.length > c.totalCells+nativeFields.length) fail('Invalid recipes');
+    const out = Uint8Array.from(bytes),
       l = c.layouts[0],
       seen = new Set();
     for (const e of edits) {
+      if(e&&Object.keys(e).sort().join(',')==='field,value'){
+        const field=nativeFields.find(field=>field.id===e.field);
+        if(!field||!Number.isInteger(e.value)||!field.values.includes(e.value)){
+          const error=Error('Punch-Out native field: choose a value admitted by this native recovery control.');
+          if(field)error.nativeFieldId=field.id;throw error;
+        }
+        const key='field:'+field.id;if(seen.has(key))fail('Duplicate native field recipe');seen.add(key);
+        out[field.offset]=(out[field.offset]&(255^field.mask))|((((e.value-(field.bias||0))/(field.scale||1))<<field.shift)&field.mask);
+        continue;
+      }
       if (!e || Object.keys(e).sort().join(',') !== 'block,cell,layoutId' || e.layoutId !== l
         .id || !Number.isInteger(e.cell) || e.cell < 0 || e.cell >= l.cells.length || !Number
         .isInteger(e.block) || e.block < 0 || e.block > 255 || e.block === 253 || e.block === 254)
         fail('Invalid native literal recipe');
       if (!l.writable[e.cell]) fail(
         'Generated/inherited cells or protected metadata aliases are read-only');
-      if (seen.has(e.cell)) fail('Duplicate physical recipe');
-      seen.add(e.cell);
+      if (seen.has('literal:'+e.cell)) fail('Duplicate physical recipe');
+      seen.add('literal:'+e.cell);
       out[l.offsets[e.cell]] = e.block;
     }
     const changes = [];

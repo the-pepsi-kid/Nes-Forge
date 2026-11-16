@@ -127,6 +127,11 @@
     return priorChr();
   };
   for (const type of ['keydown', 'keyup']) root.addEventListener(type, event => event.stopPropagation?.());
-  services.PunchOutFightUI = Object.freeze({refresh, preview, selectFrame, apply,
+  function showRefereeCommand(selector){
+    if(!Number.isInteger(selector)||selector<0x9a||selector>0xa3)throw Error('Choose an observed referee count.');
+    switchTab('scene');services.PunchOutContentUI.open();refresh();mac.value='0';referee.value=String(selector);opponent.value='0';
+    root.open=true;preview();root.scrollIntoView?.({block:'start'});return true;
+  }
+  services.PunchOutFightUI = Object.freeze({refresh, preview, selectFrame, apply,showRefereeCommand,
     getState: () => ({sourceHash, ready: !!current, selection: request ? {...request} : null})});
 })();

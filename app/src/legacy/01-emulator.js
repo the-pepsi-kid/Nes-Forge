@@ -257,6 +257,9 @@ function emuRunFrame(){if(!emu.loaded)return;const deadline=performance.now()+20
   const stepTo=target=>{let steps=0;while(emu.cycles<target){if((emu.irqPending||apuCore.irq)&&!emu.I){cpuPush(emu.PC>>8);cpuPush(emu.PC&255);cpuPush(cpuGetP()&~16);emu.I=1;emu.PC=cpuRead16(0xFFFE);emu.cycles+=7;apuClock(7);}cpuStep();emu.PC&=65535;if(++steps>20000)throw new Error('CPU did not advance safely');}};
   try{for(let line=0;line<262;line++){if((line&15)===0&&performance.now()>deadline)throw Error("Frame exceeded 200 ms safety budget; paused to protect the page");const lineStart=start+line*341/3;emu._ppuFrameLine=line;if(line<240){const hit=renderEmuLine(line,emu._rasterYBase,emu._rasterNTY);if(hit>=0&&!(emu.ppuStatus&64)){stepTo(lineStart+hit/3);emu.ppuStatus|=64;emu.spr0Line=line;}stepTo(start+(line+1)*341/3);if(emu.mapper===4)mmc3ScanlineTick();}else {if(line===241){emu.ppuStatus|=128;if(emu.ppuCtrl&128)cpuNmi();}stepTo(start+(line+1)*341/3);}}
   }finally{emu._ppuFrameLine=-1;}emu._nextFrameCycle=start+262*341/3;emu.tAddrPost=emu.tAddr;emu.fineXPost=emu.fineX;emu.chrBank0Post=emu.chrBank0;emu.chrBank1Post=emu.chrBank1;emu.frameCount++;
+  // Read-only ROM-frame evidence hook. No native engine or emulator state changes.
+  try{window.Forge?.services?.NativeAnimationTrace?.sample?.(emu,emuReadJoyState());}
+  catch(err){window.Forge?.services?.NativeAnimationTrace?.disable?.('Trace stopped: '+String(err?.message||err));}
 }
 
 // ── Reset ──
@@ -359,7 +362,47 @@ function emuReset(){if(!emu.loaded)return;emuPause();clearEmuKeys();try{emuDoRes
 // ── Read CHR byte from ROM or RAM ──
 function emuChrByte(addr){return ppuBusRead(addr&8191);}
 
-function renderEmu(){const c=document.getElementById('emuCanvas'),x=c.getContext('2d');if(!emu.loaded||!emu.frameBuffer){x.fillStyle='#111';x.fillRect(0,0,256,240);x.fillStyle='#aaa';x.font='12px monospace';x.textAlign='center';x.fillText('Load a ROM or Build & Run',128,120);x.textAlign='start';return;}x.putImageData(new ImageData(emu.frameBuffer,256,240),0,0);const hex=(v,n=2)=>(v||0).toString(16).toUpperCase().padStart(n,'0');for(const [id,value]of Object.entries({rA:hex(emu.A),rX:hex(emu.X),rY:hex(emu.Y),rSP:hex(emu.SP),rPC:hex(emu.PC,4),rP:hex(cpuGetP()),rCyc:emu.cycles,rFrm:emu.frameCount})){document.getElementById(id).textContent=value;}updateEmuSidebar();}
+// AI diagnostics belong to the loaded ROM; only availability changes are announced.
+function dgDrawAiDebug(ctx){
+ const status=document.getElementById('dgAiDebugStatus');
+ const build=emu._dgAiDebugBuild,z=build?.symbols;
+ if(!status)return;
+ const checked=document.getElementById('dgAiDebugToggle')?.checked;
+ const state=checked?(emu.loaded&&emu.frameBuffer&&z&&build?.spec?.flyingEnemy?'live':'unavailable'):'off';
+ if(status.dataset.state!==state){
+  status.dataset.state=state;
+  const announce=document.getElementById('dgAiDebugAnnounce');
+  if(announce)announce.textContent=state==='off'?'AI overlay off.':state==='live'?'AI overlay on.':'Build & Run a World project with a flying enemy to see AI diagnostics.';
+  if(state!=='live')status.textContent='';
+ }
+ if(state!=='live')return;
+ const r=emu.ram, physics=build.spec.physics, enemy=build.spec.flyingEnemy;
+ const bounds=enemy.frames.flatMap(f=>f.pieces);
+ const extentX=Math.max(...bounds.map(p=>Math.max(-p.x,p.x+8)));
+ const extentY=Math.max(...bounds.map(p=>Math.max(-p.y,p.y+8)));
+ const touchX=Math.min(64,Math.max(enemy.config.touchX,Math.ceil(extentX+physics.bodyWidth/2-2)));
+ const touchY=Math.min(64,Math.max(enemy.config.touchY,Math.ceil(extentY+physics.bodyHeight/2-2)));
+ const phases=['PATROL','CHASE','RETREAT','RECOVERY','SEPARATING'];
+ const phase=phases[r[z.enemyPhase]]||'?';
+ const view=r[z.viewHi]*256+r[z.viewLo];
+ const ex=r[z.enemyScreen]*256+r[z.enemyX]-view;
+ const px=r[z.screen]*256+r[z.playerX]-view;
+ const ey=r[z.enemyY];
+ ctx.save();ctx.lineWidth=1;
+ ctx.strokeStyle='#fcce53';ctx.strokeRect(ex-touchX,ey-touchY,touchX*2,touchY*2);
+ ctx.strokeStyle='#60e2d9';ctx.strokeRect(px-physics.bodyWidth/2,r[z.playerY]-physics.bodyHeight,physics.bodyWidth,physics.bodyHeight);
+ // The actual ROM compares enemy origin with the Ghost contact probe at
+ // feetY-18, not the centre of the cyan terrain body.  Display both.
+ const probeY=r[z.playerY]-18;
+ ctx.fillStyle='#ff8ddd';ctx.fillRect(px-2,probeY-2,5,5);
+ ctx.strokeStyle='#ff8ddd';ctx.beginPath();ctx.moveTo(px-5,probeY);ctx.lineTo(px+5,probeY);ctx.moveTo(px,probeY-5);ctx.lineTo(px,probeY+5);ctx.stroke();
+ if(r[z.enemyPhase]===4){const ax=r[z.enemyContactScreen]*256+r[z.enemyContactX]-view,ay=r[z.enemyContactY];ctx.strokeStyle='#fd9848';ctx.strokeRect(ax-3,ay-3,7,7);}
+ ctx.fillStyle='#fcce53';ctx.font='9px monospace';ctx.fillText(phase+' · '+r[z.enemyTimer],6,12);
+ ctx.restore();
+ const readout='Enemy '+phase+' / '+(r[z.enemyPhase]<2?'armed':'disarmed')+' · Timer '+r[z.enemyTimer]+' · Player invuln '+r[z.hurtTimer]+' · Contact '+touchX+'×'+touchY+' px · Magenta=ROM contact probe · Orange=encounter anchor · Bounds from loaded ROM';
+ if(status.textContent!==readout)status.textContent=readout;
+}
+function renderEmu(){const c=document.getElementById('emuCanvas'),x=c.getContext('2d');if(!emu.loaded||!emu.frameBuffer){x.fillStyle='#111';x.fillRect(0,0,256,240);x.fillStyle='#aaa';x.font='12px monospace';x.textAlign='center';x.fillText('Load a ROM or Build & Run',128,120);x.textAlign='start';dgDrawAiDebug(x);return;}x.putImageData(new ImageData(emu.frameBuffer,256,240),0,0);dgDrawAiDebug(x);const hex=(v,n=2)=>(v||0).toString(16).toUpperCase().padStart(n,'0');for(const [id,value]of Object.entries({rA:hex(emu.A),rX:hex(emu.X),rY:hex(emu.Y),rSP:hex(emu.SP),rPC:hex(emu.PC,4),rP:hex(cpuGetP()),rCyc:emu.cycles,rFrm:emu.frameCount})){document.getElementById(id).textContent=value;}updateEmuSidebar();}
 
 function emuLog(msg){const el=document.getElementById('emuLog');if(el){const lines=(el.textContent+'\n'+msg).split('\n');el.textContent=lines.slice(-200).join('\n');el.scrollTop=el.scrollHeight;}}
 
@@ -647,7 +690,10 @@ function colorDreamsWrite(a,v){
 }
 
 // Load ROM from ArrayBuffer (for Build & Run integration)
-function emuLoadRomData(bytes,name='ROM',initFrames=30){try{const rom=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);const h=parseRomHeader(rom);if(!Number.isInteger(initFrames)||initFrames<0||initFrames>120)throw Error('Initialization frame budget must be 0–120');emuPause();clearEmuKeys();emu.prgSize=h.prgSize;emu.prgRom=rom.slice(h.headerSize,h.headerSize+h.prgSize);emu.chrRom=h.chrSize?rom.slice(h.headerSize+h.prgSize,h.headerSize+h.prgSize+h.chrSize):null;emu.hasChrRam=!h.chrSize;emu.mapper=h.mapper;emu.initialMirror=h.mirror;emu.mirroring=h.mirror;emu.vram=new Uint8Array(4096);emu.chrRam=new Uint8Array(8192);emu.sram=new Uint8Array(8192);if(h.trainer)emu.sram.set(rom.slice(16,528),0x1000);emu.loaded=true;emu.lastBuiltRom=new Uint8Array(rom);emu.romName=name;emu.frameBuffer=new Uint8ClampedArray(256*240*4);emu.bgFrameBuffer=new Uint8ClampedArray(256*240*4);emu.frameBuffer.fill(0);emu.bgFrameBuffer.fill(0);emuDoReset();for(let i=0;i<initFrames;i++)emuRunFrame();['emuRunBtn','emuStepBtn','emuResetBtn','emuCapBtn','emuCapFrameBtn','emuCapHybridBtn','emuTraceBtn'].forEach(id=>document.getElementById(id).disabled=false);disasm_output='';disasm_asmText='';document.getElementById('disasmCode').textContent='Open this tab or click Disassemble PRG to inspect the loaded ROM.';document.getElementById('emuLog').textContent='Loaded '+name+'\nMapper '+h.mapper+' • '+h.prgSize/1024+' KB PRG • '+h.chrSize/1024+' KB CHR\nPaused at frame '+emu.frameCount+'. Z=A, X=B, Shift=Select, Enter=Start.\nCPU-clocked audio; experimental scanline video. Raster/IRQ/DMC bus timing remains approximate.';renderEmu();updateEmuSidebar();emuUpdatePerformance(true);const status=document.getElementById('issueStatus');if(status){status.textContent='Loaded '+name+' — press Run to play';status.style.color='var(--acc)';status.title='';}return true;}catch(e){emuPause();reportError(e);return false;}}
+function emuLoadRomData(bytes,name='ROM',initFrames=30){try{const rom=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);const h=parseRomHeader(rom);if(!Number.isInteger(initFrames)||initFrames<0||initFrames>120)throw Error('Initialization frame budget must be 0–120');emuPause();clearEmuKeys();const candidate=window.Forge?.services?.WorldCompiler?.lastBuild;
+  const matchingBuild=!!(name==='Current project build' && candidate?.rom?.length===rom.length && candidate?.spec?.flyingEnemy && candidate.rom.every((value,index)=>value===rom[index]));
+  emu._dgAiDebugBuild=matchingBuild?{symbols:{...candidate.symbols},spec:JSON.parse(JSON.stringify(candidate.spec)),romByteLength:rom.length}:null;
+  emu._dgAiDebugSymbols=emu._dgAiDebugBuild?.symbols||null;emu.prgSize=h.prgSize;emu.prgRom=rom.slice(h.headerSize,h.headerSize+h.prgSize);emu.chrRom=h.chrSize?rom.slice(h.headerSize+h.prgSize,h.headerSize+h.prgSize+h.chrSize):null;emu.hasChrRam=!h.chrSize;emu.mapper=h.mapper;emu.initialMirror=h.mirror;emu.mirroring=h.mirror;emu.vram=new Uint8Array(4096);emu.chrRam=new Uint8Array(8192);emu.sram=new Uint8Array(8192);if(h.trainer)emu.sram.set(rom.slice(16,528),0x1000);emu.loaded=true;emu.lastBuiltRom=new Uint8Array(rom);emu.romName=name;emu.frameBuffer=new Uint8ClampedArray(256*240*4);emu.bgFrameBuffer=new Uint8ClampedArray(256*240*4);emu.frameBuffer.fill(0);emu.bgFrameBuffer.fill(0);emuDoReset();for(let i=0;i<initFrames;i++)emuRunFrame();['emuRunBtn','emuStepBtn','emuResetBtn','emuCapBtn','emuCapFrameBtn','emuCapHybridBtn','emuTraceBtn'].forEach(id=>document.getElementById(id).disabled=false);disasm_output='';disasm_asmText='';document.getElementById('disasmCode').textContent='Open this tab or click Disassemble PRG to inspect the loaded ROM.';document.getElementById('emuLog').textContent='Loaded '+name+'\nMapper '+h.mapper+' • '+h.prgSize/1024+' KB PRG • '+h.chrSize/1024+' KB CHR\nPaused at frame '+emu.frameCount+'. Z=A, X=B, Shift=Select, Enter=Start.\nCPU-clocked audio; experimental scanline video. Raster/IRQ/DMC bus timing remains approximate.';renderEmu();updateEmuSidebar();emuUpdatePerformance(true);const status=document.getElementById('issueStatus');if(status){status.textContent='Loaded '+name+' — press Run to play';status.style.color='var(--acc)';status.title='';}return true;}catch(e){emuPause();reportError(e);return false;}}
 
 // Capture emulator PPU state into tile editor
 function emuCaptureMeta(mode){
@@ -783,3 +829,5 @@ function buildAndRun(){let rom;try{window._buildAndRunMode=true;rom=buildNesRom(
 // ═══════════════════════════════════════════════
 // NES FORGE: 6502 DISASSEMBLER
 // ═══════════════════════════════════════════════
+
+{const toggle=document.getElementById('dgAiDebugToggle'); if(toggle)toggle.addEventListener('change',()=>document.getElementById('emuCanvas')?.focus({preventScroll:true}));}

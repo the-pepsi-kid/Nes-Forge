@@ -1,7 +1,7 @@
 /*
  * NES FORGE MODULE: src/services/native-resource-project.js
  * Entry: Forge.services.NativeResourceProject
- * Purpose: Shared owner of preserved native source, resource bindings, recipes and registered Scene encoders.
+ * Purpose: Shared owner of preserved source, bindings, literal/typed-field recipes and registered Scene encoders.
  * Connections: InvestigationProject routes recognized sources here; ProjectStore persists; RuntimeCompiler calls build().
  * Contract: Catalogs are evidence, Scenes are working assets, importedRom is the source. Recognition masks never grant write ownership.
  * Developer walkthrough: app/docs/NATIVE_RECOVERY_TUTORIAL.md
@@ -18,7 +18,7 @@
     digest = x => f.sha256(new TextEncoder().encode(JSON.stringify(x)));
   const profile = 'native-resource-project-v1',
     scope =
-    'Partial native resources. Existing block substitutions are encoded within each source record’s fixed capacity. Sprites, animation, collision rules, actors, Audio, menus and event relationships remain unresolved.',
+    'Partial native resources. Existing block substitutions are encoded within each source record’s fixed capacity. Additional edits require a registered title-specific writer. Unsupported fields and runtime changes remain blocked.',
     fail = m => {
       throw Error('Native resource project: ' + m);
     },
@@ -33,8 +33,21 @@
       ].some(k => typeof codec[k] !== 'function')) fail(
       'Invalid or duplicate native Scene encoder');
     sceneEncoders.push(Object.freeze({
-      ...codec
+      ...codec,
+      ...(codec.capability ? {capability: Object.freeze({...codec.capability})} : {})
     }));
+  }
+
+  /* Read-only discovery, separate from matches(): a writer can be available
+   * before its explicit editing view has been opened. This metadata grants no
+   * write permission; validate/build still enforce the original spans/recipes. */
+  function writerCapabilities(p) {
+    if (!matches(p)) return [];
+    const adapter = api.profiles.find(a => a.id === p.nativeGame.adapter);
+    if (!adapter) return [];
+    return [...sceneEncoders.filter(c => c.capability?.adapterKind === adapter.kind)
+      .map(c => ({id: c.id, ...c.capability})),
+      ...(adapter.nativeFieldCapabilities||((adapter.nativeFields||[]).map(field=>({id:field.id,title:field.label,route:field.route,scope:field.scope})))).map(capability=>({...capability,adapterKind:adapter.kind}))];
   }
 
   function freeze(v, seen = new WeakSet()) {
@@ -62,7 +75,8 @@
       if (bytes.length !== a.byteLength) continue;
       if (hash !== a.sha256) {
         // Recognition ranges describe verified derivatives, not permission to write.
-        // Recipe writes still use a.spans; Scene encoders declare separate spans.
+        // Literal recipes use a.spans; typed fields use adapter fieldSpans.
+        // Scene encoders declare separate spans and cannot claim those bytes.
         const identities = [{
           spans: a.spans,
           sha256: a.protectedSha256
@@ -79,8 +93,13 @@
           spans: [...a.spans, ...(a.derivativeIdentity?.spans || []), ...(a.artDerivativeIdentity?.spans || []), ...a.poseDerivativeIdentity.spans],
           sha256: a.poseDerivativeIdentity.protectedSha256
         });
+        if(a.parameterDerivativeIdentity)identities.push({
+          spans:[...a.spans,...(a.derivativeIdentity?.spans||[]),...(a.artDerivativeIdentity?.spans||[]),
+            ...(a.poseDerivativeIdentity?.spans||[]),...a.parameterDerivativeIdentity.spans],
+          sha256:a.parameterDerivativeIdentity.protectedSha256
+        });
         if (!identities.some(identity => {
-            const masked = bytes.slice();
+            const masked = Uint8Array.from(bytes);
             for (const r of identity.spans) {
               if (r.mask === undefined) masked.fill(0, r.offset, r.offset + r.length);
               else for (let i = r.offset; i < r.offset + r.length; i++) masked[i] &= 255 ^ r.mask;
@@ -178,7 +197,13 @@
           page: b.page
         })) fail('A required source page was removed or replaced.');
     }
-    const encoded = api.encode(bytes, c, n.edits);
+    let encoded;
+    try{encoded=api.encode(bytes,c,n.edits);}catch(error){
+      const field=c.nativeFields?.find(field=>field.id===error.nativeFieldId);
+      if(field)throw s.BuildDiagnostics.attach(error,{resourceKey:'native-field:'+field.id,field:field.label,
+        writerRoute:field.route,repair:'Save unsupported work, then choose a value admitted by this native parameter writer or Undo its recipe.'});
+      throw error;
+    }
     return {
       bytes,
       container,
@@ -249,6 +274,8 @@
    * claims or writes beyond declared spans, including overlap with existing recipes. */
   function encodeScenes(p, info) {
     let bytes = info.encoded.bytes;
+    const recipeBytes=new Set();
+    for(const span of [...info.adapter.spans,...(info.adapter.fieldSpans||[])])for(let i=span.offset;i<span.offset+span.length;i++)recipeBytes.add(i);
     const diagnostics = [],
       claimed = new Set();
     for (const codec of sceneEncoders.filter(c => c.matches(p, info))) {
@@ -259,8 +286,7 @@
           16 || span.length < 1 || span.offset + span.length > bytes.length) fail(
           'Invalid native encoder span');
         for (let i = span.offset; i < span.offset + span.length; i++) {
-          if (allowed.has(i) || claimed.has(i) || info.adapter.spans.some(v => i >= v.offset &&
-              i < v.offset + v.length)) fail('Native Scene encoder ownership overlaps a recipe');
+          if (allowed.has(i) || claimed.has(i) || recipeBytes.has(i)) fail('Native Scene encoder ownership overlaps a recipe');
           allowed.add(i);
           claimed.add(i);
         }
@@ -366,6 +392,38 @@
     return digest(a) === digest(b);
   }
 
+  // A projection hash cannot identify arbitrary edited fields. Ask existing
+  // codecs for reproducible source views, and name a protected field only if
+  // substituting its known value in a detached candidate reproduces the saved
+  // hash. This is diagnostic evidence, never a new signature or accepted edit.
+  function projectionDiagnostics(p,info) {
+    const candidates=[],helpers=s.BuildDiagnostics;
+    let encoded;try{encoded=encodeScenes(p,info).bytes;}catch(_){}
+    const codecs=sceneEncoders.filter(c=>c.matches(p,info));
+    const owned=new Set(codecs.flatMap(c=>c.views(p,info).flatMap(v=>Object.keys(v).filter(k=>k!=='id').map(k=>v.id+':'+k))));
+    for(const codec of codecs)for(const view of codec.diagnosticViews?.(p,info,encoded)||[]){
+      const scene=p.scenes.find(sc=>sc.id===view.id);if(!scene)continue;
+      for(const field of Object.keys(view.fields).filter(k=>k!=='id'&&!owned.has(view.id+':'+k))){
+        const path=helpers.difference(scene[field],view.fields[field],field);if(!path)continue;
+        candidates.push({scene,field,path,value:view.fields[field],repair:view.repair,writerRoute:view.writerRoute});
+      }
+    }
+    const replace=items=>({...p,scenes:p.scenes.map(sc=>({...sc,...Object.fromEntries(items.filter(i=>i.scene.id===sc.id).map(i=>[i.field,i.value]))}))});
+    const proves=items=>{try{return baseSignature(replace(items),info)===p.nativeGame.projectionSha256;}catch(_){return false;}};
+    const context=item=>({assetId:item.scene.id,assetName:item.scene.name,resourceKey:'scene:'+item.scene.id,
+      field:item.field,path:item.path,writerRoute:item.writerRoute,repair:item.repair,
+      evidence:'Known source value restores the saved protected projection hash.'});
+    for(const candidate of candidates.slice(0,32))if(proves([candidate]))return context(candidate);
+    // Multiple protected edits can be localized together when one complete
+    // source candidate set proves the same hash. Conflicting baseline guesses
+    // are not combined into a fabricated explanation.
+    const unique=[...new Map(candidates.map(c=>[c.scene.id+':'+c.field,c])).values()];
+    if(unique.length&&unique.length<=32&&proves(unique))return {...context(unique[0]),
+      relatedFields:unique.map(c=>({assetId:c.scene.id,assetName:c.scene.name,field:c.field,path:c.path})),
+      repair:unique[0].repair+' Confirmed protected changes: '+unique.map(c=>c.scene.name+' · '+c.path).join('; ')+'.'};
+    return {field:'protected project projection',repair:'Save Project As preserves unsupported work. Undo unsupported asset/runtime edits, then use the registered native writer. The saved hash alone cannot locate this change.',writerRoute:'native'};
+  }
+
   /* Loading preserves unsupported work. build:true additionally requires that all
    * differences have an encoder and that the resulting native bytes pass its checks. */
   function validate(p, {
@@ -374,14 +432,17 @@
     const info = inspect(p);
     if (build) {
       const c = currentCatalog(info);
-      for (const b of p.nativeGame.bindings)
-        if (!sameScene(p.scenes.find(sc => sc.id === sceneId(info.adapter, b)), make(p, c, b)))
-          fail(
-            'A recovered Scene differs from its native recipe. Undo unsupported Scene, CHR, palette, actor or collision edits to build.'
-            );
-      if (baseSignature(p, info) !== p.nativeGame.projectionSha256) fail(
-        'An asset or runtime setting changed without a native encoder. Unsupported work remains savable.'
-        );
+      for (const b of p.nativeGame.bindings) {
+        const scene=p.scenes.find(sc=>sc.id===sceneId(info.adapter,b)),expected=make(p,c,b);
+        if (!sameScene(scene,expected)) {
+          const path=s.BuildDiagnostics.difference(scene,expected),field=path?.split(/[.\[]/)[0];
+          throw s.BuildDiagnostics.attach(Error('Native resource project: A recovered Scene differs from its native recipe. Undo unsupported Scene, CHR, palette, actor or collision edits to build.'),
+            {assetId:scene.id,assetName:scene.name,resourceKey:'scene:'+scene.id,field,path,writerRoute:'library',
+              repair:'Save unsupported work, then Undo the local edit. Use Native source pages for encodable block substitutions; physical CHR/fight palettes use their dedicated writer when available.'});
+        }
+      }
+      if (baseSignature(p, info) !== p.nativeGame.projectionSha256)
+        throw s.BuildDiagnostics.attach(Error('Native resource project: An asset or runtime setting changed without a native encoder. Unsupported work remains savable.'),projectionDiagnostics(p,info));
       info.sceneEncoded = encodeScenes(p, info);
     }
     return info;
@@ -475,7 +536,7 @@
       entry.cell);
     if (entry.block !== info.catalog.layouts.find(v => v.id === l.id).cells[entry.cell])
       nativeGame.edits.push(entry);
-    nativeGame.edits.sort((a, b) => a.layoutId.localeCompare(b.layoutId) || a.cell - b.cell);
+    nativeGame.edits.sort(compareRecipes);
     const encoded = api.encode(info.bytes, info.catalog, nativeGame.edits),
       next = decoded(encoded.bytes, info.adapter),
       scenes = cp(p.scenes);
@@ -488,6 +549,45 @@
       nativeGame,
       scenes
     };
+  }
+
+  // Native field recipes share nativeGame.edits with literal recipes, but have
+  // a distinct typed shape. They never masquerade as tiles, Scenes or blocks.
+  // Adapters own field IDs, masks and admitted values; projects store values only.
+  const recipeKey=e=>e.field?'field:'+e.field:'layout:'+e.layoutId+':'+String(e.cell).padStart(8,'0');
+  const compareRecipes=(a,b)=>recipeKey(a).localeCompare(recipeKey(b));
+  function nativeFields(p){
+    const info=validate(p);
+    return (info.catalog.nativeFields||[]).map(field=>({...cp(field),
+      value:fieldValue(info.encoded.bytes,field),
+      outputByte:info.encoded.bytes[field.offset]}));
+  }
+  const fieldValue=(bytes,field)=>((bytes[field.offset]&field.mask)>>>field.shift)*(field.scale||1)+(field.bias||0);
+  function prepareNativeFields(p,changes){
+    const info=validate(p,{build:true}),available=info.catalog.nativeFields||[];
+    if(!Array.isArray(changes)||!changes.length||changes.length>available.length)fail('Choose a bounded list of native fields.');
+    const seen=new Set(),masks=new Map(),fields=changes.map(change=>{
+      if(!change||Object.keys(change).sort().join(',')!=='field,value'||seen.has(change.field))fail('Invalid or duplicate native parameter change.');
+      seen.add(change.field);const field=available.find(field=>field.id===change.field);
+      if(!field)fail('This project has no native writer for that parameter.');
+      if(!Number.isInteger(change.value)||!field.values.includes(change.value))fail('Choose an admitted native parameter value.');
+      masks.set(field.offset,(masks.get(field.offset)||0)|field.mask);
+      return {...cp(field),value:change.value,previous:fieldValue(info.sceneEncoded.bytes,field)};
+    });
+    if(fields.every(field=>field.previous===field.value))return {project:p,changed:false,fields};
+    const next=cp(p);next.nativeGame.edits=next.nativeGame.edits.filter(edit=>!seen.has(edit.field));
+    for(const field of fields)if(field.value!==field.sourceValue)next.nativeGame.edits.push({field:field.id,value:field.value});
+    next.nativeGame.edits.sort(compareRecipes);
+    // Validate the whole edit before commit. Do not re-sign unsupported assets.
+    // Compare with current output, so disjoint fields in one byte compose in
+    // either order. Only requested masks may change in the resulting build.
+    const after=validate(next,{build:true}),before=info.sceneEncoded.bytes,out=after.sceneEncoded.bytes;
+    for(let i=0;i<out.length;i++)if(((before[i]^out[i])&(255^(masks.get(i)||0)))!==0)
+      fail('Native parameter changed a protected neighboring bit or another byte.');
+    return {project:next,changed:true,fields:fields.map(field=>({...field,outputByte:out[field.offset]}))};
+  }
+  function prepareNativeField(p,id,value){
+    const result=prepareNativeFields(p,[{field:id,value}]);return {...result,field:result.fields[0]};
   }
 
   function addPage(p, resource, page) {
@@ -670,6 +770,10 @@
     brush,
     requiredScene,
     registerSceneEncoder,
+    writerCapabilities,
+    nativeFields,
+    prepareNativeField,
+    prepareNativeFields,
     projectionSignature: baseSignature
   });
 })();
