@@ -1,0 +1,16 @@
+{
+  "schema": "NESForgeAgentPolicy/v0.3",
+  "mode": "local_read_only",
+  "source_identity": "matched NES_Forge.html and app/build-inputs.json SHA-256",
+  "logical_roles": [
+    {"role":"extraction", "mission":"identify ROM, mapper, banks, byte provenance", "implementation":"deterministic extractor with independent bank comparison"},
+    {"role":"graphics_world", "mission":"CHR, palettes, scene/context catalogs, sprites, poses", "implementation":"native resource adapter plus GameRENative investigation (partial)"},
+    {"role":"audio", "mission":"native driver recognition, music/SFX evidence", "implementation":"opt-in native audio trace (experimental)"},
+    {"role":"collision_physics", "mission":"tile solidity, hitboxes, movement and damage evidence", "implementation":"not automated; requires independently validated reverse engineering"},
+    {"role":"ai_behavior", "mission":"enemy states, scripts, triggers and routines", "implementation":"not automated; requires independently validated reverse engineering"},
+    {"role":"qa", "mission":"hashes, reproducibility, runtime trace checks, native round-trip tests", "implementation":"partial deterministic gates; 1:1 parity not established"}
+  ],
+  "model": {"provider":"optional local OpenAI-compatible loopback endpoint", "current_scope":"up to three suggested investigation tasks, never auto-executed", "scheduling":"sequential_inference", "future":"separate task contracts, role prompts and model benchmarks"},
+  "forbidden_actions": ["push_to_github", "commit_files", "alter_original_rom", "publish_private_assets", "send_rom_to_ai", "agent_shell_execution", "claim_rebuild_without_round_trip"],
+  "acceptance_gates": ["rom_sha256", "canonical_editor_sha256", "independent_original_byte_comparison", "source_offset_or_trace", "domain_specific_verification", "independent_parity", "edit_rebuild_roundtrip"]
+}
