@@ -238,13 +238,20 @@ register({name:'resources.open',group:'resources',title:'Open a resource in its 
 register({name:'writer.list',group:'writers',title:'Native writers for this project',
   run:()=>{const {cap,own}=context();return {writers:cap.writers.map(cp),ownership:own?cp(own):null};}});
 register({name:'writer.prepare',group:'writers',title:'Open a native writer view',mutates:true,
-  summary:'Adds the explicit editing view a native writer encodes (e.g. Punch-Out physical CHR bank or palette, Glass Joe pose).',
-  args:{writer:{type:'string',required:true,enum:['punch-out-art','punch-out-pose']},kind:{type:'string',enum:['chr','palette']},index:{type:'int',min:0,max:255}},
+  summary:'Adds the explicit editing view a native writer encodes (e.g. Punch-Out physical CHR bank or palette, Glass Joe pose position, any fighter\'s pose piece layout).',
+  args:{writer:{type:'string',required:true,enum:['punch-out-art','punch-out-pose','punch-out-pose-geometry']},kind:{type:'string',enum:['chr','palette']},index:{type:'int',min:0,max:255},fight:{type:'int',min:0,max:13}},
   run:a=>{const p=project();let res;
     if(a.writer==='punch-out-art'){if(!a.kind||a.index===undefined)fail('punch-out-art needs kind (chr|palette) and index');res=services.PunchOutArtProject.prepare(p,a.kind,a.index);}
+    else if(a.writer==='punch-out-pose-geometry'){if(a.fight===undefined||a.index===undefined)fail('punch-out-pose-geometry needs fight (0-13) and index (pose selector)');res=services.PunchOutPoseGeometryProject.prepare(p,a.fight,a.index);}
     else{if(a.index===undefined)fail('punch-out-pose needs index (pose selector)');res=services.PunchOutPoseProject.prepare(p,a.index);}
     if(res.added)commitProject(res.project,'writer:'+a.writer);
     return {sceneId:res.sceneId||null,frameId:res.frameId||null,added:!!res.added,resourceKey:res.sceneId?'scene:'+res.sceneId:null};}});
+
+register({name:'writer.halfSize',group:'writers',title:'Make a Punch-Out pose half size',mutates:true,
+  summary:'Scales a full pose\'s artwork to half size, places it in CHR tiles no decoded pose uses and writes the new piece layout. One committed change; Undo restores it.',
+  args:{fight:{type:'int',required:true,min:0,max:13},index:{type:'int',required:true,min:0,max:127}},
+  run:a=>{const res=services.PunchOutPoseGeometryProject.halfSize(project(),a.fight,a.index);commitProject(res.project,'writer:punch-out-half-size');
+    const {project:_,...report}=res;return {...cp(report),resourceKey:'metasprite:'+res.frameId};}});
 
 /* Writer suggestions: for an asset that is only a copy, the explicit native writer view (if any)
  * that encodes the same original data, and which other assets share it. Providers are small and
@@ -259,14 +266,18 @@ registerSuggestions(({p,node,cap})=>{
     const bank=content.chrBank4KiB,shared=p.scenes.filter(s=>s.id!==scene.id&&s.captureMeta?.punchOutContent?.chrBank4KiB===bank).map(s=>s.name);
     out.push({writer:'punch-out-art',args:{writer:'punch-out-art',kind:'chr',index:bank},level:'native',
       title:'Edit these graphics in physical CHR bank '+bank+' (writes to the ROM)',
-      note:'The fighter scene is a reference snapshot. Pixel edits in the bank view are encoded into the ROM; tile layout (pose geometry) has no writer yet.',
+      note:'The fighter scene is a reference snapshot. Pixel edits in the bank view are encoded into the ROM; open a pose\'s piece layout view to move, add or remove its pieces.',
       sharedWith:shared});
   }
   const pose=node.type==='metasprite'&&/^po-pose-f(\d+)-s(\d+)$/.exec(node.id);
   if(pose&&services.PunchOutPoseProject){
     const fight=+pose[1],selector=+pose[2];
-    if(fight===0)out.push({writer:'punch-out-pose',args:{writer:'punch-out-pose',index:selector},level:'native',title:'Move this Glass Joe pose (writes X/Y to the ROM)',note:'Whole-pose position only; piece geometry has no writer yet.',sharedWith:[]});
-    else out.push({writer:null,level:'copy',title:'No pose writer for this fighter yet',note:'Pose layout writers exist only for Glass Joe positions. Graphics can be edited through the CHR bank view.',sharedWith:[]});
+    if(selector<128&&services.PunchOutPoseGeometryProject)out.push({writer:'punch-out-pose-geometry',args:{writer:'punch-out-pose-geometry',fight,index:selector},level:'native',
+      title:'Edit this pose\'s pieces (writes the layout to the ROM)',note:'Positions, order, count, tiles, palettes and flips. The original layout stays in the ROM for other poses that share it; the build re-checks the pose with the game\'s own routine. New artwork goes in the CHR bank view.',sharedWith:[]});
+    if(selector<128&&services.PunchOutPoseGeometryProject)out.push({writer:'punch-out-pose-geometry',command:'writer.halfSize',label:'Make half size',args:{fight,index:selector},level:'native',
+      title:'Make this pose half size (new artwork + layout)',note:'Draws a half-size copy of this pose into CHR tiles no decoded pose uses, and points this pose at it. Other poses keep their full-size art.',sharedWith:[]});
+    if(fight===0)out.push({writer:'punch-out-pose',args:{writer:'punch-out-pose',index:selector},level:'native',title:'Move this Glass Joe pose (writes X/Y to the ROM)',note:'Whole-pose position only.',sharedWith:[]});
+    if(selector>=128&&fight!==0)out.push({writer:null,level:'copy',title:'No writer for incremental poses of this fighter yet',note:'Incremental poses patch the full pose before them. Edit the full poses, or graphics through the CHR bank view.',sharedWith:[]});
   }
   return out;
 });

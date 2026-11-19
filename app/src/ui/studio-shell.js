@@ -239,8 +239,8 @@ async function inspect(key,detail){
     el('p',{class:'note',text:r.editability.note}),r.summary?el('p',{text:r.summary}):null,r.details?el('p',{class:'note',text:r.details}):null,actions,
     ...suggestions.map(s=>el('div',{class:'sp-sugg'},el('p',{},badge(s.level),' ',s.title),el('p',{class:'note',text:s.note}),
       s.sharedWith?.length?el('p',{class:'shared',text:'Also changes: '+s.sharedWith.join(', ')}):null,
-      s.args?el('button',{class:'primary',onclick:async()=>{const res=await run('writer.prepare',s.args);if(!res.ok){showToast?.(res.error.message);return;}
-        if(res.result.resourceKey){lib.selected=res.result.resourceKey;await renderLibrary();}}},'Open writer view'):null)),
+      s.args?el('button',{class:'primary',onclick:async()=>{const res=await run(s.command||'writer.prepare',s.args);if(!res.ok){showToast?.(res.error.message);return;}
+        if(res.result.resourceKey){lib.selected=res.result.resourceKey;await renderLibrary();}}},s.label||'Open writer view'):null)),
     el('h3',{text:'Uses'}),links(r.uses),el('h3',{text:'Used by'}),links(r.usedBy),el('p',{class:'note',text:'Key: '+r.key}));
 }
 

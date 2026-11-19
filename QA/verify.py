@@ -69,7 +69,7 @@ def record(row):
     index['results'].append(row)
 
 record(run('bundle',[sys.executable,ROOT/'app/tools/bundle.py','--check']))
-cases = [('DG-runtime',QA/'t/recover.cjs'),('editor',QA/'t/editor.cjs'),('zip-limits',QA/'t/zip-limits.cjs'),('pack-check',QA/'t/pack-check.cjs'),('command-core',QA/'t/command-core.cjs'),('rom-audit',QA/'t/rom-audit.cjs'),('release-migration',QA/'t/release-migration.cjs'),('ai-controls',QA/'t/ai-controls.cjs'),
+cases = [('DG-runtime',QA/'t/recover.cjs'),('editor',QA/'t/editor.cjs'),('zip-limits',QA/'t/zip-limits.cjs'),('pack-check',QA/'t/pack-check.cjs'),('command-core',QA/'t/command-core.cjs'),('rom-audit',QA/'t/rom-audit.cjs'),('release-migration',QA/'t/release-migration.cjs'),('pose-streams',QA/'t/pose-streams.cjs'),('ai-controls',QA/'t/ai-controls.cjs'),
          ('mmc2',QA/'t/u/mmc2-prefetch.cjs'),('audio-library',QA/'t/u/native-audio-library.cjs')]
 for name in ['native-lolo-resources','native-metroid-resources','punch-out','river-city','shadowgate','lolo-audio','metroid-audio','workstation-startup-dom']:
     cases.append((name,APP_TESTS/(name+'.cjs')))
@@ -94,6 +94,8 @@ if args.extractions:
 if args.cartridges:
     receipt=output/'investigated-library.json'
     record(run('investigated-library',['node',QA/'investigated-library.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
+    receipt=output/'punch-out-pose-geometry.json'
+    record(run('punch-out-pose-geometry',['node',QA/'punch-out-pose-geometry.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
     receipt=output/'native-corpus.json'
     raw_args=['node',QA/'native-corpus.cjs',EDITOR,receipt,args.cartridges.resolve()]
     if args.extractions:
