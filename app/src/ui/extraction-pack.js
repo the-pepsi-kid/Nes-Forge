@@ -1,7 +1,7 @@
 /* Selection stays local to the inspected archive. No extracted HTML is executed. */
 (()=>{
 'use strict';
-const labels={map:'Maps',room:'Room evidence',resource:'Native background layouts',capture:'Observed runtime screens',collision:'Collision references',pose:'Sprite pose previews',catalog:'Source catalogs',project:'Editable scenes / rooms',animationProject:'Editable animation projects',nativeProject:'Editable native resource project',audioProject:'Editable audio projects',audioReport:'Audio reports'};
+const labels={map:'Maps',room:'Room evidence',resource:'Native background layouts',capture:'Observed runtime screens',collision:'Collision references',pose:'Sprite pose previews',catalog:'Source catalogs',project:'Editable scenes / rooms',animationProject:'Editable animation projects',nativeProject:'Editable native resource project',audioProject:'Editable audio projects',audioReport:'Audio reports',object:'Original object placements',audit:'Extraction audits'};
 function mount(container,pack,options){
   const make=(tag,text)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=text;return node;};
   const groups=make('select'),filter=make('input'),resources=make('select'),status=make('p'),preview=make('img'),open=make('button','Open selected project');
@@ -48,6 +48,8 @@ function mount(container,pack,options){
     if(['project','animationProject','nativeProject','audioProject'].includes(kind)){
       return (data.projectName||'Forge project')+' · '+(data.scenes?.length||0)+' scenes · '+(data.metasprites?.length||0)+' poses · '+(data.animations?.length||0)+' animations · '+(data.patterns?.length||0)+' audio patterns.';
     }
+    if(kind==='object')return (data.level||data.area||'Source area')+' · '+data.objects.length+' decoded original object records · Read-only positions. Source CPU addresses do not prove physical bank placement or runtime spawn timing.'+(data.allInsideLevel===false?' · Some objects lie outside stated level bounds.':'');
+    if(kind==='audit')return (data.format||'Extraction audit')+' · reported results, not independently reproduced inside Forge. Select to inspect evidence.';
     if(kind==='pose')return data.pose.label+' · '+data.metasprite.pieces.length+' sprite pieces · Read-only fragment: its CHR pixels are not embedded here. Use a complete animation project or the matching ROM to edit.';
     if(kind==='catalog')return record.catalogType+' · '+data.length+' source records. Select a record to inspect its fields. Native routines and source tables do not automatically become authored actor behavior.';
     if(kind==='resource')return data.resource.label+' · '+data.pages.length+' background page(s) · '+(data.resource.reason||'Partial source background layout.');
@@ -72,6 +74,14 @@ function mount(container,pack,options){
       loaded=record;status.textContent=describe(record.kind,record.data,record);
       open.disabled=!['project','animationProject','nativeProject','audioProject'].includes(record.kind);
       if(record.kind==='pose'){recordDetails.textContent=JSON.stringify(record.data,null,2);recordDetails.hidden=false;}
+      if(record.kind==='object'){
+        for(const [index,item] of record.data.objects.entries()){
+          const option=make('option',(item.object||'Object')+' · '+(Number.isInteger(item.x)?('x='+item.x+' y='+item.y):'no static position')+' · '+(item.romAddress||'unmapped'));option.value=String(index);recordSelect.append(option);
+        }
+        recordLabel.hidden=!record.data.objects.length;recordDetails.hidden=false;
+        recordDetails.textContent=record.data.objects.length?JSON.stringify(record.data.objects[0],null,2):'No decoded objects in this area.';
+      }
+      if(record.kind==='audit'){recordDetails.hidden=false;recordDetails.textContent=JSON.stringify(record.data,null,2).slice(0,32000);}
       if(record.kind==='catalog'){
         for(const [index,item]of record.data.entries()){
           const option=make('option',Array.isArray(item)?'$'+item[0].toString(16).toUpperCase()+' · '+item[1]:(item.label||item.name||item.id)+' · '+item.id);option.value=String(index);recordSelect.append(option);
@@ -79,7 +89,7 @@ function mount(container,pack,options){
         recordLabel.hidden=false;recordDetails.hidden=false;
         recordDetails.textContent=record.data.length?JSON.stringify(record.data[0],null,2):'Empty source catalog.';
       }
-      if(['map','room','resource','capture','collision','pose','animationProject'].includes(record.kind)){
+      if(['map','room','resource','capture','collision','pose','animationProject','object'].includes(record.kind)){
         const image=await pack.preview(path);if(!active()||!image)return;
         if(typeof URL.createObjectURL==='function'){
           url=URL.createObjectURL(image);preview.src=url;preview.hidden=false;
@@ -103,7 +113,7 @@ function mount(container,pack,options){
     catch(error){status.textContent=error.message;}
   };
   groups.onchange=list;filter.oninput=list;resources.onchange=()=>void choose();
-  recordSelect.onchange=()=>{if(closed||!options.isCurrent()||loaded?.kind!=='catalog')return;const item=loaded.data[Number(recordSelect.value)];recordDetails.textContent=item===undefined?'No source record selected.':JSON.stringify(item,null,2);};
+  recordSelect.onchange=()=>{if(closed||!options.isCurrent()||!['catalog','object'].includes(loaded?.kind))return;const rows=loaded.kind==='catalog'?loaded.data:loaded.data.objects;const item=rows[Number(recordSelect.value)];recordDetails.textContent=item===undefined?'No source record selected.':JSON.stringify(item,null,2);};
   list();
   return ()=>{closed=true;selection++;loaded=null;clearPreview();};
 }

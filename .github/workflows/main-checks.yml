@@ -1,0 +1,63 @@
+name: Main editor checks
+
+# Runs on every change to main and on every pull request. Uses only repository files:
+# no commercial ROMs, extraction archives or private evidence are needed.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Editor regenerates byte-for-byte from its ordered sources
+        run: python app/tools/bundle.py --check
+
+      - name: Both launch entries are the same generated editor
+        run: python tools/sync_main_entry.py --check
+
+      - name: Public profile (no private catalogs, only the authored cartridge fixtures)
+        run: python tools/verify_public_profile.py
+
+      - name: Agent Lab unit tests
+        run: python -m unittest discover -s tools/agent-lab/tests -v
+
+  editor-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: source-and-profile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install QA dependencies
+        run: |
+          npm --prefix QA ci --ignore-scripts
+          python -m pip install -r requirements-dev.txt
+      - name: Repository QA suite (no private inputs)
+        run: python QA/verify.py --jobs 1 --output Review-Results
+      - name: Keep the QA receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-receipts
+          path: Review-Results/
+          retention-days: 14

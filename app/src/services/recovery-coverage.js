@@ -8,11 +8,11 @@ const catalog =
 {
   "format": "NESForgeRecoveryCoverage",
   "version": 1,
-  "inputFiles": 28,
-  "titleGroups": 22,
+  "inputFiles": 32,
+  "titleGroups": 25,
   "fullRecoveryComplete": false,
   "recordedFromCommit": "baf1cc760cdfc98859f21237883e00bf015d085d",
-  "scope": "Revision-bound extraction, editing and native output recorded in the consolidated Forge source.",
+  "scope": "Revision-bound extraction and editing; includes local owner-provided Round 3 archive evidence, not full game support.",
   "verificationPolicy": {
     "audioRequiredForEveryProject": true,
     "sceneAloneCompletesVerification": false,
@@ -1434,9 +1434,191 @@ const catalog =
         }
       },
       "byteLength": 262160
+    },
+    {
+      "name": "Super Mario Bros 3 (U) (PRG 1).nes",
+      "sha256": "4377a7f5e6eb50bdd2ac6f249bf1a7085500aca8eb41f38545c3a2731c51a579",
+      "byteLength": 393232,
+      "declaredMapper": 4,
+      "prgBytes": 262144,
+      "chrBytes": 131072,
+      "private": true,
+      "title": "Super Mario Bros. 3",
+      "titleId": "super-mario-bros-3",
+      "role": "primary",
+      "recoveryStatus": "partial",
+      "fullRecovery": false,
+      "integratedScope": "Mario 3 level records, game-generated screen tiles and object placements from owner-provided ZIP; original-engine writer not registered.",
+      "domains": {
+        "areas": "partial",
+        "graphics": "partial",
+        "menus": "unresolved",
+        "animation": "unresolved",
+        "collision": "unresolved",
+        "actors": "partial",
+        "audio": "unresolved",
+        "objectsTextFlags": "partial",
+        "relationships": "partial",
+        "lifecycle": "unresolved",
+        "nativeWriter": "unresolved",
+        "execution": "unresolved"
+      },
+      "audioVerification": {
+        "required": true,
+        "status": "not-independently-verified",
+        "nativeAudioWriter": false
+      },
+      "gaps": [
+        "Original engine logic and native writeback not verified",
+        "Runtime sprite/AI/physics and screen-placement parity incomplete",
+        "Full original audio timing and driver writer unresolved"
+      ],
+      "nextWork": "Independent original-ROM placement and object trace verification",
+      "evidence": [
+        "LOCAL_EXTRACTION_UPDATE_README.md"
+      ],
+      "evidenceScope": "Owner-supplied extraction ZIP inspected privately; source SHA-256 present in owner ROM census; exporter outcomes are not independent pixel/runtime parity.",
+      "sourcePackage": "Super_Mario_Bros_3.zip"
+    },
+    {
+      "name": "Super Mario Bros 2 (U) (PRG 1).nes",
+      "sha256": "6ba64ff651ede7eea2f6142f681b5f03df496456523e3712f8cd5bbee8f2f2ae",
+      "byteLength": 262160,
+      "declaredMapper": 4,
+      "prgBytes": 131072,
+      "chrBytes": 131072,
+      "private": true,
+      "title": "Super Mario Bros. 2",
+      "titleId": "super-mario-bros-2",
+      "role": "primary",
+      "recoveryStatus": "partial",
+      "fullRecovery": false,
+      "integratedScope": "Mario 2 native area layouts and source object placements from owner-provided ZIP; import recovered room adaptation from ZIP.",
+      "domains": {
+        "areas": "partial",
+        "graphics": "partial",
+        "menus": "unresolved",
+        "animation": "unresolved",
+        "collision": "unresolved",
+        "actors": "partial",
+        "audio": "unresolved",
+        "objectsTextFlags": "partial",
+        "relationships": "partial",
+        "lifecycle": "unresolved",
+        "nativeWriter": "unresolved",
+        "execution": "unresolved"
+      },
+      "audioVerification": {
+        "required": true,
+        "status": "not-independently-verified",
+        "nativeAudioWriter": false
+      },
+      "gaps": [
+        "Original engine logic and native writeback not verified",
+        "Runtime sprite/AI/physics and screen-placement parity incomplete",
+        "Full original audio timing and driver writer unresolved"
+      ],
+      "nextWork": "Independent original-ROM placement and object trace verification",
+      "evidence": [
+        "LOCAL_EXTRACTION_UPDATE_README.md"
+      ],
+      "evidenceScope": "Owner-supplied extraction ZIP inspected privately; source SHA-256 present in owner ROM census; exporter outcomes are not independent pixel/runtime parity.",
+      "sourcePackage": "Super_Mario_Bros_2.zip"
+    },
+    {
+      "name": "Super Mario Bros - Duck Hunt (U).nes",
+      "sha256": "23ec3f6bb68f8774070ce936869e7f62ac3490449f58e62d6ed33a0fb385d456",
+      "byteLength": 81936,
+      "declaredMapper": 66,
+      "prgBytes": 65536,
+      "chrBytes": 16384,
+      "private": true,
+      "title": "Super Mario Bros. / Duck Hunt",
+      "titleId": "super-mario-bros",
+      "role": "primary",
+      "recoveryStatus": "partial",
+      "fullRecovery": false,
+      "integratedScope": "Mario original area/level layouts and source object placements from owner-provided ZIP; open this exact extraction pack to edit room adaptations.",
+      "domains": {
+        "areas": "partial",
+        "graphics": "partial",
+        "menus": "unresolved",
+        "animation": "unresolved",
+        "collision": "unresolved",
+        "actors": "partial",
+        "audio": "unresolved",
+        "objectsTextFlags": "partial",
+        "relationships": "partial",
+        "lifecycle": "unresolved",
+        "nativeWriter": "unresolved",
+        "execution": "unresolved"
+      },
+      "audioVerification": {
+        "required": true,
+        "status": "not-independently-verified",
+        "nativeAudioWriter": false
+      },
+      "gaps": [
+        "Original engine logic and native writeback not verified",
+        "Runtime sprite/AI/physics and screen-placement parity incomplete",
+        "Full original audio timing and driver writer unresolved"
+      ],
+      "nextWork": "Independent original-ROM placement and object trace verification",
+      "evidence": [
+        "LOCAL_EXTRACTION_UPDATE_README.md"
+      ],
+      "evidenceScope": "Owner-supplied extraction ZIP inspected privately; source SHA-256 present in owner ROM census; exporter outcomes are not independent pixel/runtime parity.",
+      "sourcePackage": "Super_Mario_Bros.zip"
+    },
+    {
+      "name": "Mega Man 2 (U).nes",
+      "sha256": "27b5a635df33ed57ed339dfc7fd62fc603b39c1d1603adb5cdc3562a0b0d555b",
+      "byteLength": 262160,
+      "declaredMapper": 1,
+      "prgBytes": 262144,
+      "chrBytes": 0,
+      "private": true,
+      "title": "Mega Man 2",
+      "titleId": "mega-man-2",
+      "role": "investigated-alternate-source",
+      "recoveryStatus": "partial",
+      "fullRecovery": false,
+      "integratedScope": "Mega Man 2 stage/screen catalog and finite audio adaptations from owner-provided ZIP; native engine behavior/writeback not reconstructed.",
+      "domains": {
+        "areas": "partial",
+        "graphics": "partial",
+        "menus": "unresolved",
+        "animation": "unresolved",
+        "collision": "unresolved",
+        "actors": "unresolved",
+        "audio": "partial",
+        "objectsTextFlags": "unresolved",
+        "relationships": "partial",
+        "lifecycle": "unresolved",
+        "nativeWriter": "unresolved",
+        "execution": "unresolved"
+      },
+      "audioVerification": {
+        "required": true,
+        "status": "not-independently-verified",
+        "nativeAudioWriter": false
+      },
+      "gaps": [
+        "Original engine logic and native writeback not verified",
+        "Runtime sprite/AI/physics and screen-placement parity incomplete",
+        "Full original audio timing and driver writer unresolved",
+        "Original legacy header requires independent original-ROM identity checks before native writer"
+      ],
+      "nextWork": "Independent original-ROM placement and object trace verification",
+      "evidence": [
+        "LOCAL_EXTRACTION_UPDATE_README.md"
+      ],
+      "evidenceScope": "Owner-supplied extraction ZIP inspected privately; source SHA-256 present in owner ROM census; exporter outcomes are not independent pixel/runtime parity.",
+      "sourcePackage": "Mega_Man_2_U.zip"
     }
   ],
-  "reviewBuild": "RC2 build 5"
+  "reviewBuild": "Integrated Review 5 + local extraction intake round 3",
+  "localUpdate": "offline-extraction-round3-2026-11-18-no-github-changes"
 }
 /* RECOVERY_COVERAGE_END */
 ;

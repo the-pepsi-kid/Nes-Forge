@@ -116,6 +116,7 @@ def main() -> int:
     ap.add_argument('--audio', action='store_true', help='Optional slow audio extraction pass')
     ap.add_argument('--capture', action='store_true', help='Optional two-frame runtime mapper/PPU capture')
     ap.add_argument('--model', help='Exact Atomic Chat model ID (defaults to current loaded model)')
+    ap.add_argument('--review-workorders', help='Private, source-bound QWEN_NEXT_WORKORDERS.json from extraction_update_review.py')
     ap.add_argument('--api', default='http://127.0.0.1:1337/v1', help='Loopback Atomic Chat endpoint only')
     ap.add_argument('--timeout', type=int, default=600, help='Per native tool timeout in seconds')
     args = ap.parse_args()
@@ -157,6 +158,7 @@ def main() -> int:
             if args.capture: cmd.append('--capture')
             if args.no_ai: cmd.append('--no-ai')
             if args.model: cmd.extend(['--model', args.model])
+            if args.review_workorders: cmd.extend(['--review-workorders', str(Path(args.review_workorders).expanduser().resolve())])
             result = subprocess.run(cmd, check=False)
             if result.returncode: bad += 1
             write_dashboard(output_root, identity)

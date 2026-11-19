@@ -24575,11 +24575,11 @@ const catalog =
 {
   "format": "NESForgeRecoveryCoverage",
   "version": 1,
-  "inputFiles": 28,
-  "titleGroups": 22,
+  "inputFiles": 32,
+  "titleGroups": 25,
   "fullRecoveryComplete": false,
   "recordedFromCommit": "baf1cc760cdfc98859f21237883e00bf015d085d",
-  "scope": "Revision-bound extraction, editing and native output recorded in the consolidated Forge source.",
+  "scope": "Revision-bound extraction and editing; includes local owner-provided Round 3 archive evidence, not full game support.",
   "verificationPolicy": {
     "audioRequiredForEveryProject": true,
     "sceneAloneCompletesVerification": false,
@@ -26001,9 +26001,191 @@ const catalog =
         }
       },
       "byteLength": 262160
+    },
+    {
+      "name": "Super Mario Bros 3 (U) (PRG 1).nes",
+      "sha256": "4377a7f5e6eb50bdd2ac6f249bf1a7085500aca8eb41f38545c3a2731c51a579",
+      "byteLength": 393232,
+      "declaredMapper": 4,
+      "prgBytes": 262144,
+      "chrBytes": 131072,
+      "private": true,
+      "title": "Super Mario Bros. 3",
+      "titleId": "super-mario-bros-3",
+      "role": "primary",
+      "recoveryStatus": "partial",
+      "fullRecovery": false,
+      "integratedScope": "Mario 3 level records, game-generated screen tiles and object placements from owner-provided ZIP; original-engine writer not registered.",
+      "domains": {
+        "areas": "partial",
+        "graphics": "partial",
+        "menus": "unresolved",
+        "animation": "unresolved",
+        "collision": "unresolved",
+        "actors": "partial",
+        "audio": "unresolved",
+        "objectsTextFlags": "partial",
+        "relationships": "partial",
+        "lifecycle": "unresolved",
+        "nativeWriter": "unresolved",
+        "execution": "unresolved"
+      },
+      "audioVerification": {
+        "required": true,
+        "status": "not-independently-verified",
+        "nativeAudioWriter": false
+      },
+      "gaps": [
+        "Original engine logic and native writeback not verified",
+        "Runtime sprite/AI/physics and screen-placement parity incomplete",
+        "Full original audio timing and driver writer unresolved"
+      ],
+      "nextWork": "Independent original-ROM placement and object trace verification",
+      "evidence": [
+        "LOCAL_EXTRACTION_UPDATE_README.md"
+      ],
+      "evidenceScope": "Owner-supplied extraction ZIP inspected privately; source SHA-256 present in owner ROM census; exporter outcomes are not independent pixel/runtime parity.",
+      "sourcePackage": "Super_Mario_Bros_3.zip"
+    },
+    {
+      "name": "Super Mario Bros 2 (U) (PRG 1).nes",
+      "sha256": "6ba64ff651ede7eea2f6142f681b5f03df496456523e3712f8cd5bbee8f2f2ae",
+      "byteLength": 262160,
+      "declaredMapper": 4,
+      "prgBytes": 131072,
+      "chrBytes": 131072,
+      "private": true,
+      "title": "Super Mario Bros. 2",
+      "titleId": "super-mario-bros-2",
+      "role": "primary",
+      "recoveryStatus": "partial",
+      "fullRecovery": false,
+      "integratedScope": "Mario 2 native area layouts and source object placements from owner-provided ZIP; import recovered room adaptation from ZIP.",
+      "domains": {
+        "areas": "partial",
+        "graphics": "partial",
+        "menus": "unresolved",
+        "animation": "unresolved",
+        "collision": "unresolved",
+        "actors": "partial",
+        "audio": "unresolved",
+        "objectsTextFlags": "partial",
+        "relationships": "partial",
+        "lifecycle": "unresolved",
+        "nativeWriter": "unresolved",
+        "execution": "unresolved"
+      },
+      "audioVerification": {
+        "required": true,
+        "status": "not-independently-verified",
+        "nativeAudioWriter": false
+      },
+      "gaps": [
+        "Original engine logic and native writeback not verified",
+        "Runtime sprite/AI/physics and screen-placement parity incomplete",
+        "Full original audio timing and driver writer unresolved"
+      ],
+      "nextWork": "Independent original-ROM placement and object trace verification",
+      "evidence": [
+        "LOCAL_EXTRACTION_UPDATE_README.md"
+      ],
+      "evidenceScope": "Owner-supplied extraction ZIP inspected privately; source SHA-256 present in owner ROM census; exporter outcomes are not independent pixel/runtime parity.",
+      "sourcePackage": "Super_Mario_Bros_2.zip"
+    },
+    {
+      "name": "Super Mario Bros - Duck Hunt (U).nes",
+      "sha256": "23ec3f6bb68f8774070ce936869e7f62ac3490449f58e62d6ed33a0fb385d456",
+      "byteLength": 81936,
+      "declaredMapper": 66,
+      "prgBytes": 65536,
+      "chrBytes": 16384,
+      "private": true,
+      "title": "Super Mario Bros. / Duck Hunt",
+      "titleId": "super-mario-bros",
+      "role": "primary",
+      "recoveryStatus": "partial",
+      "fullRecovery": false,
+      "integratedScope": "Mario original area/level layouts and source object placements from owner-provided ZIP; open this exact extraction pack to edit room adaptations.",
+      "domains": {
+        "areas": "partial",
+        "graphics": "partial",
+        "menus": "unresolved",
+        "animation": "unresolved",
+        "collision": "unresolved",
+        "actors": "partial",
+        "audio": "unresolved",
+        "objectsTextFlags": "partial",
+        "relationships": "partial",
+        "lifecycle": "unresolved",
+        "nativeWriter": "unresolved",
+        "execution": "unresolved"
+      },
+      "audioVerification": {
+        "required": true,
+        "status": "not-independently-verified",
+        "nativeAudioWriter": false
+      },
+      "gaps": [
+        "Original engine logic and native writeback not verified",
+        "Runtime sprite/AI/physics and screen-placement parity incomplete",
+        "Full original audio timing and driver writer unresolved"
+      ],
+      "nextWork": "Independent original-ROM placement and object trace verification",
+      "evidence": [
+        "LOCAL_EXTRACTION_UPDATE_README.md"
+      ],
+      "evidenceScope": "Owner-supplied extraction ZIP inspected privately; source SHA-256 present in owner ROM census; exporter outcomes are not independent pixel/runtime parity.",
+      "sourcePackage": "Super_Mario_Bros.zip"
+    },
+    {
+      "name": "Mega Man 2 (U).nes",
+      "sha256": "27b5a635df33ed57ed339dfc7fd62fc603b39c1d1603adb5cdc3562a0b0d555b",
+      "byteLength": 262160,
+      "declaredMapper": 1,
+      "prgBytes": 262144,
+      "chrBytes": 0,
+      "private": true,
+      "title": "Mega Man 2",
+      "titleId": "mega-man-2",
+      "role": "investigated-alternate-source",
+      "recoveryStatus": "partial",
+      "fullRecovery": false,
+      "integratedScope": "Mega Man 2 stage/screen catalog and finite audio adaptations from owner-provided ZIP; native engine behavior/writeback not reconstructed.",
+      "domains": {
+        "areas": "partial",
+        "graphics": "partial",
+        "menus": "unresolved",
+        "animation": "unresolved",
+        "collision": "unresolved",
+        "actors": "unresolved",
+        "audio": "partial",
+        "objectsTextFlags": "unresolved",
+        "relationships": "partial",
+        "lifecycle": "unresolved",
+        "nativeWriter": "unresolved",
+        "execution": "unresolved"
+      },
+      "audioVerification": {
+        "required": true,
+        "status": "not-independently-verified",
+        "nativeAudioWriter": false
+      },
+      "gaps": [
+        "Original engine logic and native writeback not verified",
+        "Runtime sprite/AI/physics and screen-placement parity incomplete",
+        "Full original audio timing and driver writer unresolved",
+        "Original legacy header requires independent original-ROM identity checks before native writer"
+      ],
+      "nextWork": "Independent original-ROM placement and object trace verification",
+      "evidence": [
+        "LOCAL_EXTRACTION_UPDATE_README.md"
+      ],
+      "evidenceScope": "Owner-supplied extraction ZIP inspected privately; source SHA-256 present in owner ROM census; exporter outcomes are not independent pixel/runtime parity.",
+      "sourcePackage": "Mega_Man_2_U.zip"
     }
   ],
-  "reviewBuild": "RC2 build 5"
+  "reviewBuild": "Integrated Review 5 + local extraction intake round 3",
+  "localUpdate": "offline-extraction-round3-2026-11-18-no-github-changes"
 }
 /* RECOVERY_COVERAGE_END */
 ;
@@ -27886,6 +28068,9 @@ async function open(bytes){
   let reports=paths.filter(p=>isName(p,'native_report.json')||isName(p,'resources_report.json'));
   // Resource and audio exporters share the source-bound archive workflow.
   // An audio report is the root only when no outer extraction report exists.
+  // Mario extraction tools use explicit revision-bound root reports. Prefer native
+  // roots when present; never select multiple roots from one ZIP.
+  if(!reports.length)reports=paths.filter(p=>['smb1_report.json','smb2_report.json','smb3_report.json'].some(n=>isName(p,n)));
   const audioOnly=!reports.length&&paths.some(p=>isName(p,'audio_report.json'));
   if(audioOnly)reports=paths.filter(p=>isName(p,'audio_report.json'));
   if(!reports.length){
@@ -27906,7 +28091,7 @@ async function open(bytes){
   }
   if(reports.length!==1)message('Multiple extraction roots. Open one game pack at a time.');
   const report=await json(reports[0]);
-  if(!['NESForgeNativeExtraction','NESForgeNativeResourceExtraction','NESForgeNativeAudioExtraction','NESForgeAudioCapture'].includes(report?.format)||!/^([a-f0-9]{64})$/i.test(report.rom?.sha256||'')){
+  if(!['NESForgeNativeExtraction','NESForgeNativeResourceExtraction','NESForgeNativeAudioExtraction','NESForgeAudioCapture','NESForgeSMB1Extraction','NESForgeSMB2Extraction','NESForgeSMB3Extraction'].includes(report?.format)||!/^([a-f0-9]{64})$/i.test(report.rom?.sha256||'')){
     message('Missing extraction format or source fingerprint.');
   }
   const captured=report.format==='NESForgeAudioCapture',reportDir=reports[0].slice(0,reports[0].lastIndexOf('/')+1);
@@ -27918,8 +28103,9 @@ async function open(bytes){
     for(const path of paths)while(common.length&&!path.startsWith(common.join('/')+'/'))common.pop();
     root=common.length?common.join('/')+'/':'';
   }
-  report.game=String(report.game||report.title||report.driver?.title||(captured?'Observed runtime capture':'Native extraction'));
-  const files={map:[],room:[],resource:[],capture:[],collision:[],pose:[],catalog:[],project:[],animationProject:[],nativeProject:[],audioProject:[],audioReport:[]};
+  const mario=['NESForgeSMB1Extraction','NESForgeSMB2Extraction','NESForgeSMB3Extraction'].includes(report.format);
+  report.game=String(report.game||report.title||report.driver?.title||(mario?({'NESForgeSMB1Extraction':'Super Mario Bros. 1','NESForgeSMB2Extraction':'Super Mario Bros. 2','NESForgeSMB3Extraction':'Super Mario Bros. 3'}[report.format]):captured?'Observed runtime capture':'Native extraction'));
+  const files={map:[],room:[],resource:[],capture:[],collision:[],pose:[],catalog:[],project:[],animationProject:[],nativeProject:[],audioProject:[],audioReport:[],object:[],audit:[]};
   let nativeProjectPath=null;
   if(report.format==='NESForgeNativeResourceExtraction'){
     if(typeof report.project!=='string'||!report.project||report.project.includes('\\')||report.project.startsWith('/')||report.project.split('/').some(p=>!p||p==='.'||p==='..'))message('Invalid native project path.');
@@ -27937,6 +28123,8 @@ async function open(bytes){
     const local=path.slice(root.length);
     if(/^maps\/.+\.json$/i.test(local))files.map.push(path);
     else if(/^rooms\/.+\.json$/i.test(local))files.room.push(path);
+    else if(mario&&/^(areas|levels)\/.+_objects\.json$/i.test(local))files.object.push(path);
+    else if(/^(objects_report|placement_audit|collision_check_against_game|mm2_report|stage_art_report)\.json$/i.test(local))files.audit.push(path);
     else if(/^resources\/.+\.json$/i.test(local))files.resource.push(path);
     else if(/^sprites\/.+\.nesforge\.json$/i.test(local))files.animationProject.push(path);
     else if(/^sprites\/.+\.json$/i.test(local))files.pose.push(path);
@@ -27970,7 +28158,12 @@ async function open(bytes){
        data.width<1||data.height<1||!Array.isArray(data.cells)||data.cells.length!==data.width*data.height)){
       message('The map dimensions do not match its cells.');
     }
-    if(kind==='room'&&data.format!=='NESForgeNativeSceneEvidence')message('Unsupported room evidence format.');
+    if(kind==='room'&&data.format!=='NESForgeNativeSceneEvidence'&&!(typeof data.id==='string'&&/^cv2:\d+:\d+$/.test(data.id)&&Number.isSafeInteger(data.width)&&data.width>0&&Number.isSafeInteger(data.height)&&data.height>0&&Array.isArray(data.usedBy)&&data.usedBy.length<=256&&data.source&&Number.isSafeInteger(data.source.metatileDefsFileOffset)))message('Unsupported room evidence format.');
+    if(kind==='object'){
+      if(!Array.isArray(data.objects)||data.objects.length>16384||data.objects.some(o=>!o||typeof o!=='object'||typeof o.object!=='string'||o.object.length>240||!['x','y','page','column','row','number'].every(k=>o[k]===undefined||(Number.isSafeInteger(o[k])&&o[k]>=0&&o[k]<=16777216))||o.romAddress!==undefined&&!/^\$[0-9a-f]{1,8}$/i.test(o.romAddress)))message('Invalid original object placement list.');
+      if(data.allInsideLevel!==undefined&&typeof data.allInsideLevel!=='boolean')message('Object bounds-check evidence is invalid.');
+    }
+    if(kind==='audit'&&(entries[path].size>2*1024*1024||Array.isArray(data)||!Object.keys(data).length))message('Invalid audit summary.');
     if(kind==='resource'&&(!data.resource||typeof data.resource.id!=='string'||!Array.isArray(data.pages)||!data.pages.length||data.pages.length>4096||data.pages.some(page=>!Array.isArray(page.nt)||page.nt.length!==960||!Array.isArray(page.attr)||page.attr.length!==64)))message('Invalid native resource pages.');
     if(kind==='capture'&&(data.format!=='NESForgeRuntimeSnapshot'||data.status!=='observed'||data.rom?.sha256!==report.rom.sha256.toLowerCase()||!Number.isSafeInteger(data.frame)||data.frame<0))message('Invalid or wrong-source runtime snapshot.');
     if(kind==='pose'&&(typeof data.pose?.id!=='string'||typeof data.metasprite?.id!=='string'||!Array.isArray(data.metasprite.pieces)||data.metasprite.pieces.length>256||!Array.isArray(data.sprPal)||data.sprPal.length!==4))message('Invalid exported pose fragment.');
@@ -27987,7 +28180,7 @@ async function open(bytes){
   }
   async function preview(path){
     if(!catalog.has(path))message('Select a listed resource.');
-    const kind=catalog.get(path),png=kind==='collision'?path:kind==='capture'?path.replace(/state\.json$/i,'screen.png'):kind==='animationProject'?path.replace(/\.nesforge\.json$/i,'.png'):path.replace(/\.json$/i,'.png');
+    const kind=catalog.get(path),png=kind==='collision'?path:kind==='capture'?path.replace(/state\.json$/i,'screen.png'):kind==='animationProject'?path.replace(/\.nesforge\.json$/i,'.png'):kind==='object'?path.replace(/_objects\.json$/i,'.png'):path.replace(/\.json$/i,'.png');
     if(!entries[png])return null;
     const data=await read(png);
     if(data.length<24||![137,80,78,71,13,10,26,10].every((n,i)=>data[i]===n))message('Preview is not a PNG.');
@@ -28033,13 +28226,13 @@ async function inspect(input,{name='ROM',signal}={}){
  if(/\.zip$/i.test(label)||(bytes[0]===0x50&&bytes[1]===0x4b&&bytes[2]===3&&bytes[3]===4)){
   const pack=await services.ExtractionPack.open(bytes);cancelled();
   if(pack.kind==='extraction'){
-   const titles={map:'Maps',room:'Room evidence',resource:'Native background layouts',capture:'Observed runtime screens',collision:'Exported collision references',pose:'Sprite pose fragments',catalog:'Actor / pose / script / location / RAM catalogs',project:'Scene / room projects',animationProject:'Animation projects',nativeProject:'Native resource project',audioProject:'Audio projects',audioReport:'Audio reports'};
+   const titles={map:'Maps',room:'Room evidence',resource:'Native background layouts',capture:'Observed runtime screens',collision:'Exported collision references',pose:'Sprite pose fragments',catalog:'Actor / pose / script / location / RAM catalogs',project:'Scene / room projects',animationProject:'Animation projects',nativeProject:'Native resource project',audioProject:'Audio projects',audioReport:'Audio reports',object:'Object placement tables',audit:'Extraction and parity audits'};
    const report=freeze({format:'NESForgeProjectIntake',version:1,kind:'extraction',source:{name:label,sha256:window.NativeEngineFormat.sha256(bytes),byteLength:bytes.length},
     profile:String(pack.report.game||'Native extraction'),declaredRomSha256:pack.report.rom.sha256,
     rows:Object.entries(pack.files).filter(([,paths])=>paths.length).map(([kind,paths])=>{
      const editable=['project','animationProject','nativeProject','audioProject'].includes(kind);
      return {resource:titles[kind],inspect:paths.length+' entries',edit:editable?'Open a selected Forge project':'Read-only evidence',build:kind==='nativeProject'?'Use the selected project’s registered native adapter':editable?'Use the selected project’s authored build settings':'No native writer declared'};
-    }),actions:[],limitations:[pack.report.format==='NESForgeAudioCapture'?'Observed runtime capture: the supplied scenes and finite audio transcription are editable authoring copies. This archive does not establish a native level decoder or original-engine writer.':'The ROM fingerprint is declared by the extraction report. Map and room previews carry the scopes recorded in the pack.','Collision references retain the exporter’s classes and limits. They are not automatically applied to native project physics.','Pose fragments and source catalogs are read-only evidence. Supplied animation projects open through the normal project loader.',...(Array.isArray(pack.report.problems)?pack.report.problems:[]).filter(p=>typeof p==='string').slice(0,100).map(p=>'Exported gap: '+p)]});
+    }),actions:[],limitations:[pack.report.format==='NESForgeAudioCapture'?'Observed runtime capture: the supplied scenes and finite audio transcription are editable authoring copies. This archive does not establish a native level decoder or original-engine writer.':'The ROM fingerprint is declared by the extraction report. Map and room previews carry the scopes recorded in the pack.','Collision references retain the exporter’s classes and limits. They are not automatically applied to native project physics.','Source object coordinates and test checks are evidence, not verified runtime spawn timing or native writeback.','Pose fragments and source catalogs are read-only evidence. Supplied animation projects open through the normal project loader.',...(Array.isArray(pack.report.problems)?pack.report.problems:[]).filter(p=>typeof p==='string').slice(0,100).map(p=>'Exported gap: '+p)]});
    sessions.set(report,{bytes,pack});return report;
   }
   archivedProject=pack.project;archiveKind=pack.kind;
@@ -28133,7 +28326,7 @@ services.ProjectGateway=Object.freeze({version:2,inspect,read,extraction});
 /* Selection stays local to the inspected archive. No extracted HTML is executed. */
 (()=>{
 'use strict';
-const labels={map:'Maps',room:'Room evidence',resource:'Native background layouts',capture:'Observed runtime screens',collision:'Collision references',pose:'Sprite pose previews',catalog:'Source catalogs',project:'Editable scenes / rooms',animationProject:'Editable animation projects',nativeProject:'Editable native resource project',audioProject:'Editable audio projects',audioReport:'Audio reports'};
+const labels={map:'Maps',room:'Room evidence',resource:'Native background layouts',capture:'Observed runtime screens',collision:'Collision references',pose:'Sprite pose previews',catalog:'Source catalogs',project:'Editable scenes / rooms',animationProject:'Editable animation projects',nativeProject:'Editable native resource project',audioProject:'Editable audio projects',audioReport:'Audio reports',object:'Original object placements',audit:'Extraction audits'};
 function mount(container,pack,options){
   const make=(tag,text)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=text;return node;};
   const groups=make('select'),filter=make('input'),resources=make('select'),status=make('p'),preview=make('img'),open=make('button','Open selected project');
@@ -28180,6 +28373,8 @@ function mount(container,pack,options){
     if(['project','animationProject','nativeProject','audioProject'].includes(kind)){
       return (data.projectName||'Forge project')+' · '+(data.scenes?.length||0)+' scenes · '+(data.metasprites?.length||0)+' poses · '+(data.animations?.length||0)+' animations · '+(data.patterns?.length||0)+' audio patterns.';
     }
+    if(kind==='object')return (data.level||data.area||'Source area')+' · '+data.objects.length+' decoded original object records · Read-only positions. Source CPU addresses do not prove physical bank placement or runtime spawn timing.'+(data.allInsideLevel===false?' · Some objects lie outside stated level bounds.':'');
+    if(kind==='audit')return (data.format||'Extraction audit')+' · reported results, not independently reproduced inside Forge. Select to inspect evidence.';
     if(kind==='pose')return data.pose.label+' · '+data.metasprite.pieces.length+' sprite pieces · Read-only fragment: its CHR pixels are not embedded here. Use a complete animation project or the matching ROM to edit.';
     if(kind==='catalog')return record.catalogType+' · '+data.length+' source records. Select a record to inspect its fields. Native routines and source tables do not automatically become authored actor behavior.';
     if(kind==='resource')return data.resource.label+' · '+data.pages.length+' background page(s) · '+(data.resource.reason||'Partial source background layout.');
@@ -28204,6 +28399,14 @@ function mount(container,pack,options){
       loaded=record;status.textContent=describe(record.kind,record.data,record);
       open.disabled=!['project','animationProject','nativeProject','audioProject'].includes(record.kind);
       if(record.kind==='pose'){recordDetails.textContent=JSON.stringify(record.data,null,2);recordDetails.hidden=false;}
+      if(record.kind==='object'){
+        for(const [index,item] of record.data.objects.entries()){
+          const option=make('option',(item.object||'Object')+' · '+(Number.isInteger(item.x)?('x='+item.x+' y='+item.y):'no static position')+' · '+(item.romAddress||'unmapped'));option.value=String(index);recordSelect.append(option);
+        }
+        recordLabel.hidden=!record.data.objects.length;recordDetails.hidden=false;
+        recordDetails.textContent=record.data.objects.length?JSON.stringify(record.data.objects[0],null,2):'No decoded objects in this area.';
+      }
+      if(record.kind==='audit'){recordDetails.hidden=false;recordDetails.textContent=JSON.stringify(record.data,null,2).slice(0,32000);}
       if(record.kind==='catalog'){
         for(const [index,item]of record.data.entries()){
           const option=make('option',Array.isArray(item)?'$'+item[0].toString(16).toUpperCase()+' · '+item[1]:(item.label||item.name||item.id)+' · '+item.id);option.value=String(index);recordSelect.append(option);
@@ -28211,7 +28414,7 @@ function mount(container,pack,options){
         recordLabel.hidden=false;recordDetails.hidden=false;
         recordDetails.textContent=record.data.length?JSON.stringify(record.data[0],null,2):'Empty source catalog.';
       }
-      if(['map','room','resource','capture','collision','pose','animationProject'].includes(record.kind)){
+      if(['map','room','resource','capture','collision','pose','animationProject','object'].includes(record.kind)){
         const image=await pack.preview(path);if(!active()||!image)return;
         if(typeof URL.createObjectURL==='function'){
           url=URL.createObjectURL(image);preview.src=url;preview.hidden=false;
@@ -28235,7 +28438,7 @@ function mount(container,pack,options){
     catch(error){status.textContent=error.message;}
   };
   groups.onchange=list;filter.oninput=list;resources.onchange=()=>void choose();
-  recordSelect.onchange=()=>{if(closed||!options.isCurrent()||loaded?.kind!=='catalog')return;const item=loaded.data[Number(recordSelect.value)];recordDetails.textContent=item===undefined?'No source record selected.':JSON.stringify(item,null,2);};
+  recordSelect.onchange=()=>{if(closed||!options.isCurrent()||!['catalog','object'].includes(loaded?.kind))return;const rows=loaded.kind==='catalog'?loaded.data:loaded.data.objects;const item=rows[Number(recordSelect.value)];recordDetails.textContent=item===undefined?'No source record selected.':JSON.stringify(item,null,2);};
   list();
   return ()=>{closed=true;selection++;loaded=null;clearPreview();};
 }
