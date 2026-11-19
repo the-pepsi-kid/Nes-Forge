@@ -28,10 +28,13 @@ const ASPECT=256/240;
 const state={open:false,mode:null,session:null,canvas:null,gl:null,prog:null,buf:null,screens:[],selected:0,grab:null,
   cam:{yaw:0,pitch:-0.05,dist:0,eye:[0,1.5,0.6]},raf:null,lastEmuDrive:0,buttons:{},pending:null};
 function defaultScreens(){
-  const scenes=(typeof S!=='undefined'?S.scenes:[])||[],out=[{id:'emulator',kind:'emulator',label:'Game',x:0,y:1.5,z:-1.6,yaw:0,w:1.2}];
-  const others=scenes.slice(0,10),n=others.length,arc=Math.min(Math.PI*1.1,0.36*Math.max(1,n));
-  others.forEach((sc,i)=>{const a=n===1?0.6:-arc/2+arc*(i/(n-1||1)),side=a+(a>=0?0.55:-0.55);const r=2.3;
-    out.push({id:'scene:'+sc.id,kind:'scene',sceneId:sc.id,label:sc.name,x:Math.sin(side)*r,y:i%2?1.0:1.85,z:-Math.cos(side)*r,yaw:-side,w:0.75});});
+  // The running game in front; around it one screen per World (stage) when the project has Worlds, else per Scene.
+  const worlds=(typeof S!=='undefined'?S.worlds:[])||[],scenes=(typeof S!=='undefined'?S.scenes:[])||[];
+  const items=(worlds.length?worlds.map(w=>({id:'world:'+w.id,kind:'world',worldId:w.id,label:w.name})):scenes.map(sc=>({id:'scene:'+sc.id,kind:'scene',sceneId:sc.id,label:sc.name}))).slice(0,12);
+  const out=[{id:'emulator',kind:'emulator',label:'Game',x:0,y:1.5,z:-1.6,yaw:0,w:1.2}],n=items.length,r=2.4;
+  // Two rows on a 200-degree arc behind the game screen, every screen turned to face the viewer.
+  items.forEach((it,i)=>{const row=i%2,col=Math.floor(i/2),cols=Math.ceil(n/2),a=(cols===1?0:-1.75+3.5*(col/(cols-1)))+(row?0.12:0);
+    const x=Math.sin(a)*r,z=-Math.cos(a)*r;out.push({...it,x,y:row?0.95:1.95,z,yaw:Math.atan2(-x,-z),w:0.8});});
   return out;
 }
 
@@ -63,7 +66,7 @@ function texture(screen){
     else if(screen.dirty){gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([20,20,30,255]));}
     screen.dirty=false;
   }else if(screen.dirty){
-    const c=document.createElement('canvas');let ok=false;try{ok=services.StudioShell?.drawScene?.(screen.sceneId,c);}catch(_){ok=false;}
+    const c=document.createElement('canvas');let ok=false;try{ok=screen.kind==='world'?services.StudioShell?.drawWorld?.(screen.worldId,c):services.StudioShell?.drawScene?.(screen.sceneId,c);}catch(_){ok=false;}
     if(ok)gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);else gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([30,30,40,255]));
     screen.dirty=false;
   }
@@ -131,7 +134,7 @@ function buildOverlay(){
     drag={x:e.clientX,y:e.clientY,yaw:state.cam.yaw,pitch:state.cam.pitch,moved:false};});
   canvas.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;
     if(state.grab){const ray=previewRay(e),s=state.screens[state.grab.index];s.x=ray.o[0]+ray.d[0]*state.grab.dist;s.y=ray.o[1]+ray.d[1]*state.grab.dist;s.z=ray.o[2]+ray.d[2]*state.grab.dist;face(s,ray.o);return;}
-    state.cam.yaw=drag.yaw-dx*0.005;state.cam.pitch=Math.max(-1.2,Math.min(1.2,drag.pitch-dy*0.005));});
+    state.cam.yaw=drag.yaw+dx*0.004;state.cam.pitch=Math.max(-1.1,Math.min(1.1,drag.pitch+dy*0.004));});
   canvas.addEventListener('pointerup',()=>{drag=null;state.grab=null;});
   canvas.addEventListener('wheel',e=>{e.preventDefault();const step=-Math.sign(e.deltaY)*0.15,d=camRotate([0,0,-1]);
     state.cam.eye[0]+=d[0]*step;state.cam.eye[2]+=d[2]*step;},{passive:false});
