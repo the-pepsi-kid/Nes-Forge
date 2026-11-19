@@ -23,6 +23,17 @@ function emit(plan,api,z,{world=false}={}){
   function emitCondition(actor,operation,prefix,failed){
     if(operation.type==='always')return;
     if(operation.type==='overlapPlayer'){overlap(actor,prefix,failed);return;}
+    // The player is in its attack state and the actor is within reach in front of it (and within height of its feet).
+    if(operation.type==='playerAttackHit'){
+      const ax=actorAddress('x',actor.slot),ay=actorAddress('y',actor.slot),reach=operation.reach??32,height=operation.height??32;
+      if(world){lda(actorAddress('screen',actor.slot));e(0xC5,z.screen);b(0xD0,failed);}
+      lda(z.playerState);cmp(3);b(0xD0,failed);
+      lda(z.playerFacing);b(0xD0,prefix+'_atk_left');
+      lda(ax);e(0x38,0xE5,z.playerX);b(0x90,failed);cmp(reach);b(0xB0,failed);jmp(prefix+'_atk_y');
+      label(prefix+'_atk_left');lda(z.playerX);e(0x38);abs(0xED,ax);b(0x90,failed);cmp(reach);b(0xB0,failed);
+      label(prefix+'_atk_y');lda(z.playerY);abs(0xCD,ay);b(0xB0,prefix+'_atk_pge');lda(ay);e(0x38,0xE5,z.playerY);jmp(prefix+'_atk_yd');
+      label(prefix+'_atk_pge');lda(z.playerY);e(0x38);abs(0xED,ay);label(prefix+'_atk_yd');cmp(height);b(0xB0,failed);return;
+    }
     if(operation.type==='inputEdge'||operation.type==='inputHeld'){const mask=keyMask[operation.key];if(!mask)fail('Unsupported input key '+operation.key);ld(operation.type==='inputEdge'?z.edges:z.buttons);e(0x29,mask);b(0xF0,failed);return;}
     if(operation.type==='timerDone'){lda(actorAddress('timer',actor.slot));b(0xD0,failed);return;}
     if(operation.type==='persistentCompare'){
@@ -43,7 +54,10 @@ function emit(plan,api,z,{world=false}={}){
       for(let step=0;step<speed;step++){const left=prefix+'_patrol_left_'+step,done=prefix+'_patrol_done_'+step;lda(actorAddress('direction',actor.slot));b(0xD0,left);inc(actorAddress('x',actor.slot));lda(actorAddress('x',actor.slot));cmp(max);b(0x90,done);imm(1);sta(actorAddress('direction',actor.slot));jmp(done);label(left);dec(actorAddress('x',actor.slot));lda(actorAddress('x',actor.slot));cmp(min);b(0xB0,done);imm(0);sta(actorAddress('direction',actor.slot));label(done);}return;
     }
     if(operation.type==='contactDamage'){
-      const done=prefix+'_damage_done',playerHealth=actorAddress('health',plan.compatibilityPlayerSlot);lda(actorAddress('timer',actor.slot));b(0xD0,done);overlap(actor,prefix+'_damage',done);lda(playerHealth);b(0xF0,done);dec(playerHealth);imm(operation.cooldown??30);sta(actorAddress('timer',actor.slot));label(done);return;
+      const done=prefix+'_damage_done',playerHealth=actorAddress('health',plan.compatibilityPlayerSlot);lda(actorAddress('timer',actor.slot));b(0xD0,done);overlap(actor,prefix+'_damage',done);lda(playerHealth);b(0xF0,done);dec(playerHealth);imm(operation.cooldown??30);sta(actorAddress('timer',actor.slot));
+      // World: when the player's health runs out it restarts at the spawn with full health.
+      if(world&&plan.compatibilityPlayerHealth){lda(playerHealth);b(0xD0,done);imm(plan.compatibilityPlayerHealth);sta(playerHealth);jsr('restart');}
+      label(done);return;
     }
     if(operation.type==='syncActiveFromPersistent'){
       const index=persistentIndex(actor,operation.variableId),truth=prefix+'_sync_truth',done=prefix+'_sync_done';lda(persistentAddress(index));b(0xD0,truth);imm(operation.whenTrue?0:1);sta(actorAddress('active',actor.slot));jmp(done);label(truth);imm(operation.whenTrue?1:0);sta(actorAddress('active',actor.slot));label(done);return;
@@ -70,7 +84,17 @@ function emit(plan,api,z,{world=false}={}){
     }label(done);
   }e(0x60);
   label(uniquePrefix+'draw');
-  for(const actor of plan.actors){if(actor.components.includes('Input')||!actor.renderEnabled)continue;const prefix=uniquePrefix+'draw_'+actor.slot,skip=prefix+'_skip';lda(actorAddress('active',actor.slot));b(0xF0,skip);if(world){lda(actorAddress('screen',actor.slot));e(0xC5,z.screen);b(0xD0,skip);}ld(z.oamIndex);cmp(253);b(0xB0,skip);e(0xAA);lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0x38,0xE9,1);abs(0x9D,0x0200);imm(actor.render.tile&255);abs(0x9D,0x0201);imm((actor.render.palette&3)|(actor.render.behind?32:0));abs(0x9D,0x0202);lda(actorAddress('x',actor.slot));abs(0x9D,0x0203);ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(skip);}e(0x60);
+  for(const actor of plan.actors){if(actor.components.includes('Input')||!actor.renderEnabled)continue;const prefix=uniquePrefix+'draw_'+actor.slot,skip=prefix+'_skip';lda(actorAddress('active',actor.slot));b(0xF0,skip);if(world){lda(actorAddress('screen',actor.slot));e(0xC5,z.screen);b(0xD0,skip);}if(actor.render.pieces){
+    // Metasprite: pieces relative to the actor's position (its feet); mirrored when it moves left. Pieces that would
+    // wrap past a screen edge are skipped.
+    lda(actorAddress('y',actor.slot));b(0xF0,skip);
+    const emitPieces=mirror=>actor.render.pieces.forEach((p,i)=>{const next=prefix+'_p'+i+(mirror?'m':''),dx=mirror?-p.x-8:p.x;
+      ld(z.oamIndex);cmp(253);b(0xB0,skip);e(0xAA);
+      lda(actorAddress('x',actor.slot));e(0x18,0x69,dx&255);b(dx>=0?0xB0:0x90,next);abs(0x9D,0x0203);
+      lda(actorAddress('y',actor.slot));e(0x18,0x69,(p.y-1)&255);abs(0x9D,0x0200);imm(p.tile&255);abs(0x9D,0x0201);imm((mirror?p.attr^0x40:p.attr)&255);abs(0x9D,0x0202);
+      ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(next);});
+    lda(actorAddress('direction',actor.slot));b(0xD0,prefix+'_mirror');emitPieces(false);jmp(skip);label(prefix+'_mirror');emitPieces(true);label(skip);continue;}
+  ld(z.oamIndex);cmp(253);b(0xB0,skip);e(0xAA);lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0x38,0xE9,1);abs(0x9D,0x0200);imm(actor.render.tile&255);abs(0x9D,0x0201);imm((actor.render.palette&3)|(actor.render.behind?32:0));abs(0x9D,0x0202);lda(actorAddress('x',actor.slot));abs(0x9D,0x0203);ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(skip);}e(0x60);
   const codeEnd=current();if(codeEnd>0xCFF0)fail('Generated actor evaluator exceeds the current NROM code/resource region');
   return{zp:{temp,temp2,lastScreen},arrays:A,actorCount:plan.actors.length,variableCount:plan.variables.length,labels:{init:uniquePrefix+'init',reconstruct:uniquePrefix+'reconstruct',update:uniquePrefix+'update',draw:uniquePrefix+'draw'}};
 }
