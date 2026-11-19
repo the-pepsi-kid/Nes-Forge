@@ -5,7 +5,7 @@
 // 1. The reference interpreter equals the original dispatcher on every full pose of every fighter.
 // 2. Every full pose re-encoded by the encoder decodes, through the original dispatcher, to exactly the same OAM.
 // 3. Through the command core: an unchanged import rebuilds the original; Mike Tyson pose $00 made half size builds,
-//    decodes to the new layout, survives save/reopen, and leaves every other pose unchanged.
+//    decodes to the new layout, undoes to the original, survives save/reopen, and leaves every other pose unchanged.
 // 4. In the emulator, the half-size build follows the original's game trace (pose selector and fighter position per
 //    frame) from the passcode through the bout start, i.e. the edit does not disturb the game (sprite-0 split, latches).
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto'), assert = require('node:assert/strict');
@@ -67,7 +67,7 @@ check('Every full pose re-encoded decodes through the original dispatcher to the
   }
 });
 let half = null;
-check('Command core: unchanged import rebuilds the original; Tyson pose $00 at half size builds and reopens', async () => {
+check('Command core: unchanged import rebuilds the original; Tyson pose $00 at half size builds, undoes and reopens', async () => {
   const {R} = forge();
   await R('rom.import', {bytes: rom, name: 'punch-out.nes'});
   assert.equal((await R('build.rom')).sha256, sha(rom), 'unchanged import');
@@ -81,6 +81,8 @@ check('Command core: unchanged import rebuilds the original; Tyson pose $00 at h
   for (const f of before.fights) for (const p of f.poses) if (p.status === 'source-record' && !(f.index === 13 && p.selector === 0))
     assert.deepEqual(PC.open(half).pose(f.index, p.selector).oam, before.pose(f.index, p.selector).oam, f.label + ' $' + p.selector.toString(16));
   const saved = (await R('project.save')).json;
+  await R('project.undo');
+  assert.equal((await R('build.rom')).sha256, sha(rom), 'Undo restores the original build');
   await R('project.load', {json: saved});
   assert.equal((await R('build.rom')).sha256, built.sha256, 'save/reopen rebuild');
 });

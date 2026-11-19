@@ -81,9 +81,15 @@ function registerAdapter({id,kind,title}){
 // ---------- shared helpers ----------
 const store=()=>services.ProjectStore;
 function project(){return JSON.parse(store().serialize());}
-function commitProject(next,intent){
+// Edits are one Undo step: the editor's history snapshot is taken before the commit, as the panels do.
+// Opening a different project (ROM import) is not an edit: it starts a fresh history like Open.
+function commitProject(next,intent,{open=false}={}){
   const prepared=store().prepareLoad(typeof next==='string'?next:JSON.stringify(next));
-  store().commit(prepared,{sync:true,intent:'command:'+intent});
+  if(open)store().commit(prepared,{intent:'command:'+intent});
+  else{
+    if(typeof snapshot==='function'&&snapshot()===false)fail('History could not preserve the current project. Save it first.');
+    store().commit(prepared,{sync:true,intent:'command:'+intent});
+  }
   emit({type:'project',intent});
 }
 async function sha256(bytes){const d=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');}
@@ -179,6 +185,10 @@ register({name:'project.new',group:'project',title:'New blank project',mutates:t
   run:()=>{store().initializeBlank();rememberBuildable();emit({type:'project',intent:'new'});return {name:store().capture().projectName};}});
 register({name:'project.load',group:'project',title:'Load a Forge project (JSON text)',mutates:true,args:{json:{type:'string',required:true}},
   run:a=>{store().load(a.json,{intent:'command:load'});rememberBuildable();emit({type:'project',intent:'load'});return {name:store().capture().projectName};}});
+register({name:'project.undo',group:'project',title:'Undo',mutates:true,summary:'Reverts the last edit (any panel or command).',
+  run:()=>{if(typeof undo!=='function'||!undoStack.length)fail('Nothing to undo');undo();emit({type:'project',intent:'undo'});return {remaining:undoStack.length};}});
+register({name:'project.redo',group:'project',title:'Redo',mutates:true,
+  run:()=>{if(typeof redo!=='function'||!redoStack.length)fail('Nothing to redo');redo();emit({type:'project',intent:'redo'});return {remaining:redoStack.length};}});
 register({name:'project.save',group:'project',title:'Serialize the project',summary:'Returns the project JSON exactly as Save Project writes it.',
   run:()=>({json:store().serialize()})});
 register({name:'project.replace',group:'project',title:'Commit an edited project',mutates:true,
@@ -194,7 +204,7 @@ register({name:'rom.inspect',group:'rom',title:'Inspect a ROM (intake report)',
 register({name:'rom.import',group:'rom',title:'Import a ROM as a new project',mutates:true,
   summary:'Same as "Prepare investigated game" + "Import as new project": preserved source and every recovered catalog, one ProjectStore commit.',
   args:{bytes:{type:'bytes',required:true},name:{type:'string',default:'rom.nes'}},
-  run:async a=>{const project=await services.InvestigationProject.create(a.bytes,a.name);commitProject(project,'rom-import');rememberBuildable();
+  run:async a=>{const project=await services.InvestigationProject.create(a.bytes,a.name);commitProject(project,'rom-import',{open:true});rememberBuildable();
     let described=null;try{described=cp(services.InvestigationProject.describe(project.investigation));}catch(_){described=null;}
     return {name:store().capture().projectName,investigation:described};}});
 
@@ -269,15 +279,22 @@ registerSuggestions(({p,node,cap})=>{
       note:'The fighter scene is a reference snapshot. Pixel edits in the bank view are encoded into the ROM; open a pose\'s piece layout view to move, add or remove its pieces.',
       sharedWith:shared});
   }
+  // Pose writers: from a recovered pose metasprite or from a fighter's sprite Scene, with a picker over every full pose.
   const pose=node.type==='metasprite'&&/^po-pose-f(\d+)-s(\d+)$/.exec(node.id);
-  if(pose&&services.PunchOutPoseProject){
-    const fight=+pose[1],selector=+pose[2];
-    if(selector<128&&services.PunchOutPoseGeometryProject)out.push({writer:'punch-out-pose-geometry',args:{writer:'punch-out-pose-geometry',fight,index:selector},level:'native',
-      title:'Edit this pose\'s pieces (writes the layout to the ROM)',note:'Positions, order, count, tiles, palettes and flips. The original layout stays in the ROM for other poses that share it; the build re-checks the pose with the game\'s own routine. New artwork goes in the CHR bank view.',sharedWith:[]});
-    if(selector<128&&services.PunchOutPoseGeometryProject)out.push({writer:'punch-out-pose-geometry',command:'writer.halfSize',label:'Make half size',args:{fight,index:selector},level:'native',
-      title:'Make this pose half size (new artwork + layout)',note:'Draws a half-size copy of this pose into CHR tiles no decoded pose uses, and points this pose at it. Other poses keep their full-size art.',sharedWith:[]});
-    if(fight===0)out.push({writer:'punch-out-pose',args:{writer:'punch-out-pose',index:selector},level:'native',title:'Move this Glass Joe pose (writes X/Y to the ROM)',note:'Whole-pose position only.',sharedWith:[]});
-    if(selector>=128&&fight!==0)out.push({writer:null,level:'copy',title:'No writer for incremental poses of this fighter yet',note:'Incremental poses patch the full pose before them. Edit the full poses, or graphics through the CHR bank view.',sharedWith:[]});
+  const fighter=pose?+pose[1]:(node.type==='scene'&&content&&Number.isInteger(content.fight)?content.fight:null);
+  if(fighter!==null&&services.PunchOutPoseGeometryProject){
+    const fight=fighter,selector=pose?+pose[2]:0,hex=n=>'$'+n.toString(16).toUpperCase().padStart(2,'0');
+    let list=[];try{list=services.PunchOutPoseGeometryProject.poses(p).find(f=>f.fight===fight)?.selectors||[];}catch(_){list=[];}
+    const choices=list.map(index=>({label:'Pose '+hex(index),args:{fight,index}}));
+    if(selector<128&&list.length){
+      out.push({writer:'punch-out-pose-geometry',args:{writer:'punch-out-pose-geometry',fight,index:selector},level:'native',
+        choices:choices.map(c=>({label:c.label,args:{writer:'punch-out-pose-geometry',...c.args}})),
+        title:'Edit a pose\'s pieces (writes the layout to the ROM)',note:'Positions, order, count, tiles, palettes and flips. The original layout stays in the ROM for other poses that share it; the build re-checks the pose with the game\'s own routine. New artwork goes in the CHR bank view.',sharedWith:[]});
+      out.push({writer:'punch-out-pose-geometry',command:'writer.halfSize',label:'Make half size',args:{fight,index:selector},level:'native',choices,
+        title:'Make a pose half size (new artwork + layout)',note:'Draws a half-size copy of the chosen pose into CHR tiles no decoded pose uses, and points that pose at it. Other poses keep their full-size art. Undo restores it.',sharedWith:[]});
+    }
+    if(pose&&fight===0&&services.PunchOutPoseProject)out.push({writer:'punch-out-pose',args:{writer:'punch-out-pose',index:selector},level:'native',title:'Move this Glass Joe pose (writes X/Y to the ROM)',note:'Whole-pose position only.',sharedWith:[]});
+    if(pose&&selector>=128&&fight!==0)out.push({writer:null,level:'copy',title:'No writer for incremental poses of this fighter yet',note:'Incremental poses patch the full pose before them. Edit the full poses, or graphics through the CHR bank view.',sharedWith:[]});
   }
   return out;
 });

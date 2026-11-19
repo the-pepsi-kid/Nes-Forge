@@ -69,7 +69,7 @@ body.studio-mode-library #studioPanel,body.studio-mode-build #studioPanel{displa
 .sp-detail h2{font-size:13px;color:#fff;margin:0 0 6px}.sp-detail p{margin:6px 0;line-height:1.45}.sp-detail .note{color:var(--dim)}
 .sp-detail ul{margin:4px 0;padding-left:16px}.sp-detail li{margin:2px 0}.sp-link{background:none!important;border:0!important;color:var(--acc)!important;padding:0!important;min-height:0!important;text-decoration:underline;cursor:pointer}
 .sp-actions{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.sp-actions .primary{background:#14324a;border-color:var(--acc)}
-.sp-sugg{border:1px solid var(--bdr2);padding:6px;margin:6px 0}.sp-sugg .shared{color:var(--orn)}
+.sp-sugg{border:1px solid var(--bdr2);padding:6px;margin:6px 0}.sp-sugg .sp-pick{margin:4px 6px 4px 0;max-width:60%}.sp-sugg .shared{color:var(--orn)}
 .sp-more{grid-column:1/-1}
 .sp-build .sp-body{flex-direction:column;overflow:auto;padding:10px;gap:8px}
 .bd-card{border:1px solid var(--bdr2);padding:8px}.bd-ok{border-color:#3a6a3a}.bd-err{border-color:#7a3a3a}.bd-card h3{margin:0 0 4px;font-size:12px}
@@ -237,10 +237,15 @@ async function inspect(key,detail){
   const suggestions=sugg.ok?sugg.result.suggestions:[];
   detail.replaceChildren(el('h2',{text:r.name}),el('p',{},badge(r.editability.level),' ',lv.label),
     el('p',{class:'note',text:r.editability.note}),r.summary?el('p',{text:r.summary}):null,r.details?el('p',{class:'note',text:r.details}):null,actions,
-    ...suggestions.map(s=>el('div',{class:'sp-sugg'},el('p',{},badge(s.level),' ',s.title),el('p',{class:'note',text:s.note}),
-      s.sharedWith?.length?el('p',{class:'shared',text:'Also changes: '+s.sharedWith.join(', ')}):null,
-      s.args?el('button',{class:'primary',onclick:async()=>{const res=await run(s.command||'writer.prepare',s.args);if(!res.ok){showToast?.(res.error.message);return;}
-        if(res.result.resourceKey){lib.selected=res.result.resourceKey;await renderLibrary();}}},s.label||'Open writer view'):null)),
+    ...suggestions.map(s=>{
+      // A suggestion may offer choices (e.g. every pose of a fighter); the button runs the selected one.
+      const pick=s.choices?.length?el('select',{class:'sp-pick','aria-label':'Choose'},...s.choices.map((c,i)=>{const o=el('option',{value:String(i),text:c.label});
+        if(JSON.stringify(c.args)===JSON.stringify(s.args))o.selected=true;return o;})):null;
+      const args=()=>pick?s.choices[+pick.value].args:s.args;
+      return el('div',{class:'sp-sugg'},el('p',{},badge(s.level),' ',s.title),el('p',{class:'note',text:s.note}),
+      s.sharedWith?.length?el('p',{class:'shared',text:'Also changes: '+s.sharedWith.join(', ')}):null,pick,
+      s.args?el('button',{class:'primary',onclick:async()=>{const res=await run(s.command||'writer.prepare',args());if(!res.ok){showToast?.(res.error.message);return;}
+        if(res.result.resourceKey){lib.selected=res.result.resourceKey;await renderLibrary();}}},s.label||'Open writer view'):null);}),
     el('h3',{text:'Uses'}),links(r.uses),el('h3',{text:'Used by'}),links(r.usedBy),el('p',{class:'note',text:'Key: '+r.key}));
 }
 

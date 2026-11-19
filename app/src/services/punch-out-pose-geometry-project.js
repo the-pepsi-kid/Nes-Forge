@@ -406,5 +406,13 @@
       bankAlsoUsedBy: model.fights.filter(x => [...x.poses.values()].some(q => q.decoded.chrBank4KiB === chrBank)).map(x => x.fight.label)};
   }
 
-  services.PunchOutPoseGeometryProject = Object.freeze({prepare, describe, setPieces, halfSize, sceneId, frameId, verifiedRevisions: VERIFIED});
+  /* Full poses per fighter, for pickers. Read-only. */
+  function poses(project) {
+    const info = owner.validate(project);
+    if (info.adapter.kind !== 'punch-out') return [];
+    return source(info).fights.map(f => ({fight: f.fight.index, label: f.fight.label,
+      selectors: [...f.poses.keys()].sort((a, b) => a - b)}));
+  }
+
+  services.PunchOutPoseGeometryProject = Object.freeze({prepare, describe, setPieces, halfSize, poses, sceneId, frameId, verifiedRevisions: VERIFIED});
 })();
