@@ -488,17 +488,21 @@ def run(args):
       "note": "This index organizes evidence from multiple tools; empty/unverified does not mean absent from the game."
     }
     placement = make_placement_ledger(rom_hash, forge_identity["sha256"], header, verified_bank_checks)
+    placement_diagnostics = []
     investigated_file = private / "investigated/catalog.private.json"
     if investigated_stats and verified_bank_checks is not None and investigated_file.is_file():
         try:
             placement = attach_investigated_catalog(placement, read_json(investigated_file))
         except (ValueError, KeyError, TypeError) as exc:
-            warnings.append("Investigated placement rejected: " + str(exc)[:200])
+            diagnostic = "Investigated placement rejected: " + str(exc)[:200]
+            placement_diagnostics.append(diagnostic)
+            warnings.append(diagnostic)
     inventory["placement_ledger"] = {"schema": placement["schema"], "file": "placement.json",
                                      "verified_raw_banks": placement["verified_raw_banks"],
                                      "scope": "verified physical locations only; scene/runtime placement unresolved"}
     inventory["placement_ledger"]["catalogued_scenes"] = placement.get("investigated_catalog", {}).get("scene_count", 0)
     inventory["placement_ledger"]["catalogued_spawns"] = placement.get("investigated_catalog", {}).get("spawn_record_count", 0)
+    inventory["placement_ledger"]["diagnostics"] = placement_diagnostics
     write_json(private / "placement.json", placement)
     write_json(private / "inventory.json", inventory)
     public["observed_counts"]["runtime_frames"] = capture_stats["frames_checked"]
@@ -514,6 +518,7 @@ def run(args):
              "native_tool_sha256": digest(native_script) if native_script.is_file() else None,
              "stages": stages,
              "domains": domains, "qwen": qwen,
+             "placement_diagnostics": placement_diagnostics,
              "private_output": str(private), "public_summary": str(review / "evidence.json")}
     queue = {"schema": "NESForgeInvestigationQueue/v0.1",
              "rom_sha256": rom_hash, "editor_sha256": forge_identity["sha256"],
