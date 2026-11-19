@@ -32505,7 +32505,9 @@ function nodesAndEdges(){
 function editability(node,ctx){
   const t=node.type,open=node.open||{},sceneId=open.sceneId||(t==='scene'?node.id:null);
   if(['source','native','audio-evidence','evidence'].includes(t)||node.evidenceKind||node.apuAuditDigest)return {level:'reference',note:'Read-only source evidence.'};
-  if(ctx.cap.kind!=='native')return {level:'build',note:'Authored asset; compiled into your Forge game.'};
+  if(ctx.cap.kind==='author')return {level:'build',note:'Authored asset; compiled into your Forge game.'};
+  // Preserved-source projects (ROM inspection and similar) output the original ROM unchanged and refuse edits.
+  if(ctx.cap.kind!=='native')return {level:'copy',note:'Preserved-source project: edits are saved, but the build only outputs the unchanged original ROM ('+(ctx.cap.label||ctx.cap.kind)+').'};
   if(!ctx.own)return {level:'unknown',note:'This native project type does not publish per-asset ownership yet. Writers: '+ctx.cap.writers.map(w=>w.title).join('; ')};
   const fieldFor={scene:null,chr:['chr','sprChr'],palette:['pal','sprPal','bgColor'],tile:['chr','sprChr'],collision:[],sprite:[]};
   if(t==='metasprite'){const w=ctx.own.metasprites[node.id];return w?{level:'native',writers:w,note:'Native writer: '+w.map(x=>x.writer+' ('+x.fields.join(', ')+')').join('; ')}:{level:'copy',note:'Saved with the project; the native build refuses changes to this pose.'};}

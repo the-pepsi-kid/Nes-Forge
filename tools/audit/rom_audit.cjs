@@ -5,6 +5,7 @@
  editor through Forge.commands (the same path as the UI), not taken from documentation.
 
    node tools/audit/rom_audit.cjs --roms <folder of .nes> [--packs <folder of extraction ZIPs>] --out <folder> [--forge NES_Forge.html]
+   node tools/audit/rom_audit.cjs --report-only --out <folder>     (rebuild matrix/report from saved per-ROM results)
 
  Per ROM (one fresh editor each):
    identity    SHA-256, size, iNES / NES 2.0 header, declared mapper and the mapper after ignoring a dirty header
@@ -38,7 +39,7 @@ if (argv.includes('--one')) {
     const bytes = fs.readFileSync(romPath), sha = crypto.createHash('sha256').update(bytes).digest('hex');
     const hd = bytes.subarray(0, 16), nes2 = (hd[7] & 0x0C) === 0x08, dirty = !nes2 && hd.subarray(8, 16).some(b => b !== 0);
     const declared = (hd[6] >> 4) | (hd[7] & 0xF0), corrected = dirty ? (hd[6] >> 4) : declared;
-    const out = { file: path.basename(romPath), sha256: sha, byteLength: bytes.length,
+    const out = { file: path.basename(romPath), sha256: sha, byteLength: bytes.length, forgeSha256: crypto.createHash('sha256').update(fs.readFileSync(forgePath)).digest('hex'),
       header: { format: hd.subarray(0, 4).toString('latin1') === 'NES\x1a' ? (nes2 ? 'NES 2.0' : 'iNES') : 'unknown', prgKiB: hd[4] * 16, chrKiB: hd[5] * 8, chrRam: hd[5] === 0,
         declaredMapper: declared, mapper: corrected, dirtyHeader: dirty }, steps: {} };
     const step = async (name, fn) => { try { out.steps[name] = await fn(); } catch (e) { out.steps[name] = { error: String(e.message).slice(0, 300) }; } };
@@ -76,10 +77,11 @@ if (argv.includes('--one')) {
 
 // ---------- parent: run every ROM, then build the matrix ----------
 const romDir = opt('roms'), outDir = opt('out'), packDir = opt('packs', null);
-if (!romDir || !outDir) { console.error('Usage: node tools/audit/rom_audit.cjs --roms <dir> [--packs <dir>] --out <dir> [--forge NES_Forge.html]'); process.exit(1); }
-const roms = fs.readdirSync(romDir).filter(n => /\.(nes)$/i.test(n)).sort();
+if ((!romDir && !argv.includes('--report-only')) || !outDir) { console.error('Usage: node tools/audit/rom_audit.cjs --roms <dir> [--packs <dir>] --out <dir> [--forge NES_Forge.html]'); process.exit(1); }
+const reportOnly = argv.includes('--report-only');
+const roms = reportOnly ? [] : fs.readdirSync(romDir).filter(n => /\.(nes)$/i.test(n)).sort();
 fs.mkdirSync(path.join(outDir, 'roms'), { recursive: true });
-const results = [];
+const results = reportOnly ? fs.readdirSync(path.join(outDir, 'roms')).filter(n => n.endsWith('.json')).sort().map(n => JSON.parse(fs.readFileSync(path.join(outDir, 'roms', n), 'utf8'))) : [];
 for (const name of roms) {
   process.stderr.write('auditing ' + name + ' ... ');
   let r;
@@ -112,7 +114,7 @@ const rows = results.map(r => {
   const cats = Object.fromEntries(CATS.map(([n, f]) => [n, imp.error ? 'import failed' : state(f(imp), kind)]));
   const audio = r.steps?.audio?.driver ? 'catalog ' + r.steps.audio.cues + ' cues (no native writer)' : 'not identified';
   const packs = (r.steps?.packs || []).map(p => Object.entries(p.groups).map(([k, v]) => k + ' ' + v).join(', ')).join(' | ');
-  return { title: r.file.replace(/\.nes$/i, ''), sha256: r.sha256, mapper: r.header ? r.header.mapper + (r.header.dirtyHeader ? ' (header says ' + r.header.declaredMapper + ')' : '') : '?',
+  return { title: r.file.replace(/\.nes$/i, ''), sha256: r.sha256, mapper: r.header ? r.header.mapper + (r.header.dirtyHeader && r.header.declaredMapper !== r.header.mapper ? ' (header says ' + r.header.declaredMapper + ')' : '') : '?',
     profile: r.steps?.intake?.profile || '—', kind: kind || '—', writers: (imp.writers || []).map(w => w.title).join('; ') || '—', cats, audio,
     builds: r.steps?.build?.builds ? (r.steps.build.identicalToSource ? 'yes, identical to source' : 'yes') : 'no', roundTrip: r.steps?.roundTrip?.reopens ? (r.steps.roundTrip.sameResourceCount && r.steps.roundTrip.sameBuild ? 'yes' : 'partial') : 'no',
     packs: packs || '—', fatal: r.fatal || null };
@@ -131,13 +133,14 @@ for (const row of rows) {
   if (!row.builds.startsWith('yes')) gap('build', 'Unchanged import does not build').roms.push(row.title);
   if (row.roundTrip !== 'yes') gap('roundtrip', 'Save / reopen does not return the same project').roms.push(row.title);
 }
+const auditedWith = [...new Set(results.map(r => r.forgeSha256).filter(Boolean))], editorShas = auditedWith.length ? auditedWith : [crypto.createHash('sha256').update(fs.readFileSync(forgePath)).digest('hex')];
 const backlog = Object.entries(gaps).map(([k, g]) => ({ key: k, title: g.title, count: g.roms.length, roms: g.roms })).sort((a, b) => b.count - a.count);
-fs.writeFileSync(path.join(outDir, 'audit.json'), JSON.stringify({ format: 'NESForgeRomAudit', version: 1, forgeSha256: crypto.createHash('sha256').update(fs.readFileSync(forgePath)).digest('hex'), roms: results.length, rows, backlog }, null, 1));
+fs.writeFileSync(path.join(outDir, 'audit.json'), JSON.stringify({ format: 'NESForgeRomAudit', version: 1, forgeSha256: editorShas, roms: results.length, rows, backlog }, null, 1));
 const csvCell = v => '"' + String(v).replace(/"/g, '""') + '"';
 fs.writeFileSync(path.join(outDir, 'matrix.csv'), [['ROM', 'SHA-256', 'Mapper', 'Intake profile', 'Project kind', 'Native writers', ...CATS.map(c => c[0]), 'Audio', 'Unchanged build', 'Save/reopen', 'Extraction packs'].map(csvCell).join(','),
   ...rows.map(r => [r.title, r.sha256, r.mapper, r.profile, r.kind, r.writers, ...CATS.map(c => r.cats[c[0]]), r.audio, r.builds, r.roundTrip, r.packs].map(csvCell).join(','))].join('\n') + '\n');
 const md = ['# NES Forge ROM capability audit', '',
-  'Measured by importing each exact ROM through `Forge.commands` (the same path as the editor), listing every resource with its editability level, building the unchanged import and saving / reopening it. Editor SHA-256 `' + crypto.createHash('sha256').update(fs.readFileSync(forgePath)).digest('hex') + '`.', '',
+  'Measured by importing each exact ROM through `Forge.commands` (the same path as the editor), listing every resource with its editability level, building the unchanged import and saving / reopening it. Editor SHA-256 `' + editorShas.join('`, `') + '`' + (editorShas.length > 1 ? ' (results come from more than one editor build)' : '') + '.', '',
   'States: **rebuild** = edits reach a built ROM (authored game, or a registered native writer); **edit copy** = editable but a native build refuses the change; **visible** = shown in the Library, read-only; **none** = not decoded.', '',
   '| ROM | Mapper | Kind | ' + CATS.map(c => c[0]).join(' | ') + ' | Audio | Unchanged build | Save/reopen |', '|' + '---|'.repeat(CATS.length + 6),
   ...rows.map(r => '| ' + [r.title, r.mapper, r.kind, ...CATS.map(c => r.cats[c[0]]), r.audio, r.builds, r.roundTrip].join(' | ') + ' |'), '',
