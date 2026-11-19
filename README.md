@@ -2,6 +2,21 @@
 
 Standalone NES/6502 game authoring and ROM investigation, with visual editors, source tools, an emulator and a local multiplayer pilot.
 
+## License
+
+**Open source — Apache License 2.0.** Original NES Forge code and documentation
+contributed under this project license may be used, modified, redistributed,
+forked, and used commercially under the conditions in [LICENSE](LICENSE).
+Preserve applicable attributions in [NOTICE](NOTICE) and review the
+[third-party provenance inventory](docs/licensing/THIRD_PARTY_REVIEW.md).
+The inventory remains under review; some third-party material has separate
+terms.
+
+This does **not** license commercial NES ROMs, imported game graphics/music,
+private game captures, game trademarks or third-party content. Users bring
+their own legitimately obtained material. Tokenizing or placing an asset
+on-chain does not grant copyright permission.
+
 ## Open the current build
 
 Download **Code → Download ZIP**, extract it and open **[nes-forge.html](nes-forge.html)** in Chrome or Edge. **[NES_Forge.html](NES_Forge.html)** contains exactly the same editor and is the entry served by the multiplayer host. Both are generated from one ordered source manifest.
@@ -62,7 +77,7 @@ Native recovery and writeback remain partial and title-specific. Full enemy AI, 
 - [Original Pepsi archive branch](https://github.com/the-pepsi-kid/Nes-Forge/tree/archive/original-pepsi) and [original standalone HTML](archive/original-pepsi.html).
 - [Earlier beginner tutorial](docs/getting-started/Your_First_NES_Game.md) and [native recovery guides](app/docs/projects/README.md).
 
-[Send alpha feedback](https://github.com/the-pepsi-kid/Nes-Forge/issues/new?template=alpha-feedback.yml). Preserve existing upstream notices; the project-wide license remains undecided.
+[Send alpha feedback](https://github.com/the-pepsi-kid/Nes-Forge/issues/new?template=alpha-feedback.yml). Preserve existing upstream notices and the repository's open-source licensing terms.
 
 ## Developer companion: Agent Lab and on-chain cartridge research
 
