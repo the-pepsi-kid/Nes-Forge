@@ -69,7 +69,7 @@ def record(row):
     index['results'].append(row)
 
 record(run('bundle',[sys.executable,ROOT/'app/tools/bundle.py','--check']))
-cases = [('DG-runtime',QA/'t/recover.cjs'),('editor',QA/'t/editor.cjs'),('zip-limits',QA/'t/zip-limits.cjs'),('ai-controls',QA/'t/ai-controls.cjs'),
+cases = [('DG-runtime',QA/'t/recover.cjs'),('editor',QA/'t/editor.cjs'),('zip-limits',QA/'t/zip-limits.cjs'),('pack-check',QA/'t/pack-check.cjs'),('ai-controls',QA/'t/ai-controls.cjs'),
          ('mmc2',QA/'t/u/mmc2-prefetch.cjs'),('audio-library',QA/'t/u/native-audio-library.cjs')]
 for name in ['native-lolo-resources','native-metroid-resources','punch-out','river-city','shadowgate','lolo-audio','metroid-audio','workstation-startup-dom']:
     cases.append((name,APP_TESTS/(name+'.cjs')))
