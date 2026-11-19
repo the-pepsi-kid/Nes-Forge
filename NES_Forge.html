@@ -32483,9 +32483,15 @@ function registerAdapter({id,kind,title}){
 // ---------- shared helpers ----------
 const store=()=>services.ProjectStore;
 function project(){return JSON.parse(store().serialize());}
-function commitProject(next,intent){
+// Edits are one Undo step: the editor's history snapshot is taken before the commit, as the panels do.
+// Opening a different project (ROM import) is not an edit: it starts a fresh history like Open.
+function commitProject(next,intent,{open=false}={}){
   const prepared=store().prepareLoad(typeof next==='string'?next:JSON.stringify(next));
-  store().commit(prepared,{sync:true,intent:'command:'+intent});
+  if(open)store().commit(prepared,{intent:'command:'+intent});
+  else{
+    if(typeof snapshot==='function'&&snapshot()===false)fail('History could not preserve the current project. Save it first.');
+    store().commit(prepared,{sync:true,intent:'command:'+intent});
+  }
   emit({type:'project',intent});
 }
 async function sha256(bytes){const d=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');}
@@ -32581,6 +32587,10 @@ register({name:'project.new',group:'project',title:'New blank project',mutates:t
   run:()=>{store().initializeBlank();rememberBuildable();emit({type:'project',intent:'new'});return {name:store().capture().projectName};}});
 register({name:'project.load',group:'project',title:'Load a Forge project (JSON text)',mutates:true,args:{json:{type:'string',required:true}},
   run:a=>{store().load(a.json,{intent:'command:load'});rememberBuildable();emit({type:'project',intent:'load'});return {name:store().capture().projectName};}});
+register({name:'project.undo',group:'project',title:'Undo',mutates:true,summary:'Reverts the last edit (any panel or command).',
+  run:()=>{if(typeof undo!=='function'||!undoStack.length)fail('Nothing to undo');undo();emit({type:'project',intent:'undo'});return {remaining:undoStack.length};}});
+register({name:'project.redo',group:'project',title:'Redo',mutates:true,
+  run:()=>{if(typeof redo!=='function'||!redoStack.length)fail('Nothing to redo');redo();emit({type:'project',intent:'redo'});return {remaining:redoStack.length};}});
 register({name:'project.save',group:'project',title:'Serialize the project',summary:'Returns the project JSON exactly as Save Project writes it.',
   run:()=>({json:store().serialize()})});
 register({name:'project.replace',group:'project',title:'Commit an edited project',mutates:true,
@@ -32596,7 +32606,7 @@ register({name:'rom.inspect',group:'rom',title:'Inspect a ROM (intake report)',
 register({name:'rom.import',group:'rom',title:'Import a ROM as a new project',mutates:true,
   summary:'Same as "Prepare investigated game" + "Import as new project": preserved source and every recovered catalog, one ProjectStore commit.',
   args:{bytes:{type:'bytes',required:true},name:{type:'string',default:'rom.nes'}},
-  run:async a=>{const project=await services.InvestigationProject.create(a.bytes,a.name);commitProject(project,'rom-import');rememberBuildable();
+  run:async a=>{const project=await services.InvestigationProject.create(a.bytes,a.name);commitProject(project,'rom-import',{open:true});rememberBuildable();
     let described=null;try{described=cp(services.InvestigationProject.describe(project.investigation));}catch(_){described=null;}
     return {name:store().capture().projectName,investigation:described};}});
 
