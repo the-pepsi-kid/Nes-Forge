@@ -63,3 +63,9 @@ Native recovery and writeback remain partial and title-specific. Full enemy AI, 
 - [Earlier beginner tutorial](docs/getting-started/Your_First_NES_Game.md) and [native recovery guides](app/docs/projects/README.md).
 
 [Send alpha feedback](https://github.com/the-pepsi-kid/Nes-Forge/issues/new?template=alpha-feedback.yml). Preserve existing upstream notices; the project-wide license remains undecided.
+
+## Developer companion: Agent Lab and on-chain cartridge research
+
+The [local Agent Lab v0.3](tools/agent-lab/README.md) verifies source-ROM bank extraction and organizes evidence by ROM identity, including Forge's separate native adapter and [GameRENative](docs/architecture/ROM_ASSET_ARCHITECTURE.md) investigated catalogs. Six specialized *logical* agent roles are defined; only a bounded local-Qwen suggestion pass is currently model-driven. This tool does **not** change the offline HTML editor or claim full native recovery, AI, physics or writeback across games.
+
+See the [integration delivery board](docs/architecture/AGENT_LAB_DELIVERY.md) and [native on-chain cartridge research proposal](docs/proposals/FORGE_ONCHAIN_CARTRIDGE_PROTOCOL.md). The on-chain work proposes original bytecode-stored assets with optional ERC-721/6551 ownership; it is **not deployed or required** to use Forge. Never commit original commercial ROMs, raw banks, audio, rendered captures or private investigation projects.
