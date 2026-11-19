@@ -49,6 +49,18 @@ function compile(spec){
     if(!Array.isArray(screen.markers)||screen.markers.length>240)fail('A screen supports at most 240 markers');
     for(const marker of screen.markers){integer(marker.x,0,255,'Marker X');integer(marker.y,0,239,'Marker Y');integer(marker.targetScreen,0,screens.length-1,'Marker destination');integer(marker.targetX,0,255,'Destination X');integer(marker.targetY,0,239,'Destination Y');}
   }
+  // chrSelect: the engine selects each world's CHR bank on screen loads (mapper 3). It is needed with several graphics
+  // banks, and with one bank when the authoring record is stored in CHR data banks (layout 5).
+  const chrSelect=(spec.chrBanks||1)>1||spec.chrSelect===true;
+  if(spec.chrBanks!==undefined||chrSelect){
+    integer(spec.chrBanks??1,1,4,'CHR bank count');
+    if(chrSelect){
+      const worldsUsed=Math.max(...screens.map(sc=>sc.worldIndex??0))+1;
+      if(!Array.isArray(spec.worldChrBank)||spec.worldChrBank.length<worldsUsed)fail('Every world needs a CHR bank');
+      spec.worldChrBank.forEach((bank,i)=>integer(bank,0,(spec.chrBanks??1)-1,'World '+i+' CHR bank'));
+      if(spec.cameraMode==='smoothHorizontal')fail('Per-world CHR banks need screen transitions between worlds');
+    }
+  }
   // Lossless, automatically selected column-dictionary storage for smooth Worlds.
   // The PPU receives the original exact tile and attribute bytes. The engine's
   // discrete-screen path retains its previous raw nametable representation.
@@ -107,6 +119,9 @@ function compile(spec){
   // only after a second vblank with complete OAM and zero scroll.
   label('change_screen');set(Z.transition,1);imm(8);abs(0x8D,0x2000);abs(0xAD,0x2002);label('transition_vblank');abs(0xAD,0x2002);b(0x10,'transition_vblank');imm(0);abs(0x8D,0x2001);jsr('load_screen');jsr('draw_all');jsr('enable_screen');set(Z.transition,0);e(0x60);
   label('load_screen');jsr('publish_screen');
+  // CNROM profile: one 8 KB CHR bank per world group. Rendering is off here (boot or change_screen). The value is
+  // written to a ROM byte holding the same value, so the write is safe on boards with bus conflicts.
+  if(chrSelect){e(0xA6,Z.worldIndex);abs(0xBD,'world_chr_table');e(0xAA);abs(0x9D,'chr_lut_table');}
   if(smooth){
     // Slot 0 owns even world screens, slot 1 owns odd screens.
     copy(Z.viewHi,Z.upload0);ld(Z.viewHi);add(1);e(0xC9,screens.length);b(0x90,'load_next_valid');copy(Z.viewHi,Z.upload1);jmp('load_parity');label('load_next_valid');st(Z.upload1);
@@ -430,6 +445,7 @@ function compile(spec){
   const dataResource=(name,kind,values)=>{label(name);const address=pc;for(const value of values)e(value);resources.push({kind,ownerId:name,address,byteLength:pc-address,alignment:1,region:'PRG',bank:0});};
   dataResource('bit_masks','lookup',Array.from({length:32},(_,i)=>1<<(i&7)));
   dataResource('byte_offsets','lookup',Array.from({length:32},(_,i)=>i>>3));
+  if(chrSelect){dataResource('world_chr_table','chr-bank',spec.worldChrBank);dataResource('chr_lut_table','chr-bank-lut',Array.from({length:spec.chrBanks||1},(_,i)=>i));}
   for(const key of['left','right','up','down','worldIndex','roomIndex','cameraIndex','screenX','screenY','cameraScreen'])dataResource(key+'_table','screen-index',screens.map((screen,index)=>(screen[key]??(key==='cameraScreen'?index:0))&255));
   const refs={nt:[],collision:[],pal:[],markers:[]},data=[];
   for(const kind of Object.keys(refs)){
@@ -458,7 +474,7 @@ function compile(spec){
   for(const record of data)dataResource(record.name,record.kind,record.values);
   const dataEnd=pc;if(dataEnd>0xCFF0){const required=dataEnd-0x8000,available=0xCFF0-0x8000;fail('NROM / Mapper 0 PRG allocation exceeded by '+(required-available)+' bytes (required '+required+', available '+available+'). The full World and all authored assets remain unchanged. This build needs resource/code optimization or a future banked-mapper backend; reducing the World is not automatic.');}
   for(const fixup of fixups){const value=labels[fixup.name];if(value===undefined)fail('Unknown engine label '+fixup.name);const i=fixup.at-0x8000;if(fixup.part)bytes[i]=fixup.part==='lo'?value&255:value>>>8;else{bytes[i]=value&255;bytes[i+1]=value>>>8;}}
-  return{bytes:new Uint8Array(bytes),reset:labels.reset,nmi:labels.nmi,irq:labels.irq,symbols:{...Z,states:{idle:0,walk:1,jump:2,attack:3},audio:audioRuntime?.zp||null,gameplay:gameplayRuntime,labels:{...labels}},codeEnd,dataEnd,resources};
+  return{bytes:new Uint8Array(bytes),chrSelect,reset:labels.reset,nmi:labels.nmi,irq:labels.irq,symbols:{...Z,states:{idle:0,walk:1,jump:2,attack:3},audio:audioRuntime?.zp||null,gameplay:gameplayRuntime,labels:{...labels}},codeEnd,dataEnd,resources};
 }
 services.WorldEngine=Object.freeze({compile});
 })();

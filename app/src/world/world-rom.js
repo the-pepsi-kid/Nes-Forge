@@ -7,6 +7,11 @@
 const Forge=window.Forge=window.Forge||{},services=Forge.services=Forge.services||{};
 const BASE=0x8000,PRG_BYTES=32768,CHR_BYTES=8192,MARKER=0xCFF0,VECTORS=0xFFFA;
 const RECORD_HEADER=64,MAX_DECODED=8*1024*1024,LAYOUT=4,FORMAT=1;
+// Layout 5: the WG17 authoring record lives in CHR "data banks" after the graphics banks of a mapper 3 ROM, for
+// projects whose record does not fit the 32 KB PRG beside the engine. The game never selects those banks; the
+// engine selects its graphics bank explicitly. The marker's address field holds the first data bank (= the number
+// of graphics banks) and byte 15 the record length's high byte.
+const LAYOUT_CHR=5;
 const encoder=new TextEncoder(),decoder=new TextDecoder('utf-8',{fatal:true});
 const fail=message=>{throw Error('World ROM: '+message);};
 const own=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
@@ -105,18 +110,23 @@ function sourceParts(source){
   const detached=JSON.parse(text);validateSource(detached);
   return {source:detached,raw,payload:compress(raw),schema:detached.version};
 }
+// One 8 KB CHR bank is NROM (mapper 0); two to four are CNROM (mapper 3) with one bank per world group.
+function chrBanksOf(length){return Number.isInteger(length)&&length%CHR_BYTES===0&&length>=CHR_BYTES&&length<=4*CHR_BYTES?length/CHR_BYTES:0;}
 function writeRecord(parts,engine,chr,options){
-  const bounds=validateEngine(engine),worldCount=count(options.worldCount),address=options.address,flags=options.flags;
-  if(!(chr instanceof Uint8Array)||chr.length!==CHR_BYTES)fail('expected exactly 8 KB CHR');
+  const bounds=validateEngine(engine),worldCount=count(options.worldCount),address=options.address,flags=options.flags,layout=options.layout||LAYOUT;
+  if(!(chr instanceof Uint8Array)||!chrBanksOf(chr.length))fail('expected 8, 16, 24 or 32 KB CHR');
   if(!Number.isInteger(flags)||flags<0||flags>3)fail('invalid NROM mirroring/battery flags');
   const length=RECORD_HEADER+parts.payload.length;
-  if(!Number.isInteger(address)||address<BASE||address+length>VECTORS)fail('authoring record exceeds PRG capacity');
-  if(address<bounds.end||(address<MARKER+16&&address+length>MARKER))fail('authoring record overlaps engine or marker');
+  if(layout===LAYOUT_CHR){if(!Number.isInteger(address)||address<1||address>4)fail('invalid CHR data bank for the authoring record');}
+  else{
+    if(!Number.isInteger(address)||address<BASE||address+length>VECTORS)fail('authoring record exceeds PRG capacity');
+    if(address<bounds.end||(address<MARKER+16&&address+length>MARKER))fail('authoring record overlaps engine or marker');
+  }
   const record=new Uint8Array(length);record.set(encoder.encode('WG17'));record[4]=FORMAT;record[5]=1;put16(record,6,RECORD_HEADER);
   put32(record,8,parts.raw.length);put32(record,12,parts.payload.length);put32(record,16,engine.bytes.length);
   put16(record,20,bounds.codeEnd);put16(record,22,bounds.dataEnd);put16(record,24,engine.nmi);put16(record,26,engine.reset);put16(record,28,engine.irq);
   record[30]=worldCount;record[31]=flags;put32(record,32,crc32(parts.payload));put32(record,36,crc32(parts.raw));
-  put32(record,40,crc32(engine.bytes));put32(record,44,crc32(chr));put32(record,48,length);put16(record,52,address);record[54]=LAYOUT;put16(record,56,parts.schema);
+  put32(record,40,crc32(engine.bytes));put32(record,44,crc32(chr));put32(record,48,length);put16(record,52,address);record[54]=layout;put16(record,56,parts.schema);
   put32(record,60,crc32(record.subarray(0,60)));record.set(parts.payload,RECORD_HEADER);return record;
 }
 function encodeSourceRecord(source,engine,chr,options){
@@ -127,7 +137,7 @@ function decodeSourceRecord(record,context={}){
   if(!(record instanceof Uint8Array)||record.length<RECORD_HEADER||!hasMagic(record,0,'WG17'))fail('missing or truncated WG17 authoring record');
   if(record[4]!==FORMAT)fail('unsupported WG17 source record version '+record[4]);
   if(record[5]!==1||u16(record,6)!==RECORD_HEADER)fail('unsupported source compression/header format');
-  const schema=u16(record,56);if(record[54]!==LAYOUT||record[55]!==0||![10,11,12,13].includes(schema)||u16(record,58)!==0)fail('unsupported source schema/layout or nonzero reserved fields');
+  const schema=u16(record,56),layout=record[54];if((layout!==LAYOUT&&layout!==LAYOUT_CHR)||record[55]!==0||![10,11,12,13].includes(schema)||u16(record,58)!==0)fail('unsupported source schema/layout or nonzero reserved fields');
   if(crc32(record.subarray(0,60))!==u32(record,60))fail('source header checksum mismatch');
   const decodedLength=u32(record,8),payloadLength=u32(record,12),engineLength=u32(record,16),codeEnd=u16(record,20),dataEnd=u16(record,22);
   const worldCount=count(record[30]),flags=record[31],address=u16(record,52),vectors=[u16(record,24),u16(record,26),u16(record,28)];
@@ -135,10 +145,11 @@ function decodeSourceRecord(record,context={}){
   if(payloadLength!==record.length-RECORD_HEADER||u32(record,48)!==record.length)fail('source record length mismatch');
   if(!engineLength||BASE+engineLength>MARKER||codeEnd<=BASE||codeEnd>dataEnd||dataEnd>BASE+engineLength)fail('invalid engine code/data boundaries');
   if(flags>3||vectors.some(vector=>vector<BASE||vector>=codeEnd))fail('invalid engine vectors or NROM flags');
-  if(address<BASE+engineLength||address+record.length>VECTORS||(address<MARKER+16&&address+record.length>MARKER))fail('source record overlaps engine, marker or vectors');
+  if(layout===LAYOUT_CHR){if(address<1||address>4)fail('invalid CHR data bank for the source record');}
+  else if(address<BASE+engineLength||address+record.length>VECTORS||(address<MARKER+16&&address+record.length>MARKER))fail('source record overlaps engine, marker or vectors');
   for(const key of ['address','worldCount','flags'])if(own(context,key)&&context[key]!==({address,worldCount,flags})[key])fail('source '+key+' does not match ROM envelope');
   if(context.engineBytes&&(!(context.engineBytes instanceof Uint8Array)||context.engineBytes.length!==engineLength||crc32(context.engineBytes)!==u32(record,40)))fail('engine checksum mismatch');
-  if(context.chr&&(!(context.chr instanceof Uint8Array)||context.chr.length!==CHR_BYTES||crc32(context.chr)!==u32(record,44)))fail('CHR checksum mismatch');
+  if(context.chr&&(!(context.chr instanceof Uint8Array)||!chrBanksOf(context.chr.length)||crc32(context.chr)!==u32(record,44)))fail('CHR checksum mismatch');
   if(context.vectors&&(!Array.isArray(context.vectors)||context.vectors.length!==3||context.vectors.some((value,index)=>value!==vectors[index])))fail('interrupt vectors do not match source record');
   const payload=record.subarray(RECORD_HEADER);if(crc32(payload)!==u32(record,32))fail('compressed source checksum mismatch');
   const raw=decompress(payload,decodedLength);if(crc32(raw)!==u32(record,36))fail('decoded source checksum mismatch');
@@ -152,22 +163,27 @@ function decodeSourceRecord(record,context={}){
 function packageWorldRom({source,engine,chr,worldCount}){
   const bounds=validateEngine(engine);count(worldCount);
   const parts=sourceParts(source),recordBytes=RECORD_HEADER+parts.payload.length,aligned=(bounds.end+15)&~15;
-  const address=aligned+recordBytes<=MARKER?aligned:0xD000;
-  if(address+recordBytes>VECTORS)fail('compressed authoring record needs '+recordBytes+' contiguous bytes; available space is '+Math.max(MARKER-aligned,VECTORS-0xD000)+' bytes. Reduce authored data before building.');
-  const flags=(source.mirroring==='v'?1:0)|(source.hasSRAM?2:0),record=writeRecord(parts,engine,chr,{worldCount,address,flags});
-  const rom=new Uint8Array(16+PRG_BYTES+CHR_BYTES);rom.set([0x4E,0x45,0x53,0x1A,2,1,flags]);rom.set(engine.bytes,16);
-  rom.set(record,16+address-BASE);const markerAt=16+MARKER-BASE;
-  rom.set(encoder.encode('NFORGE15'),markerAt);rom[markerAt+8]=LAYOUT;rom[markerAt+9]=worldCount;put16(rom,markerAt+10,address);put16(rom,markerAt+12,record.length);rom[markerAt+14]=FORMAT;
+  const chrBanks=chrBanksOf(chr?.length);if(!chrBanks)fail('expected 8, 16, 24 or 32 KB CHR');
+  const prgAddress=aligned+recordBytes<=MARKER?aligned:0xD000,inChr=prgAddress+recordBytes>VECTORS;
+  if(inChr&&!engine.chrSelect)fail('compressed authoring record needs '+recordBytes+' contiguous bytes; available space is '+Math.max(MARKER-aligned,VECTORS-0xD000)+' bytes. Reduce authored data before building.');
+  if(inChr&&recordBytes>0xFFFFFF)fail('authoring record exceeds the 16 MB layout limit');
+  const layout=inChr?LAYOUT_CHR:LAYOUT,address=inChr?chrBanks:prgAddress,dataBanks=inChr?Math.ceil(recordBytes/CHR_BYTES):0;
+  if(chrBanks+dataBanks>255)fail('authoring record needs '+dataBanks+' CHR data banks; at most '+(255-chrBanks)+' fit the iNES header');
+  const flags=(source.mirroring==='v'?1:0)|(source.hasSRAM?2:0),record=writeRecord(parts,engine,chr,{worldCount,address,flags,layout});
+  const mapper3=chrBanks>1||inChr||engine.chrSelect;
+  const rom=new Uint8Array(16+PRG_BYTES+(chrBanks+dataBanks)*CHR_BYTES);rom.set([0x4E,0x45,0x53,0x1A,2,chrBanks+dataBanks,flags|(mapper3?0x30:0)]);rom.set(engine.bytes,16);
+  if(inChr)rom.set(record,16+PRG_BYTES+chrBanks*CHR_BYTES);else rom.set(record,16+address-BASE);const markerAt=16+MARKER-BASE;
+  rom.set(encoder.encode('NFORGE15'),markerAt);rom[markerAt+8]=layout;rom[markerAt+9]=worldCount;put16(rom,markerAt+10,address);put16(rom,markerAt+12,record.length&0xFFFF);rom[markerAt+14]=FORMAT;rom[markerAt+15]=inChr?record.length>>>16:0;
   [engine.nmi,engine.reset,engine.irq].forEach((vector,index)=>put16(rom,16+VECTORS-BASE+index*2,vector));rom.set(chr,16+PRG_BYTES);
   const reservations=[{address:BASE,length:engine.bytes.length,label:'World runtime code and data'},
-    {address,length:record.length,label:'WG17 full authoring source'},{address:MARKER,length:16,label:'NES Forge layout 4 marker'},
+    ...(inChr?[]:[{address,length:record.length,label:'WG17 full authoring source'}]),{address:MARKER,length:16,label:'NES Forge layout 4 marker'},
     {address:VECTORS,length:6,label:'Interrupt vectors'}];
   const resources={allocations:Array.isArray(engine.resources)?engine.resources.map(resource=>({...resource})):[],
-    prgBytes:PRG_BYTES,chrBytes:CHR_BYTES,engineBytes:engine.bytes.length,sourceRecordBytes:record.length,sourceDecodedBytes:parts.raw.length,sourceCompressedBytes:parts.payload.length};
+    prgBytes:PRG_BYTES,chrBytes:chr.length,chrDataBanks:dataBanks,sourceRecordInChr:inChr,mapper:mapper3?3:0,engineBytes:engine.bytes.length,sourceRecordBytes:record.length,sourceDecodedBytes:parts.raw.length,sourceCompressedBytes:parts.payload.length};
   // Validate the complete emitted envelope before exposing an artifact to the
   // RuntimeCompiler commit boundary. Inspection never compiles or mutates S.
   WorldRom.inspect(rom);
-  return {rom,metadata:{base:BASE,prgSize:PRG_BYTES,sourceRecordAddress:address,sourceRecordBytes:record.length,
+  return {rom,metadata:{base:BASE,prgSize:PRG_BYTES,sourceRecordAddress:address,sourceRecordBytes:record.length,sourceRecordInChr:inChr,chrDataBanks:dataBanks,
     extensionAddress:address,extensionBytes:record.length,resources,reservations},resources,sourceRecord:record};
 }
 function recognized(bytes){
@@ -185,24 +201,34 @@ function recognized(bytes){
 }
 function inspect(bytes){
   if(!recognized(bytes))return null;
-  if(bytes.length!==16+PRG_BYTES+CHR_BYTES)fail('expected exactly 32 KB PRG and 8 KB CHR without trainer or trailing bytes');
-  if(!hasMagic(bytes,0,'NES\x1A')||bytes[4]!==2||bytes[5]!==1||bytes[6]&~3||bytes.subarray(7,16).some(value=>value!==0))fail('unsupported iNES header; world ROM requires mapper 0, 32 KB PRG, 8 KB CHR and no trainer');
-  const markerAt=16+MARKER-BASE;
-  if(!hasMagic(bytes,markerAt,'NFORGE15'))fail('missing layout 4 marker');
-  if(bytes[markerAt+8]!==LAYOUT)fail('unsupported Forge world ROM layout '+bytes[markerAt+8]);
-  if(bytes[markerAt+14]!==FORMAT||bytes[markerAt+15]!==0)fail('unsupported world source format or nonzero reserved marker byte');
-  const worldCount=count(bytes[markerAt+9]),address=u16(bytes,markerAt+10),length=u16(bytes,markerAt+12);
-  if(length<RECORD_HEADER||address<BASE||address+length>VECTORS||(address<MARKER+16&&address+length>MARKER))fail('invalid or overlapping authoring record placement');
-  const recordBytes=bytes.subarray(16+address-BASE,16+address-BASE+length);
+  const totalBanks=bytes[5],mapper=bytes[6]>>4,markerAt=16+MARKER-BASE;
+  if(!(totalBanks>=1)||bytes.length!==16+PRG_BYTES+totalBanks*CHR_BYTES)fail('expected 32 KB PRG and whole 8 KB CHR banks without trainer or trailing bytes');
+  if(!hasMagic(bytes,0,'NES\x1A')||bytes[4]!==2||bytes[6]&0x0C||(mapper!==0&&mapper!==3)||(mapper===0&&totalBanks!==1)||bytes.subarray(7,16).some(value=>value!==0))fail('unsupported iNES header; world ROM requires mapper 0 with 8 KB CHR or mapper 3, 32 KB PRG and no trainer');
+  if(!hasMagic(bytes,markerAt,'NFORGE15'))fail('missing layout marker');
+  const layout=bytes[markerAt+8];
+  if(layout!==LAYOUT&&layout!==LAYOUT_CHR)fail('unsupported Forge world ROM layout '+layout);
+  if(bytes[markerAt+14]!==FORMAT||(layout===LAYOUT&&bytes[markerAt+15]!==0))fail('unsupported world source format or nonzero reserved marker byte');
+  const worldCount=count(bytes[markerAt+9]),address=u16(bytes,markerAt+10),length=u16(bytes,markerAt+12)|(layout===LAYOUT_CHR?bytes[markerAt+15]<<16:0);
+  let recordBytes,chrBanks;
+  if(layout===LAYOUT_CHR){
+    chrBanks=address;
+    if(mapper!==3||chrBanks<1||chrBanks>4||chrBanks>=totalBanks||length<RECORD_HEADER)fail('invalid CHR data bank placement for the authoring record');
+    const at=16+PRG_BYTES+chrBanks*CHR_BYTES;if(at+length>bytes.length)fail('authoring record exceeds its CHR data banks');
+    recordBytes=bytes.subarray(at,at+length);
+  }else{
+    chrBanks=totalBanks;if(chrBanks>4||(chrBanks>1&&mapper!==3))fail('unsupported CHR bank count for a layout 4 world ROM');
+    if(length<RECORD_HEADER||address<BASE||address+length>VECTORS||(address<MARKER+16&&address+length>MARKER))fail('invalid or overlapping authoring record placement');
+    recordBytes=bytes.subarray(16+address-BASE,16+address-BASE+length);
+  }
   if(!hasMagic(recordBytes,0,'WG17'))fail('missing WG17 source record');
   const engineLength=u32(recordBytes,16);if(!engineLength||BASE+engineLength>MARKER)fail('engine length exceeds its reserved window');
   const vectors=[0,1,2].map(index=>u16(bytes,16+VECTORS-BASE+index*2));
-  const record=decodeSourceRecord(recordBytes,{address,worldCount,flags:bytes[6],engineBytes:bytes.subarray(16,16+engineLength),chr:bytes.subarray(16+PRG_BYTES),vectors});
-  const header={prgSize:PRG_BYTES,chrSize:CHR_BYTES,headerSize:16,mapper:0,mirror:bytes[6]&1,battery:!!(bytes[6]&2),trainer:false};
-  const metadata={base:BASE,prgSize:PRG_BYTES,sourceRecordAddress:address,sourceRecordBytes:length,extensionAddress:address,extensionBytes:length};
+  const record=decodeSourceRecord(recordBytes,{address,worldCount,flags:bytes[6]&3,engineBytes:bytes.subarray(16,16+engineLength),chr:bytes.subarray(16+PRG_BYTES,16+PRG_BYTES+chrBanks*CHR_BYTES),vectors});
+  const header={prgSize:PRG_BYTES,chrSize:totalBanks*CHR_BYTES,graphicsChrSize:chrBanks*CHR_BYTES,headerSize:16,mapper,mirror:bytes[6]&1,battery:!!(bytes[6]&2),trainer:false};
+  const metadata={base:BASE,prgSize:PRG_BYTES,sourceRecordAddress:address,sourceRecordBytes:length,sourceRecordInChr:layout===LAYOUT_CHR,extensionAddress:address,extensionBytes:length};
   return {header,source:record.source,prepared:record.prepared,record,metadata,
-    summary:{kind:'world-playable',label:'Forge playable World ROM — editable project',mapper:0,worldCount,
-      sceneCount:record.source.scenes.length,editableProject:true,captureOnly:false,layout:LAYOUT,sourceFormat:'WG17',sourceVersion:FORMAT}};
+    summary:{kind:'world-playable',label:'Forge playable World ROM — editable project',mapper,worldCount,
+      sceneCount:record.source.scenes.length,editableProject:true,captureOnly:false,layout,sourceFormat:'WG17',sourceVersion:FORMAT}};
 }
 
 const WorldRom=services.WorldRom={package:packageWorldRom,inspect,recognized,encodeSourceRecord,decodeSourceRecord,compress,decompress,crc32,
