@@ -53,7 +53,8 @@ def examples():
 
 def fixtures():
     expected = {
-        'game.nes': 'f11d14399f4cfa718987a91c4ff5adbd9e5bbd18a126702692c32d48fc8ada0f',
+        # Rebuilt for 2.0.0-alpha.12: only the embedded project's foundation string changed (13 bytes in the source record).
+        'game.nes': '91faa45ceefd32b1288e1b276777eb77d4ada6e5a3a28fdf6d08c65505c844b2',
         'EightStages.nes': '541e081cfb59def407987588eef2794328082f063aa3761198db0a88a9e685a7',
         'Teapot418.nes': '12a6d3c2380c479f52c544a85bba30bcb2f3281e94a109c811c7e2e5c464ed6e',
         'BeaconIsland.nes': 'a3280ef03d91b2521d7a61b7016e55891065407f83d033aae835fdae781accb0',
