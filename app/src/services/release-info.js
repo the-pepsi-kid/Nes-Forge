@@ -11,7 +11,7 @@
     el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
     el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
-  F.release=Object.freeze({version:'2.0.0-alpha.11',name:'Integrated Review 5',maturity:'alpha',candidate:'integrated-review-5-public',schema:16,updateStatus,
+  F.release=Object.freeze({version:'2.0.0-alpha.12',name:'Integrated Review 6',maturity:'alpha',candidate:'integrated-review-6-public',schema:16,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
   F.services.ReleaseInfo=F.release;
   F.version=F.release.version;

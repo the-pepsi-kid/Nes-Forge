@@ -21,7 +21,15 @@ on-chain does not grant copyright permission.
 
 Download **Code → Download ZIP**, extract it and open **[nes-forge.html](nes-forge.html)** in Chrome or Edge. **[NES_Forge.html](NES_Forge.html)** contains exactly the same editor and is the entry served by the multiplayer host. Both are generated from one ordered source manifest.
 
-The current development alpha is **Integrated Review 5**, including the owner-reviewed Resources and direct RE import changes. Earlier RC2 downloads are historical checkpoints. The [candidate record](CANDIDATE.json) identifies the exact current public build.
+The current development alpha is **2.0.0-alpha.12 · Integrated Review 6**. See the [release notes](docs/releases/2.0.0-alpha.12.md). The [candidate record](CANDIDATE.json) identifies the exact public build, and earlier builds are historical checkpoints.
+
+What's new in alpha.12:
+
+- **Studio layout.** One bar holds **Library / Edit / Play / Build**. The Library shows every asset with a thumbnail and a badge saying whether an edit builds into your game, writes into the original ROM, is a copy only, or is reference evidence. Build names the exact asset behind a refused build. The original controls are in **Tools**, and **Classic layout** brings back the old toolbar.
+- **VR / AR.** The running game appears as a floating screen, with your stages arranged around it. This works in a desktop preview, and in WebXR on supporting headsets and phones.
+- **One command core** (`Forge.commands`) behind every interface: desktop, touch, controller, XR, the command palette (Ctrl+K) and the command line (`node tools/forge-cli.cjs`).
+- **Measured ROM audit** (`tools/audit/rom_audit.cjs`). The [report](docs/audit/2026-11-19/AUDIT.md) covers the 20-revision corpus.
+- **Extraction pack checker** (`tools/check_extraction_pack.cjs`) and [pack format](docs/extraction/PACK_FORMAT.md). ZIP errors now name the limit that was hit.
 
 ## Try it
 

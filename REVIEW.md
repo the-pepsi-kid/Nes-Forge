@@ -1,21 +1,38 @@
-# Integrated Review 5 · public GitHub profile
+# Integrated Review 6 · public GitHub profile
 
-This is the public derivative of the owner-approved **NES_Forge_Integrated_Review_5.zip**. The supplied editor is reproducible from 219 source parts and has SHA-256 `060a700bd5a5e3371622adc0045c006cdea992f72dbb127adcf4e7f92556705f` before public packaging. The [original review](docs/reviews/Integrated_Review_5.md) and [supplied asset report](docs/reviews/NES_Forge_Asset_Report_Review5.md) are retained verbatim as historical evidence.
+Public build of **NES Forge 2.0.0-alpha.12**. Its editor is generated from the ordered source parts in `app/source-manifest.json`. `python app/tools/bundle.py --check` reproduces it byte-for-byte, and `CANDIDATE.json` records its hash.
 
-The public derivative keeps the direct ROM → RE → Resources → editor changes, authored editor/compiler/emulator, Audio, workshop, integrated lessons and hosted pilot together. `NES_Forge.html` and `nes-forge.html` are byte-identical generated entries.
+What changed: [release notes](docs/releases/2.0.0-alpha.12.md). The previous public profile is kept in [docs/reviews/Integrated_Review_5_public_profile.md](docs/reviews/Integrated_Review_5_public_profile.md).
 
-## Publication changes
+## Publication boundary (unchanged)
 
-- The private embedded captured-project and raw-evidence catalogs are replaced with inert services retaining their original API. Native source-on-demand decoders remain intact. This matches the preceding public RC2 exclusion boundary.
-- Private Evidence images/logs, commercial ROMs, extraction ZIPs, databases and wallet data are omitted. The four `QA/r` cartridges are authored game regression fixtures from this review, not commercial source ROMs.
-- Teapot418 retains its editable authored project; its redundant preserved historical ROM field is cleared. Its separately identified authored regression fixture remains under QA.
-- Stale Review 1/4 identity labels now identify Review 5. The build manifest generates both launch names from the same source. The inventory/extractor uses lowercase `tools/` for compatibility with Windows checkouts.
-- The QA runner accepts `--jobs 1` to avoid unrelated CPU contention against the emulator's existing per-frame safety budget. Application frame limits are unchanged.
+- The private embedded capture catalogs stay replaced by inert services. Native source-on-demand decoders are intact.
+- No commercial ROMs, extraction ZIPs, private evidence, databases or wallet data are published. `QA/r` holds only the four authored regression cartridges.
+- The audit report in `docs/audit/` contains titles, hashes, counts and capability states only.
 
-Exact source exceptions, artifact identities and fresh check results are recorded in [Publication.json](reviews/integrated-review-5/Publication.json). Check receipts under that directory identify this public editor, not the private editor's hash.
+## Checks for this build
+
+- **On every pull request (CI):**
+  - bundle check
+  - launch entries
+  - build identity
+  - public profile
+  - Agent Lab tests
+  - the repository QA suite: zip limits, pack checker, command core, ROM audit, release migration, the editor/domain suites and the host suites
+- **Owner-side runs with private inputs:**
+  - the 18 extraction packs: intake, native rebuild, animation
+  - the 16-cartridge corpus
+  - the real-browser check at 1440×900 and at 390×844 with touch, including the studio layout and the spatial preview
 
 ## Remaining acceptance
 
-Pose ordering/composition remains open as reported by the owner. Complete native recovery, expanded native encoders, original-game parity, audible output/latency, physical hardware, full device acceptance and two-human hosted/wallet play remain incomplete. The recorded DigiGhosts/Beacon Island visual issues are retained.
+These are unchanged from Review 5:
 
-The private Review 5 run's 36/37 jobs, 8/8 original-ROM library checks, 14 source byte streams and 24 extraction archives are historical evidence on the private editor. They are not fresh checks on this public derivative. No commercial source ROM or extraction archive was supplied in this session.
+- complete native recovery and broader native writers
+- original-game parity
+- audible output and latency
+- physical hardware
+- full device acceptance, including immersive VR/AR on headsets
+- two-human hosted/wallet play
+
+The planned alpha.13 work is the larger cartridge build profile, the Castlevania → Contra crossover slice and the Punch-Out pose-layout writer.
