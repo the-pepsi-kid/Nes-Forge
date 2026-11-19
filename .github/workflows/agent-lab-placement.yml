@@ -1,0 +1,30 @@
+name: Agent Lab placement and extraction unit checks
+
+on:
+  pull_request:
+    paths:
+      - 'tools/agent-lab/**'
+      - '.github/workflows/agent-lab-placement.yml'
+  push:
+    branches:
+      - 'feature/placement-ledger-classic-first-20261118'
+    paths:
+      - 'tools/agent-lab/**'
+      - '.github/workflows/agent-lab-placement.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check Agent Lab Python syntax
+        run: python -m compileall -q tools/agent-lab
+      - name: Run synthetic-only Agent Lab tests
+        run: python -m unittest discover -s tools/agent-lab/tests -p 'test_*.py' -v
