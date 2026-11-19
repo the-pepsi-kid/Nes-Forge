@@ -128,9 +128,18 @@ function plan(input,gameplayCore){
    const cameraY=camera&&['locked','horizontal'].includes(camera.mode)?camera.y/15:sy;
    screens.push({id:w.id+':'+sx+','+sy,index,worldIndex,roomIndex:room?roomIndices.get(room.id):255,cameraIndex:camera?cameraIndices.get(camera.id):255,
     screenX:sx,screenY:sy,cameraScreen:linked.screenStart+cameraY*w.widthScreens+cameraX,nt,collision,palette:[...worldPalette,...actorPalette],left:sx?index-1:-1,right:sx<w.widthScreens-1?index+1:-1,
-    up:sy?index-w.widthScreens:-1,down:sy<w.heightScreens-1?index+w.widthScreens:-1,markers:[]});
+    up:sy?index-w.widthScreens:-1,down:sy<w.heightScreens-1?index+w.widthScreens:-1,markers:[],stairs:[]});
   }
   for(const m of markersByWorld.get(w.id).values()){integer(m.x,0,cols-1,'Marker '+m.id+' X');integer(m.y,0,rows-1,'Marker '+m.id+' Y');}
+  // Stairs (world pixels): bottom end at the player's feet, length in pixels along both axes, climbing right or left.
+  if(w.stairs!==undefined&&!Array.isArray(w.stairs))fail(w.name+' stairs must be a list');
+  for(const st of w.stairs||[]){
+   integer(st.x,0,w.widthScreens*256-1,w.name+' stair X');integer(st.y,1,w.heightScreens*240-1,w.name+' stair Y');integer(st.length,2,200,w.name+' stair length');
+   if(!['right','left'].includes(st.direction))fail(w.name+' stair direction must be right or left');
+   const sx=Math.floor(st.x/256),sy=Math.floor((st.y-1)/240),bx=st.x-sx*256,by=st.y-sy*240,dir=st.direction==='left'?1:0,tx=bx+(dir?-st.length:st.length);
+   if(tx<0||tx>255||by-st.length<1)fail(w.name+' stair '+(st.id||'')+' must stay within one screen');
+   screens[linked.screenStart+sy*w.widthScreens+sx].stairs.push({x:bx,y:by,len:st.length,dir});
+  }
  }
  phases.push('world-validation');
  function paletteMatch(sc,row,label){integer(row,0,3,label+' palette row');const p=palette(sc?.sprPal,label+' source sprite palette');for(let c=1;c<4;c++)if(p[row][c]!==spritePalette[row][c])fail(label+' visible sprite palette differs from the selected player source');}

@@ -79,7 +79,7 @@ function validateWorlds(raw){
     if(!Number.isInteger(sx)||sx<1||sx>16||!Number.isInteger(sy)||sy<1||sy>16)fail('World dimensions must be 1–16 screens');
     if(!Array.isArray(w.map)||w.map.length!==sx*16*sy*15)fail('World map size does not match dimensions');
     for(const v of w.map)if(!Number.isInteger(v)||v<-1||v>254)fail('World metatile IDs must be integers from -1 through 254');
-    for(const [key,max] of [['rooms',128],['markers',256],['cameraRegions',128]]){
+    for(const [key,max] of [['rooms',128],['markers',256],['cameraRegions',128],['stairs',128]]){
       if(w[key]!=null&&(!Array.isArray(w[key])||w[key].length>max))fail('Invalid world '+key+' collection');
       for(const item of w[key]||[])if(!item||typeof item!=='object'||Array.isArray(item))fail('Invalid world '+key+' entry');
       uniqueIds(w[key],'world '+key);

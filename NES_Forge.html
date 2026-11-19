@@ -6170,7 +6170,10 @@ function dims(w){return {cols:w.widthScreens*COLS_PER_SCREEN,rows:w.heightScreen
 function normalizeRoom(r,w){const d=dims(w);return {id:String(r?.id||uid('room')),name:String(r?.name||'Room').slice(0,80),x:clamp(r?.x,0,d.cols-1),y:clamp(r?.y,0,d.rows-1),w:clamp(r?.w,1,d.cols,16),h:clamp(r?.h,1,d.rows,15)};}
 function normalizeMarker(m,w){const d=dims(w),kind=['entrance','spawn','exit'].includes(m?.kind)?m.kind:'entrance';return {id:String(m?.id||uid('mark')),name:String(m?.name||kind).slice(0,80),kind,x:clamp(m?.x,0,d.cols-1),y:clamp(m?.y,0,d.rows-1),targetWorldId:String(m?.targetWorldId||''),targetMarkerId:String(m?.targetMarkerId||'')};}
 function normalizeCamera(r,w){const d=dims(w);return {id:String(r?.id||uid('cam')),name:String(r?.name||'Camera').slice(0,80),x:clamp(r?.x,0,d.cols-1),y:clamp(r?.y,0,d.rows-1),w:clamp(r?.w,1,d.cols,16),h:clamp(r?.h,1,d.rows,15),mode:['follow','locked','horizontal','vertical'].includes(r?.mode)?r.mode:'follow'};}
-function normalizeWorld(raw={}){const ws=clamp(raw.widthScreens,1,MAX_SCREENS_X,1),hs=clamp(raw.heightScreens,1,MAX_SCREENS_Y,1),w={id:String(raw.id||uid('world')),name:String(raw.name||'World').slice(0,100),tilesetSceneId:String(raw.tilesetSceneId||S.scenes[0]?.id||''),widthScreens:ws,heightScreens:hs,map:[],rooms:[],markers:[],cameraRegions:[]};const d=dims(w),src=Array.isArray(raw.map)?raw.map:[];w.map=Array.from({length:d.cols*d.rows},(_,i)=>{const v=Number(src[i]);return Number.isInteger(v)&&v>=-1&&v<=254?v:-1});w.rooms=(Array.isArray(raw.rooms)?raw.rooms:[]).slice(0,128).map(r=>normalizeRoom(r,w));w.markers=(Array.isArray(raw.markers)?raw.markers:[]).slice(0,256).map(m=>normalizeMarker(m,w));w.cameraRegions=(Array.isArray(raw.cameraRegions)?raw.cameraRegions:[]).slice(0,128).map(r=>normalizeCamera(r,w));return w;}
+function normalizeWorld(raw={}){const ws=clamp(raw.widthScreens,1,MAX_SCREENS_X,1),hs=clamp(raw.heightScreens,1,MAX_SCREENS_Y,1),w={id:String(raw.id||uid('world')),name:String(raw.name||'World').slice(0,100),tilesetSceneId:String(raw.tilesetSceneId||S.scenes[0]?.id||''),widthScreens:ws,heightScreens:hs,map:[],rooms:[],markers:[],cameraRegions:[]};const d=dims(w),src=Array.isArray(raw.map)?raw.map:[];w.map=Array.from({length:d.cols*d.rows},(_,i)=>{const v=Number(src[i]);return Number.isInteger(v)&&v>=-1&&v<=254?v:-1});w.rooms=(Array.isArray(raw.rooms)?raw.rooms:[]).slice(0,128).map(r=>normalizeRoom(r,w));w.markers=(Array.isArray(raw.markers)?raw.markers:[]).slice(0,256).map(m=>normalizeMarker(m,w));w.cameraRegions=(Array.isArray(raw.cameraRegions)?raw.cameraRegions:[]).slice(0,128).map(r=>normalizeCamera(r,w));if(Array.isArray(raw.stairs)&&raw.stairs.length)w.stairs=raw.stairs.slice(0,128).map(st=>normalizeStair(st,w));return w;}
+// Stairs (world pixels): bottom end at the player's feet, length in pixels, climbing right or left. Kept only when a
+// world has stairs, so projects without them serialize exactly as before.
+function normalizeStair(raw={},w){const d=dims(w);return{id:String(raw.id||uid('stair')),name:String(raw.name||'Stair').slice(0,100),x:clamp(raw.x,0,d.cols*16-1,0),y:clamp(raw.y,1,d.rows*16-1,1),length:clamp(raw.length,2,200,16),direction:raw.direction==='left'?'left':'right'};}
 function ensureWorlds(){if(!Array.isArray(S.worlds))S.worlds=[];if(S.worlds.length>MAX_WORLDS)S.worlds.length=MAX_WORLDS;for(let i=0;i<S.worlds.length;i++){const w=S.worlds[i],sx=Number(w?.widthScreens),sy=Number(w?.heightScreens),expected=Number.isInteger(sx)&&Number.isInteger(sy)?sx*COLS_PER_SCREEN*sy*ROWS_PER_SCREEN:-1;if(!w||typeof w!=='object'||!Number.isInteger(sx)||sx<1||sx>MAX_SCREENS_X||!Number.isInteger(sy)||sy<1||sy>MAX_SCREENS_Y||!Array.isArray(w.map)||w.map.length!==expected)S.worlds[i]=normalizeWorld(w||{});}W.selected=clamp(W.selected,0,Math.max(0,S.worlds.length-1));return S.worlds;}
 function world(){ensureWorlds();return S.worlds[W.selected]||null}
 function validMetaIds(w=world()){const sc=tilesetScene(w);return new Set((sc?.metatiles||[]).map(m=>m.id));}
@@ -9420,7 +9423,7 @@ function validateWorlds(raw){
     if(!Number.isInteger(sx)||sx<1||sx>16||!Number.isInteger(sy)||sy<1||sy>16)fail('World dimensions must be 1–16 screens');
     if(!Array.isArray(w.map)||w.map.length!==sx*16*sy*15)fail('World map size does not match dimensions');
     for(const v of w.map)if(!Number.isInteger(v)||v<-1||v>254)fail('World metatile IDs must be integers from -1 through 254');
-    for(const [key,max] of [['rooms',128],['markers',256],['cameraRegions',128]]){
+    for(const [key,max] of [['rooms',128],['markers',256],['cameraRegions',128],['stairs',128]]){
       if(w[key]!=null&&(!Array.isArray(w[key])||w[key].length>max))fail('Invalid world '+key+' collection');
       for(const item of w[key]||[])if(!item||typeof item!=='object'||Array.isArray(item))fail('Invalid world '+key+' entry');
       uniqueIds(w[key],'world '+key);
@@ -10667,6 +10670,16 @@ function compile(spec){
       if(spec.cameraMode==='smoothHorizontal')fail('Per-world CHR banks need screen transitions between worlds');
     }
   }
+  // Stairs: per-screen diagonal segments {x, y (feet at the bottom end), len (pixels), dir (0 up-right, 1 up-left)}.
+  let stairTotal=0;
+  for(const [i,screen]of screens.entries()){
+    if(screen.stairs===undefined)continue;
+    if(!Array.isArray(screen.stairs)||screen.stairs.length>8)fail('Screen '+i+' supports at most 8 stairs');
+    for(const st of screen.stairs){integer(st.x,0,255,'Stair X');integer(st.y,1,239,'Stair Y');integer(st.len,2,200,'Stair length');integer(st.dir,0,1,'Stair direction');
+      const tx=st.x+(st.dir?-st.len:st.len);if(tx<0||tx>255||st.y-st.len<1)fail('Screen '+i+' stair leaves its screen');}
+    stairTotal+=screen.stairs.length;
+  }
+  if(stairTotal>255)fail('At most 255 stairs');
   // Lossless, automatically selected column-dictionary storage for smooth Worlds.
   // The PPU receives the original exact tile and attribute bytes. The engine's
   // discrete-screen path retains its previous raw nametable representation.
@@ -10688,6 +10701,8 @@ function compile(spec){
   const names=['ready','tickLo','tickHi','buttons','previousButtons','edges','screen','renderedScreen','playerX','playerY','velocityY','grounded','playerState','playerFrame','playerRemaining','playerFacing','eventMask','eventCount','frameReady','oamReady','wanted','moveDirection','steps','attackRequest','collisionEdge','candidateScreen','candidateX','candidateY','blocked','solid','sampleX','sampleXHi','sampleY','sampleYHi','endX','endXHi','endY','endYHi','queryScreen','queryX','queryY','byteOffset','bitMask','temp','temp2','ptr','ptrHi','animPtr','animPtrHi','framePtr','framePtrHi','piecePtr','piecePtrHi','pieceCount','pieceOffset','pieceX','pieceY','pieceTile','pieceAttr','oamIndex','markerCount','markerPtr','markerPtrHi','transition','worldIndex','roomIndex','cameraIndex','screenX','screenY','cameraScreen','bodyPtr','bodyPtrHi','viewLo','viewHi','renderX','renderHi','wishLo','wishHi','scrollCommit','streamPending','streamScreen','streamColumn','streamDir','streamPtr','streamPtrHi','streamRows','streamAttrOffset','streamAttrMask','streamAttrInverse','streamScratch','streamDestHi','upload0','upload1','enemyScreen','enemyX','enemyY','enemyFacing','enemyFrame','enemyRemaining','enemyTimer','enemyBob','enemyPhase','enemyPieceCount','enemyPieceOffset','enemyFramePtr','enemyFramePtrHi','enemyPiecePtr','enemyPiecePtrHi','enemyPieceX','enemyPieceY','enemyPieceTile','enemyPieceAttr','enemyRenderX','enemyRenderHi','hurtTimer','enemyPathIndex','enemyPathDirection','enemyPathWait','enemyTargetScreen','enemyTargetX','enemyTargetY','enemyRetreatSteps','enemyRetreatVertical','enemyContactScreen','enemyContactX','enemyContactY','enemyPieceHi','oamPriority'];
   if(names.length>0x80)fail('World zero-page allocation overlaps the audio runtime');
   const Z=Object.fromEntries(names.map((name,i)=>[name,i]));
+  // Stair state lives in absolute RAM (zero page is full): on-stair flag, position along the stair, length, direction.
+  const stairsOn=screens.some(sc=>(sc.stairs||[]).length),SR={on:0x0680,pos:0x0681,len:0x0682,dir:0x0683,cnt:0x0684};
   const bytes=[],labels={},fixups=[],resources=[];let pc=0x8000,serial=0;
   function e(...values){for(const value of values){integer(value,0,255,'Opcode/data byte');bytes[pc++-0x8000]=value;}}
   function word(v){e(v&255,v>>>8);}
@@ -10774,7 +10789,7 @@ function compile(spec){
   label('enable_screen');abs(0xAD,0x2002);label('enable_vblank');abs(0xAD,0x2002);b(0x10,'enable_vblank');imm(0);abs(0x8D,0x2003);st(Z.oamReady);st(Z.frameReady);imm(2);abs(0x8D,0x4014);imm(0);abs(0x8D,0x2005);abs(0x8D,0x2005);if(smooth){ld(Z.viewHi);e(0x29,1,0x09,0x88);abs(0x8D,0x2000);ld(Z.viewLo);abs(0x8D,0x2005);imm(0);abs(0x8D,0x2005);}else{imm(0x88);abs(0x8D,0x2000);}imm(0x1E);abs(0x8D,0x2001);e(0x60);
   label('publish_screen');e(0xA6,Z.screen);for(const name of['worldIndex','roomIndex','cameraIndex','screenX','screenY','cameraScreen']){abs(0xBD,name+'_table');st(Z[name]);}e(0x60);
   label('restart');set(Z.screen,start.screen);set(Z.playerX,start.x);set(Z.playerY,start.y);set(Z.playerFacing,player.facing);set(Z.eventCount,0);jsr('reset_actor');if(enemy)jsr('enemy_reset');if(smooth){jsr('scroll_follow');copy(Z.wishLo,Z.viewLo);copy(Z.wishHi,Z.viewHi);}if(spec.gameplayCore?.enabled)jsr('gc_world_reconstruct');e(0x60);
-  label('reset_actor');for(const name of['velocityY','playerState','playerFrame','moveDirection','attackRequest'])set(Z[name],0);jsr('player_entry');jsr('ground_probe');e(0x60);
+  label('reset_actor');for(const name of['velocityY','playerState','playerFrame','moveDirection','attackRequest'])set(Z[name],0);if(stairsOn){imm(0);abs(0x8D,SR.on);}jsr('player_entry');jsr('ground_probe');e(0x60);
   if(smooth){
     // wish = max(0, min(playerWorldX-128, (width-1)*256)).
     label('scroll_follow');ld(Z.playerX);sub(128);st(Z.wishLo);ld(Z.screen);e(0xE9,0);st(Z.wishHi);
@@ -10837,12 +10852,44 @@ function compile(spec){
   }
   label('read_pad');imm(1);abs(0x8D,0x4016);imm(0);abs(0x8D,0x4016);set(Z.buttons,0);e(0xA2,8);label('pad_bit');abs(0xAD,0x4016);e(0x4A,0x66,Z.buttons,0xCA);b(0xD0,'pad_bit');ld(Z.buttons);e(0x45,Z.previousButtons,0x25,Z.buttons);st(Z.edges);copy(Z.buttons,Z.previousButtons);e(0x60);
   label('update');set(Z.eventMask,0);set(Z.attackRequest,0);jsr('read_pad');ld(Z.edges);e(0x29,8);b(0xF0,'not_restart');jsr('restart');e(0x60);label('not_restart');ld(Z.edges);e(0x29,16);b(0xF0,'not_marker');jsr('use_marker');ld(Z.temp2);b(0xF0,'not_marker');e(0x60);label('not_marker');
-  ld(Z.edges);e(0x29,2);b(0xF0,'no_attack_edge');ld(Z.playerState);e(0xC9,3);b(0xF0,'no_attack_edge');set(Z.attackRequest,1);label('no_attack_edge');jsr('horizontal');ld(Z.edges);e(0x29,1);b(0xF0,'no_jump');ld(Z.grounded);b(0xF0,'no_jump');set(Z.velocityY,-physics.jumpSpeed);set(Z.grounded,0);label('no_jump');jsr('vertical');jsr('choose_player');jsr('player_animate');if(enemy)jsr('enemy_update');if(spec.gameplayCore?.enabled)jsr('gc_world_update');e(0x60);
+  if(stairsOn){jsr('stair_update');abs(0xAD,SR.on);b(0xF0,'stair_free');jmp('after_physics');label('stair_free');}
+  ld(Z.edges);e(0x29,2);b(0xF0,'no_attack_edge');ld(Z.playerState);e(0xC9,3);b(0xF0,'no_attack_edge');set(Z.attackRequest,1);label('no_attack_edge');jsr('horizontal');ld(Z.edges);e(0x29,1);b(0xF0,'no_jump');ld(Z.grounded);b(0xF0,'no_jump');set(Z.velocityY,-physics.jumpSpeed);set(Z.grounded,0);label('no_jump');jsr('vertical');label('after_physics');jsr('choose_player');jsr('player_animate');if(enemy)jsr('enemy_update');if(spec.gameplayCore?.enabled)jsr('gc_world_update');e(0x60);
   // A feet origin is the exclusive body bottom: use its last occupied pixel
   // to activate the authored marker above a floor at a metatile boundary.
   // A direct cell index bounds Up processing independently of marker count.
   // Its 240 bytes precede compact three-byte destination records. The first
   // authored marker in a cell wins, matching the original ordered lookup.
+  if(stairsOn){
+    // Enter: standing, on an Up press near a stair's bottom end or a Down press near its top end (within 6 px).
+    label('stair_update');abs(0xAD,SR.on);b(0xF0,'stair_enter_check');jmp('stair_move');
+    label('stair_enter_check');ld(Z.grounded);b(0xF0,'stair_rts');ld(Z.edges);e(0x29,0x30);b(0xF0,'stair_rts');
+    e(0xA6,Z.screen);abs(0xBD,'stair_count_table');b(0xF0,'stair_rts');abs(0x8D,SR.cnt);abs(0xBD,'stair_first_table');e(0xAA);
+    label('stair_scan');ld(Z.edges);e(0x29,0x10);b(0xF0,'stair_try_top');
+    ld(Z.playerY);abs(0xDD,'stair_by');b(0xD0,'stair_next');ld(Z.playerX);e(0x38);abs(0xFD,'stair_bx');add(6);e(0xC9,13);b(0xB0,'stair_next');
+    abs(0xBD,'stair_bx');st(Z.playerX);imm(0);abs(0x8D,SR.pos);jmp('stair_enter');
+    label('stair_try_top');ld(Z.playerY);abs(0xDD,'stair_ty');b(0xD0,'stair_next');ld(Z.playerX);e(0x38);abs(0xFD,'stair_tx');add(6);e(0xC9,13);b(0xB0,'stair_next');
+    abs(0xBD,'stair_tx');st(Z.playerX);abs(0xBD,'stair_len');abs(0x8D,SR.pos);jmp('stair_enter');
+    label('stair_next');e(0xE8);abs(0xCE,SR.cnt);b(0xD0,'stair_scan');label('stair_rts');e(0x60);
+    label('stair_enter');abs(0xBD,'stair_len');abs(0x8D,SR.len);abs(0xBD,'stair_dir');abs(0x8D,SR.dir);imm(1);abs(0x8D,SR.on);set(Z.velocityY,0);set(Z.grounded,1);e(0x60);
+    // Move: Up or the stair's horizontal direction climbs, Down or the opposite descends, one pixel diagonally per
+    // frame; reaching either end steps off (gravity resumes on the landing or floor).
+    label('stair_move');set(Z.moveDirection,0);set(Z.grounded,1);set(Z.velocityY,0);
+    ld(Z.buttons);e(0x29,0x10);b(0xD0,'stair_up');
+    abs(0xAD,SR.dir);b(0xD0,'stair_upkey_left');ld(Z.buttons);e(0x29,0x80);b(0xD0,'stair_up');jmp('stair_downkeys');
+    label('stair_upkey_left');ld(Z.buttons);e(0x29,0x40);b(0xD0,'stair_up');
+    label('stair_downkeys');ld(Z.buttons);e(0x29,0x20);b(0xD0,'stair_down');
+    abs(0xAD,SR.dir);b(0xD0,'stair_downkey_right');ld(Z.buttons);e(0x29,0x40);b(0xD0,'stair_down');e(0x60);
+    label('stair_downkey_right');ld(Z.buttons);e(0x29,0x80);b(0xD0,'stair_down');e(0x60);
+    label('stair_up');abs(0xAD,SR.pos);abs(0xCD,SR.len);b(0xB0,'stair_exit');abs(0xEE,SR.pos);e(0xC6,Z.playerY);
+    abs(0xAD,SR.dir);b(0xD0,'stair_up_left');e(0xE6,Z.playerX);set(Z.playerFacing,0);set(Z.moveDirection,1);jmp('stair_moved_up');
+    label('stair_up_left');e(0xC6,Z.playerX);set(Z.playerFacing,1);set(Z.moveDirection,255);
+    label('stair_moved_up');abs(0xAD,SR.pos);abs(0xCD,SR.len);b(0xD0,'stair_rts2');jmp('stair_exit');
+    label('stair_down');abs(0xAD,SR.pos);b(0xF0,'stair_exit');abs(0xCE,SR.pos);e(0xE6,Z.playerY);
+    abs(0xAD,SR.dir);b(0xD0,'stair_down_right');e(0xC6,Z.playerX);set(Z.playerFacing,1);set(Z.moveDirection,255);jmp('stair_moved_down');
+    label('stair_down_right');e(0xE6,Z.playerX);set(Z.playerFacing,0);set(Z.moveDirection,1);
+    label('stair_moved_down');abs(0xAD,SR.pos);b(0xD0,'stair_rts2');
+    label('stair_exit');imm(0);abs(0x8D,SR.on);label('stair_rts2');e(0x60);
+  }
   label('use_marker');set(Z.temp2,0);ld(Z.playerY);b(0xF0,'marker_done');sub(1);e(0x29,0xF0);st(Z.temp);ld(Z.playerX);e(0x4A,0x4A,0x4A,0x4A,0x05,Z.temp,0xA8);tablePointer('markers',Z.screen,Z.markerPtr);e(0xB1,Z.markerPtr,0xC9,255);b(0xF0,'marker_done');
   st(Z.temp);e(0x0A);st(Z.byteOffset);imm(0);e(0x69,0);st(Z.bitMask);ld(Z.byteOffset);zpadd(Z.temp);st(Z.byteOffset);ld(Z.bitMask);e(0x69,0);st(Z.bitMask);ld(Z.byteOffset);add(240);st(Z.byteOffset);ld(Z.bitMask);e(0x69,0);st(Z.bitMask);
   ld(Z.markerPtr);zpadd(Z.byteOffset);st(Z.ptr);ld(Z.markerPtr+1);e(0x65,Z.bitMask);st(Z.ptr+1);e(0xA0,0,0xB1,Z.ptr);st(Z.screen);e(0xC8,0xB1,Z.ptr);st(Z.playerX);e(0xC8,0xB1,Z.ptr);st(Z.playerY);jsr('reset_actor');set(Z.temp2,1);label('marker_done');e(0x60);
@@ -11051,6 +11098,9 @@ function compile(spec){
   const dataResource=(name,kind,values)=>{label(name);const address=pc;for(const value of values)e(value);resources.push({kind,ownerId:name,address,byteLength:pc-address,alignment:1,region:'PRG',bank:0});};
   dataResource('bit_masks','lookup',Array.from({length:32},(_,i)=>1<<(i&7)));
   dataResource('byte_offsets','lookup',Array.from({length:32},(_,i)=>i>>3));
+  if(stairsOn){const all=[],first=[],count=[];for(const sc of screens){first.push(all.length&255);count.push((sc.stairs||[]).length);all.push(...(sc.stairs||[]));}
+    dataResource('stair_count_table','stairs',count);dataResource('stair_first_table','stairs',first);
+    for(const [k,f] of [['bx',st=>st.x],['by',st=>st.y],['tx',st=>st.x+(st.dir?-st.len:st.len)],['ty',st=>st.y-st.len],['len',st=>st.len],['dir',st=>st.dir]])dataResource('stair_'+k,'stairs',all.map(st=>f(st)&255));}
   if(chrSelect){dataResource('world_chr_table','chr-bank',spec.worldChrBank);dataResource('chr_lut_table','chr-bank-lut',Array.from({length:spec.chrBanks||1},(_,i)=>i));}
   for(const key of['left','right','up','down','worldIndex','roomIndex','cameraIndex','screenX','screenY','cameraScreen'])dataResource(key+'_table','screen-index',screens.map((screen,index)=>(screen[key]??(key==='cameraScreen'?index:0))&255));
   const refs={nt:[],collision:[],pal:[],markers:[]},data=[];
@@ -11475,9 +11525,18 @@ function plan(input,gameplayCore){
    const cameraY=camera&&['locked','horizontal'].includes(camera.mode)?camera.y/15:sy;
    screens.push({id:w.id+':'+sx+','+sy,index,worldIndex,roomIndex:room?roomIndices.get(room.id):255,cameraIndex:camera?cameraIndices.get(camera.id):255,
     screenX:sx,screenY:sy,cameraScreen:linked.screenStart+cameraY*w.widthScreens+cameraX,nt,collision,palette:[...worldPalette,...actorPalette],left:sx?index-1:-1,right:sx<w.widthScreens-1?index+1:-1,
-    up:sy?index-w.widthScreens:-1,down:sy<w.heightScreens-1?index+w.widthScreens:-1,markers:[]});
+    up:sy?index-w.widthScreens:-1,down:sy<w.heightScreens-1?index+w.widthScreens:-1,markers:[],stairs:[]});
   }
   for(const m of markersByWorld.get(w.id).values()){integer(m.x,0,cols-1,'Marker '+m.id+' X');integer(m.y,0,rows-1,'Marker '+m.id+' Y');}
+  // Stairs (world pixels): bottom end at the player's feet, length in pixels along both axes, climbing right or left.
+  if(w.stairs!==undefined&&!Array.isArray(w.stairs))fail(w.name+' stairs must be a list');
+  for(const st of w.stairs||[]){
+   integer(st.x,0,w.widthScreens*256-1,w.name+' stair X');integer(st.y,1,w.heightScreens*240-1,w.name+' stair Y');integer(st.length,2,200,w.name+' stair length');
+   if(!['right','left'].includes(st.direction))fail(w.name+' stair direction must be right or left');
+   const sx=Math.floor(st.x/256),sy=Math.floor((st.y-1)/240),bx=st.x-sx*256,by=st.y-sy*240,dir=st.direction==='left'?1:0,tx=bx+(dir?-st.length:st.length);
+   if(tx<0||tx>255||by-st.length<1)fail(w.name+' stair '+(st.id||'')+' must stay within one screen');
+   screens[linked.screenStart+sy*w.widthScreens+sx].stairs.push({x:bx,y:by,len:st.length,dir});
+  }
  }
  phases.push('world-validation');
  function paletteMatch(sc,row,label){integer(row,0,3,label+' palette row');const p=palette(sc?.sprPal,label+' source sprite palette');for(let c=1;c<4;c++)if(p[row][c]!==spritePalette[row][c])fail(label+' visible sprite palette differs from the selected player source');}
