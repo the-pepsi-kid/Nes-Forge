@@ -106,6 +106,7 @@ function state(res, kind) {
   if (kind === 'author') return res.build ? 'rebuild (authored)' : 'visible';
   if (res.native) return 'rebuild (' + res.native + ' native)';
   if (res.copy) return 'edit copy (' + res.copy + ')';
+  if (res.unknown) return 'ownership unknown (' + res.unknown + ')';
   if (res.reference) return 'visible (reference)';
   return res.total ? 'visible' : 'none';
 }
@@ -126,6 +127,7 @@ for (const row of rows) {
   if (row.fatal) { gap('fatal', 'Audit could not run').roms.push(row.title); continue; }
   for (const [cat, s] of Object.entries(row.cats)) {
     if (s.startsWith('edit copy')) gap('writer:' + cat, 'No native writer: ' + cat + ' edits are refused at native build').roms.push(row.title);
+    if (s.startsWith('ownership unknown')) { const g = gap('ownership', 'Project type does not publish per-asset writer ownership'); if (!g.roms.includes(row.title)) g.roms.push(row.title); }
     if (s === 'none' && row.kind !== 'author') gap('decode:' + cat, 'Not decoded: ' + cat).roms.push(row.title);
   }
   if (row.audio === 'not identified') gap('audio', 'No native audio driver profile').roms.push(row.title);
@@ -141,7 +143,7 @@ fs.writeFileSync(path.join(outDir, 'matrix.csv'), [['ROM', 'SHA-256', 'Mapper', 
   ...rows.map(r => [r.title, r.sha256, r.mapper, r.profile, r.kind, r.writers, ...CATS.map(c => r.cats[c[0]]), r.audio, r.builds, r.roundTrip, r.packs].map(csvCell).join(','))].join('\n') + '\n');
 const md = ['# NES Forge ROM capability audit', '',
   'Measured by importing each exact ROM through `Forge.commands` (the same path as the editor), listing every resource with its editability level, building the unchanged import and saving / reopening it. Editor SHA-256 `' + editorShas.join('`, `') + '`' + (editorShas.length > 1 ? ' (results come from more than one editor build)' : '') + '.', '',
-  'States: **rebuild** = edits reach a built ROM (authored game, or a registered native writer); **edit copy** = editable but a native build refuses the change; **visible** = shown in the Library, read-only; **none** = not decoded.', '',
+  'States: **rebuild** = edits reach a built ROM (authored game, or a registered native writer); **edit copy** = editable but a native build refuses the change; **ownership unknown** = this project type does not yet publish which assets its writers own; **visible** = shown in the Library, read-only; **none** = not decoded.', '',
   '| ROM | Mapper | Kind | ' + CATS.map(c => c[0]).join(' | ') + ' | Audio | Unchanged build | Save/reopen |', '|' + '---|'.repeat(CATS.length + 6),
   ...rows.map(r => '| ' + [r.title, r.mapper, r.kind, ...CATS.map(c => r.cats[c[0]]), r.audio, r.builds, r.roundTrip].join(' | ') + ' |'), '',
   '## Backlog (gaps ranked by how many ROMs they block)', '', ...backlog.map(b => '- **' + b.title + '** — ' + b.count + ' ROM(s): ' + b.roms.join(', ')), '',
