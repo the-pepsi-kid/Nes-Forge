@@ -58,16 +58,34 @@ try:
                     page.locator('#projectGateway-project').click()
                     assert page.evaluate('Forge.services.ProjectStore.capture().projectName').lower().find('teapot') >= 0
                     page.locator('button.tab[data-view="code"]').click()
-                    page.locator('button[onclick="buildAndRun()"]').click()
+                    # Studio layout: Play builds and runs the edited project.
+                    page.locator('#studioMode-play').click()
                     page.wait_for_function('emu.loaded && emu.frameCount > 1')
                     assert page.locator('#emuCanvas').is_visible()
                     page.screenshot()
-                    page.locator('#projectLessonsOpen').click()
+                    # Library lists every resource with an editability badge, from Forge.commands.
+                    page.locator('#studioMode-library').click()
+                    page.wait_for_selector('.sp-item .lv')
+                    assert page.locator('.sp-item').count() >= 5
+                    page.locator('.sp-item').first.click()
+                    page.wait_for_selector('.sp-detail h2')
+                    page.locator('#studioMode-build').click()
+                    page.wait_for_selector('.bd-card')
+                    assert page.locator('.bd-ok').count() == 1, 'authored example must build'
+                    # Classic layout brings every original control back; Alt+2 returns to Edit.
+                    page.locator('#studioClassic').click()
+                    page.keyboard.press('Alt+2')
+                    assert page.locator('#projectGatewayOpen').is_visible()
+                    page.locator('#studioClassic').click()
+                    assert not page.locator('#projectGatewayOpen').is_visible()
+                    assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1'), 'horizontal page scroll'
+                    page.locator('#studioLearn').click()
                     page.locator('#projectLessonChapter').select_option('first-game')
                     assert page.locator('#projectLessonBody h2').count() >= 9
                     assert not errors, errors
                     report['profiles'].append({'width':width, 'height':height, 'touchEmulation':width < 600,
-                                               'openBuildAndRun':True,'firstGameLesson':True,'uncaughtErrors':errors})
+                                               'openBuildAndRun':True,'library':True,'buildPanel':True,'classicLayout':True,
+                                               'firstGameLesson':True,'uncaughtErrors':errors})
                     context.close()
                 browser.close()
                 report['passed'] = True
