@@ -24,6 +24,8 @@ What changed: [release notes](docs/releases/2.0.0-alpha.12.md). The previous pub
   - the 16-cartridge corpus
   - the real-browser check at 1440×900 and at 390×844 with touch, including the studio layout and the spatial preview
 
+The results of the release run are in [reviews/integrated-review-6/Public_Verification.json](reviews/integrated-review-6/Public_Verification.json): 42 of 42 suites pass, plus 20 of 20 revisions on the extended native corpus.
+
 ## Remaining acceptance
 
 These are unchanged from Review 5:
