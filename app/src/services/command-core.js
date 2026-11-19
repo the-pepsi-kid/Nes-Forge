@@ -183,6 +183,19 @@ register({name:'project.replace',group:'project',title:'Commit an edited project
   summary:'Commits a whole edited project as one Undo step through ProjectStore. Use for scripted edits.',args:{json:{type:'string',required:true},intent:{type:'string',default:'edit'}},
   run:a=>{commitProject(a.json,a.intent);return {name:store().capture().projectName};}});
 
+register({name:'rom.inspect',group:'rom',title:'Inspect a ROM (intake report)',
+  summary:'The editor intake report for an exact ROM: container, recognised profile and what each resource type supports (inspect / edit / build).',
+  args:{bytes:{type:'bytes',required:true},name:{type:'string',default:'rom.nes'}},
+  run:async a=>{const r=await services.ProjectGateway.inspect(a.bytes,{name:a.name});
+    return {kind:r.kind,source:cp(r.source),container:cp(r.container)||null,profile:r.profile||null,rows:cp(r.rows||[]),
+      actions:(r.actions||[]).map(x=>cp(typeof x==='object'?{id:x.id,label:x.label||x.title,enabled:x.enabled!==false}:x)),limitations:cp(r.limitations||[])};}});
+register({name:'rom.import',group:'rom',title:'Import a ROM as a new project',mutates:true,
+  summary:'Same as "Prepare investigated game" + "Import as new project": preserved source and every recovered catalog, one ProjectStore commit.',
+  args:{bytes:{type:'bytes',required:true},name:{type:'string',default:'rom.nes'}},
+  run:async a=>{const project=await services.InvestigationProject.create(a.bytes,a.name);commitProject(project,'rom-import');rememberBuildable();
+    let described=null;try{described=cp(services.InvestigationProject.describe(project.investigation));}catch(_){described=null;}
+    return {name:store().capture().projectName,investigation:described};}});
+
 register({name:'pack.open',group:'pack',title:'Open an extraction ZIP',summary:'Validates with the editor intake and keeps it open for pack.* commands.',
   args:{bytes:{type:'bytes',required:true},name:{type:'string',default:'pack.zip'}},
   run:async a=>{const pack=await services.ExtractionPack.open(a.bytes);state.pack=pack;state.packName=a.name;

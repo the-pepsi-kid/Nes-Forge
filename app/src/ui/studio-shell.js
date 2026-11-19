@@ -285,5 +285,6 @@ setClassic(store.get('classic',false));
 setMode(store.get('mode','edit'));
 setInterval(()=>{if(document.visibilityState==='visible'&&typeof S!=='undefined'&&!projectChip.textContent.startsWith(S.projectName||'Untitled'))refreshProject();},2000);
 C.subscribe(e=>{if(e.type==='project'){refreshProject();if(mode==='library')renderLibrary();}});
-services.StudioShell=Object.freeze({setMode,mode:()=>mode,setClassic,openPalette,refresh:()=>setMode(mode),renderLibrary,renderBuild});
+services.StudioShell=Object.freeze({setMode,mode:()=>mode,setClassic,openPalette,refresh:()=>setMode(mode),renderLibrary,renderBuild,
+  drawScene:(id,canvas)=>drawScene(sceneData(id),canvas)});
 })();
