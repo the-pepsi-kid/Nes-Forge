@@ -17,6 +17,7 @@ import subprocess
 import sys
 import time
 from urllib import request, error, parse
+from placement_contract import make_placement_ledger
 
 ROOT = Path(__file__).resolve().parent
 DOMAINS = (
@@ -296,6 +297,7 @@ def run(args):
     domains = init_domains(header)
     stages = []
     warnings = []
+    verified_bank_checks = None
 
     print("\n=== NES Forge local investigation ===")
     print("Cartridge:", safe_display_title(rom.name), "| Mapper:", header["mapper"])
@@ -316,6 +318,7 @@ def run(args):
             raw_manifest = read_json(manifest)
             verified, details = verify_extracted_banks(raw_dir, check, raw_manifest, header, rom)
             if verified and raw_manifest.get("sha256") == rom_hash:
+                verified_bank_checks = check["bank_checks"]
                 domains["physical_banks"] = {"state": "extracted", "evidence": details}
                 if header["chr_bytes"]:
                     domains["chr_tiles"] = {"state": "decoded", "evidence": "NES 2bpp CHR-ROM tiles decoded to grayscale previews (not palette-verified)"}
@@ -483,6 +486,11 @@ def run(args):
       }, "domains": domains, "catalog_counts": investigated_stats,
       "note": "This index organizes evidence from multiple tools; empty/unverified does not mean absent from the game."
     }
+    placement = make_placement_ledger(rom_hash, forge_identity["sha256"], header, verified_bank_checks)
+    inventory["placement_ledger"] = {"schema": placement["schema"], "file": "placement.json",
+                                     "verified_raw_banks": placement["verified_raw_banks"],
+                                     "scope": "verified physical locations only; scene/runtime placement unresolved"}
+    write_json(private / "placement.json", placement)
     write_json(private / "inventory.json", inventory)
     public["observed_counts"]["runtime_frames"] = capture_stats["frames_checked"]
     public["observed_counts"]["runtime_selfcheck_passed"] = capture_stats["selfcheck_passed"]
