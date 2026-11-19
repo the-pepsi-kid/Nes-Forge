@@ -30,6 +30,9 @@ jobs:
       - name: Both launch entries are the same generated editor
         run: python tools/sync_main_entry.py --check
 
+      - name: One build identity (release-info, title, build tag, header, entries)
+        run: python tools/release_identity.py
+
       - name: Public profile (no private catalogs, only the authored cartridge fixtures)
         run: python tools/verify_public_profile.py
 

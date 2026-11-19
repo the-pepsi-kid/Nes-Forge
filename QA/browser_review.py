@@ -13,6 +13,9 @@ from urllib.request import urlopen
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT/'tools'))
+from release_identity import release_name
+RELEASE_NAME = release_name()
 URL = 'http://127.0.0.1:8765'
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path)
@@ -50,7 +53,7 @@ try:
                     page.on('dialog', lambda dialog: dialog.accept())
                     page.set_default_timeout(10000)
                     page.goto(URL+'/editor', wait_until='load')
-                    assert 'Integrated Review 5' in page.title()
+                    assert RELEASE_NAME in page.title(), page.title()
                     page.locator('#projectGatewayFile').set_input_files(ROOT/'Examples'/'Teapot418.nesforge.json')
                     page.locator('#projectGateway-project').click()
                     assert page.evaluate('Forge.services.ProjectStore.capture().projectName').lower().find('teapot') >= 0

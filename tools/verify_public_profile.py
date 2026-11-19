@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import sys
 import re
 from pathlib import Path
 
@@ -28,7 +29,9 @@ def sources():
     assert len(parts) == 219, 'Unexpected source part count'
     assert b''.join(parts) == editor, 'Editor does not match ordered source parts'
     assert (ROOT/'nes-forge.html').read_bytes() == editor, 'Launch entries differ'
-    assert b'Integrated Review 5' in editor, 'Stale build identity'
+    sys.path.insert(0, str(ROOT/'tools'))
+    from release_identity import release_name
+    assert release_name().encode() in editor, 'Stale build identity'
 
 
 def payloads():
