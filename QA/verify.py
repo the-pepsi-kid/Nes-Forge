@@ -69,7 +69,7 @@ def record(row):
     index['results'].append(row)
 
 record(run('bundle',[sys.executable,ROOT/'app/tools/bundle.py','--check']))
-cases = [('DG-runtime',QA/'t/recover.cjs'),('editor',QA/'t/editor.cjs'),('zip-limits',QA/'t/zip-limits.cjs'),('pack-check',QA/'t/pack-check.cjs'),('command-core',QA/'t/command-core.cjs'),('rom-audit',QA/'t/rom-audit.cjs'),('release-migration',QA/'t/release-migration.cjs'),('pose-streams',QA/'t/pose-streams.cjs'),('cnrom-world',QA/'t/cnrom-world.cjs'),('world-stairs',QA/'t/world-stairs.cjs'),('world-enemies',QA/'t/world-enemies.cjs'),('ai-controls',QA/'t/ai-controls.cjs'),
+cases = [('DG-runtime',QA/'t/recover.cjs'),('editor',QA/'t/editor.cjs'),('zip-limits',QA/'t/zip-limits.cjs'),('pack-check',QA/'t/pack-check.cjs'),('command-core',QA/'t/command-core.cjs'),('resource-library',QA/'t/resource-library.cjs'),('rom-audit',QA/'t/rom-audit.cjs'),('release-migration',QA/'t/release-migration.cjs'),('pose-streams',QA/'t/pose-streams.cjs'),('cnrom-world',QA/'t/cnrom-world.cjs'),('world-stairs',QA/'t/world-stairs.cjs'),('world-enemies',QA/'t/world-enemies.cjs'),('ai-controls',QA/'t/ai-controls.cjs'),
          ('mmc2',QA/'t/u/mmc2-prefetch.cjs'),('audio-library',QA/'t/u/native-audio-library.cjs')]
 for name in ['native-lolo-resources','native-metroid-resources','punch-out','river-city','shadowgate','lolo-audio','metroid-audio','workstation-startup-dom']:
     cases.append((name,APP_TESTS/(name+'.cjs')))
@@ -109,6 +109,9 @@ if args.cartridges:
 if args.browser:
     receipt=output/'browser.json'
     record(run('browser',[sys.executable,QA/'browser_review.py','--output',receipt],receipt))
+    receipt=output/'library-persistence.json'
+    lib_args=['node',QA/'library-persistence.cjs',EDITOR,receipt]+([str(args.extractions.resolve())] if args.extractions else [])
+    record(run('library-persistence',lib_args,receipt))
 index['passed']=all(row['passed'] for row in index['results'])
 index['requested']={'privateExtractions':bool(args.extractions),'realBrowser':bool(args.browser),'originalCartridges':bool(args.cartridges)}
 (output/'index.json').write_text(json.dumps(index,indent=2)+'\n',encoding='utf-8')
