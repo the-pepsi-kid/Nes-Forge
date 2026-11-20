@@ -13,6 +13,9 @@ from urllib.request import urlopen
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT/'tools'))
+from release_identity import release_name
+RELEASE_NAME = release_name()
 URL = 'http://127.0.0.1:8765'
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path)
@@ -37,7 +40,7 @@ try:
                 raise RuntimeError('The local review host did not respond.')
             report['hostServesIdenticalEditor'] = True
             with sync_playwright() as playwright:
-                options = {'headless': True}
+                options = {'headless': True, 'args': ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']}
                 if os.getenv('CHROMIUM_PATH'):
                     options['executable_path'] = os.environ['CHROMIUM_PATH']
                 browser = playwright.chromium.launch(**options)
@@ -50,21 +53,48 @@ try:
                     page.on('dialog', lambda dialog: dialog.accept())
                     page.set_default_timeout(10000)
                     page.goto(URL+'/editor', wait_until='load')
-                    assert 'Integrated Review 5' in page.title()
+                    assert RELEASE_NAME in page.title(), page.title()
                     page.locator('#projectGatewayFile').set_input_files(ROOT/'Examples'/'Teapot418.nesforge.json')
                     page.locator('#projectGateway-project').click()
                     assert page.evaluate('Forge.services.ProjectStore.capture().projectName').lower().find('teapot') >= 0
                     page.locator('button.tab[data-view="code"]').click()
-                    page.locator('button[onclick="buildAndRun()"]').click()
+                    # Studio layout: Play builds and runs the edited project.
+                    page.locator('#studioMode-play').click()
                     page.wait_for_function('emu.loaded && emu.frameCount > 1')
                     assert page.locator('#emuCanvas').is_visible()
                     page.screenshot()
-                    page.locator('#projectLessonsOpen').click()
+                    # Library lists every resource with an editability badge, from Forge.commands.
+                    page.locator('#studioMode-library').click()
+                    page.wait_for_selector('.sp-item .lv')
+                    assert page.locator('.sp-item').count() >= 5
+                    page.locator('.sp-item').first.click()
+                    page.wait_for_selector('.sp-detail h2')
+                    page.locator('#studioMode-build').click()
+                    page.wait_for_selector('.bd-card')
+                    assert page.locator('.bd-ok').count() == 1, 'authored example must build'
+                    # Classic layout brings every original control back; Alt+2 returns to Edit.
+                    page.locator('#studioClassic').click()
+                    page.keyboard.press('Alt+2')
+                    assert page.locator('#projectGatewayOpen').is_visible()
+                    page.locator('#studioClassic').click()
+                    assert not page.locator('#projectGatewayOpen').is_visible()
+                    assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1'), 'horizontal page scroll'
+                    # Spatial (VR/AR) adapter: desktop preview renders the game and every World/Scene as floating screens.
+                    page.locator('#studioSpatial').click()
+                    page.wait_for_selector('#spatialCanvas')
+                    spatial = page.evaluate("Forge.commands.run('spatial.info')")
+                    assert spatial['ok'] and spatial['result']['open'] and spatial['result']['screens'] >= 2, spatial
+                    shot = page.evaluate("Forge.commands.run('spatial.capture')")
+                    assert shot['ok'] and len(shot['result']['png']) > 2000, 'spatial preview did not render'
+                    page.locator('#spatialClose').click()
+                    assert page.locator('#spatialOverlay').count() == 0
+                    page.locator('#studioLearn').click()
                     page.locator('#projectLessonChapter').select_option('first-game')
                     assert page.locator('#projectLessonBody h2').count() >= 9
                     assert not errors, errors
                     report['profiles'].append({'width':width, 'height':height, 'touchEmulation':width < 600,
-                                               'openBuildAndRun':True,'firstGameLesson':True,'uncaughtErrors':errors})
+                                               'openBuildAndRun':True,'library':True,'buildPanel':True,'classicLayout':True,'spatialPreview':True,
+                                               'firstGameLesson':True,'uncaughtErrors':errors})
                     context.close()
                 browser.close()
                 report['passed'] = True

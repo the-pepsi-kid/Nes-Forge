@@ -224,7 +224,39 @@ def write_html(file: Path, title: str, public: dict, local_stages: list, qwen: d
 {native_link}{tasks}<p class="muted">Private ROM-derived files remain in this local folder. Only the allowlisted JSON evidence is intended for manual GitHub review.</p></body></html>''', encoding="utf-8")
 
 
-def ask_qwen(public: dict, api: str, model: str | None) -> dict:
+def load_review_tasks(path: str | None, rom_sha256: str) -> list[dict]:
+    """Return narrow source-bound review tasks; never treat them as execution authority."""
+    if not path:
+        return []
+    source = Path(path).expanduser().resolve()
+    if not source.is_file() or source.stat().st_size > 4 * 1024 * 1024:
+        raise ValueError("Review workorders missing or too large")
+    doc = read_json(source)
+    if doc.get("schema") != "NESForgeAgentWorkorders/v1" or doc.get("allow_modify_rom") is not False or doc.get("allow_modify_forge") is not False:
+        raise ValueError("Review workorders must be a read-only v1 document")
+    items = doc.get("tasks")
+    if not isinstance(items, list) or len(items) > 5000:
+        raise ValueError("Review task list is not bounded")
+    matches = []
+    for item in items:
+        if not isinstance(item, dict) or item.get("rom_sha256") != rom_sha256:
+            continue
+        if item.get("state") != "pending_review_not_executed":
+            continue
+        instruction = item.get("instruction")
+        acceptance = item.get("acceptance")
+        if not isinstance(instruction, str) or not isinstance(acceptance, str):
+            continue
+        matches.append({"id": str(item.get("id", ""))[:100],
+                        "category": str(item.get("category", ""))[:48],
+                        "instruction": instruction[:1000],
+                        "acceptance": acceptance[:750],
+                        "status": "owner_review_required"})
+    # Keep one task per category in the model prompt. The local queue retains all.
+    return matches[:20]
+
+
+def ask_qwen(public: dict, api: str, model: str | None, review_tasks: list[dict] | None = None) -> dict:
     parsed = parse.urlparse(api)
     if parsed.scheme != "http" or parsed.hostname not in ("localhost", "127.0.0.1", "::1"):
         return {"state": "disabled", "note": "Only local Atomic Chat APIs are allowed"}
@@ -238,7 +270,8 @@ def ask_qwen(public: dict, api: str, model: str | None) -> dict:
             return {"state": "unavailable", "note": "No active model listed by Atomic Chat"}
         # Intentionally sends metadata only; never sends source bytes or ROM-derived layouts.
         facts = {"header": public["header"], "domains": public["domains"],
-                 "observed_counts": public["observed_counts"]}
+                 "observed_counts": public["observed_counts"],
+                 "review_findings": (review_tasks or [])[:3]}
         message = ("You are triaging NES Forge compatibility evidence. Distinguish verified observations "
                    "from hypotheses. Give at most three narrow next actions, grounded ONLY in the JSON below. "
                    "Do NOT claim playable scenes or 1:1 fidelity. Reply with JSON object "
@@ -487,7 +520,8 @@ def run(args):
     public["observed_counts"]["runtime_frames"] = capture_stats["frames_checked"]
     public["observed_counts"]["runtime_selfcheck_passed"] = capture_stats["selfcheck_passed"]
     print("[3/3] Preparing local review and public-safe evidence ...")
-    qwen = {"state": "disabled", "note": "--no-ai selected"} if args.no_ai else ask_qwen(public, args.api, args.model)
+    review_tasks = load_review_tasks(args.review_workorders, rom_hash)
+    qwen = {"state": "disabled", "note": "--no-ai selected"} if args.no_ai else ask_qwen(public, args.api, args.model, review_tasks)
     local = {"schema": "NESForgeLocalReview/v0.3", "rom_path": str(rom),
              "rom_sha256": rom_hash, "forge_path": str(forge) if forge else None,
              "forge_sha256": forge_identity["sha256"],
@@ -505,6 +539,10 @@ def run(args):
                           "status": "proposed_unverified", "description": action,
                           "acceptance": "Confirm exact ROM offsets and independently repeat the result before source changes"}
                          for i, action in enumerate(qwen.get("suggested_tasks", []))]}
+    for item in review_tasks:
+        queue["actions"].append({"id": item["id"], "role": item["category"],
+                                 "status": item["status"], "description": item["instruction"],
+                                 "acceptance": item["acceptance"]})
     write_json(private / "NEXT_ACTIONS.json", queue)
     write_json(private / "local_report.json", local)
     write_json(review / "evidence.json", public)
@@ -532,6 +570,7 @@ def main():
     ap.add_argument("--no-ai", action="store_true", help="Skip local Qwen analysis")
     ap.add_argument("--api", default="http://127.0.0.1:1337/v1", help="Local Atomic Chat API")
     ap.add_argument("--model", help="Exact local model identifier (auto-detected if omitted)")
+    ap.add_argument("--review-workorders", help="Private Qwen update review workorders; matched strictly by ROM SHA-256")
     ap.add_argument("--timeout", type=int, default=900, help="Per native step timeout seconds")
     args = ap.parse_args()
     try:

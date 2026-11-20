@@ -50,6 +50,27 @@
       ...(adapter.nativeFieldCapabilities||((adapter.nativeFields||[]).map(field=>({id:field.id,title:field.label,route:field.route,scope:field.scope})))).map(capability=>({...capability,adapterKind:adapter.kind}))];
   }
 
+  /* Read-only ownership map for browsing and editability badges: which Scenes and
+   * metasprites a registered writer encodes, and which fields. It is derived from the
+   * same views the build masks, so it cannot claim more than validate/build accept.
+   * Anything not listed in a native project is preserved but refused at native build. */
+  function ownership(p) {
+    if (!matches(p)) return null;
+    const info = inspect(p), scenes = {}, metasprites = {};
+    const add = (map, id, entry) => { (map[id] = map[id] || []).push(Object.freeze(entry)); };
+    for (const b of p.nativeGame.bindings || [])
+      add(scenes, sceneId(info.adapter, b), {writer: 'native-resource-blocks', route: 'library', fields: ['nt'],
+        scope: 'Block substitutions within the original source record capacity.'});
+    for (const codec of sceneEncoders.filter(c => c.matches(p, info))) {
+      const route = codec.capability?.route || null, scope = codec.capability?.scope || '';
+      for (const view of codec.views(p, info) || [])
+        add(scenes, view.id, {writer: codec.id, route, fields: Object.keys(view).filter(k => k !== 'id').sort(), scope});
+      if (codec.metaspriteViews) for (const view of codec.metaspriteViews(p, info) || [])
+        add(metasprites, view.id, {writer: codec.id, route, fields: ['originX', 'originY', 'pieces[].x', 'pieces[].y'], scope});
+    }
+    return Object.freeze({adapter: info.adapter.id, scenes: Object.freeze(scenes), metasprites: Object.freeze(metasprites)});
+  }
+
   function freeze(v, seen = new WeakSet()) {
     if (v && typeof v === 'object' && !seen.has(v)) {
       seen.add(v);
@@ -771,6 +792,7 @@
     requiredScene,
     registerSceneEncoder,
     writerCapabilities,
+    ownership,
     nativeFields,
     prepareNativeField,
     prepareNativeFields,

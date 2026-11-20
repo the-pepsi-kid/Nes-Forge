@@ -25,6 +25,9 @@ async function open(bytes){
   let reports=paths.filter(p=>isName(p,'native_report.json')||isName(p,'resources_report.json'));
   // Resource and audio exporters share the source-bound archive workflow.
   // An audio report is the root only when no outer extraction report exists.
+  // Mario extraction tools use explicit revision-bound root reports. Prefer native
+  // roots when present; never select multiple roots from one ZIP.
+  if(!reports.length)reports=paths.filter(p=>['smb1_report.json','smb2_report.json','smb3_report.json'].some(n=>isName(p,n)));
   const audioOnly=!reports.length&&paths.some(p=>isName(p,'audio_report.json'));
   if(audioOnly)reports=paths.filter(p=>isName(p,'audio_report.json'));
   if(!reports.length){
@@ -45,7 +48,7 @@ async function open(bytes){
   }
   if(reports.length!==1)message('Multiple extraction roots. Open one game pack at a time.');
   const report=await json(reports[0]);
-  if(!['NESForgeNativeExtraction','NESForgeNativeResourceExtraction','NESForgeNativeAudioExtraction','NESForgeAudioCapture'].includes(report?.format)||!/^([a-f0-9]{64})$/i.test(report.rom?.sha256||'')){
+  if(!['NESForgeNativeExtraction','NESForgeNativeResourceExtraction','NESForgeNativeAudioExtraction','NESForgeAudioCapture','NESForgeSMB1Extraction','NESForgeSMB2Extraction','NESForgeSMB3Extraction'].includes(report?.format)||!/^([a-f0-9]{64})$/i.test(report.rom?.sha256||'')){
     message('Missing extraction format or source fingerprint.');
   }
   const captured=report.format==='NESForgeAudioCapture',reportDir=reports[0].slice(0,reports[0].lastIndexOf('/')+1);
@@ -57,8 +60,9 @@ async function open(bytes){
     for(const path of paths)while(common.length&&!path.startsWith(common.join('/')+'/'))common.pop();
     root=common.length?common.join('/')+'/':'';
   }
-  report.game=String(report.game||report.title||report.driver?.title||(captured?'Observed runtime capture':'Native extraction'));
-  const files={map:[],room:[],resource:[],capture:[],collision:[],pose:[],catalog:[],project:[],animationProject:[],nativeProject:[],audioProject:[],audioReport:[]};
+  const mario=['NESForgeSMB1Extraction','NESForgeSMB2Extraction','NESForgeSMB3Extraction'].includes(report.format);
+  report.game=String(report.game||report.title||report.driver?.title||(mario?({'NESForgeSMB1Extraction':'Super Mario Bros. 1','NESForgeSMB2Extraction':'Super Mario Bros. 2','NESForgeSMB3Extraction':'Super Mario Bros. 3'}[report.format]):captured?'Observed runtime capture':'Native extraction'));
+  const files={map:[],room:[],resource:[],capture:[],collision:[],pose:[],catalog:[],project:[],animationProject:[],nativeProject:[],audioProject:[],audioReport:[],object:[],audit:[]};
   let nativeProjectPath=null;
   if(report.format==='NESForgeNativeResourceExtraction'){
     if(typeof report.project!=='string'||!report.project||report.project.includes('\\')||report.project.startsWith('/')||report.project.split('/').some(p=>!p||p==='.'||p==='..'))message('Invalid native project path.');
@@ -76,6 +80,8 @@ async function open(bytes){
     const local=path.slice(root.length);
     if(/^maps\/.+\.json$/i.test(local))files.map.push(path);
     else if(/^rooms\/.+\.json$/i.test(local))files.room.push(path);
+    else if(mario&&/^(areas|levels)\/.+_objects\.json$/i.test(local))files.object.push(path);
+    else if(/^(objects_report|placement_audit|collision_check_against_game|mm2_report|stage_art_report)\.json$/i.test(local))files.audit.push(path);
     else if(/^resources\/.+\.json$/i.test(local))files.resource.push(path);
     else if(/^sprites\/.+\.nesforge\.json$/i.test(local))files.animationProject.push(path);
     else if(/^sprites\/.+\.json$/i.test(local))files.pose.push(path);
@@ -109,7 +115,12 @@ async function open(bytes){
        data.width<1||data.height<1||!Array.isArray(data.cells)||data.cells.length!==data.width*data.height)){
       message('The map dimensions do not match its cells.');
     }
-    if(kind==='room'&&data.format!=='NESForgeNativeSceneEvidence')message('Unsupported room evidence format.');
+    if(kind==='room'&&data.format!=='NESForgeNativeSceneEvidence'&&!(typeof data.id==='string'&&/^cv2:\d+:\d+$/.test(data.id)&&Number.isSafeInteger(data.width)&&data.width>0&&Number.isSafeInteger(data.height)&&data.height>0&&Array.isArray(data.usedBy)&&data.usedBy.length<=256&&data.source&&Number.isSafeInteger(data.source.metatileDefsFileOffset)))message('Unsupported room evidence format.');
+    if(kind==='object'){
+      if(!Array.isArray(data.objects)||data.objects.length>16384||data.objects.some(o=>!o||typeof o!=='object'||typeof o.object!=='string'||o.object.length>240||!['x','y','page','column','row','number'].every(k=>o[k]===undefined||(Number.isSafeInteger(o[k])&&o[k]>=0&&o[k]<=16777216))||o.romAddress!==undefined&&!/^\$[0-9a-f]{1,8}$/i.test(o.romAddress)))message('Invalid original object placement list.');
+      if(data.allInsideLevel!==undefined&&typeof data.allInsideLevel!=='boolean')message('Object bounds-check evidence is invalid.');
+    }
+    if(kind==='audit'&&(entries[path].size>2*1024*1024||Array.isArray(data)||!Object.keys(data).length))message('Invalid audit summary.');
     if(kind==='resource'&&(!data.resource||typeof data.resource.id!=='string'||!Array.isArray(data.pages)||!data.pages.length||data.pages.length>4096||data.pages.some(page=>!Array.isArray(page.nt)||page.nt.length!==960||!Array.isArray(page.attr)||page.attr.length!==64)))message('Invalid native resource pages.');
     if(kind==='capture'&&(data.format!=='NESForgeRuntimeSnapshot'||data.status!=='observed'||data.rom?.sha256!==report.rom.sha256.toLowerCase()||!Number.isSafeInteger(data.frame)||data.frame<0))message('Invalid or wrong-source runtime snapshot.');
     if(kind==='pose'&&(typeof data.pose?.id!=='string'||typeof data.metasprite?.id!=='string'||!Array.isArray(data.metasprite.pieces)||data.metasprite.pieces.length>256||!Array.isArray(data.sprPal)||data.sprPal.length!==4))message('Invalid exported pose fragment.');
@@ -126,7 +137,7 @@ async function open(bytes){
   }
   async function preview(path){
     if(!catalog.has(path))message('Select a listed resource.');
-    const kind=catalog.get(path),png=kind==='collision'?path:kind==='capture'?path.replace(/state\.json$/i,'screen.png'):kind==='animationProject'?path.replace(/\.nesforge\.json$/i,'.png'):path.replace(/\.json$/i,'.png');
+    const kind=catalog.get(path),png=kind==='collision'?path:kind==='capture'?path.replace(/state\.json$/i,'screen.png'):kind==='animationProject'?path.replace(/\.nesforge\.json$/i,'.png'):kind==='object'?path.replace(/_objects\.json$/i,'.png'):path.replace(/\.json$/i,'.png');
     if(!entries[png])return null;
     const data=await read(png);
     if(data.length<24||![137,80,78,71,13,10,26,10].every((n,i)=>data[i]===n))message('Preview is not a PNG.');
