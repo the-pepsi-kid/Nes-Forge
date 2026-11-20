@@ -5,8 +5,8 @@ const services=window.Forge.services;
 const fail=message=>{throw Error('Gameplay Core engine: '+message);};
 const A=Object.freeze({active:0x0300,generation:0x0310,definition:0x0320,state:0x0330,timer:0x0340,x:0x0350,y:0x0360,direction:0x0370,persistent:0x0380,health:0x03C0,screen:0x03D0,instance:0x03E0});
 // World extras in page 6 (the stair state uses $0680-$0684): one walk-animation clock per distinct actor animation,
-// a four-bullet pool, and a fire timer per actor slot.
-const ANIM=0x06A0,BULLETS=4,B=Object.freeze({active:0x06C0,x:0x06C4,y:0x06C8,dir:0x06CC,screen:0x06D0,tile:0x06D4,attr:0x06D8,speed:0x06DC}),FIRE=0x06E0;
+// scratch for the shared metasprite routine ($06B0-$06B2), a four-bullet pool, and a fire timer per actor slot.
+const ANIM=0x06A0,META=Object.freeze({x:0x06B0,y:0x06B1,end:0x06B2}),BULLETS=4,B=Object.freeze({active:0x06C0,x:0x06C4,y:0x06C8,dir:0x06CC,screen:0x06D0,tile:0x06D4,attr:0x06D8,speed:0x06DC}),FIRE=0x06E0;
 const keyMask={a:1,b:2,select:4,start:8,up:16,down:32,left:64,right:128};
 function defaultByte(variable){if(variable.type==='boolean')return variable.default?1:0;if(variable.type==='enum')return Math.max(0,variable.values.indexOf(variable.default));return variable.default;}
 function emit(plan,api,z,{world=false}={}){
@@ -122,7 +122,9 @@ function emit(plan,api,z,{world=false}={}){
   e(0x60);
   const metaRoutines=new Map(),animClocks=new Map();
   label(uniquePrefix+'draw');
-  const routineFor=pieces=>{const key=JSON.stringify(pieces);if(!metaRoutines.has(key))metaRoutines.set(key,{name:uniquePrefix+'meta_'+metaRoutines.size,pieces});return metaRoutines.get(key).name;};
+  // Each distinct metasprite gets two entries in the piece tables (as drawn, and mirrored); X = entry, Y = actor slot.
+  const routineFor=pieces=>{const key=JSON.stringify(pieces);if(!metaRoutines.has(key)){if(metaRoutines.size>=127)fail('At most 127 distinct actor metasprites');metaRoutines.set(key,{id:metaRoutines.size,pieces});}return metaRoutines.get(key).id*2;};
+  const metaDraw=uniquePrefix+'meta_draw',drawEntry=(actor,prefix)=>{lda(actorAddress('direction',actor.slot));b(0xF0,prefix+'_plain');e(0xE8);label(prefix+'_plain');jsr(metaDraw);};
   // Walk animations: one clock per distinct animation, advanced once per frame and wrapped at its total duration.
   for(const actor of plan.actors){const frames=actor.render?.frames;if(!frames?.length||actor.components.includes('Input')||!actor.renderEnabled)continue;
     const key=JSON.stringify(frames);if(!animClocks.has(key)){if(animClocks.size>=16)fail('At most 16 distinct actor animations');animClocks.set(key,{index:animClocks.size,total:frames.reduce((n,f)=>n+f.duration,0)});}}
@@ -133,30 +135,33 @@ function emit(plan,api,z,{world=false}={}){
     ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(bd+'_next');e(0xC8,0xC0,BULLETS);b(0xD0,bd+'_loop');label(bd+'_done');
   }
   for(const actor of plan.actors){if(actor.components.includes('Input')||!actor.renderEnabled)continue;const prefix=uniquePrefix+'draw_'+actor.slot,skip=prefix+'_skip';lda(actorAddress('active',actor.slot));b(0xF0,skip);if(world){lda(actorAddress('screen',actor.slot));e(0xC5,z.screen);b(0xD0,skip);}if(actor.render.frames?.length){
-    // Animated: the frame comes from the animation's clock; each frame is a shared metasprite routine (and mirror).
+    // Animated: the frame comes from the animation's clock; each frame is a shared metasprite table entry (and mirror).
     const frames=actor.render.frames,clock=ANIM+animClocks.get(JSON.stringify(frames)).index;
     lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0xA0,actor.slot);
     let threshold=0;
-    frames.forEach((frame,i)=>{const routine=routineFor(frame.pieces),here=prefix+'_f'+i;label(here);threshold+=frame.duration;
+    frames.forEach((frame,i)=>{const entry=routineFor(frame.pieces);label(prefix+'_f'+i);threshold+=frame.duration;
       if(i<frames.length-1){lda(clock);cmp(threshold);b(0xB0,prefix+'_f'+(i+1));}
-      lda(actorAddress('direction',actor.slot));b(0xD0,here+'m');jsr(routine);jmp(skip);label(here+'m');jsr(routine+'_m');jmp(skip);});
-    label(skip);continue;}
+      e(0xA2,entry);if(i<frames.length-1)jmp(prefix+'_go');});
+    label(prefix+'_go');drawEntry(actor,prefix);label(skip);continue;}
   if(actor.render.pieces){
-    // Metasprite: one shared drawing routine per distinct metasprite (and its mirror), called with the actor's slot in Y.
-    const routine=routineFor(actor.render.pieces);
-    lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0xA0,actor.slot);lda(actorAddress('direction',actor.slot));b(0xD0,prefix+'_mirror');jsr(routine);jmp(skip);
-    label(prefix+'_mirror');jsr(routine+'_m');label(skip);continue;}
+    // Metasprite: a shared piece-table entry per distinct metasprite (and its mirror), drawn with the actor's slot in Y.
+    const entry=routineFor(actor.render.pieces);
+    lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0xA0,actor.slot,0xA2,entry);drawEntry(actor,prefix);label(skip);continue;}
   ld(z.oamIndex);cmp(253);b(0xB0,skip);e(0xAA);lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0x38,0xE9,1);abs(0x9D,0x0200);imm(actor.render.tile&255);abs(0x9D,0x0201);imm((actor.render.palette&3)|(actor.render.behind?32:0));abs(0x9D,0x0202);lda(actorAddress('x',actor.slot));abs(0x9D,0x0203);ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(skip);}e(0x60);
-  // Metasprite routines: pieces relative to the actor's position (its feet), Y = actor slot; mirrored copies flip X and
-  // the horizontal flip bit. Pieces that would wrap past a screen edge are skipped; a full OAM ends the routine.
-  for(const {name,pieces}of metaRoutines.values())for(const mirror of [false,true]){
-    const entry=name+(mirror?'_m':''),done=entry+'_done';label(entry);
-    pieces.forEach((p,i)=>{const next=entry+'_p'+i,dx=mirror?-p.x-8:p.x;
-      ld(z.oamIndex);cmp(253);b(0xB0,done);e(0xAA);
-      abs(0xB9,A.x);e(0x18,0x69,dx&255);b(dx>=0?0xB0:0x90,next);abs(0x9D,0x0203);
-      abs(0xB9,A.y);e(0x18,0x69,(p.y-1)&255);abs(0x9D,0x0200);imm(p.tile&255);abs(0x9D,0x0201);imm((mirror?p.attr^0x40:p.attr)&255);abs(0x9D,0x0202);
-      ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(next);});
-    label(done);e(0x60);
+  // Shared metasprite routine: X = piece-table entry, Y = actor slot. Pieces are relative to the actor's position (its
+  // feet); a mirrored entry has X flipped and the horizontal flip bit toggled. Pieces that would wrap past a screen
+  // edge are skipped; a full OAM ends the routine. The tables hold every entry's pieces back to back.
+  if(metaRoutines.size){
+    const M=uniquePrefix+'meta',entries=[...metaRoutines.values()].flatMap(({pieces})=>[false,true].map(mirror=>pieces.map(p=>({dx:(mirror?-p.x-8:p.x)&255,dy:(p.y-1)&255,tile:p.tile&255,attr:(mirror?p.attr^0x40:p.attr)&255}))));
+    const total=entries.reduce((n,list)=>n+list.length,0);if(total>255)fail('Actor metasprites use more than 255 pieces (mirrors included)');
+    label(metaDraw);abs(0xB9,A.x);sta(META.x);abs(0xB9,A.y);sta(META.y);abs(0xBD,M+'_end');sta(META.end);abs(0xBC,M+'_start');
+    label(M+'_loop');abs(0xCC,META.end);b(0xB0,M+'_done');e(0xA6,z.oamIndex,0xE0,253);b(0xB0,M+'_done');
+    abs(0xB9,M+'_dx');b(0x10,M+'_right');e(0x18);abs(0x6D,META.x);b(0x90,M+'_next');jmp(M+'_put');
+    label(M+'_right');e(0x18);abs(0x6D,META.x);b(0xB0,M+'_next');
+    label(M+'_put');abs(0x9D,0x0203);abs(0xB9,M+'_dy');e(0x18);abs(0x6D,META.y);abs(0x9D,0x0200);abs(0xB9,M+'_tile');abs(0x9D,0x0201);abs(0xB9,M+'_attr');abs(0x9D,0x0202);
+    e(0x8A,0x18,0x69,4);st(z.oamIndex);label(M+'_next');e(0xC8);jmp(M+'_loop');label(M+'_done');e(0x60);
+    let at=0;label(M+'_start');for(const list of entries){e(at);at+=list.length;}label(M+'_end');at=0;for(const list of entries){at+=list.length;e(at);}
+    for(const field of['dx','dy','tile','attr']){label(M+'_'+field);for(const list of entries)for(const piece of list)e(piece[field]);}
   }
   const codeEnd=current();if(codeEnd>0xCFF0)fail('Generated actor evaluator exceeds the current NROM code/resource region');
   return{zp:{temp,temp2,lastScreen},arrays:A,actorCount:plan.actors.length,variableCount:plan.variables.length,labels:{init:uniquePrefix+'init',reconstruct:uniquePrefix+'reconstruct',update:uniquePrefix+'update',draw:uniquePrefix+'draw'}};

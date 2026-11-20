@@ -1,7 +1,8 @@
 'use strict';
 // World Runtime enemies (repository inputs only): a Ground Patrol Enemy drawn from a metasprite patrols, faces its
 // walking direction, is defeated by the player's attack (playerAttackHit -> despawn), and contact damage that empties
-// the player's health restarts the player at the spawn. Enemies can walk with an animation and fire at the player.
+// the player's health restarts the player at the spawn. Enemies can walk with an animation and fire at the player;
+// metasprites are drawn by one shared routine from piece tables, so extra animation frames cost table bytes, not code.
 const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict'), crypto = require('node:crypto');
 const {loadForge} = require('./u/harness.cjs');
 const root = path.resolve(__dirname, '../..'), editor = path.resolve(process.argv[2] || path.join(root, 'NES_Forge.html')), output = process.argv[3];
@@ -104,6 +105,25 @@ check('Emulator: a firing enemy shoots toward the player and a hit costs health'
   assert.ok(firstX !== null, 'a bullet was fired'); assert.ok(laterX !== null && laterX < firstX, 'it travels toward the player (' + firstX + ' -> ' + laterX + ')');
   let hit = false; for (let f = 0; f < 200 && !hit; f++) { hold(); await R('emulator.frames', {count: 1}); if (J(`emu.ram[${arr.health}]`) < health0) hit = true; }
   assert.ok(hit, 'a bullet hit cost health');
+});
+check('Extra animation frames cost piece-table bytes, not drawing code', async () => {
+  // the same five-piece enemy with a one-frame and a three-frame walk animation (two more distinct metasprites; the
+  // frames differ in piece positions, since tiles with identical graphics are linked to one tile and would merge them)
+  const used = async frames => {
+    const p = withEnemy(), scene = p.worldRuntime.playerSceneId;
+    for (let f = 0; f < frames; f++) p.metasprites.push({id: 'qa-run-' + f, name: 'QA run ' + f, sceneId: scene, spriteMode: 8, originX: 0, originY: 0,
+      pieces: Array.from({length: 5}, (_, i) => ({id: 'p' + i, tile: i % 2, tile2: 1, x: (i % 3) * 8 - 12 + f, y: -8 - 8 * Math.floor(i / 3), pal: 0, flipH: false, flipV: false, behind: false}))});
+    p.animations.push({...p.animations[0], id: 'qa-run', name: 'QA run', state: 'walk', loop: true,
+      frames: Array.from({length: frames}, (_, f) => ({tileIdx: 0, duration: 6, metaspriteId: 'qa-run-' + f, hitboxes: [], hurtboxes: [], events: []}))});
+    const r = p.gameplayCore.actorDefinitions.find(d => d.name === 'Ground Patrol Enemy').components.find(c => c.type === 'Render');
+    r.values = {...r.values, metaspriteId: '', animationId: 'qa-run'};
+    await R('project.load', {json: JSON.stringify(p)});
+    const line = (await R('build.rom')).diagnostics.map(d => d.message || String(d)).find(m => /World code\/resources: \d+ bytes/.test(m));
+    assert.ok(line, 'world size diagnostic'); return Number(line.match(/World code\/resources: (\d+) bytes/)[1]);
+  };
+  const one = await used(1), three = await used(3);
+  // two more five-piece frames: 2 x 2 (mirror) x 5 pieces x 4 bytes of tables plus a few bytes of frame selection
+  assert.ok(three - one <= 160, 'growth ' + (three - one) + ' bytes (' + one + ' -> ' + three + ')');
 });
 
 (async () => {
