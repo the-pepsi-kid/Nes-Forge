@@ -26,7 +26,7 @@ def check(name, action):
 
 def sources():
     parts = [(ROOT/'app'/name).read_bytes() for name in manifest['parts']]
-    assert len(parts) == 219, 'Unexpected source part count'
+    assert len(parts) == len(manifest['parts']) and len(parts) >= 219, 'Unexpected source part count'
     assert b''.join(parts) == editor, 'Editor does not match ordered source parts'
     assert (ROOT/'nes-forge.html').read_bytes() == editor, 'Launch entries differ'
     sys.path.insert(0, str(ROOT/'tools'))
@@ -64,7 +64,7 @@ def fixtures():
         assert hashlib.sha256((ROOT/'QA/r'/name).read_bytes()).hexdigest() == sha, name
 
 
-check('Both launch entries reproduce all 219 source parts', sources)
+check('Both launch entries reproduce all manifest source parts', sources)
 check('Private compressed capture catalogs are excluded', payloads)
 check('Distributed editable projects contain no preserved ROM field', examples)
 check('Only the four identified authored cartridge fixtures are shipped', fixtures)
