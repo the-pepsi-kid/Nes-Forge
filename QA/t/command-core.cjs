@@ -61,6 +61,16 @@ check('Scripted edit is one committed change and is reported by build.changes', 
   assert.ok((await R('build.check')).ok);
   assert.deepEqual((await R('build.changes')).result.changes, [], 'a passing check becomes the new buildable state');
 });
+check('Command edits are one Undo step; Undo and Redo are commands too', async () => {
+  assert.ok((await R('project.load', {json: example})).ok);
+  const p = JSON.parse((await R('project.save')).result.json), before = p.scenes[0].name;
+  p.scenes[0].name = 'Undo test';
+  assert.ok((await R('project.replace', {json: JSON.stringify(p), intent: 'undo-test'})).ok);
+  const name = async () => JSON.parse((await R('project.save')).result.json).scenes[0].name;
+  assert.equal(await name(), 'Undo test');
+  assert.ok((await R('project.undo')).ok); assert.equal(await name(), before);
+  assert.ok((await R('project.redo')).ok); assert.equal(await name(), 'Undo test');
+});
 check('Emulator and input: the same button path moves the player', async () => {
   const run = async right => {
     await R('project.load', {json: example}); assert.ok((await R('emulator.loadBuilt')).ok);

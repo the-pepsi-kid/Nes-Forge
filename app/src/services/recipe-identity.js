@@ -5,7 +5,7 @@
 const services=window.Forge.services,VERSION=1,METHOD='exact-v1-foundation-reissue-1';
 // A schema or behavioral migration is not implied by a new release number.
 // Extend this reviewed list only with canonical source/result equivalence tests.
-const RELEASES=Object.freeze(['2.0.0-alpha.10','2.0.0-alpha.11']);
+const RELEASES=Object.freeze(['2.0.0-alpha.10','2.0.0-alpha.11','2.0.0-alpha.12']);
 const cp=value=>JSON.parse(JSON.stringify(value)),fail=message=>{throw Error('Recipe identity: '+message);};
 const model=()=>services.MashupModel,stable=value=>model().stable(value),hash=value=>model().hash(value);
 function freeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.freeze(value);Object.values(value).forEach(freeze);}return value;}

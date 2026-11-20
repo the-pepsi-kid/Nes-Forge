@@ -1,13 +1,13 @@
 {
-  "candidate": "integrated-review-5-public",
-  "version": "2.0.0-alpha.11",
-  "status": "owner-reviewed-development-alpha",
-  "promoted": true,
-  "branch": "main",
+  "candidate": "integrated-review-6-public",
+  "version": "2.0.0-alpha.12",
+  "status": "development-alpha-pending-owner-review",
+  "promoted": false,
+  "branch": "dev/alpha-12",
   "html": "nes-forge.html",
   "sourceHtml": "NES_Forge.html",
-  "htmlSha256": "f7e2cc99247c3bd413b9467ee5696f1869bdb4a14437b767d211cacce2c40ab7",
-  "htmlBytes": 3970308,
+  "htmlSha256": "d2b86e0f478bf7d09abd742a044fa6158daa7cbc34a39a1e02ca2818f2407537",
+  "htmlBytes": 4061472,
   "schemas": {
     "ordinary": 12,
     "native": 13,
@@ -16,30 +16,42 @@
     "selectedTerrain": 15,
     "portableRom": 16
   },
-  "sourceInputs": 219,
+  "sourceInputs": 222,
   "scope": [
-    "Consolidate the owner-reviewed Integrated Review 5 editor, authored examples, local host and integrated lessons on main.",
-    "Expose retained source catalogs and supported working-copy actions in Resources after direct RE import.",
-    "Retain the original Review 5 asset report and exact public verification receipts."
+    "Studio layout: Library / Edit / Play / Build with editability badges, Tools and Classic layout, on one command core (Forge.commands).",
+    "Spatial VR/AR view (desktop preview + WebXR) and command-line/agent adapter on the same commands.",
+    "Measured 20-revision ROM capability audit, extraction pack checker and format, clearer ZIP limit errors, main CI, one build identity, release-migration check."
   ],
   "limits": [
-    "Owner-reported pose ordering/composition issues remain open.",
-    "Full native recovery and native writers remain partial and title-specific.",
-    "Real-browser/device/listening/hardware and two-human hosted acceptance remain unverified.",
-    "DigiGhosts and Beacon Island recorded visual issues remain open."
+    "Native writers remain partial and title-specific; see docs/audit/2026-11-19/AUDIT.md for the measured gaps.",
+    "Immersive VR/AR sessions are untested on headset hardware; the desktop preview is browser-tested.",
+    "Generated games still build for mapper 0 (NROM); the larger cartridge profile and crossover slice are planned for alpha.13.",
+    "Owner-reported pose ordering/composition issues and the DigiGhosts / Beacon Island visual issues remain open.",
+    "Listening, physical hardware and two-human hosted acceptance remain unverified."
   ],
   "verification": {
-    "suiteJobsPassed": 31,
-    "suiteJobsRequested": 31,
+    "report": "reviews/integrated-review-6/Public_Verification.json",
+    "suiteJobsPassed": 42,
+    "suiteJobsRequested": 42,
     "passed": true,
-    "report": "reviews/integrated-review-5/Public_Verification.json",
-    "testRunnerConcurrency": 1,
-    "publicProfileChecksPassed": 4,
-    "publicProfileReport": "reviews/integrated-review-5/Public_Profile.json",
-    "browser": "environment-blocked; see reviews/integrated-review-5/Browser.json",
-    "privateOriginalRomOrExtractionSuitesRerun": false
+    "editorSha256": "d2b86e0f478bf7d09abd742a044fa6158daa7cbc34a39a1e02ca2818f2407537",
+    "privateInputs": {
+      "extractionPacks": 18,
+      "originalCartridges": 16,
+      "extendedNativeCorpus": 20
+    },
+    "browserProfiles": [
+      "1440x900",
+      "390x844 touch"
+    ],
+    "notRun": [
+      "immersive VR/AR on headset hardware",
+      "physical hardware",
+      "listening tests",
+      "two-human hosted play"
+    ]
   },
-  "publication": "reviews/integrated-review-5/Publication.json",
+  "publication": "REVIEW.md",
   "originalArtifact": {
     "branch": "archive/original-pepsi",
     "tag": "original-pepsi",
@@ -60,5 +72,6 @@
     ]
   },
   "audioVerificationRequiredForEveryProject": true,
-  "previousMainCommit": "6ac1d59a145c0166116eae2bd94340372b3aaa06"
+  "previousMainCommit": "4720de08c22f4acfe7ba03ae45f01746884f605e",
+  "releaseNotes": "docs/releases/2.0.0-alpha.12.md"
 }

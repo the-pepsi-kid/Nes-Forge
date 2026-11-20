@@ -264,7 +264,8 @@ test('Six World variants preserve source and rebuild deterministically; no-AI by
     await open(e,project);const canonicalSource=canonical(e),rom=compile(e);
     assert.equal(rom.length,40976);
     if(project===reference)assert.deepEqual(rom,packaged);
-    if(project===original)assert.equal(digest(rom),'92bc8db7ee348d80ed1684e02c1e2239fb50a43fb6e784ff8ab158946469dca2');
+    // 2.0.0-alpha.12: the embedded project's foundation string changed (13 bytes in the source record); alpha.11 gave 92bc8db7…dca2.
+    if(project===original)assert.equal(digest(rom),'7faabae4c98e4d3722002025cb52f382233c21fcfdd026a1e3cdb7c6f7110b2b');
     e.h.context.roundTripRom=new Uint8Array(rom);
     const source=e.h.json('Forge.services.WorldRom.inspect(roundTripRom).source');
     await open(e,source);assert.equal(canonical(e),canonicalSource);assert.deepEqual(compile(e),rom);

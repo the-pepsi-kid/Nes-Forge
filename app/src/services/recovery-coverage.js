@@ -1617,7 +1617,7 @@ const catalog =
       "sourcePackage": "Mega_Man_2_U.zip"
     }
   ],
-  "reviewBuild": "Integrated Review 5 + local extraction intake round 3",
+  "reviewBuild": "Integrated Review 6 (2.0.0-alpha.12)",
   "localUpdate": "offline-extraction-round3-2026-11-18-no-github-changes"
 }
 /* RECOVERY_COVERAGE_END */
