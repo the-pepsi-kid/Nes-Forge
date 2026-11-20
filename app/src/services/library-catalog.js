@@ -28,21 +28,84 @@ const RECORDS=[['native','scenes','room'],['native','stages','stage'],['native',
 const idOf=(romSha,kind,rid)=>'rom:'+romSha.slice(0,16)+':'+kind+':'+rid;
 async function sha(text){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,'0')).join('');}
 
-// The first ROM location a decoded record names, and how many it names.
-function decodedEvidence(record){
-  let first=null,count=0;
-  (function walk(v,depth){
-    if(depth>5||!v||typeof v!=='object')return;
-    if(Array.isArray(v)){for(const x of v.slice(0,64))walk(x,depth+1);return;}
-    if(Number.isInteger(v.fileOffset)&&'length' in v){count++;if(!first)first=v;return;}
-    for(const x of Object.values(v))walk(x,depth+1);
-  })(record,0);
-  if(!first)return {state:'none'};
-  const fields={fileOffset:{first:first.fileOffset,field:'fileOffset',count}};
-  if(Number.isInteger(first.cpu))fields.cpu={first:first.cpu,field:'cpu',count};
-  if(Number.isInteger(first.bank16KiB))fields.bank={first:first.bank16KiB,field:'bank16KiB',count};
-  else if(Number.isInteger(first.bank4KiB))fields.bank={first:first.bank4KiB,field:'bank4KiB',count};
-  return {state:'decoded',basis:'NES Forge ROM decoder',locations:count,fields};
+// ---------- typed ROM locations ----------
+// A decoded record names its ROM locations. Each keeps its own address types: the offset into the .nes file, the
+// region and physical PRG/CHR bank it lies in, and the CPU address the decoder recorded. The CPU window is the one
+// that bank occupies when the address is read; a PPU address is only shown where the decoder recorded one (a CHR bank
+// number never becomes a PPU address here). Every location is checked against the cartridge layout in the header.
+const CATALOG_SCHEMA=2;
+const CODE_ROLE=/(^|\.)(dispatch|reader|writer)$|^states\[\d+\]\.source$/;
+function romLayout(rom){
+  if(!rom||rom.length<16||rom[0]!==0x4e||rom[1]!==0x45||rom[2]!==0x53||rom[3]!==0x1a)return null;
+  const trainer=rom[6]&4?512:0,prgBytes=rom[4]*16384,chrBytes=rom[5]*8192;
+  return {mapper:(rom[6]>>4)|(rom[7]&0xf0),trainer,prgStart:16+trainer,prgBytes,chrStart:16+trainer+prgBytes,chrBytes,byteLength:rom.length};
+}
+const ROLE_NAMES={source:'data',pointerSource:'pointer table entry',attributesSource:'attribute bytes','extent.source':'horizontal extent code','extent.verticalSource':'vertical extent code',
+  dispatch:'dispatch code',reader:'code that reads it',writer:'code that writes it','audioEvent.writer':'area-start audio writer (code)','audioEvent.source':'area-start cue byte',record:'record',
+  table:'command table entry',header:'cue header',sample:'DPCM sample bytes'};
+const KIND_DATA={pose:'pose piece stream',room:'room record',stage:'stage table',animation:'animation script',location:'location record',chr:'CHR pattern bank'};
+function roleName(kind,role,record){
+  if(role==='source'||role==='record')return KIND_DATA[kind]||ROLE_NAMES[role];
+  let m=/^states\[(\d+)\]\.source$/.exec(role);if(m){const st=record?.states?.[+m[1]];return 'state '+(st?.state??m[1])+' entry code'+(st?.label?' ('+st.label+')':'');}
+  m=/^pieces\[(\d+)\]\.(source|attributeSource)$/.exec(role);if(m)return 'piece '+m[1]+(m[2]==='source'?' bytes':' attribute');
+  m=/^parameterSources\[(\d+)\]$/.exec(role);if(m)return 'parameter byte '+m[1];
+  return ROLE_NAMES[role]||role.replace(/\[(\d+)\]/g,' $1').replace(/\./g,' · ');
+}
+function walkLocations(record){
+  const out=[];
+  (function walk(v,path,depth){
+    if(depth>6||!v||typeof v!=='object'||out.length>=600)return;
+    if(Array.isArray(v)){v.slice(0,64).forEach((x,i)=>walk(x,path+'['+i+']',depth+1));return;}
+    if(Number.isInteger(v.fileOffset))out.push({raw:v,role:path||'record'});
+    // paired fields: tableCPU + tableFileOffset, headerCPU + headerFileOffset (+ headerBytes), sampleCPU + sampleFileOffset
+    for(const k of Object.keys(v)){const m=/^(.+)FileOffset$/.exec(k);if(!m||!Number.isInteger(v[k]))continue;
+      out.push({raw:{fileOffset:v[k],cpu:v[m[1]+'CPU'],length:v[m[1]+'Bytes']},role:(path?path+'.':'')+m[1]});}
+    for(const [k,x] of Object.entries(v))if(x&&typeof x==='object')walk(x,path?path+'.'+k:k,depth+1);
+  })(record,'',0);
+  return out;
+}
+function typedLocation(raw,role,layout){
+  const loc={role,fileOffset:raw.fileOffset,length:Number.isInteger(raw.length)?raw.length:null,code:CODE_ROLE.test(role)};
+  if(Number.isInteger(raw.bank16KiB))loc.prgBank={index:raw.bank16KiB,size:16384};else if(Number.isInteger(raw.bank8KiB))loc.prgBank={index:raw.bank8KiB,size:8192};
+  if(Number.isInteger(raw.bank4KiB))loc.chrBank={index:raw.bank4KiB,size:4096};
+  if(Number.isInteger(raw.cpu))loc.cpu=raw.cpu;
+  if(Number.isInteger(raw.ppu))loc.ppu=raw.ppu;
+  if(!layout){loc.check='not checked: the cartridge header was not available';return loc;}
+  const f=raw.fileOffset;
+  if(f<layout.prgStart)loc.region='header';
+  else if(f<layout.chrStart){loc.region='PRG ROM';loc.regionOffset=f-layout.prgStart;}
+  else if(f<layout.chrStart+layout.chrBytes){loc.region='CHR ROM';loc.regionOffset=f-layout.chrStart;}
+  else loc.region='outside the cartridge data';
+  const problems=[];
+  if(loc.prgBank){
+    if(loc.region!=='PRG ROM')problems.push('a PRG bank is named but the offset is in '+loc.region);
+    else if(Math.floor(loc.regionOffset/loc.prgBank.size)!==loc.prgBank.index)problems.push('the offset lies in PRG bank '+Math.floor(loc.regionOffset/loc.prgBank.size)+', not '+loc.prgBank.index);
+    if(Number.isInteger(loc.cpu)&&loc.cpu>=0x8000){
+      const base=loc.cpu-(loc.cpu-0x8000)%loc.prgBank.size;loc.cpuWindow={start:base,end:base+loc.prgBank.size-1};
+      if(loc.region==='PRG ROM'&&loc.regionOffset!==loc.prgBank.index*loc.prgBank.size+(loc.cpu-base))problems.push('file offset, bank and CPU address disagree');
+    }
+  }
+  if(loc.chrBank){
+    if(loc.region!=='CHR ROM')problems.push('a CHR bank is named but the offset is in '+loc.region);
+    else if(Math.floor(loc.regionOffset/loc.chrBank.size)!==loc.chrBank.index)problems.push('the offset lies in CHR bank '+Math.floor(loc.regionOffset/loc.chrBank.size)+', not '+loc.chrBank.index);
+  }
+  if(!loc.prgBank&&!loc.chrBank&&loc.region==='PRG ROM'){
+    // no bank named: report the physical 16 KiB bank the offset lies in, marked as derived from the offset
+    loc.derivedPrgBank={index:Math.floor(loc.regionOffset/16384),size:16384};
+  }
+  if(loc.length&&f+loc.length>layout.byteLength)problems.push('the range runs past the end of the file');
+  loc.check=problems.length?'inconsistent: '+problems.join('; '):'consistent with the cartridge layout';
+  return loc;
+}
+function decodedEvidence(kind,record,layout,profile){
+  const found=walkLocations(record);
+  if(!found.length)return {state:'none'};
+  const all=found.map(x=>({...typedLocation(x.raw,x.role,layout),name:roleName(kind,x.role,record)}));
+  const primary=all.find(l=>l.role==='source')||all.find(l=>l.role==='record')||all.find(l=>l.role==='header')||all.find(l=>!l.code)||all[0];
+  const code=all.filter(l=>l.code).slice(0,24),data=[primary,...all.filter(l=>l!==primary&&!l.code)].slice(0,48);
+  return {state:'decoded',schema:CATALOG_SCHEMA,basis:'NES Forge ROM decoder'+(profile?' ('+profile+')':''),
+    rom:layout?{mapper:layout.mapper,prgBytes:layout.prgBytes,chrBytes:layout.chrBytes,trainer:layout.trainer}:null,
+    primary,locations:data,code,total:all.length,inconsistent:all.filter(l=>/^inconsistent/.test(l.check)).length};
 }
 // A pose drawn by the editor's own converter in a room's graphics context.
 function rendition(project,poseId,contextRoomId,d=services.InvestigatedLibrary.describe(project)){
@@ -66,12 +129,17 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   const source=n.source,romSha=source.sha256,shelf=romSha,profile=n.catalogs.native.profile?.id||source.profile;
   const packKey='catalog:'+await sha(JSON.stringify(n.catalogSha256));
   const prior=await L.getPack(packKey);
-  if(prior?.state==='complete')return {packSha256:packKey,already:true,shelf,stats:prior.stats};
   let rom=null;try{rom=services.NativeEngineProject.validate(project).bytes;}catch(_){rom=null;}
+  if(rom)await SourceROMs.put(rom,source.name);
+  if(prior?.state==='complete'&&prior.stats?.schema===CATALOG_SCHEMA)return {packSha256:packKey,already:true,shelf,stats:prior.stats,links:await linkSameResources(romSha)};
+  // an earlier registration of this catalog is upgraded in place: what was observed at runtime, the per-stage
+  // renditions and the links found since are kept
+  const upgrade=prior?.state==='complete';
+  const layout=romLayout(rom);
   const records=[];
   for(const [cat,coll,kind] of RECORDS){const list=n.catalogs[cat]?.[coll];if(Array.isArray(list))list.forEach((r,i)=>records.push({kind,r,rid:String(r.id??i)}));}
   records.push({kind:'symbols',r:{id:'symbols',label:'Code symbols',items:n.catalogs.native.symbols||[]},rid:'symbols'},{kind:'ram-map',r:{id:'ram',label:'RAM labels',items:n.catalogs.native.ram||[]},rid:'ram'});
-  const started=Date.now(),stats={entries:0,renditions:0,chrBanks:0,verifiedPlacements:0};let ops=[];
+  const started=Date.now(),stats={schema:CATALOG_SCHEMA,entries:0,renditions:0,chrBanks:0,verifiedPlacements:0,locations:0,inconsistentLocations:0,upgraded:upgrade};let ops=[];
   const described=services.InvestigatedLibrary.describe(project);
   for(const [i,{kind,r,rid}] of records.entries()){
     const id=idOf(romSha,kind,rid),label=String(r.label||r.name||(kind+' '+rid)).slice(0,160);
@@ -81,9 +149,12 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
     const stored=await L.storeData(data);
     const e={id,packSha256:packKey,path:kind+'/'+label,label,origin:'rom-catalog',shelf,sourceSha256:romSha,game:profile,kind,identified:true,fileType,size:stored.size,contentHash:stored.hash,loads:false,
       registered:Date.now(),data:{state:'stored'},validation:{state:'accepted',reason:'decoded by the NES Forge decoder for '+profile},
-      evidence:decodedEvidence(kind==='cue'?{loc:{fileOffset:r.headerFileOffset,cpu:r.headerCPU,length:r.headerBytes||1}}:r)};
+      evidence:decodedEvidence(kind,r,layout,profile)};
+    stats.locations+=e.evidence.total||0;stats.inconsistentLocations+=e.evidence.inconsistent||0;
     if(kind==='chr')e.record=cp(r);
-    const verified=[];
+    let kept=null;if(upgrade){try{kept=await L.entry(id);}catch(_){kept=null;}}
+    const verified=(kept?.placement?.verified||[]).filter(p=>p.basis==='runtime');
+    if(kept?.renditions)e.renditions=kept.renditions;if(kept?.links)e.links=kept.links;
     if(kind==='room'&&r.stage)verified.push({stage:r.stage.label,area:r.area,room:r.room,basis:'rom-table',source:r.stage.source});
     else if((kind==='room'||kind==='location')&&r.group)verified.push({context:r.group,basis:'rom-table'});
     if(kind==='stage')verified.push({stage:r.label,areas:r.areas,basis:'rom-table',source:r.source});
@@ -99,7 +170,58 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   if(!shelfRecord.packs.includes(packKey))shelfRecord.packs.push(packKey);shelfRecord.updated=Date.now();
   await L.putRecords([['shelves',shelfRecord],['packs',{packSha256:packKey,name:source.name+' · recovered catalog',origin:'rom-catalog',bytes:0,fileCount:records.length,
     format:'NESForgeInvestigation',game:profile,sourceSha256:romSha,shelf,mode:'full',intake:{state:'accepted',kind:'rom-catalog'},state:'complete',registered:started,updated:Date.now(),stats}]]);
-  return {packSha256:packKey,already:false,shelf,stats,ms:Date.now()-started};
+  const links=await linkSameResources(romSha);
+  return {packSha256:packKey,already:false,shelf,stats,links,ms:Date.now()-started};
+}
+
+// ---------- source ROMs open in this session ----------
+// Bytes of the original cartridges are only ever held in memory, for this session: the library stores no ROM.
+const SourceROMs=(()=>{const map=new Map();
+  const digest=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');
+  return Object.freeze({
+    async put(bytes,name){if(!(bytes instanceof Uint8Array)||!bytes.length)return null;const sha256=await digest(bytes);if(!map.has(sha256))map.set(sha256,{bytes,name:String(name||'cartridge.nes')});return sha256;},
+    get(sha256){const hit=map.get(sha256);if(hit)return hit;
+      // the open investigated project carries its own cartridge
+      try{const p=services.ProjectStore.capture();if(p?.investigation?.source?.sha256===sha256){const bytes=services.NativeEngineProject.validate(p).bytes;map.set(sha256,{bytes,name:p.investigation.source.name});return map.get(sha256);}}catch(_){}
+      return null;},
+    async verify(bytes,sha256){return (await digest(bytes))===sha256;},
+    list:()=>[...map.entries()].map(([sha256,v])=>({sha256,name:v.name,bytes:v.bytes.length}))});})();
+
+// ---------- the same resource, recorded twice ----------
+// An extraction pack and the recovered catalog can both hold one resource. They are linked only on verified source
+// identity: the same source ROM (SHA-256), the decoder record id the pack file names, and matching content (pose
+// pieces, or the identical room location). Names never link records. Both records, their observations, previews and
+// notes stay as they are; each gains a link to the other with the basis.
+async function linkSameResources(romSha){
+  const all=[];for(let offset=0;;offset+=5000){const page=await L.list({offset,limit:5000});all.push(...page.items);if(offset+5000>=page.total)break;}
+  const mine=all.filter(e=>e.sourceSha256===romSha);
+  const catalog=new Map(mine.filter(e=>e.origin==='rom-catalog').map(e=>[e.id,e]));
+  if(!catalog.size)return {checked:0,linked:0};
+  const prefix='rom:'+romSha.slice(0,16)+':';let checked=0,linked=0,mismatched=0;const ops=[];
+  for(const p of mine.filter(e=>e.origin!=='rom-catalog'&&e.fileType==='json'&&['pose','room'].includes(e.kind))){
+    let data;try{data=JSON.parse(new TextDecoder().decode((await L.readEntry(p.id)).bytes));}catch(_){continue;}
+    const kind=data?.pose?.id?'pose':data?.format==='NESForgeNativeSceneEvidence'&&data.scene?.id?'room':null;if(!kind)continue;
+    const rid=kind==='pose'?data.pose.id:data.scene.id,target=catalog.get(prefix+kind+':'+rid);if(!target)continue;checked++;
+    let record;try{record=JSON.parse(new TextDecoder().decode((await L.readEntry(target.id)).bytes));}catch(_){continue;}
+    let match=false,detail='';
+    if(kind==='pose'){
+      const a=data.metasprite?.pieces||[],b=record.pieces||[];
+      match=a.length===b.length&&a.length>0&&a.every((x,i)=>x.x===b[i].x&&(x.pal&3)===(b[i].attributes&3));
+      detail=match?a.length+' pieces with the same horizontal offsets and palettes':'piece offsets or palettes differ';
+    }else{
+      const s=data.source,t=record.source;match=!!s&&!!t&&s.fileOffset===t.fileOffset&&s.length===t.length;
+      detail=match?'the same room record at file offset 0x'+s.fileOffset.toString(16).toUpperCase()+' ('+s.length+' bytes)':'room locations differ';
+    }
+    if(!match){mismatched++;continue;}
+    const basis='same source ROM (SHA-256 '+romSha.slice(0,12)+'…), decoder record '+kind+' '+rid+', '+detail;
+    for(const [from,to] of [[p.id,target.id],[target.id,p.id]]){
+      const e=await L.entry(from),links=(e.links||[]).filter(l=>l.id!==to);links.push({id:to,relation:'same-resource',basis,verified:true});
+      e.links=links;ops.push(['entries',e]);}
+    linked++;
+    if(ops.length>=40){await L.putRecords(ops.splice(0));}
+  }
+  if(ops.length)await L.putRecords(ops);
+  return {checked,linked,mismatched};
 }
 
 // ---------- runtime stage survey (Ninja Gaiden US) ----------
@@ -179,6 +301,10 @@ async function surveyStages({areas,frames=1500}={}){
 }
 
 // ---------- using a library sprite in the working project ----------
+// The project keeps the source identity and the primary ROM location with the sprite, so they stay visible where the
+// library entry is not available.
+function primaryOf(e){const p=e.evidence?.primary;if(!p)return null;const out={role:p.role,name:p.name,fileOffset:p.fileOffset,length:p.length,region:p.region||null,check:p.check||null};
+  for(const k of ['regionOffset','prgBank','chrBank','cpu','cpuWindow','ppu','derivedPrgBank'])if(p[k]!==undefined)out[k]=cp(p[k]);return out;}
 let guardOff=0;
 async function usePose(id,{mode='reference',stage=null,x=null,y=null}={}){
   if(!['reference','copy'].includes(mode))fail('mode must be reference or copy');
@@ -221,6 +347,7 @@ async function usePose(id,{mode='reference',stage=null,x=null,y=null}={}){
       const frame={id:'lib_'+n,name:(rend.name||'Library sprite')+(mode==='copy'?' (copy)':''),sceneId:scene.id,spriteMode:rend.spriteMode,originX:rend.originX||0,originY:rend.originY||0,
         pieces:rend.pieces.map((p,i)=>({id:'piece-'+i,tile:tileMap.get(p.tile),tile2:tall?tileMap.get(p.tile2):undefined,x:p.x,y:p.y,pal:palMap.get(p.pal&3),flipH:p.flipH,flipV:p.flipV,behind:p.behind})),
         library:{mode,entryId:e.id,contentHash:e.contentHash,renditionHash:ref.hash,sourceSha256:e.sourceSha256,poseId:rend.poseId,stage:stage||ref.context?.stage||null,context:ref.context,at:Date.now(),
+          label:e.label||null,game:e.game||null,kind:e.kind,location:primaryOf(e),
           ...(mode==='copy'?{derivedFrom:{entryId:e.id,contentHash:e.contentHash,sourceSha256:e.sourceSha256}}:{})}};
       candidate.metasprites.push(frame);
       // place it in the scene so it is visible at once: the given spot, else the first spot near the middle of the
@@ -240,7 +367,7 @@ async function usePose(id,{mode='reference',stage=null,x=null,y=null}={}){
       return {scenes,metasprites:candidate.metasprites,result:{metaspriteId:frame.id,mode,sceneId:scene.id,placed:{x:ax,y:ay,sprites:oam.length,box:{x:Math.min(...oam.map(s=>s.x)),y:Math.min(...oam.map(s=>s.y)),w:Math.max(...oam.map(s=>s.x+8))-Math.min(...oam.map(s=>s.x)),h:Math.max(...oam.map(s=>s.y+(s.height||8)))-Math.min(...oam.map(s=>s.y))}},
         dependencies:{tilesAdded:added.length,tilesShared:reused.length,palettes},library:frame.library}};
     },{expected,intent:'libraryUse'});
-  }finally{guardOff--;}
+  }finally{guardOff--;queueMicrotask(()=>window.dispatchEvent(new CustomEvent('forge:library-use',{detail:{entryId:id,mode}})));}
 }
 
 // ---------- shared-reference guard ----------
@@ -268,7 +395,8 @@ if(typeof snapshot==='function'){
   try{snapshot=guarded;}catch(_){/* read-only binding: references stay protected by their library marker only */}
 }
 
-services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rendition});
+services.SourceROMs=SourceROMs;
+services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation});
 if(C?.register){
   C.register({name:'library.registerCatalog',group:'library',title:'Register the open ROM\'s recovered catalog',summary:'Every recovered record of the imported ROM becomes a library entry with its decoded location; poses get renditions.',run:()=>registerCatalog()});
   C.register({name:'library.surveyStages',group:'library',title:'Observe which sprites appear in each stage (runtime)',summary:'Ninja Gaiden (US): plays each area from its start and records enemy poses seen on screen as verified runtime placements.',

@@ -246,7 +246,9 @@ async function register(input,{name='pack.zip',mode='full',onProgress,batch=BATC
   if(!shelfRecord.packs.includes(packSha256))shelfRecord.packs.push(packSha256);shelfRecord.updated=Date.now();if(!shelfRecord.title&&game)shelfRecord.title=game;
   packRecord.state='complete';packRecord.updated=Date.now();packRecord.stats=stats;
   await b.putMany([['shelves',shelfRecord],['packs',packRecord]]);await b.deleteMany([['meta',job.key]]);
-  return {packSha256,already:false,shelf,state:'complete',mode,stats,persisted:persistence,ms:Date.now()-started};
+  // a recovered catalog of the same cartridge may already be registered: link records of the same resource
+  let links=null;if(source&&services.LibraryCatalog?.linkSameResources){try{links=await services.LibraryCatalog.linkSameResources(source);}catch(err){links={error:String(err.message).slice(0,200)};}}
+  return {packSha256,already:false,shelf,state:'complete',mode,stats,links,persisted:persistence,ms:Date.now()-started};
 }
 
 // ---------- reading ----------
@@ -360,7 +362,7 @@ async function status(){
 function summarize(e,note){
   return {id:e.id,path:e.path,label:e.label||null,origin:e.origin||'pack',kind:e.kind,identified:e.identified,fileType:e.fileType,size:e.size,shelf:e.shelf,game:e.game,packSha256:e.packSha256,sourceSha256:e.sourceSha256,loads:e.loads,
     stages:(e.placement?.verified||[]).map(p=>({stage:p.stage,basis:p.basis})).filter(p=>p.stage),rendition:!!e.rendition,
-    data:e.data?.state,validation:e.validation?.state,evidence:e.evidence?.state,preview:!!e.preview,project:e.project||null,notes:note?{name:note.name||null,category:note.category||null,hasPlacements:!!note.possiblePlacements?.length}:null};
+    data:e.data?.state,validation:e.validation?.state,evidence:e.evidence?.state,links:(e.links||[]).map(l=>({id:l.id,relation:l.relation})),preview:!!e.preview,project:e.project||null,notes:note?{name:note.name||null,category:note.category||null,hasPlacements:!!note.possiblePlacements?.length}:null};
 }
 async function list({shelf,pack,kind,search,offset=0,limit=200}={}){
   const b=backend();let rows=pack?await b.byIndex('entries','packSha256',pack):shelf?await b.byIndex('entries','shelf',shelf):await b.all('entries');

@@ -191,6 +191,7 @@ function renderUI(){
   }
   renderSheet();
   window.NFContext04?.refresh?.();
+  window.Forge?.services?.LibraryProvenanceUI?.frame?.(f); // a library sprite keeps its source identity here
 }
 
 // Only committed edits create history; a pointer drag is one undo operation.

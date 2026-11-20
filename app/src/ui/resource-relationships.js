@@ -100,7 +100,7 @@ document.body.appendChild(root);
 const $=id=>document.getElementById('frx-'+id);
 let mode='live',active=null,graph=null,lastFocus=null,follow=false,contextNote='';
 const sourceViews=new Map();
-const icons={scene:'▦',world:'▤',chr:'▦',palette:'◉',sprite:'♟',tile:'▦',metasprite:'♙',animation:'▶',metatile:'◫',collision:'⬡',entity:'◆',actor:'♟',instance:'◇',behavior:'⛭',audio:'♫',source:'⇄',unresolved:'!',project:'▣',native:'▧'};
+const icons={library:'◈',scene:'▦',world:'▤',chr:'▦',palette:'◉',sprite:'♟',tile:'▦',metasprite:'♙',animation:'▶',metatile:'◫',collision:'⬡',entity:'◆',actor:'♟',instance:'◇',behavior:'⛭',audio:'♫',source:'⇄',unresolved:'!',project:'▣',native:'▧'};
 const key=(type,id)=>type+':'+String(id);
 function makeGraph(){
  const nodes=new Map(),edges=[],issues=[],references=new Set();
@@ -201,7 +201,12 @@ function liveGraph(){
  for(const world of worlds){const n=addNode(g,'world',world.id,world.name,'World map, room navigation, and declared tileset Scene.','Canonical World',{kind:'world',worldId:world.id},`${world.widthScreens||'?'}×${world.heightScreens||'?'} screens; ${array(world.rooms).length} rooms`);if(world.tilesetSceneId)g.link(n.key,key('scene',world.tilesetSceneId),'uses Scene as tileset');
   const usedIds=new Set(array(world.map).filter(id=>Number.isInteger(id)&&id>=0));for(const id of usedIds)if(world.tilesetSceneId)g.link(n.key,key('metatile',world.tilesetSceneId+'::'+id),'paints with metatile ID '+id);
  }
- for(const pose of poses){const n=addNode(g,'metasprite',pose.id,pose.name||pose.id,'Composed sprite pose built from a source Scene.','Canonical metasprite',{kind:'pose',poseId:pose.id,sceneId:pose.sceneId},'Sprite frame / pose ID '+pose.id);if(pose.sceneId){g.link(n.key,key('scene',pose.sceneId),'uses source Scene graphics');g.link(n.key,key('chr','spr:'+pose.sceneId),'piece tile IDs read these sprite pixels');g.link(n.key,key('palette','spr:'+pose.sceneId),'piece palette IDs read these sprite colors');const scene=scenes.find(sc=>sc.id===pose.sceneId);if(scene)nativeLinks(g,scene,n.key);}const usage=window.Forge.services.ResourceContext.footprint(pose);n.details+=' · '+usage.pieceCount+' pieces · '+usage.tileIds.length+' distinct tile IDs';}
+ for(const pose of poses){const n=addNode(g,'metasprite',pose.id,pose.name||pose.id,'Composed sprite pose built from a source Scene.','Canonical metasprite',{kind:'pose',poseId:pose.id,sceneId:pose.sceneId},'Sprite frame / pose ID '+pose.id);
+  if(pose.library?.entryId){const lib=pose.library,P=window.Forge.services.LibraryProvenance,where=lib.location&&P?P.short(lib.location):'';
+   n.summary='Library sprite: '+(lib.mode==='reference'?'a shared reference to ':'an independent copy of ')+(lib.label||lib.poseId||'a library entry')+(lib.game?' from '+lib.game:'')+(lib.stage?' ('+lib.stage+')':'')+'.';
+   n.source='Resource library · '+(lib.mode==='reference'?'shared reference':'copy')+' of '+lib.entryId;n.libraryRef={...lib};n.details+=(lib.sourceSha256?' · source ROM '+lib.sourceSha256.slice(0,12)+'…':'')+(where?' · '+where:'');
+   const ln=addNode(g,'library',lib.entryId,lib.label||lib.entryId,'The library entry this sprite '+(lib.mode==='reference'?'references':'was copied from')+'. Its ROM evidence and code relationships stay in the library.','Resource library',{kind:'library-entry',entryId:lib.entryId},where,'Resource library');
+   ln.libraryRef={entryId:lib.entryId,sourceSha256:lib.sourceSha256,label:lib.label,game:lib.game,kind:lib.kind,location:lib.location};g.edge(n.key,ln.key,lib.mode==='reference'?'shared reference to this library entry':'copied from this library entry');}if(pose.sceneId){g.link(n.key,key('scene',pose.sceneId),'uses source Scene graphics');g.link(n.key,key('chr','spr:'+pose.sceneId),'piece tile IDs read these sprite pixels');g.link(n.key,key('palette','spr:'+pose.sceneId),'piece palette IDs read these sprite colors');const scene=scenes.find(sc=>sc.id===pose.sceneId);if(scene)nativeLinks(g,scene,n.key);}const usage=window.Forge.services.ResourceContext.footprint(pose);n.details+=' · '+usage.pieceCount+' pieces · '+usage.tileIds.length+' distinct tile IDs';}
  for(const a of animations){const n=addNode(g,'animation',a.id,a.name||a.id,'Timeline animation. Individual frames may use metasprites or Scene art.','Canonical Animation',{kind:'animation',animationId:a.id},array(a.frames).length+' animation frames');for(const frame of array(a.frames)){if(frame.metaspriteId)g.link(n.key,key('metasprite',frame.metaspriteId),'frame uses metasprite');else if(frame.sceneId)g.link(n.key,key('scene',frame.sceneId),'frame uses Scene art');}}
  for(const b of array(core.behaviors))addNode(g,'behavior',b.id,b.name||b.id,'Gameplay Core behavior state table.','Canonical Gameplay Behavior',{kind:'behavior',behaviorId:b.id},array(b.states).length+' states');
  for(const d of array(core.actorDefinitions)){const n=addNode(g,'actor',d.id,d.name||d.id,'Reusable Gameplay Core Actor Definition.','Canonical Gameplay Actor',{kind:'actor',actorId:d.id},array(d.components).length+' components');if(d.behaviorId)g.link(n.key,key('behavior',d.behaviorId),'executes Behavior');for(const comp of array(d.components))if(comp.type==='Render'&&comp.values?.sourceSceneId)g.link(n.key,key('scene',comp.values.sourceSceneId),'Render component reads Scene graphics');}
@@ -402,11 +407,12 @@ async function libraryGraph(){
 }
 function setMode(next){
  if(next==='library'){mode='library';contextNote='';graph=makeGraph().finish();active=null;render();
-  libraryGraph().then(g=>{if(mode!=='library')return;graph=g;active=graph.nodes.keys().next().value||null;render();}).catch(e=>{contextNote='Library unavailable: '+e.message;render();});return;}
+  libraryGraph().then(g=>{if(mode!=='library')return;graph=g;active=pendingSelect&&graph.nodes.has(pendingSelect)?pendingSelect:graph.nodes.keys().next().value||null;pendingSelect=null;render();}).catch(e=>{contextNote='Library unavailable: '+e.message;render();});return;}
  mode=next;contextNote='';graph=mode==='demo'?sampleGraph():liveGraph();active=mode==='demo'?key('actor','a1'):key('scene',S.scenes[S.activeScene]?.id||'');if(!graph.nodes.has(active))active=graph.nodes.keys().next().value||null;render();}
-function kindLabel(type){if(type.startsWith('lib · '))return 'Library · '+type.slice(6);return {chr:'CHR',metasprite:'Metasprite',actor:'Actor Definition','actor-record':'Native actor record',instance:'Actor Instance',sprite:'Sprite placements',entity:'Scene Entity'}[type]||type[0].toUpperCase()+type.slice(1);}
+function kindLabel(type){if(type.startsWith('lib · '))return 'Library · '+type.slice(6);return {library:'Library entry',chr:'CHR',metasprite:'Metasprite',actor:'Actor Definition','actor-record':'Native actor record',instance:'Actor Instance',sprite:'Sprite placements',entity:'Scene Entity'}[type]||type[0].toUpperCase()+type.slice(1);}
+let filterSignature='';
 function render(){
- if(!graph)return;const sel=nodeByKey(active);$('project-name').textContent=mode==='demo'?'Guided example':mode==='library'?'Resource library':(S.projectName||'Untitled');$('notice').innerHTML=mode==='library'?'<strong>LIBRARY</strong> · Every resource registered from extraction packs, identified or not. Locations are as the pack states them; your notes are kept apart from that evidence. Nothing here changes your project unless you open it explicitly.':mode==='demo'?'<strong>EXAMPLE DATA</strong> · Try clicking linked resources. This is a demonstration graph, not assets from the loaded project.':'<strong>LIVE PROJECT</strong> · Connections derive from actual resource IDs and declared references. Browsing is read-only. Explicit native-writer actions use the existing Undo transaction.';
+ if(!graph)return;let sel=nodeByKey(active);$('project-name').textContent=mode==='demo'?'Guided example':mode==='library'?'Resource library':(S.projectName||'Untitled');$('notice').innerHTML=mode==='library'?'<strong>LIBRARY</strong> · Every resource registered from extraction packs, identified or not. Locations are as the pack states them; your notes are kept apart from that evidence. Nothing here changes your project unless you open it explicitly.':mode==='demo'?'<strong>EXAMPLE DATA</strong> · Try clicking linked resources. This is a demonstration graph, not assets from the loaded project.':'<strong>LIVE PROJECT</strong> · Connections derive from actual resource IDs and declared references. Browsing is read-only. Explicit native-writer actions use the existing Undo transaction.';
  for(const [next,button] of [['live',$('live')],['demo',$('demo')],['library',$('lib')]])button.setAttribute('aria-pressed',String(mode===next));
  {const head=$('count').parentNode.firstChild;if(head&&head.nodeType===3)head.textContent=mode==='library'?'Library entries ':mode==='demo'?'Example resources ':'Project resources ';}
  const counts=mode==='live'&&graph.library?.counts;
@@ -417,12 +423,24 @@ function render(){
  // Library: the chosen stage's resources first (stage, rooms, sprites, actors), every other resource after them.
  const stageSel=$('stage');stageSel.hidden=mode!=='library';
  if(mode==='library'){const names=[...new Set([...graph.nodes.values()].flatMap(n=>n.stageNames||[]))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})),was=stageSel.value;
-  stageSel.replaceChildren(Object.assign(elt('option',null,'All stages'),{value:''}),...names.map(v=>Object.assign(elt('option',null,v),{value:v})));stageSel.value=names.includes(was)?was:'';}
+  const perStage=new Map();for(const n of graph.nodes.values())for(const st of n.stageNames||[])perStage.set(st,(perStage.get(st)||0)+1);
+  stageSel.replaceChildren(Object.assign(elt('option',null,'All stages'),{value:''}),...names.map(v=>Object.assign(elt('option',null,v+' · '+perStage.get(v)),{value:v})));stageSel.value=names.includes(was)?was:'';}
  const stage=mode==='library'?stageSel.value:'',kindRank=t=>['lib · stage','lib · room','lib · pose','lib · actor','lib · animation'].indexOf(t)>=0?['lib · stage','lib · room','lib · pose','lib · actor','lib · animation'].indexOf(t):9;
  const q=$('search').value.trim().toLowerCase(),type=$('kind').value,scope=$('scope').value;const list=[...graph.nodes.values()].filter(n=>(scope!=='source'||!!n.sourceResource)&&(scope!=='working'||!n.libraryOnly)&&(!type||n.type===type)&&(!q||(n.name+' '+n.id+' '+n.scope+' '+n.type+' '+(n.stageBadge||'')).toLowerCase().includes(q))).sort((a,b)=>{
   if(stage){const ia=a.stageNames?.includes(stage)?0:1,ib=b.stageNames?.includes(stage)?0:1;if(ia!==ib)return ia-ib;if(!ia)return kindRank(a.type)-kindRank(b.type)||a.name.localeCompare(b.name,undefined,{numeric:true});}
   return a.type.localeCompare(b.type)||a.name.localeCompare(b.name,undefined,{numeric:true});});
- $('count').textContent=list.length+'/'+graph.nodes.size;$('items').replaceChildren();for(const n of list){const b=elt('button','frx-item');b.type='button';b.setAttribute('aria-current',String(n.key===active));b.title=n.name+' · '+n.id;const glyph=elt('span','frx-glyph',icons[n.type]||'◆'),txt=elt('span');txt.style.minWidth='0';txt.append(elt('span','frx-item-name',n.name),elt('span','frx-item-type',kindLabel(n.type)+(n.libraryOnly?' · '+(n.sourceResource.reason?'unavailable':n.sourceResource.existing?'copy open':'ROM library'):'')+(n.stageBadge?' · '+n.stageBadge:'')));b.append(glyph,txt);b.onclick=()=>choose(n.key);$('items').appendChild(b);}if(!list.length)$('items').append(elt('div','frx-empty','No matching resources.'));
+ // a filter that hides the selected resource moves the selection to the first listed one, so the details always
+ // describe something in the list (a missing direct link still clears the selection, with its explanation)
+ const signature=[mode,q,type,scope,stage].join('\u0001');
+ if(signature!==filterSignature){const was=filterSignature;filterSignature=signature;
+  if(was&&!list.some(n=>n.key===active)){active=list[0]?.key||null;if(!active)contextNote='No resource matches these filters.';sel=nodeByKey(active);
+   $('open-editor').disabled=mode==='demo'||!(sel?.open||sel?.evidenceKind||sel?.apuAuditDigest);}}
+ const inStage=stage?list.filter(n=>n.stageNames?.includes(stage)).length:0,groupHead=text=>{const h=elt('div','frx-group',text);h.style.cssText='font:700 10px/1.4 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8fd3ff;padding:8px 6px 3px';return h;};
+ $('count').textContent=list.length+'/'+graph.nodes.size;$('items').replaceChildren();
+ if(stage&&list.length)$('items').appendChild(groupHead(inStage?'In '+stage+' · '+inStage:'Nothing placed in '+stage+' matches'));
+ let otherHead=false;
+ for(const n of list){
+  if(stage&&!otherHead&&!n.stageNames?.includes(stage)){otherHead=true;$('items').appendChild(groupHead('Everything else · '+(list.length-inStage)+' (other stages, unassigned, unidentified)'));}const b=elt('button','frx-item');b.type='button';b.setAttribute('aria-current',String(n.key===active));b.title=n.name+' · '+n.id;const glyph=elt('span','frx-glyph',icons[n.type]||'◆'),txt=elt('span');txt.style.minWidth='0';txt.append(elt('span','frx-item-name',n.name),elt('span','frx-item-type',kindLabel(n.type)+(n.libraryOnly?' · '+(n.sourceResource.reason?'unavailable':n.sourceResource.existing?'copy open':'ROM library'):'')+(n.stageBadge?' · '+n.stageBadge:'')));b.append(glyph,txt);b.onclick=()=>choose(n.key);$('items').appendChild(b);}if(!list.length)$('items').append(elt('div','frx-empty','No matching resources.'));
  if(!sel){
   const message=active===null&&contextNote?contextNote:'This resource is no longer in the live project. Select a resource to continue.';
   active=null;contextNote=message;
@@ -439,7 +457,7 @@ function render(){
  relations('deps',deps,'deps');relations('users',users,'users');
  renderViewer(sel);$('guidance').innerHTML='<b>Reading this view:</b> “Depends on” shows explicit inputs and ownership dependencies. “Used by” shows resources that reference this one. Derived CHR/palette/sprite panels are not separately stored canonical assets. Build eligibility is not inferred from these links.';
  $('details').replaceChildren();for(const [label,value,code] of [['Resource key',sel.key,true],['Ownership / scope',sel.scope],['Provenance',sel.source],['Additional context',sel.details||'No additional metadata'],['Connection evidence',mode==='demo'?'Illustrative only':'Declared IDs and source-owner receipts; native consumer observations have partial coverage']]){$('details').append(elt('span','frx-label',label),elt('div',code?'frx-code':'frx-value',value));}
- $('open-editor').textContent=mode==='demo'?'Example view — no editor action':(sel.evidenceKind||sel.apuAuditDigest)?'Export source evidence JSON ↓':sel.open?'Open in '+({scene:'Scene',tile:'CHR Sheet',chr:'CHR Sheet',sprites:'Sprites',meta:'Metatiles',collision:'Collision',animation:'Animation',pose:'Metasprites',world:'World',entity:'Entity Studio',actor:'Gameplay Core',instance:'Gameplay Core',behavior:'Behavior editor',audio:'Audio','cv-courtyard':'Scene','cv-upload':'CHR Sheet','native-cues':'ROM Audio Library','native-art':'native artwork',source:'source investigation'}[sel.open.kind]||'editor')+' ↗':'Read-only evidence · no editor';
+ $('open-editor').textContent=mode==='demo'?'Example view — no editor action':(sel.evidenceKind||sel.apuAuditDigest)?'Export source evidence JSON ↓':sel.open?'Open in '+({scene:'Scene',tile:'CHR Sheet',chr:'CHR Sheet',sprites:'Sprites',meta:'Metatiles',collision:'Collision',animation:'Animation',pose:'Metasprites',world:'World',entity:'Entity Studio',actor:'Gameplay Core',instance:'Gameplay Core',behavior:'Behavior editor',audio:'Audio','cv-courtyard':'Scene','cv-upload':'CHR Sheet','native-cues':'ROM Audio Library','native-art':'native artwork',source:'source investigation','library-entry':'Library'}[sel.open.kind]||'editor')+' ↗':'Read-only evidence · no editor';
  $('action-note').textContent=mode==='demo'?'Switch to Live project to navigate real resources.':sel.open?.kind==='native-art'?'This explicit action opens the registered native writer. If absent, its dedicated Scene is added in one Undo step; snapshots are preserved.':sel.derived?'This resource has a Scene owner. Open in editor selects that Scene explicitly; Follow only applies to resource selections inside this workspace.':sel.type==='source'?'Source investigation requires matching ROM identity; this panel does not treat recognition as a verified native encoder.':sel.open?.kind==='native-art'?'This explicit action opens the registered native writer. If absent, its dedicated Scene is added in one Undo step; snapshots are preserved.':'Navigation uses existing NES Forge editor services and selection APIs.';
  $('unknown').textContent=mode==='demo'?'The example audio has no claimed runtime jump binding. Such links must be recovered or authored explicitly.':sel.type==='audio'?'Audio data is project-wide; no Scene-to-sound gameplay trigger is assumed.':sel.type==='source'?'A native ROM source receipt does not imply a full native graphics, behavior, or audio encoder.':'Declared references and native source receipts are distinguished. Known native consumers cover bounded observations; other runtime uses remain unknown.';
  if(sel.open?.kind==='rom-library'){
@@ -450,7 +468,7 @@ function render(){
  if(mode==='library'){
   $('open-editor').textContent=sel.open?.kind==='library-project'?'Open project from library ↗':sel.open?.kind==='library-pose'?'Use in project (reference) ↗':'Library entry · read-only';
   $('action-note').textContent=sel.open?.kind==='library-project'?'Loads this project, found inside the pack, as your working project (like Open project). The library keeps its copy.':'Library entries stay in the library until you use them. Your notes are saved with "Save notes" and never change the stated evidence.';
-  $('unknown').textContent='Locations are as the pack states them, not re-read from the ROM. An entry without a location is kept and can be identified later.';
+  $('unknown').textContent='Pack locations are as the pack states them. Recovered-catalog locations are decoded from the ROM and checked against the cartridge layout. An entry without a location is kept and can be identified later.';
   $('follow').disabled=true;
  }
  if(sel.type==='actor-record')$('unknown').textContent='Contextual table entries can share the same enemy type across areas. Parameter codes and routine addresses do not establish recovered enemy poses, AI or playable actor definitions.';
@@ -461,11 +479,17 @@ function previewScene(n){const ctx=targetContext(n),id=ctx?.sceneId,idx=S.scenes
 function newCanvas(width,height,displayWidth){const c=elt('canvas','frx-preview-canvas');c.width=width;c.height=height;c.style.width=displayWidth||'100%';c.style.maxWidth='100%';c.style.height='auto';c.style.imageRendering='pixelated';c.setAttribute('role','img');return c;}
 function poseCanvas(frame,source){const composer=window.Forge163.metasprites,bounds=composer.bounds(frame),c=newCanvas(256,160,'256px'),g=c.getContext('2d'),scale=Math.min(2,248/Math.max(1,bounds.w),152/Math.max(1,bounds.h));
  g.fillStyle='#172231';g.fillRect(0,0,c.width,c.height);composer.draw(g,frame,4+(frame.originX-bounds.x)*scale,4+(frame.originY-bounds.y)*scale,scale,source?{source}:{});return c;}
+let previewKey=null;
 function renderViewer(n){
  const host=$('preview'),tools=$('related-tools');host.replaceChildren();tools.replaceChildren();host.classList.remove('frx-lib');if(!n)return;
+ // a newly selected resource starts at the top of its preview
+ if(previewKey!==n.key){previewKey=n.key;host.scrollTop=0;requestAnimationFrame(()=>{if(previewKey===n.key)host.scrollTop=0;});}
  const ctx=targetContext(n),res=n.type==='world'?null:previewScene(n),caption=$('viewer-caption');caption.textContent=mode==='demo'?'Example assets are not in the project.':res?'Reading '+res.scene.name+' from '+(res.live?'live editor buffers':'stored Scene buffers')+'.':'No unique image or scene binding established.';
  if(mode==='demo'){host.append(elt('div','frx-preview-message','Guided example · select Live project to inspect real tile, palette and layout data.'));$('context-result').textContent='No editor synchronization in the demonstration graph.';return;}
  if(n.libraryEntry){renderLibraryViewer(n,host,tools,caption);return;}
+ if(n.type==='library'&&n.libraryRef){host.classList.add('frx-lib');caption.textContent='Library entry used by this project';const UI=window.Forge.services.LibraryProvenanceUI;host.append(elt('div','frx-preview-message','Loading…'));
+  UI?.cardFor({...n.libraryRef},{compact:false}).then(c=>{if(active===n.key)host.replaceChildren(c);}).catch(err=>{host.replaceChildren(elt('div','frx-preview-message',err.message));});
+  $('context-result').textContent='Read-only · the library entry is unchanged by using it';return;}
  if(n.libraryOnly&&n.sourceResource){renderSourceViewer(n,host,tools,caption);return;}
  if(n.open?.kind==='cv-upload'||n.open?.kind==='cv-courtyard'){
    caption.textContent='Original ROM preview. Opening this resource creates or selects its editable project copy.';
@@ -518,6 +542,7 @@ function renderViewer(n){
    const b=elt('button','frx-context-shortcut',label);b.type='button';b.title='Open '+label+' in the existing editor with this Scene selected';b.onclick=()=>openContextEditor(ctx.sceneId,kind,bank);tools.appendChild(b);
   }
   const frame=n.open?.poseId&&S.metasprites.find(p=>p.id===n.open.poseId);
+  if(n.libraryRef)libraryCard(n,tools);
   let origin;try{origin=window.Forge.services.ResourceContext.native(sc);}catch(_){}
   if(frame){const b=elt('button','frx-context-shortcut','Used pose tiles');b.type='button';b.onclick=()=>{window.Forge163.metasprites.select(frame.id);openContextEditor(frame.sceneId,'chr','spr');window.forgeCHR.usageOnly=true;const tiles=window.Forge.services.ResourceContext.footprint(frame).tileIds;if(tiles.length&&!tiles.includes(S.editTile))S.editTile=S.selTile=tiles[0];window.render();};tools.appendChild(b);}
   for(const writer of [origin?.writer,origin?.paletteWriter].filter(Boolean)){const b=elt('button','frx-context-shortcut',writer.kind==='chr'?'Edit native CHR bank '+writer.index:'Edit native fight palette');b.type='button';b.onclick=()=>{try{window.Forge.services.PunchOutArtUI.open(writer.kind,writer.index);close();}catch(error){contextNote=error.message;render();}};tools.appendChild(b);}
@@ -526,6 +551,8 @@ function renderViewer(n){
  window.Forge.services.ProjectLessons?.shortcut(tools,{...n.open,resourceKey:n.key});
  $('context-result').textContent=contextNote||(follow?'Follow on · choose a related asset to synchronize linked Scene/CHR/Collision.':'Independent browsing · selecting a resource does not modify editor selection.');
 }
+function libraryCard(n,tools){const UI=window.Forge.services.LibraryProvenanceUI;if(!UI)return;const holder=elt('div');holder.style.cssText='flex-basis:100%;width:100%';tools.appendChild(holder);
+ UI.cardFor({...n.libraryRef},{compact:false}).then(c=>{if(active===n.key)holder.replaceChildren(c);}).catch(()=>{});}
 const hexDump=bytes=>{const lines=[];for(let i=0;i<Math.min(bytes.length,4096);i+=16){const row=[...bytes.subarray(i,i+16)];lines.push(i.toString(16).padStart(6,'0')+'  '+row.map(b=>b.toString(16).padStart(2,'0')).join(' ').padEnd(48)+'  '+row.map(b=>b>=32&&b<127?String.fromCharCode(b):'.').join(''));}return lines.join('\n')+(bytes.length>4096?'\n… '+(bytes.length-4096)+' more bytes':'');};
 // A library sprite drawn from its rendition: 8×8 or 8×16 pieces, NES colours, transparent colour 0.
 function drawRendition(rend,scale=3){
@@ -547,8 +574,11 @@ function renderLibraryViewer(n,host,tools,caption){
   if(!ins.ok){host.append(elt('div','frx-preview-message',ins.error.message));return;}
   const entry=ins.result.entry,notes=ins.result.notes||{};
   if(entry.kind==='pose'&&entry.rendition){
-   const stage=$('stage').value,r=await C.run('library.rendition',{id,stage:stage&&entry.renditions?.[stage]?stage:''});
-   if(r.ok){const rend=r.result.rendition,canvas=drawRendition(rend,4);host.append(canvas,elt('div','frx-code','Drawn with the palette of '+(rend.context?.label||'its room')+(rend.context?.stage?' ('+rend.context.stage+')':'')+' · '+rend.pieces.length+' pieces · 8×'+rend.spriteMode));
+   // the chosen stage's colours where the sprite was observed there, else a stage where it was observed
+   const chosen=$('stage').value,observed=Object.keys(entry.renditions||{}),use=chosen&&entry.renditions?.[chosen]?chosen:observed[0]||'';
+   const r=await C.run('library.rendition',{id,stage:use});if(active!==n.key)return;
+   if(r.ok){const rend=r.result.rendition,canvas=drawRendition(rend,4);host.append(canvas,elt('div','frx-code','Drawn with the palette of '+(rend.context?.label||'its room')+(rend.context?.stage?' ('+rend.context.stage+')':'')+' · '+rend.pieces.length+' pieces · 8×'+rend.spriteMode+
+     (chosen&&use!==chosen?' · not observed in '+chosen+(use?'; these are the colours of '+use+', where it was observed':''):'')+(!use?' · not yet observed in a stage: the game may show it in other colours':'')));
     const row=elt('div');row.style.cssText='display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0';
     for(const [mode,label] of [['reference','Use in project (reference)'],['copy','Copy into project (tiles + palette)']]){
      const b=elt('button','frx-relationship',label);b.type='button';b.onclick=async()=>{b.disabled=true;
@@ -560,13 +590,20 @@ function renderLibraryViewer(n,host,tools,caption){
     host.append(row);}
   }
   if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);}
-  // evidence: what the pack states, or that the location is unknown
+  // evidence: decoded or stated locations, each address type on its own row, or that the location is unknown
   const ev=entry.evidence||{state:'none'},box=elt('div');box.style.cssText='text-align:left;font-size:11px;margin:6px 0';
   const row=(label,value)=>{box.append(elt('span','frx-label',label),elt('div','frx-code',value));};
   row('Source ROM SHA-256',entry.sourceSha256||'Not declared by the pack');
-  if(ev.state==='stated'){for(const [k,f] of Object.entries(ev.fields))row({fileOffset:'File offset',cpu:'CPU address',bank:'Bank',ppu:'PPU address',mapper:'Mapper'}[k]||k,
-     (typeof f.first==='number'?f.first+' ($'+f.first.toString(16).toUpperCase()+')':String(f.first))+' · field "'+f.field+'"'+(f.count>1?' · '+f.count+' values in this entry':'')+' · stated by the pack, not re-read');}
-  else row('ROM location','Unknown. The entry stays in the library; its location can be identified later.');
+  const P=window.Forge.services.LibraryProvenance,d=P?await P.resolve({entryId:id}):null;if(active!==n.key)return;
+  if(d?.primary){
+   row('Evidence',ev.state==='decoded'?d.basis+(ev.total?' · '+ev.total+' recorded locations'+(ev.code?.length?', '+ev.code.length+' in code':''):''):'stated by the pack, not re-read from the ROM');
+   row('Location',d.primary.name||d.primary.role);for(const [k,v] of P.rows(d.primary,d.rom))row(k,v);
+  }else row('ROM location','Unknown. The entry stays in the library; its location can be identified later.');
+  if(d){
+   row('Code',d.code.length?d.code.slice(0,6).map(l=>(l.name||l.role)+(l.owner&&l.owner!==d.label?' ('+l.owner+')':'')+': '+P.short(l)).join('\n')+(d.code.length>6?'\n… '+(d.code.length-6)+' more':'')+(d.code[0].basis&&d.code[0].basis!=='decoded with this record'?'\nBasis: '+d.code[0].basis:''):'No verified code relationship is recorded for this resource.');
+   for(const l of d.links){const b=elt('button','frx-relationship','Same resource: '+l.label+' ('+(l.origin==='rom-catalog'?'recovered catalog':'extraction pack')+')');b.type='button';b.title=l.basis;b.onclick=()=>choose(key('lib',l.id));box.append(elt('span','frx-label','Linked record'),b,elt('div','frx-code','Basis: '+l.basis));}
+   if(d.primary||d.code.length){const b=elt('button','frx-relationship','Inspect in CODE/RE');b.type='button';b.dataset.lpv='inspect';b.onclick=()=>{close();P.inspect({entryId:id});};box.append(b);}
+  }
   row('Kind',entry.kind+(entry.identified===false?' (not identified by the intake)':'')+' · '+entry.fileType+' · '+entry.size+' bytes');
   row('Intake validation',entry.validation?.state+(entry.validation?.reason?': '+entry.validation.reason:''));
   row('Data',entry.data?.state+' · content '+String(entry.contentHash).slice(0,16)+'…');
@@ -625,6 +662,7 @@ function unavailable(message){
  graph=liveGraph();active=null;contextNote=message;render();
 }
 async function navigate(){
+ if(mode==='live'){const n=nodeByKey(active);if(n?.open?.kind==='library-entry'){openLibraryEntry(n.open.entryId);return;}}
  if(mode==='library'){const n=nodeByKey(active);
   if(n?.open?.kind==='library-pose'){const stage=$('stage').value,e=n.libraryEntry;const u=await window.Forge.commands.run('library.usePose',{id:e.id,mode:'reference',...(stage&&e.stages?.some(s=>s.stage===stage)?{stage}:{})});
    if(!u.ok){contextNote=u.error.message;render();return;}showPlaced(u.result,'Referenced “'+n.name+'” into this scene ('+u.result.dependencies.tilesAdded+' tiles).');return;}
@@ -680,12 +718,24 @@ function showPlaced(result,msg){
  close();try{switchTab('scene');}catch(_){}
  const t=document.getElementById('toast');if(t){t.textContent=msg;t.classList.add('show');clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),6000);}else window.showToast?.(msg);
  const box=result?.placed?.box;if(!box)return;
- requestAnimationFrame(()=>{const cv=document.getElementById('cv');if(!cv)return;const r=cv.getBoundingClientRect(),k=r.width/256;if(!k)return;
-  document.getElementById('frx-placed')?.remove();const m=document.createElement('div');m.id='frx-placed';m.setAttribute('aria-hidden','true');
-  m.style.cssText='position:absolute;pointer-events:none;z-index:50;border:2px solid #ffd84a;box-shadow:0 0 0 2px #000,0 0 14px #ffd84a;border-radius:2px;transition:opacity .6s';
-  Object.assign(m.style,{left:(r.left+scrollX+(box.x-2)*k)+'px',top:(r.top+scrollY+(box.y-2)*k)+'px',width:((box.w+4)*k)+'px',height:((box.h+4)*k)+'px'});
-  document.body.append(m);m.scrollIntoView({block:'center',inline:'nearest'});
-  setTimeout(()=>{m.style.opacity='0';setTimeout(()=>m.remove(),700);},3500);});
+ document.getElementById('frx-placed')?.remove();const m=document.createElement('div');m.id='frx-placed';m.setAttribute('aria-hidden','true');
+ m.style.cssText='position:fixed;pointer-events:none;z-index:50;border:2px solid #ffd84a;box-shadow:0 0 0 2px #000,0 0 14px #ffd84a;border-radius:2px;transition:opacity .6s';
+ document.body.append(m);
+ // the outline follows the scene canvas while it scrolls and disappears as soon as the scene is left
+ const until=performance.now()+3500;let scrolled=false;
+ const place=()=>{const cv=document.getElementById('cv');if(!m.isConnected)return;
+  if(!cv||(typeof S!=='undefined'&&S.tab!=='scene')||cv.style.display==='none'||root.classList.contains('frx-visible')){m.remove();return;}
+  const r=cv.getBoundingClientRect(),k=r.width/256;if(!k){m.remove();return;}
+  Object.assign(m.style,{left:(r.left+(box.x-2)*k)+'px',top:(r.top+(box.y-2)*k)+'px',width:((box.w+4)*k)+'px',height:((box.h+4)*k)+'px'});
+  if(!scrolled){scrolled=true;const mid=r.top+(box.y+box.h/2)*k;if(mid<0||mid>innerHeight)window.scrollBy({top:mid-innerHeight/2});}
+  if(performance.now()<until)requestAnimationFrame(place);else{m.style.opacity='0';setTimeout(()=>m.remove(),700);}};
+ requestAnimationFrame(place);
+}
+// Resources › Library with one entry selected (its filters cleared so it is listed)
+let pendingSelect=null;
+function openLibraryEntry(entryId){
+ if(!root.classList.contains('frx-visible')){lastFocus=document.activeElement;root.classList.add('frx-visible');document.body.style.overflow='hidden';}
+ $('search').value='';$('kind').value='';$('stage').value='';pendingSelect=key('lib',entryId);setMode('library');
 }
 function close(){root.classList.remove('frx-visible');document.body.style.overflow='';lastFocus?.focus?.();}
 function open(resourceKey){
@@ -704,6 +754,6 @@ root.addEventListener('mousedown',e=>{if(e.target===root)close();});root.addEven
 // close control even when another app editor has installed global key handlers.
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&root.classList.contains('frx-visible')){event.preventDefault();event.stopImmediatePropagation();close();}},true);
 // Expose inspection only for synthetic browser smoke tests; never a mutation API.
-window.Forge.services.ResourceRelationshipPreview=Object.freeze({open,openAt:resourceKey=>open(String(resourceKey)),close,refresh:()=>{graph=mode==='live'?liveGraph():sampleGraph();render();},summary:()=>({mode,follow,nodes:graph?.nodes.size||0,edges:graph?.edges.length||0,issues:graph?.issues.length||0,selected:active,contextNote}),liveGraph});
+window.Forge.services.ResourceRelationshipPreview=Object.freeze({open,openLibraryEntry,openAt:resourceKey=>open(String(resourceKey)),close,refresh:()=>{graph=mode==='live'?liveGraph():sampleGraph();render();},summary:()=>({mode,follow,nodes:graph?.nodes.size||0,edges:graph?.edges.length||0,issues:graph?.issues.length||0,selected:active,contextNote}),liveGraph});
 })();
 
