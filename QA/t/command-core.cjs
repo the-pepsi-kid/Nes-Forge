@@ -10,6 +10,7 @@ const report = {editorSha256: crypto.createHash('sha256').update(fs.readFileSync
 const h = loadForge(editor);
 for (const k of ['DecompressionStream', 'Blob', 'Response', 'ReadableStream', 'TextDecoder', 'TextEncoder', 'atob', 'btoa']) if (!h.context[k]) h.context[k] = globalThis[k];
 if (!h.context.crypto || !h.context.crypto.subtle) h.context.crypto = crypto.webcrypto;
+h.context.setTimeout = (fn, ms, ...a) => setTimeout(fn, 0, ...a); // intake yields with timers; the harness stubs them
 const R = async (name, args) => { h.context.__a = args === undefined ? null : args; return JSON.parse(JSON.stringify(await h.run(`Forge.commands.run(${JSON.stringify(name)},__a)`, 600000))); };
 const checks = [];
 const check = (name, fn) => checks.push([name, fn]);
@@ -72,6 +73,18 @@ check('Emulator and input: the same button path moves the player', async () => {
   const still = await run(false), moved = await run(true);
   let differ = 0; for (let i = 0; i < still.length; i += 4) if (still[i] !== moved[i] || still[i + 1] !== moved[i + 1] || still[i + 2] !== moved[i + 2]) differ++;
   assert.ok(differ > 20, 'holding Right changed ' + differ + ' pixels');
+});
+check('ROM intake and import through commands (authored test cartridge)', async () => {
+  const rom = new Uint8Array(fs.readFileSync(path.join(root, 'QA/r/game.nes')));
+  const i = await R('rom.inspect', {bytes: rom, name: 'game.nes'}); assert.ok(i.ok, JSON.stringify(i.error));
+  assert.equal(i.result.kind, 'rom'); assert.equal(i.result.source.sha256, crypto.createHash('sha256').update(rom).digest('hex'));
+  assert.ok(i.result.rows.length > 0 && i.result.rows.every(r => r.resource && r.inspect !== undefined));
+  const imp = await R('rom.import', {bytes: rom, name: 'game.nes'}); assert.ok(imp.ok, JSON.stringify(imp.error));
+  const info = (await R('project.info')).result; assert.ok(info.counts.scenes >= 1);
+  const list = (await R('resources.list', {limit: 1})).result; assert.ok(list.total > 0);
+  assert.deepEqual((await R('build.changes')).result.changes, [], 'import is the buildable baseline');
+  // A preserved-source (inspection) import refuses edits at build, so nothing in it may be labelled BUILD.
+  if (info.kind !== 'author') assert.equal((await R('resources.list', {level: 'build', limit: 1})).result.total, 0, 'no BUILD level on a ' + info.kind + ' project');
 });
 check('Events reach subscribers from every adapter', async () => {
   h.run('globalThis.__events=[];globalThis.__off=Forge.commands.subscribe(e=>__events.push(e))');

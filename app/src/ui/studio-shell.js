@@ -156,6 +156,17 @@ function drawScene(sc,canvas){
       if(X<0||X>255||Y<0||Y>239)continue;const rgb=NES[p[c]&63],i=(Y*256+X)*4;d[i]=rgb[0];d[i+1]=rgb[1];d[i+2]=rgb[2];d[i+3]=255;}});}
   ctx.putImageData(img,0,0);return true;
 }
+/* First screen of a World: 16x15 metatile IDs per screen (-1 = empty), metatiles [TL,TR,BL,BR] from its tileset Scene. */
+function drawWorld(world,canvas){
+  if(!NES||!world)return false;const sc=sceneData(world.tilesetSceneId);if(!sc)return false;
+  const chr=sc.chr||S.chr,pal=sc.pal||[[15,0,16,48]],meta=new Map((sc.metatiles||[]).map(m=>[m.id,m])),stride=16*Math.max(1,world.widthScreens|0);
+  if(!chr)return false;canvas.width=256;canvas.height=240;const ctx=canvas.getContext('2d'),img=ctx.createImageData(256,240),d=img.data,bg=NES[(sc.bgColor??pal[0][0])&63];
+  for(let i=0;i<d.length;i+=4){d[i]=bg[0];d[i+1]=bg[1];d[i+2]=bg[2];d[i+3]=255;}
+  for(let cy=0;cy<15;cy++)for(let cx=0;cx<16;cx++){const m=meta.get((world.map||[])[cy*stride+cx]);if(!m)continue;const p=pal[m.pal|0]||pal[0];
+    (m.tiles||[]).forEach((tid,q)=>{const t=chr[tid&255];if(!t)return;const ox=cx*16+(q&1)*8,oy=cy*16+(q>>1)*8;
+      for(let y=0;y<8;y++)for(let x=0;x<8;x++){const c=t[y][x],rgb=NES[(c?p[c]:pal[0][0])&63],i=((oy+y)*256+ox+x)*4;d[i]=rgb[0];d[i+1]=rgb[1];d[i+2]=rgb[2];}});}
+  ctx.putImageData(img,0,0);return true;
+}
 function drawChr(sc,bank,canvas){
   const chr=bank==='spr'?(sc.sprChr||S.sprChr):(sc.chr||S.chr),pal=(bank==='spr'?sc.sprPal:sc.pal)||[[15,0,16,48]];if(!NES||!chr)return false;
   canvas.width=128;canvas.height=128;const ctx=canvas.getContext('2d'),img=ctx.createImageData(128,128),d=img.data;
@@ -178,6 +189,7 @@ function thumb(item){
       if(item.type==='scene')ok=drawScene(sceneData(item.id),canvas);
       else if((item.type==='chr'||item.type==='tile')&&sc)ok=drawChr(sc,String(item.id).startsWith('spr')?'spr':'bg',canvas);
       else if(item.type==='metasprite')ok=drawPose(S.metasprites.find(m=>m.id===item.id),canvas);
+      else if(item.type==='world')ok=drawWorld(S.worlds.find(w=>w.id===item.id),canvas);
       else if(['palette','sprite','collision'].includes(item.type)&&sc)ok=drawScene(sc,canvas);}catch(_){ok=false;}
     if(ok)box.replaceChildren(canvas);else box.textContent=item.type.toUpperCase();};
   if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();paint();}});io.observe(box);}else paint();
@@ -285,5 +297,6 @@ setClassic(store.get('classic',false));
 setMode(store.get('mode','edit'));
 setInterval(()=>{if(document.visibilityState==='visible'&&typeof S!=='undefined'&&!projectChip.textContent.startsWith(S.projectName||'Untitled'))refreshProject();},2000);
 C.subscribe(e=>{if(e.type==='project'){refreshProject();if(mode==='library')renderLibrary();}});
-services.StudioShell=Object.freeze({setMode,mode:()=>mode,setClassic,openPalette,refresh:()=>setMode(mode),renderLibrary,renderBuild});
+services.StudioShell=Object.freeze({setMode,mode:()=>mode,setClassic,openPalette,refresh:()=>setMode(mode),renderLibrary,renderBuild,
+  drawScene:(id,canvas)=>drawScene(sceneData(id),canvas),drawWorld:(id,canvas)=>drawWorld((S.worlds||[]).find(w=>w.id===id),canvas)});
 })();
