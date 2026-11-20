@@ -33,7 +33,7 @@ async function create(bytes,name){
 }
 function describe(n){
  if(!n)return null;if(n.version===4)return services.NativeResourceProject.describe(n);if(n.version===3)return services.NativeLayoutProject.describe(n);if(n.version===2)return services.ROMProject.describe(n);const c=n.catalogs,r=c.native;
- return {source:cp(n.source),rooms:r.scenes.length,contexts:new Set(r.scenes.map(s=>s.group)).size,maps:c.spatial.maps.length,actors:r.actors.length,poses:r.poses.length,scripts:r.animations.length,chrBanks:r.graphics.length,symbols:r.symbols.length,ram:r.ram.length,cues:c.audio.cues.length,gaps:cp(r.limits),audioGaps:cp(c.audio.limitations)};
+ return {source:cp(n.source),rooms:r.scenes.length,stages:(r.stages||[]).length,contexts:new Set(r.scenes.map(s=>s.group)).size,maps:c.spatial.maps.length,actors:r.actors.length,poses:r.poses.length,scripts:r.animations.length,chrBanks:r.graphics.length,symbols:r.symbols.length,ram:r.ram.length,cues:c.audio.cues.length,gaps:cp(r.limits),audioGaps:cp(c.audio.limitations)};
 }
 services.InvestigationProject=Object.freeze({version:1,create,validate,describe});
 })();

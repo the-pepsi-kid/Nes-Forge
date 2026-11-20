@@ -112,12 +112,20 @@ The Library, Resource Explorer, Area library, VR/AR and agents all use these com
 
 ## 10. Per-game stage data today
 
-See the audit table in [COMPARE.md](../../audit/2026-11-20/resource-inventory/COMPARE.md) and the summary in §10a below.
+The audit [README](../../audit/2026-11-20/resource-inventory/README.md) has the per-game table. In short:
+- **Ninja Gaiden** now has its stage table: 21 stages, Act 1-1 to 6-5, decoded from PRG bank 0 $AF6E and confirmed for all 22 areas in the emulator.
+- **Zelda II** has 9 world/table contexts that can serve as stages.
+- **Punch-Out** has its 14 fights.
+- **Every other game** has no decoded stages yet, so its assets would start in Unassigned.
+
+The owner's decisions so far:
+- When a stage is selected, other stages' assets are **sorted after** it, not hidden.
+- **Ninja Gaiden's stage table is decoded first** (done).
 
 ## 11. Decisions for the owner
 
-1. When a stage is selected, should other stages' assets be **hidden** or **sorted after**?
-2. Ninja Gaiden has no stage table yet. Should it be decoded before stage navigation ships, or shown as "Area N (Act unknown)" first?
+1. ~~When a stage is selected, should other stages' assets be hidden or sorted after?~~ Decided: sorted after.
+2. ~~Should Ninja Gaiden's stage table be decoded first?~~ Decided and done.
 3. Pack-only entries: copy them into the project's catalogue when the pack is opened, so they survive closing it, or keep them pack-only?
 4. Should **Use here** (reference) or **Copy** be the default?
 5. In what order should games get decoded stage tables?

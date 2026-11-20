@@ -48,7 +48,10 @@ const HELPERS = `(()=>{
     for(const n of nodes){const t=String(n.type??n.kind??String(n.key||'').split(':')[0]);by[t]=(by[t]||0)+1;}
     return {nodes:nodes.length,byType:by,edges:Array.isArray(g.edges)?g.edges.length:(g.edges?.size||0)};};
   window.__selector=function(){try{return {scenes:S.scenes.length,worlds:(S.worlds||[]).length};}catch(_){return null;}};
-  window.__snap=function(){const p=Forge.services.ProjectStore.capture();return {inv:__inv(p),ids:__ids(p),name:p.projectName||'',json:JSON.stringify(p)};};
+  // Physical CHR tile sheets (native-chr scenes kept out of the build) are shown in the graph as CHR, not as scenes.
+  window.__snap=function(){const p=Forge.services.ProjectStore.capture();
+    const sheets=(p.scenes||[]).filter(s=>s?.captureMeta?.mode==='native-chr'&&s.buildInclude===false).length;
+    return {inv:__inv(p),ids:__ids(p),tileSheets:sheets,name:p.projectName||'',json:JSON.stringify(p)};};
 })()`;
 
 // ---------- child: one editor, one input ----------
@@ -76,7 +79,7 @@ if (argv.includes('--one')) {
       const nav = {graph: await J('__graph()'), selector: await J('__selector()')};
       const reopen = await J(`(async()=>{const text=Forge.services.ProjectStore.serialize();await Forge.services.ProjectStore.load(JSON.parse(text),{intent:'audit-reopen'});
         const s=__snap();return {inv:s.inv,identical:s.json===window.__json1,bytes:text.length};})()`);
-      return {label, name: after.name, before: before.inv, after: after.inv, ids: after.ids, inputIds: before.ids, navigate: nav, reopen};
+      return {label, name: after.name, before: before.inv, after: after.inv, ids: after.ids, tileSheets: after.tileSheets, inputIds: before.ids, navigate: nav, reopen};
     };
     await step('intake', async () => {
       const r = await J(`(async()=>{const r=await Forge.services.ProjectGateway.inspect(__bytes,{name:__name});window.__receipt=r;
@@ -150,10 +153,12 @@ function compare(labels) {
   const byInput = flat(runs), rows = [], findings = [];
   const add = (input, label, cls, detail) => findings.push({input, editor: label, class: cls, detail});
   for (const [input, per] of Object.entries(byInput)) {
-    const kind = Object.values(per)[0]?.kind;
+    // an input is a pack when any editor opened it as one; an editor that could not is reported, not compared as a ROM
+    const kind = Object.values(per).some(x => x.kind === 'extraction') ? 'extraction' : Object.values(per)[0]?.kind;
     const sumTop = inv => Object.fromEntries(Object.entries(inv || {}).filter(([k]) => !k.includes('[]')));
     for (const label of labels) {
       const s = per[label]; if (!s) { add(input, label, 'not run', ''); continue; }
+      if (kind === 'extraction' && s.kind !== 'extraction') { add(input, label, 'cannot open', 'intake: ' + ((s.errors || []).find(e => e.step === 'intake')?.error || 'not recognised as an extraction pack')); continue; }
       for (const e of s.errors || []) add(input, label, 'error', e.step + ': ' + e.error);
       if (kind === 'extraction') {
         const pk = s.pack || {}, pp = s['pack-projects'] || {};
@@ -174,8 +179,11 @@ function compare(labels) {
           const lostR = Object.entries(r.after || {}).filter(([k, v]) => (r.reopen?.inv?.[k] || 0) !== v);
           if (lostR.length) add(input, label, 'lost on save/reopen', route + ': ' + lostR.map(([k, v]) => `${k} ${v}→${r.reopen?.inv?.[k] || 0}`).join(', '));
           const sc = r.after?.scenes || 0, sel = r.navigate?.selector?.scenes, gs = r.navigate?.graph?.byType?.scene;
+          // physical tile sheets (native-chr, not built) are listed as CHR in the graph; older runs lack the count
+          const sheets = r.tileSheets ?? (r.ids?.scenes || []).filter(id => /^re-chr-/.test(id)).length;
           if (sel !== undefined && sel !== null && sel < sc) add(input, label, 'hidden by navigation', `${route}: scene selector shows ${sel} of ${sc} scenes`);
-          if (gs !== undefined && gs < sc) add(input, label, 'hidden by navigation', `${route}: resource graph has ${gs} scene nodes for ${sc} scenes`);
+          if (gs !== undefined && gs + sheets < sc) add(input, label, 'hidden by navigation', `${route}: resource graph has ${gs} scene nodes and ${sheets} tile sheets for ${sc} scenes`);
+          else if (gs !== undefined && gs < sc) add(input, label, 'filed under another category', `${route}: ${sheets} physical CHR tile sheets (layout unresolved) are listed as CHR, not as scenes`);
           rows.push({input, editor: label, kind, route, actions: s.intake?.actions, kept: sumTop(r.after), graph: r.navigate?.graph?.byType, graphNodes: r.navigate?.graph?.nodes,
             selector: r.navigate?.selector, reopenIdentical: r.reopen?.identical});
         }

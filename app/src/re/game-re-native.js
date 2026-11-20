@@ -84,6 +84,14 @@ function ninjaCatalog(r,bytes){
  // Reset/area-start path: X=area, read bank-0 $AFC6,X, write $0600.
  // This is deliberately not asserted to run on every room transition.
  need(JSON.stringify(r.span(7,0xe547,13))===JSON.stringify([0xa6,0x6d,0xbd,0x2c,0xaf,0x85,0x6e,0xbd,0xc6,0xaf,0x8d,0,6]),'area-start audio writer anchor differs');
+ // Stage table: the HUD's "STAGE x-y" is drawn at area start by $EB31-$EB61 in the fixed bank. It selects PRG bank 0
+ // ($C028 with A=0), then reads one BCD byte per area from $AF6E,X (X = area): the high nibble (act) goes to $0703,
+ // tile $18 ("-") to $0704 and the low nibble (stage) to $0705, a PPU write buffer for VRAM $2096. $AF2C,X is the
+ // area's first room, so every room has a decoded stage.
+ need(JSON.stringify(r.span(7,0xeb31,5))===JSON.stringify([0xa9,0x00,0x20,0x28,0xc0])&&JSON.stringify(r.span(7,0xeb45,10))===JSON.stringify([0xbd,0x6e,0xaf,0x4a,0x4a,0x4a,0x4a,0x8d,0x03,0x07])
+  &&JSON.stringify(r.span(7,0xeb54,6))===JSON.stringify([0xbd,0x6e,0xaf,0x29,0x0f,0x8d]),'HUD stage-number reader anchor differs');
+ const stageOf=area=>{const v=r.at(0,0xaf6e+area),act=v>>4,number=v&15;need(act>=1&&act<=9&&number>=1&&number<=9,'stage table byte out of range');
+  return {act,number,label:'Stage '+act+'-'+number,basis:'rom-table',source:r.loc(0,0xaf6e+area),reader:r.loc(7,0xeb45,3)};};
  const baseline=spatial().inspect(bytes,'Ninja Gaiden'),scenes=[];
  for(const map of baseline.maps){
   const {area,room}=map.context,gfx=r.at(0,0xaf00+area),enemyCount=r.at(0,0xae40+room),lanternCount=r.at(0,0xae10+room);
@@ -104,10 +112,18 @@ function ninjaCatalog(r,bytes){
    selector:map.context.selector,graphicsSelector:gfx,backgroundChrBank4KiB:r.at(0,0xaf16+area)>>3,spriteChrBank4KiB:r.at(0,0xac90+room)&15,
    palettes:ninjaPalette(r,area,room),enemyCountCode:enemyCount,lanternCountCode:lanternCount,enemies,lanterns,
    entrance:{forward:{x:r.at(0,0xad50+room),y:r.at(0,0xad80+room),source:r.loc(0,0xad50+room),ySource:r.loc(0,0xad80+room)},backward:{x:r.at(0,0xadb0+room),y:r.at(0,0xade0+room),source:r.loc(0,0xadb0+room),ySource:r.loc(0,0xade0+room)},fromRight:map.context.entranceFromRight},
+   stage:stageOf(area),areaFirstRoom:r.at(0,0xaf2c+area),
    areaStartCue:r.at(0,0xafc6+area),timeCode:r.at(0,0xafb0+area),
    audioEvent:{version:1,event:'area-start',area,cueId:String(r.at(0,0xafc6+area)),audioProfile:'ninja-gaiden-us-1',requestAddress:0x600,source:r.loc(0,0xafc6+area),writer:r.loc(7,0xe551,3)},
    limits:['Native enemy records are spawn triggers. World-space placement and reachability require scroll-direction context.','The source entrance bytes do not establish every exit or checkpoint condition.']});
  }
+ // The first-room table and the spatial baseline must agree on where each area starts.
+ for(const area of new Set(scenes.map(sc=>sc.area)))need(Math.min(...scenes.filter(sc=>sc.area===area).map(sc=>sc.room))===r.at(0,0xaf2c+area),'area first-room table differs from the room list');
+ // The game's own stages in play order; one stage can span several areas (6-4 is areas 19 and 20).
+ const stages=[];
+ for(const sc of scenes){let st=stages.find(x=>x.label===sc.stage.label);
+  if(!st){st={id:'ng-stage:'+sc.stage.act+'-'+sc.stage.number,act:sc.stage.act,number:sc.stage.number,label:sc.stage.label,areas:[],rooms:[],basis:'rom-table',source:r.loc(0,0xaf6e,22),reader:r.loc(7,0xeb45,3)};stages.push(st);}
+  if(!st.areas.includes(sc.area))st.areas.push(sc.area);st.rooms.push(sc.room);}
  const poses=[];for(const player of [true,false])for(let i=0;i<(player?128:256);i++){const pose=ninjaPose(r,i,player);if(pose)poses.push(pose);}
  const animations=[],scriptSlots=[];
  for(let id=0;id<128;id++){
@@ -130,7 +146,7 @@ function ninjaCatalog(r,bytes){
    parameterSources:[r.loc(0,0xb530+type),r.loc(0,0xb560+type),r.loc(0,0xb500+type)],pointerSource:r.loc(7,0xc195+type*2,2),
    limits:['Raw native parameter codes. In particular a health code of zero does not mean the actor has zero effective hit points.','Dispatch/state entry addresses expose the original implementation; they are not a translated AI or complete state-transition model.']});
  }
- return {scenes,actors,poses,animations,scriptSlots,locations:[],limits:['Ninja scene art, initial palettes, spawns, entrances, actor parameter/dispatch tables and shared sprite scripts are decoded.','Enemy AI, player physics, full transition conditions, combat damage/hitbox semantics and cutscene/text reconstruction remain incomplete.']};
+ return {scenes,stages,actors,poses,animations,scriptSlots,locations:[],limits:['Ninja scene art, initial palettes, spawns, entrances, actor parameter/dispatch tables and shared sprite scripts are decoded.','Enemy AI, player physics, full transition conditions, combat damage/hitbox semantics and cutscene/text reconstruction remain incomplete.']};
 }
 
 const zeldaSets=Object.freeze([
