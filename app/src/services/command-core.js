@@ -231,6 +231,36 @@ register({name:'writer.prepare',group:'writers',title:'Open a native writer view
     if(res.added)commitProject(res.project,'writer:'+a.writer);
     return {sceneId:res.sceneId||null,frameId:res.frameId||null,added:!!res.added,resourceKey:res.sceneId?'scene:'+res.sceneId:null};}});
 
+/* Writer suggestions: for an asset that is only a copy, the explicit native writer view (if any)
+ * that encodes the same original data, and which other assets share it. Providers are small and
+ * title-specific; the generic Library shows whatever they return. */
+const suggestionProviders=[];
+function registerSuggestions(fn){if(typeof fn!=='function')fail('Provider must be a function');suggestionProviders.push(fn);}
+registerSuggestions(({p,node,cap})=>{
+  if(cap.kind!=='native'||!services.PunchOutArtProject)return [];
+  const sceneId=node.open?.sceneId||(node.type==='scene'?node.id:null),scene=sceneId&&p.scenes.find(s=>s.id===sceneId);
+  const content=scene?.captureMeta?.punchOutContent,out=[];
+  if(content&&Number.isInteger(content.chrBank4KiB)&&['scene','chr','tile','sprite'].includes(node.type)){
+    const bank=content.chrBank4KiB,shared=p.scenes.filter(s=>s.id!==scene.id&&s.captureMeta?.punchOutContent?.chrBank4KiB===bank).map(s=>s.name);
+    out.push({writer:'punch-out-art',args:{writer:'punch-out-art',kind:'chr',index:bank},level:'native',
+      title:'Edit these graphics in physical CHR bank '+bank+' (writes to the ROM)',
+      note:'The fighter scene is a reference snapshot. Pixel edits in the bank view are encoded into the ROM; tile layout (pose geometry) has no writer yet.',
+      sharedWith:shared});
+  }
+  const pose=node.type==='metasprite'&&/^po-pose-f(\d+)-s(\d+)$/.exec(node.id);
+  if(pose&&services.PunchOutPoseProject){
+    const fight=+pose[1],selector=+pose[2];
+    if(fight===0)out.push({writer:'punch-out-pose',args:{writer:'punch-out-pose',index:selector},level:'native',title:'Move this Glass Joe pose (writes X/Y to the ROM)',note:'Whole-pose position only; piece geometry has no writer yet.',sharedWith:[]});
+    else out.push({writer:null,level:'copy',title:'No pose writer for this fighter yet',note:'Pose layout writers exist only for Glass Joe positions. Graphics can be edited through the CHR bank view.',sharedWith:[]});
+  }
+  return out;
+});
+register({name:'writer.suggest',group:'writers',title:'Native writer options for a resource',args:{key:{type:'string',required:true}},
+  summary:'For a copy-level asset: which explicit native writer view encodes the same original data, and what else shares it.',
+  run:a=>{const ctx=context(),{nodes}=nodesAndEdges(),node=nodes.find(x=>x.key===a.key);if(!node)fail('No resource "'+a.key+'"');
+    const out=[];for(const provider of suggestionProviders){try{out.push(...(provider({p:ctx.p,node,cap:ctx.cap})||[]));}catch(_){/* a provider never breaks the list */}}
+    return {key:a.key,editability:editability(node,ctx),suggestions:cp(out)};}});
+
 register({name:'build.check',group:'build',title:'Check the build',summary:'Compiles without saving or downloading. A refusal names the asset, field and writer route.',
   run:()=>guardedBuild(async()=>{const artifact=services.RuntimeCompiler.compile();return {ok:true,backend:artifact.backend,bytes:artifact.rom.length,sha256:await sha256(artifact.rom),
     diagnostics:(artifact.diagnostics||[]).map(cp)};})});
@@ -263,7 +293,7 @@ register({name:'input.set',group:'input',title:'Press or release NES buttons',ne
       if(down)emuKeys[KEY[name]]=true;else delete emuKeys[KEY[name]];}
     return {held:Object.keys(BUTTON).filter(n=>emuKeys[KEY[n]])};}});
 
-F.commands=Object.freeze({version:VERSION,register,list,describe,run,subscribe,registerAdapter,
+F.commands=Object.freeze({version:VERSION,register,list,describe,run,subscribe,registerAdapter,registerSuggestions,
   adapters:()=>[...adapters.values()].map(cp),buttons:Object.freeze({...BUTTON})});
 services.Commands=F.commands;
 })();
