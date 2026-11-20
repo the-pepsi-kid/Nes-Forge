@@ -7,8 +7,9 @@
  *     its decoded ROM location and, where decoded, its verified stage (basis rom-table). Each pose stores a
  *     rendition made by the editor's own converter (pieces, the tiles they use and the room palette it was drawn
  *     with), so it can be used in any project without the source ROM open.
- *   - surveyStages (Ninja Gaiden US): plays each area from its start in the emulator and records which enemy
- *     types and poses appear, confirmed against the sprites on screen. Results are verified placements with
+ *   - surveyStages (Ninja Gaiden US): plays each area from its first room in the emulator (walking, running jumps,
+ *     turning around when blocked) and records which enemy types and poses appear, confirmed against the sprites
+ *     on screen and against the area's own spawn tables. Results are verified placements with
  *     basis "runtime" and their route; they never become developer notes or guesses.
  *   - usePose: puts a library sprite in the active scene. "reference" (default) links it to the library entry and
  *     warns before it is edited; "copy" makes an independent asset that records what it was derived from. Its
@@ -111,43 +112,64 @@ async function surveyStages({areas,frames=1500}={}){
   const press=async button=>{await run('input.set',{buttons:{[button]:true}});await run('emulator.frames',{count:4});await run('input.set',{buttons:{[button]:false}});};
   const list=areas||[...new Set(scenes.map(s=>s.area))],results=[];
   for(const area of list){
-    const stage=scenes.find(s=>s.area===area)?.stage?.label||null;
+    const stage=scenes.find(s=>s.area===area)?.stage?.label||null,rooms=scenes.filter(s=>s.area===area),firstRoom=rooms[0]?.areaFirstRoom??rooms[0]?.room;
+    // enemy types the ROM's own spawn tables place in this area's rooms; observations are checked against them
+    const tableTypes=new Set(rooms.flatMap(r=>(r.enemies||[]).map(e=>e.type)));
     await run('emulator.load',{bytes:rom,name:'survey.nes'});
     let ready=false;for(let f=0;f<3000&&!ready;f+=30){await run('emulator.frames',{count:26});await press('start');ready=emu.vram[0x97]===0x18&&emu.ram[0x6D]===0;}
     if(!ready){results.push({area,stage,error:'the game did not reach its first stage'});continue;}
     await run('emulator.frames',{count:60});
     if(area){
-      // time over: the game's own death routine restarts the area held in $6D
-      emu.ram[0x6D]=area;emu.ram[0x63]=1;emu.ram[0x76]=Math.max(emu.ram[0x76],2);let zero=false,restarted=false;
+      // time over: the game's own death routine restarts at the area ($6D) and room ($6E, checkpoint $6F) held in RAM;
+      // both are set to the area's first room (PRG bank 0 $AF2C), and the restart must land there
+      emu.ram[0x6D]=area;emu.ram[0x6E]=firstRoom;emu.ram[0x6F]=firstRoom;emu.ram[0x63]=1;emu.ram[0x76]=Math.max(emu.ram[0x76],2);let zero=false,restarted=false;
       for(let f=0;f<6000&&!restarted;f+=10){await run('emulator.frames',{count:10});const t=emu.ram[0x63];if(t===0)zero=true;else if(zero&&t>=140&&t<=150)restarted=true;}
-      if(!restarted||emu.ram[0x6D]!==area){results.push({area,stage,error:'the game did not restart in this area'});continue;}
+      if(!restarted||emu.ram[0x6D]!==area||emu.ram[0x6E]!==firstRoom){results.push({area,stage,error:'the game did not restart in this area\'s first room (area '+emu.ram[0x6D]+', room '+emu.ram[0x6E]+')'});continue;}
       await run('emulator.frames',{count:30});
     }
-    const seen=new Map();let left=false;
-    for(let f=0;f<frames&&!left;f+=4){
-      const jump=f%60===0;await run('input.set',{buttons:{right:true,a:jump}});await run('emulator.frames',{count:4});
+    // route: walk one way swinging the sword; when blocked, take a running jump (leaping off a wall when clinging to
+    // one) with a different run-up each try; turn around only when a direction makes no headway at all. The full
+    // button state is sent every step (input.set merges what it is given).
+    const seen=new Map();let left=false,f=0,dir='right',turns=0,deaths=0,died=false;
+    const pos=()=>(emu.ram[0x52]<<8|emu.ram[0x51])+emu.ram[0x86];
+    const tick=async(buttons,steps=1)=>{for(let k=0;k<steps&&!left&&f<frames;k++,f+=4){
+      await run('input.set',{buttons:{left:false,right:false,up:false,down:false,a:false,b:false,...buttons}});await run('emulator.frames',{count:4});
       if(emu.ram[0x6D]!==area){left=true;break;}
-      const oam=emu.oamMem,onScreen=new Set();for(let k=0;k<64;k++)if(oam[k*4]<239)onScreen.add(oam[k*4+1]);
+      if(emu.ram[0x76]<2){emu.ram[0x76]=2;deaths++;died=true;} // keep the survey out of the game-over screen
+      const oam=emu.oamMem,onScreen=new Set();for(let s=0;s<64;s++)if(oam[s*4]<239)onScreen.add(oam[s*4+1]);
       for(let i=0;i<8;i++){
         if(!emu.ram[0x498+i])continue; // slot flags: zero when the slot holds no live enemy
         const type=emu.ram[0x400+i],pose=emu.ram[0x438+i],key=type+':'+pose,rec=seen.get(key)||{type,pose,samples:0,onScreen:0};
         rec.samples++;const cat=enemyPoses.get(pose);if(cat?.pieces?.length&&cat.pieces.every(pc=>onScreen.has(pc.tile)))rec.onScreen++;seen.set(key,rec);
       }
+    }};
+    let origin=pos(),best=origin,still=0,tries=0;
+    while(f<frames&&!left){
+      await tick({[dir]:true,b:f%32===0});
+      if(died){died=false;best=pos();still=0;tries=0;continue;} // back at the checkpoint: headway counts from there
+      const q=pos();if(dir==='right'?q>best:q<best){best=q;still=0;tries=0;}else still++;
+      if(still<12)continue;
+      still=0;const back=dir==='right'?'left':'right';tries++;
+      if(tries>3&&Math.abs(best-origin)<48){dir=back;origin=best=pos();tries=0;turns++;continue;}
+      await tick({[back]:true,a:emu.ram[0x80]===10},[4,8,2,12][tries%4]);await tick({},2);await tick({[dir]:true},3);await tick({[dir]:true,a:true},8);
     }
-    await run('input.set',{buttons:{right:false,a:false}});
-    results.push({area,stage,frames,leftArea:left,route:'area start, holding right and jumping every second for up to '+frames+' frames',
-      observations:[...seen.values()].map(o=>({...o,poseId:enemyPoses.has(o.pose)?'enemy:'+o.pose:null})).sort((a,b)=>a.type-b.type||a.pose-b.pose)});
+    await run('input.set',{buttons:{left:false,right:false,a:false}});
+    results.push({area,stage,room:firstRoom,frames,leftArea:left,turns,deaths,route:'area start (room '+firstRoom+'): walking with the sword, running jumps over obstacles, turning around when a direction is closed; up to '+frames+' frames',
+      tableTypes:[...tableTypes].sort((a,b)=>a-b),
+      observations:[...seen.values()].map(o=>({...o,poseId:enemyPoses.has(o.pose)?'enemy:'+o.pose:null,inSpawnTables:tableTypes.has(o.type)})).sort((a,b)=>a.type-b.type||a.pose-b.pose)});
   }
   // record: a pose seen on screen in an area is a verified (runtime) placement, with its route and sample counts
   const firstRoom=new Map();for(const s of scenes)if(s.stage&&!firstRoom.has(s.stage.label))firstRoom.set(s.stage.label,s.id);
   const described=services.InvestigatedLibrary.describe(project);
   let recorded=0;
   for(const r of results)for(const o of r.observations||[]){
-    if(!o.poseId||!o.onScreen)continue;
+    // verified only when seen on screen AND its enemy type is one the ROM's spawn tables place in this area;
+    // anything else (projectiles, spawned helpers) is reported in the results but not recorded as placement
+    if(!o.poseId||!o.onScreen||!o.inSpawnTables)continue;
     const place={stage:r.stage,area:r.area,basis:'runtime',route:r.route,samples:o.samples,onScreen:o.onScreen,enemyType:o.type,romSha256:romSha};
     for(const [kind,rid] of [['pose',o.poseId],['actor','ng-actor:'+o.type]]){
       const id=idOf(romSha,kind,rid);let e;try{e=await L.entry(id);}catch(_){continue;}
-      const kept=(e.placement?.verified||[]).filter(p=>!(p.basis==='runtime'&&p.area===r.area&&(kind!=='actor'||true)&&(kind!=='pose'||p.enemyType===o.type)));
+      const kept=(e.placement?.verified||[]).filter(p=>!(p.basis==='runtime'&&p.area===r.area));
       e.placement={...(e.placement||{}),verified:[...kept,place]};
       if(kind==='pose'&&r.stage&&!e.renditions?.[r.stage]){try{const rend=rendition(project,o.poseId,firstRoom.get(r.stage),described);if(rend){const st=await L.storeData(JSON.stringify(rend));e.renditions={...(e.renditions||{}),[r.stage]:{hash:st.hash,context:rend.context}};}}catch(_){/* rendition stays default */}}
       await L.putRecords([['entries',e]]);recorded++;
@@ -201,12 +223,21 @@ async function usePose(id,{mode='reference',stage=null,x=null,y=null}={}){
         library:{mode,entryId:e.id,contentHash:e.contentHash,renditionHash:ref.hash,sourceSha256:e.sourceSha256,poseId:rend.poseId,stage:stage||ref.context?.stage||null,context:ref.context,at:Date.now(),
           ...(mode==='copy'?{derivedFrom:{entryId:e.id,contentHash:e.contentHash,sourceSha256:e.sourceSha256}}:{})}};
       candidate.metasprites.push(frame);
-      // place it in the scene so it is visible at once
-      const count=mine.filter(m=>m.library).length,ax=x??(64+(count%4)*40),ay=y??(176-Math.floor(count/4)*40),oam=services.ProjectStore&&window.Forge163?.metasprites?.toOAM(frame,ax,ay)||[];
+      // place it in the scene so it is visible at once: the given spot, else the first spot near the middle of the
+      // screen where it overlaps no sprite already placed
+      const toOAM=window.Forge163?.metasprites?.toOAM;if(!toOAM)fail('the metasprite editor is not loaded');
+      const boxes=(scene.oam||[]).filter(o=>o.active!==false).map(o=>[o.x,o.y,8,o.height===16?16:8]);
+      const clear=(ax,ay)=>toOAM(frame,ax,ay).every(s=>s.x>=0&&s.x<=248&&s.y>=8&&s.y<=224-(s.height||8)&&!boxes.some(([bx,by,bw,bh])=>s.x<bx+bw&&bx<s.x+8&&s.y<by+bh&&by<s.y+(s.height||8)));
+      let ax=x,ay=y;
+      if(ax==null||ay==null){
+        spot:for(const cy of [104,72,136,40,168])for(const cx of [112,80,144,48,176,16,208]){if(clear(cx,cy)){ax=cx;ay=cy;break spot;}}
+        if(ax==null){ax=112;ay=104;}
+      }
+      const oam=toOAM(frame,ax,ay);
       const room=64-(scene.oam||[]).filter(o=>o.active!==false).length;
       if(oam.length>room)fail('"'+scene.name+'" has room for '+room+' more hardware sprites; this sprite needs '+oam.length+'.');
       scene.oam=[...(scene.oam||[]).filter(o=>o.active!==false),...oam];
-      return {scenes,metasprites:candidate.metasprites,result:{metaspriteId:frame.id,mode,sceneId:scene.id,placed:{x:ax,y:ay,sprites:oam.length},
+      return {scenes,metasprites:candidate.metasprites,result:{metaspriteId:frame.id,mode,sceneId:scene.id,placed:{x:ax,y:ay,sprites:oam.length,box:{x:Math.min(...oam.map(s=>s.x)),y:Math.min(...oam.map(s=>s.y)),w:Math.max(...oam.map(s=>s.x+8))-Math.min(...oam.map(s=>s.x)),h:Math.max(...oam.map(s=>s.y+(s.height||8)))-Math.min(...oam.map(s=>s.y))}},
         dependencies:{tilesAdded:added.length,tilesShared:reused.length,palettes},library:frame.library}};
     },{expected,intent:'libraryUse'});
   }finally{guardOff--;}

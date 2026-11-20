@@ -137,6 +137,15 @@ Every interface, including VR/AR and agents, uses these commands. The existing `
 
 Each finding records its basis (ROM table or runtime) and is confirmed in the emulator, as Ninja Gaiden's stages were.
 
+### Runtime stage survey (Ninja Gaiden)
+
+`library.surveyStages` restarts the game in an area's first room (time over, with the area and room held in RAM set
+to the area's first room from PRG bank 0 `$AF2C`, and the restart checked to land there). It then walks with the sword,
+takes running jumps over obstacles (leaping off a wall it clings to) and turns around only when a direction makes no
+headway. A pose becomes a verified `runtime` placement for that stage only when it is drawn on screen **and** its enemy
+type is in that area's own spawn tables; everything else (projectiles, helpers) is reported but not recorded.
+Stage 2-2 scrolls leftward from a wall, which is why the first right-only route saw nothing there.
+
 ## 11. Acceptance checks
 
 | Check | State |
@@ -144,10 +153,10 @@ Each finding records its basis (ROM table or runtime) and is confirmed in the em
 | Nothing disappears between intake, load, navigation and save/reopen, across editor builds | `tools/audit/resource_inventory.cjs`, run |
 | Every claimed ROM location is consistent, and decoded values match the ROM | `tools/audit/evidence_audit.cjs`: Ninja Gaiden 42,080 / 42,080 |
 | Catalogues persist across closing Forge | `QA/catalog-persistence.cjs` 5/5 |
-| Every pack entry, unrecognised files included, is in the library after closing and reopening Forge, with preview and data, or a stated `needs source` | to write with the library |
-| Notes persist, separately from verified findings | to write |
-| Reference and copy with the dependency closure; the source is unchanged; provenance survives save/reopen | to write |
-| A shared-resource warning lists every user | to write |
+| Every pack entry, unrecognised files included, is in the library after closing and reopening Forge, with preview and data, or a stated `needs source` | `QA/library-persistence.cjs`, `QA/library-explorer.cjs`, `QA/library-all-packs.cjs` (owner, all 18 packs) |
+| Notes persist, separately from verified findings | `QA/library-explorer.cjs` |
+| Reference and copy with the dependency closure; the source is unchanged; provenance survives save/reopen | `QA/library-workflow.cjs` (owner): a Stage 1-1 sprite referenced and a Stage 2-2 sprite copied into an ordinary project |
+| A shared-resource warning lists every user | Partly: editing a reference asks first and declining leaves it unchanged (`QA/library-workflow.cjs`); listing every project that uses an entry needs portable snapshots |
 | A build refuses an unsupported native edit and names the asset | exists today |
 
 ## 12. Questions for the owner

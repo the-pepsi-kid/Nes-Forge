@@ -30,7 +30,7 @@ const NINJA = '07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e'
     // 1. discovery: the recovered catalog and a runtime look at three stages
     await run('rom.import', {__b64: fs.readFileSync(cart).toString('base64'), name: 'Ninja Gaiden (U).nes'});
     const reg = await run('library.registerCatalog');
-    const survey = await run('library.surveyStages', {areas: '0,2,3', frames: 2400});
+    const survey = await run('library.surveyStages', {areas: '0,2,3', frames: 3000});
     report.steps.push({catalog: reg.stats, survey: survey.areas.map(a => ({stage: a.stage, poses: (a.observations || []).filter(o => o.onScreen).map(o => o.poseId)}))});
     check('The recovered catalog is in the library with verified stages and sprite renditions', reg.stats.entries > 500 && reg.stats.renditions > 100 && reg.stats.verifiedPlacements > 0, reg.stats);
     // 2. the working project: an ordinary Forge project

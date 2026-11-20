@@ -556,7 +556,7 @@ function renderLibraryViewer(n,host,tools,caption){
       if(!u.ok){contextNote=u.error.message;$('context-result').textContent=u.error.message;b.disabled=false;return;}
       const d=u.result.dependencies,msg=(mode==='reference'?'Referenced':'Copied')+' “'+rend.name+'” into this scene: '+d.tilesAdded+' tiles added'+(d.tilesShared?', '+d.tilesShared+' shared':'')+
        ', palette rows '+d.palettes.map(p=>p.row+(p.reused?' (reused)':' (set)')).join(', ')+(mode==='reference'?'. It stays linked to the library; editing it asks to make a copy.':'. It is an independent copy.');
-      close();try{switchTab('scene');}catch(_){}window.showToast?.(msg);};row.append(b);}
+      showPlaced(u.result,msg);};row.append(b);}
     host.append(row);}
   }
   if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);}
@@ -627,7 +627,7 @@ function unavailable(message){
 async function navigate(){
  if(mode==='library'){const n=nodeByKey(active);
   if(n?.open?.kind==='library-pose'){const stage=$('stage').value,e=n.libraryEntry;const u=await window.Forge.commands.run('library.usePose',{id:e.id,mode:'reference',...(stage&&e.stages?.some(s=>s.stage===stage)?{stage}:{})});
-   if(!u.ok){contextNote=u.error.message;render();return;}close();try{switchTab('scene');}catch(_){}window.showToast?.('Referenced “'+n.name+'” into this scene ('+u.result.dependencies.tilesAdded+' tiles).');return;}
+   if(!u.ok){contextNote=u.error.message;render();return;}showPlaced(u.result,'Referenced “'+n.name+'” into this scene ('+u.result.dependencies.tilesAdded+' tiles).');return;}
   if(!n?.libraryEntry?.loads)return;
   if(window.Forge15?.dirty&&!confirm('Open this project from the library? Save your current project first to keep its changes.'))return;
   const r=await window.Forge.commands.run('library.openProject',{id:n.libraryEntry.id});if(!r.ok){contextNote=r.error.message;render();return;}close();return;}
@@ -675,6 +675,18 @@ if(!n?.open)return;try{const action=n.open,services=window.Forge?.services||{};
   services.NativeAudioLibraryUI.open(true);switchTab('audio');break;
  }case 'audio':switchTab('audio');break;default:throw Error('No registered editor for this resource.');}
  close();}catch(e){contextNote='Could not navigate: '+e.message;render();$('action-note').textContent=contextNote;}}
+// after a library sprite is used: back to the scene, scroll to where it was placed and outline it for a moment
+function showPlaced(result,msg){
+ close();try{switchTab('scene');}catch(_){}
+ const t=document.getElementById('toast');if(t){t.textContent=msg;t.classList.add('show');clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),6000);}else window.showToast?.(msg);
+ const box=result?.placed?.box;if(!box)return;
+ requestAnimationFrame(()=>{const cv=document.getElementById('cv');if(!cv)return;const r=cv.getBoundingClientRect(),k=r.width/256;if(!k)return;
+  document.getElementById('frx-placed')?.remove();const m=document.createElement('div');m.id='frx-placed';m.setAttribute('aria-hidden','true');
+  m.style.cssText='position:absolute;pointer-events:none;z-index:50;border:2px solid #ffd84a;box-shadow:0 0 0 2px #000,0 0 14px #ffd84a;border-radius:2px;transition:opacity .6s';
+  Object.assign(m.style,{left:(r.left+scrollX+(box.x-2)*k)+'px',top:(r.top+scrollY+(box.y-2)*k)+'px',width:((box.w+4)*k)+'px',height:((box.h+4)*k)+'px'});
+  document.body.append(m);m.scrollIntoView({block:'center',inline:'nearest'});
+  setTimeout(()=>{m.style.opacity='0';setTimeout(()=>m.remove(),700);},3500);});
+}
 function close(){root.classList.remove('frx-visible');document.body.style.overflow='';lastFocus?.focus?.();}
 function open(resourceKey){
  const exact=typeof resourceKey==='string';

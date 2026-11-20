@@ -101,6 +101,8 @@ if args.cartridges:
     if args.browser:
         receipt=output/'catalog-persistence.json'
         record(run('catalog-persistence',['node',QA/'catalog-persistence.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
+        receipt=output/'library-workflow.json'
+        record(run('library-workflow',['node',QA/'library-workflow.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
     receipt=output/'native-corpus.json'
     raw_args=['node',QA/'native-corpus.cjs',EDITOR,receipt,args.cartridges.resolve()]
     if args.extractions:
