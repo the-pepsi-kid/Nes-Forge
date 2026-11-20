@@ -72,12 +72,16 @@ try:
                     page.locator('#studioMode-build').click()
                     page.wait_for_selector('.bd-card')
                     assert page.locator('.bd-ok').count() == 1, 'authored example must build'
-                    # Classic layout brings every original control back; Alt+2 returns to Edit.
-                    page.locator('#studioClassic').click()
+                    # Alt+2 returns to Edit. The studio bar sits above every original control, none hidden: skins, the
+                    # Resource Explorer, recovered content, the area library, project investigation, the intake entry,
+                    # the working-context ribbon and the coloured build buttons.
                     page.keyboard.press('Alt+2')
-                    assert page.locator('#projectGatewayOpen').is_visible()
-                    page.locator('#studioClassic').click()
-                    assert not page.locator('#projectGatewayOpen').is_visible()
+                    for selector in ['#projectGatewayOpen', '#frx-open', '#nf-skin-select', '#nf-skin-import', '#punchOutContentOpen',
+                                     '#areaLibraryOpen', '#investigationOpen', '#fcw-ribbon', '.ctl>button[onclick="buildAndRun()"]']:
+                        assert page.locator(selector).first.is_visible(), selector + ' is hidden in the studio layout'
+                    page.locator('#frx-open').first.click()
+                    page.wait_for_selector('#frx-app', state='visible')
+                    page.locator('#frx-close').click()
                     assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1'), 'horizontal page scroll'
                     # Spatial (VR/AR) adapter: desktop preview renders the game and every World/Scene as floating screens.
                     page.locator('#studioSpatial').click()
@@ -93,7 +97,7 @@ try:
                     assert page.locator('#projectLessonBody h2').count() >= 9
                     assert not errors, errors
                     report['profiles'].append({'width':width, 'height':height, 'touchEmulation':width < 600,
-                                               'openBuildAndRun':True,'library':True,'buildPanel':True,'classicLayout':True,'spatialPreview':True,
+                                               'openBuildAndRun':True,'library':True,'buildPanel':True,'originalControls':True,'spatialPreview':True,
                                                'firstGameLesson':True,'uncaughtErrors':errors})
                     context.close()
                 browser.close()

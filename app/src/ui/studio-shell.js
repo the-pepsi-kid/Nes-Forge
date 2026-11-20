@@ -2,11 +2,12 @@
  * NES FORGE MODULE: src/ui/studio-shell.js
  * Entry: Forge.services.StudioShell
  * Purpose: The desktop/touch adapter of the command core. One studio bar (Open, New, Save, Save As,
- *   Library / Edit / Play / Build, project, Learn, Tools, Classic) replaces the four rows of duplicate
+ *   Library / Edit / Play / Build, project, Learn, Tools) sits above the original rows, which all stay
  *   entry points. Library lists every resource with a thumbnail and its editability level; Build checks
  *   the project and names the asset behind a refusal. Everything goes through Forge.commands.
- * Contract: Nothing is removed. Existing controls keep their IDs and handlers; duplicates are only
- *   hidden while the studio layout is on and remain one click away in Tools or with "Classic layout".
+ * Contract: Nothing is removed or hidden. Every original row keeps its IDs, handlers and colours under the studio bar
+ *   (skins, the Resource Explorer, recovered content, area library, native tools and the working-context ribbon
+ *   included). Library and Build modes swap the editor for their own panels; Edit shows the original editor.
  * Bundle order: after src/services/command-core.js.
  */
 (()=>{
@@ -38,14 +39,11 @@ document.head.append(el('style',{id:'studioShellStyle',text:`
 #studioToolsMenu{position:absolute;right:0;top:calc(100% + 2px);z-index:400;background:var(--bg2);border:1px solid var(--bdr2);min-width:240px;max-height:70vh;overflow:auto;padding:4px;box-shadow:0 6px 18px #000a}
 #studioToolsMenu button{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 8px}#studioToolsMenu button:hover{background:var(--bg3)}
 #studioToolsMenu .tm-h{color:var(--dim);font-size:9px;padding:6px 8px 2px;text-transform:uppercase;letter-spacing:1px}
-body.studio-on:not(.studio-classic) .top>h1,body.studio-on:not(.studio-classic) #fcw-ribbon,
-body.studio-on:not(.studio-classic) #investigationOpen,body.studio-on:not(.studio-classic) #projectLessonsOpen,body.studio-on:not(.studio-classic) #projectGatewayOpen,
-body.studio-on:not(.studio-classic) #punchOutContentOpen,body.studio-on:not(.studio-classic) #areaLibraryOpen,body.studio-on:not(.studio-classic) #nativeWorldOpen,
-body.studio-on:not(.studio-classic) #nativeWorldScopeHint,body.studio-on:not(.studio-classic) .ctl>.project-bar,body.studio-on:not(.studio-classic) #frx-open,
-body.studio-on:not(.studio-classic) #nf-skin-controls,body.studio-on:not(.studio-classic) .ctl>button[onclick*="fileIn"],body.studio-on:not(.studio-classic) .ctl>button[onclick*="zipIn"],
-body.studio-on:not(.studio-classic) .ctl>button[onclick="exportAll()"],body.studio-on:not(.studio-classic) .ctl>button[onclick="buildNesRom()"],
-body.studio-on:not(.studio-classic) .ctl>button[onclick="buildAndRun()"],body.studio-on:not(.studio-classic) .ctl>button[onclick*="romIn"],
-body.studio-on:not(.studio-classic) .ctl>button[onclick="cleanCache()"]{display:none!important}
+/* Skins: the Retro Workstation look also covers the studio bar, Tools menu and Library / Build panels. */
+body.nf-retro #studioBar{background:linear-gradient(180deg,#172434 0%,#101a29 100%);border-bottom-color:#38546a;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+body.nf-retro #studioBar button,body.nf-retro #studioPanel button,body.nf-retro #studioPanel select,body.nf-retro #studioPanel input{border:1px solid #3a5268;border-radius:3px;color:#d0e4ee;background:#1b2b3d;font:600 10px/1.25 'Courier New',monospace;min-height:var(--nf-target)}
+body.nf-retro .sb-modes button[aria-selected="true"]{background:#1f4a61;border-color:#6bd9f4;color:#fff}
+body.nf-retro .sb-brand{font-family:'Courier New',monospace;color:#8beaff}body.nf-retro .sb-brand small{color:#b3d3aa}
 body.studio-mode-library .top,body.studio-mode-library .main,body.studio-mode-library #fcw-ribbon,
 body.studio-mode-build .top,body.studio-mode-build .main,body.studio-mode-build #fcw-ribbon{display:none!important}
 #studioPanel{display:none;flex:1;min-height:0;overflow:hidden;background:var(--bg)}
@@ -99,7 +97,7 @@ const bar=el('div',{id:'studioBar',role:'toolbar','aria-label':'NES Forge studio
   el('nav',{class:'sb-modes',role:'tablist','aria-label':'Studio mode'},...modeButtons),
   projectChip,el('span',{class:'sb-spacer'}),
   el('button',{id:'studioLearn',title:'Project lessons',onclick:()=>{setMode('edit');clickOriginal('#projectLessonsOpen');}},'Learn'),
-  el('div',{class:'sb-menu'},toolsButton,toolsMenu),classicButton);
+  el('div',{class:'sb-menu'},toolsButton,toolsMenu));
 document.body.prepend(bar);
 const panel=el('section',{id:'studioPanel','aria-label':'Studio'});
 const main=document.querySelector('.main');

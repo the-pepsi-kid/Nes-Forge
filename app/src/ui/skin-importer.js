@@ -84,6 +84,13 @@
    rule('#nf-skin-controls',`background:${c.panel}!important;border-color:${c.borderStrong}!important;color:${c.text}!important`);
    rule('#nf-skin-toggle, #nf-skin-select, #nf-skin-import, #nf-skin-export, #nf-density',`background:${c.button}!important;color:${c.text}!important;border:1px solid ${c.borderStrong}!important`);
    rule('#nf-skin-toggle[aria-pressed=true]',`background:${c.active}!important;color:${c.headerText}!important;border-color:${c.activeBorder}!important`);
+   // Studio layout: the bar, Tools menu and Library / Build panels follow the skin like the original rows.
+   rule('#studioBar',`background:linear-gradient(180deg,${c.top},${c.topEnd})!important;border-color:${c.borderStrong}!important`);
+   rule('#studioBar button, #studioToolsMenu button, #studioPanel button, #studioPanel select, #studioPanel input',`background:${c.button}!important;color:${c.text}!important;border-color:${c.borderStrong}!important`);
+   rule('#studioBar button:hover, #studioToolsMenu button:hover, #studioPanel button:hover',`background:${c.buttonHover}!important;color:${c.text}!important`);
+   rule('.sb-modes button[aria-selected=true], .sp-item[aria-selected=true]',`background:${c.active}!important;color:${c.headerText}!important;border-color:${c.activeBorder}!important`);
+   rule('#studioToolsMenu, #studioPanel, .sp-item, .sp-detail, .bd-card',`background:${c.panel}!important;color:${c.text}!important;border-color:${c.border}!important`);
+   rule('.sb-brand',`color:${c.accent}!important`);
    rule('button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, canvas:focus-visible',`outline:2px solid ${c.accent}!important`);
    // NES graphics canvases are intentionally not recolored, resized, or filtered.
    return out.join('\n');
