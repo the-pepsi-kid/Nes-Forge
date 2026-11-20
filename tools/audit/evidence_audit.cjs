@@ -85,6 +85,14 @@ const u8 = o => rom[o], word = o => rom[o] | (rom[o + 1] << 8);
     for (const dir of ['forward', 'backward']) { const en = sc.entrance?.[dir]; if (!en) continue;
       if (isLoc(en.source)) value('native.scenes[].entrance.' + dir + '.source', en.source, en.x, u8(en.source.fileOffset), sc.id);
       if (isLoc(en.ySource)) value('native.scenes[].entrance.' + dir + '.ySource', en.ySource, en.y, u8(en.ySource.fileOffset), sc.id); }
+    // initial palettes: background sets 1-3, sprite sets 2-3 and the backdrop come from these six bytes; each palette
+    // row is the backdrop plus three colours from the set table ($B000 background, $B100 sprites, bank 0)
+    const pal = sc.palettes;
+    if (pal && Array.isArray(pal.sources) && pal.sources.length === 6 && pal.sources.every(isLoc)) {
+      value('native.scenes[].palettes.sources[]', pal.sources[0], [...pal.backgroundSets.slice(1), ...pal.spriteSets.slice(2), pal.backdrop], pal.sources.map(l => u8(l.fileOffset)), sc.id);
+      const bank0 = cpu => 16 + (cpu & 0x3FFF), rows = [...pal.background.map((c, i) => [c, 0xB000 + pal.backgroundSets[i] * 3]), ...pal.sprites.map((c, i) => [c, 0xB100 + pal.spriteSets[i] * 3])];
+      value('native.scenes[].palettes (colours from set tables)', {fileOffset: bank0(0xB000)}, rows.map(([c]) => c), rows.map(([, cpu]) => [pal.backdrop, ...rom.subarray(bank0(cpu), bank0(cpu) + 3)]), sc.id);
+    }
     if (sc.stage && isLoc(sc.stage.source)) value('native.scenes[].stage.source', sc.stage.source, (sc.stage.act << 4) | sc.stage.number, u8(sc.stage.source.fileOffset), sc.id);
     if (sc.audioEvent && isLoc(sc.audioEvent.source)) value('native.scenes[].audioEvent.source', sc.audioEvent.source, Number(sc.audioEvent.cueId), u8(sc.audioEvent.source.fileOffset), sc.id);
   }

@@ -2,7 +2,7 @@
 
 ROM SHA-256 `07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e` · mapper 1 · 8 × 16 KiB PRG · editor `9ce19fa0c6f6eb7b…`
 
-**44532** claimed ROM locations: 0 outside the PRG area, 0 whose bank/CPU address disagrees with the file offset. **41984** decoded values re-read from their locations: 41984 match, 0 differ.
+**44532** claimed ROM locations: 0 outside the PRG area, 0 whose bank/CPU address disagrees with the file offset. **42080** decoded values re-read from their locations: 42080 match, 0 differ.
 
 | Location kind | Locations | Outside PRG | Bank/CPU disagrees | Values re-read | Match | Differ |
 |---|---|---|---|---|---|---|
@@ -33,7 +33,8 @@ ROM SHA-256 `07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e` �
 | `native.scenes[].entrance.forward.source` | 48 | 0 | 0 | 48 | 48 | 0 |
 | `native.scenes[].entrance.forward.ySource` | 48 | 0 | 0 | 48 | 48 | 0 |
 | `native.scenes[].lanterns[].sources[]` | 562 | 0 | 0 | 281 | 281 | 0 |
-| `native.scenes[].palettes.sources[]` | 288 | 0 | 0 | 0 | 0 | 0 |
+| `native.scenes[].palettes (colours from set tables)` | 0 | 0 | 0 | 48 | 48 | 0 |
+| `native.scenes[].palettes.sources[]` | 288 | 0 | 0 | 48 | 48 | 0 |
 | `native.scenes[].source` | 48 | 0 | 0 | 0 | 0 | 0 |
 | `native.scenes[].stage.reader` | 48 | 0 | 0 | 48 | 48 | 0 |
 | `native.scenes[].stage.source` | 48 | 0 | 0 | 48 | 48 | 0 |
@@ -83,12 +84,11 @@ the value. These kinds are **located only**: their bounds and bank mapping are c
 |---|---|---|
 | `actors[].dispatch`, `actors[].states[].source` | They are code entry points, so the bytes are instructions | The pointers to them: 41 + 118 match |
 | `animations[].source`, `poses[].attributesSource`, `scenes[].source`, `spatial.maps[].source`, `spatial.animations[].source` | They are spans that cover a whole record | Every frame, piece, attribute and map block inside each span |
-| `scenes[].palettes.sources` (288) | The initial palette passes through several selector and table steps | **Open item:** not yet re-derived |
 | `spatial.animations[].pointerSource`, `frames[].shapeSource` | Stream pointers | The frames and pieces they lead to |
 | `audio.cues[].header`, `channels[].stream` | Their contents need the sound driver's own parser | Bounds and bank mapping; the cue table pointers (85 of 85) match their headers |
 | `symbols` (1,992), `ram` (89) | They are names and labels, not ROM data | — |
 
-The map data is checked as the decoder reads it. The ROM stores each room's blocks column by column (6 per column),
+The initial palettes are value-checked: the six selector bytes per scene (three background sets, two sprite sets and the backdrop), and every colour row against the set tables at bank 0 $B000 / $B100. The map data is also checked as the decoder reads it. The ROM stores each room's blocks column by column (6 per column),
 and the catalogue lists the same values row by row. Each cell's class is one nibble of its source byte: the high
 nibble for the upper 16-pixel row of a block, the low nibble for the lower one.
 
