@@ -91,7 +91,7 @@ const root=document.createElement('div');root.id='frx-root';root.setAttribute('r
 <div id="frx-app">
  <header class="frx-bar"><span class="frx-logo">◎</span><div><div class="frx-eyebrow">NES Forge · Connected Workspace Prototype</div><div class="frx-title">Resources</div><div class="frx-sub">Explorer · Live preview · Relationships · Editor context</div></div><span class="frx-spacer"></span><span class="frx-pill" id="frx-project-name"></span><button class="frx-btn" id="frx-close" type="button">✕ Close</button></header>
  <div class="frx-alert" id="frx-notice" role="status"></div>
- <div class="frx-toolbar"><div class="frx-mode"><button id="frx-live" type="button" aria-pressed="true">Live project</button><button id="frx-demo" type="button" aria-pressed="false">Guided example</button><button id="frx-lib" type="button" aria-pressed="false" title="Every resource registered from extraction packs, identified or not">Library</button></div><input class="frx-search" id="frx-search" placeholder="Search resources by name or ID…" aria-label="Search project resources"><select class="frx-filter" id="frx-scope" aria-label="Filter resource availability"><option value="">All resources</option><option value="source">ROM library</option><option value="working">Editable working copies</option></select><select class="frx-filter" id="frx-kind" aria-label="Filter resource type"><option value="">All types</option></select><button class="frx-btn" id="frx-refresh">↻ Refresh</button><button class="frx-btn" id="frx-active">◎ Active Scene</button><label class="frx-follow-label" for="frx-follow"><input type="checkbox" id="frx-follow"> Follow selection across editors</label><span id="frx-follow-badge" class="frx-follow-badge">Independent</span></div>
+ <div class="frx-toolbar"><div class="frx-mode"><button id="frx-live" type="button" aria-pressed="true">Live project</button><button id="frx-demo" type="button" aria-pressed="false">Guided example</button><button id="frx-lib" type="button" aria-pressed="false" title="Every resource registered from extraction packs, identified or not">Library</button></div><input class="frx-search" id="frx-search" placeholder="Search resources by name or ID…" aria-label="Search project resources"><select class="frx-filter" id="frx-scope" aria-label="Filter resource availability"><option value="">All resources</option><option value="source">ROM library</option><option value="working">Editable working copies</option></select><select class="frx-filter" id="frx-kind" aria-label="Filter resource type"><option value="">All types</option></select><select class="frx-filter" id="frx-stage" aria-label="Stage" hidden title="Resources placed in this stage come first; the rest follow"><option value="">All stages</option></select><button class="frx-btn" id="frx-refresh">↻ Refresh</button><button class="frx-btn" id="frx-active">◎ Active Scene</button><label class="frx-follow-label" for="frx-follow"><input type="checkbox" id="frx-follow"> Follow selection across editors</label><span id="frx-follow-badge" class="frx-follow-badge">Independent</span></div>
  <div id="frx-library-summary" class="frx-alert" role="status"></div>
  <div class="frx-body"><aside class="frx-nav"><div class="frx-section-head">Project resources <span id="frx-count"></span></div><div id="frx-items"></div></aside><main class="frx-center"><div class="frx-centerhead"><div><div class="frx-eyebrow" id="frx-type"></div><div class="frx-selected-name" id="frx-name"></div><div class="frx-desc" id="frx-description"></div></div><span class="frx-status" id="frx-status"></span></div><div class="frx-stats" id="frx-stats"></div><section class="frx-viewer"><div class="frx-viewer-title"><strong>Resource Viewer</strong><span id="frx-viewer-caption">Preview of the selected resource</span></div><div id="frx-preview"></div><div id="frx-related-tools" class="frx-related-tools"></div><div id="frx-context-result" class="frx-context-result" role="status" aria-live="polite"></div></section><div class="frx-sectiontitle">Resource Relationships <span>declared references and source receipts</span></div><div class="frx-relgrid"><section class="frx-relcol"><div class="frx-relhead">↙ Depends on / reads from</div><div id="frx-deps"></div></section><section class="frx-relcol"><div class="frx-relhead">↗ Used by / feeds into</div><div id="frx-users"></div></section></div><div class="frx-note" id="frx-guidance"></div></main><aside class="frx-inspector"><h3>Resource inspector</h3><div class="frx-card" id="frx-details"></div><h3>Actions</h3><button class="frx-action" id="frx-open-editor" type="button">Open in editor ↗</button><div class="frx-card" id="frx-action-note"></div><h3>Connection notes</h3><div class="frx-card" id="frx-unknown"></div></aside></div>
  <footer class="frx-footer"><span id="frx-footer-left"></span><span class="frx-provenance">Read-only browsing · explicit editor / native writer actions</span></footer>
@@ -387,12 +387,15 @@ function setFollow(value){follow=!!value;$('follow').checked=follow;contextNote=
 // Nodes are read-only views of library records; the developer's notes are edited through library.annotate.
 async function libraryGraph(){
  const g=makeGraph(),lib=window.Forge.services.ResourceLibrary;if(!lib)return g.finish();
- const [packs,listing]=await Promise.all([lib.backend()?window.Forge.commands.run('library.packs'):null,window.Forge.commands.run('library.list',{limit:5000})]);
+ // every page: a library can hold more entries than one listing returns
+ const packs=await window.Forge.commands.run('library.packs'),items=[];
+ for(let offset=0;;offset+=5000){const page=await window.Forge.commands.run('library.list',{offset,limit:5000});if(!page.ok)break;items.push(...page.result.items);if(offset+5000>=page.result.total)break;}
  const packName=new Map((packs?.ok?packs.result:[]).map(p=>[p.packSha256,p.name+(p.game?' · '+p.game:'')]));
- for(const e of (listing?.ok?listing.result.items:[])){
+ for(const e of items){
   const n=g.add({key:key('lib',e.id),type:'lib · '+e.kind,id:e.id,name:e.notes?.name||e.path.split('/').pop(),summary:(e.identified===false||e.kind==='unknown'?'Unidentified ':'')+e.kind+' from '+(packName.get(e.packSha256)||'a registered pack')+'. '+
    (e.data==='needs-source'?'Registered index-only: its data is read from the pack when opened again.':e.data==='stored-unreadable'?'Stored exactly as archived; the archive entry could not be read.':'Stored in the library.')+(e.validation==='rejected'?' The intake rejected it; it is kept anyway.':''),
-   scope:(e.game||'Unknown source')+' · '+e.path,open:e.loads?{kind:'library-project'}:null,details:'',source:'Resource library · pack '+e.packSha256.slice(0,12)+'…',libraryEntry:e});
+   scope:(e.game||'Unknown source')+' · '+e.path,open:e.loads?{kind:'library-project'}:e.kind==='pose'&&e.rendition?{kind:'library-pose'}:null,details:'',source:'Resource library · '+(e.origin==='rom-catalog'?'recovered ROM catalog':'pack '+e.packSha256.slice(0,12)+'…'),libraryEntry:e,
+   stageNames:[...new Set((e.stages||[]).map(s=>s.stage))],stageBadge:[...new Set((e.stages||[]).map(s=>s.stage+(s.basis==='runtime'?' (observed)':s.basis==='rom-table'?' (ROM table)':'')))].join(', ')});
   if(e.preview)g.edge(n.key,key('lib','pack:'+e.packSha256.slice(0,16)+':'+(e.previewPath||'')),'preview image');
  }
  return g;
@@ -411,8 +414,15 @@ function render(){
  $('library-summary').textContent=counts?'ROM library: '+counts.rooms+' recovered room streams / '+counts.roomSlots+' table slots · '+counts.poses+' poses · '+counts.animations+' scripts · '+counts.actorRecords+' native actor records. Editable working copies: '+S.scenes.length+'/64 Scenes · '+S.metasprites.length+'/256 poses · '+S.animations.length+'/256 animations. Select an available source asset to open a working copy.':'';
  $('active').disabled=mode!=='live';$('open-editor').disabled=mode==='demo'||!(sel?.open||sel?.evidenceKind||sel?.apuAuditDigest);$('follow').checked=follow;$('follow').disabled=mode==='demo';$('follow-badge').textContent=mode==='demo'?'Example only':follow?'Following':'Independent';$('follow-badge').dataset.mode=mode==='demo'?'demo':follow?'on':'off';
  const types=[...new Set([...graph.nodes.values()].map(n=>n.type))].sort();const old=$('kind').value;$('kind').replaceChildren();const all=elt('option',null,'All resources');all.value='';$('kind').appendChild(all);for(const type of types){const opt=elt('option',null,kindLabel(type));opt.value=type;$('kind').appendChild(opt);}$('kind').value=types.includes(old)?old:'';
- const q=$('search').value.trim().toLowerCase(),type=$('kind').value,scope=$('scope').value;const list=[...graph.nodes.values()].filter(n=>(scope!=='source'||!!n.sourceResource)&&(scope!=='working'||!n.libraryOnly)&&(!type||n.type===type)&&(!q||(n.name+' '+n.id+' '+n.scope+' '+n.type).toLowerCase().includes(q))).sort((a,b)=>a.type.localeCompare(b.type)||a.name.localeCompare(b.name));
- $('count').textContent=list.length+'/'+graph.nodes.size;$('items').replaceChildren();for(const n of list){const b=elt('button','frx-item');b.type='button';b.setAttribute('aria-current',String(n.key===active));b.title=n.name+' · '+n.id;const glyph=elt('span','frx-glyph',icons[n.type]||'◆'),txt=elt('span');txt.style.minWidth='0';txt.append(elt('span','frx-item-name',n.name),elt('span','frx-item-type',kindLabel(n.type)+(n.libraryOnly?' · '+(n.sourceResource.reason?'unavailable':n.sourceResource.existing?'copy open':'ROM library'):'')));b.append(glyph,txt);b.onclick=()=>choose(n.key);$('items').appendChild(b);}if(!list.length)$('items').append(elt('div','frx-empty','No matching resources.'));
+ // Library: the chosen stage's resources first (stage, rooms, sprites, actors), every other resource after them.
+ const stageSel=$('stage');stageSel.hidden=mode!=='library';
+ if(mode==='library'){const names=[...new Set([...graph.nodes.values()].flatMap(n=>n.stageNames||[]))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})),was=stageSel.value;
+  stageSel.replaceChildren(Object.assign(elt('option',null,'All stages'),{value:''}),...names.map(v=>Object.assign(elt('option',null,v),{value:v})));stageSel.value=names.includes(was)?was:'';}
+ const stage=mode==='library'?stageSel.value:'',kindRank=t=>['lib · stage','lib · room','lib · pose','lib · actor','lib · animation'].indexOf(t)>=0?['lib · stage','lib · room','lib · pose','lib · actor','lib · animation'].indexOf(t):9;
+ const q=$('search').value.trim().toLowerCase(),type=$('kind').value,scope=$('scope').value;const list=[...graph.nodes.values()].filter(n=>(scope!=='source'||!!n.sourceResource)&&(scope!=='working'||!n.libraryOnly)&&(!type||n.type===type)&&(!q||(n.name+' '+n.id+' '+n.scope+' '+n.type+' '+(n.stageBadge||'')).toLowerCase().includes(q))).sort((a,b)=>{
+  if(stage){const ia=a.stageNames?.includes(stage)?0:1,ib=b.stageNames?.includes(stage)?0:1;if(ia!==ib)return ia-ib;if(!ia)return kindRank(a.type)-kindRank(b.type)||a.name.localeCompare(b.name,undefined,{numeric:true});}
+  return a.type.localeCompare(b.type)||a.name.localeCompare(b.name,undefined,{numeric:true});});
+ $('count').textContent=list.length+'/'+graph.nodes.size;$('items').replaceChildren();for(const n of list){const b=elt('button','frx-item');b.type='button';b.setAttribute('aria-current',String(n.key===active));b.title=n.name+' · '+n.id;const glyph=elt('span','frx-glyph',icons[n.type]||'◆'),txt=elt('span');txt.style.minWidth='0';txt.append(elt('span','frx-item-name',n.name),elt('span','frx-item-type',kindLabel(n.type)+(n.libraryOnly?' · '+(n.sourceResource.reason?'unavailable':n.sourceResource.existing?'copy open':'ROM library'):'')+(n.stageBadge?' · '+n.stageBadge:'')));b.append(glyph,txt);b.onclick=()=>choose(n.key);$('items').appendChild(b);}if(!list.length)$('items').append(elt('div','frx-empty','No matching resources.'));
  if(!sel){
   const message=active===null&&contextNote?contextNote:'This resource is no longer in the live project. Select a resource to continue.';
   active=null;contextNote=message;
@@ -438,7 +448,7 @@ function render(){
  }
  if(sel.open?.kind==='rom-inspect')$('open-editor').textContent='Inspect matching ROM source ↗';
  if(mode==='library'){
-  $('open-editor').textContent=sel.open?.kind==='library-project'?'Open project from library ↗':'Library entry · read-only';
+  $('open-editor').textContent=sel.open?.kind==='library-project'?'Open project from library ↗':sel.open?.kind==='library-pose'?'Use in project (reference) ↗':'Library entry · read-only';
   $('action-note').textContent=sel.open?.kind==='library-project'?'Loads this project, found inside the pack, as your working project (like Open project). The library keeps its copy.':'Library entries stay in the library until you use them. Your notes are saved with "Save notes" and never change the stated evidence.';
   $('unknown').textContent='Locations are as the pack states them, not re-read from the ROM. An entry without a location is kept and can be identified later.';
   $('follow').disabled=true;
@@ -517,6 +527,17 @@ function renderViewer(n){
  $('context-result').textContent=contextNote||(follow?'Follow on · choose a related asset to synchronize linked Scene/CHR/Collision.':'Independent browsing · selecting a resource does not modify editor selection.');
 }
 const hexDump=bytes=>{const lines=[];for(let i=0;i<Math.min(bytes.length,4096);i+=16){const row=[...bytes.subarray(i,i+16)];lines.push(i.toString(16).padStart(6,'0')+'  '+row.map(b=>b.toString(16).padStart(2,'0')).join(' ').padEnd(48)+'  '+row.map(b=>b>=32&&b<127?String.fromCharCode(b):'.').join(''));}return lines.join('\n')+(bytes.length>4096?'\n… '+(bytes.length-4096)+' more bytes':'');};
+// A library sprite drawn from its rendition: 8×8 or 8×16 pieces, NES colours, transparent colour 0.
+function drawRendition(rend,scale=3){
+ const h=rend.spriteMode===16?16:8,xs=rend.pieces.map(p=>p.x),ys=rend.pieces.map(p=>p.y),x0=Math.min(...xs,0),y0=Math.min(...ys,0),w=Math.max(...xs.map(x=>x+8),8)-x0,ht=Math.max(...ys.map(y=>y+h),h)-y0;
+ const c=document.createElement('canvas');c.width=w*scale;c.height=ht*scale;c.style.cssText='image-rendering:pixelated;background:#1d2b38;display:block;margin:4px auto;max-width:100%';
+ const g=c.getContext('2d');
+ for(const p of rend.pieces){const pal=rend.palette[p.pal&3]||[15,0,16,48];
+  for(let py=0;py<h;py++)for(let px=0;px<8;px++){
+   const sy=p.flipV?h-1-py:py,tile=rend.tiles[sy<8?p.tile:p.tile2],row=tile?.[sy&7];if(!row)continue;const v=row[p.flipH?7-px:px];if(!v)continue;
+   const rgb=NP[pal[v]&63]||[255,0,255];g.fillStyle='rgb('+rgb.join(',')+')';g.fillRect((p.x-x0+px)*scale,(p.y-y0+py)*scale,scale,scale);}}
+ return c;
+}
 function renderLibraryViewer(n,host,tools,caption){
  host.classList.add('frx-lib');
  const e=n.libraryEntry,C=window.Forge.commands,id=e.id;caption.textContent='Library entry · '+e.path;$('context-result').textContent='Read-only library view';
@@ -525,6 +546,19 @@ function renderLibraryViewer(n,host,tools,caption){
   const [ins,pv]=await Promise.all([C.run('library.inspect',{id}),C.run('library.preview',{id})]);if(active!==n.key)return;host.replaceChildren();
   if(!ins.ok){host.append(elt('div','frx-preview-message',ins.error.message));return;}
   const entry=ins.result.entry,notes=ins.result.notes||{};
+  if(entry.kind==='pose'&&entry.rendition){
+   const stage=$('stage').value,r=await C.run('library.rendition',{id,stage:stage&&entry.renditions?.[stage]?stage:''});
+   if(r.ok){const rend=r.result.rendition,canvas=drawRendition(rend,4);host.append(canvas,elt('div','frx-code','Drawn with the palette of '+(rend.context?.label||'its room')+(rend.context?.stage?' ('+rend.context.stage+')':'')+' · '+rend.pieces.length+' pieces · 8×'+rend.spriteMode));
+    const row=elt('div');row.style.cssText='display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0';
+    for(const [mode,label] of [['reference','Use in project (reference)'],['copy','Copy into project (tiles + palette)']]){
+     const b=elt('button','frx-relationship',label);b.type='button';b.onclick=async()=>{b.disabled=true;
+      const u=await C.run('library.usePose',{id,mode,...(r.result.stage?{stage:r.result.stage}:{})});
+      if(!u.ok){contextNote=u.error.message;$('context-result').textContent=u.error.message;b.disabled=false;return;}
+      const d=u.result.dependencies,msg=(mode==='reference'?'Referenced':'Copied')+' “'+rend.name+'” into this scene: '+d.tilesAdded+' tiles added'+(d.tilesShared?', '+d.tilesShared+' shared':'')+
+       ', palette rows '+d.palettes.map(p=>p.row+(p.reused?' (reused)':' (set)')).join(', ')+(mode==='reference'?'. It stays linked to the library; editing it asks to make a copy.':'. It is an independent copy.');
+      close();try{switchTab('scene');}catch(_){}window.showToast?.(msg);};row.append(b);}
+    host.append(row);}
+  }
   if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);}
   // evidence: what the pack states, or that the location is unknown
   const ev=entry.evidence||{state:'none'},box=elt('div');box.style.cssText='text-align:left;font-size:11px;margin:6px 0';
@@ -591,7 +625,10 @@ function unavailable(message){
  graph=liveGraph();active=null;contextNote=message;render();
 }
 async function navigate(){
- if(mode==='library'){const n=nodeByKey(active);if(!n?.libraryEntry?.loads)return;
+ if(mode==='library'){const n=nodeByKey(active);
+  if(n?.open?.kind==='library-pose'){const stage=$('stage').value,e=n.libraryEntry;const u=await window.Forge.commands.run('library.usePose',{id:e.id,mode:'reference',...(stage&&e.stages?.some(s=>s.stage===stage)?{stage}:{})});
+   if(!u.ok){contextNote=u.error.message;render();return;}close();try{switchTab('scene');}catch(_){}window.showToast?.('Referenced “'+n.name+'” into this scene ('+u.result.dependencies.tilesAdded+' tiles).');return;}
+  if(!n?.libraryEntry?.loads)return;
   if(window.Forge15?.dirty&&!confirm('Open this project from the library? Save your current project first to keep its changes.'))return;
   const r=await window.Forge.commands.run('library.openProject',{id:n.libraryEntry.id});if(!r.ok){contextNote=r.error.message;render();return;}close();return;}
  if(mode!=='live')return;const n=nodeByKey(active);
@@ -649,7 +686,7 @@ function open(resourceKey){
  if(!exact&&graph.nodes.size<9)setMode('demo');
  $('close').focus();
 }
-button.addEventListener('click',open);$('close').onclick=close;$('follow').onchange=()=>setFollow($('follow').checked);$('live').onclick=()=>setMode('live');$('demo').onclick=()=>setMode('demo');$('lib').onclick=()=>setMode('library');$('refresh').onclick=()=>{if(mode==='live')setMode('live');else setMode('demo');};$('active').onclick=()=>{if(mode!=='live')setMode('live');active=key('scene',S.scenes[S.activeScene]?.id);render();};$('open-editor').onclick=navigate;$('search').oninput=render;$('kind').onchange=render;$('scope').onchange=render;
+button.addEventListener('click',open);$('close').onclick=close;$('follow').onchange=()=>setFollow($('follow').checked);$('live').onclick=()=>setMode('live');$('demo').onclick=()=>setMode('demo');$('lib').onclick=()=>setMode('library');$('refresh').onclick=()=>{if(mode==='live')setMode('live');else setMode('demo');};$('active').onclick=()=>{if(mode!=='live')setMode('live');active=key('scene',S.scenes[S.activeScene]?.id);render();};$('open-editor').onclick=navigate;$('search').oninput=render;$('kind').onchange=render;$('stage').onchange=render;$('scope').onchange=render;
 root.addEventListener('mousedown',e=>{if(e.target===root)close();});root.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();}else if(e.key==='Tab'){const focusable=[...root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled])')].filter(n=>n.offsetParent!==null);if(focusable.length){const first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}e.stopPropagation();});
 // Legacy document keyboard handling uses capture listeners. Keep Escape a real
 // close control even when another app editor has installed global key handlers.

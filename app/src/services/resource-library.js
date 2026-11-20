@@ -358,7 +358,8 @@ async function status(){
     interrupted:jobs.map(j=>({packSha256:j.packSha256,name:j.name,done:j.done,total:j.total,started:j.started}))};
 }
 function summarize(e,note){
-  return {id:e.id,path:e.path,kind:e.kind,fileType:e.fileType,size:e.size,shelf:e.shelf,game:e.game,packSha256:e.packSha256,sourceSha256:e.sourceSha256,loads:e.loads,
+  return {id:e.id,path:e.path,label:e.label||null,origin:e.origin||'pack',kind:e.kind,identified:e.identified,fileType:e.fileType,size:e.size,shelf:e.shelf,game:e.game,packSha256:e.packSha256,sourceSha256:e.sourceSha256,loads:e.loads,
+    stages:(e.placement?.verified||[]).map(p=>({stage:p.stage,basis:p.basis})).filter(p=>p.stage),rendition:!!e.rendition,
     data:e.data?.state,validation:e.validation?.state,evidence:e.evidence?.state,preview:!!e.preview,project:e.project||null,notes:note?{name:note.name||null,category:note.category||null,hasPlacements:!!note.possiblePlacements?.length}:null};
 }
 async function list({shelf,pack,kind,search,offset=0,limit=200}={}){
@@ -378,7 +379,23 @@ async function openProject(id){
   return {opened:e.path,name:data.projectName||null};
 }
 
+// Building blocks for other library sources (ROM catalogs, runtime observations). They keep the same rules:
+// content-addressed data, one record per entry, verified placement written only by decoders and observations.
+async function storeData(bytes){
+  const data=bytes instanceof Uint8Array?bytes:new TextEncoder().encode(typeof bytes==='string'?bytes:JSON.stringify(bytes));
+  const hash=await sha256(data),b=backend();
+  if(!(await b.has('blobs',hash))){const d=await deflate(data),packed=!!d&&d.length<data.length*0.9;
+    await b.putMany([['blobs',{hash,encoding:packed?'deflate-raw':'raw',size:data.length,stored:packed?d:data.slice()}]]);}
+  return {hash,size:data.length};
+}
+async function putRecords(ops){await ensureMeta();for(let i=0;i<ops.length;i+=BATCH)await backend().putMany(ops.slice(i,i+BATCH));}
+async function getPack(key){return backend().get('packs',key);}
+async function setVerifiedPlacement(id,placements,{replaceBasis}={}){
+  const e=await entry(id),kept=(e.placement?.verified||[]).filter(p=>!replaceBasis||p.basis!==replaceBasis);
+  e.placement={...(e.placement||{}),verified:[...kept,...placements]};await backend().putMany([['entries',e]]);return e.placement;
+}
 services.ResourceLibrary=Object.freeze({schema:SCHEMA,register,status,list,entry,readEntry,notesOf,annotate,verify,discard,exportShelf,importLibrary,openProject,
+  storeData,blobBytes,putRecords,getPack,setVerifiedPlacement,ensureMeta,
   backend:()=>backend().kind,_resetForTests:()=>{backendInstance?.close();backendInstance=null;}});
 
 // ---------- commands ----------

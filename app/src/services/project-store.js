@@ -259,6 +259,18 @@ function openInvestigatedResource(request,options={}){
     return {effective:true,values,intent:'nativeAssetImport',result:{destination:next.destination},refresh:[()=>loadSceneData(S.activeScene),()=>rebuildAllUI(),()=>Forge163.metasprites.render(),()=>Forge161.worlds.renderUI(),()=>Forge.services.SceneContextUI?.refresh()]};
   });
 }
+// Library resources used in the working project: the library prepares new scenes/metasprites from a captured
+// candidate; this applies them as one guarded, undoable edit (the same transaction as opening source resources).
+function applyLibraryUse(prepare,options={}){
+  return runEdit('library resource',options,candidate=>{
+    const next=prepare(candidate);
+    if(!next||!Array.isArray(next.scenes)||!Array.isArray(next.metasprites))fail('A library use must return scenes and metasprites.');
+    const values={scenes:next.scenes,metasprites:next.metasprites,activeScene:candidate.activeScene},scene=values.scenes[values.activeScene];
+    for(const key of ['nt','attr','pal','sprPal','oam','chr','sprChr','tileProps'])values[key]=cp(scene[key]);
+    Object.assign(values,{selSprite:-1});
+    return {effective:true,values,intent:'libraryUse',result:next.result,refresh:[()=>loadSceneData(S.activeScene),()=>rebuildAllUI(),()=>Forge163.metasprites.render(),()=>Forge.services.SceneContextUI?.refresh()]};
+  });
+}
 function applyNativeWorldEdit(mapId,changes,options={}){
   return runEdit('terrain',options,candidate=>{
     const result=Forge.services.NativeWorldProject.paint(candidate,mapId,changes);
@@ -479,7 +491,7 @@ async function dismissRecovery(){
     recoveryPhase('ready');status();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:12,maxSchema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,authoringData,prepareLoad,commit,load,applyNativeGameEdit,applyNativeLayoutEdit,openNativeResourcePage,openInvestigatedResource,applyNativeWorldEdit,openNativeWorldResource,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+const Store=Forge.services.ProjectStore={schema:12,maxSchema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,authoringData,prepareLoad,commit,load,applyNativeGameEdit,applyNativeLayoutEdit,openNativeResourcePage,openInvestigatedResource,applyLibraryUse,applyNativeWorldEdit,openNativeWorldResource,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};
