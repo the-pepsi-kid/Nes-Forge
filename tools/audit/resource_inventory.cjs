@@ -183,7 +183,7 @@ function compare(labels) {
           const sheets = r.tileSheets ?? (r.ids?.scenes || []).filter(id => /^re-chr-/.test(id)).length;
           if (sel !== undefined && sel !== null && sel < sc) add(input, label, 'hidden by navigation', `${route}: scene selector shows ${sel} of ${sc} scenes`);
           if (gs !== undefined && gs + sheets < sc) add(input, label, 'hidden by navigation', `${route}: resource graph has ${gs} scene nodes and ${sheets} tile sheets for ${sc} scenes`);
-          else if (gs !== undefined && gs < sc) add(input, label, 'filed under another category', `${route}: ${sheets} physical CHR tile sheets (layout unresolved) are listed as CHR, not as scenes`);
+          else if (gs !== undefined && gs < sc) add(input, label, 'filed under another category', `${route}: ${sc - gs} of the ${sheets} physical CHR tile sheets (layout unresolved, not built) are listed as CHR rather than as scenes`);
           rows.push({input, editor: label, kind, route, actions: s.intake?.actions, kept: sumTop(r.after), graph: r.navigate?.graph?.byType, graphNodes: r.navigate?.graph?.nodes,
             selector: r.navigate?.selector, reopenIdentical: r.reopen?.identical});
         }
