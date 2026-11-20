@@ -112,6 +112,9 @@ if args.browser:
     receipt=output/'library-persistence.json'
     lib_args=['node',QA/'library-persistence.cjs',EDITOR,receipt]+([str(args.extractions.resolve())] if args.extractions else [])
     record(run('library-persistence',lib_args,receipt))
+    receipt=output/'library-explorer.json'
+    ng_pack=args.extractions.resolve()/'Ninja_Gaiden_U.zip' if args.extractions else None
+    record(run('library-explorer',['node',QA/'library-explorer.cjs',EDITOR,receipt]+([str(ng_pack)] if ng_pack and ng_pack.exists() else []),receipt))
 index['passed']=all(row['passed'] for row in index['results'])
 index['requested']={'privateExtractions':bool(args.extractions),'realBrowser':bool(args.browser),'originalCartridges':bool(args.cartridges)}
 (output/'index.json').write_text(json.dumps(index,indent=2)+'\n',encoding='utf-8')

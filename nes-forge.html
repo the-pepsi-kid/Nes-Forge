@@ -30990,7 +30990,7 @@ style.textContent=`
 @media(max-width:640px){#frx-root.frx-visible{padding:0}#frx-app{border-radius:0;height:100dvh;max-height:none}.frx-bar{gap:8px;flex-wrap:wrap}.frx-bar .frx-spacer{display:none}.frx-pill{display:none}.frx-body{display:flex;flex-direction:column;overflow:auto}.frx-nav{border-right:0;border-bottom:1px solid #203146;flex:0 0 153px;overflow:auto}.frx-center{flex:0 0 auto;overflow:visible;padding:14px}.frx-relgrid{grid-template-columns:1fr}.frx-inspector{flex:0 0 auto;max-height:none;padding:14px}.frx-toolbar{padding:8px;gap:7px}.frx-filter{max-width:140px}.frx-footer{font-size:10px}.frx-selected-name{font-size:18px}}
 `;
 document.head.appendChild(style);
-const outputStyle=document.createElement('style');outputStyle.textContent='.frx-viewer #frx-preview:has(#frx-native-output-result canvas){max-height:440px;overflow:auto}.frx-native-output-result{max-width:100%;text-align:center}.frx-native-output-result:empty{display:none}';document.head.append(outputStyle);
+const outputStyle=document.createElement('style');outputStyle.textContent='.frx-viewer #frx-preview.frx-lib{max-height:60vh;overflow:auto;justify-content:flex-start;align-items:stretch}.frx-viewer #frx-preview:has(#frx-native-output-result canvas){max-height:440px;overflow:auto}.frx-native-output-result{max-width:100%;text-align:center}.frx-native-output-result:empty{display:none}';document.head.append(outputStyle);
 const button=document.createElement('button');button.id='frx-open';button.type='button';button.textContent='▣ Resources';button.title='Unified resource explorer, preview and verified relationships';
 const target=document.querySelector('.top .project-bar')||document.querySelector('.top .scene-ctl')||document.querySelector('.top');
 target.parentNode.insertBefore(button,target.nextSibling);
@@ -31312,6 +31312,7 @@ function kindLabel(type){if(type.startsWith('lib · '))return 'Library · '+type
 function render(){
  if(!graph)return;const sel=nodeByKey(active);$('project-name').textContent=mode==='demo'?'Guided example':mode==='library'?'Resource library':(S.projectName||'Untitled');$('notice').innerHTML=mode==='library'?'<strong>LIBRARY</strong> · Every resource registered from extraction packs, identified or not. Locations are as the pack states them; your notes are kept apart from that evidence. Nothing here changes your project unless you open it explicitly.':mode==='demo'?'<strong>EXAMPLE DATA</strong> · Try clicking linked resources. This is a demonstration graph, not assets from the loaded project.':'<strong>LIVE PROJECT</strong> · Connections derive from actual resource IDs and declared references. Browsing is read-only. Explicit native-writer actions use the existing Undo transaction.';
  for(const [next,button] of [['live',$('live')],['demo',$('demo')],['library',$('lib')]])button.setAttribute('aria-pressed',String(mode===next));
+ {const head=$('count').parentNode.firstChild;if(head&&head.nodeType===3)head.textContent=mode==='library'?'Library entries ':mode==='demo'?'Example resources ':'Project resources ';}
  const counts=mode==='live'&&graph.library?.counts;
  $('library-summary').hidden=!counts;
  $('library-summary').textContent=counts?'ROM library: '+counts.rooms+' recovered room streams / '+counts.roomSlots+' table slots · '+counts.poses+' poses · '+counts.animations+' scripts · '+counts.actorRecords+' native actor records. Editable working copies: '+S.scenes.length+'/64 Scenes · '+S.metasprites.length+'/256 poses · '+S.animations.length+'/256 animations. Select an available source asset to open a working copy.':'';
@@ -31358,7 +31359,7 @@ function newCanvas(width,height,displayWidth){const c=elt('canvas','frx-preview-
 function poseCanvas(frame,source){const composer=window.Forge163.metasprites,bounds=composer.bounds(frame),c=newCanvas(256,160,'256px'),g=c.getContext('2d'),scale=Math.min(2,248/Math.max(1,bounds.w),152/Math.max(1,bounds.h));
  g.fillStyle='#172231';g.fillRect(0,0,c.width,c.height);composer.draw(g,frame,4+(frame.originX-bounds.x)*scale,4+(frame.originY-bounds.y)*scale,scale,source?{source}:{});return c;}
 function renderViewer(n){
- const host=$('preview'),tools=$('related-tools');host.replaceChildren();tools.replaceChildren();if(!n)return;
+ const host=$('preview'),tools=$('related-tools');host.replaceChildren();tools.replaceChildren();host.classList.remove('frx-lib');if(!n)return;
  const ctx=targetContext(n),res=n.type==='world'?null:previewScene(n),caption=$('viewer-caption');caption.textContent=mode==='demo'?'Example assets are not in the project.':res?'Reading '+res.scene.name+' from '+(res.live?'live editor buffers':'stored Scene buffers')+'.':'No unique image or scene binding established.';
  if(mode==='demo'){host.append(elt('div','frx-preview-message','Guided example · select Live project to inspect real tile, palette and layout data.'));$('context-result').textContent='No editor synchronization in the demonstration graph.';return;}
  if(n.libraryEntry){renderLibraryViewer(n,host,tools,caption);return;}
@@ -31424,6 +31425,7 @@ function renderViewer(n){
 }
 const hexDump=bytes=>{const lines=[];for(let i=0;i<Math.min(bytes.length,4096);i+=16){const row=[...bytes.subarray(i,i+16)];lines.push(i.toString(16).padStart(6,'0')+'  '+row.map(b=>b.toString(16).padStart(2,'0')).join(' ').padEnd(48)+'  '+row.map(b=>b>=32&&b<127?String.fromCharCode(b):'.').join(''));}return lines.join('\n')+(bytes.length>4096?'\n… '+(bytes.length-4096)+' more bytes':'');};
 function renderLibraryViewer(n,host,tools,caption){
+ host.classList.add('frx-lib');
  const e=n.libraryEntry,C=window.Forge.commands,id=e.id;caption.textContent='Library entry · '+e.path;$('context-result').textContent='Read-only library view';
  host.append(elt('div','frx-preview-message','Loading…'));
  (async()=>{
