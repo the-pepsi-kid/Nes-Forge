@@ -1,138 +1,163 @@
-# Resource placement model — proposal for review
+# Resource library and placement model — v2, for review
 
-Status: **proposal, not implemented**. Per the owner's direction (2026-11-20), no further UI redesign happens until the
-resource inventory and this placement workflow are reviewed. The inventory audit that this proposal builds on is in
-[docs/audit/2026-11-20/resource-inventory](../../audit/2026-11-20/resource-inventory/COMPARE.md).
+Status: **proposal, not implemented.** The owner's decisions are locked (§0). Per the owner's direction, nothing in this
+document is built, and no interface is redesigned, until it is reviewed. The measurements below come from:
+- [the inventory audit](../../audit/2026-11-20/resource-inventory/README.md);
+- [the Ninja Gaiden evidence audit](../../audit/2026-11-20/ninja-gaiden-evidence/EVIDENCE.md);
+- [the Zelda II evidence audit](../../audit/2026-11-20/zelda-ii-evidence/EVIDENCE.md);
+- [the library inventory of the extraction packs](../../audit/2026-11-20/library-inventory/LIBRARY_INVENTORY.md).
 
-## 1. What the library is for
+> NES Forge is a WYSIWYG development kit backed by a reusable resource library. **Extraction** is how resources are
+> discovered. The **library** is where they are identified and organised. The **editor** is where they are used. The
+> project store and command core stay as they are.
 
-NES Forge is a WYSIWYG NES development kit. Its resource library is a developer's asset library. A recovered game is
-browsed the way the game is laid out, from game to stage to screen. Each asset says:
-- what it is;
-- where it came from;
-- where it is used;
-- whether it is shared;
-- what you can do with it: edit it in your project, write it back to the original ROM, or only refer to it.
+## 0. Decisions locked (owner, 2026-11-20)
 
-## 2. What already exists — no new store is needed
+| # | Decision |
+|---|---|
+| 1 | When a stage is selected, other stages' resources are **sorted after** it, not hidden. |
+| 2 | Ninja Gaiden's stage table is decoded first. **Done**: 21 stages, Act 1-1 to 6-5, from PRG bank 0 $AF6E, confirmed for all 22 areas in the emulator. |
+| 3 | **Every discovered resource is persistent and visible in the library**, whether or not Forge knows what it is or where it belongs. Pack resources survive closing and reopening Forge. They are **not** turned into editable project assets automatically. Every resource can be inspected (graphics, audio, code and unknown data) and identified by hand. The original ROM hash, bank, file offset, CPU/PPU address and mapper context are shown wherever known. The developer's annotations are kept **separate from verified findings**. |
+| 4 | **Reference by default, copy explicitly.** Using another stage's or game's asset references the library resource. A separate, explicit action makes an independent editable copy, including its dependencies. Shared-resource warnings are clear. |
+| 5 | **Zelda II is the next placement investigation** (§10). Before it, the Ninja Gaiden evidence audit and catalogue persistence check were to be finished. **Both are done** (§1). |
 
-One `ProjectStore` already holds two layers:
+## 1. Inventory — what exists today (measured)
 
-| Layer | What it holds | Example: Ninja Gaiden (US) import |
+**ROM catalogues** (imported from the original ROM):
+
+| Game | Catalogue | Evidence |
 |---|---|---|
-| **Source catalogue** (read-only reference, the whole game) | `investigation.catalogs.native`: scenes with area/room, actors, poses, animations, script slots, graphics. Every record carries its ROM location: 16 KB bank, CPU address, file offset, length and pointer location. Scenes also record graphics/palette selectors, enemy and lantern placements, entrance and music cue with its request address. `catalogs.spatial`: maps with per-cell sources and a certainty field. `catalogs.audio`: cues, instruments, streams. | 48 rooms in 22 areas, 44 actors, 202 poses, 83 animations, 128 script slots, 32 graphics sets, 85 music cues, 203 audio streams |
-| **Working project** (editable) | scenes (64 working slots), metasprites, animations, worlds, audio, Gameplay Core. Scenes carry `captureMeta.nativeAssets`: source SHA-256, context, audio event and pose IDs. | 12 working scenes (Area 0's pages); the other rooms open on demand |
+| Ninja Gaiden (US) | 48 rooms / 22 areas / **21 stages**, 44 actors, 202 poses, 83 animations, 128 script slots, 32 CHR banks, 48 maps, 85 music cues | **44,532 ROM locations, all inside the file and consistent with the bank layout. All 42,080 decoded values re-read from the ROM match**: pose pieces, pointers, animation frames, enemy and lantern spawns, entrances, palettes, map blocks and cells, stage bytes, music cue tables. Located-only kinds (code entry points, spans, audio stream contents) are listed in the report. |
+| Zelda II (US) | 567 room slots in 9 contexts, 252 locations, 324 actor records, 1,799 enemy placements, 30 poses, 4 maps, 75 music cues | 42,428 ROM locations, all inside the file and consistent. **Value rules are not written yet**: Zelda II's encodings differ. For example, its pose sources point at the OAM-writing code, and its maps are stored as runs. Writing them is step 1 of §10. |
+| Other games | Native resource pages (Contra, Mega Man, Metroid, Final Fantasy, River City Ransom, Shadowgate) or raw CHR tile sheets | — |
 
-Several things are already built on top of these two layers:
-- **The resource graph** (`ResourceRelationshipPreview.liveGraph`) has nodes and labelled edges over the working project. The Library, the Resource Explorer and the `resources.*` commands all read it. Because there is only one index, there is no duplicate database.
-- **The Area library** navigates the catalogue by context, then room, then page, and turns pages into working scenes on demand. It is the closest thing to stage navigation today.
-- **Extraction packs**: project entries load into the editor. Maps, rooms, resource pages, poses, catalogues and collision can only be browsed while the pack is open (the audit's "pack-only" class).
-- **Editability levels**: build / native / copy / reference / unknown. Per-game native writers decide what can go back into the ROM. Build refuses unsupported native edits and names the asset.
+**Extraction packs** (18 packs, read with the intake's own rules):
 
-**Gaps:**
-- There is no *stage* level that uses the game's own layout names.
-- Per-asset placement evidence is not surfaced. It sits inside catalogue records.
-- Pack-only entries are gone once the pack is closed.
-- There is no copy-with-provenance between stages.
-- There is no list of unassigned resources.
+| | Entries |
+|---|---|
+| Recognised by the intake | 4,820 |
+| … loaded as projects (projects, audio projects, animation projects, native projects) | 1,418 |
+| … **pack-only**, browsable only while the pack is open: resource pages 899, collision 803, maps 747, rooms 385, object placements 305, poses 232, catalogues 8, captures 2 | **3,381** |
+| **Not recognised by the intake: the editor never shows them** — Mega Man 2 stage art (309 files, 308 images); Super Mario Bros 1/2/3 area and level files (315, plus their images); audio catalogues in 11 packs; 4 Battletoads title-audio and screen files; viewer pages and readmes | **678 files** |
 
-## 3. Hierarchy
+Evidence carried by pack-only entries: every map has a file offset, CPU address and bank. Every room has a file offset and a bank, and 306 of 385 have a CPU address. Resource pages: 545 of 899 have a file offset. Object placements: CPU addresses. Poses and collision maps carry none. PPU addresses are almost never recorded.
 
-**Game → Stage → Area/Room → Screen/Page → Category → Asset**
+**Persistence today**: catalogues of imported ROMs survive closing and reopening the browser, through the browser save, autosave recovery and project files. `QA/catalog-persistence.cjs` passes 5/5; the catalogues are Ninja Gaiden 4.2 MB and Zelda II 5.9 MB. **Pack-only entries and unrecognised files do not persist at all**: that is the gap decision 3 closes.
 
-- **Game**: the exact source (title, revision, SHA-256). Your own Forge projects appear as games too.
-- **Stage**: the game's own unit, such as an Act/stage, region, fight or level. Every stage records where it came from:
+## 2. Three layers
 
-  | Basis | Meaning |
+| Layer | Owns | Store | Changes |
+|---|---|---|---|
+| **Discovery** | Reading sources: ROM intake and investigation, extraction packs, runtime captures | none (it produces entries) | Registers everything it reads in the library, including files it cannot classify |
+| **Library** | Every discovered resource: identity, evidence, data, preview, verified findings, developer annotations, usage | **one** library store (§4) | New |
+| **Editor** | Your project: authored assets, copies, references, builds | `ProjectStore` (unchanged) | Gains references to library entries |
+
+## 3. Library entry
+
+| Field | Content | Written by |
+|---|---|---|
+| `id` | stable: source SHA-256 + origin + path or slot | discovery |
+| `source` | ROM SHA-256, revision, mapper, PRG/CHR layout | discovery |
+| `origin` | how it was found: ROM catalogue, pack (name, SHA-256, path, extractor format) or runtime capture | discovery |
+| `kind` | verified kind (map, room, CHR, palette, pose, animation, actor, song, code, table…) or `unknown` | discovery / verifier |
+| `data` | the entry's data, compressed; or `needs source` with the pack's SHA-256 when it was not stored | discovery |
+| `preview` | stored image, generated on demand, or none | discovery |
+| `evidence` | file offset, bank, CPU/PPU address, length, pointer and codec, each with whether it is **re-read** (bytes match), **located** (bounds and bank only) or **stated** (as the pack says) | decoders and the evidence audit |
+| `placement.verified` | game → stage → room → page, with its basis: `rom-table`, `runtime`, `pack-index` or `author` | decoders and verifiers only |
+| `notes` | developer name, category, tags, group, free notes, **possible placements** with confidence | the developer only; never promoted automatically |
+| `usage` | projects and stages that reference or copied it | the system |
+| `status` | reconstructed: none / partial / complete; editable level; native write-back: verified writer, or refused with the reason | the system |
+
+The developer's notes and the verified findings are separate fields and are always shown apart, for example *"Stage 4-2 (verified, ROM table)"* next to *"possibly the boss room (your note)"*. A note becomes verified only through a check that records its basis.
+
+## 4. Storage — one library, projects stay self-contained
+
+- **The library store** lives in the browser's IndexedDB, one shelf per source ROM (SHA-256). It holds the entry records, compressed data and previews. **Measured for the current 18 packs**: pack-only entries plus previews take about 26 MB; with every pack project stored too, about 63 MB. Measured compression: maps 23×, resource pages 16×, rooms 10×, projects 15×, audio projects 113×.
+- **A library file** (export and import) moves shelves between machines. Re-registering a pack updates its shelf; matching entries are deduplicated by digest.
+- **Projects** keep using `ProjectStore` unchanged. A reference is `{source SHA-256, entry id, entry digest}`. To keep a project portable, it also embeds a frozen snapshot of only the entries it references, so it opens on a machine without the library (decision A, §12).
+- **Existing projects** keep their embedded investigation catalogues and still validate. When opened, their catalogues are registered in the library, deduplicated by digest. Nothing is migrated destructively.
+- **Unrecognised files** are registered as `unknown` entries with their original path and raw bytes, viewable as hex or text. Nothing is dropped.
+
+## 5. Inspect and identify
+
+Every entry shows its ROM SHA-256, bank, file offset, CPU/PPU address and mapper context wherever they are known, and says plainly when they are not.
+
+| Kind | Inspect | Identify |
+|---|---|---|
+| Graphics (CHR banks, tile sheets) | tiles at 8×8 or 8×16, with a chosen palette; source bank and offset | name, category, link to the rooms or poses that use it |
+| Maps, rooms, screens, resource pages | rendered preview; collision and cell overlays | assign stage / room / page (verified or a guess) |
+| Poses, metasprites, animations | pieces and OAM order; frame timing | owner (player, enemy, NPC), stage |
+| Audio (cues, songs, SFX) | audition through the game's own driver where the cue is decoded; otherwise "not recoverable yet" | link to stages and areas |
+| Code, tables, unknown data | hex and 6502 disassembly at the location, with bank and mapper context and known symbols | rename, describe, mark as table, code or data |
+| Catalogues, RAM maps | tables | — |
+
+## 6. Stage placement
+
+The hierarchy is **game → stage → area/room → screen/page → category → resource**. Selecting a stage sorts its
+resources first and the rest after (decision 1). Resources with no verified stage appear under **Unassigned**, with the
+reason: no stage table decoded, seen in several stages, pack-only, or unknown codec. A stage shows "N of M" only when M
+comes from a decoded table.
+
+## 7. Reference and copy
+
+- **Use (default): reference.** The project points at the library entry. Editing a referenced resource warns first, listing every stage, project and game that uses it. Native write-back follows that resource's writer rules.
+- **Copy (explicit).** Creates independent project assets with `derivedFrom` (entry id, digest, source SHA-256, time). It includes the resource's **dependency closure**, which is listed before the copy is made:
+
+  | Copying… | …also copies |
   |---|---|
-  | `rom-table` | decoded from the game's own stage table (verified) |
-  | `runtime` | observed while the game ran (verified for that route) |
-  | `pack-index` | as stated by an extraction pack (not independently verified) |
-  | `author` | defined in a Forge project |
+  | a pose | its CHR tiles and palette |
+  | a room | its blocks/metatiles, CHR, palettes and collision |
+  | an animation | its poses |
+  | an actor | its animations and poses |
+  | a song | its instruments and samples |
 
-  Assets with no basis go to **Unassigned** (§6).
-- **Categories**: graphics (CHR, palettes), sprites (poses/metasprites), animations, audio, collision, entities/actors, triggers/scripts, code/symbols, and maps/screens.
+  A copy can be edited freely; native write-back of a copy is refused unless a writer owns that exact source.
 
-## 4. Placement record (per asset)
+## 8. Commands (proposed, command core only)
 
-These fields are derived from existing evidence. Only facts that came from decoding are stored; the rest is computed.
+`library.register` (ROM or pack), `library.list {game, stage, kind, status}`, `library.inspect {id}`,
+`library.annotate {id, notes}`, `library.place {id, stage, guess}`, `library.reference {id}`, `library.copy {id, withDependencies}`,
+`library.unassigned`, `library.export`, `library.import`.
 
-| Field | Content |
-|---|---|
-| identity | id, type, name |
-| source | ROM revision and SHA-256; bank, CPU address, file offset, length; pointer location; codec, each with its evidence reference |
-| ownership | stage / room / page, `verified` and its basis (§3), or `unassigned` with the reason |
-| usage | where it is placed or referenced: screen and position, pointer-table slot, runtime observation |
-| dependencies | what it needs, e.g. tiles and palette, or pose → animation → actor |
-| sharing | other stages that reference the same source asset |
-| status | reconstructed: none / partial / complete; editable: the level; native write-back: verified writer, or refused with the reason |
-
-## 5. Shared vs copy
-
-- **Use here (reference)**: points at the source asset. An edit changes the source and follows its writer's rules. It shows a SHARED badge and every user of the asset.
-- **Copy into my project**: creates an independent asset that records `derivedFrom`: source id, SHA-256, revision and the time of copying. Its editability is `build`. Native write-back is refused unless a writer owns that exact source asset.
-- Copies keep their provenance through save/reopen. Nothing is ever copied implicitly.
-
-## 6. Unassigned / unresolved
-
-Every extracted asset without verified ownership is listed under the game's **Unassigned** stage, with one of these reasons:
-- no stage table has been decoded;
-- it was observed in several stages;
-- it is pack-only;
-- its codec is unknown.
-
-Counts never imply completeness. A stage shows "N of M" only when M comes from a decoded table; otherwise it shows "N found".
-
-## 7. One index, served through the command core
-
-A `ResourcePlacement` service builds the stage index from three sources, on top of the existing resource graph: the catalogue, the working project and any open pack. The proposed commands are:
-
-| Command | Returns |
-|---|---|
-| `resources.stages` | the game → stage tree with counts and bases |
-| `resources.list {stage}` | the existing list, filtered by stage |
-| `resources.placement {key}` | the §4 record |
-| `resources.copy {key, toStage}` / `resources.reference {key, toStage}` | §5 |
-| `resources.unassigned` | §6 |
-
-The Library, Resource Explorer, Area library, VR/AR and agents all use these commands. No interface keeps its own asset list.
-
-## 8. Developer workflow
-
-1. Open a game: a ROM, a pack or a project.
-2. Pick a stage. Every editor tab shows that stage's assets (whether other stages are hidden or only sorted after is a decision, §11).
-3. Open another stage in a side reference panel without leaving the current one.
-4. Choose **Use here** or **Copy into my project**. The asset then shows SHARED or COPY together with its source.
-5. Build. A native edit without a writer is refused and the asset is named; this exists today.
+Every interface, including VR/AR and agents, uses these commands. The existing `resources.*` commands keep working on the open project.
 
 ## 9. Audio and VR/AR
 
-- **Audio**: songs and instruments stay independent data. Each stage links to its cues through decoded audio events; for Ninja Gaiden, that is each area's start cue and the address that requests it. The sheet-music editor opens on the stage's cue. Native export applies only where a writer is verified.
-- **VR/AR**: draws stages as clusters of screens from the same index. It keeps no asset list of its own.
+- **Audio**: songs and instruments stay independent entries. Stage links come from decoded audio events; Ninja Gaiden's link each area's start cue to the address that requests it. The sheet-music work (Sheet Music Review 3, not yet merged) attaches to these entries. Native export applies only where a writer is verified.
+- **VR/AR**: draws stages as clusters of screens from the same library and placement index. It keeps no asset list of its own.
 
-## 10. Per-game stage data today
+## 10. Zelda II investigation (next, after this review)
 
-The audit [README](../../audit/2026-11-20/resource-inventory/README.md) has the per-game table. In short:
-- **Ninja Gaiden** now has its stage table: 21 stages, Act 1-1 to 6-5, decoded from PRG bank 0 $AF6E and confirmed for all 22 areas in the emulator.
-- **Zelda II** has 9 world/table contexts that can serve as stages.
-- **Punch-Out** has its 14 fights.
-- **Every other game** has no decoded stages yet, so its assets would start in Unassigned.
+1. **Value rules** for the Zelda II profile in `tools/audit/evidence_audit.cjs`: poses through the OAM-writer code, maps through their runs. This makes its 42,428 locations re-readable like Ninja Gaiden's.
+2. **Overworld regions and locations**: map the 252 location records to places (towns, palaces, caves, bridges) in the four overworld maps.
+3. **Towns and palaces**: the East/West towns contexts; palaces 1–6 resolved from their location records into the palace A/B room tables.
+4. **Enemies**: 324 actor records and 1,799 placements, per room and per region.
+5. **Sprites**: Link's 30 poses plus enemy sprites, with their CHR banks.
+6. **Audio**: 75 cues to regions, towns and palaces (12 cues lack a location today).
 
-The owner's decisions so far:
-- When a stage is selected, other stages' assets are **sorted after** it, not hidden.
-- **Ninja Gaiden's stage table is decoded first** (done).
+Each finding records its basis (ROM table or runtime) and is confirmed in the emulator, as Ninja Gaiden's stages were.
 
-## 11. Decisions for the owner
+## 11. Acceptance checks
 
-1. ~~When a stage is selected, should other stages' assets be hidden or sorted after?~~ Decided: sorted after.
-2. ~~Should Ninja Gaiden's stage table be decoded first?~~ Decided and done.
-3. Pack-only entries: copy them into the project's catalogue when the pack is opened, so they survive closing it, or keep them pack-only?
-4. Should **Use here** (reference) or **Copy** be the default?
-5. In what order should games get decoded stage tables?
+| Check | State |
+|---|---|
+| Nothing disappears between intake, load, navigation and save/reopen, across editor builds | `tools/audit/resource_inventory.cjs`, run |
+| Every claimed ROM location is consistent, and decoded values match the ROM | `tools/audit/evidence_audit.cjs`: Ninja Gaiden 42,080 / 42,080 |
+| Catalogues persist across closing Forge | `QA/catalog-persistence.cjs` 5/5 |
+| Every pack entry, unrecognised files included, is in the library after closing and reopening Forge, with preview and data, or a stated `needs source` | to write with the library |
+| Notes persist, separately from verified findings | to write |
+| Reference and copy with the dependency closure; the source is unchanged; provenance survives save/reopen | to write |
+| A shared-resource warning lists every user | to write |
+| A build refuses an unsupported native edit and names the asset | exists today |
 
-## 12. Acceptance checks
+## 12. Questions for the owner
 
-- **Inventory audit** (`tools/audit/resource_inventory.cjs`): nothing disappears between intake, load, navigation and save/reopen, and no editor build shows fewer resources than another for the same input.
-- **Copy test**: copy an asset across stages. The source is unchanged, the copy carries its provenance, and both survive save/reopen.
-- **Unassigned report**: the counts equal the catalogue minus verified ownership.
-- **Build refusal**: an unsupported native edit is refused, and the asset is named.
+A. **Should projects embed a snapshot of the library entries they reference?** It keeps them portable, at the cost of
+   some duplication. Recommended: yes.
+
+B. **Where should the library live?** Proposed: browser storage plus an export file. Should it also be mirrored to a
+   folder on disk where the browser allows it?
+
+C. **Should full pack projects be stored when a pack is registered?** That is about 63 MB for all 18 packs, compressed.
+   The alternative is to store their index and previews only, and say "reopen the pack to load". Recommended: store
+   everything; then nothing depends on the original pack.
