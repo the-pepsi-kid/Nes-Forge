@@ -63,8 +63,17 @@ async function openFile(input){
  try{
   if(!input||!Number.isSafeInteger(input.size)||input.size<0||input.size>64*1024*1024)throw Error('Choose a file of at most 64 MiB.');
   const bytes=new Uint8Array(await input.arrayBuffer());if(own!==generation)return false;if(bytes.length!==input.size)throw Error('The input changed while reading. Open it again.');
-  const result=await services.ProjectGateway.inspect(bytes,{name:input.name,signal});if(own!==generation)return false;
+  let result;
+  try{result=await services.ProjectGateway.inspect(bytes,{name:input.name,signal});}
+  catch(error){
+   // A ZIP the intake cannot open is still kept, file by file, in the resource library.
+   if(own===generation&&services.ResourceLibrary&&bytes[0]===0x50&&bytes[1]===0x4B&&bytes[2]===3&&bytes[3]===4)registerInLibrary(bytes,input.name,'full','The intake could not open it ('+error.message+'). ');
+   throw error;
+  }
+  if(own!==generation)return false;
   current=result;render();
+  // Every extraction pack opened here is kept in the resource library (complete, compressed, idempotent).
+  if(result.kind==='extraction'&&services.ResourceLibrary)registerInLibrary(bytes,input.name);
   // When exact bytes match an embedded, validated catalog, open its canonical
   // resources by default. This is the same ProjectStore transaction as the
   // existing manual action; it never applies unverified data to gameplay.
@@ -83,6 +92,16 @@ async function openFile(input){
   }catch(e){if(own!==generation)return false;message('Automatic recovery import failed: '+e.message+' · The manual import action remains available.');return false;}
  }
  return true;
+}
+// Library registration runs beside the intake and never changes the working project.
+const libraryLine=el('p','projectGatewayLibrary');libraryLine.setAttribute('role','status');libraryLine.hidden=true;status.after(libraryLine);
+function registerInLibrary(bytes,name,mode='full',prefix=''){
+ libraryLine.hidden=false;libraryLine.replaceChildren(prefix+'Resource library: registering '+name+'…');
+ services.ResourceLibrary.register(bytes,{name,mode,onProgress:p=>{libraryLine.textContent='Resource library: registering '+name+' · '+p.done+'/'+p.total+' files';}})
+  .then(r=>{const st=r.stats||{};libraryLine.textContent=prefix+'Resource library: '+(r.already?name+' is already registered':'registered '+name)+' · '+st.entries+' entries ('+
+    (r.mode==='index-only'?'index-only; data read from the pack when opened again':st.blobsStored+' stored, '+st.blobsShared+' shared')+(st.unknown?', '+st.unknown+' unidentified':'')+(st.rejected?', '+st.rejected+' kept despite intake rejection':'')+'). Browse them in ▣ Resources › Library.';})
+  .catch(e=>{libraryLine.replaceChildren(String(e.message));
+    if(mode==='full'&&/not enough browser storage/.test(e.message)){const b=el('button',null,'Register index-only');b.type='button';b.onclick=()=>registerInLibrary(bytes,name,'index-only',prefix);libraryLine.append(' ',b);}});
 }
 async function route(id){
  check();if(!current.actions.some(a=>a.id===id))throw Error('This source does not support that action.');

@@ -91,7 +91,7 @@ const root=document.createElement('div');root.id='frx-root';root.setAttribute('r
 <div id="frx-app">
  <header class="frx-bar"><span class="frx-logo">◎</span><div><div class="frx-eyebrow">NES Forge · Connected Workspace Prototype</div><div class="frx-title">Resources</div><div class="frx-sub">Explorer · Live preview · Relationships · Editor context</div></div><span class="frx-spacer"></span><span class="frx-pill" id="frx-project-name"></span><button class="frx-btn" id="frx-close" type="button">✕ Close</button></header>
  <div class="frx-alert" id="frx-notice" role="status"></div>
- <div class="frx-toolbar"><div class="frx-mode"><button id="frx-live" type="button" aria-pressed="true">Live project</button><button id="frx-demo" type="button" aria-pressed="false">Guided example</button></div><input class="frx-search" id="frx-search" placeholder="Search resources by name or ID…" aria-label="Search project resources"><select class="frx-filter" id="frx-scope" aria-label="Filter resource availability"><option value="">All resources</option><option value="source">ROM library</option><option value="working">Editable working copies</option></select><select class="frx-filter" id="frx-kind" aria-label="Filter resource type"><option value="">All types</option></select><button class="frx-btn" id="frx-refresh">↻ Refresh</button><button class="frx-btn" id="frx-active">◎ Active Scene</button><label class="frx-follow-label" for="frx-follow"><input type="checkbox" id="frx-follow"> Follow selection across editors</label><span id="frx-follow-badge" class="frx-follow-badge">Independent</span></div>
+ <div class="frx-toolbar"><div class="frx-mode"><button id="frx-live" type="button" aria-pressed="true">Live project</button><button id="frx-demo" type="button" aria-pressed="false">Guided example</button><button id="frx-lib" type="button" aria-pressed="false" title="Every resource registered from extraction packs, identified or not">Library</button></div><input class="frx-search" id="frx-search" placeholder="Search resources by name or ID…" aria-label="Search project resources"><select class="frx-filter" id="frx-scope" aria-label="Filter resource availability"><option value="">All resources</option><option value="source">ROM library</option><option value="working">Editable working copies</option></select><select class="frx-filter" id="frx-kind" aria-label="Filter resource type"><option value="">All types</option></select><button class="frx-btn" id="frx-refresh">↻ Refresh</button><button class="frx-btn" id="frx-active">◎ Active Scene</button><label class="frx-follow-label" for="frx-follow"><input type="checkbox" id="frx-follow"> Follow selection across editors</label><span id="frx-follow-badge" class="frx-follow-badge">Independent</span></div>
  <div id="frx-library-summary" class="frx-alert" role="status"></div>
  <div class="frx-body"><aside class="frx-nav"><div class="frx-section-head">Project resources <span id="frx-count"></span></div><div id="frx-items"></div></aside><main class="frx-center"><div class="frx-centerhead"><div><div class="frx-eyebrow" id="frx-type"></div><div class="frx-selected-name" id="frx-name"></div><div class="frx-desc" id="frx-description"></div></div><span class="frx-status" id="frx-status"></span></div><div class="frx-stats" id="frx-stats"></div><section class="frx-viewer"><div class="frx-viewer-title"><strong>Resource Viewer</strong><span id="frx-viewer-caption">Preview of the selected resource</span></div><div id="frx-preview"></div><div id="frx-related-tools" class="frx-related-tools"></div><div id="frx-context-result" class="frx-context-result" role="status" aria-live="polite"></div></section><div class="frx-sectiontitle">Resource Relationships <span>declared references and source receipts</span></div><div class="frx-relgrid"><section class="frx-relcol"><div class="frx-relhead">↙ Depends on / reads from</div><div id="frx-deps"></div></section><section class="frx-relcol"><div class="frx-relhead">↗ Used by / feeds into</div><div id="frx-users"></div></section></div><div class="frx-note" id="frx-guidance"></div></main><aside class="frx-inspector"><h3>Resource inspector</h3><div class="frx-card" id="frx-details"></div><h3>Actions</h3><button class="frx-action" id="frx-open-editor" type="button">Open in editor ↗</button><div class="frx-card" id="frx-action-note"></div><h3>Connection notes</h3><div class="frx-card" id="frx-unknown"></div></aside></div>
  <footer class="frx-footer"><span id="frx-footer-left"></span><span class="frx-provenance">Read-only browsing · explicit editor / native writer actions</span></footer>
@@ -383,15 +383,32 @@ function syncContext(n){
 }
 function setFollow(value){follow=!!value;$('follow').checked=follow;contextNote=follow?'Follow enabled. Select a live resource to update its uniquely declared Scene/World context.':'Independent browsing: selections in Resources will not change your editors.';render();}
 
-function setMode(next){mode=next;contextNote='';graph=mode==='demo'?sampleGraph():liveGraph();active=mode==='demo'?key('actor','a1'):key('scene',S.scenes[S.activeScene]?.id||'');if(!graph.nodes.has(active))active=graph.nodes.keys().next().value||null;render();}
-function kindLabel(type){return {chr:'CHR',metasprite:'Metasprite',actor:'Actor Definition','actor-record':'Native actor record',instance:'Actor Instance',sprite:'Sprite placements',entity:'Scene Entity'}[type]||type[0].toUpperCase()+type.slice(1);}
+// Library mode: every entry of the persistent resource library (services.ResourceLibrary), identified or not.
+// Nodes are read-only views of library records; the developer's notes are edited through library.annotate.
+async function libraryGraph(){
+ const g=makeGraph(),lib=window.Forge.services.ResourceLibrary;if(!lib)return g.finish();
+ const [packs,listing]=await Promise.all([lib.backend()?window.Forge.commands.run('library.packs'):null,window.Forge.commands.run('library.list',{limit:5000})]);
+ const packName=new Map((packs?.ok?packs.result:[]).map(p=>[p.packSha256,p.name+(p.game?' · '+p.game:'')]));
+ for(const e of (listing?.ok?listing.result.items:[])){
+  const n=g.add({key:key('lib',e.id),type:'lib · '+e.kind,id:e.id,name:e.notes?.name||e.path.split('/').pop(),summary:(e.identified===false||e.kind==='unknown'?'Unidentified ':'')+e.kind+' from '+(packName.get(e.packSha256)||'a registered pack')+'. '+
+   (e.data==='needs-source'?'Registered index-only: its data is read from the pack when opened again.':e.data==='stored-unreadable'?'Stored exactly as archived; the archive entry could not be read.':'Stored in the library.')+(e.validation==='rejected'?' The intake rejected it; it is kept anyway.':''),
+   scope:(e.game||'Unknown source')+' · '+e.path,open:e.loads?{kind:'library-project'}:null,details:'',source:'Resource library · pack '+e.packSha256.slice(0,12)+'…',libraryEntry:e});
+  if(e.preview)g.edge(n.key,key('lib','pack:'+e.packSha256.slice(0,16)+':'+(e.previewPath||'')),'preview image');
+ }
+ return g;
+}
+function setMode(next){
+ if(next==='library'){mode='library';contextNote='';graph=makeGraph().finish();active=null;render();
+  libraryGraph().then(g=>{if(mode!=='library')return;graph=g;active=graph.nodes.keys().next().value||null;render();}).catch(e=>{contextNote='Library unavailable: '+e.message;render();});return;}
+ mode=next;contextNote='';graph=mode==='demo'?sampleGraph():liveGraph();active=mode==='demo'?key('actor','a1'):key('scene',S.scenes[S.activeScene]?.id||'');if(!graph.nodes.has(active))active=graph.nodes.keys().next().value||null;render();}
+function kindLabel(type){if(type.startsWith('lib · '))return 'Library · '+type.slice(6);return {chr:'CHR',metasprite:'Metasprite',actor:'Actor Definition','actor-record':'Native actor record',instance:'Actor Instance',sprite:'Sprite placements',entity:'Scene Entity'}[type]||type[0].toUpperCase()+type.slice(1);}
 function render(){
- if(!graph)return;const sel=nodeByKey(active);$('project-name').textContent=mode==='demo'?'Guided example':(S.projectName||'Untitled');$('notice').innerHTML=mode==='demo'?'<strong>EXAMPLE DATA</strong> · Try clicking linked resources. This is a demonstration graph, not assets from the loaded project.':'<strong>LIVE PROJECT</strong> · Connections derive from actual resource IDs and declared references. Browsing is read-only. Explicit native-writer actions use the existing Undo transaction.';
- for(const [next,button] of [['live',$('live')],['demo',$('demo')]])button.setAttribute('aria-pressed',String(mode===next));
+ if(!graph)return;const sel=nodeByKey(active);$('project-name').textContent=mode==='demo'?'Guided example':mode==='library'?'Resource library':(S.projectName||'Untitled');$('notice').innerHTML=mode==='library'?'<strong>LIBRARY</strong> · Every resource registered from extraction packs, identified or not. Locations are as the pack states them; your notes are kept apart from that evidence. Nothing here changes your project unless you open it explicitly.':mode==='demo'?'<strong>EXAMPLE DATA</strong> · Try clicking linked resources. This is a demonstration graph, not assets from the loaded project.':'<strong>LIVE PROJECT</strong> · Connections derive from actual resource IDs and declared references. Browsing is read-only. Explicit native-writer actions use the existing Undo transaction.';
+ for(const [next,button] of [['live',$('live')],['demo',$('demo')],['library',$('lib')]])button.setAttribute('aria-pressed',String(mode===next));
  const counts=mode==='live'&&graph.library?.counts;
  $('library-summary').hidden=!counts;
  $('library-summary').textContent=counts?'ROM library: '+counts.rooms+' recovered room streams / '+counts.roomSlots+' table slots · '+counts.poses+' poses · '+counts.animations+' scripts · '+counts.actorRecords+' native actor records. Editable working copies: '+S.scenes.length+'/64 Scenes · '+S.metasprites.length+'/256 poses · '+S.animations.length+'/256 animations. Select an available source asset to open a working copy.':'';
- $('active').disabled=mode==='demo';$('open-editor').disabled=mode==='demo'||!(sel?.open||sel?.evidenceKind||sel?.apuAuditDigest);$('follow').checked=follow;$('follow').disabled=mode==='demo';$('follow-badge').textContent=mode==='demo'?'Example only':follow?'Following':'Independent';$('follow-badge').dataset.mode=mode==='demo'?'demo':follow?'on':'off';
+ $('active').disabled=mode!=='live';$('open-editor').disabled=mode==='demo'||!(sel?.open||sel?.evidenceKind||sel?.apuAuditDigest);$('follow').checked=follow;$('follow').disabled=mode==='demo';$('follow-badge').textContent=mode==='demo'?'Example only':follow?'Following':'Independent';$('follow-badge').dataset.mode=mode==='demo'?'demo':follow?'on':'off';
  const types=[...new Set([...graph.nodes.values()].map(n=>n.type))].sort();const old=$('kind').value;$('kind').replaceChildren();const all=elt('option',null,'All resources');all.value='';$('kind').appendChild(all);for(const type of types){const opt=elt('option',null,kindLabel(type));opt.value=type;$('kind').appendChild(opt);}$('kind').value=types.includes(old)?old:'';
  const q=$('search').value.trim().toLowerCase(),type=$('kind').value,scope=$('scope').value;const list=[...graph.nodes.values()].filter(n=>(scope!=='source'||!!n.sourceResource)&&(scope!=='working'||!n.libraryOnly)&&(!type||n.type===type)&&(!q||(n.name+' '+n.id+' '+n.scope+' '+n.type).toLowerCase().includes(q))).sort((a,b)=>a.type.localeCompare(b.type)||a.name.localeCompare(b.name));
  $('count').textContent=list.length+'/'+graph.nodes.size;$('items').replaceChildren();for(const n of list){const b=elt('button','frx-item');b.type='button';b.setAttribute('aria-current',String(n.key===active));b.title=n.name+' · '+n.id;const glyph=elt('span','frx-glyph',icons[n.type]||'◆'),txt=elt('span');txt.style.minWidth='0';txt.append(elt('span','frx-item-name',n.name),elt('span','frx-item-type',kindLabel(n.type)+(n.libraryOnly?' · '+(n.sourceResource.reason?'unavailable':n.sourceResource.existing?'copy open':'ROM library'):'')));b.append(glyph,txt);b.onclick=()=>choose(n.key);$('items').appendChild(b);}if(!list.length)$('items').append(elt('div','frx-empty','No matching resources.'));
@@ -419,6 +436,12 @@ function render(){
   $('action-note').textContent='Creates or selects an ordinary editable working copy. Creating source copies is one Undo step. Local work is preserved; native writeback still requires the registered encoder.';
  }
  if(sel.open?.kind==='rom-inspect')$('open-editor').textContent='Inspect matching ROM source ↗';
+ if(mode==='library'){
+  $('open-editor').textContent=sel.open?.kind==='library-project'?'Open project from library ↗':'Library entry · read-only';
+  $('action-note').textContent=sel.open?.kind==='library-project'?'Loads this project, found inside the pack, as your working project (like Open project). The library keeps its copy.':'Library entries stay in the library until you use them. Your notes are saved with "Save notes" and never change the stated evidence.';
+  $('unknown').textContent='Locations are as the pack states them, not re-read from the ROM. An entry without a location is kept and can be identified later.';
+  $('follow').disabled=true;
+ }
  if(sel.type==='actor-record')$('unknown').textContent='Contextual table entries can share the same enemy type across areas. Parameter codes and routine addresses do not establish recovered enemy poses, AI or playable actor definitions.';
  $('footer-left').textContent=`${graph.nodes.size} resources · ${graph.edges.length} relationships · ${graph.issues.length} diagnostic notes`;
 }
@@ -431,6 +454,7 @@ function renderViewer(n){
  const host=$('preview'),tools=$('related-tools');host.replaceChildren();tools.replaceChildren();if(!n)return;
  const ctx=targetContext(n),res=n.type==='world'?null:previewScene(n),caption=$('viewer-caption');caption.textContent=mode==='demo'?'Example assets are not in the project.':res?'Reading '+res.scene.name+' from '+(res.live?'live editor buffers':'stored Scene buffers')+'.':'No unique image or scene binding established.';
  if(mode==='demo'){host.append(elt('div','frx-preview-message','Guided example · select Live project to inspect real tile, palette and layout data.'));$('context-result').textContent='No editor synchronization in the demonstration graph.';return;}
+ if(n.libraryEntry){renderLibraryViewer(n,host,tools,caption);return;}
  if(n.libraryOnly&&n.sourceResource){renderSourceViewer(n,host,tools,caption);return;}
  if(n.open?.kind==='cv-upload'||n.open?.kind==='cv-courtyard'){
    caption.textContent='Original ROM preview. Opening this resource creates or selects its editable project copy.';
@@ -491,6 +515,48 @@ function renderViewer(n){
  window.Forge.services.ProjectLessons?.shortcut(tools,{...n.open,resourceKey:n.key});
  $('context-result').textContent=contextNote||(follow?'Follow on · choose a related asset to synchronize linked Scene/CHR/Collision.':'Independent browsing · selecting a resource does not modify editor selection.');
 }
+const hexDump=bytes=>{const lines=[];for(let i=0;i<Math.min(bytes.length,4096);i+=16){const row=[...bytes.subarray(i,i+16)];lines.push(i.toString(16).padStart(6,'0')+'  '+row.map(b=>b.toString(16).padStart(2,'0')).join(' ').padEnd(48)+'  '+row.map(b=>b>=32&&b<127?String.fromCharCode(b):'.').join(''));}return lines.join('\n')+(bytes.length>4096?'\n… '+(bytes.length-4096)+' more bytes':'');};
+function renderLibraryViewer(n,host,tools,caption){
+ const e=n.libraryEntry,C=window.Forge.commands,id=e.id;caption.textContent='Library entry · '+e.path;$('context-result').textContent='Read-only library view';
+ host.append(elt('div','frx-preview-message','Loading…'));
+ (async()=>{
+  const [ins,pv]=await Promise.all([C.run('library.inspect',{id}),C.run('library.preview',{id})]);if(active!==n.key)return;host.replaceChildren();
+  if(!ins.ok){host.append(elt('div','frx-preview-message',ins.error.message));return;}
+  const entry=ins.result.entry,notes=ins.result.notes||{};
+  if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);}
+  // evidence: what the pack states, or that the location is unknown
+  const ev=entry.evidence||{state:'none'},box=elt('div');box.style.cssText='text-align:left;font-size:11px;margin:6px 0';
+  const row=(label,value)=>{box.append(elt('span','frx-label',label),elt('div','frx-code',value));};
+  row('Source ROM SHA-256',entry.sourceSha256||'Not declared by the pack');
+  if(ev.state==='stated'){for(const [k,f] of Object.entries(ev.fields))row({fileOffset:'File offset',cpu:'CPU address',bank:'Bank',ppu:'PPU address',mapper:'Mapper'}[k]||k,
+     (typeof f.first==='number'?f.first+' ($'+f.first.toString(16).toUpperCase()+')':String(f.first))+' · field "'+f.field+'"'+(f.count>1?' · '+f.count+' values in this entry':'')+' · stated by the pack, not re-read');}
+  else row('ROM location','Unknown. The entry stays in the library; its location can be identified later.');
+  row('Kind',entry.kind+(entry.identified===false?' (not identified by the intake)':'')+' · '+entry.fileType+' · '+entry.size+' bytes');
+  row('Intake validation',entry.validation?.state+(entry.validation?.reason?': '+entry.validation.reason:''));
+  row('Data',entry.data?.state+' · content '+String(entry.contentHash).slice(0,16)+'…');
+  row('Pack',entry.packSha256.slice(0,16)+'… · '+entry.path);
+  if(entry.project)row('Project inside the pack',JSON.stringify(entry.project));
+  host.append(box);
+  // data on demand
+  if(entry.data?.state==='stored'&&entry.fileType!=='image'){
+   const show=elt('button','frx-relationship','Show data');show.type='button';show.onclick=async()=>{show.disabled=true;
+    const r=await C.run('library.read',{id,as:'base64'});if(!r.ok){show.textContent=r.error.message;return;}
+    const bytes=Uint8Array.from(atob(r.result.base64),c=>c.charCodeAt(0)),pre=elt('pre','frx-code');pre.style.cssText='max-height:260px;overflow:auto;text-align:left;white-space:pre-wrap';
+    if(['json','text','document'].includes(entry.fileType)){const text=new TextDecoder().decode(bytes);pre.textContent=text.length>65536?text.slice(0,65536)+'\n… '+(text.length-65536)+' more characters':text;}else pre.textContent=hexDump(bytes);
+    show.replaceWith(pre);};host.append(show);
+  }
+  // the developer's notes: separate from evidence
+  const form=elt('div');form.style.cssText='text-align:left;border-top:1px solid #2c4458;margin-top:8px;padding-top:6px;font-size:11px';
+  form.append(elt('span','frx-label','Your notes (not evidence)'));
+  const field=(label,value,multi)=>{const w=elt('label');w.style.cssText='display:block;margin:3px 0';w.append(elt('span',null,label+' '));const i=elt(multi?'textarea':'input');i.value=value||'';i.style.cssText='width:100%;box-sizing:border-box;background:#0d1a26;color:#d7eaf4;border:1px solid #385b70';if(multi)i.rows=3;w.append(i);form.append(w);return i;};
+  const fName=field('Name',notes.name),fCat=field('Category',notes.category),fTags=field('Tags (comma separated)',(notes.tags||[]).join(', ')),fGroup=field('Group',notes.group),fText=field('Notes',notes.text,true);
+  const place=(notes.possiblePlacements||[])[0]||{},fStage=field('Possible stage / scene (your guess)',place.stage),fConf=elt('select');for(const c of ['low','medium','high']){const o=elt('option',null,'Confidence: '+c);o.value=c;fConf.append(o);}fConf.value=place.confidence||'low';form.append(fConf);
+  const save=elt('button','frx-relationship','Save notes'),said=elt('span',null,'');save.type='button';
+  save.onclick=async()=>{const r=await C.run('library.annotate',{id,notes:{name:fName.value,category:fCat.value,tags:fTags.value.split(',').map(t=>t.trim()).filter(Boolean),group:fGroup.value,text:fText.value,
+    possiblePlacements:fStage.value.trim()?[{stage:fStage.value.trim(),confidence:fConf.value,note:''}]:[]}});said.textContent=r.ok?' Saved.':' '+r.error.message;if(r.ok){n.name=fName.value||n.name;}};
+  form.append(save,said);tools.append(form);
+ })().catch(err=>{host.replaceChildren(elt('div','frx-preview-message',err.message));});
+}
 function renderSourceViewer(n,host,tools,caption){
  const service=window.Forge.services.InvestigatedLibrary,item=n.sourceResource;
  let view=sourceViews.get(n.key);if(!view){if(sourceViews.size>=256)sourceViews.delete(sourceViews.keys().next().value);view={page:0,frame:0,contextSceneId:item.request.contextSceneId};sourceViews.set(n.key,view);}
@@ -522,7 +588,11 @@ function openContextWorld(worldId){const w=S.worlds.find(x=>x.id===worldId);if(!
 function unavailable(message){
  graph=liveGraph();active=null;contextNote=message;render();
 }
-async function navigate(){if(mode!=='live')return;const n=nodeByKey(active);
+async function navigate(){
+ if(mode==='library'){const n=nodeByKey(active);if(!n?.libraryEntry?.loads)return;
+  if(window.Forge15?.dirty&&!confirm('Open this project from the library? Save your current project first to keep its changes.'))return;
+  const r=await window.Forge.commands.run('library.openProject',{id:n.libraryEntry.id});if(!r.ok){contextNote=r.error.message;render();return;}close();return;}
+ if(mode!=='live')return;const n=nodeByKey(active);
  if(n?.apuAuditDigest){
   try{
    const evidence=window.Forge.services.RecoveryAPUSourceCatalog.info(n.apuAuditDigest);
@@ -577,7 +647,7 @@ function open(resourceKey){
  if(!exact&&graph.nodes.size<9)setMode('demo');
  $('close').focus();
 }
-button.addEventListener('click',open);$('close').onclick=close;$('follow').onchange=()=>setFollow($('follow').checked);$('live').onclick=()=>setMode('live');$('demo').onclick=()=>setMode('demo');$('refresh').onclick=()=>{if(mode==='live')setMode('live');else setMode('demo');};$('active').onclick=()=>{if(mode!=='live')setMode('live');active=key('scene',S.scenes[S.activeScene]?.id);render();};$('open-editor').onclick=navigate;$('search').oninput=render;$('kind').onchange=render;$('scope').onchange=render;
+button.addEventListener('click',open);$('close').onclick=close;$('follow').onchange=()=>setFollow($('follow').checked);$('live').onclick=()=>setMode('live');$('demo').onclick=()=>setMode('demo');$('lib').onclick=()=>setMode('library');$('refresh').onclick=()=>{if(mode==='live')setMode('live');else setMode('demo');};$('active').onclick=()=>{if(mode!=='live')setMode('live');active=key('scene',S.scenes[S.activeScene]?.id);render();};$('open-editor').onclick=navigate;$('search').oninput=render;$('kind').onchange=render;$('scope').onchange=render;
 root.addEventListener('mousedown',e=>{if(e.target===root)close();});root.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();}else if(e.key==='Tab'){const focusable=[...root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled])')].filter(n=>n.offsetParent!==null);if(focusable.length){const first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}e.stopPropagation();});
 // Legacy document keyboard handling uses capture listeners. Keep Escape a real
 // close control even when another app editor has installed global key handlers.
