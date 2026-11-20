@@ -98,6 +98,9 @@ if args.cartridges:
     record(run('punch-out-pose-geometry',['node',QA/'punch-out-pose-geometry.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
     receipt=output/'ninja-stage-table.json'
     record(run('ninja-stage-table',['node',QA/'ninja-stage-table.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
+    if args.browser:
+        receipt=output/'catalog-persistence.json'
+        record(run('catalog-persistence',['node',QA/'catalog-persistence.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
     receipt=output/'native-corpus.json'
     raw_args=['node',QA/'native-corpus.cjs',EDITOR,receipt,args.cartridges.resolve()]
     if args.extractions:
