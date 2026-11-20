@@ -10163,18 +10163,26 @@ function emit(plan,api,z,{world=false}={}){
       jmp(done);label(nextState);
     }label(done);
   }e(0x60);
+  const metaRoutines=new Map();
   label(uniquePrefix+'draw');
   for(const actor of plan.actors){if(actor.components.includes('Input')||!actor.renderEnabled)continue;const prefix=uniquePrefix+'draw_'+actor.slot,skip=prefix+'_skip';lda(actorAddress('active',actor.slot));b(0xF0,skip);if(world){lda(actorAddress('screen',actor.slot));e(0xC5,z.screen);b(0xD0,skip);}if(actor.render.pieces){
-    // Metasprite: pieces relative to the actor's position (its feet); mirrored when it moves left. Pieces that would
-    // wrap past a screen edge are skipped.
-    lda(actorAddress('y',actor.slot));b(0xF0,skip);
-    const emitPieces=mirror=>actor.render.pieces.forEach((p,i)=>{const next=prefix+'_p'+i+(mirror?'m':''),dx=mirror?-p.x-8:p.x;
-      ld(z.oamIndex);cmp(253);b(0xB0,skip);e(0xAA);
-      lda(actorAddress('x',actor.slot));e(0x18,0x69,dx&255);b(dx>=0?0xB0:0x90,next);abs(0x9D,0x0203);
-      lda(actorAddress('y',actor.slot));e(0x18,0x69,(p.y-1)&255);abs(0x9D,0x0200);imm(p.tile&255);abs(0x9D,0x0201);imm((mirror?p.attr^0x40:p.attr)&255);abs(0x9D,0x0202);
-      ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(next);});
-    lda(actorAddress('direction',actor.slot));b(0xD0,prefix+'_mirror');emitPieces(false);jmp(skip);label(prefix+'_mirror');emitPieces(true);label(skip);continue;}
+    // Metasprite: one shared drawing routine per distinct metasprite (and its mirror), called with the actor's slot in Y.
+    const key=JSON.stringify(actor.render.pieces);if(!metaRoutines.has(key))metaRoutines.set(key,{name:uniquePrefix+'meta_'+metaRoutines.size,pieces:actor.render.pieces});
+    const routine=metaRoutines.get(key).name;
+    lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0xA0,actor.slot);lda(actorAddress('direction',actor.slot));b(0xD0,prefix+'_mirror');jsr(routine);jmp(skip);
+    label(prefix+'_mirror');jsr(routine+'_m');label(skip);continue;}
   ld(z.oamIndex);cmp(253);b(0xB0,skip);e(0xAA);lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0x38,0xE9,1);abs(0x9D,0x0200);imm(actor.render.tile&255);abs(0x9D,0x0201);imm((actor.render.palette&3)|(actor.render.behind?32:0));abs(0x9D,0x0202);lda(actorAddress('x',actor.slot));abs(0x9D,0x0203);ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(skip);}e(0x60);
+  // Metasprite routines: pieces relative to the actor's position (its feet), Y = actor slot; mirrored copies flip X and
+  // the horizontal flip bit. Pieces that would wrap past a screen edge are skipped; a full OAM ends the routine.
+  for(const {name,pieces}of metaRoutines.values())for(const mirror of [false,true]){
+    const entry=name+(mirror?'_m':''),done=entry+'_done';label(entry);
+    pieces.forEach((p,i)=>{const next=entry+'_p'+i,dx=mirror?-p.x-8:p.x;
+      ld(z.oamIndex);cmp(253);b(0xB0,done);e(0xAA);
+      abs(0xB9,A.x);e(0x18,0x69,dx&255);b(dx>=0?0xB0:0x90,next);abs(0x9D,0x0203);
+      abs(0xB9,A.y);e(0x18,0x69,(p.y-1)&255);abs(0x9D,0x0200);imm(p.tile&255);abs(0x9D,0x0201);imm((mirror?p.attr^0x40:p.attr)&255);abs(0x9D,0x0202);
+      ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(next);});
+    label(done);e(0x60);
+  }
   const codeEnd=current();if(codeEnd>0xCFF0)fail('Generated actor evaluator exceeds the current NROM code/resource region');
   return{zp:{temp,temp2,lastScreen},arrays:A,actorCount:plan.actors.length,variableCount:plan.variables.length,labels:{init:uniquePrefix+'init',reconstruct:uniquePrefix+'reconstruct',update:uniquePrefix+'update',draw:uniquePrefix+'draw'}};
 }
