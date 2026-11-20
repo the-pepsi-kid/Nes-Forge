@@ -49,6 +49,28 @@ function compile(spec){
     if(!Array.isArray(screen.markers)||screen.markers.length>240)fail('A screen supports at most 240 markers');
     for(const marker of screen.markers){integer(marker.x,0,255,'Marker X');integer(marker.y,0,239,'Marker Y');integer(marker.targetScreen,0,screens.length-1,'Marker destination');integer(marker.targetX,0,255,'Destination X');integer(marker.targetY,0,239,'Destination Y');}
   }
+  // chrSelect: the engine selects each world's CHR bank on screen loads (mapper 3). It is needed with several graphics
+  // banks, and with one bank when the authoring record is stored in CHR data banks (layout 5).
+  const chrSelect=(spec.chrBanks||1)>1||spec.chrSelect===true;
+  if(spec.chrBanks!==undefined||chrSelect){
+    integer(spec.chrBanks??1,1,4,'CHR bank count');
+    if(chrSelect){
+      const worldsUsed=Math.max(...screens.map(sc=>sc.worldIndex??0))+1;
+      if(!Array.isArray(spec.worldChrBank)||spec.worldChrBank.length<worldsUsed)fail('Every world needs a CHR bank');
+      spec.worldChrBank.forEach((bank,i)=>integer(bank,0,(spec.chrBanks??1)-1,'World '+i+' CHR bank'));
+      if(spec.cameraMode==='smoothHorizontal')fail('Per-world CHR banks need screen transitions between worlds');
+    }
+  }
+  // Stairs: per-screen diagonal segments {x, y (feet at the bottom end), len (pixels), dir (0 up-right, 1 up-left)}.
+  let stairTotal=0;
+  for(const [i,screen]of screens.entries()){
+    if(screen.stairs===undefined)continue;
+    if(!Array.isArray(screen.stairs)||screen.stairs.length>8)fail('Screen '+i+' supports at most 8 stairs');
+    for(const st of screen.stairs){integer(st.x,0,255,'Stair X');integer(st.y,1,239,'Stair Y');integer(st.len,2,200,'Stair length');integer(st.dir,0,1,'Stair direction');
+      const tx=st.x+(st.dir?-st.len:st.len);if(tx<0||tx>255||st.y-st.len<1)fail('Screen '+i+' stair leaves its screen');}
+    stairTotal+=screen.stairs.length;
+  }
+  if(stairTotal>255)fail('At most 255 stairs');
   // Lossless, automatically selected column-dictionary storage for smooth Worlds.
   // The PPU receives the original exact tile and attribute bytes. The engine's
   // discrete-screen path retains its previous raw nametable representation.
@@ -70,6 +92,8 @@ function compile(spec){
   const names=['ready','tickLo','tickHi','buttons','previousButtons','edges','screen','renderedScreen','playerX','playerY','velocityY','grounded','playerState','playerFrame','playerRemaining','playerFacing','eventMask','eventCount','frameReady','oamReady','wanted','moveDirection','steps','attackRequest','collisionEdge','candidateScreen','candidateX','candidateY','blocked','solid','sampleX','sampleXHi','sampleY','sampleYHi','endX','endXHi','endY','endYHi','queryScreen','queryX','queryY','byteOffset','bitMask','temp','temp2','ptr','ptrHi','animPtr','animPtrHi','framePtr','framePtrHi','piecePtr','piecePtrHi','pieceCount','pieceOffset','pieceX','pieceY','pieceTile','pieceAttr','oamIndex','markerCount','markerPtr','markerPtrHi','transition','worldIndex','roomIndex','cameraIndex','screenX','screenY','cameraScreen','bodyPtr','bodyPtrHi','viewLo','viewHi','renderX','renderHi','wishLo','wishHi','scrollCommit','streamPending','streamScreen','streamColumn','streamDir','streamPtr','streamPtrHi','streamRows','streamAttrOffset','streamAttrMask','streamAttrInverse','streamScratch','streamDestHi','upload0','upload1','enemyScreen','enemyX','enemyY','enemyFacing','enemyFrame','enemyRemaining','enemyTimer','enemyBob','enemyPhase','enemyPieceCount','enemyPieceOffset','enemyFramePtr','enemyFramePtrHi','enemyPiecePtr','enemyPiecePtrHi','enemyPieceX','enemyPieceY','enemyPieceTile','enemyPieceAttr','enemyRenderX','enemyRenderHi','hurtTimer','enemyPathIndex','enemyPathDirection','enemyPathWait','enemyTargetScreen','enemyTargetX','enemyTargetY','enemyRetreatSteps','enemyRetreatVertical','enemyContactScreen','enemyContactX','enemyContactY','enemyPieceHi','oamPriority'];
   if(names.length>0x80)fail('World zero-page allocation overlaps the audio runtime');
   const Z=Object.fromEntries(names.map((name,i)=>[name,i]));
+  // Stair state lives in absolute RAM (zero page is full): on-stair flag, position along the stair, length, direction.
+  const stairsOn=screens.some(sc=>(sc.stairs||[]).length),SR={on:0x0680,pos:0x0681,len:0x0682,dir:0x0683,cnt:0x0684};
   const bytes=[],labels={},fixups=[],resources=[];let pc=0x8000,serial=0;
   function e(...values){for(const value of values){integer(value,0,255,'Opcode/data byte');bytes[pc++-0x8000]=value;}}
   function word(v){e(v&255,v>>>8);}
@@ -107,6 +131,9 @@ function compile(spec){
   // only after a second vblank with complete OAM and zero scroll.
   label('change_screen');set(Z.transition,1);imm(8);abs(0x8D,0x2000);abs(0xAD,0x2002);label('transition_vblank');abs(0xAD,0x2002);b(0x10,'transition_vblank');imm(0);abs(0x8D,0x2001);jsr('load_screen');jsr('draw_all');jsr('enable_screen');set(Z.transition,0);e(0x60);
   label('load_screen');jsr('publish_screen');
+  // CNROM profile: one 8 KB CHR bank per world group. Rendering is off here (boot or change_screen). The value is
+  // written to a ROM byte holding the same value, so the write is safe on boards with bus conflicts.
+  if(chrSelect){e(0xA6,Z.worldIndex);abs(0xBD,'world_chr_table');e(0xAA);abs(0x9D,'chr_lut_table');}
   if(smooth){
     // Slot 0 owns even world screens, slot 1 owns odd screens.
     copy(Z.viewHi,Z.upload0);ld(Z.viewHi);add(1);e(0xC9,screens.length);b(0x90,'load_next_valid');copy(Z.viewHi,Z.upload1);jmp('load_parity');label('load_next_valid');st(Z.upload1);
@@ -153,7 +180,7 @@ function compile(spec){
   label('enable_screen');abs(0xAD,0x2002);label('enable_vblank');abs(0xAD,0x2002);b(0x10,'enable_vblank');imm(0);abs(0x8D,0x2003);st(Z.oamReady);st(Z.frameReady);imm(2);abs(0x8D,0x4014);imm(0);abs(0x8D,0x2005);abs(0x8D,0x2005);if(smooth){ld(Z.viewHi);e(0x29,1,0x09,0x88);abs(0x8D,0x2000);ld(Z.viewLo);abs(0x8D,0x2005);imm(0);abs(0x8D,0x2005);}else{imm(0x88);abs(0x8D,0x2000);}imm(0x1E);abs(0x8D,0x2001);e(0x60);
   label('publish_screen');e(0xA6,Z.screen);for(const name of['worldIndex','roomIndex','cameraIndex','screenX','screenY','cameraScreen']){abs(0xBD,name+'_table');st(Z[name]);}e(0x60);
   label('restart');set(Z.screen,start.screen);set(Z.playerX,start.x);set(Z.playerY,start.y);set(Z.playerFacing,player.facing);set(Z.eventCount,0);jsr('reset_actor');if(enemy)jsr('enemy_reset');if(smooth){jsr('scroll_follow');copy(Z.wishLo,Z.viewLo);copy(Z.wishHi,Z.viewHi);}if(spec.gameplayCore?.enabled)jsr('gc_world_reconstruct');e(0x60);
-  label('reset_actor');for(const name of['velocityY','playerState','playerFrame','moveDirection','attackRequest'])set(Z[name],0);jsr('player_entry');jsr('ground_probe');e(0x60);
+  label('reset_actor');for(const name of['velocityY','playerState','playerFrame','moveDirection','attackRequest'])set(Z[name],0);if(stairsOn){imm(0);abs(0x8D,SR.on);}jsr('player_entry');jsr('ground_probe');e(0x60);
   if(smooth){
     // wish = max(0, min(playerWorldX-128, (width-1)*256)).
     label('scroll_follow');ld(Z.playerX);sub(128);st(Z.wishLo);ld(Z.screen);e(0xE9,0);st(Z.wishHi);
@@ -216,12 +243,44 @@ function compile(spec){
   }
   label('read_pad');imm(1);abs(0x8D,0x4016);imm(0);abs(0x8D,0x4016);set(Z.buttons,0);e(0xA2,8);label('pad_bit');abs(0xAD,0x4016);e(0x4A,0x66,Z.buttons,0xCA);b(0xD0,'pad_bit');ld(Z.buttons);e(0x45,Z.previousButtons,0x25,Z.buttons);st(Z.edges);copy(Z.buttons,Z.previousButtons);e(0x60);
   label('update');set(Z.eventMask,0);set(Z.attackRequest,0);jsr('read_pad');ld(Z.edges);e(0x29,8);b(0xF0,'not_restart');jsr('restart');e(0x60);label('not_restart');ld(Z.edges);e(0x29,16);b(0xF0,'not_marker');jsr('use_marker');ld(Z.temp2);b(0xF0,'not_marker');e(0x60);label('not_marker');
-  ld(Z.edges);e(0x29,2);b(0xF0,'no_attack_edge');ld(Z.playerState);e(0xC9,3);b(0xF0,'no_attack_edge');set(Z.attackRequest,1);label('no_attack_edge');jsr('horizontal');ld(Z.edges);e(0x29,1);b(0xF0,'no_jump');ld(Z.grounded);b(0xF0,'no_jump');set(Z.velocityY,-physics.jumpSpeed);set(Z.grounded,0);label('no_jump');jsr('vertical');jsr('choose_player');jsr('player_animate');if(enemy)jsr('enemy_update');if(spec.gameplayCore?.enabled)jsr('gc_world_update');e(0x60);
+  if(stairsOn){jsr('stair_update');abs(0xAD,SR.on);b(0xF0,'stair_free');jmp('after_physics');label('stair_free');}
+  ld(Z.edges);e(0x29,2);b(0xF0,'no_attack_edge');ld(Z.playerState);e(0xC9,3);b(0xF0,'no_attack_edge');set(Z.attackRequest,1);label('no_attack_edge');jsr('horizontal');ld(Z.edges);e(0x29,1);b(0xF0,'no_jump');ld(Z.grounded);b(0xF0,'no_jump');set(Z.velocityY,-physics.jumpSpeed);set(Z.grounded,0);label('no_jump');jsr('vertical');label('after_physics');jsr('choose_player');jsr('player_animate');if(enemy)jsr('enemy_update');if(spec.gameplayCore?.enabled)jsr('gc_world_update');e(0x60);
   // A feet origin is the exclusive body bottom: use its last occupied pixel
   // to activate the authored marker above a floor at a metatile boundary.
   // A direct cell index bounds Up processing independently of marker count.
   // Its 240 bytes precede compact three-byte destination records. The first
   // authored marker in a cell wins, matching the original ordered lookup.
+  if(stairsOn){
+    // Enter: standing, on an Up press near a stair's bottom end or a Down press near its top end (within 6 px).
+    label('stair_update');abs(0xAD,SR.on);b(0xF0,'stair_enter_check');jmp('stair_move');
+    label('stair_enter_check');ld(Z.grounded);b(0xF0,'stair_rts');ld(Z.edges);e(0x29,0x30);b(0xF0,'stair_rts');
+    e(0xA6,Z.screen);abs(0xBD,'stair_count_table');b(0xF0,'stair_rts');abs(0x8D,SR.cnt);abs(0xBD,'stair_first_table');e(0xAA);
+    label('stair_scan');ld(Z.edges);e(0x29,0x10);b(0xF0,'stair_try_top');
+    ld(Z.playerY);abs(0xDD,'stair_by');b(0xD0,'stair_next');ld(Z.playerX);e(0x38);abs(0xFD,'stair_bx');add(6);e(0xC9,13);b(0xB0,'stair_next');
+    abs(0xBD,'stair_bx');st(Z.playerX);imm(0);abs(0x8D,SR.pos);jmp('stair_enter');
+    label('stair_try_top');ld(Z.playerY);abs(0xDD,'stair_ty');b(0xD0,'stair_next');ld(Z.playerX);e(0x38);abs(0xFD,'stair_tx');add(6);e(0xC9,13);b(0xB0,'stair_next');
+    abs(0xBD,'stair_tx');st(Z.playerX);abs(0xBD,'stair_len');abs(0x8D,SR.pos);jmp('stair_enter');
+    label('stair_next');e(0xE8);abs(0xCE,SR.cnt);b(0xD0,'stair_scan');label('stair_rts');e(0x60);
+    label('stair_enter');abs(0xBD,'stair_len');abs(0x8D,SR.len);abs(0xBD,'stair_dir');abs(0x8D,SR.dir);imm(1);abs(0x8D,SR.on);set(Z.velocityY,0);set(Z.grounded,1);e(0x60);
+    // Move: Up or the stair's horizontal direction climbs, Down or the opposite descends, one pixel diagonally per
+    // frame; reaching either end steps off (gravity resumes on the landing or floor).
+    label('stair_move');set(Z.moveDirection,0);set(Z.grounded,1);set(Z.velocityY,0);
+    ld(Z.buttons);e(0x29,0x10);b(0xD0,'stair_up');
+    abs(0xAD,SR.dir);b(0xD0,'stair_upkey_left');ld(Z.buttons);e(0x29,0x80);b(0xD0,'stair_up');jmp('stair_downkeys');
+    label('stair_upkey_left');ld(Z.buttons);e(0x29,0x40);b(0xD0,'stair_up');
+    label('stair_downkeys');ld(Z.buttons);e(0x29,0x20);b(0xD0,'stair_down');
+    abs(0xAD,SR.dir);b(0xD0,'stair_downkey_right');ld(Z.buttons);e(0x29,0x40);b(0xD0,'stair_down');e(0x60);
+    label('stair_downkey_right');ld(Z.buttons);e(0x29,0x80);b(0xD0,'stair_down');e(0x60);
+    label('stair_up');abs(0xAD,SR.pos);abs(0xCD,SR.len);b(0xB0,'stair_exit');abs(0xEE,SR.pos);e(0xC6,Z.playerY);
+    abs(0xAD,SR.dir);b(0xD0,'stair_up_left');e(0xE6,Z.playerX);set(Z.playerFacing,0);set(Z.moveDirection,1);jmp('stair_moved_up');
+    label('stair_up_left');e(0xC6,Z.playerX);set(Z.playerFacing,1);set(Z.moveDirection,255);
+    label('stair_moved_up');abs(0xAD,SR.pos);abs(0xCD,SR.len);b(0xD0,'stair_rts2');jmp('stair_exit');
+    label('stair_down');abs(0xAD,SR.pos);b(0xF0,'stair_exit');abs(0xCE,SR.pos);e(0xE6,Z.playerY);
+    abs(0xAD,SR.dir);b(0xD0,'stair_down_right');e(0xC6,Z.playerX);set(Z.playerFacing,1);set(Z.moveDirection,255);jmp('stair_moved_down');
+    label('stair_down_right');e(0xE6,Z.playerX);set(Z.playerFacing,0);set(Z.moveDirection,1);
+    label('stair_moved_down');abs(0xAD,SR.pos);b(0xD0,'stair_rts2');
+    label('stair_exit');imm(0);abs(0x8D,SR.on);label('stair_rts2');e(0x60);
+  }
   label('use_marker');set(Z.temp2,0);ld(Z.playerY);b(0xF0,'marker_done');sub(1);e(0x29,0xF0);st(Z.temp);ld(Z.playerX);e(0x4A,0x4A,0x4A,0x4A,0x05,Z.temp,0xA8);tablePointer('markers',Z.screen,Z.markerPtr);e(0xB1,Z.markerPtr,0xC9,255);b(0xF0,'marker_done');
   st(Z.temp);e(0x0A);st(Z.byteOffset);imm(0);e(0x69,0);st(Z.bitMask);ld(Z.byteOffset);zpadd(Z.temp);st(Z.byteOffset);ld(Z.bitMask);e(0x69,0);st(Z.bitMask);ld(Z.byteOffset);add(240);st(Z.byteOffset);ld(Z.bitMask);e(0x69,0);st(Z.bitMask);
   ld(Z.markerPtr);zpadd(Z.byteOffset);st(Z.ptr);ld(Z.markerPtr+1);e(0x65,Z.bitMask);st(Z.ptr+1);e(0xA0,0,0xB1,Z.ptr);st(Z.screen);e(0xC8,0xB1,Z.ptr);st(Z.playerX);e(0xC8,0xB1,Z.ptr);st(Z.playerY);jsr('reset_actor');set(Z.temp2,1);label('marker_done');e(0x60);
@@ -430,6 +489,10 @@ function compile(spec){
   const dataResource=(name,kind,values)=>{label(name);const address=pc;for(const value of values)e(value);resources.push({kind,ownerId:name,address,byteLength:pc-address,alignment:1,region:'PRG',bank:0});};
   dataResource('bit_masks','lookup',Array.from({length:32},(_,i)=>1<<(i&7)));
   dataResource('byte_offsets','lookup',Array.from({length:32},(_,i)=>i>>3));
+  if(stairsOn){const all=[],first=[],count=[];for(const sc of screens){first.push(all.length&255);count.push((sc.stairs||[]).length);all.push(...(sc.stairs||[]));}
+    dataResource('stair_count_table','stairs',count);dataResource('stair_first_table','stairs',first);
+    for(const [k,f] of [['bx',st=>st.x],['by',st=>st.y],['tx',st=>st.x+(st.dir?-st.len:st.len)],['ty',st=>st.y-st.len],['len',st=>st.len],['dir',st=>st.dir]])dataResource('stair_'+k,'stairs',all.map(st=>f(st)&255));}
+  if(chrSelect){dataResource('world_chr_table','chr-bank',spec.worldChrBank);dataResource('chr_lut_table','chr-bank-lut',Array.from({length:spec.chrBanks||1},(_,i)=>i));}
   for(const key of['left','right','up','down','worldIndex','roomIndex','cameraIndex','screenX','screenY','cameraScreen'])dataResource(key+'_table','screen-index',screens.map((screen,index)=>(screen[key]??(key==='cameraScreen'?index:0))&255));
   const refs={nt:[],collision:[],pal:[],markers:[]},data=[];
   for(const kind of Object.keys(refs)){
@@ -458,7 +521,7 @@ function compile(spec){
   for(const record of data)dataResource(record.name,record.kind,record.values);
   const dataEnd=pc;if(dataEnd>0xCFF0){const required=dataEnd-0x8000,available=0xCFF0-0x8000;fail('NROM / Mapper 0 PRG allocation exceeded by '+(required-available)+' bytes (required '+required+', available '+available+'). The full World and all authored assets remain unchanged. This build needs resource/code optimization or a future banked-mapper backend; reducing the World is not automatic.');}
   for(const fixup of fixups){const value=labels[fixup.name];if(value===undefined)fail('Unknown engine label '+fixup.name);const i=fixup.at-0x8000;if(fixup.part)bytes[i]=fixup.part==='lo'?value&255:value>>>8;else{bytes[i]=value&255;bytes[i+1]=value>>>8;}}
-  return{bytes:new Uint8Array(bytes),reset:labels.reset,nmi:labels.nmi,irq:labels.irq,symbols:{...Z,states:{idle:0,walk:1,jump:2,attack:3},audio:audioRuntime?.zp||null,gameplay:gameplayRuntime,labels:{...labels}},codeEnd,dataEnd,resources};
+  return{bytes:new Uint8Array(bytes),chrSelect,reset:labels.reset,nmi:labels.nmi,irq:labels.irq,symbols:{...Z,states:{idle:0,walk:1,jump:2,attack:3},audio:audioRuntime?.zp||null,gameplay:gameplayRuntime,labels:{...labels}},codeEnd,dataEnd,resources};
 }
 services.WorldEngine=Object.freeze({compile});
 })();

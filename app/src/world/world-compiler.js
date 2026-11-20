@@ -16,7 +16,7 @@ function diagnostic(severity,code,message,phase){return {severity,code,message,p
 function validTile(tile,label){if(!Array.isArray(tile)||tile.length!==8||tile.some(row=>!Array.isArray(row)||row.length!==8||row.some(v=>!Number.isInteger(v)||v<0||v>3)))fail(label+' needs an 8×8 tile of pixel values 0–3');return tile;}
 function tileBank(label){
  const tiles=[],keys=new Map();
- function add(tile,owner){validTile(tile,owner);const key=tile.map(row=>row.join('')).join('');if(keys.has(key))return keys.get(key);if(tiles.length>=256)fail(label+' exceeds the 256-tile NROM bank after linking; reduce distinct used graphics');const index=tiles.length;tiles.push(copy(tile));keys.set(key,index);return index;}
+ function add(tile,owner){validTile(tile,owner);const key=tile.map(row=>row.join('')).join('');if(keys.has(key))return keys.get(key);if(tiles.length>=256)fail(label+' exceeds the 256-tile bank after linking; reduce distinct used graphics');const index=tiles.length;tiles.push(copy(tile));keys.set(key,index);return index;}
  add(Array.from({length:8},()=>Array(8).fill(0)),'Blank tile');return {tiles,add};
 }
 function palette(value,label){if(!Array.isArray(value)||value.length!==4||value.some(row=>!Array.isArray(row)||row.length!==4||row.some(c=>!Number.isInteger(c)||c<0||c>63)))fail(label+' needs four NES palette rows');return copy(value);}
@@ -71,7 +71,24 @@ function plan(input,gameplayCore){
  const startMarker=markersByWorld.get(startWorld.id)?.get(config.spawnId);
  if(!startMarker||!['spawn','entrance'].includes(startMarker.kind))fail('Choose an explicit Spawn or Entrance marker in the starting world');
  const phases=['prepare-snapshot','world-dependencies'],diagnostics=[];
- const background=tileBank('Background graphics'),sprites=tileBank('Player sprite graphics'),spritePalette=palette(selectedScene.sprPal,'Player sprite palette');
+ // CHR plan: one shared 256-tile background bank (NROM) whenever every reachable world's graphics fit together.
+ // Otherwise worlds are grouped into 8 KB CHR banks of 256 background tiles each (CNROM, mapper 3, at most four
+ // banks); the sprite half is the same in every bank. Screen-transition worlds only: smooth streaming is one world.
+ const blankKey=Array(64).fill(0).join(''),tileKey=tile=>Array.isArray(tile)?tile.map(row=>Array.isArray(row)?row.join(''):'').join(''):'';
+ const worldKeys=worlds.map(w=>{const keys=new Set([blankKey]),sc=sceneMap.get(w.tilesetSceneId);if(!sc)return keys;
+  const defs=new Map((sc.metatiles||[]).map(m=>[m.id,m]));
+  for(const id of new Set((Array.isArray(w.map)?w.map:[]).filter(id=>id!==-1))){const m=defs.get(id);if(!m||!Array.isArray(m.tiles))continue;for(const t of m.tiles){const tile=sc.chr?.[t];if(Array.isArray(tile))keys.add(tileKey(tile));}}
+  return keys;});
+ let groups=[worlds.map((_,i)=>i)];
+ if(!smooth&&new Set(worldKeys.flatMap(k=>[...k])).size>256){
+  groups=[];const sets=[];
+  worldKeys.forEach((keys,i)=>{let g=keys.size>256?-1:sets.findIndex(set=>{let n=set.size;for(const k of keys)if(!set.has(k))n++;return n<=256;});
+   if(g<0){g=sets.length;sets.push(new Set());groups.push([]);}for(const k of keys)sets[g].add(k);groups[g].push(i);});
+  if(groups.length>4)fail('These worlds need '+groups.length+' CHR banks of 256 background tiles; the CNROM profile has 4. Share graphics between worlds or reduce them');
+ }
+ const chrBanks=groups.length,worldChrBank=new Array(worlds.length).fill(0);groups.forEach((g,bank)=>g.forEach(i=>{worldChrBank[i]=bank;}));
+ const backgrounds=groups.map((_,bank)=>tileBank(chrBanks>1?'Background graphics (CHR bank '+bank+')':'Background graphics'));
+ const sprites=tileBank('Player sprite graphics'),spritePalette=palette(selectedScene.sprPal,'Player sprite palette');
  const linkedWorlds=[],worldById=new Map(),rooms=[],cameras=[],screens=[];
  for(const [worldIndex,w] of worlds.entries()){
   integer(w.widthScreens,1,16,w.name+' width');integer(w.heightScreens,1,16,w.name+' height');
@@ -85,7 +102,7 @@ function plan(input,gameplayCore){
    if(!Array.isArray(m.tiles)||m.tiles.length!==4||!Array.isArray(m.collision)||m.collision.length!==4)fail('Metatile '+id+' needs four tile and collision quadrants');
    integer(m.pal,0,3,'Metatile '+id+' palette');
    for(const c of m.collision)if(c!==0&&c!==1)fail('Metatile '+id+' uses unsupported collision; World Runtime executes Empty and Solid only');
-   const tiles=m.tiles.map(t=>{integer(t,0,(sc.chr?.length||0)-1,'Metatile '+id+' source CHR tile');return background.add(sc.chr[t],sc.name+' CHR '+t);});
+   const tiles=m.tiles.map(t=>{integer(t,0,(sc.chr?.length||0)-1,'Metatile '+id+' source CHR tile');return backgrounds[worldChrBank[worldIndex]].add(sc.chr[t],sc.name+' CHR '+t);});
    linkedDefinitions.set(id,{id,tiles,pal:m.pal,collision:[...m.collision]});
   }
   for(const id of w.map)if(id!==-1&&!linkedDefinitions.has(id))fail(w.name+' has an invalid or unresolved map cell');
@@ -111,9 +128,18 @@ function plan(input,gameplayCore){
    const cameraY=camera&&['locked','horizontal'].includes(camera.mode)?camera.y/15:sy;
    screens.push({id:w.id+':'+sx+','+sy,index,worldIndex,roomIndex:room?roomIndices.get(room.id):255,cameraIndex:camera?cameraIndices.get(camera.id):255,
     screenX:sx,screenY:sy,cameraScreen:linked.screenStart+cameraY*w.widthScreens+cameraX,nt,collision,palette:[...worldPalette,...actorPalette],left:sx?index-1:-1,right:sx<w.widthScreens-1?index+1:-1,
-    up:sy?index-w.widthScreens:-1,down:sy<w.heightScreens-1?index+w.widthScreens:-1,markers:[]});
+    up:sy?index-w.widthScreens:-1,down:sy<w.heightScreens-1?index+w.widthScreens:-1,markers:[],stairs:[]});
   }
   for(const m of markersByWorld.get(w.id).values()){integer(m.x,0,cols-1,'Marker '+m.id+' X');integer(m.y,0,rows-1,'Marker '+m.id+' Y');}
+  // Stairs (world pixels): bottom end at the player's feet, length in pixels along both axes, climbing right or left.
+  if(w.stairs!==undefined&&!Array.isArray(w.stairs))fail(w.name+' stairs must be a list');
+  for(const st of w.stairs||[]){
+   integer(st.x,0,w.widthScreens*256-1,w.name+' stair X');integer(st.y,1,w.heightScreens*240-1,w.name+' stair Y');integer(st.length,2,200,w.name+' stair length');
+   if(!['right','left'].includes(st.direction))fail(w.name+' stair direction must be right or left');
+   const sx=Math.floor(st.x/256),sy=Math.floor((st.y-1)/240),bx=st.x-sx*256,by=st.y-sy*240,dir=st.direction==='left'?1:0,tx=bx+(dir?-st.length:st.length);
+   if(tx<0||tx>255||by-st.length<1)fail(w.name+' stair '+(st.id||'')+' must stay within one screen');
+   screens[linked.screenStart+sy*w.widthScreens+sx].stairs.push({x:bx,y:by,len:st.length,dir});
+  }
  }
  phases.push('world-validation');
  function paletteMatch(sc,row,label){integer(row,0,3,label+' palette row');const p=palette(sc?.sprPal,label+' source sprite palette');for(let c=1;c<4;c++)if(p[row][c]!==spritePalette[row][c])fail(label+' visible sprite palette differs from the selected player source');}
@@ -185,16 +211,23 @@ function plan(input,gameplayCore){
  }}
  const worldRecords=linkedWorlds.map(w=>({id:w.id,name:w.name,worldIndex:w.worldIndex,widthScreens:w.widthScreens,heightScreens:w.heightScreens,screenStart:w.screenStart})),startLocation=location(startWorld.id,startMarker);
  gameplayCore=gameplayCore||services.GameplayCompiler.plan(source,{backend:'world',executionContext:{reachableWorldIds:[...reached]}});services.GameplayCompiler.locateWorld(gameplayCore,{worlds:worldRecords,rooms,start:startLocation});services.GameplayCompiler.compileSemantics(gameplayCore);
- if(gameplayCore.enabled)for(const actor of gameplayCore.actors){if(actor.components.includes('Input'))continue;const sc=sceneMap.get(actor.render.sourceSceneId||config.playerSceneId);if(!sc)fail('Gameplay Core Actor '+actor.id+' references a missing sprite source Scene');paletteMatch(sc,actor.render.palette,'Gameplay Core Actor '+actor.id);actor.render.tile=spriteTile(sc,actor.render.tile,'Gameplay Core Actor '+actor.id);}
- const chr=new Uint8Array(8192),pad=tiles=>{while(tiles.length<256)tiles.push(Array.from({length:8},()=>Array(8).fill(0)));return tiles;};
- const backgroundTileCount=background.tiles.length,spriteTileCount=sprites.tiles.length;chr.set(encodeTiles(pad(background.tiles)),0);chr.set(encodeTiles(pad(sprites.tiles)),4096);
- const spec={physics,player:{facing:binding.facing==='left'?1:0,animations},start:startLocation,screens,audio,worlds:worldRecords,rooms,cameras,warnings:[],gameplayCore,cameraMode:smooth?'smoothHorizontal':'screen',flyingEnemy};
+ if(gameplayCore.enabled)for(const actor of gameplayCore.actors){if(actor.components.includes('Input'))continue;const sc=sceneMap.get(actor.render.sourceSceneId||config.playerSceneId);if(!sc)fail('Gameplay Core Actor '+actor.id+' references a missing sprite source Scene');paletteMatch(sc,actor.render.palette,'Gameplay Core Actor '+actor.id);actor.render.tile=spriteTile(sc,actor.render.tile,'Gameplay Core Actor '+actor.id);if(actor.render.metaspriteId)actor.render.pieces=pieces({metaspriteId:actor.render.metaspriteId},'Gameplay Core Actor '+actor.id);
+  if(actor.render.animationId){const anim=(source.animations||[]).find(item=>item.id===actor.render.animationId);if(!anim||!anim.frames?.length)fail('Gameplay Core Actor '+actor.id+' references a missing or empty animation');
+   actor.render.frames=anim.frames.map((frame,i)=>{integer(frame.duration,1,120,'Actor animation frame duration');return{pieces:pieces({metaspriteId:frame.metaspriteId},'Gameplay Core Actor '+actor.id+' frame '+(i+1)),duration:frame.duration};});
+   if(actor.render.frames.reduce((n,f)=>n+f.duration,0)>255)fail('Gameplay Core Actor '+actor.id+' animation is longer than 255 frames');}
+  for(const state of actor.behavior?.states||[])for(const op of [...(state.onTick||[]),...(state.onEnter||[])])if(op.type==='fireProjectile'){actor.projectileTiles=actor.projectileTiles||{};actor.projectileTiles[op.tile]=spriteTile(sc,op.tile,'Gameplay Core Actor '+actor.id+' projectile');}}
+ const chr=new Uint8Array(8192*chrBanks),pad=tiles=>{while(tiles.length<256)tiles.push(Array.from({length:8},()=>Array(8).fill(0)));return tiles;};
+ const backgroundTileCounts=backgrounds.map(bg=>bg.tiles.length),backgroundTileCount=backgroundTileCounts.reduce((n,v)=>n+v,0),spriteTileCount=sprites.tiles.length;
+ const spriteChr=encodeTiles(pad(sprites.tiles));backgrounds.forEach((bg,bank)=>{chr.set(encodeTiles(pad(bg.tiles)),bank*8192);chr.set(spriteChr,bank*8192+4096);});
+ const spec={physics,player:{facing:binding.facing==='left'?1:0,animations},start:startLocation,screens,audio,worlds:worldRecords,rooms,cameras,warnings:[],gameplayCore,cameraMode:smooth?'smoothHorizontal':'screen',flyingEnemy,
+  ...(chrBanks>1?{chrBanks,worldChrBank}:{})};
+ const planProfile=chrBanks>1?Object.freeze({...profile,id:'cnrom-world-screen-transitions',mapper:3,chrBytes:8192*chrBanks,chrBanks}):profile;
  const resources=screens.flatMap(sc=>[{kind:'nametable',ownerId:sc.id,byteLength:1024,alignment:1,region:'PRG',bank:0,address:null},{kind:'collision',ownerId:sc.id,byteLength:120,alignment:1,region:'PRG',bank:0,address:null},{kind:'palette',ownerId:sc.id,byteLength:32,alignment:1,region:'PRG',bank:0,address:null}]);
  const minimumBytes=[['nt',1024],['collision',120],['palette',32]].reduce((sum,[key,size])=>sum+new Set(screens.map(sc=>sc[key].join(','))).size*size,0);
  if(minimumBytes>0x4FF0)fail('Reachable screen resources alone need '+minimumBytes+' bytes and exceed the '+0x4FF0+'-byte code/resource region; reduce the executable world set');
  phases.push('world-screen-pack');
  diagnostics.push(diagnostic('info','world-selection',worlds.length+' reachable world(s), '+screens.length+' screen(s), '+rooms.length+' room region(s), '+cameras.length+' camera region(s).','world-dependencies'));
- diagnostics.push(diagnostic('info','world-graphics',backgroundTileCount+'/256 background tiles and '+spriteTileCount+'/256 sprite tiles linked from actual world/animation/gameplay dependencies.','world-asset-link'));
+ diagnostics.push(diagnostic('info','world-graphics',(chrBanks>1?'CNROM profile: '+chrBanks+' CHR banks, background tiles per bank '+backgroundTileCounts.map(n=>n+'/256').join(', ')+' (worlds switch banks on screen transitions)':backgroundTileCount+'/256 background tiles')+' and '+spriteTileCount+'/256 sprite tiles linked from actual world/animation/gameplay dependencies.','world-asset-link'));
  diagnostics.push(diagnostic('info','world-traversal',smooth?'Multi-screen NES PPU horizontal scroll with background-column streaming; Empty/Solid collision across screen boundaries; Start returns to the selected spawn.':'Screen transitions; Empty/Solid collision; Up enters a linked entrance/exit; Start returns to the selected spawn.','world-screen-pack'));
  diagnostics.push(diagnostic('warning','world-capacity-pending',minimumBytes+' screen-data bytes planned; final code, animation, and compressed authoring sizes are checked during ROM allocation.','world-allocation'));
  diagnostics.push(diagnostic('warning','world-authoring-limits',flyingEnemy?'One opt-in Flying Chaser enemy executes with the Player. Other scene entities, player attack damage, and custom events remain authoring data.':'One bound Player executes. Other scene entities, attack contacts, and custom events remain authoring data.','world-dependencies'));
@@ -217,14 +250,23 @@ function plan(input,gameplayCore){
  if(audio.enabled)diagnostics.push(diagnostic('info','audio-runtime',(audio.musicEnabled?'Tracker music and ':'')+audio.sfx.length+' named SFX compile into World Runtime; linked sound events execute on frame entry.','world-asset-link'));
  else if(source.instruments.length||source.sfx.length)diagnostics.push(diagnostic('warning','audio-authoring','Audio Runtime is disabled; tracker and SFX data remain authoring-only.','world-asset-link'));
  if(gameplayCore.enabled){diagnostics.push(...gameplayCore.diagnostics);diagnostics.push(diagnostic('info','gameplay-core-runtime',gameplayCore.actors.length+' canonical Actor Instance(s) and '+gameplayCore.variables.length+' scoped persistent variable(s) compile into World Runtime.','world-asset-link'));}
- const result={backend:'world',source,profile,phaseOrder,phases,diagnostics,spec,chr,resources,worlds:spec.worlds,pack:false,custom:false,backgroundTileCount,spriteTileCount,gameplayCore};plans.add(result);return result;
+ const result={backend:'world',source,profile:planProfile,phaseOrder,phases,diagnostics,spec,chr,resources,worlds:spec.worlds,pack:false,custom:false,backgroundTileCount,backgroundTileCounts,spriteTileCount,gameplayCore};plans.add(result);return result;
 }
 function compile(p){
  if(!plans.has(p))fail('Compile requires a prepared World Runtime plan');if(p.worldCompiled)fail('A world plan is single-use');p.worldCompiled=true;
- const engine=services.WorldEngine.compile(p.spec);p.phases.push('world-code');
- const artifact=services.WorldRom.package({source:p.source,engine,chr:p.chr,worldCount:p.worlds.length});p.phases.push('world-allocation','world-source-record');
+ let engine=services.WorldEngine.compile(p.spec),artifact;p.phases.push('world-code');
+ try{artifact=services.WorldRom.package({source:p.source,engine,chr:p.chr,worldCount:p.worlds.length});}
+ catch(error){
+  // The authoring record does not fit the 32 KB PRG: rebuild the engine with explicit CHR bank selection so the
+  // record can be stored in CHR data banks (layout 5, mapper 3). The game itself is unchanged.
+  if(engine.chrSelect||!/compressed authoring record needs/.test(error.message))throw error;
+  p.spec={...p.spec,chrSelect:true,chrBanks:p.spec.chrBanks||1,worldChrBank:p.spec.worldChrBank||p.worlds.map(()=>0)};
+  engine=services.WorldEngine.compile(p.spec);artifact=services.WorldRom.package({source:p.source,engine,chr:p.chr,worldCount:p.worlds.length});
+ }
+ p.phases.push('world-allocation','world-source-record');
  p.diagnostics=p.diagnostics.filter(d=>d.code!=='world-capacity-pending');
- p.diagnostics.push(diagnostic('info','world-capacity','World code/resources: '+engine.bytes.length+' bytes; authoring record: '+artifact.metadata.sourceRecordBytes+' bytes; 32 KB PRG + 8 KB CHR.','world-allocation'));
+ const inChr=artifact.metadata.sourceRecordInChr,mapper3=p.chr.length>8192||inChr;
+ p.diagnostics.push(diagnostic('info','world-capacity','World code/resources: '+engine.bytes.length+' bytes; authoring record: '+artifact.metadata.sourceRecordBytes+' bytes'+(inChr?' stored in '+artifact.metadata.chrDataBanks+' CHR data bank(s) the game never selects':'')+'; 32 KB PRG + '+(p.chr.length/1024)+' KB graphics CHR'+(mapper3?' (CNROM, mapper 3)':'')+'.','world-allocation'));
  return {...artifact,world:{spec:p.spec,symbols:engine.symbols,codeEnd:engine.codeEnd,dataEnd:engine.dataEnd,resources:engine.resources,rom:artifact.rom}};
 }
 services.WorldCompiler={profile,phaseOrder,plan,compile,lastBuild:null};

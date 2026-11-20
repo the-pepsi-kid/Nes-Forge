@@ -6170,7 +6170,10 @@ function dims(w){return {cols:w.widthScreens*COLS_PER_SCREEN,rows:w.heightScreen
 function normalizeRoom(r,w){const d=dims(w);return {id:String(r?.id||uid('room')),name:String(r?.name||'Room').slice(0,80),x:clamp(r?.x,0,d.cols-1),y:clamp(r?.y,0,d.rows-1),w:clamp(r?.w,1,d.cols,16),h:clamp(r?.h,1,d.rows,15)};}
 function normalizeMarker(m,w){const d=dims(w),kind=['entrance','spawn','exit'].includes(m?.kind)?m.kind:'entrance';return {id:String(m?.id||uid('mark')),name:String(m?.name||kind).slice(0,80),kind,x:clamp(m?.x,0,d.cols-1),y:clamp(m?.y,0,d.rows-1),targetWorldId:String(m?.targetWorldId||''),targetMarkerId:String(m?.targetMarkerId||'')};}
 function normalizeCamera(r,w){const d=dims(w);return {id:String(r?.id||uid('cam')),name:String(r?.name||'Camera').slice(0,80),x:clamp(r?.x,0,d.cols-1),y:clamp(r?.y,0,d.rows-1),w:clamp(r?.w,1,d.cols,16),h:clamp(r?.h,1,d.rows,15),mode:['follow','locked','horizontal','vertical'].includes(r?.mode)?r.mode:'follow'};}
-function normalizeWorld(raw={}){const ws=clamp(raw.widthScreens,1,MAX_SCREENS_X,1),hs=clamp(raw.heightScreens,1,MAX_SCREENS_Y,1),w={id:String(raw.id||uid('world')),name:String(raw.name||'World').slice(0,100),tilesetSceneId:String(raw.tilesetSceneId||S.scenes[0]?.id||''),widthScreens:ws,heightScreens:hs,map:[],rooms:[],markers:[],cameraRegions:[]};const d=dims(w),src=Array.isArray(raw.map)?raw.map:[];w.map=Array.from({length:d.cols*d.rows},(_,i)=>{const v=Number(src[i]);return Number.isInteger(v)&&v>=-1&&v<=254?v:-1});w.rooms=(Array.isArray(raw.rooms)?raw.rooms:[]).slice(0,128).map(r=>normalizeRoom(r,w));w.markers=(Array.isArray(raw.markers)?raw.markers:[]).slice(0,256).map(m=>normalizeMarker(m,w));w.cameraRegions=(Array.isArray(raw.cameraRegions)?raw.cameraRegions:[]).slice(0,128).map(r=>normalizeCamera(r,w));return w;}
+function normalizeWorld(raw={}){const ws=clamp(raw.widthScreens,1,MAX_SCREENS_X,1),hs=clamp(raw.heightScreens,1,MAX_SCREENS_Y,1),w={id:String(raw.id||uid('world')),name:String(raw.name||'World').slice(0,100),tilesetSceneId:String(raw.tilesetSceneId||S.scenes[0]?.id||''),widthScreens:ws,heightScreens:hs,map:[],rooms:[],markers:[],cameraRegions:[]};const d=dims(w),src=Array.isArray(raw.map)?raw.map:[];w.map=Array.from({length:d.cols*d.rows},(_,i)=>{const v=Number(src[i]);return Number.isInteger(v)&&v>=-1&&v<=254?v:-1});w.rooms=(Array.isArray(raw.rooms)?raw.rooms:[]).slice(0,128).map(r=>normalizeRoom(r,w));w.markers=(Array.isArray(raw.markers)?raw.markers:[]).slice(0,256).map(m=>normalizeMarker(m,w));w.cameraRegions=(Array.isArray(raw.cameraRegions)?raw.cameraRegions:[]).slice(0,128).map(r=>normalizeCamera(r,w));if(Array.isArray(raw.stairs)&&raw.stairs.length)w.stairs=raw.stairs.slice(0,128).map(st=>normalizeStair(st,w));return w;}
+// Stairs (world pixels): bottom end at the player's feet, length in pixels, climbing right or left. Kept only when a
+// world has stairs, so projects without them serialize exactly as before.
+function normalizeStair(raw={},w){const d=dims(w);return{id:String(raw.id||uid('stair')),name:String(raw.name||'Stair').slice(0,100),x:clamp(raw.x,0,d.cols*16-1,0),y:clamp(raw.y,1,d.rows*16-1,1),length:clamp(raw.length,2,200,16),direction:raw.direction==='left'?'left':'right'};}
 function ensureWorlds(){if(!Array.isArray(S.worlds))S.worlds=[];if(S.worlds.length>MAX_WORLDS)S.worlds.length=MAX_WORLDS;for(let i=0;i<S.worlds.length;i++){const w=S.worlds[i],sx=Number(w?.widthScreens),sy=Number(w?.heightScreens),expected=Number.isInteger(sx)&&Number.isInteger(sy)?sx*COLS_PER_SCREEN*sy*ROWS_PER_SCREEN:-1;if(!w||typeof w!=='object'||!Number.isInteger(sx)||sx<1||sx>MAX_SCREENS_X||!Number.isInteger(sy)||sy<1||sy>MAX_SCREENS_Y||!Array.isArray(w.map)||w.map.length!==expected)S.worlds[i]=normalizeWorld(w||{});}W.selected=clamp(W.selected,0,Math.max(0,S.worlds.length-1));return S.worlds;}
 function world(){ensureWorlds();return S.worlds[W.selected]||null}
 function validMetaIds(w=world()){const sc=tilesetScene(w);return new Set((sc?.metatiles||[]).map(m=>m.id));}
@@ -9223,13 +9226,13 @@ const comparisonOperators=['eq','ne','lt','lte','gt','gte'];
 const inputKeys=['a','b','select','start','up','down','left','right'];
 const field=(key,type,options={})=>Object.freeze({key,type,required:options.required!==false,...options});
 const operationSchemas=Object.freeze({
- condition:Object.freeze({always:[],inputHeld:[field('key','enum',{values:inputKeys,default:'left'})],inputEdge:[field('key','enum',{values:inputKeys,default:'a'})],grounded:[],airborne:[],timerDone:[field('timer','id',{default:'main'})],compare:[field('field','enum',{values:['x','y','velocityX','velocityY'],default:'x'}),field('operator','enum',{values:comparisonOperators,default:'eq'}),field('value','int',{min:-4095,max:4095,default:0})],overlapPlayer:[],healthCompare:[field('operator','enum',{values:comparisonOperators,default:'eq'}),field('value','int',{min:0,max:255,default:0})],animationComplete:[],animationEvent:[field('event','id',{default:'event'})],triggerReceived:[field('trigger','id',{default:'trigger'})],persistentCompare:[field('variableId','persistent',{default:''}),field('operator','enum',{values:comparisonOperators,default:'eq'}),field('value','persistentValue',{default:false})]}),
- action:Object.freeze({selectAnimation:[field('animationId','animation',{default:''})],setFacing:[field('value','enum',{values:['left','right'],default:'right'})],setVelocity:[field('x','int',{min:-127,max:127,default:0,required:false}),field('y','int',{min:-127,max:127,default:0,required:false})],accelerate:[field('x','int',{min:-127,max:127,default:0,required:false}),field('y','int',{min:-127,max:127,default:0,required:false})],setTimer:[field('timer','id',{default:'main'}),field('ticks','int',{min:0,max:255,default:1})],changeHealth:[field('amount','int',{min:-255,max:255,default:-1})],spawnActor:[field('definitionId','definition',{default:''}),field('offsetX','int',{min:-255,max:255,default:0,required:false}),field('offsetY','int',{min:-255,max:255,default:0,required:false})],despawn:[],persistentSet:[field('variableId','persistent',{default:''}),field('value','persistentValue',{default:false})],persistentChange:[field('variableId','persistent',{default:''}),field('amount','int',{min:-255,max:255,default:1})],emitTrigger:[field('trigger','id',{default:'trigger'})],moveWithinBounds:[field('minParameter','parameter',{default:'',required:false}),field('maxParameter','parameter',{default:'',required:false}),field('speedParameter','parameter',{default:'',required:false}),field('minX','int',{min:0,max:255,default:0,required:false}),field('maxX','int',{min:0,max:255,default:255,required:false}),field('speed','int',{min:1,max:4,default:1,required:false})],contactDamage:[field('amount','int',{min:1,max:255,default:1}),field('cooldown','int',{min:0,max:255,default:30})],syncActiveFromPersistent:[field('variableId','persistent',{default:''}),field('whenTrue','boolean',{default:false})]})
+ condition:Object.freeze({always:[],inputHeld:[field('key','enum',{values:inputKeys,default:'left'})],inputEdge:[field('key','enum',{values:inputKeys,default:'a'})],grounded:[],airborne:[],timerDone:[field('timer','id',{default:'main'})],compare:[field('field','enum',{values:['x','y','velocityX','velocityY'],default:'x'}),field('operator','enum',{values:comparisonOperators,default:'eq'}),field('value','int',{min:-4095,max:4095,default:0})],overlapPlayer:[],healthCompare:[field('operator','enum',{values:comparisonOperators,default:'eq'}),field('value','int',{min:0,max:255,default:0})],animationComplete:[],animationEvent:[field('event','id',{default:'event'})],triggerReceived:[field('trigger','id',{default:'trigger'})],persistentCompare:[field('variableId','persistent',{default:''}),field('operator','enum',{values:comparisonOperators,default:'eq'}),field('value','persistentValue',{default:false})],playerAttackHit:[field('reach','int',{min:8,max:64,default:32}),field('height','int',{min:8,max:64,default:32})]}),
+ action:Object.freeze({selectAnimation:[field('animationId','animation',{default:''})],setFacing:[field('value','enum',{values:['left','right'],default:'right'})],setVelocity:[field('x','int',{min:-127,max:127,default:0,required:false}),field('y','int',{min:-127,max:127,default:0,required:false})],accelerate:[field('x','int',{min:-127,max:127,default:0,required:false}),field('y','int',{min:-127,max:127,default:0,required:false})],setTimer:[field('timer','id',{default:'main'}),field('ticks','int',{min:0,max:255,default:1})],changeHealth:[field('amount','int',{min:-255,max:255,default:-1})],spawnActor:[field('definitionId','definition',{default:''}),field('offsetX','int',{min:-255,max:255,default:0,required:false}),field('offsetY','int',{min:-255,max:255,default:0,required:false})],despawn:[],persistentSet:[field('variableId','persistent',{default:''}),field('value','persistentValue',{default:false})],persistentChange:[field('variableId','persistent',{default:''}),field('amount','int',{min:-255,max:255,default:1})],emitTrigger:[field('trigger','id',{default:'trigger'})],moveWithinBounds:[field('minParameter','parameter',{default:'',required:false}),field('maxParameter','parameter',{default:'',required:false}),field('speedParameter','parameter',{default:'',required:false}),field('minX','int',{min:0,max:255,default:0,required:false}),field('maxX','int',{min:0,max:255,default:255,required:false}),field('speed','int',{min:1,max:4,default:1,required:false})],contactDamage:[field('amount','int',{min:1,max:255,default:1}),field('cooldown','int',{min:0,max:255,default:30})],fireProjectile:[field('interval','int',{min:8,max:255,default:90}),field('speed','int',{min:1,max:4,default:2}),field('tile','int',{min:0,max:255,default:0}),field('palette','int',{min:0,max:3,default:0}),field('offsetY','int',{min:-64,max:0,default:-16})],syncActiveFromPersistent:[field('variableId','persistent',{default:''}),field('whenTrue','boolean',{default:false})]})
 });
 const componentSchemas=Object.freeze({
  Transform:Object.freeze([]),
  Spawn:Object.freeze([]),
- Render:Object.freeze([field('sourceSceneId','scene',{required:false,default:''}),field('tile','int',{min:0,max:255,required:false,default:0}),field('palette','int',{min:0,max:3,required:false,default:0}),field('behind','boolean',{required:false,default:false})]),
+ Render:Object.freeze([field('sourceSceneId','scene',{required:false,default:''}),field('tile','int',{min:0,max:255,required:false,default:0}),field('palette','int',{min:0,max:3,required:false,default:0}),field('behind','boolean',{required:false,default:false}),field('metaspriteId','metasprite',{required:false,default:''}),field('animationId','metasprite',{required:false,default:''})]),
  Animation:Object.freeze([]),
  Physics:Object.freeze([]),
  Collider:Object.freeze([field('width','int',{min:1,max:64,required:false,default:16}),field('height','int',{min:1,max:64,required:false,default:16})]),
@@ -9243,7 +9246,7 @@ const componentSchemas=Object.freeze({
  PersistenceBinding:Object.freeze([field('variableId','persistent',{required:false,authority:'actor-instance'})])
 });
 const conditionTypes=Object.keys(operationSchemas.condition),actionTypes=Object.keys(operationSchemas.action);
-const runtimeProfile=Object.freeze({name:'nrom-gameplay-core-1.9.0',actorCapacity:12,persistentCapacity:64,conditions:Object.freeze(['always','inputHeld','inputEdge','timerDone','overlapPlayer','persistentCompare']),actions:Object.freeze(['persistentSet','despawn','setTimer','moveWithinBounds','contactDamage','syncActiveFromPersistent'])});
+const runtimeProfile=Object.freeze({name:'nrom-gameplay-core-1.9.0',actorCapacity:12,persistentCapacity:64,conditions:Object.freeze(['always','inputHeld','inputEdge','timerDone','overlapPlayer','persistentCompare','playerAttackHit']),actions:Object.freeze(['persistentSet','despawn','setTimer','moveWithinBounds','contactDamage','syncActiveFromPersistent','fireProjectile'])});
 const defaults=()=>({enabled:false,actorDefinitions:[],behaviors:[],actorInstances:[],persistentVariables:[]});
 function id(value,label){if(typeof value!=='string'||!ID.test(value))fail(label+' requires a stable ID of at most 80 characters');return value;}
 function text(value,label,max=120){if(typeof value!=='string'||!value.trim()||value.length>max)fail(label+' requires nonempty text of at most '+max+' characters');return value;}
@@ -9251,7 +9254,7 @@ function integer(value,min,max,label){if(!Number.isInteger(value)||value<min||va
 function unique(items,label){const seen=new Set();for(const item of items){id(item?.id,label+' ID');if(seen.has(item.id))fail('Duplicate '+label+' ID: '+item.id);seen.add(item.id);}return seen;}
 function validateTypedValue(type,value,record,label){if(type==='boolean'){if(typeof value!=='boolean')fail(label+' must be true or false');return;}if(type==='uint'||type==='int'){integer(value,record.min,record.max,label);return;}if(type==='enum'){if(typeof value!=='string'||!record.values.includes(value))fail(label+' must use a declared enum value');return;}if(type==='text'||type==='asset'){if(typeof value!=='string'||value.length>120)fail(label+' must be text of at most 120 characters');return;}fail(label+' uses unknown type '+type);}
 function validateParameter(parameter,label){id(parameter?.id,label+' parameter');if(!parameterTypes.includes(parameter.type))fail(label+' parameter '+parameter.id+' has unknown type '+parameter.type);if(parameter.type==='uint'||parameter.type==='int'){const floor=parameter.type==='uint'?0:-128,ceiling=parameter.type==='uint'?255:127;integer(parameter.min,floor,ceiling,label+' parameter '+parameter.id+' minimum');integer(parameter.max,parameter.min,ceiling,label+' parameter '+parameter.id+' maximum');}if(parameter.type==='enum'){if(!Array.isArray(parameter.values)||!parameter.values.length||parameter.values.length>32)fail(label+' parameter '+parameter.id+' needs 1–32 enum values');for(const value of parameter.values)text(value,label+' enum value',40);if(new Set(parameter.values).size!==parameter.values.length)fail(label+' parameter '+parameter.id+' has duplicate enum values');}validateTypedValue(parameter.type,parameter.default,parameter,label+' parameter '+parameter.id+' default');}
-function validateOperand(spec,value,label){if(value===undefined){if(spec.required)fail(label+' is required');return;}if(spec.type==='int')integer(value,spec.min,spec.max,label);else if(spec.type==='boolean'){if(typeof value!=='boolean')fail(label+' must be true or false');}else if(spec.type==='enum'){if(typeof value!=='string'||!spec.values.includes(value))fail(label+' must be one of '+spec.values.join(', '));}else if(spec.type==='scene'){if(value!=='')id(value,label);}else if(['id','persistent','definition','animation','parameter'].includes(spec.type))id(value,label);else if(spec.type==='persistentValue'){if(!['boolean','number','string'].includes(typeof value))fail(label+' must be a boolean, number, or enum value');}}
+function validateOperand(spec,value,label){if(value===undefined){if(spec.required)fail(label+' is required');return;}if(spec.type==='int')integer(value,spec.min,spec.max,label);else if(spec.type==='boolean'){if(typeof value!=='boolean')fail(label+' must be true or false');}else if(spec.type==='enum'){if(typeof value!=='string'||!spec.values.includes(value))fail(label+' must be one of '+spec.values.join(', '));}else if(spec.type==='scene'||spec.type==='metasprite'){if(value!=='')id(value,label);}else if(['id','persistent','definition','animation','parameter'].includes(spec.type))id(value,label);else if(spec.type==='persistentValue'){if(!['boolean','number','string'].includes(typeof value))fail(label+' must be a boolean, number, or enum value');}}
 function validateOperation(operation,kind,label='operation'){if(!operation||typeof operation!=='object'||Array.isArray(operation))fail(label+' contains an invalid record');text(operation.type,label+' type',60);const schema=operationSchemas[kind]?.[operation.type];if(!schema)fail('Unknown executable '+kind+' type: '+operation.type);const allowed=new Set(['type',...schema.map(item=>item.key)]);for(const key of Object.keys(operation))if(!allowed.has(key))fail(label+' '+operation.type+' has unknown operand '+key);for(const spec of schema)validateOperand(spec,operation[spec.key],label+' '+operation.type+'.'+spec.key);if(['setVelocity','accelerate'].includes(operation.type)&&operation.x===undefined&&operation.y===undefined)fail(label+' '+operation.type+' requires x and/or y');if(operation.type==='moveWithinBounds')for(const[literal,parameter]of[['minX','minParameter'],['maxX','maxParameter'],['speed','speedParameter']]){if(operation[literal]===undefined&&operation[parameter]===undefined)fail(label+' moveWithinBounds requires '+literal+' or '+parameter);if(operation[literal]!==undefined&&operation[parameter]!==undefined)fail(label+' moveWithinBounds cannot use both '+literal+' and '+parameter);}return true;}
 function operationDefaults(kind,type){const schema=operationSchemas[kind]?.[type];if(!schema)fail('Unknown '+kind+' type '+type);const operation={type};for(const item of schema)if(item.default!==undefined&&item.default!=='')operation[item.key]=cp(item.default);if(type==='moveWithinBounds')return{type,minX:0,maxX:255,speed:1};return operation;}
 function validateBehavior(behavior,{executable=false}={}){id(behavior?.id,'Behavior');text(behavior.name,'Behavior name');integer(behavior.version,1,255,'Behavior version');if(!Array.isArray(behavior.parameters)||behavior.parameters.length>32)fail('Behavior '+behavior.id+' parameters must be an array of at most 32');unique(behavior.parameters,'behavior parameter');for(const parameter of behavior.parameters)validateParameter(parameter,'Behavior '+behavior.id);if(!Array.isArray(behavior.states)||!behavior.states.length||behavior.states.length>32)fail('Behavior '+behavior.id+' needs 1–32 states');const stateIds=unique(behavior.states,'behavior state');if(!stateIds.has(behavior.initialStateId))fail('Behavior '+behavior.id+' initial state is missing');const ops=(records,kind,label)=>{if(!Array.isArray(records)||records.length>32)fail(label+' must be an array of at most 32');for(const operation of records){if(!operation||typeof operation!=='object'||Array.isArray(operation))fail(label+' contains an invalid record');text(operation.type,label+' type',60);if(executable)validateOperation(operation,kind,label);}};for(const state of behavior.states){text(state.name,'State name');ops(state.onEnter||[],'action','State '+state.id+' entry action');ops(state.onTick||[],'action','State '+state.id+' tick action');ops(state.onExit||[],'action','State '+state.id+' exit action');}if(!Array.isArray(behavior.transitions)||behavior.transitions.length>128)fail('Behavior '+behavior.id+' transitions must be an array of at most 128');unique(behavior.transitions,'transition');for(const transition of behavior.transitions){if(!stateIds.has(transition.fromStateId)||!stateIds.has(transition.toStateId))fail('Transition '+transition.id+' references an unknown state');integer(transition.priority,-128,127,'Transition '+transition.id+' priority');ops(transition.conditions||[],'condition','Transition '+transition.id+' condition');ops(transition.actions||[],'action','Transition '+transition.id+' action');}}
@@ -9420,7 +9423,7 @@ function validateWorlds(raw){
     if(!Number.isInteger(sx)||sx<1||sx>16||!Number.isInteger(sy)||sy<1||sy>16)fail('World dimensions must be 1–16 screens');
     if(!Array.isArray(w.map)||w.map.length!==sx*16*sy*15)fail('World map size does not match dimensions');
     for(const v of w.map)if(!Number.isInteger(v)||v<-1||v>254)fail('World metatile IDs must be integers from -1 through 254');
-    for(const [key,max] of [['rooms',128],['markers',256],['cameraRegions',128]]){
+    for(const [key,max] of [['rooms',128],['markers',256],['cameraRegions',128],['stairs',128]]){
       if(w[key]!=null&&(!Array.isArray(w[key])||w[key].length>max))fail('Invalid world '+key+' collection');
       for(const item of w[key]||[])if(!item||typeof item!=='object'||Array.isArray(item))fail('Invalid world '+key+' entry');
       uniqueIds(w[key],'world '+key);
@@ -9921,7 +9924,7 @@ function ownerContext(instance){const p=instance.placement;return p.kind==='scen
 function compileInstance(instance,definition,behavior,variables,index){
   const parameters=services.GameplayModel.parameterValues(definition,instance),renderComponent=component(definition,'Render'),colliderComponent=component(definition,'Collider'),healthComponent=component(definition,'Health'),render=renderComponent?services.GameplayModel.componentValues(renderComponent,{executable:true,label:'Actor Definition '+definition.id+' component '+renderComponent.id}):{sourceSceneId:'',tile:0,palette:0,behind:false},collider=colliderComponent?services.GameplayModel.componentValues(colliderComponent,{executable:true,label:'Actor Definition '+definition.id+' component '+colliderComponent.id}):{width:16,height:16},health=healthComponent?services.GameplayModel.componentValues(healthComponent,{executable:true,label:'Actor Definition '+definition.id+' component '+healthComponent.id}):{maximum:0},components=definition.components.filter(item=>item.enabled!==false).map(item=>item.type);
   const variableBindings=bindings(instance).map(binding=>{const variable=variables.get(binding.variableId);if(!variable)fail('Actor Instance '+instance.id+' references missing persistent variable '+binding.variableId);return{...cp(binding),variableIndex:[...variables.keys()].indexOf(binding.variableId),scope:variable.scope,ownerId:variable.ownerId};});
-  return{slot:index,id:instance.id,definitionId:definition.id,behaviorId:behavior.id,placement:cp(instance.placement),x:instance.x,y:instance.y,facing:instance.facing==='left'?1:0,parameters,render:{sourceSceneId:render.sourceSceneId||'',tile:render.tile,palette:render.palette,behind:render.behind},renderEnabled:!!renderComponent,collider:{width:collider.width,height:collider.height},colliderEnabled:!!colliderComponent,health:health.maximum,components,behaviorEnabled:components.includes('Behavior'),behavior:cp(behavior),bindings:variableBindings,activeDefault:true};
+  return{slot:index,id:instance.id,definitionId:definition.id,behaviorId:behavior.id,placement:cp(instance.placement),x:instance.x,y:instance.y,facing:instance.facing==='left'?1:0,parameters,render:{sourceSceneId:render.sourceSceneId||'',tile:render.tile,palette:render.palette,behind:render.behind,...(render.metaspriteId?{metaspriteId:render.metaspriteId}:{}),...(render.animationId?{animationId:render.animationId}:{})},renderEnabled:!!renderComponent,collider:{width:collider.width,height:collider.height},colliderEnabled:!!colliderComponent,health:health.maximum,components,behaviorEnabled:components.includes('Behavior'),behavior:cp(behavior),bindings:variableBindings,activeDefault:true};
 }
 function plan(source,{backend,executionContext=null}={}){
   const core=services.GameplayModel.normalize(source.gameplayCore);services.GameplayModel.validateProject(core,source,{references:true,executable:true});
@@ -9938,7 +9941,7 @@ function plan(source,{backend,executionContext=null}={}){
   result.actors=relevant.map((instance,index)=>{const definition=definitions.get(instance.definitionId),behavior=behaviors.get(definition.behaviorId);return compileInstance(instance,definition,behavior,variables,index);});
   const inputActors=result.actors.filter(actor=>actor.components.includes('Input'));if(inputActors.length>1)fail('The 1.9.0 compatibility profile supports one Sideview Player binding');
   for(const actor of inputActors){const input=component(definitions.get(actor.definitionId),'Input');if(input?.values?.adapter!=='legacyPlayer')fail('Input Actor '+actor.id+' must declare the legacyPlayer compatibility adapter');const mapped=adapter.actors.find(item=>item.runtimeRole==='player');if(!mapped)fail('Sideview Player '+actor.id+' cannot bind because the retained legacy Player is missing');actor.compatibility={mode:'retained-legacy-player-runtime',runtimeUnified:false,sourceEntityId:mapped.sourceEntityId,sceneId:adapter.sceneId};}
-  result.compatibilityPlayerSlot=inputActors[0]?.slot??null;
+  result.compatibilityPlayerSlot=inputActors[0]?.slot??null;result.compatibilityPlayerHealth=inputActors[0]?.health||0;
   result.identity={definitionIds:[...definitions.keys()],instanceIds:result.actors.map(item=>item.id),runtimeSlots:result.actors.map(item=>item.slot),persistentKeys:result.variables.map(item=>item.scope+':'+item.ownerId+':'+item.id)};
   if(new Set(result.identity.persistentKeys).size!==result.identity.persistentKeys.length)fail('Persistent State Record keys must be unique');
   result.estimatedBytes=32+result.variables.length*4+result.actors.length*24+core.behaviors.reduce((sum,item)=>sum+item.states.length*8+item.transitions.length*12,0);
@@ -10081,6 +10084,9 @@ services.AudioEngine={emit,enhanceViewer};
 const services=window.Forge.services;
 const fail=message=>{throw Error('Gameplay Core engine: '+message);};
 const A=Object.freeze({active:0x0300,generation:0x0310,definition:0x0320,state:0x0330,timer:0x0340,x:0x0350,y:0x0360,direction:0x0370,persistent:0x0380,health:0x03C0,screen:0x03D0,instance:0x03E0});
+// World extras in page 6 (the stair state uses $0680-$0684): one walk-animation clock per distinct actor animation,
+// scratch for the shared metasprite routine ($06B0-$06B2), a four-bullet pool, and a fire timer per actor slot.
+const ANIM=0x06A0,META=Object.freeze({x:0x06B0,y:0x06B1,end:0x06B2}),BULLETS=4,B=Object.freeze({active:0x06C0,x:0x06C4,y:0x06C8,dir:0x06CC,screen:0x06D0,tile:0x06D4,attr:0x06D8,speed:0x06DC}),FIRE=0x06E0;
 const keyMask={a:1,b:2,select:4,start:8,up:16,down:32,left:64,right:128};
 function defaultByte(variable){if(variable.type==='boolean')return variable.default?1:0;if(variable.type==='enum')return Math.max(0,variable.values.indexOf(variable.default));return variable.default;}
 function emit(plan,api,z,{world=false}={}){
@@ -10090,7 +10096,9 @@ function emit(plan,api,z,{world=false}={}){
   const profile=services.GameplayModel.runtimeProfile;if(A.persistent+profile.persistentCapacity>A.health)fail('Persistent RAM profile overlaps Runtime Actor health storage');if(plan.variables.length>profile.persistentCapacity)fail('Persistent variable capacity exceeded before emission');
   const actorAddress=(kind,slot)=>A[kind]+slot,persistentAddress=index=>A.persistent+index;
   const value=(actor,raw,fallback=0)=>{if(typeof raw==='number')return raw;if(typeof raw==='string'&&Object.hasOwn(actor.parameters,raw))return actor.parameters[raw];return fallback;};
-  const uniquePrefix='gc_'+(world?'world':'room')+'_';
+  const uniquePrefix='gc_'+(world?'world':'room')+'_';let fireSerial=0;
+  const ops=plan.actors.flatMap(actor=>(actor.behavior?.states||[]).flatMap(state=>[...(state.onTick||[]),...(state.onEnter||[])]));
+  const bulletsOn=world&&ops.some(op=>op.type==='fireProjectile');
   function overlap(actor,prefix,failed){
     lda(z.playerX);abs(0xCD,actorAddress('x',actor.slot));b(0xB0,prefix+'_x_player_ge');lda(actorAddress('x',actor.slot));e(0x38,0xE5,z.playerX);jmp(prefix+'_x_distance');label(prefix+'_x_player_ge');lda(z.playerX);e(0x38);abs(0xED,actorAddress('x',actor.slot));label(prefix+'_x_distance');cmp(Math.max(8,Math.min(32,Math.ceil(actor.collider.width/2)+6)));b(0xB0,failed);
     lda(z.playerY);abs(0xCD,actorAddress('y',actor.slot));b(0xB0,prefix+'_y_player_ge');lda(actorAddress('y',actor.slot));e(0x38,0xE5,z.playerY);jmp(prefix+'_y_distance');label(prefix+'_y_player_ge');lda(z.playerY);e(0x38);abs(0xED,actorAddress('y',actor.slot));label(prefix+'_y_distance');cmp(Math.max(12,Math.min(40,actor.collider.height)));b(0xB0,failed);
@@ -10100,6 +10108,17 @@ function emit(plan,api,z,{world=false}={}){
   function emitCondition(actor,operation,prefix,failed){
     if(operation.type==='always')return;
     if(operation.type==='overlapPlayer'){overlap(actor,prefix,failed);return;}
+    // The player is in its attack state and the actor is within reach in front of it (and within height of its feet).
+    if(operation.type==='playerAttackHit'){
+      const ax=actorAddress('x',actor.slot),ay=actorAddress('y',actor.slot),reach=operation.reach??32,height=operation.height??32;
+      if(world){lda(actorAddress('screen',actor.slot));e(0xC5,z.screen);b(0xD0,failed);}
+      lda(z.playerState);cmp(3);b(0xD0,failed);
+      lda(z.playerFacing);b(0xD0,prefix+'_atk_left');
+      lda(ax);e(0x38,0xE5,z.playerX);b(0x90,failed);cmp(reach);b(0xB0,failed);jmp(prefix+'_atk_y');
+      label(prefix+'_atk_left');lda(z.playerX);e(0x38);abs(0xED,ax);b(0x90,failed);cmp(reach);b(0xB0,failed);
+      label(prefix+'_atk_y');lda(z.playerY);abs(0xCD,ay);b(0xB0,prefix+'_atk_pge');lda(ay);e(0x38,0xE5,z.playerY);jmp(prefix+'_atk_yd');
+      label(prefix+'_atk_pge');lda(z.playerY);e(0x38);abs(0xED,ay);label(prefix+'_atk_yd');cmp(height);b(0xB0,failed);return;
+    }
     if(operation.type==='inputEdge'||operation.type==='inputHeld'){const mask=keyMask[operation.key];if(!mask)fail('Unsupported input key '+operation.key);ld(operation.type==='inputEdge'?z.edges:z.buttons);e(0x29,mask);b(0xF0,failed);return;}
     if(operation.type==='timerDone'){lda(actorAddress('timer',actor.slot));b(0xD0,failed);return;}
     if(operation.type==='persistentCompare'){
@@ -10120,7 +10139,26 @@ function emit(plan,api,z,{world=false}={}){
       for(let step=0;step<speed;step++){const left=prefix+'_patrol_left_'+step,done=prefix+'_patrol_done_'+step;lda(actorAddress('direction',actor.slot));b(0xD0,left);inc(actorAddress('x',actor.slot));lda(actorAddress('x',actor.slot));cmp(max);b(0x90,done);imm(1);sta(actorAddress('direction',actor.slot));jmp(done);label(left);dec(actorAddress('x',actor.slot));lda(actorAddress('x',actor.slot));cmp(min);b(0xB0,done);imm(0);sta(actorAddress('direction',actor.slot));label(done);}return;
     }
     if(operation.type==='contactDamage'){
-      const done=prefix+'_damage_done',playerHealth=actorAddress('health',plan.compatibilityPlayerSlot);lda(actorAddress('timer',actor.slot));b(0xD0,done);overlap(actor,prefix+'_damage',done);lda(playerHealth);b(0xF0,done);dec(playerHealth);imm(operation.cooldown??30);sta(actorAddress('timer',actor.slot));label(done);return;
+      const done=prefix+'_damage_done',playerHealth=actorAddress('health',plan.compatibilityPlayerSlot);lda(actorAddress('timer',actor.slot));b(0xD0,done);overlap(actor,prefix+'_damage',done);lda(playerHealth);b(0xF0,done);dec(playerHealth);imm(operation.cooldown??30);sta(actorAddress('timer',actor.slot));
+      // World: when the player's health runs out it restarts at the spawn with full health.
+      if(world&&plan.compatibilityPlayerHealth){lda(playerHealth);b(0xD0,done);imm(plan.compatibilityPlayerHealth);sta(playerHealth);jsr('restart');}
+      label(done);return;
+    }
+    // Fire at the player: every `interval` frames while on the player's screen, a free bullet starts at the actor's
+    // muzzle height and travels horizontally toward the player at `speed` pixels per frame.
+    if(operation.type==='fireProjectile'){
+      if(!world)fail('fireProjectile runs in the World runtime');
+      const L=uniquePrefix+'fire_'+(fireSerial++),t=FIRE+actor.slot,ax=actorAddress('x',actor.slot),ay=actorAddress('y',actor.slot);
+      lda(t);b(0xF0,L+'_go');dec(t);jmp(L+'_done');
+      label(L+'_go');imm(operation.interval??90);sta(t);
+      e(0xA2,0);label(L+'_find');abs(0xBD,B.active);b(0xF0,L+'_slot');e(0xE8,0xE0,BULLETS);b(0xD0,L+'_find');jmp(L+'_done');
+      label(L+'_slot');imm(1);abs(0x9D,B.active);ld(z.screen);abs(0x9D,B.screen);
+      lda(ay);e(0x18,0x69,(operation.offsetY??-16)&255);abs(0x9D,B.y);
+      imm(actor.projectileTiles?.[operation.tile]??operation.tile??0);abs(0x9D,B.tile);imm((operation.palette??0)&3);abs(0x9D,B.attr);imm(operation.speed??2);abs(0x9D,B.speed);
+      lda(ax);e(0xC5,z.playerX);b(0xB0,L+'_left');
+      imm(0);abs(0x9D,B.dir);lda(ax);e(0x18,0x69,8);abs(0x9D,B.x);jmp(L+'_done');
+      label(L+'_left');imm(1);abs(0x9D,B.dir);lda(ax);e(0x38,0xE9,8);abs(0x9D,B.x);
+      label(L+'_done');return;
     }
     if(operation.type==='syncActiveFromPersistent'){
       const index=persistentIndex(actor,operation.variableId),truth=prefix+'_sync_truth',done=prefix+'_sync_done';lda(persistentAddress(index));b(0xD0,truth);imm(operation.whenTrue?0:1);sta(actorAddress('active',actor.slot));jmp(done);label(truth);imm(operation.whenTrue?1:0);sta(actorAddress('active',actor.slot));label(done);return;
@@ -10131,6 +10169,7 @@ function emit(plan,api,z,{world=false}={}){
   for(const variable of plan.variables){imm(defaultByte(variable));sta(persistentAddress(variable.index));}
   if(world){ld(z.screen);st(lastScreen);}e(0x60);
   label(uniquePrefix+'reconstruct');
+  if(bulletsOn){imm(0);for(let i=0;i<BULLETS;i++)sta(B.active+i);}
   for(const actor of plan.actors){
     const stateIndex=Math.max(0,actor.behavior.states.findIndex(item=>item.id===actor.behavior.initialStateId));imm(actor.components.includes('Input')?0:1);sta(actorAddress('active',actor.slot));inc(actorAddress('generation',actor.slot));imm(plan.identity.definitionIds.indexOf(actor.definitionId));sta(actorAddress('definition',actor.slot));imm(actor.slot);sta(actorAddress('instance',actor.slot));imm(stateIndex);sta(actorAddress('state',actor.slot));imm(0);sta(actorAddress('timer',actor.slot));imm(actor.localX);sta(actorAddress('x',actor.slot));imm(actor.localY);sta(actorAddress('y',actor.slot));imm(actor.facing);sta(actorAddress('direction',actor.slot));imm(actor.health);sta(actorAddress('health',actor.slot));imm(actor.screen??0);sta(actorAddress('screen',actor.slot));
     if(actor.behaviorEnabled){const hide=(actor.behavior.transitions||[]).flatMap(item=>item.actions||[]).find(item=>item.type==='persistentSet'&&(item.value===true||item.value===1));if(hide&&actor.components.includes('Pickup')){const visible=uniquePrefix+'pickup_visible_'+actor.slot;lda(persistentAddress(persistentIndex(actor,hide.variableId)));b(0xF0,visible);imm(0);sta(actorAddress('active',actor.slot));label(visible);}for(const operation of actor.behavior.states[stateIndex]?.onEnter||[])emitAction(actor,operation);}
@@ -10145,9 +10184,65 @@ function emit(plan,api,z,{world=false}={}){
       for(const [ti,{item}]of transitions.entries()){const failed=prefix+'_transition_failed_'+stateIndex+'_'+ti;for(const operation of item.conditions||[])emitCondition(actor,operation,prefix+'_condition_'+stateIndex+'_'+ti,failed);for(const operation of state.onExit||[])emitAction(actor,operation);for(const operation of item.actions||[])emitAction(actor,operation);imm(stateMap.get(item.toStateId));sta(actorAddress('state',actor.slot));for(const operation of actor.behavior.states[stateMap.get(item.toStateId)].onEnter||[])emitAction(actor,operation);jmp(done);label(failed);}
       jmp(done);label(nextState);
     }label(done);
-  }e(0x60);
+  }
+  if(bulletsOn){
+    // Bullets move, leave at the screen edge or on a screen change, and hit the player inside its body (feet up to 30 px).
+    const bl=uniquePrefix+'bullet',health=plan.compatibilityPlayerSlot===null?null:actorAddress('health',plan.compatibilityPlayerSlot);
+    e(0xA2,0);label(bl+'_loop');abs(0xBD,B.active);b(0xF0,bl+'_next');
+    abs(0xBD,B.screen);e(0xC5,z.screen);b(0xD0,bl+'_kill');
+    abs(0xBD,B.dir);b(0xD0,bl+'_left');abs(0xBD,B.x);e(0x18);abs(0x7D,B.speed);b(0xB0,bl+'_kill');abs(0x9D,B.x);jmp(bl+'_hit');
+    label(bl+'_left');abs(0xBD,B.x);e(0x38);abs(0xFD,B.speed);b(0x90,bl+'_kill');abs(0x9D,B.x);
+    label(bl+'_hit');abs(0xBD,B.x);e(0x38,0xE5,z.playerX);b(0xB0,bl+'_xpos');e(0x49,0xFF,0x18,0x69,1);label(bl+'_xpos');cmp(7);b(0xB0,bl+'_next');
+    ld(z.playerY);e(0x38);abs(0xFD,B.y);b(0x90,bl+'_next');cmp(30);b(0xB0,bl+'_next');
+    if(health!==null){lda(health);b(0xF0,bl+'_kill');dec(health);lda(health);b(0xD0,bl+'_kill');
+      imm(plan.compatibilityPlayerHealth||1);sta(health);jsr('restart');e(0x60);}
+    label(bl+'_kill');imm(0);abs(0x9D,B.active);
+    label(bl+'_next');e(0xE8,0xE0,BULLETS);b(0xD0,bl+'_loop');
+  }
+  e(0x60);
+  const metaRoutines=new Map(),animClocks=new Map();
   label(uniquePrefix+'draw');
-  for(const actor of plan.actors){if(actor.components.includes('Input')||!actor.renderEnabled)continue;const prefix=uniquePrefix+'draw_'+actor.slot,skip=prefix+'_skip';lda(actorAddress('active',actor.slot));b(0xF0,skip);if(world){lda(actorAddress('screen',actor.slot));e(0xC5,z.screen);b(0xD0,skip);}ld(z.oamIndex);cmp(253);b(0xB0,skip);e(0xAA);lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0x38,0xE9,1);abs(0x9D,0x0200);imm(actor.render.tile&255);abs(0x9D,0x0201);imm((actor.render.palette&3)|(actor.render.behind?32:0));abs(0x9D,0x0202);lda(actorAddress('x',actor.slot));abs(0x9D,0x0203);ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(skip);}e(0x60);
+  // Each distinct metasprite gets two entries in the piece tables (as drawn, and mirrored); X = entry, Y = actor slot.
+  const routineFor=pieces=>{const key=JSON.stringify(pieces);if(!metaRoutines.has(key)){if(metaRoutines.size>=127)fail('At most 127 distinct actor metasprites');metaRoutines.set(key,{id:metaRoutines.size,pieces});}return metaRoutines.get(key).id*2;};
+  const metaDraw=uniquePrefix+'meta_draw',drawEntry=(actor,prefix)=>{lda(actorAddress('direction',actor.slot));b(0xF0,prefix+'_plain');e(0xE8);label(prefix+'_plain');jsr(metaDraw);};
+  // Walk animations: one clock per distinct animation, advanced once per frame and wrapped at its total duration.
+  for(const actor of plan.actors){const frames=actor.render?.frames;if(!frames?.length||actor.components.includes('Input')||!actor.renderEnabled)continue;
+    const key=JSON.stringify(frames);if(!animClocks.has(key)){if(animClocks.size>=16)fail('At most 16 distinct actor animations');animClocks.set(key,{index:animClocks.size,total:frames.reduce((n,f)=>n+f.duration,0)});}}
+  for(const {index,total}of animClocks.values()){const next=uniquePrefix+'clock_'+index;inc(ANIM+index);lda(ANIM+index);cmp(total);b(0x90,next);imm(0);sta(ANIM+index);label(next);}
+  if(bulletsOn){
+    const bd=uniquePrefix+'bullet_draw';e(0xA0,0);label(bd+'_loop');abs(0xB9,B.active);b(0xF0,bd+'_next');ld(z.oamIndex);cmp(253);b(0xB0,bd+'_done');e(0xAA);
+    abs(0xB9,B.y);e(0x38,0xE9,1);abs(0x9D,0x0200);abs(0xB9,B.tile);abs(0x9D,0x0201);abs(0xB9,B.attr);abs(0x9D,0x0202);abs(0xB9,B.x);abs(0x9D,0x0203);
+    ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(bd+'_next');e(0xC8,0xC0,BULLETS);b(0xD0,bd+'_loop');label(bd+'_done');
+  }
+  for(const actor of plan.actors){if(actor.components.includes('Input')||!actor.renderEnabled)continue;const prefix=uniquePrefix+'draw_'+actor.slot,skip=prefix+'_skip';lda(actorAddress('active',actor.slot));b(0xF0,skip);if(world){lda(actorAddress('screen',actor.slot));e(0xC5,z.screen);b(0xD0,skip);}if(actor.render.frames?.length){
+    // Animated: the frame comes from the animation's clock; each frame is a shared metasprite table entry (and mirror).
+    const frames=actor.render.frames,clock=ANIM+animClocks.get(JSON.stringify(frames)).index;
+    lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0xA0,actor.slot);
+    let threshold=0;
+    frames.forEach((frame,i)=>{const entry=routineFor(frame.pieces);label(prefix+'_f'+i);threshold+=frame.duration;
+      if(i<frames.length-1){lda(clock);cmp(threshold);b(0xB0,prefix+'_f'+(i+1));}
+      e(0xA2,entry);if(i<frames.length-1)jmp(prefix+'_go');});
+    label(prefix+'_go');drawEntry(actor,prefix);label(skip);continue;}
+  if(actor.render.pieces){
+    // Metasprite: a shared piece-table entry per distinct metasprite (and its mirror), drawn with the actor's slot in Y.
+    const entry=routineFor(actor.render.pieces);
+    lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0xA0,actor.slot,0xA2,entry);drawEntry(actor,prefix);label(skip);continue;}
+  ld(z.oamIndex);cmp(253);b(0xB0,skip);e(0xAA);lda(actorAddress('y',actor.slot));b(0xF0,skip);e(0x38,0xE9,1);abs(0x9D,0x0200);imm(actor.render.tile&255);abs(0x9D,0x0201);imm((actor.render.palette&3)|(actor.render.behind?32:0));abs(0x9D,0x0202);lda(actorAddress('x',actor.slot));abs(0x9D,0x0203);ld(z.oamIndex);e(0x18,0x69,4);st(z.oamIndex);label(skip);}e(0x60);
+  // Shared metasprite routine: X = piece-table entry, Y = actor slot. Pieces are relative to the actor's position (its
+  // feet); a mirrored entry has X flipped and the horizontal flip bit toggled. Pieces that would wrap past a screen
+  // edge are skipped; a full OAM ends the routine. The tables hold every entry's pieces back to back.
+  if(metaRoutines.size){
+    const M=uniquePrefix+'meta',entries=[...metaRoutines.values()].flatMap(({pieces})=>[false,true].map(mirror=>pieces.map(p=>({dx:(mirror?-p.x-8:p.x)&255,dy:(p.y-1)&255,tile:p.tile&255,attr:(mirror?p.attr^0x40:p.attr)&255}))));
+    const total=entries.reduce((n,list)=>n+list.length,0);if(total>255)fail('Actor metasprites use more than 255 pieces (mirrors included)');
+    label(metaDraw);abs(0xB9,A.x);sta(META.x);abs(0xB9,A.y);sta(META.y);abs(0xBD,M+'_end');sta(META.end);abs(0xBC,M+'_start');
+    label(M+'_loop');abs(0xCC,META.end);b(0xB0,M+'_done');e(0xA6,z.oamIndex,0xE0,253);b(0xB0,M+'_done');
+    abs(0xB9,M+'_dx');b(0x10,M+'_right');e(0x18);abs(0x6D,META.x);b(0x90,M+'_next');jmp(M+'_put');
+    label(M+'_right');e(0x18);abs(0x6D,META.x);b(0xB0,M+'_next');
+    label(M+'_put');abs(0x9D,0x0203);abs(0xB9,M+'_dy');e(0x18);abs(0x6D,META.y);abs(0x9D,0x0200);abs(0xB9,M+'_tile');abs(0x9D,0x0201);abs(0xB9,M+'_attr');abs(0x9D,0x0202);
+    e(0x8A,0x18,0x69,4);st(z.oamIndex);label(M+'_next');e(0xC8);jmp(M+'_loop');label(M+'_done');e(0x60);
+    let at=0;label(M+'_start');for(const list of entries){e(at);at+=list.length;}label(M+'_end');at=0;for(const list of entries){at+=list.length;e(at);}
+    for(const field of['dx','dy','tile','attr']){label(M+'_'+field);for(const list of entries)for(const piece of list)e(piece[field]);}
+  }
   const codeEnd=current();if(codeEnd>0xCFF0)fail('Generated actor evaluator exceeds the current NROM code/resource region');
   return{zp:{temp,temp2,lastScreen},arrays:A,actorCount:plan.actors.length,variableCount:plan.variables.length,labels:{init:uniquePrefix+'init',reconstruct:uniquePrefix+'reconstruct',update:uniquePrefix+'update',draw:uniquePrefix+'draw'}};
 }
@@ -10655,6 +10750,28 @@ function compile(spec){
     if(!Array.isArray(screen.markers)||screen.markers.length>240)fail('A screen supports at most 240 markers');
     for(const marker of screen.markers){integer(marker.x,0,255,'Marker X');integer(marker.y,0,239,'Marker Y');integer(marker.targetScreen,0,screens.length-1,'Marker destination');integer(marker.targetX,0,255,'Destination X');integer(marker.targetY,0,239,'Destination Y');}
   }
+  // chrSelect: the engine selects each world's CHR bank on screen loads (mapper 3). It is needed with several graphics
+  // banks, and with one bank when the authoring record is stored in CHR data banks (layout 5).
+  const chrSelect=(spec.chrBanks||1)>1||spec.chrSelect===true;
+  if(spec.chrBanks!==undefined||chrSelect){
+    integer(spec.chrBanks??1,1,4,'CHR bank count');
+    if(chrSelect){
+      const worldsUsed=Math.max(...screens.map(sc=>sc.worldIndex??0))+1;
+      if(!Array.isArray(spec.worldChrBank)||spec.worldChrBank.length<worldsUsed)fail('Every world needs a CHR bank');
+      spec.worldChrBank.forEach((bank,i)=>integer(bank,0,(spec.chrBanks??1)-1,'World '+i+' CHR bank'));
+      if(spec.cameraMode==='smoothHorizontal')fail('Per-world CHR banks need screen transitions between worlds');
+    }
+  }
+  // Stairs: per-screen diagonal segments {x, y (feet at the bottom end), len (pixels), dir (0 up-right, 1 up-left)}.
+  let stairTotal=0;
+  for(const [i,screen]of screens.entries()){
+    if(screen.stairs===undefined)continue;
+    if(!Array.isArray(screen.stairs)||screen.stairs.length>8)fail('Screen '+i+' supports at most 8 stairs');
+    for(const st of screen.stairs){integer(st.x,0,255,'Stair X');integer(st.y,1,239,'Stair Y');integer(st.len,2,200,'Stair length');integer(st.dir,0,1,'Stair direction');
+      const tx=st.x+(st.dir?-st.len:st.len);if(tx<0||tx>255||st.y-st.len<1)fail('Screen '+i+' stair leaves its screen');}
+    stairTotal+=screen.stairs.length;
+  }
+  if(stairTotal>255)fail('At most 255 stairs');
   // Lossless, automatically selected column-dictionary storage for smooth Worlds.
   // The PPU receives the original exact tile and attribute bytes. The engine's
   // discrete-screen path retains its previous raw nametable representation.
@@ -10676,6 +10793,8 @@ function compile(spec){
   const names=['ready','tickLo','tickHi','buttons','previousButtons','edges','screen','renderedScreen','playerX','playerY','velocityY','grounded','playerState','playerFrame','playerRemaining','playerFacing','eventMask','eventCount','frameReady','oamReady','wanted','moveDirection','steps','attackRequest','collisionEdge','candidateScreen','candidateX','candidateY','blocked','solid','sampleX','sampleXHi','sampleY','sampleYHi','endX','endXHi','endY','endYHi','queryScreen','queryX','queryY','byteOffset','bitMask','temp','temp2','ptr','ptrHi','animPtr','animPtrHi','framePtr','framePtrHi','piecePtr','piecePtrHi','pieceCount','pieceOffset','pieceX','pieceY','pieceTile','pieceAttr','oamIndex','markerCount','markerPtr','markerPtrHi','transition','worldIndex','roomIndex','cameraIndex','screenX','screenY','cameraScreen','bodyPtr','bodyPtrHi','viewLo','viewHi','renderX','renderHi','wishLo','wishHi','scrollCommit','streamPending','streamScreen','streamColumn','streamDir','streamPtr','streamPtrHi','streamRows','streamAttrOffset','streamAttrMask','streamAttrInverse','streamScratch','streamDestHi','upload0','upload1','enemyScreen','enemyX','enemyY','enemyFacing','enemyFrame','enemyRemaining','enemyTimer','enemyBob','enemyPhase','enemyPieceCount','enemyPieceOffset','enemyFramePtr','enemyFramePtrHi','enemyPiecePtr','enemyPiecePtrHi','enemyPieceX','enemyPieceY','enemyPieceTile','enemyPieceAttr','enemyRenderX','enemyRenderHi','hurtTimer','enemyPathIndex','enemyPathDirection','enemyPathWait','enemyTargetScreen','enemyTargetX','enemyTargetY','enemyRetreatSteps','enemyRetreatVertical','enemyContactScreen','enemyContactX','enemyContactY','enemyPieceHi','oamPriority'];
   if(names.length>0x80)fail('World zero-page allocation overlaps the audio runtime');
   const Z=Object.fromEntries(names.map((name,i)=>[name,i]));
+  // Stair state lives in absolute RAM (zero page is full): on-stair flag, position along the stair, length, direction.
+  const stairsOn=screens.some(sc=>(sc.stairs||[]).length),SR={on:0x0680,pos:0x0681,len:0x0682,dir:0x0683,cnt:0x0684};
   const bytes=[],labels={},fixups=[],resources=[];let pc=0x8000,serial=0;
   function e(...values){for(const value of values){integer(value,0,255,'Opcode/data byte');bytes[pc++-0x8000]=value;}}
   function word(v){e(v&255,v>>>8);}
@@ -10713,6 +10832,9 @@ function compile(spec){
   // only after a second vblank with complete OAM and zero scroll.
   label('change_screen');set(Z.transition,1);imm(8);abs(0x8D,0x2000);abs(0xAD,0x2002);label('transition_vblank');abs(0xAD,0x2002);b(0x10,'transition_vblank');imm(0);abs(0x8D,0x2001);jsr('load_screen');jsr('draw_all');jsr('enable_screen');set(Z.transition,0);e(0x60);
   label('load_screen');jsr('publish_screen');
+  // CNROM profile: one 8 KB CHR bank per world group. Rendering is off here (boot or change_screen). The value is
+  // written to a ROM byte holding the same value, so the write is safe on boards with bus conflicts.
+  if(chrSelect){e(0xA6,Z.worldIndex);abs(0xBD,'world_chr_table');e(0xAA);abs(0x9D,'chr_lut_table');}
   if(smooth){
     // Slot 0 owns even world screens, slot 1 owns odd screens.
     copy(Z.viewHi,Z.upload0);ld(Z.viewHi);add(1);e(0xC9,screens.length);b(0x90,'load_next_valid');copy(Z.viewHi,Z.upload1);jmp('load_parity');label('load_next_valid');st(Z.upload1);
@@ -10759,7 +10881,7 @@ function compile(spec){
   label('enable_screen');abs(0xAD,0x2002);label('enable_vblank');abs(0xAD,0x2002);b(0x10,'enable_vblank');imm(0);abs(0x8D,0x2003);st(Z.oamReady);st(Z.frameReady);imm(2);abs(0x8D,0x4014);imm(0);abs(0x8D,0x2005);abs(0x8D,0x2005);if(smooth){ld(Z.viewHi);e(0x29,1,0x09,0x88);abs(0x8D,0x2000);ld(Z.viewLo);abs(0x8D,0x2005);imm(0);abs(0x8D,0x2005);}else{imm(0x88);abs(0x8D,0x2000);}imm(0x1E);abs(0x8D,0x2001);e(0x60);
   label('publish_screen');e(0xA6,Z.screen);for(const name of['worldIndex','roomIndex','cameraIndex','screenX','screenY','cameraScreen']){abs(0xBD,name+'_table');st(Z[name]);}e(0x60);
   label('restart');set(Z.screen,start.screen);set(Z.playerX,start.x);set(Z.playerY,start.y);set(Z.playerFacing,player.facing);set(Z.eventCount,0);jsr('reset_actor');if(enemy)jsr('enemy_reset');if(smooth){jsr('scroll_follow');copy(Z.wishLo,Z.viewLo);copy(Z.wishHi,Z.viewHi);}if(spec.gameplayCore?.enabled)jsr('gc_world_reconstruct');e(0x60);
-  label('reset_actor');for(const name of['velocityY','playerState','playerFrame','moveDirection','attackRequest'])set(Z[name],0);jsr('player_entry');jsr('ground_probe');e(0x60);
+  label('reset_actor');for(const name of['velocityY','playerState','playerFrame','moveDirection','attackRequest'])set(Z[name],0);if(stairsOn){imm(0);abs(0x8D,SR.on);}jsr('player_entry');jsr('ground_probe');e(0x60);
   if(smooth){
     // wish = max(0, min(playerWorldX-128, (width-1)*256)).
     label('scroll_follow');ld(Z.playerX);sub(128);st(Z.wishLo);ld(Z.screen);e(0xE9,0);st(Z.wishHi);
@@ -10822,12 +10944,44 @@ function compile(spec){
   }
   label('read_pad');imm(1);abs(0x8D,0x4016);imm(0);abs(0x8D,0x4016);set(Z.buttons,0);e(0xA2,8);label('pad_bit');abs(0xAD,0x4016);e(0x4A,0x66,Z.buttons,0xCA);b(0xD0,'pad_bit');ld(Z.buttons);e(0x45,Z.previousButtons,0x25,Z.buttons);st(Z.edges);copy(Z.buttons,Z.previousButtons);e(0x60);
   label('update');set(Z.eventMask,0);set(Z.attackRequest,0);jsr('read_pad');ld(Z.edges);e(0x29,8);b(0xF0,'not_restart');jsr('restart');e(0x60);label('not_restart');ld(Z.edges);e(0x29,16);b(0xF0,'not_marker');jsr('use_marker');ld(Z.temp2);b(0xF0,'not_marker');e(0x60);label('not_marker');
-  ld(Z.edges);e(0x29,2);b(0xF0,'no_attack_edge');ld(Z.playerState);e(0xC9,3);b(0xF0,'no_attack_edge');set(Z.attackRequest,1);label('no_attack_edge');jsr('horizontal');ld(Z.edges);e(0x29,1);b(0xF0,'no_jump');ld(Z.grounded);b(0xF0,'no_jump');set(Z.velocityY,-physics.jumpSpeed);set(Z.grounded,0);label('no_jump');jsr('vertical');jsr('choose_player');jsr('player_animate');if(enemy)jsr('enemy_update');if(spec.gameplayCore?.enabled)jsr('gc_world_update');e(0x60);
+  if(stairsOn){jsr('stair_update');abs(0xAD,SR.on);b(0xF0,'stair_free');jmp('after_physics');label('stair_free');}
+  ld(Z.edges);e(0x29,2);b(0xF0,'no_attack_edge');ld(Z.playerState);e(0xC9,3);b(0xF0,'no_attack_edge');set(Z.attackRequest,1);label('no_attack_edge');jsr('horizontal');ld(Z.edges);e(0x29,1);b(0xF0,'no_jump');ld(Z.grounded);b(0xF0,'no_jump');set(Z.velocityY,-physics.jumpSpeed);set(Z.grounded,0);label('no_jump');jsr('vertical');label('after_physics');jsr('choose_player');jsr('player_animate');if(enemy)jsr('enemy_update');if(spec.gameplayCore?.enabled)jsr('gc_world_update');e(0x60);
   // A feet origin is the exclusive body bottom: use its last occupied pixel
   // to activate the authored marker above a floor at a metatile boundary.
   // A direct cell index bounds Up processing independently of marker count.
   // Its 240 bytes precede compact three-byte destination records. The first
   // authored marker in a cell wins, matching the original ordered lookup.
+  if(stairsOn){
+    // Enter: standing, on an Up press near a stair's bottom end or a Down press near its top end (within 6 px).
+    label('stair_update');abs(0xAD,SR.on);b(0xF0,'stair_enter_check');jmp('stair_move');
+    label('stair_enter_check');ld(Z.grounded);b(0xF0,'stair_rts');ld(Z.edges);e(0x29,0x30);b(0xF0,'stair_rts');
+    e(0xA6,Z.screen);abs(0xBD,'stair_count_table');b(0xF0,'stair_rts');abs(0x8D,SR.cnt);abs(0xBD,'stair_first_table');e(0xAA);
+    label('stair_scan');ld(Z.edges);e(0x29,0x10);b(0xF0,'stair_try_top');
+    ld(Z.playerY);abs(0xDD,'stair_by');b(0xD0,'stair_next');ld(Z.playerX);e(0x38);abs(0xFD,'stair_bx');add(6);e(0xC9,13);b(0xB0,'stair_next');
+    abs(0xBD,'stair_bx');st(Z.playerX);imm(0);abs(0x8D,SR.pos);jmp('stair_enter');
+    label('stair_try_top');ld(Z.playerY);abs(0xDD,'stair_ty');b(0xD0,'stair_next');ld(Z.playerX);e(0x38);abs(0xFD,'stair_tx');add(6);e(0xC9,13);b(0xB0,'stair_next');
+    abs(0xBD,'stair_tx');st(Z.playerX);abs(0xBD,'stair_len');abs(0x8D,SR.pos);jmp('stair_enter');
+    label('stair_next');e(0xE8);abs(0xCE,SR.cnt);b(0xD0,'stair_scan');label('stair_rts');e(0x60);
+    label('stair_enter');abs(0xBD,'stair_len');abs(0x8D,SR.len);abs(0xBD,'stair_dir');abs(0x8D,SR.dir);imm(1);abs(0x8D,SR.on);set(Z.velocityY,0);set(Z.grounded,1);e(0x60);
+    // Move: Up or the stair's horizontal direction climbs, Down or the opposite descends, one pixel diagonally per
+    // frame; reaching either end steps off (gravity resumes on the landing or floor).
+    label('stair_move');set(Z.moveDirection,0);set(Z.grounded,1);set(Z.velocityY,0);
+    ld(Z.buttons);e(0x29,0x10);b(0xD0,'stair_up');
+    abs(0xAD,SR.dir);b(0xD0,'stair_upkey_left');ld(Z.buttons);e(0x29,0x80);b(0xD0,'stair_up');jmp('stair_downkeys');
+    label('stair_upkey_left');ld(Z.buttons);e(0x29,0x40);b(0xD0,'stair_up');
+    label('stair_downkeys');ld(Z.buttons);e(0x29,0x20);b(0xD0,'stair_down');
+    abs(0xAD,SR.dir);b(0xD0,'stair_downkey_right');ld(Z.buttons);e(0x29,0x40);b(0xD0,'stair_down');e(0x60);
+    label('stair_downkey_right');ld(Z.buttons);e(0x29,0x80);b(0xD0,'stair_down');e(0x60);
+    label('stair_up');abs(0xAD,SR.pos);abs(0xCD,SR.len);b(0xB0,'stair_exit');abs(0xEE,SR.pos);e(0xC6,Z.playerY);
+    abs(0xAD,SR.dir);b(0xD0,'stair_up_left');e(0xE6,Z.playerX);set(Z.playerFacing,0);set(Z.moveDirection,1);jmp('stair_moved_up');
+    label('stair_up_left');e(0xC6,Z.playerX);set(Z.playerFacing,1);set(Z.moveDirection,255);
+    label('stair_moved_up');abs(0xAD,SR.pos);abs(0xCD,SR.len);b(0xD0,'stair_rts2');jmp('stair_exit');
+    label('stair_down');abs(0xAD,SR.pos);b(0xF0,'stair_exit');abs(0xCE,SR.pos);e(0xE6,Z.playerY);
+    abs(0xAD,SR.dir);b(0xD0,'stair_down_right');e(0xC6,Z.playerX);set(Z.playerFacing,1);set(Z.moveDirection,255);jmp('stair_moved_down');
+    label('stair_down_right');e(0xE6,Z.playerX);set(Z.playerFacing,0);set(Z.moveDirection,1);
+    label('stair_moved_down');abs(0xAD,SR.pos);b(0xD0,'stair_rts2');
+    label('stair_exit');imm(0);abs(0x8D,SR.on);label('stair_rts2');e(0x60);
+  }
   label('use_marker');set(Z.temp2,0);ld(Z.playerY);b(0xF0,'marker_done');sub(1);e(0x29,0xF0);st(Z.temp);ld(Z.playerX);e(0x4A,0x4A,0x4A,0x4A,0x05,Z.temp,0xA8);tablePointer('markers',Z.screen,Z.markerPtr);e(0xB1,Z.markerPtr,0xC9,255);b(0xF0,'marker_done');
   st(Z.temp);e(0x0A);st(Z.byteOffset);imm(0);e(0x69,0);st(Z.bitMask);ld(Z.byteOffset);zpadd(Z.temp);st(Z.byteOffset);ld(Z.bitMask);e(0x69,0);st(Z.bitMask);ld(Z.byteOffset);add(240);st(Z.byteOffset);ld(Z.bitMask);e(0x69,0);st(Z.bitMask);
   ld(Z.markerPtr);zpadd(Z.byteOffset);st(Z.ptr);ld(Z.markerPtr+1);e(0x65,Z.bitMask);st(Z.ptr+1);e(0xA0,0,0xB1,Z.ptr);st(Z.screen);e(0xC8,0xB1,Z.ptr);st(Z.playerX);e(0xC8,0xB1,Z.ptr);st(Z.playerY);jsr('reset_actor');set(Z.temp2,1);label('marker_done');e(0x60);
@@ -11036,6 +11190,10 @@ function compile(spec){
   const dataResource=(name,kind,values)=>{label(name);const address=pc;for(const value of values)e(value);resources.push({kind,ownerId:name,address,byteLength:pc-address,alignment:1,region:'PRG',bank:0});};
   dataResource('bit_masks','lookup',Array.from({length:32},(_,i)=>1<<(i&7)));
   dataResource('byte_offsets','lookup',Array.from({length:32},(_,i)=>i>>3));
+  if(stairsOn){const all=[],first=[],count=[];for(const sc of screens){first.push(all.length&255);count.push((sc.stairs||[]).length);all.push(...(sc.stairs||[]));}
+    dataResource('stair_count_table','stairs',count);dataResource('stair_first_table','stairs',first);
+    for(const [k,f] of [['bx',st=>st.x],['by',st=>st.y],['tx',st=>st.x+(st.dir?-st.len:st.len)],['ty',st=>st.y-st.len],['len',st=>st.len],['dir',st=>st.dir]])dataResource('stair_'+k,'stairs',all.map(st=>f(st)&255));}
+  if(chrSelect){dataResource('world_chr_table','chr-bank',spec.worldChrBank);dataResource('chr_lut_table','chr-bank-lut',Array.from({length:spec.chrBanks||1},(_,i)=>i));}
   for(const key of['left','right','up','down','worldIndex','roomIndex','cameraIndex','screenX','screenY','cameraScreen'])dataResource(key+'_table','screen-index',screens.map((screen,index)=>(screen[key]??(key==='cameraScreen'?index:0))&255));
   const refs={nt:[],collision:[],pal:[],markers:[]},data=[];
   for(const kind of Object.keys(refs)){
@@ -11064,7 +11222,7 @@ function compile(spec){
   for(const record of data)dataResource(record.name,record.kind,record.values);
   const dataEnd=pc;if(dataEnd>0xCFF0){const required=dataEnd-0x8000,available=0xCFF0-0x8000;fail('NROM / Mapper 0 PRG allocation exceeded by '+(required-available)+' bytes (required '+required+', available '+available+'). The full World and all authored assets remain unchanged. This build needs resource/code optimization or a future banked-mapper backend; reducing the World is not automatic.');}
   for(const fixup of fixups){const value=labels[fixup.name];if(value===undefined)fail('Unknown engine label '+fixup.name);const i=fixup.at-0x8000;if(fixup.part)bytes[i]=fixup.part==='lo'?value&255:value>>>8;else{bytes[i]=value&255;bytes[i+1]=value>>>8;}}
-  return{bytes:new Uint8Array(bytes),reset:labels.reset,nmi:labels.nmi,irq:labels.irq,symbols:{...Z,states:{idle:0,walk:1,jump:2,attack:3},audio:audioRuntime?.zp||null,gameplay:gameplayRuntime,labels:{...labels}},codeEnd,dataEnd,resources};
+  return{bytes:new Uint8Array(bytes),chrSelect,reset:labels.reset,nmi:labels.nmi,irq:labels.irq,symbols:{...Z,states:{idle:0,walk:1,jump:2,attack:3},audio:audioRuntime?.zp||null,gameplay:gameplayRuntime,labels:{...labels}},codeEnd,dataEnd,resources};
 }
 services.WorldEngine=Object.freeze({compile});
 })();
@@ -11077,6 +11235,11 @@ services.WorldEngine=Object.freeze({compile});
 const Forge=window.Forge=window.Forge||{},services=Forge.services=Forge.services||{};
 const BASE=0x8000,PRG_BYTES=32768,CHR_BYTES=8192,MARKER=0xCFF0,VECTORS=0xFFFA;
 const RECORD_HEADER=64,MAX_DECODED=8*1024*1024,LAYOUT=4,FORMAT=1;
+// Layout 5: the WG17 authoring record lives in CHR "data banks" after the graphics banks of a mapper 3 ROM, for
+// projects whose record does not fit the 32 KB PRG beside the engine. The game never selects those banks; the
+// engine selects its graphics bank explicitly. The marker's address field holds the first data bank (= the number
+// of graphics banks) and byte 15 the record length's high byte.
+const LAYOUT_CHR=5;
 const encoder=new TextEncoder(),decoder=new TextDecoder('utf-8',{fatal:true});
 const fail=message=>{throw Error('World ROM: '+message);};
 const own=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
@@ -11175,18 +11338,23 @@ function sourceParts(source){
   const detached=JSON.parse(text);validateSource(detached);
   return {source:detached,raw,payload:compress(raw),schema:detached.version};
 }
+// One 8 KB CHR bank is NROM (mapper 0); two to four are CNROM (mapper 3) with one bank per world group.
+function chrBanksOf(length){return Number.isInteger(length)&&length%CHR_BYTES===0&&length>=CHR_BYTES&&length<=4*CHR_BYTES?length/CHR_BYTES:0;}
 function writeRecord(parts,engine,chr,options){
-  const bounds=validateEngine(engine),worldCount=count(options.worldCount),address=options.address,flags=options.flags;
-  if(!(chr instanceof Uint8Array)||chr.length!==CHR_BYTES)fail('expected exactly 8 KB CHR');
+  const bounds=validateEngine(engine),worldCount=count(options.worldCount),address=options.address,flags=options.flags,layout=options.layout||LAYOUT;
+  if(!(chr instanceof Uint8Array)||!chrBanksOf(chr.length))fail('expected 8, 16, 24 or 32 KB CHR');
   if(!Number.isInteger(flags)||flags<0||flags>3)fail('invalid NROM mirroring/battery flags');
   const length=RECORD_HEADER+parts.payload.length;
-  if(!Number.isInteger(address)||address<BASE||address+length>VECTORS)fail('authoring record exceeds PRG capacity');
-  if(address<bounds.end||(address<MARKER+16&&address+length>MARKER))fail('authoring record overlaps engine or marker');
+  if(layout===LAYOUT_CHR){if(!Number.isInteger(address)||address<1||address>4)fail('invalid CHR data bank for the authoring record');}
+  else{
+    if(!Number.isInteger(address)||address<BASE||address+length>VECTORS)fail('authoring record exceeds PRG capacity');
+    if(address<bounds.end||(address<MARKER+16&&address+length>MARKER))fail('authoring record overlaps engine or marker');
+  }
   const record=new Uint8Array(length);record.set(encoder.encode('WG17'));record[4]=FORMAT;record[5]=1;put16(record,6,RECORD_HEADER);
   put32(record,8,parts.raw.length);put32(record,12,parts.payload.length);put32(record,16,engine.bytes.length);
   put16(record,20,bounds.codeEnd);put16(record,22,bounds.dataEnd);put16(record,24,engine.nmi);put16(record,26,engine.reset);put16(record,28,engine.irq);
   record[30]=worldCount;record[31]=flags;put32(record,32,crc32(parts.payload));put32(record,36,crc32(parts.raw));
-  put32(record,40,crc32(engine.bytes));put32(record,44,crc32(chr));put32(record,48,length);put16(record,52,address);record[54]=LAYOUT;put16(record,56,parts.schema);
+  put32(record,40,crc32(engine.bytes));put32(record,44,crc32(chr));put32(record,48,length);put16(record,52,address);record[54]=layout;put16(record,56,parts.schema);
   put32(record,60,crc32(record.subarray(0,60)));record.set(parts.payload,RECORD_HEADER);return record;
 }
 function encodeSourceRecord(source,engine,chr,options){
@@ -11197,7 +11365,7 @@ function decodeSourceRecord(record,context={}){
   if(!(record instanceof Uint8Array)||record.length<RECORD_HEADER||!hasMagic(record,0,'WG17'))fail('missing or truncated WG17 authoring record');
   if(record[4]!==FORMAT)fail('unsupported WG17 source record version '+record[4]);
   if(record[5]!==1||u16(record,6)!==RECORD_HEADER)fail('unsupported source compression/header format');
-  const schema=u16(record,56);if(record[54]!==LAYOUT||record[55]!==0||![10,11,12,13].includes(schema)||u16(record,58)!==0)fail('unsupported source schema/layout or nonzero reserved fields');
+  const schema=u16(record,56),layout=record[54];if((layout!==LAYOUT&&layout!==LAYOUT_CHR)||record[55]!==0||![10,11,12,13].includes(schema)||u16(record,58)!==0)fail('unsupported source schema/layout or nonzero reserved fields');
   if(crc32(record.subarray(0,60))!==u32(record,60))fail('source header checksum mismatch');
   const decodedLength=u32(record,8),payloadLength=u32(record,12),engineLength=u32(record,16),codeEnd=u16(record,20),dataEnd=u16(record,22);
   const worldCount=count(record[30]),flags=record[31],address=u16(record,52),vectors=[u16(record,24),u16(record,26),u16(record,28)];
@@ -11205,10 +11373,11 @@ function decodeSourceRecord(record,context={}){
   if(payloadLength!==record.length-RECORD_HEADER||u32(record,48)!==record.length)fail('source record length mismatch');
   if(!engineLength||BASE+engineLength>MARKER||codeEnd<=BASE||codeEnd>dataEnd||dataEnd>BASE+engineLength)fail('invalid engine code/data boundaries');
   if(flags>3||vectors.some(vector=>vector<BASE||vector>=codeEnd))fail('invalid engine vectors or NROM flags');
-  if(address<BASE+engineLength||address+record.length>VECTORS||(address<MARKER+16&&address+record.length>MARKER))fail('source record overlaps engine, marker or vectors');
+  if(layout===LAYOUT_CHR){if(address<1||address>4)fail('invalid CHR data bank for the source record');}
+  else if(address<BASE+engineLength||address+record.length>VECTORS||(address<MARKER+16&&address+record.length>MARKER))fail('source record overlaps engine, marker or vectors');
   for(const key of ['address','worldCount','flags'])if(own(context,key)&&context[key]!==({address,worldCount,flags})[key])fail('source '+key+' does not match ROM envelope');
   if(context.engineBytes&&(!(context.engineBytes instanceof Uint8Array)||context.engineBytes.length!==engineLength||crc32(context.engineBytes)!==u32(record,40)))fail('engine checksum mismatch');
-  if(context.chr&&(!(context.chr instanceof Uint8Array)||context.chr.length!==CHR_BYTES||crc32(context.chr)!==u32(record,44)))fail('CHR checksum mismatch');
+  if(context.chr&&(!(context.chr instanceof Uint8Array)||!chrBanksOf(context.chr.length)||crc32(context.chr)!==u32(record,44)))fail('CHR checksum mismatch');
   if(context.vectors&&(!Array.isArray(context.vectors)||context.vectors.length!==3||context.vectors.some((value,index)=>value!==vectors[index])))fail('interrupt vectors do not match source record');
   const payload=record.subarray(RECORD_HEADER);if(crc32(payload)!==u32(record,32))fail('compressed source checksum mismatch');
   const raw=decompress(payload,decodedLength);if(crc32(raw)!==u32(record,36))fail('decoded source checksum mismatch');
@@ -11222,22 +11391,27 @@ function decodeSourceRecord(record,context={}){
 function packageWorldRom({source,engine,chr,worldCount}){
   const bounds=validateEngine(engine);count(worldCount);
   const parts=sourceParts(source),recordBytes=RECORD_HEADER+parts.payload.length,aligned=(bounds.end+15)&~15;
-  const address=aligned+recordBytes<=MARKER?aligned:0xD000;
-  if(address+recordBytes>VECTORS)fail('compressed authoring record needs '+recordBytes+' contiguous bytes; available space is '+Math.max(MARKER-aligned,VECTORS-0xD000)+' bytes. Reduce authored data before building.');
-  const flags=(source.mirroring==='v'?1:0)|(source.hasSRAM?2:0),record=writeRecord(parts,engine,chr,{worldCount,address,flags});
-  const rom=new Uint8Array(16+PRG_BYTES+CHR_BYTES);rom.set([0x4E,0x45,0x53,0x1A,2,1,flags]);rom.set(engine.bytes,16);
-  rom.set(record,16+address-BASE);const markerAt=16+MARKER-BASE;
-  rom.set(encoder.encode('NFORGE15'),markerAt);rom[markerAt+8]=LAYOUT;rom[markerAt+9]=worldCount;put16(rom,markerAt+10,address);put16(rom,markerAt+12,record.length);rom[markerAt+14]=FORMAT;
+  const chrBanks=chrBanksOf(chr?.length);if(!chrBanks)fail('expected 8, 16, 24 or 32 KB CHR');
+  const prgAddress=aligned+recordBytes<=MARKER?aligned:0xD000,inChr=prgAddress+recordBytes>VECTORS;
+  if(inChr&&!engine.chrSelect)fail('compressed authoring record needs '+recordBytes+' contiguous bytes; available space is '+Math.max(MARKER-aligned,VECTORS-0xD000)+' bytes. Reduce authored data before building.');
+  if(inChr&&recordBytes>0xFFFFFF)fail('authoring record exceeds the 16 MB layout limit');
+  const layout=inChr?LAYOUT_CHR:LAYOUT,address=inChr?chrBanks:prgAddress,dataBanks=inChr?Math.ceil(recordBytes/CHR_BYTES):0;
+  if(chrBanks+dataBanks>255)fail('authoring record needs '+dataBanks+' CHR data banks; at most '+(255-chrBanks)+' fit the iNES header');
+  const flags=(source.mirroring==='v'?1:0)|(source.hasSRAM?2:0),record=writeRecord(parts,engine,chr,{worldCount,address,flags,layout});
+  const mapper3=chrBanks>1||inChr||engine.chrSelect;
+  const rom=new Uint8Array(16+PRG_BYTES+(chrBanks+dataBanks)*CHR_BYTES);rom.set([0x4E,0x45,0x53,0x1A,2,chrBanks+dataBanks,flags|(mapper3?0x30:0)]);rom.set(engine.bytes,16);
+  if(inChr)rom.set(record,16+PRG_BYTES+chrBanks*CHR_BYTES);else rom.set(record,16+address-BASE);const markerAt=16+MARKER-BASE;
+  rom.set(encoder.encode('NFORGE15'),markerAt);rom[markerAt+8]=layout;rom[markerAt+9]=worldCount;put16(rom,markerAt+10,address);put16(rom,markerAt+12,record.length&0xFFFF);rom[markerAt+14]=FORMAT;rom[markerAt+15]=inChr?record.length>>>16:0;
   [engine.nmi,engine.reset,engine.irq].forEach((vector,index)=>put16(rom,16+VECTORS-BASE+index*2,vector));rom.set(chr,16+PRG_BYTES);
   const reservations=[{address:BASE,length:engine.bytes.length,label:'World runtime code and data'},
-    {address,length:record.length,label:'WG17 full authoring source'},{address:MARKER,length:16,label:'NES Forge layout 4 marker'},
+    ...(inChr?[]:[{address,length:record.length,label:'WG17 full authoring source'}]),{address:MARKER,length:16,label:'NES Forge layout 4 marker'},
     {address:VECTORS,length:6,label:'Interrupt vectors'}];
   const resources={allocations:Array.isArray(engine.resources)?engine.resources.map(resource=>({...resource})):[],
-    prgBytes:PRG_BYTES,chrBytes:CHR_BYTES,engineBytes:engine.bytes.length,sourceRecordBytes:record.length,sourceDecodedBytes:parts.raw.length,sourceCompressedBytes:parts.payload.length};
+    prgBytes:PRG_BYTES,chrBytes:chr.length,chrDataBanks:dataBanks,sourceRecordInChr:inChr,mapper:mapper3?3:0,engineBytes:engine.bytes.length,sourceRecordBytes:record.length,sourceDecodedBytes:parts.raw.length,sourceCompressedBytes:parts.payload.length};
   // Validate the complete emitted envelope before exposing an artifact to the
   // RuntimeCompiler commit boundary. Inspection never compiles or mutates S.
   WorldRom.inspect(rom);
-  return {rom,metadata:{base:BASE,prgSize:PRG_BYTES,sourceRecordAddress:address,sourceRecordBytes:record.length,
+  return {rom,metadata:{base:BASE,prgSize:PRG_BYTES,sourceRecordAddress:address,sourceRecordBytes:record.length,sourceRecordInChr:inChr,chrDataBanks:dataBanks,
     extensionAddress:address,extensionBytes:record.length,resources,reservations},resources,sourceRecord:record};
 }
 function recognized(bytes){
@@ -11255,24 +11429,34 @@ function recognized(bytes){
 }
 function inspect(bytes){
   if(!recognized(bytes))return null;
-  if(bytes.length!==16+PRG_BYTES+CHR_BYTES)fail('expected exactly 32 KB PRG and 8 KB CHR without trainer or trailing bytes');
-  if(!hasMagic(bytes,0,'NES\x1A')||bytes[4]!==2||bytes[5]!==1||bytes[6]&~3||bytes.subarray(7,16).some(value=>value!==0))fail('unsupported iNES header; world ROM requires mapper 0, 32 KB PRG, 8 KB CHR and no trainer');
-  const markerAt=16+MARKER-BASE;
-  if(!hasMagic(bytes,markerAt,'NFORGE15'))fail('missing layout 4 marker');
-  if(bytes[markerAt+8]!==LAYOUT)fail('unsupported Forge world ROM layout '+bytes[markerAt+8]);
-  if(bytes[markerAt+14]!==FORMAT||bytes[markerAt+15]!==0)fail('unsupported world source format or nonzero reserved marker byte');
-  const worldCount=count(bytes[markerAt+9]),address=u16(bytes,markerAt+10),length=u16(bytes,markerAt+12);
-  if(length<RECORD_HEADER||address<BASE||address+length>VECTORS||(address<MARKER+16&&address+length>MARKER))fail('invalid or overlapping authoring record placement');
-  const recordBytes=bytes.subarray(16+address-BASE,16+address-BASE+length);
+  const totalBanks=bytes[5],mapper=bytes[6]>>4,markerAt=16+MARKER-BASE;
+  if(!(totalBanks>=1)||bytes.length!==16+PRG_BYTES+totalBanks*CHR_BYTES)fail('expected 32 KB PRG and whole 8 KB CHR banks without trainer or trailing bytes');
+  if(!hasMagic(bytes,0,'NES\x1A')||bytes[4]!==2||bytes[6]&0x0C||(mapper!==0&&mapper!==3)||(mapper===0&&totalBanks!==1)||bytes.subarray(7,16).some(value=>value!==0))fail('unsupported iNES header; world ROM requires mapper 0 with 8 KB CHR or mapper 3, 32 KB PRG and no trainer');
+  if(!hasMagic(bytes,markerAt,'NFORGE15'))fail('missing layout marker');
+  const layout=bytes[markerAt+8];
+  if(layout!==LAYOUT&&layout!==LAYOUT_CHR)fail('unsupported Forge world ROM layout '+layout);
+  if(bytes[markerAt+14]!==FORMAT||(layout===LAYOUT&&bytes[markerAt+15]!==0))fail('unsupported world source format or nonzero reserved marker byte');
+  const worldCount=count(bytes[markerAt+9]),address=u16(bytes,markerAt+10),length=u16(bytes,markerAt+12)|(layout===LAYOUT_CHR?bytes[markerAt+15]<<16:0);
+  let recordBytes,chrBanks;
+  if(layout===LAYOUT_CHR){
+    chrBanks=address;
+    if(mapper!==3||chrBanks<1||chrBanks>4||chrBanks>=totalBanks||length<RECORD_HEADER)fail('invalid CHR data bank placement for the authoring record');
+    const at=16+PRG_BYTES+chrBanks*CHR_BYTES;if(at+length>bytes.length)fail('authoring record exceeds its CHR data banks');
+    recordBytes=bytes.subarray(at,at+length);
+  }else{
+    chrBanks=totalBanks;if(chrBanks>4||(chrBanks>1&&mapper!==3))fail('unsupported CHR bank count for a layout 4 world ROM');
+    if(length<RECORD_HEADER||address<BASE||address+length>VECTORS||(address<MARKER+16&&address+length>MARKER))fail('invalid or overlapping authoring record placement');
+    recordBytes=bytes.subarray(16+address-BASE,16+address-BASE+length);
+  }
   if(!hasMagic(recordBytes,0,'WG17'))fail('missing WG17 source record');
   const engineLength=u32(recordBytes,16);if(!engineLength||BASE+engineLength>MARKER)fail('engine length exceeds its reserved window');
   const vectors=[0,1,2].map(index=>u16(bytes,16+VECTORS-BASE+index*2));
-  const record=decodeSourceRecord(recordBytes,{address,worldCount,flags:bytes[6],engineBytes:bytes.subarray(16,16+engineLength),chr:bytes.subarray(16+PRG_BYTES),vectors});
-  const header={prgSize:PRG_BYTES,chrSize:CHR_BYTES,headerSize:16,mapper:0,mirror:bytes[6]&1,battery:!!(bytes[6]&2),trainer:false};
-  const metadata={base:BASE,prgSize:PRG_BYTES,sourceRecordAddress:address,sourceRecordBytes:length,extensionAddress:address,extensionBytes:length};
+  const record=decodeSourceRecord(recordBytes,{address,worldCount,flags:bytes[6]&3,engineBytes:bytes.subarray(16,16+engineLength),chr:bytes.subarray(16+PRG_BYTES,16+PRG_BYTES+chrBanks*CHR_BYTES),vectors});
+  const header={prgSize:PRG_BYTES,chrSize:totalBanks*CHR_BYTES,graphicsChrSize:chrBanks*CHR_BYTES,headerSize:16,mapper,mirror:bytes[6]&1,battery:!!(bytes[6]&2),trainer:false};
+  const metadata={base:BASE,prgSize:PRG_BYTES,sourceRecordAddress:address,sourceRecordBytes:length,sourceRecordInChr:layout===LAYOUT_CHR,extensionAddress:address,extensionBytes:length};
   return {header,source:record.source,prepared:record.prepared,record,metadata,
-    summary:{kind:'world-playable',label:'Forge playable World ROM — editable project',mapper:0,worldCount,
-      sceneCount:record.source.scenes.length,editableProject:true,captureOnly:false,layout:LAYOUT,sourceFormat:'WG17',sourceVersion:FORMAT}};
+    summary:{kind:'world-playable',label:'Forge playable World ROM — editable project',mapper,worldCount,
+      sceneCount:record.source.scenes.length,editableProject:true,captureOnly:false,layout,sourceFormat:'WG17',sourceVersion:FORMAT}};
 }
 
 const WorldRom=services.WorldRom={package:packageWorldRom,inspect,recognized,encodeSourceRecord,decodeSourceRecord,compress,decompress,crc32,
@@ -11321,7 +11505,7 @@ function diagnostic(severity,code,message,phase){return {severity,code,message,p
 function validTile(tile,label){if(!Array.isArray(tile)||tile.length!==8||tile.some(row=>!Array.isArray(row)||row.length!==8||row.some(v=>!Number.isInteger(v)||v<0||v>3)))fail(label+' needs an 8×8 tile of pixel values 0–3');return tile;}
 function tileBank(label){
  const tiles=[],keys=new Map();
- function add(tile,owner){validTile(tile,owner);const key=tile.map(row=>row.join('')).join('');if(keys.has(key))return keys.get(key);if(tiles.length>=256)fail(label+' exceeds the 256-tile NROM bank after linking; reduce distinct used graphics');const index=tiles.length;tiles.push(copy(tile));keys.set(key,index);return index;}
+ function add(tile,owner){validTile(tile,owner);const key=tile.map(row=>row.join('')).join('');if(keys.has(key))return keys.get(key);if(tiles.length>=256)fail(label+' exceeds the 256-tile bank after linking; reduce distinct used graphics');const index=tiles.length;tiles.push(copy(tile));keys.set(key,index);return index;}
  add(Array.from({length:8},()=>Array(8).fill(0)),'Blank tile');return {tiles,add};
 }
 function palette(value,label){if(!Array.isArray(value)||value.length!==4||value.some(row=>!Array.isArray(row)||row.length!==4||row.some(c=>!Number.isInteger(c)||c<0||c>63)))fail(label+' needs four NES palette rows');return copy(value);}
@@ -11376,7 +11560,24 @@ function plan(input,gameplayCore){
  const startMarker=markersByWorld.get(startWorld.id)?.get(config.spawnId);
  if(!startMarker||!['spawn','entrance'].includes(startMarker.kind))fail('Choose an explicit Spawn or Entrance marker in the starting world');
  const phases=['prepare-snapshot','world-dependencies'],diagnostics=[];
- const background=tileBank('Background graphics'),sprites=tileBank('Player sprite graphics'),spritePalette=palette(selectedScene.sprPal,'Player sprite palette');
+ // CHR plan: one shared 256-tile background bank (NROM) whenever every reachable world's graphics fit together.
+ // Otherwise worlds are grouped into 8 KB CHR banks of 256 background tiles each (CNROM, mapper 3, at most four
+ // banks); the sprite half is the same in every bank. Screen-transition worlds only: smooth streaming is one world.
+ const blankKey=Array(64).fill(0).join(''),tileKey=tile=>Array.isArray(tile)?tile.map(row=>Array.isArray(row)?row.join(''):'').join(''):'';
+ const worldKeys=worlds.map(w=>{const keys=new Set([blankKey]),sc=sceneMap.get(w.tilesetSceneId);if(!sc)return keys;
+  const defs=new Map((sc.metatiles||[]).map(m=>[m.id,m]));
+  for(const id of new Set((Array.isArray(w.map)?w.map:[]).filter(id=>id!==-1))){const m=defs.get(id);if(!m||!Array.isArray(m.tiles))continue;for(const t of m.tiles){const tile=sc.chr?.[t];if(Array.isArray(tile))keys.add(tileKey(tile));}}
+  return keys;});
+ let groups=[worlds.map((_,i)=>i)];
+ if(!smooth&&new Set(worldKeys.flatMap(k=>[...k])).size>256){
+  groups=[];const sets=[];
+  worldKeys.forEach((keys,i)=>{let g=keys.size>256?-1:sets.findIndex(set=>{let n=set.size;for(const k of keys)if(!set.has(k))n++;return n<=256;});
+   if(g<0){g=sets.length;sets.push(new Set());groups.push([]);}for(const k of keys)sets[g].add(k);groups[g].push(i);});
+  if(groups.length>4)fail('These worlds need '+groups.length+' CHR banks of 256 background tiles; the CNROM profile has 4. Share graphics between worlds or reduce them');
+ }
+ const chrBanks=groups.length,worldChrBank=new Array(worlds.length).fill(0);groups.forEach((g,bank)=>g.forEach(i=>{worldChrBank[i]=bank;}));
+ const backgrounds=groups.map((_,bank)=>tileBank(chrBanks>1?'Background graphics (CHR bank '+bank+')':'Background graphics'));
+ const sprites=tileBank('Player sprite graphics'),spritePalette=palette(selectedScene.sprPal,'Player sprite palette');
  const linkedWorlds=[],worldById=new Map(),rooms=[],cameras=[],screens=[];
  for(const [worldIndex,w] of worlds.entries()){
   integer(w.widthScreens,1,16,w.name+' width');integer(w.heightScreens,1,16,w.name+' height');
@@ -11390,7 +11591,7 @@ function plan(input,gameplayCore){
    if(!Array.isArray(m.tiles)||m.tiles.length!==4||!Array.isArray(m.collision)||m.collision.length!==4)fail('Metatile '+id+' needs four tile and collision quadrants');
    integer(m.pal,0,3,'Metatile '+id+' palette');
    for(const c of m.collision)if(c!==0&&c!==1)fail('Metatile '+id+' uses unsupported collision; World Runtime executes Empty and Solid only');
-   const tiles=m.tiles.map(t=>{integer(t,0,(sc.chr?.length||0)-1,'Metatile '+id+' source CHR tile');return background.add(sc.chr[t],sc.name+' CHR '+t);});
+   const tiles=m.tiles.map(t=>{integer(t,0,(sc.chr?.length||0)-1,'Metatile '+id+' source CHR tile');return backgrounds[worldChrBank[worldIndex]].add(sc.chr[t],sc.name+' CHR '+t);});
    linkedDefinitions.set(id,{id,tiles,pal:m.pal,collision:[...m.collision]});
   }
   for(const id of w.map)if(id!==-1&&!linkedDefinitions.has(id))fail(w.name+' has an invalid or unresolved map cell');
@@ -11416,9 +11617,18 @@ function plan(input,gameplayCore){
    const cameraY=camera&&['locked','horizontal'].includes(camera.mode)?camera.y/15:sy;
    screens.push({id:w.id+':'+sx+','+sy,index,worldIndex,roomIndex:room?roomIndices.get(room.id):255,cameraIndex:camera?cameraIndices.get(camera.id):255,
     screenX:sx,screenY:sy,cameraScreen:linked.screenStart+cameraY*w.widthScreens+cameraX,nt,collision,palette:[...worldPalette,...actorPalette],left:sx?index-1:-1,right:sx<w.widthScreens-1?index+1:-1,
-    up:sy?index-w.widthScreens:-1,down:sy<w.heightScreens-1?index+w.widthScreens:-1,markers:[]});
+    up:sy?index-w.widthScreens:-1,down:sy<w.heightScreens-1?index+w.widthScreens:-1,markers:[],stairs:[]});
   }
   for(const m of markersByWorld.get(w.id).values()){integer(m.x,0,cols-1,'Marker '+m.id+' X');integer(m.y,0,rows-1,'Marker '+m.id+' Y');}
+  // Stairs (world pixels): bottom end at the player's feet, length in pixels along both axes, climbing right or left.
+  if(w.stairs!==undefined&&!Array.isArray(w.stairs))fail(w.name+' stairs must be a list');
+  for(const st of w.stairs||[]){
+   integer(st.x,0,w.widthScreens*256-1,w.name+' stair X');integer(st.y,1,w.heightScreens*240-1,w.name+' stair Y');integer(st.length,2,200,w.name+' stair length');
+   if(!['right','left'].includes(st.direction))fail(w.name+' stair direction must be right or left');
+   const sx=Math.floor(st.x/256),sy=Math.floor((st.y-1)/240),bx=st.x-sx*256,by=st.y-sy*240,dir=st.direction==='left'?1:0,tx=bx+(dir?-st.length:st.length);
+   if(tx<0||tx>255||by-st.length<1)fail(w.name+' stair '+(st.id||'')+' must stay within one screen');
+   screens[linked.screenStart+sy*w.widthScreens+sx].stairs.push({x:bx,y:by,len:st.length,dir});
+  }
  }
  phases.push('world-validation');
  function paletteMatch(sc,row,label){integer(row,0,3,label+' palette row');const p=palette(sc?.sprPal,label+' source sprite palette');for(let c=1;c<4;c++)if(p[row][c]!==spritePalette[row][c])fail(label+' visible sprite palette differs from the selected player source');}
@@ -11490,16 +11700,23 @@ function plan(input,gameplayCore){
  }}
  const worldRecords=linkedWorlds.map(w=>({id:w.id,name:w.name,worldIndex:w.worldIndex,widthScreens:w.widthScreens,heightScreens:w.heightScreens,screenStart:w.screenStart})),startLocation=location(startWorld.id,startMarker);
  gameplayCore=gameplayCore||services.GameplayCompiler.plan(source,{backend:'world',executionContext:{reachableWorldIds:[...reached]}});services.GameplayCompiler.locateWorld(gameplayCore,{worlds:worldRecords,rooms,start:startLocation});services.GameplayCompiler.compileSemantics(gameplayCore);
- if(gameplayCore.enabled)for(const actor of gameplayCore.actors){if(actor.components.includes('Input'))continue;const sc=sceneMap.get(actor.render.sourceSceneId||config.playerSceneId);if(!sc)fail('Gameplay Core Actor '+actor.id+' references a missing sprite source Scene');paletteMatch(sc,actor.render.palette,'Gameplay Core Actor '+actor.id);actor.render.tile=spriteTile(sc,actor.render.tile,'Gameplay Core Actor '+actor.id);}
- const chr=new Uint8Array(8192),pad=tiles=>{while(tiles.length<256)tiles.push(Array.from({length:8},()=>Array(8).fill(0)));return tiles;};
- const backgroundTileCount=background.tiles.length,spriteTileCount=sprites.tiles.length;chr.set(encodeTiles(pad(background.tiles)),0);chr.set(encodeTiles(pad(sprites.tiles)),4096);
- const spec={physics,player:{facing:binding.facing==='left'?1:0,animations},start:startLocation,screens,audio,worlds:worldRecords,rooms,cameras,warnings:[],gameplayCore,cameraMode:smooth?'smoothHorizontal':'screen',flyingEnemy};
+ if(gameplayCore.enabled)for(const actor of gameplayCore.actors){if(actor.components.includes('Input'))continue;const sc=sceneMap.get(actor.render.sourceSceneId||config.playerSceneId);if(!sc)fail('Gameplay Core Actor '+actor.id+' references a missing sprite source Scene');paletteMatch(sc,actor.render.palette,'Gameplay Core Actor '+actor.id);actor.render.tile=spriteTile(sc,actor.render.tile,'Gameplay Core Actor '+actor.id);if(actor.render.metaspriteId)actor.render.pieces=pieces({metaspriteId:actor.render.metaspriteId},'Gameplay Core Actor '+actor.id);
+  if(actor.render.animationId){const anim=(source.animations||[]).find(item=>item.id===actor.render.animationId);if(!anim||!anim.frames?.length)fail('Gameplay Core Actor '+actor.id+' references a missing or empty animation');
+   actor.render.frames=anim.frames.map((frame,i)=>{integer(frame.duration,1,120,'Actor animation frame duration');return{pieces:pieces({metaspriteId:frame.metaspriteId},'Gameplay Core Actor '+actor.id+' frame '+(i+1)),duration:frame.duration};});
+   if(actor.render.frames.reduce((n,f)=>n+f.duration,0)>255)fail('Gameplay Core Actor '+actor.id+' animation is longer than 255 frames');}
+  for(const state of actor.behavior?.states||[])for(const op of [...(state.onTick||[]),...(state.onEnter||[])])if(op.type==='fireProjectile'){actor.projectileTiles=actor.projectileTiles||{};actor.projectileTiles[op.tile]=spriteTile(sc,op.tile,'Gameplay Core Actor '+actor.id+' projectile');}}
+ const chr=new Uint8Array(8192*chrBanks),pad=tiles=>{while(tiles.length<256)tiles.push(Array.from({length:8},()=>Array(8).fill(0)));return tiles;};
+ const backgroundTileCounts=backgrounds.map(bg=>bg.tiles.length),backgroundTileCount=backgroundTileCounts.reduce((n,v)=>n+v,0),spriteTileCount=sprites.tiles.length;
+ const spriteChr=encodeTiles(pad(sprites.tiles));backgrounds.forEach((bg,bank)=>{chr.set(encodeTiles(pad(bg.tiles)),bank*8192);chr.set(spriteChr,bank*8192+4096);});
+ const spec={physics,player:{facing:binding.facing==='left'?1:0,animations},start:startLocation,screens,audio,worlds:worldRecords,rooms,cameras,warnings:[],gameplayCore,cameraMode:smooth?'smoothHorizontal':'screen',flyingEnemy,
+  ...(chrBanks>1?{chrBanks,worldChrBank}:{})};
+ const planProfile=chrBanks>1?Object.freeze({...profile,id:'cnrom-world-screen-transitions',mapper:3,chrBytes:8192*chrBanks,chrBanks}):profile;
  const resources=screens.flatMap(sc=>[{kind:'nametable',ownerId:sc.id,byteLength:1024,alignment:1,region:'PRG',bank:0,address:null},{kind:'collision',ownerId:sc.id,byteLength:120,alignment:1,region:'PRG',bank:0,address:null},{kind:'palette',ownerId:sc.id,byteLength:32,alignment:1,region:'PRG',bank:0,address:null}]);
  const minimumBytes=[['nt',1024],['collision',120],['palette',32]].reduce((sum,[key,size])=>sum+new Set(screens.map(sc=>sc[key].join(','))).size*size,0);
  if(minimumBytes>0x4FF0)fail('Reachable screen resources alone need '+minimumBytes+' bytes and exceed the '+0x4FF0+'-byte code/resource region; reduce the executable world set');
  phases.push('world-screen-pack');
  diagnostics.push(diagnostic('info','world-selection',worlds.length+' reachable world(s), '+screens.length+' screen(s), '+rooms.length+' room region(s), '+cameras.length+' camera region(s).','world-dependencies'));
- diagnostics.push(diagnostic('info','world-graphics',backgroundTileCount+'/256 background tiles and '+spriteTileCount+'/256 sprite tiles linked from actual world/animation/gameplay dependencies.','world-asset-link'));
+ diagnostics.push(diagnostic('info','world-graphics',(chrBanks>1?'CNROM profile: '+chrBanks+' CHR banks, background tiles per bank '+backgroundTileCounts.map(n=>n+'/256').join(', ')+' (worlds switch banks on screen transitions)':backgroundTileCount+'/256 background tiles')+' and '+spriteTileCount+'/256 sprite tiles linked from actual world/animation/gameplay dependencies.','world-asset-link'));
  diagnostics.push(diagnostic('info','world-traversal',smooth?'Multi-screen NES PPU horizontal scroll with background-column streaming; Empty/Solid collision across screen boundaries; Start returns to the selected spawn.':'Screen transitions; Empty/Solid collision; Up enters a linked entrance/exit; Start returns to the selected spawn.','world-screen-pack'));
  diagnostics.push(diagnostic('warning','world-capacity-pending',minimumBytes+' screen-data bytes planned; final code, animation, and compressed authoring sizes are checked during ROM allocation.','world-allocation'));
  diagnostics.push(diagnostic('warning','world-authoring-limits',flyingEnemy?'One opt-in Flying Chaser enemy executes with the Player. Other scene entities, player attack damage, and custom events remain authoring data.':'One bound Player executes. Other scene entities, attack contacts, and custom events remain authoring data.','world-dependencies'));
@@ -11522,14 +11739,23 @@ function plan(input,gameplayCore){
  if(audio.enabled)diagnostics.push(diagnostic('info','audio-runtime',(audio.musicEnabled?'Tracker music and ':'')+audio.sfx.length+' named SFX compile into World Runtime; linked sound events execute on frame entry.','world-asset-link'));
  else if(source.instruments.length||source.sfx.length)diagnostics.push(diagnostic('warning','audio-authoring','Audio Runtime is disabled; tracker and SFX data remain authoring-only.','world-asset-link'));
  if(gameplayCore.enabled){diagnostics.push(...gameplayCore.diagnostics);diagnostics.push(diagnostic('info','gameplay-core-runtime',gameplayCore.actors.length+' canonical Actor Instance(s) and '+gameplayCore.variables.length+' scoped persistent variable(s) compile into World Runtime.','world-asset-link'));}
- const result={backend:'world',source,profile,phaseOrder,phases,diagnostics,spec,chr,resources,worlds:spec.worlds,pack:false,custom:false,backgroundTileCount,spriteTileCount,gameplayCore};plans.add(result);return result;
+ const result={backend:'world',source,profile:planProfile,phaseOrder,phases,diagnostics,spec,chr,resources,worlds:spec.worlds,pack:false,custom:false,backgroundTileCount,backgroundTileCounts,spriteTileCount,gameplayCore};plans.add(result);return result;
 }
 function compile(p){
  if(!plans.has(p))fail('Compile requires a prepared World Runtime plan');if(p.worldCompiled)fail('A world plan is single-use');p.worldCompiled=true;
- const engine=services.WorldEngine.compile(p.spec);p.phases.push('world-code');
- const artifact=services.WorldRom.package({source:p.source,engine,chr:p.chr,worldCount:p.worlds.length});p.phases.push('world-allocation','world-source-record');
+ let engine=services.WorldEngine.compile(p.spec),artifact;p.phases.push('world-code');
+ try{artifact=services.WorldRom.package({source:p.source,engine,chr:p.chr,worldCount:p.worlds.length});}
+ catch(error){
+  // The authoring record does not fit the 32 KB PRG: rebuild the engine with explicit CHR bank selection so the
+  // record can be stored in CHR data banks (layout 5, mapper 3). The game itself is unchanged.
+  if(engine.chrSelect||!/compressed authoring record needs/.test(error.message))throw error;
+  p.spec={...p.spec,chrSelect:true,chrBanks:p.spec.chrBanks||1,worldChrBank:p.spec.worldChrBank||p.worlds.map(()=>0)};
+  engine=services.WorldEngine.compile(p.spec);artifact=services.WorldRom.package({source:p.source,engine,chr:p.chr,worldCount:p.worlds.length});
+ }
+ p.phases.push('world-allocation','world-source-record');
  p.diagnostics=p.diagnostics.filter(d=>d.code!=='world-capacity-pending');
- p.diagnostics.push(diagnostic('info','world-capacity','World code/resources: '+engine.bytes.length+' bytes; authoring record: '+artifact.metadata.sourceRecordBytes+' bytes; 32 KB PRG + 8 KB CHR.','world-allocation'));
+ const inChr=artifact.metadata.sourceRecordInChr,mapper3=p.chr.length>8192||inChr;
+ p.diagnostics.push(diagnostic('info','world-capacity','World code/resources: '+engine.bytes.length+' bytes; authoring record: '+artifact.metadata.sourceRecordBytes+' bytes'+(inChr?' stored in '+artifact.metadata.chrDataBanks+' CHR data bank(s) the game never selects':'')+'; 32 KB PRG + '+(p.chr.length/1024)+' KB graphics CHR'+(mapper3?' (CNROM, mapper 3)':'')+'.','world-allocation'));
  return {...artifact,world:{spec:p.spec,symbols:engine.symbols,codeEnd:engine.codeEnd,dataEnd:engine.dataEnd,resources:engine.resources,rom:artifact.rom}};
 }
 services.WorldCompiler={profile,phaseOrder,plan,compile,lastBuild:null};
@@ -23741,6 +23967,210 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
   return Object.freeze({version: 2, open, offsets, incrementalPositions, idleSelectors, inventory});
 });
 /*
+ * NES FORGE MODULE: src/re/punch-out-pose-streams.js
+ * Entry: PunchOutPoseStreams
+ * Purpose: Read and write Punch-Out full-pose records (piece geometry, attributes, tiles) in the native stream format.
+ * Connections: PunchOutContent runs the original dispatcher; PunchOutPoseGeometryProject owns project views and builds.
+ * Contract: encode() output must decode, through the original routine, to exactly the requested OAM. plan() only
+ *   writes new streams into declared trailing fill space and re-points one full-pose table entry; original streams
+ *   (which other poses share) are never changed.
+ * Bundle order: app/source-manifest.json; regenerate with app/tools/bundle.py.
+ */
+/* Native format (full poses, selector < $80), derived from the dispatcher at $C890:
+ *   record      dx, dy, geometry*, attributes*, n, tiles* x n        (pointers little-endian CPU addresses)
+ *   first slot  X = base X + dx, Y = base Y + dy; the streams continue from the previous slot.
+ *   geometry    00 end | 0n head (dx; Y += sprite height) + n-1 pieces at X+8 | 1n one piece (dx; same Y)
+ *               2n n pieces at X+8 | 3n-7n head (dx, dy) + n-1 at X+8 | 8n n hidden slots (Y=$F8, blank tile)
+ *               9n / An / Bn-Fn as 0n / 2n / 3n stepping X-8. Runs after a head are at most 7 pieces.
+ *   attributes  00 end | 0n/2n/4n/6n (top three bits 000-011) n slots of palette 0-3 | 8n-Fn n explicit bytes.
+ *               From the first slot whose OAM Y >= $50 to the end of the stream the reader is in its
+ *               behind-background mode: palette runs write palette|$20 and explicit bytes are EOR $20.
+ *   tiles       00 end of this stream | 0n T: n tiles from T stepping 1 (8x8) or 2 (8x16) | 1_ B: CHR bank B
+ *               2n n explicit tiles | 8n-Fn n blank tiles. The record lists n tile streams, read in order.
+ * The interpreter below is a reference for that format. Owner-side tests compare it and the encoder with the
+ * original routine on every full pose of a supplied cartridge. */
+(function(root, factory) {
+  const api = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.PunchOutPoseStreams = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+  'use strict';
+  const fail = message => { throw Error('Punch-Out pose streams: ' + message); };
+  const FIRST_SLOT = 3, LAST_SLOT = 63, LOW_LINE = 0x50, HIDDEN_Y = 0xf8, RUN = 7;
+  const blankTile = mode => mode === 16 ? 0xfe : 0xff;
+  const step = mode => mode === 16 ? 2 : 1;
+  const byte = v => v & 255;
+
+  /* read(address) returns the byte the dispatcher would see at a CPU address ($8000-$FFFF). The model works on the
+   * OAM page byte by byte like the original (X register = slot offset), including its carry behaviour: a "next row"
+   * head whose Y passes 255 advances X by 5, and tile runs that pass 255 add the carry to the next tile. */
+  function interpret(read, record, ctx) {
+    const mode = ctx.spriteMode, height = mode, page = new Uint8Array(256).fill(0xf8), touched = new Set();
+    const used = new Map();
+    const at = (a, tag) => { const v = read(a & 65535); if (!used.has(a & 65535)) used.set(a & 65535, tag); return v; };
+    const word = (a, tag) => at(a, tag) | (at(a + 1, tag) << 8);
+    const base = ctx.slotOffset ?? 0;            // $AA
+    let chrBank = ctx.chrBank ?? 5, X = base, slots = 0;
+    // Absolute indexed writes do not wrap: past the OAM page they land in the next RAM page (kept, not OAM).
+    const beyond = new Map();
+    const W = (offset, value) => { const o = 0x0c + X + offset; if (o < 256) { page[o] = byte(value); touched.add(o); } else beyond.set(o, byte(value)); };
+    const R = offset => { const o = 0x0c + X + offset; return o < 256 ? page[o] : beyond.get(o) ?? 0; };
+    const next = (carry = 0) => { X = (X + 4 + carry) & 255; slots++; if (slots > 61) fail('pose writes past the 61 fighter OAM slots'); };
+    // record header and first slot
+    const dx = at(record, 'record'), dy = at(record + 1, 'record');
+    W(3, ctx.baseX + dx); W(0, ctx.baseY + dy); next();
+    const geometry = word(record + 2, 'record'), attributes = word(record + 4, 'record');
+    const tileCount = at(record + 6, 'record'), tiles = [];
+    for (let i = 0; i < tileCount; i++) tiles.push(word(record + 7 + i * 2, 'record'));
+    const recordLength = 7 + tileCount * 2;
+    // geometry (R(-1) = previous slot's X, R(-4) = previous slot's Y)
+    let p = geometry, guard = 0;
+    const run = (count, dir) => {
+      // the native continuation writes at most 7 pieces (larger counts fall into its 7-piece entry)
+      for (let i = 0; i < Math.min(count, RUN); i++) { const y = R(-4); W(3, R(-1) + dir * 8); W(0, y); next(); }
+    };
+    for (;;) {
+      if (++guard > 256) fail('geometry stream does not end');
+      const op = at(p++, 'geometry');
+      if (!op) break;
+      const n = op & 15, hi = op & 0xf0;
+      if (hi === 0x80) {
+        const hidden = () => { W(0, HIDDEN_Y); W(1, blankTile(mode)); next(); };
+        for (let i = 0; i < n; i++) hidden();
+        continue;
+      }
+      if (hi === 0x10) { W(3, R(-1) + at(p++, 'geometry')); W(0, R(-4)); next(); continue; }
+      const dir = hi >= 0x90 ? -1 : 1;
+      if (hi === 0x20 || hi === 0xa0) { run(n, dir); continue; }
+      const head = hi === 0x00 || hi === 0x90;
+      W(3, R(-1) + at(p++, 'geometry'));
+      if (head) { const sum = R(-4) + height; W(0, sum); next(sum > 255 ? 1 : 0); }
+      else { W(0, R(-4) + at(p++, 'geometry')); next(); }
+      if (n > 1) run(n - 1, dir);           // n = 0 behaves as 1 piece and no run (E2 decrements to 255 then BNE)
+    }
+    const geometryLength = p - geometry, slotCount = slots;
+    // attributes: per slot, with the sticky behind-background mode; X restarts at $AA with a clean stride
+    p = attributes; guard = 0; X = base;
+    let low = false;
+    const attr = (value, explicit) => {
+      if (!low && R(0) >= LOW_LINE) low = true;
+      W(2, explicit ? (low ? value ^ 0x20 : value) : (low ? value | 0x20 : value)); X = (X + 4) & 255;
+    };
+    for (;;) {
+      if (++guard > 256) fail('attribute stream does not end');
+      const op = at(p++, 'attributes');
+      if (!op) break;
+      const n = op & 31;
+      if (op & 0x80) for (let i = 0; i < n; i++) attr(at(p++, 'attributes'), true);
+      else for (let i = 0; i < n; i++) attr((op >> 5) & 3, false);
+    }
+    const attributesLength = p - attributes;
+    // tiles
+    X = base;
+    const tileStreams = tiles.map(start => {
+      let q = start, g = 0;
+      const tile = v => { W(1, v); X = (X + 4) & 255; };
+      for (;;) {
+        if (++g > 256) fail('tile stream does not end');
+        const op = at(q++, 'tiles');
+        if (!op) break;
+        const n = op & 15, hi = op & 0xf0;
+        if (hi === 0) {
+          let v = at(q++, 'tiles'), c = 0;
+          for (let i = 0; i < n; i++) {
+            tile(v); const sum = v + step(mode) + c; v = sum & 255;
+            c = n >= 8 && i === 7 ? 0 : (sum > 255 ? 1 : 0);
+          }
+        }
+        else if (hi & 0x80) for (let i = 0; i < n; i++) tile(blankTile(mode));
+        else if (hi === 0x20) for (let i = 0; i < n; i++) tile(at(q++, 'tiles'));
+        else chrBank = at(q++, 'tiles');
+      }
+      return {address: start, length: q - start};
+    });
+    const oam = Array.from(page), list = [];
+    for (let k = 0; k < slotCount; k++) {
+      const o = 0x0c + base + k * 4;
+      if (o + 3 < 256) list.push({slot: o >> 2, y: page[o], tile: page[o + 1], attr: page[o + 2], x: page[o + 3]});
+    }
+    return {slots: list, oam, chrBank4KiB: chrBank & 31, writesBeyondOam: beyond.size,
+      streams: {record: {address: record, length: recordLength}, geometry: {address: geometry, length: geometryLength},
+        attributes: {address: attributes, length: attributesLength}, tiles: tileStreams},
+      addresses: [...used.keys()].sort((a, b) => a - b)};
+  }
+
+  /* slots: [{x, y, tile, attr}] in final OAM values (y as stored in OAM), or {hidden:true}. */
+  function encode(slots, ctx) {
+    const mode = ctx.spriteMode;
+    if (mode !== 8 && mode !== 16) fail('sprite mode must be 8 or 16');
+    if (!Array.isArray(slots) || !slots.length || slots.length > LAST_SLOT - FIRST_SLOT + 1) fail('a pose needs 1-61 slots');
+    const sl = slots.map((p, i) => {
+      if (p.hidden) return {hidden: true, x: 0xf8, y: HIDDEN_Y, tile: blankTile(mode), attr: null};
+      for (const k of ['x', 'y', 'tile', 'attr'])
+        if (!Number.isInteger(p[k]) || p[k] < 0 || p[k] > 255) fail('slot ' + i + ' ' + k + ' must be a byte');
+      return {hidden: false, x: p.x, y: p.y, tile: p.tile, attr: p.attr};
+    });
+    if (sl[0].hidden) fail('the first slot of a pose must be visible');
+    // Hidden slots carry no position, so only trailing hidden slots use the hidden op; a hidden slot that is
+    // followed by visible pieces is written as an off-screen positioned piece with a blank tile.
+    const lastVisible = sl.map(p => !p.hidden).lastIndexOf(true);
+    for (let i = 1; i <= lastVisible; i++) if (sl[i].hidden) sl[i] = {hidden: false, x: sl[i - 1].x, y: HIDDEN_Y,
+      tile: blankTile(mode), attr: sl[i - 1].attr ?? 0};
+    const geometry = [];
+    let i = 1;
+    while (i < sl.length) {
+      if (sl[i].hidden) { const n = Math.min(15, sl.length - i); geometry.push(0x80 | n); i += n; continue; }
+      const head = sl[i], prev = sl[i - 1];
+      let n = 1; i++;
+      while (i < sl.length && !sl[i].hidden && n < RUN && sl[i].y === sl[i - 1].y && sl[i].x === byte(sl[i - 1].x + 8)) { n++; i++; }
+      geometry.push(0x30 | n, byte(head.x - prev.x), byte(head.y - prev.y));
+    }
+    geometry.push(0);
+    // attributes: sticky low mode from the first slot whose Y >= $50 (hidden slots count: their Y is $F8)
+    const lowFrom = (() => { const q = sl.findIndex(p => p.y >= LOW_LINE); return q < 0 ? sl.length : q; })();
+    const want = q => q >= lowFrom ? (sl[q].attr ?? 0x20) ^ 0x20 : sl[q].attr ?? 0;
+    const pal = q => { const a = want(q); return a < 4 ? a : -1; };
+    const attributes = [];
+    let k = 0;
+    while (k < sl.length) {
+      const v = pal(k);
+      if (v >= 0) { let n = 0; while (k + n < sl.length && n < 31 && pal(k + n) === v) n++; attributes.push((v << 5) | n); k += n; continue; }
+      const st = k; let m = 0;
+      while (k < sl.length && m < 31 && !(m > 0 && pal(k) >= 0 && k + 1 < sl.length && pal(k + 1) === pal(k))) { k++; m++; }
+      attributes.push(0x80 | m); for (let q = st; q < st + m; q++) attributes.push(want(q));
+    }
+    attributes.push(0);
+    // tiles: one stream, starting with the CHR bank
+    const tiles = [0x10, ctx.chrBank & 31], blank = blankTile(mode), inc = step(mode);
+    k = 0;
+    while (k < sl.length) {
+      if (sl[k].tile === blank) { let n = 0; while (k < sl.length && n < 15 && sl[k].tile === blank) { n++; k++; } tiles.push(0x80 | n); continue; }
+      // runs stay below 256: the native run carries an overflow into the next tile
+      let n = 1; while (k + n < sl.length && n < 15 && sl[k].tile + n * inc <= 255 && sl[k + n].tile === sl[k].tile + n * inc) n++;
+      if (n >= 2) { tiles.push(n, sl[k].tile); k += n; continue; }
+      const st = k; let m = 0;
+      while (k < sl.length && m < 15 && sl[k].tile !== blank && !(m > 0 && k + 1 < sl.length && sl[k].tile + inc <= 255 && sl[k + 1].tile === sl[k].tile + inc)) { k++; m++; }
+      if (!m) { k++; m = 1; }
+      tiles.push(0x20 | m); for (let q = st; q < st + m; q++) tiles.push(sl[q].tile);
+    }
+    tiles.push(0);
+    return {dx: byte(sl[0].x - ctx.baseX), dy: byte(sl[0].y - ctx.baseY), geometry, attributes, tiles,
+      bytes: geometry.length + attributes.length + tiles.length + 9};
+  }
+
+  /* Trailing fill space: the zero run that ends a physical 8 KiB bank. Only runs of at least `minimum` bytes count,
+   * and the first 8 bytes of each run are left as a margin after the last original byte. */
+  function trailingFill(bytes, fileStart, cpuStart, minimum = 128) {
+    let end = fileStart + 8192, k = end;
+    while (k > fileStart && bytes[k - 1] === 0) k--;
+    const length = end - k - 8;
+    return length >= minimum ? {fileOffset: k + 8, cpu: cpuStart + (k + 8 - fileStart), length} : null;
+  }
+
+  return Object.freeze({version: 1, interpret, encode, trailingFill, firstSlot: FIRST_SLOT, lowLine: LOW_LINE,
+    blankTile, step});
+});
+/*
  * NES FORGE MODULE: src/services/punch-out-content-recovery.js
  * Entry: Forge.services.PunchOutContentRecovery
  * Purpose: Convert source poses into canonical Scene/sprite/metasprite assets with provenance.
@@ -24586,6 +25016,424 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
 
   services.PunchOutPoseProject = Object.freeze({prepare, describe, move, moveIdle, sceneId, frameId,
     idleSelectors: codec.idleSelectors, inventory: () => codec.inventory()});
+})();
+/*
+ * NES FORGE MODULE: src/services/punch-out-pose-geometry-project.js
+ * Entry: Forge.services.PunchOutPoseGeometryProject
+ * Purpose: Native writer for Punch-Out full-pose piece geometry (positions, order, tiles, palettes, flips) for any fighter.
+ * Connections: PunchOutPoseStreams encodes the native streams; PunchOutContent runs the original dispatcher to verify;
+ *   NativeResourceProject owns validation, spans and the build gate; ProjectStore owns history.
+ * Contract: an edited pose is written as a new record and new streams in the fighter bank's trailing fill (streams may
+ *   use the fixed bank's trailing fill) and its one full-pose table entry is re-pointed. Original records and streams,
+ *   which other poses share, are never changed. Every build re-decodes each edited pose through the original routine
+ *   and refuses unless the result is exactly the requested layout, and checks that every other full pose is unchanged.
+ * Bundle order: app/source-manifest.json; regenerate with app/tools/bundle.py.
+ */
+(() => {
+  'use strict';
+  const services = Forge.services, owner = services.NativeResourceProject, codec = PunchOutPoseStreams;
+  const copy = value => JSON.parse(JSON.stringify(value));
+  const hex = value => value.toString(16).toUpperCase().padStart(2, '0');
+  const signed = value => ((value + 128) & 255) - 128;
+  const byte = value => value & 255;
+  const sceneId = (fight, selector) => 'po-native-geometry-source-f' + fight + '-s' + selector;
+  const frameId = (fight, selector) => 'po-native-geometry-f' + fight + '-s' + selector;
+  const marker = scene => scene.captureMeta?.punchOutPoseGeometry;
+  const FIXED = 16 + 131072 - 24576;               // file offset of CPU $A000 (the fixed 24 KiB)
+  // Revisions whose fill space was checked on the owner side against every original full pose and a native run.
+  const VERIFIED = Object.freeze(['22ce21aa9c477d87e9cdc386b185f2166b18d438257640aa1d8e75ee9960e06e']);
+  let cache;
+
+  function source(info) {
+    const hash = info.descriptor.sourceSha256;
+    if (cache && cache.hash === hash) return cache.model;
+    const bytes = info.bytes, content = PunchOutContent.open(bytes);
+    const reader = bank => a => a < 0xa000 ? bytes[16 + bank * 8192 + a - 0x8000] : bytes[FIXED + a - 0xa000];
+    const fixedFill = codec.trailingFill(bytes, FIXED + 8192, 0xc000);
+    const fights = content.fights.map(f => {
+      const fill = codec.trailingFill(bytes, 16 + f.bank8KiB * 8192, 0x8000, 16);
+      const poses = new Map();
+      for (const record of f.poses) {
+        if (record.status !== 'source-record') continue;
+        const decoded = codec.interpret(reader(f.bank8KiB), record.address,
+          {baseX: f.baseX, baseY: f.baseY, spriteMode: f.spriteMode, chrBank: 5});
+        poses.set(record.selector, {record, decoded});
+      }
+      const slotLimit = Math.max(...[...poses.values()].map(p => p.decoded.slots.length));
+      return {fight: f, fill, poses, slotLimit};
+    });
+    // Fill space must be unread by every original full pose of every fighter.
+    const regions = [fixedFill, ...fights.map(f => f.fill)].filter(Boolean);
+    const cpuFile = (bank, a) => a < 0xa000 ? 16 + bank * 8192 + a - 0x8000 : FIXED + a - 0xa000;
+    for (const f of fights) for (const {decoded} of f.poses.values()) for (const a of decoded.addresses) {
+      const o = cpuFile(f.fight.bank8KiB, a);
+      if (regions.some(r => o >= r.fileOffset && o < r.fileOffset + r.length))
+        throw Error('Punch-Out pose geometry: the fill space is read by an original pose; this revision is not supported.');
+    }
+    // CHR tile pairs referenced by any decoded full pose or incremental pose (by bank; an incremental stream that does
+    // not name its bank counts against every bank its fighter uses).
+    const usage = new Map(), mark = (bank, tile) => { if (!usage.has(bank)) usage.set(bank, new Set()); usage.get(bank).add(tile & 254); };
+    for (const f of fights) {
+      const banks = new Set();
+      for (const {decoded} of f.poses.values()) { banks.add(decoded.chrBank4KiB); for (const s of decoded.slots) mark(decoded.chrBank4KiB, s.tile); }
+      for (const t of incrementalTiles(reader(f.fight.bank8KiB), f.fight)) {
+        if (t.bank !== null) mark(t.bank, t.tile); else for (const b of banks) mark(b, t.tile);
+      }
+    }
+    const model = {content, fights, fixedFill, verified: VERIFIED.includes(hash), cpuFile, usage};
+    cache = {hash, model};
+    return model;
+  }
+
+  /* Tiles named by incremental pose records ($80-$BF with an attribute pointer, $C0-$FF without):
+   * [0 | flag dx dy] [attribute pointer] slotOffset count tilePointer x count, in the full-pose tile stream format. */
+  function incrementalTiles(read, f) {
+    const word = a => read(a) | (read(a + 1) << 8), out = [], step = codec.step(f.spriteMode);
+    const lowest = Math.min(...f.poses.filter(p => p.status === 'source-record').map(p => p.address));
+    const tables = [[f.shapeTables[1], f.shapeTables[2], true], [f.shapeTables[2], lowest, false]];
+    for (const [start, end, attributes] of tables) {
+      for (let at = start; at + 1 < end && at < start + 128; at += 2) {
+        const record = word(at);
+        if (record < 0x8000 || record >= 0xa000) continue;
+        let y = read(record) ? 3 : 1;
+        if (attributes) y += 2;
+        y++;                                         // slot offset
+        const count = read(record + y); y++;
+        for (let k = 0; k < count && k < 8; k++) {
+          let q = word(record + y + k * 2), guard = 0, bank = null;
+          for (;;) {
+            if (++guard > 256) break;
+            const op = read(q++); if (!op) break;
+            const n = op & 15, hi = op & 0xf0;
+            if (hi === 0) { const t = read(q++); for (let i = 0; i < n; i++) out.push({bank, tile: (t + i * step) & 255}); }
+            else if (hi & 0x80) continue;
+            else if (hi === 0x20) for (let i = 0; i < n; i++) out.push({bank, tile: read(q++)});
+            else bank = read(q++) & 31;
+          }
+        }
+      }
+    }
+    return out;
+  }
+
+  // Physical CHR banks that fighter poses select (bank 0 and the decoder's default bank 5 are not pose art banks).
+  const poseBanks = model => [...new Set(model.fights.flatMap(f => [...f.poses.values()].map(p => p.decoded.chrBank4KiB)))]
+    .filter(b => b !== 0 && b !== 5).sort((a, b) => a - b);
+  // Reserved in every pose bank whatever the poses use: OAM slot 0 draws tile pair $00 from the fighter's current bank
+  // and the frame waits for its sprite-0 hit (the status-bar split), and slots 1-2 draw the MMC2 latch tiles $FD/$FE.
+  const RESERVED_PAIRS = Object.freeze([0x00, 0xfc, 0xfe]);
+  const freePairs = (model, bank, extra = new Set()) => {
+    const used = model.usage.get(bank) || new Set(), out = [];
+    for (let t = 0; t < 256; t += 2) if (!RESERVED_PAIRS.includes(t) && !used.has(t) && !extra.has(t)) out.push(t);
+    return out;
+  };
+
+  function lookup(model, fight, selector) {
+    const f = model.fights[fight], pose = f?.poses.get(selector);
+    if (!pose) throw Error('Select a full pose (selector below $80) of fighter 0-13.');
+    return {f, pose};
+  }
+
+  // Canonical frame: one piece per visible slot, in OAM order. In 8x16 mode the tile's bit 0 (the CHR half) is kept by
+  // slot id, as the ordinary metasprite piece has no field for it.
+  function frame(model, fight, selector) {
+    const {f, pose} = lookup(model, fight, selector), mode = f.fight.spriteMode;
+    return {id: frameId(fight, selector), name: f.fight.label + ' · pose $' + hex(selector) + ' pieces',
+      sceneId: sceneId(fight, selector), spriteMode: mode, originX: 0, originY: 0,
+      pieces: pose.decoded.slots.filter(s => s.y < 239).map(s => ({id: 'oam-' + s.slot,
+        tile: mode === 16 ? s.tile & 254 : s.tile, tile2: mode === 16 ? (s.tile & 254) + 1 : byte(s.tile + 1),
+        x: signed(s.x - f.fight.baseX), y: signed(s.y - f.fight.baseY) + 1,
+        pal: s.attr & 3, flipH: !!(s.attr & 64), flipV: !!(s.attr & 128), behind: !!(s.attr & 32)}))};
+  }
+
+  function entries(project, info) {
+    const model = source(info);
+    return project.scenes.filter(marker).map(scene => {
+      const m = marker(scene);
+      const keys = Object.keys(m).filter(k => k !== 'chrBank4KiB').sort().join(',');
+      if (keys !== 'fight,selector,sourceSha256,version' || m.version !== 1 ||
+        m.sourceSha256 !== info.descriptor.sourceSha256 || scene.id !== sceneId(m.fight, m.selector) ||
+        (m.chrBank4KiB !== undefined && !poseBanks(model).includes(m.chrBank4KiB)))
+        throw Error('Native pose geometry view has invalid source ownership.');
+      const baseline = frame(model, m.fight, m.selector);
+      const current = project.metasprites.find(item => item.id === baseline.id);
+      if (!current) throw Error('A required native pose geometry frame was removed. Restore it before building.');
+      return {scene, frame: current, baseline, fight: m.fight, selector: m.selector, model, chrBank: m.chrBank4KiB};
+    });
+  }
+
+  const same = (a, b) => JSON.stringify([a.originX, a.originY, a.pieces]) === JSON.stringify([b.originX, b.originY, b.pieces]);
+
+  /* Turn an edited frame into native slots. Throws with the piece and field that cannot be encoded. */
+  function slotsFor(entry) {
+    const {f, pose} = lookup(entry.model, entry.fight, entry.selector), mode = f.fight.spriteMode;
+    const frame = entry.frame, pieces = frame.pieces || [];
+    if (frame.spriteMode !== mode) throw Error('Sprite mode must stay ' + mode + ' (the fighter\'s native mode).');
+    if (!pieces.length) throw Error('A pose needs at least one piece.');
+    if (pieces.length > f.slotLimit) throw Error('This fighter\'s poses use at most ' + f.slotLimit +
+      ' sprite slots; the pose has ' + pieces.length + ' pieces.');
+    const half = new Map(pose.decoded.slots.map(s => ['oam-' + s.slot, s.tile & 1]));
+    const ox = frame.originX | 0, oy = frame.originY | 0;
+    const slots = pieces.map((piece, i) => {
+      for (const k of ['tile', 'x', 'y', 'pal']) if (!Number.isInteger(piece[k])) throw Error('Piece ' + (i + 1) + ' ' + k + ' must be an integer.');
+      if (piece.tile < 0 || piece.tile > 255 || piece.pal < 0 || piece.pal > 3) throw Error('Piece ' + (i + 1) + ' tile or palette is out of range.');
+      if (mode === 16 && (piece.tile & 1)) throw Error('Piece ' + (i + 1) + ': 8x16 tiles are even numbers (the pair starts on an even tile).');
+      if (mode === 16 && piece.tile2 !== undefined && piece.tile2 !== piece.tile + 1) throw Error('Piece ' + (i + 1) + ': the lower tile of an 8x16 piece is always tile + 1.');
+      const x = f.fight.baseX + ox + piece.x, y = f.fight.baseY + oy + piece.y - 1;
+      const tile = mode === 16 ? piece.tile | (half.get(piece.id) || 0) : piece.tile;
+      // Behind-background is written as each piece says (explicit attribute bytes can express either side).
+      return {x: byte(x), y: byte(y), tile, attr: piece.pal | (piece.behind ? 32 : 0) | (piece.flipH ? 64 : 0) | (piece.flipV ? 128 : 0)};
+    });
+    const derived = [];
+    // Keep at least the original slot count so slots this pose used before are hidden, not left stale.
+    while (slots.length < pose.decoded.slots.length) slots.push({hidden: true});
+    return {slots, derived, chrBank: entry.chrBank ?? pose.decoded.chrBank4KiB};
+  }
+
+  function spans(project, info) {
+    const list = entries(project, info);
+    if (!list.length) return [];
+    const model = list[0].model, out = [], seen = new Set();
+    const add = (offset, length) => { const key = offset + ':' + length; if (!seen.has(key)) { seen.add(key); out.push({offset, length}); } };
+    for (const e of list) {
+      const {f} = lookup(model, e.fight, e.selector);
+      add(model.cpuFile(f.fight.bank8KiB, f.fight.shapeTables[0] + e.selector), 2);
+      if (f.fill) add(f.fill.fileOffset, f.fill.length);
+    }
+    if (model.fixedFill) add(model.fixedFill.fileOffset, model.fixedFill.length);
+    return out;
+  }
+
+  function encode(bytes, project, info) {
+    const list = entries(project, info).filter(e => !same(e.frame, e.baseline))
+      .sort((a, b) => a.fight - b.fight || a.selector - b.selector);
+    if (!list.length) return {bytes, diagnostics: []};
+    const model = list[0].model;
+    if (!model.verified) throw services.BuildDiagnostics.attach(Error('Pose geometry writing is verified for Punch-Out PRG1 only.'),
+      {assetId: list[0].frame.id, assetName: list[0].frame.name, resourceKey: 'metasprite:' + list[0].frame.id,
+        field: 'pieces', writerRoute: 'punch-out-pose-geometry', repair: 'Undo the piece edits, or use a PRG1 source.'});
+    const out = bytes.slice(), cursors = new Map(), notes = [], written = [];
+    let fixed = model.fixedFill ? {cpu: model.fixedFill.cpu, end: model.fixedFill.cpu + model.fixedFill.length} : null;
+    for (const e of list) {
+      const {f} = lookup(model, e.fight, e.selector), bank = f.fight.bank8KiB;
+      const refuse = (message, repair) => services.BuildDiagnostics.attach(Error(message), {assetId: e.frame.id,
+        assetName: e.frame.name, resourceKey: 'metasprite:' + e.frame.id, field: 'pieces', writerRoute: 'punch-out-pose-geometry', repair});
+      let plan;
+      try { plan = slotsFor(e); } catch (error) { throw refuse(error.message, 'Change the named piece, or Undo it.'); }
+      const streams = codec.encode(plan.slots, {baseX: f.fight.baseX, baseY: f.fight.baseY, spriteMode: f.fight.spriteMode, chrBank: plan.chrBank});
+      if (!f.fill) throw refuse('Fighter bank ' + bank + ' has no fill space for a new pose record.', 'Undo the piece edits for this fighter.');
+      const cur = cursors.get(bank) || {cpu: f.fill.cpu, end: f.fill.cpu + f.fill.length};
+      const streamBytes = streams.geometry.length + streams.attributes.length + streams.tiles.length;
+      let recordAt = cur.cpu, at;
+      if (cur.cpu + 9 + streamBytes <= cur.end) { at = cur.cpu + 9; cur.cpu += 9 + streamBytes; }
+      else if (cur.cpu + 9 <= cur.end && fixed && fixed.cpu + streamBytes <= fixed.end) { at = fixed.cpu; fixed.cpu += streamBytes; cur.cpu += 9; }
+      else throw refuse('No fill space left for this pose (' + (9 + streamBytes) + ' bytes).', 'Edit fewer poses of this fighter in one build, or use fewer pieces.');
+      cursors.set(bank, cur);
+      const put = (cpu, data) => { data.forEach((v, k) => { out[model.cpuFile(bank, cpu + k)] = v; }); };
+      const g = at, a = g + streams.geometry.length, t = a + streams.attributes.length;
+      put(g, streams.geometry); put(a, streams.attributes); put(t, streams.tiles);
+      put(recordAt, [streams.dx, streams.dy, g & 255, g >> 8, a & 255, a >> 8, 1, t & 255, t >> 8]);
+      put(f.fight.shapeTables[0] + e.selector, [recordAt & 255, recordAt >> 8]);
+      written.push({e, plan, bytes: 9 + streamBytes});
+    }
+    // Verify through the original dispatcher: edited poses exactly as requested, every other full pose unchanged.
+    const before = model.content, after = PunchOutContent.open(out);
+    for (const {e, plan} of written) {
+      const got = after.pose(e.fight, e.selector);
+      plan.slots.forEach((s, i) => {
+        const o = (codec.firstSlot + i) * 4, oam = got.oam;
+        const ok = s.hidden ? oam[o] === 0xf8 : oam[o] === s.y && oam[o + 1] === s.tile && oam[o + 2] === s.attr && oam[o + 3] === s.x;
+        if (!ok) throw services.BuildDiagnostics.attach(Error('The native routine did not reproduce piece ' + (i + 1) + ' of ' + e.frame.name + '.'),
+          {assetId: e.frame.id, assetName: e.frame.name, resourceKey: 'metasprite:' + e.frame.id, field: 'pieces', writerRoute: 'punch-out-pose-geometry',
+            repair: 'Undo the last piece edit and report this pose.'});
+      });
+    }
+    const edited = new Set(written.map(w => w.e.fight + ':' + w.e.selector));
+    for (const f of model.fights) for (const selector of f.poses.keys()) {
+      if (edited.has(f.fight.index + ':' + selector)) continue;
+      const a = before.pose(f.fight.index, selector).oam, b = after.pose(f.fight.index, selector).oam;
+      if (a.some((v, k) => v !== b[k])) throw Error('Punch-Out pose geometry: writing changed another pose (' + f.fight.label + ' $' + hex(selector) + ').');
+    }
+    const used = written.reduce((n, w) => n + w.bytes, 0);
+    return {bytes: out, diagnostics: [{severity: 'info', code: 'punch-out-native-pose-geometry', phase: 'native-encode',
+      message: written.length + ' pose layout(s) re-encoded (' + used + ' bytes of fill space): ' + written.map(w => w.e.frame.name).join('; ') +
+        '. Original streams are untouched. Incremental poses still patch sprite slots by number on top of the full pose before them; check native playback.' +
+        (notes.length ? ' ' + notes.join('. ') + '.' : '')}]};
+  }
+
+  owner.registerSceneEncoder({
+    id: 'punch-out-pose-geometry-v1',
+    capability: {adapterKind: 'punch-out', title: 'Pose piece layout (every fighter)', route: 'punch-out-pose-geometry',
+      scope: 'Full poses (selector below $80) of all 14 fights: piece positions, order, count, tiles, palettes, flips and behind-background. Incremental poses, animation timing, damage and collision rules have no writer here.'},
+    matches: (project, info) => info.adapter.kind === 'punch-out' && project.scenes.some(marker),
+    views: () => [],
+    metaspriteViews(project, info) {
+      return entries(project, info).map(({baseline}) => ({id: baseline.id, originX: baseline.originX, originY: baseline.originY, pieces: baseline.pieces}));
+    },
+    spans,
+    encode
+  });
+
+  function sourceScene(info, model, fight, selector, bytes, chrBank) {
+    const {f, pose} = lookup(model, fight, selector), pal = f.fight.palette;
+    return makeScene({id: sceneId(fight, selector), name: f.fight.label + ' · pose $' + hex(selector) + ' source',
+      chr: normalizeTiles(), sprChr: PunchOutContent.open(bytes).chr(chrBank ?? pose.decoded.chrBank4KiB),
+      pal: Array.from({length: 4}, () => [15, 0, 0, 0]),
+      sprPal: Array.from({length: 4}, (_, i) => [pal[16], ...pal.slice(17 + i * 4, 20 + i * 4)]),
+      nt: Array(960).fill(0), attr: Array(64).fill(0), tileProps: Array(256).fill(0), oam: [], entities: [], links: [],
+      buildInclude: false, buildOrder: 0, gravity: 0, scrollDir: 'none', sceneType: 'static',
+      captureMeta: {mode: 'native-pose-geometry-view',
+        punchOutPoseGeometry: {version: 1, sourceSha256: info.descriptor.sourceSha256, fight, selector,
+          ...(chrBank === undefined ? {} : {chrBank4KiB: chrBank})}}});
+  }
+
+  function prepare(project, fight, selector) {
+    const info = owner.validate(project, {build: true});
+    if (info.adapter.kind !== 'punch-out') throw Error('Open a recovered Punch-Out project first.');
+    const model = source(info);
+    lookup(model, fight, selector);
+    const sid = sceneId(fight, selector), id = frameId(fight, selector);
+    if (project.scenes.some(scene => scene.id === sid)) { entries(project, info); return {project, frameId: id, sceneId: sid, added: false}; }
+    if (fight === 0 && project.scenes.some(scene => scene.captureMeta?.punchOutPose?.selector === selector))
+      throw Error('Glass Joe pose $' + hex(selector) + ' already has a position view. Use one writer per pose.');
+    if (project.metasprites.some(item => item.id === id)) throw Error('Native pose geometry frame ID already belongs to another asset.');
+    if (project.scenes.length >= 64 || project.metasprites.length >= 256) throw Error('No free Scene or Metasprite slot. Preserve existing work first.');
+    const p = copy(project);
+    p.scenes.push(sourceScene(info, model, fight, selector, info.sceneEncoded.bytes));
+    p.metasprites.push(frame(model, fight, selector));
+    p.nativeGame.projectionSha256 = owner.projectionSignature(p);
+    owner.validate(p, {build: true});
+    return {project: p, frameId: id, sceneId: sid, added: true};
+  }
+
+  function describe(project, id) {
+    const info = owner.validate(project), entry = entries(project, info).find(e => e.frame.id === id);
+    if (!entry) return null;
+    const {f, pose} = lookup(entry.model, entry.fight, entry.selector);
+    return {frameId: id, sceneId: entry.scene.id, fight: entry.fight, fighter: f.fight.label, selector: entry.selector,
+      spriteMode: f.fight.spriteMode, chrBank4KiB: pose.decoded.chrBank4KiB, slots: pose.decoded.slots.length, slotLimit: f.slotLimit,
+      changed: !same(entry.frame, entry.baseline), fillBytes: f.fill ? f.fill.length : 0,
+      fixedFillBytes: entry.model.fixedFill ? entry.model.fixedFill.length : 0, verifiedRevision: entry.model.verified};
+  }
+
+  /* Replace a geometry frame's pieces in one committed change (callers commit the returned project). */
+  function setPieces(project, id, pieces, origin) {
+    const info = owner.validate(project, {build: true}), p = copy(project);
+    const entry = entries(p, info).find(e => e.frame.id === id);
+    if (!entry) throw Error('Select a native pose geometry view.');
+    entry.frame.pieces = copy(pieces);
+    if (origin) { entry.frame.originX = origin.x | 0; entry.frame.originY = origin.y | 0; }
+    slotsFor(entry);
+    owner.validate(p, {build: true});
+    return p;
+  }
+
+  /* Half-size artwork: compose the pose as drawn (lower OAM slots on top), scale it to half, re-tile it per palette into
+   * 8x16 pieces placed in CHR tile pairs that no decoded full or incremental pose of any fighter uses, and write the
+   * pixels through the physical CHR bank view and the layout through this writer. The feet stay where they were.
+   * Returns the committed-ready project; nothing else in the bank changes. */
+  function halfSize(project, fight, selector) {
+    let p = prepare(project, fight, selector).project;
+    const info = owner.validate(p, {build: true}), model = source(info);
+    const {f, pose} = lookup(model, fight, selector), mode = f.fight.spriteMode, bank = pose.decoded.chrBank4KiB;
+    if (mode !== 16) throw Error('Half-size artwork supports fighters drawn with 8x16 sprites.');
+    const visible = pose.decoded.slots.filter(s => s.y < 239 && s.tile !== codec.blankTile(mode));
+    if (visible.some(s => s.tile & 1)) throw Error('This pose also draws from the other CHR half; pick a pose drawn from one bank.');
+    // Art comes from the pose's current bank (or its view's bank), as edited so far.
+    const view = entries(p, info).find(e => e.fight === fight && e.selector === selector);
+    const fromBank = view.chrBank ?? bank;
+    const sourceArt = p.scenes.find(sc => sc.id === services.PunchOutArtProject.sceneId('chr', fromBank))?.chr ||
+      PunchOutContent.open(info.sceneEncoded.bytes).chr(fromBank);
+    const bx = f.fight.baseX, by = f.fight.baseY;
+    const rel = visible.map(s => ({...s, rx: signed(s.x - bx), ry: signed(s.y - by)}));
+    const minX = Math.min(...rel.map(s => s.rx)), minY = Math.min(...rel.map(s => s.ry));
+    const W = Math.max(...rel.map(s => s.rx)) + 8 - minX, H = Math.max(...rel.map(s => s.ry)) + 16 - minY;
+    const canvas = Array.from({length: H}, () => Array(W).fill(null));
+    for (const s of [...rel].reverse()) {
+      const flipH = s.attr & 64, flipV = s.attr & 128;
+      for (let half = 0; half < 2; half++) {
+        const tile = sourceArt[(s.tile & 254) + (flipV ? 1 - half : half)];
+        for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
+          const v = tile[flipV ? 7 - y : y][flipH ? 7 - x : x];
+          if (v) canvas[s.ry - minY + half * 8 + y][s.rx - minX + x] = {pal: s.attr & 3, v};
+        }
+      }
+    }
+    const W2 = Math.ceil(W / 2), H2 = Math.ceil(H / 2), small = Array.from({length: H2}, () => Array(W2).fill(null));
+    for (let y = 0; y < H2; y++) for (let x = 0; x < W2; x++) {
+      const votes = new Map();
+      for (const [dy, dx] of [[0, 0], [0, 1], [1, 0], [1, 1]]) {
+        const c = canvas[y * 2 + dy]?.[x * 2 + dx]; if (!c) continue;
+        const key = c.pal * 4 + c.v; votes.set(key, (votes.get(key) || 0) + 1);
+      }
+      const total = [...votes.values()].reduce((n, v) => n + v, 0);
+      if (total < 2) continue;
+      const [key] = [...votes.entries()].sort((a, b) => b[1] - a[1])[0];
+      small[y][x] = {pal: key >> 2, v: key & 3};
+    }
+    // feet stay put: bottom centre of the scaled image = bottom centre of the original
+    const x0 = Math.round(minX + W / 2 - W2 / 2), y0 = minY + H - H2;
+    const pieces = [];
+    for (let pal = 0; pal < 4; pal++) for (let cy = 0; cy < H2; cy += 16) for (let cx = 0; cx < W2; cx += 8) {
+      const cell = Array.from({length: 16}, (_, y) => Array.from({length: 8}, (_, x) => {
+        const c = small[cy + y]?.[cx + x]; return c && c.pal === pal ? c.v : 0; }));
+      if (cell.some(row => row.some(Boolean))) pieces.push({pal, x: x0 + cx, y: y0 + cy, cell});
+    }
+    pieces.sort((a, b) => a.y - b.y || a.x - b.x);
+    // Target bank: the pose's own, then the fighter's other banks, then other fighters' pose banks; the first with
+    // enough tile pairs that no decoded pose uses, no other layout view in this project uses, and nobody has drawn on.
+    const fighterBanks = [...new Set([...f.poses.values()].map(q => q.decoded.chrBank4KiB))];
+    const candidates = [bank, ...fighterBanks.filter(b => b !== bank), ...poseBanks(model).filter(b => !fighterBanks.includes(b))]
+      .filter(b => poseBanks(model).includes(b));
+    const original = PunchOutContent.open(info.bytes);
+    const freeIn = b => {
+      const extra = new Set(), artView = p.scenes.find(sc => sc.id === services.PunchOutArtProject.sceneId('chr', b));
+      for (const e of entries(p, info)) if ((e.chrBank ?? lookup(model, e.fight, e.selector).pose.decoded.chrBank4KiB) === b &&
+        !(e.fight === fight && e.selector === selector)) for (const piece of e.frame.pieces) extra.add(piece.tile & 254);
+      const chr = original.chr(b);
+      return freePairs(model, b, extra).filter(t => !artView || [t, t + 1].every(i => JSON.stringify(artView.chr[i]) === JSON.stringify(chr[i])));
+    };
+    const ranked = candidates.map(b => ({b, free: freeIn(b)}));
+    const target = ranked.find(r => r.free.length >= pieces.length);
+    if (!target) throw Error('Half size needs ' + pieces.length + ' unused tile pairs in one CHR bank; the most any of this fighter\'s or other fighters\' pose banks has is ' +
+      Math.max(...ranked.map(r => r.free.length)) + '.');
+
+    const free = target.free, chrBank = target.b;
+    if (chrBank !== (view.chrBank ?? bank)) {
+      // Record the bank on the view (its source Scene shows that bank) and re-sign the projection.
+      const sc = p.scenes.find(item => item.id === view.scene.id);
+      sc.captureMeta.punchOutPoseGeometry = {...sc.captureMeta.punchOutPoseGeometry, chrBank4KiB: chrBank};
+      sc.sprChr = PunchOutContent.open(info.sceneEncoded.bytes).chr(chrBank);
+      p.nativeGame.projectionSha256 = owner.projectionSignature(p);
+      owner.validate(p, {build: true});
+    }
+    p = services.PunchOutArtProject.prepare(p, 'chr', chrBank).project;
+    const art = p.scenes.find(sc => sc.id === services.PunchOutArtProject.sceneId('chr', chrBank));
+    const frame = p.metasprites.find(item => item.id === frameId(fight, selector));
+    let low = false;
+    frame.pieces = pieces.map((piece, i) => {
+      const t = free[i];
+      art.chr[t] = piece.cell.slice(0, 8); art.chr[t + 1] = piece.cell.slice(8);
+      if (by + piece.y >= codec.lowLine) low = true;
+      return {id: 'half-' + (i + 1), tile: t, tile2: t + 1, x: piece.x, y: piece.y + 1, pal: piece.pal,
+        flipH: false, flipV: false, behind: low};
+    });
+    frame.originX = 0; frame.originY = 0;
+    owner.validate(p, {build: true});
+    return {project: p, frameId: frame.id, artSceneId: art.id, chrBank4KiB: chrBank, originalChrBank4KiB: bank, pieces: frame.pieces.length,
+      originalPieces: visible.length, tilePairs: free.slice(0, pieces.length), unusedTilePairsLeft: free.length - pieces.length,
+      bankAlsoUsedBy: model.fights.filter(x => [...x.poses.values()].some(q => q.decoded.chrBank4KiB === chrBank)).map(x => x.fight.label)};
+  }
+
+  /* Full poses per fighter, for pickers. Read-only. */
+  function poses(project) {
+    const info = owner.validate(project);
+    if (info.adapter.kind !== 'punch-out') return [];
+    return source(info).fights.map(f => ({fight: f.fight.index, label: f.fight.label,
+      selectors: [...f.poses.keys()].sort((a, b) => a - b)}));
+  }
+
+  services.PunchOutPoseGeometryProject = Object.freeze({prepare, describe, setPieces, halfSize, poses, sceneId, frameId, verifiedRevisions: VERIFIED});
 })();
 /* Current extraction coverage. The JSON block is the single source for the
  * in-app views, downloaded ledger and the packaged compatibility ledger.
@@ -32650,13 +33498,20 @@ register({name:'resources.open',group:'resources',title:'Open a resource in its 
 register({name:'writer.list',group:'writers',title:'Native writers for this project',
   run:()=>{const {cap,own}=context();return {writers:cap.writers.map(cp),ownership:own?cp(own):null};}});
 register({name:'writer.prepare',group:'writers',title:'Open a native writer view',mutates:true,
-  summary:'Adds the explicit editing view a native writer encodes (e.g. Punch-Out physical CHR bank or palette, Glass Joe pose).',
-  args:{writer:{type:'string',required:true,enum:['punch-out-art','punch-out-pose']},kind:{type:'string',enum:['chr','palette']},index:{type:'int',min:0,max:255}},
+  summary:'Adds the explicit editing view a native writer encodes (e.g. Punch-Out physical CHR bank or palette, Glass Joe pose position, any fighter\'s pose piece layout).',
+  args:{writer:{type:'string',required:true,enum:['punch-out-art','punch-out-pose','punch-out-pose-geometry']},kind:{type:'string',enum:['chr','palette']},index:{type:'int',min:0,max:255},fight:{type:'int',min:0,max:13}},
   run:a=>{const p=project();let res;
     if(a.writer==='punch-out-art'){if(!a.kind||a.index===undefined)fail('punch-out-art needs kind (chr|palette) and index');res=services.PunchOutArtProject.prepare(p,a.kind,a.index);}
+    else if(a.writer==='punch-out-pose-geometry'){if(a.fight===undefined||a.index===undefined)fail('punch-out-pose-geometry needs fight (0-13) and index (pose selector)');res=services.PunchOutPoseGeometryProject.prepare(p,a.fight,a.index);}
     else{if(a.index===undefined)fail('punch-out-pose needs index (pose selector)');res=services.PunchOutPoseProject.prepare(p,a.index);}
     if(res.added)commitProject(res.project,'writer:'+a.writer);
     return {sceneId:res.sceneId||null,frameId:res.frameId||null,added:!!res.added,resourceKey:res.sceneId?'scene:'+res.sceneId:null};}});
+
+register({name:'writer.halfSize',group:'writers',title:'Make a Punch-Out pose half size',mutates:true,
+  summary:'Scales a full pose\'s artwork to half size, places it in CHR tiles no decoded pose uses and writes the new piece layout. One committed change; Undo restores it.',
+  args:{fight:{type:'int',required:true,min:0,max:13},index:{type:'int',required:true,min:0,max:127}},
+  run:a=>{const res=services.PunchOutPoseGeometryProject.halfSize(project(),a.fight,a.index);commitProject(res.project,'writer:punch-out-half-size');
+    const {project:_,...report}=res;return {...cp(report),resourceKey:'metasprite:'+res.frameId};}});
 
 /* Writer suggestions: for an asset that is only a copy, the explicit native writer view (if any)
  * that encodes the same original data, and which other assets share it. Providers are small and
@@ -32671,14 +33526,25 @@ registerSuggestions(({p,node,cap})=>{
     const bank=content.chrBank4KiB,shared=p.scenes.filter(s=>s.id!==scene.id&&s.captureMeta?.punchOutContent?.chrBank4KiB===bank).map(s=>s.name);
     out.push({writer:'punch-out-art',args:{writer:'punch-out-art',kind:'chr',index:bank},level:'native',
       title:'Edit these graphics in physical CHR bank '+bank+' (writes to the ROM)',
-      note:'The fighter scene is a reference snapshot. Pixel edits in the bank view are encoded into the ROM; tile layout (pose geometry) has no writer yet.',
+      note:'The fighter scene is a reference snapshot. Pixel edits in the bank view are encoded into the ROM; open a pose\'s piece layout view to move, add or remove its pieces.',
       sharedWith:shared});
   }
+  // Pose writers: from a recovered pose metasprite or from a fighter's sprite Scene, with a picker over every full pose.
   const pose=node.type==='metasprite'&&/^po-pose-f(\d+)-s(\d+)$/.exec(node.id);
-  if(pose&&services.PunchOutPoseProject){
-    const fight=+pose[1],selector=+pose[2];
-    if(fight===0)out.push({writer:'punch-out-pose',args:{writer:'punch-out-pose',index:selector},level:'native',title:'Move this Glass Joe pose (writes X/Y to the ROM)',note:'Whole-pose position only; piece geometry has no writer yet.',sharedWith:[]});
-    else out.push({writer:null,level:'copy',title:'No pose writer for this fighter yet',note:'Pose layout writers exist only for Glass Joe positions. Graphics can be edited through the CHR bank view.',sharedWith:[]});
+  const fighter=pose?+pose[1]:(node.type==='scene'&&content&&Number.isInteger(content.fight)?content.fight:null);
+  if(fighter!==null&&services.PunchOutPoseGeometryProject){
+    const fight=fighter,selector=pose?+pose[2]:0,hex=n=>'$'+n.toString(16).toUpperCase().padStart(2,'0');
+    let list=[];try{list=services.PunchOutPoseGeometryProject.poses(p).find(f=>f.fight===fight)?.selectors||[];}catch(_){list=[];}
+    const choices=list.map(index=>({label:'Pose '+hex(index),args:{fight,index}}));
+    if(selector<128&&list.length){
+      out.push({writer:'punch-out-pose-geometry',args:{writer:'punch-out-pose-geometry',fight,index:selector},level:'native',
+        choices:choices.map(c=>({label:c.label,args:{writer:'punch-out-pose-geometry',...c.args}})),
+        title:'Edit a pose\'s pieces (writes the layout to the ROM)',note:'Positions, order, count, tiles, palettes and flips. The original layout stays in the ROM for other poses that share it; the build re-checks the pose with the game\'s own routine. New artwork goes in the CHR bank view.',sharedWith:[]});
+      out.push({writer:'punch-out-pose-geometry',command:'writer.halfSize',label:'Make half size',args:{fight,index:selector},level:'native',choices,
+        title:'Make a pose half size (new artwork + layout)',note:'Draws a half-size copy of the chosen pose into CHR tiles no decoded pose uses, and points that pose at it. Other poses keep their full-size art. Undo restores it.',sharedWith:[]});
+    }
+    if(pose&&fight===0&&services.PunchOutPoseProject)out.push({writer:'punch-out-pose',args:{writer:'punch-out-pose',index:selector},level:'native',title:'Move this Glass Joe pose (writes X/Y to the ROM)',note:'Whole-pose position only.',sharedWith:[]});
+    if(pose&&selector>=128&&fight!==0)out.push({writer:null,level:'copy',title:'No writer for incremental poses of this fighter yet',note:'Incremental poses patch the full pose before them. Edit the full poses, or graphics through the CHR bank view.',sharedWith:[]});
   }
   return out;
 });
@@ -32795,7 +33661,7 @@ body.studio-mode-library #studioPanel,body.studio-mode-build #studioPanel{displa
 .sp-detail h2{font-size:13px;color:#fff;margin:0 0 6px}.sp-detail p{margin:6px 0;line-height:1.45}.sp-detail .note{color:var(--dim)}
 .sp-detail ul{margin:4px 0;padding-left:16px}.sp-detail li{margin:2px 0}.sp-link{background:none!important;border:0!important;color:var(--acc)!important;padding:0!important;min-height:0!important;text-decoration:underline;cursor:pointer}
 .sp-actions{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.sp-actions .primary{background:#14324a;border-color:var(--acc)}
-.sp-sugg{border:1px solid var(--bdr2);padding:6px;margin:6px 0}.sp-sugg .shared{color:var(--orn)}
+.sp-sugg{border:1px solid var(--bdr2);padding:6px;margin:6px 0}.sp-sugg .sp-pick{margin:4px 6px 4px 0;max-width:60%}.sp-sugg .shared{color:var(--orn)}
 .sp-more{grid-column:1/-1}
 .sp-build .sp-body{flex-direction:column;overflow:auto;padding:10px;gap:8px}
 .bd-card{border:1px solid var(--bdr2);padding:8px}.bd-ok{border-color:#3a6a3a}.bd-err{border-color:#7a3a3a}.bd-card h3{margin:0 0 4px;font-size:12px}
@@ -32963,10 +33829,15 @@ async function inspect(key,detail){
   const suggestions=sugg.ok?sugg.result.suggestions:[];
   detail.replaceChildren(el('h2',{text:r.name}),el('p',{},badge(r.editability.level),' ',lv.label),
     el('p',{class:'note',text:r.editability.note}),r.summary?el('p',{text:r.summary}):null,r.details?el('p',{class:'note',text:r.details}):null,actions,
-    ...suggestions.map(s=>el('div',{class:'sp-sugg'},el('p',{},badge(s.level),' ',s.title),el('p',{class:'note',text:s.note}),
-      s.sharedWith?.length?el('p',{class:'shared',text:'Also changes: '+s.sharedWith.join(', ')}):null,
-      s.args?el('button',{class:'primary',onclick:async()=>{const res=await run('writer.prepare',s.args);if(!res.ok){showToast?.(res.error.message);return;}
-        if(res.result.resourceKey){lib.selected=res.result.resourceKey;await renderLibrary();}}},'Open writer view'):null)),
+    ...suggestions.map(s=>{
+      // A suggestion may offer choices (e.g. every pose of a fighter); the button runs the selected one.
+      const pick=s.choices?.length?el('select',{class:'sp-pick','aria-label':'Choose'},...s.choices.map((c,i)=>{const o=el('option',{value:String(i),text:c.label});
+        if(JSON.stringify(c.args)===JSON.stringify(s.args))o.selected=true;return o;})):null;
+      const args=()=>pick?s.choices[+pick.value].args:s.args;
+      return el('div',{class:'sp-sugg'},el('p',{},badge(s.level),' ',s.title),el('p',{class:'note',text:s.note}),
+      s.sharedWith?.length?el('p',{class:'shared',text:'Also changes: '+s.sharedWith.join(', ')}):null,pick,
+      s.args?el('button',{class:'primary',onclick:async()=>{const res=await run(s.command||'writer.prepare',args());if(!res.ok){showToast?.(res.error.message);return;}
+        if(res.result.resourceKey){lib.selected=res.result.resourceKey;await renderLibrary();}}},s.label||'Open writer view'):null);}),
     el('h3',{text:'Uses'}),links(r.uses),el('h3',{text:'Used by'}),links(r.usedBy),el('p',{class:'note',text:'Key: '+r.key}));
 }
 
