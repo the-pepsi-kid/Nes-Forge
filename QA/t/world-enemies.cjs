@@ -1,7 +1,7 @@
 'use strict';
 // World Runtime enemies (repository inputs only): a Ground Patrol Enemy drawn from a metasprite patrols, faces its
 // walking direction, is defeated by the player's attack (playerAttackHit -> despawn), and contact damage that empties
-// the player's health restarts the player at the spawn.
+// the player's health restarts the player at the spawn. Enemies can walk with an animation and fire at the player.
 const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict'), crypto = require('node:crypto');
 const {loadForge} = require('./u/harness.cjs');
 const root = path.resolve(__dirname, '../..'), editor = path.resolve(process.argv[2] || path.join(root, 'NES_Forge.html')), output = process.argv[3];
@@ -75,6 +75,35 @@ check('Emulator: contact damage that empties the player\'s health restarts at th
     if (health() === h0 && J(`emu.ram[${Z.playerX}]`) === spawn[0] && f > 40) restarted = true;
   }
   assert.ok(restarted, 'back at the spawn with full health');
+});
+
+check('Emulator: an enemy with a walk animation changes frames on screen', async () => {
+  const p = withEnemy(); const r = p.gameplayCore.actorDefinitions.find(d => d.name === 'Ground Patrol Enemy').components.find(c => c.type === 'Render');
+  r.values = {...r.values, metaspriteId: '', animationId: 'awalk'};
+  await R('project.load', {json: JSON.stringify(p)});
+  const sym = J('Forge.services.RuntimeCompiler.compile().world.symbols'), arr = sym.gameplay.arrays, rom2 = Buffer.from((await R('build.rom')).base64, 'base64');
+  await R('emulator.load', {bytes: rom2, name: 'anim.nes'}); await R('emulator.frames', {count: 20});
+  const tiles = new Set();
+  for (let f = 0; f < 40; f++) { await R('emulator.frames', {count: 1}); const oam = J('[...emu.oamMem]'), ex = J(`emu.ram[${arr.x + 1}]`);
+    for (let i = 0; i < 64; i++) { const [y, t, a, x] = oam.slice(i * 4, i * 4 + 4); if (y < 239 && Math.abs(x - ex) <= 12 && y >= 180 && y <= 215) tiles.add(t); } }
+  assert.ok(tiles.size >= 2, 'tiles seen at the enemy: ' + [...tiles].join(','));
+});
+check('Emulator: a firing enemy shoots toward the player and a hit costs health', async () => {
+  const p = withEnemy({minX: 150, maxX: 210});
+  const beh = p.gameplayCore.behaviors.find(b => b.name === 'Ground Patrol Behavior');
+  beh.states.find(st => st.id === 'patrol').onTick.push({type: 'fireProjectile', interval: 30, speed: 2, tile: 0, palette: 0, offsetY: -4});
+  await R('project.load', {json: JSON.stringify(p)});
+  const sym = J('Forge.services.RuntimeCompiler.compile().world.symbols'), arr = sym.gameplay.arrays, rom3 = Buffer.from((await R('build.rom')).base64, 'base64');
+  await R('emulator.load', {bytes: rom3, name: 'fire.nes'}); await R('emulator.frames', {count: 10});
+  // keep the player at x 40 on the floor, left of the patrol (150-210) and out of contact range; the bullet must come left
+  const hold = () => h.run(`emu.ram[${sym.playerX}]=40;emu.ram[${sym.playerY}]=208`);
+  const health0 = J(`emu.ram[${arr.health}]`); let firstX = null, laterX = null;
+  for (let f = 0; f < 120 && laterX === null; f++) { hold(); await R('emulator.frames', {count: 1});
+    const active = J('[0,1,2,3].map(i=>emu.ram[0x06C0+i])'), xs = J('[0,1,2,3].map(i=>emu.ram[0x06C4+i])'), i = active.indexOf(1);
+    if (i >= 0 && firstX === null) firstX = xs[i]; else if (i >= 0 && firstX !== null && Math.abs(xs[i] - firstX) >= 20) laterX = xs[i]; }
+  assert.ok(firstX !== null, 'a bullet was fired'); assert.ok(laterX !== null && laterX < firstX, 'it travels toward the player (' + firstX + ' -> ' + laterX + ')');
+  let hit = false; for (let f = 0; f < 200 && !hit; f++) { hold(); await R('emulator.frames', {count: 1}); if (J(`emu.ram[${arr.health}]`) < health0) hit = true; }
+  assert.ok(hit, 'a bullet hit cost health');
 });
 
 (async () => {
