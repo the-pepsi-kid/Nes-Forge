@@ -141,11 +141,17 @@ async function sheetTiles(page, tiles) {
   // the CHR Sheet's sprite bank shows those tiles
   await s.page.click('.tab:text-is("METASPRITES")'); await s.page.evaluate(id => Forge163.metasprites.select(id), copy1.id); await shot('I1_copied_pose_in_metasprites');
   await s.page.click('.tab:text-is("CHR SHEET")'); await s.page.click('#bankSpr'); await s.page.waitForTimeout(300);
-  const tileIds = [...new Set(copy1.pieces.flatMap(p => [p.tile, p.tile2]))];
-  const shown = await sheetTiles(s.page, tileIds), byTile = new Map(); copy1.pieces.forEach((p, i) => { byTile.set(p.tile, expected[i].top); byTile.set(p.tile2, expected[i].bottom); });
-  const sheetOk = tileIds.every((t, i) => same(shown[i], byTile.get(t)));
   await shot('I2_chr_sheet_sprite_bank_copied_tiles');
-  check('I: the CHR Sheet\'s sprite bank ($1000) shows each copied tile with the cartridge\'s pattern (read back from the screen)', sheetOk && await s.page.evaluate(() => S.chrBank === 'spr'), {tiles: tileIds, sheetOk});
+  const tileIds = [...new Set(copy1.pieces.flatMap(p => [p.tile, p.tile2]))];
+  // read back in the sheet's "Pixel values (grayscale)" preview (index i drawn as grey i*85), with the selection
+  // outline on a tile that is not under test
+  await s.page.selectOption('#chrPreviewMode', 'indices'); await s.page.evaluate(() => { S.editTile = 0; render(); }); await s.page.waitForTimeout(200);
+  const shown = await sheetTiles(s.page, tileIds), byTile = new Map(); copy1.pieces.forEach((p, i) => { byTile.set(p.tile, expected[i].top); byTile.set(p.tile2, expected[i].bottom); });
+  const sheetDiff = tileIds.map((t, i) => ({tile: t, differing: shown[i].flat().filter((v, k) => v !== byTile.get(t).flat()[k]).length}));
+  const sheetOk = sheetDiff.every(d => d.differing === 0);
+  await shot('I3_chr_sheet_sprite_bank_pixel_values');
+  await s.page.selectOption('#chrPreviewMode', 'scene');
+  check('I: the CHR Sheet\'s sprite bank ($1000) shows each copied tile with the cartridge\'s pattern (read back from the screen in its pixel-value preview)', sheetOk && await s.page.evaluate(() => S.chrBank === 'spr'), {sheetDiff});
   // ---------------- K: project copies are independent ----------------
   const editTile = copy1.pieces[0].tile, original = scene1.sprChr[editTile][0][0], colour = (original + 1) % 4;
   const box = await s.page.$eval('#cv', c => { const r = c.getBoundingClientRect(); return {x: r.left, y: r.top, w: r.width, h: r.height}; });
@@ -165,7 +171,10 @@ async function sheetTiles(page, tiles) {
   const separate = !c2.pieces.some(p => c1.pieces.some(q => q.tile === p.tile || q.tile2 === p.tile2));
   const prov = m => m.library && m.library.mode === 'copy' && m.library.entryId === poseId && m.library.contentHash === poseEntry.contentHash && m.library.sourceSha256 === NINJA && m.library.location?.fileOffset === primary.fileOffset &&
     m.library.derivedFrom?.entryId === poseId;
-  report.phases.K = {editTile, from: original, to: colour, copy2: c2.id, separateTiles: separate, libraryEntryUnchanged: libAfter.entry === libBefore.entry, renditionUnchanged: libAfter.rendition === libBefore.rendition};
+  const editedPixels = []; for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) if (sc.sprChr[editTile][y][x] !== expected[0].top[y][x]) editedPixels.push({x, y, from: expected[0].top[y][x], to: sc.sprChr[editTile][y][x]});
+  const c2Diff = c2.pieces.map((cp, i) => ({i, top: same(sc.sprChr[cp.tile], expected[i].top), bottom: same(sc.sprChr[cp.tile2], expected[i].bottom)})).filter(d => !d.top || !d.bottom);
+  report.phases.K = {editTile, from: original, to: colour, editedPixels, copy1Edited: c1Edited, copy2: c2.id, copy2TilesMatch: c2Tiles, copy2Diff: c2Diff, separateTiles: separate, libraryEntryUnchanged: libAfter.entry === libBefore.entry, renditionUnchanged: libAfter.rendition === libBefore.rendition,
+    pixelColour: await s.page.evaluate(() => S.selPixColor)};
   check('K: editing a pixel of one copy changes that copy only: the library entry and its stored rendition are unchanged, and a second copy of the same pose gets its own tiles, equal to the cartridge',
     c1Edited && c2Tiles && separate && libAfter.entry === libBefore.entry && libAfter.rendition === libBefore.rendition, report.phases.K);
   check('K: both copies keep their provenance: library entry, content hash, source ROM SHA-256 and the pose\'s original ROM offset', prov(c1) && prov(c2), {copy1: c1.library, copy2: c2.library && {entryId: c2.library.entryId, location: c2.library.location}});
@@ -202,7 +211,8 @@ async function sheetTiles(page, tiles) {
   // code-oriented resources: symbols, RAM map, and CODE/RE at recorded offsets (bytes read back from the RE workspace)
   const symbols = await readJson(s.page, 'rom:' + NINJA.slice(0, 16) + ':symbols:symbols'), ram = await readJson(s.page, 'rom:' + NINJA.slice(0, 16) + ':ram-map:ram');
   const reAt = async (id, opts = {}) => s.page.evaluate(async ([x, o]) => { const r = await Forge.commands.run('library.inspectCode', {id: x, ...o}); if (!r.ok) return {error: r.error.message};
-    const a = Forge.services.REAnalysisUI.currentAnalysis(), sel = Forge.services.REAnalysisUI.getState().selection, len = Math.min(sel.length, 256);
+    const RE = Forge.services.REAnalysisUI; for (let t = Date.now(); Date.now() - t < 60000; await new Promise(res => setTimeout(res, 200))) { const g = RE.getState(); if (g.opened && !g.busy && !g.pendingSelection && g.selection) break; }
+    const a = RE.currentAnalysis(), sel = RE.getState().selection; if (!a || !sel) return {error: 'the RE workspace did not open the location', state: RE.getState()}; const len = Math.min(sel.length, 256);
     let dis = null; try { dis = a.disassemble({fileOffset: sel.fileOffset, length: Math.min(sel.length, 64), cpuAddress: sel.cpuAddress ?? undefined, variant: sel.variant}); } catch (e) { dis = {error: e.message}; }
     return {fileOffset: r.result.fileOffset, cpu: r.result.cpuAddress, code: r.result.code, selection: sel, bytes: a.read(sel.fileOffset, len).bytes, lines: Array.isArray(dis?.lines) ? dis.lines.length : Array.isArray(dis?.instructions) ? dis.instructions.length : null}; }, [id, opts]);
   const rePose = await reAt(poseId), reRoom = await reAt('rom:' + NINJA.slice(0, 16) + ':room:ng:0:0'), reFrame = await reAt(framePick, {code: true});
