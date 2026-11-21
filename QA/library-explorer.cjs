@@ -9,7 +9,7 @@ const {chromium} = require('playwright');
 const [editorArg, output, packArg, shots] = process.argv.slice(2);
 const editor = path.resolve(editorArg), sha = b => crypto.createHash('sha256').update(b).digest('hex');
 const report = {editorSha256: sha(fs.readFileSync(editor)), checks: []};
-const check = (name, passed, detail) => report.checks.push({name, passed: !!passed, ...(detail === undefined ? {} : {detail})});
+const check = (name, passed, detail) => { report.checks.push({name, passed: !!passed, ...(detail === undefined ? {} : {detail})}); process.stderr.write((passed ? 'ok ' : 'not ok ') + name + '\n'); };
 (async () => {
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-libui-')), tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-pack-'));
   const ctx = await chromium.launchPersistentContext(profile, {headless: true, viewport: {width: 1440, height: 900}, ...(process.env.CHROMIUM_PATH ? {executablePath: process.env.CHROMIUM_PATH} : {})});
@@ -44,7 +44,7 @@ const check = (name, passed, detail) => report.checks.push({name, passed: !!pass
     await page.waitForFunction(() => /Source ROM SHA-256/.test(document.getElementById('frx-preview').textContent));
     const evidenceText = await page.textContent('#frx-preview');
     check('An unidentified entry shows its stated location or says the location is unknown', /File offset|ROM location/.test(evidenceText) && /not identified by the intake/.test(evidenceText));
-    const show = await page.$('#frx-preview button'); if (show) { await show.click(); await page.waitForSelector('#frx-preview pre'); }
+    const show = await page.$('#frx-preview button:has-text("Show data")'); if (show) { await show.click(); await page.waitForSelector('#frx-preview pre'); }
     check('Its data is shown on demand', !!show && (await page.$('#frx-preview pre')) !== null);
     const nameInput = await page.$('#frx-related-tools input'); await nameInput.fill('My identified screen');
     await page.click('#frx-related-tools button'); await page.waitForFunction(() => /Saved/.test(document.getElementById('frx-related-tools').textContent));
