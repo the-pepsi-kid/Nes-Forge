@@ -119,12 +119,13 @@ async function until(fn, ms = 1800000, every = 500) { const t = Date.now(); for 
     await page.$eval('#frx-preview', el => { const s = [...el.querySelectorAll('.frx-label')].find(x => /Sprites/i.test(x.textContent)); el.scrollTop = s.offsetTop - el.offsetTop - 40; });
     await shot('bg_3_frame_in_library');
     const frameText = await page.$eval('#frx-preview', el => el.textContent);
-    await page.evaluate(() => [...document.querySelectorAll('#frx-preview button')].find(b => /^CHR bank \d+$/.test(b.textContent) && !b.disabled).click());
+    await page.waitForFunction(() => { const b = [...document.querySelectorAll('#frx-preview button')].find(x => /^CHR bank \d+$/.test(x.textContent) && !x.disabled); if (b) b.click(); return !!b; }, null, {timeout: 30000});
     await page.waitForFunction(() => /Library · chr/.test(document.querySelector('#frx-items .frx-item[aria-current="true"]')?.textContent || ''));
     await page.waitForFunction(() => /Mapper/i.test(document.getElementById('frx-preview').innerText));
     const chrText = await page.$eval('#frx-preview', el => el.textContent);
     await shot('bg_4_sprite_chr_bank_location');
-    await page.evaluate(() => [...document.querySelectorAll('#frx-preview button')].find(b => b.textContent === 'Inspect in CODE/RE').click());
+    // the button appears once the entry's provenance is resolved (asynchronously): click it in the same evaluation that finds it
+    await page.waitForFunction(() => { const b = [...document.querySelectorAll('#frx-preview button')].find(x => x.textContent === 'Inspect in CODE/RE' && !x.disabled); if (b) b.click(); return !!b; }, null, {timeout: 30000});
     await page.waitForFunction(() => S.tab === 'disasm' && !!Forge.services.REAnalysisUI.getState().selection);
     const chrRe = await page.evaluate(() => Forge.services.REAnalysisUI.getState().selection);
     await shot('bg_5_chr_bank_in_re');

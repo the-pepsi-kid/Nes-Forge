@@ -172,10 +172,11 @@ async function until(fn, ms = 900000, every = 500) { const t = Date.now(); for (
     const enabledFirst = links.buttons.some(b => !b.disabled);
     check('A Ninja Gaiden frame opened from its notice links its sprites to enabled CHR bank entries', enabledFirst, links);
     if (!enabledFirst) { await page.click('#frx-refresh'); await page.waitForTimeout(1500); links = await chrLinks(); report.steps.chrLinksAfterRefresh = links; }
-    await page.evaluate(() => [...document.querySelectorAll('#frx-preview button')].find(b => /^CHR bank \d+$/.test(b.textContent) && !b.disabled).click());
+    await page.waitForFunction(() => { const b = [...document.querySelectorAll('#frx-preview button')].find(x => /^CHR bank \d+$/.test(x.textContent) && !x.disabled); if (b) b.click(); return !!b; }, null, {timeout: 30000});
     await page.waitForFunction(() => /Library · chr/.test(document.querySelector('#frx-items .frx-item[aria-current="true"]')?.textContent || ''));
     await shot('12_chr_bank_entry');
-    await page.evaluate(() => [...document.querySelectorAll('#frx-preview button')].find(b => b.textContent === 'Inspect in CODE/RE').click());
+    // the button appears once the entry's provenance is resolved (asynchronously): click it in the same evaluation that finds it
+    await page.waitForFunction(() => { const b = [...document.querySelectorAll('#frx-preview button')].find(x => x.textContent === 'Inspect in CODE/RE' && !x.disabled); if (b) b.click(); return !!b; }, null, {timeout: 30000});
     await page.waitForFunction(() => S.tab === 'disasm' && !!Forge.services.REAnalysisUI.getState().selection);
     const re = await page.evaluate(() => Forge.services.REAnalysisUI.getState().selection);
     await shot('13_chr_bytes_in_code_re');
