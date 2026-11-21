@@ -11,6 +11,7 @@
 //    the copies and the edit come back; recognition also works with the worker stopped
 // Z  Zelda II: catalog registration interrupted after 1120 entries (more than one page of the resume scan), browser
 //    killed; completed by the same generic recovery after the project is restored; checked against the cartridge
+// P  every recovered pose of both ROMs (202 + 30): the stored rendition (what a copy receives) against the cartridge
 'use strict';
 const fs = require('fs'), os = require('os'), path = require('path'), crypto = require('crypto'), {spawn, execSync} = require('child_process');
 const {chromium} = require('playwright');
@@ -92,6 +93,42 @@ async function sheetTiles(page, tiles) {
   return page.evaluate(list => { const cv = document.getElementById('cv'), cx = cv.getContext('2d'), z = cv.width / 128, img = cx.getImageData(0, 0, cv.width, cv.height).data;
     return list.map(t => Array.from({length: 8}, (_, py) => Array.from({length: 8}, (_, px) => { const x = Math.floor(((t % 16) * 8 + px) * z + 1), y = Math.floor((Math.floor(t / 16) * 8 + py) * z + 1); return Math.round(img[(y * cv.width + x) * 4] / 85); }))); }, tiles);
 }
+// Every recovered pose of a ROM: what the library stores (the rendition a copy receives) against the cartridge.
+// Tiles: the CHR ROM pattern pair of each piece (8x16: the tile's low bit picks the room's sprite or background
+// bank). Pieces: x, y (+1, OAM), flips, priority and palette index from the pose's record. Palette: the room's
+// sprite palette. Ninja Gaiden records each piece's bytes ([tile, x, y] and an attribute byte) at a data offset, which
+// is checked too; Zelda II's piece locations are the code that writes OAM (instructions, not data) and are not.
+async function allPoses(page, sha, rom, ng) {
+  const data = await page.evaluate(async ([h, b64, isNg]) => {
+    const L = Forge.services.ResourceLibrary, dec = t => JSON.parse(new TextDecoder().decode(t));
+    const list = (await L.list({shelf: h, kind: 'pose', limit: 1000})).items, session = isNg ? null : GameRENative.open(Uint8Array.from(atob(b64), c => c.charCodeAt(0))), rooms = new Map(), out = [];
+    for (const item of list) {
+      const e = await L.entry(item.id); if (!e.rendition) { out.push({id: e.id, missing: e.renditionError || 'no rendition'}); continue; }
+      const rend = dec(await L.blobBytes(e.rendition.hash)), rec = dec((await L.readEntry(e.id)).bytes), roomId = rend.context.roomId;
+      if (!rooms.has(roomId)) {
+        if (isNg) { const r = dec((await L.readEntry('rom:' + h.slice(0, 16) + ':room:' + roomId)).bytes); rooms.set(roomId, {banks: [r.spriteChrBank4KiB, r.backgroundChrBank4KiB], palette: r.palettes.sprites, basis: 'the recorded room'}); }
+        else { const g = session.scene(roomId).graphics; rooms.set(roomId, {banks: [g.chrBank4KiB - 1, g.chrBank4KiB], palette: Array.from({length: 4}, (_, i) => [g.nativePalette[16], ...g.nativePalette.slice(17 + i * 4, 20 + i * 4)]), basis: 'the room decoder'}); }
+      }
+      out.push({id: e.id, roomId, room: rooms.get(roomId), rec: rec.pieces.map(p => ({tile: p.tile, x: p.x, y: p.y, attributes: p.attributes, source: p.source, attributeSource: p.attributeSource})),
+        rend: {spriteMode: rend.spriteMode, pieces: rend.pieces, tiles: rend.tiles, palette: rend.palette}});
+    }
+    return out;
+  }, [sha, rom.toString('base64'), ng]);
+  const chr0 = 16 + rom[4] * 16384, bad = [];
+  let pieces = 0;
+  for (const p of data) {
+    if (p.missing) { bad.push({id: p.id, problem: p.missing}); continue; }
+    const problems = [];
+    if (p.rend.spriteMode !== 16 || p.rend.pieces.length !== p.rec.length) problems.push('shape');
+    if (!same(p.rend.palette, p.room.palette)) problems.push('palette');
+    p.rec.forEach((rp, j) => { pieces++; const q = p.rend.pieces[j]; if (!q) return; const base = chr0 + p.room.banks[rp.tile & 1] * 4096 + (rp.tile & 254) * 16;
+      if (!same(p.rend.tiles[q.tile], tileAt(rom, base)) || !same(p.rend.tiles[q.tile2], tileAt(rom, base + 16))) problems.push('tiles ' + j);
+      if (q.x !== rp.x || q.y !== rp.y + 1 || q.flipH !== !!(rp.attributes & 64) || q.flipV !== !!(rp.attributes & 128) || q.behind !== !!(rp.attributes & 32) || q.pal !== (rp.attributes & 3)) problems.push('piece ' + j);
+      if (ng) { const b = rom.subarray(rp.source.fileOffset, rp.source.fileOffset + 3); if (b[0] !== rp.tile || s8(b[1]) !== rp.x || s8(b[2]) !== rp.y || rom[rp.attributeSource.fileOffset] !== rp.attributes) problems.push('record bytes ' + j); } });
+    if (problems.length) bad.push({id: p.id, problems});
+  }
+  return {poses: data.length, pieces, rooms: new Set(data.map(p => p.roomId)).size, bankBasis: data[0]?.room?.basis || null, bad};
+}
 (async () => {
   if (!NG || !Z2) throw Error('needs the Ninja Gaiden (US) and Zelda II (US) cartridges');
   if (shots) fs.mkdirSync(shots, {recursive: true});
@@ -109,6 +146,9 @@ async function sheetTiles(page, tiles) {
   report.phases.S = {job: ngJob.id, inventory: invS};
   check('S: Ninja Gaiden investigated once in the background; its 22 verified frames and its recovered catalog (590 entries, 32 CHR banks) are in the library',
     invS.frames === 22 && invS.catalog === 590 && invS.chr === 32 && invS.uniqueIds === invS.total, invS);
+  const posesNg = await allPoses(s.page, NINJA, ROM, true); report.phases.P = {ninjaGaiden: posesNg};
+  check('P: all 202 recovered Ninja Gaiden poses equal the cartridge: every piece\'s tile pair is the CHR ROM pattern of the recorded room\'s bank, its position, flips, priority and palette index are the record\'s, the palette is the room\'s, and each piece\'s [tile, x, y] and attribute bytes are at its recorded offsets',
+    posesNg.poses === 202 && posesNg.bad.length === 0, {poses: posesNg.poses, pieces: posesNg.pieces, rooms: posesNg.rooms, bad: posesNg.bad.slice(0, 5)});
   // ---------------- I: a recovered pose copied into a new project, checked against the cartridge ----------------
   await s.page.evaluate(() => Forge.commands.run('project.new')); await s.page.evaluate(() => switchTab('scene')); await committed(s.page);
   const poseId = 'rom:' + NINJA.slice(0, 16) + ':pose:ryu:19';
@@ -215,16 +255,22 @@ async function sheetTiles(page, tiles) {
     const RE = Forge.services.REAnalysisUI; for (let t = Date.now(); Date.now() - t < 60000; await new Promise(res => setTimeout(res, 200))) { const g = RE.getState(); if (g.opened && !g.busy && !g.pendingSelection && g.selection) break; }
     const a = RE.currentAnalysis(), sel = RE.getState().selection; if (!r.result.opened || !a || !sel) return {error: 'the RE workspace did not open the location: ' + (r.result.reason || ''), state: RE.getState()}; const len = Math.min(sel.length, 256);
     let dis = null; try { dis = a.disassemble({fileOffset: sel.fileOffset, length: Math.min(sel.length, 64), cpuAddress: sel.cpuAddress ?? undefined, variant: sel.variant}); } catch (e) { dis = {error: e.message}; }
-    return {fileOffset: r.result.fileOffset, cpu: r.result.cpuAddress, code: r.result.code, selection: sel, bytes: a.read(sel.fileOffset, len).bytes, lines: Array.isArray(dis?.lines) ? dis.lines.length : Array.isArray(dis?.instructions) ? dis.instructions.length : null}; }, [id, opts]);
+    const rows = Array.isArray(dis?.rows) ? dis.rows : [];
+    return {fileOffset: r.result.fileOffset, cpu: r.result.cpuAddress, code: r.result.code, selection: sel, bytes: a.read(sel.fileOffset, len).bytes, instructions: rows.filter(x => x.mnemonic && x.mnemonic !== '.byte').length,
+      firstRow: rows[0] ? {fileOffset: rows[0].fileOffset, cpu: rows[0].cpuAddress, text: rows[0].text} : null, disError: dis?.error || null, origin: document.getElementById('lpvOrigin')?.textContent || ''}; }, [id, opts]);
   const rePose = await reAt(poseId), reRoom = await reAt('rom:' + NINJA.slice(0, 16) + ':room:ng:0:0'), reFrame = await reAt(framePick, {code: true});
   await shot('X2_frame_code_location_in_code_re');
   const romBytes = r => r && !r.error && Buffer.from(r.bytes).equals(ROM.subarray(r.selection.fileOffset, r.selection.fileOffset + r.bytes.length));
   const symMapped = (symbols.items || []).filter(t => Array.isArray(t) && Number.isInteger(t[0]) && Number.isInteger(t[1])).length;
   report.phases.X.code = {symbols: (symbols.items || []).length, symbolsWithAddress: symMapped, ramLabels: (ram.items || []).length, pose: rePose && {fileOffset: rePose.fileOffset, bytes: romBytes(rePose), error: rePose.error},
-    room: reRoom && {fileOffset: reRoom.fileOffset, length: reRoom.selection?.length, bytes: romBytes(reRoom), error: reRoom.error}, frameCode: reFrame && {fileOffset: reFrame.fileOffset, cpu: reFrame.cpu, code: reFrame.code, bytes: romBytes(reFrame), lines: reFrame.lines, error: reFrame.error}};
+    room: reRoom && {fileOffset: reRoom.fileOffset, length: reRoom.selection?.length, bytes: romBytes(reRoom), error: reRoom.error}, frameCode: reFrame && {fileOffset: reFrame.fileOffset, cpu: reFrame.cpu, code: reFrame.code, bytes: romBytes(reFrame), instructions: reFrame.instructions, firstRow: reFrame.firstRow, error: reFrame.error || reFrame.disError},
+    frameOrigin: (reFrame?.origin.match(/Source[^A-Z]*?(Ninja[^\n]*?)(Source ROM|$)/) || [null, null])[1]};
   check('X: code-oriented resources are all there and open in CODE/RE: 1992 symbols and 89 RAM labels; the pose\'s piece stream, room 0\'s data and the frame\'s code location open at their recorded offsets, and the RE workspace shows the cartridge\'s bytes there',
     (symbols.items || []).length === 1992 && (ram.items || []).length === 89 && rePose.fileOffset === primary.fileOffset && romBytes(rePose) && reRoom.fileOffset === 16 && romBytes(reRoom) &&
     reFrame && !reFrame.error && reFrame.code === true && Number.isInteger(reFrame.cpu) && romBytes(reFrame), report.phases.X.code);
+  check('X: the frame\'s code location disassembles in CODE/RE from the recorded CPU address (at least 16 documented instructions in 64 bytes), and its origin reads runtime capture from the Agent Lab investigation',
+    reFrame && !reFrame.disError && reFrame.instructions >= 16 && reFrame.firstRow?.fileOffset === reFrame.fileOffset && reFrame.firstRow?.cpu === reFrame.cpu &&
+    /runtime capture \(Agent Lab investigation /.test(reFrame.origin) && !/extraction pack/.test(reFrame.origin), {instructions: reFrame?.instructions, firstRow: reFrame?.firstRow, origin: report.phases.X.code.frameOrigin});
   check('No uncaught page errors (sessions S, I, K, X)', s.errors.length === 0, s.errors.slice(0, 3));
   await committed(s.page).catch(() => {});
   await s.page.close({runBeforeUnload: true}); await sleep(800); await s.ctx.close();
@@ -269,6 +315,9 @@ async function sheetTiles(page, tiles) {
   check('Z: the same generic recovery completes it from the restored project: the 1120 entries are kept (read back in two pages of the resume scan), the rest written; every recovered record is in the library once; its 32 CHR banks hold the cartridge\'s bytes; the library verifies clean',
     zDone.state === 'complete' && zDone.kept === 1120 && zDone.kept + zDone.written === zExpected && zAfter.catalog === zExpected && zAfter.uniqueIds === zAfter.total && zPack?.stats?.pagesRead === 2 && zPack?.stats?.alreadyStored === 1120 &&
     zChr.length === 32 && report.phases.Z.chr.contiguous && report.phases.Z.chr.bytes && zVerify.ok, report.phases.Z);
+  const posesZ = await allPoses(s.page, ZELDA, ZROM, false); report.phases.P.zelda2 = posesZ;
+  check('P: all 30 recovered Zelda II poses equal the cartridge: every piece\'s tile pair is the CHR ROM pattern of its room\'s banks (from the room decoder), its position, flips, priority and palette index are the record\'s, and the palette is the room\'s (Zelda II\'s piece locations are OAM-writing code, not data bytes)',
+    posesZ.poses === 30 && posesZ.bad.length === 0, {poses: posesZ.poses, pieces: posesZ.pieces, rooms: posesZ.rooms, bad: posesZ.bad.slice(0, 5)});
   check('No uncaught page errors (Zelda II session)', s.errors.length === 0, s.errors.slice(0, 3));
   await s.ctx.close();
   await stopWorker();

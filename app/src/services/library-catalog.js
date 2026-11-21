@@ -450,6 +450,9 @@ const STATE_TEXT={complete:'complete',completing:'completing…','completing-els
   'needs-retry':'automatic completion stopped after 3 failed attempts; use Retry',waiting:'the last completion attempt failed; Forge tries again automatically',unsupported:'no recovered catalog exists for this ROM'};
 function setStatus(sha,value){
   const next={...(recovery.status.get(sha)||{}),sha,...value,at:Date.now()};next.text=STATE_TEXT[next.state]||next.state;
+  // a missing cartridge: what can supply it depends on whether a background worker is paired
+  if(next.state==='needs-source'){const panel=services.InvestigationPanel?.state?.();
+    next.text='incomplete: waiting for its cartridge ('+(panel?.paired?(panel.connected?'the paired background worker supplies it, or open its ROM':'open its ROM, or Forge finishes it when the paired worker is reachable'):'open its ROM, or pair the background worker to supply it')+')';}
   if(next.state==='waiting'&&next.retryAt)next.text+=' in about '+Math.max(1,Math.ceil((next.retryAt-Date.now())/1000))+' s';
   if(next.state==='failed'&&next.attempts)next.text+=' (attempt '+next.attempts+' of '+AUTO_ATTEMPTS+' failed)';
   recovery.status.set(sha,next);

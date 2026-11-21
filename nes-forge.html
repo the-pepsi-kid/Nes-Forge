@@ -35149,6 +35149,9 @@ const STATE_TEXT={complete:'complete',completing:'completing…','completing-els
   'needs-retry':'automatic completion stopped after 3 failed attempts; use Retry',waiting:'the last completion attempt failed; Forge tries again automatically',unsupported:'no recovered catalog exists for this ROM'};
 function setStatus(sha,value){
   const next={...(recovery.status.get(sha)||{}),sha,...value,at:Date.now()};next.text=STATE_TEXT[next.state]||next.state;
+  // a missing cartridge: what can supply it depends on whether a background worker is paired
+  if(next.state==='needs-source'){const panel=services.InvestigationPanel?.state?.();
+    next.text='incomplete: waiting for its cartridge ('+(panel?.paired?(panel.connected?'the paired background worker supplies it, or open its ROM':'open its ROM, or Forge finishes it when the paired worker is reachable'):'open its ROM, or pair the background worker to supply it')+')';}
   if(next.state==='waiting'&&next.retryAt)next.text+=' in about '+Math.max(1,Math.ceil((next.retryAt-Date.now())/1000))+' s';
   if(next.state==='failed'&&next.attempts)next.text+=' (attempt '+next.attempts+' of '+AUTO_ATTEMPTS+' failed)';
   recovery.status.set(sha,next);
@@ -35335,7 +35338,7 @@ async function resolve(ref){
   const r=typeof ref==='string'?{entryId:ref}:{...(ref||{})};
   const e=r.entryId?await entryOrNull(r.entryId):null;
   const out={ref:r,entryId:r.entryId||null,mode:r.mode||null,stage:r.stage||null,inLibrary:!!e,label:e?.label||e?.path?.split('/').pop()||r.label||r.poseId||r.entryId||'library resource',
-    game:e?.game||r.game||null,kind:e?.kind||r.kind||null,origin:e?.origin||null,sourceSha256:e?.sourceSha256||r.sourceSha256||null,
+    game:e?.game||r.game||null,kind:e?.kind||r.kind||null,origin:e?.origin||null,investigation:e?.provenance?.job||null,sourceSha256:e?.sourceSha256||r.sourceSha256||null,
     evidenceState:e?.evidence?.state||(r.location?'recorded with the use':'none'),basis:e?.evidence?.basis||null,rom:e?.evidence?.rom||null,
     primary:null,locations:[],code:[],related:[],links:[],placements:(e?.placement?.verified||[]).map(p=>({...p})),
     changedSinceUse:!!(e&&r.contentHash&&e.contentHash!==r.contentHash),usedAt:r.at||null,derivedFrom:r.derivedFrom||null};
@@ -35422,6 +35425,12 @@ const STYLE=`.lpv-card{font:11px/1.45 system-ui,sans-serif;color:#d7eaf4;backgro
 .lpv-card .lpv-loc{border-top:1px solid #23394b;padding-top:3px;margin-top:3px}.lpv-list{margin:0;padding:0;list-style:none}.lpv-list li{margin:2px 0}
 #lpvOrigin{margin:0 0 12px}#lpvOrigin h2{font:700 11px system-ui,sans-serif;letter-spacing:.06em;color:var(--acc,#7fd4ff);margin:0 0 4px}`;
 const css=el('style');css.id='lpvStyles';css.textContent=STYLE;document.head.appendChild(css);
+// where a library resource came from, by its recorded origin (never guessed from its kind)
+function originLabel(d){
+  if(d.origin==='rom-catalog')return 'recovered ROM catalog';
+  if(d.origin==='runtime-capture')return d.investigation?'runtime capture (Agent Lab investigation '+d.investigation+')':'runtime capture';
+  return d.origin?'extraction pack':null;
+}
 function definition(dl,label,value){dl.append(el('dt',null,label),el('dd',null,value));}
 function locationBlock(loc,rom,d,{buttons=true,full=true}={}){
   const box=el('div','lpv-loc');box.append(el('div','lpv-sub',(loc.code?'Code · ':'')+(loc.name||loc.role)+(loc.owner&&loc.owner!==d.label?' · '+loc.owner:'')));
@@ -35434,7 +35443,7 @@ function card(d,{compact=false,context=''}={}){
   const box=el('div','lpv-card');
   box.append(el('h4',null,d.mode==='reference'?'Library reference':d.mode==='copy'?'Copied from the library':'Library resource'),el('div','lpv-title',d.label));
   const dl=el('dl');
-  definition(dl,'Source',[d.game,d.kind,d.origin==='rom-catalog'?'recovered ROM catalog':d.origin?'extraction pack':null].filter(Boolean).join(' · ')||'unknown');
+  definition(dl,'Source',[d.game,d.kind,originLabel(d)].filter(Boolean).join(' · ')||'unknown');
   definition(dl,'Source ROM',d.sourceSha256?'SHA-256 '+(compact?d.sourceSha256.slice(0,16)+'…':d.sourceSha256):'not recorded');
   if(d.entryId)definition(dl,'Library entry',d.entryId);
   if(d.stage)definition(dl,'Stage',d.stage+(d.placements.some(p=>p.stage===d.stage&&p.basis==='runtime')?' (observed at runtime)':d.placements.some(p=>p.stage===d.stage)?' (ROM table)':''));
