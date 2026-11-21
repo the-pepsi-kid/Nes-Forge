@@ -19,6 +19,9 @@ parser.add_argument('--output', type=Path, default=ROOT/'Review-Results')
 parser.add_argument('--extractions', type=Path, help='Folder containing native extraction ZIPs to check')
 parser.add_argument('--cartridges', type=Path, help='Folder containing original .nes files for intake, playback and revision-specific writer checks')
 parser.add_argument('--browser', action='store_true', help='Also run the separate real-browser smoke test')
+parser.add_argument('--evidence-shots', type=Path,
+                    help='Folder OUTSIDE the repository for frame-evidence screenshots; enables its screenshot-hash check '
+                         '(the frames are cartridge-derived, so they never go into the working tree)')
 parser.add_argument('--jobs', type=int, choices=range(1, 4), default=3,
                     help='Concurrent editor suites; use 1 on shared or slower machines')
 parser.add_argument('--timeout', action='append', default=[], metavar='SUITE=SECONDS',
@@ -54,8 +57,57 @@ env = dict(os.environ)
 env['PYTHONDONTWRITEBYTECODE'] = '1'
 env['NODE_PATH'] = os.pathsep.join(filter(None,[str(QA/'node_modules'),env.get('NODE_PATH')]))
 digest = hashlib.sha256(EDITOR.read_bytes()).hexdigest()
+
+# One Chromium for every browser suite, resolved once and recorded. CHROMIUM_PATH wins when it names a file. Otherwise
+# the Chromium installed with the Node Playwright the suites run on is used (the Python Playwright of the browser suite
+# may expect another build that is not installed). The binary is then launched once by each Playwright as a check.
+def chromium_environment():
+    info = {}
+    try:
+        info['nodePlaywright'] = subprocess.run(['node', '-e', "process.stdout.write(require('playwright/package.json').version)"], cwd=ROOT, env=env,
+                                                capture_output=True, text=True, timeout=60).stdout.strip() or None
+    except (OSError, subprocess.SubprocessError):
+        info['nodePlaywright'] = None
+    try:
+        from importlib.metadata import version
+        info['pythonPlaywright'] = version('playwright')
+    except Exception:
+        info['pythonPlaywright'] = None
+    explicit = os.environ.get('CHROMIUM_PATH')
+    if explicit and Path(explicit).is_file():
+        info.update(chromiumPath=explicit, source='CHROMIUM_PATH')
+    else:
+        try:
+            found = subprocess.run(['node', '-e', "process.stdout.write(require('playwright').chromium.executablePath())"], cwd=ROOT, env=env,
+                                   capture_output=True, text=True, timeout=60).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            found = ''
+        if found and Path(found).is_file():
+            info.update(chromiumPath=found, source='Node Playwright ' + str(info['nodePlaywright']) + ' (CHROMIUM_PATH ' + ('names no file' if explicit else 'unset') + ')')
+    if info.get('chromiumPath'):
+        env['CHROMIUM_PATH'] = info['chromiumPath']
+        try:
+            info['chromiumVersion'] = subprocess.run([info['chromiumPath'], '--version'], capture_output=True, text=True, timeout=60).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            info['chromiumVersion'] = None
+        checks = {'node': ['node', '-e', "require('playwright').chromium.launch({executablePath: process.env.CHROMIUM_PATH}).then(b => b.close()).then(() => process.exit(0), e => { console.error(e.message); process.exit(1); })"],
+                  'python': [sys.executable, '-c', "import os\nfrom playwright.sync_api import sync_playwright\nwith sync_playwright() as p:\n    p.chromium.launch(executable_path=os.environ['CHROMIUM_PATH']).close()"]}
+        info['launch'] = {}
+        for who, command in checks.items():
+            try:
+                done = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
+                info['launch'][who] = 'ok' if done.returncode == 0 else 'failed: ' + (done.stderr.strip().splitlines() or ['?'])[-1][:200]
+            except (OSError, subprocess.SubprocessError) as error:
+                info['launch'][who] = 'failed: ' + str(error)[:200]
+    else:
+        info['launch'] = {'node': 'no Chromium found', 'python': 'no Chromium found'}
+    return info
+environment = chromium_environment()
+print('Chromium: ' + str(environment.get('chromiumPath')) + ' · ' + str(environment.get('chromiumVersion')) + ' · source: ' + str(environment.get('source')) +
+      ' · launch ' + ', '.join(k + ' ' + v for k, v in environment['launch'].items()) + ' · Playwright node ' + str(environment.get('nodePlaywright')) +
+      ', python ' + str(environment.get('pythonPlaywright')), flush=True)
 args_idle = args.idle_timeout
-index = {'editorSha256':digest,'results':[],'limits':{'default':limit_for('default-suite'),'suites':{k:limit_for(k) for k in TIMEOUTS},'idle':args.idle_timeout}}
+index = {'editorSha256':digest,'environment':environment,'results':[],'limits':{'default':limit_for('default-suite'),'suites':{k:limit_for(k) for k in TIMEOUTS},'idle':args.idle_timeout}}
 
 def execute(command, limit, idle):
     """Run one suite. Stops it when it exceeds its time limit, or prints nothing for `idle` seconds (a hang)."""
@@ -164,7 +216,14 @@ if args.cartridges:
         receipt=output/'library-locations.json'
         record(run('library-locations',['node',QA/'library-locations.cjs',EDITOR,receipt,args.cartridges.resolve()]+([str(args.extractions.resolve())] if args.extractions else []),receipt))
         receipt=output/'frame-evidence.json'
-        record(run('frame-evidence',['node',QA/'frame-evidence.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
+        shots = []
+        if args.evidence_shots:
+            folder = args.evidence_shots.resolve()
+            if folder == ROOT or ROOT in folder.parents:
+                parser.error('--evidence-shots must be outside the repository (cartridge-derived frames)')
+            folder.mkdir(parents=True, exist_ok=True)
+            shots = [folder]
+        record(run('frame-evidence',['node',QA/'frame-evidence.cjs',EDITOR,receipt,args.cartridges.resolve()]+shots,receipt))
         receipt=output/'agent-lab-background.json'
         record(run('agent-lab-background',['node',QA/'agent-lab-background.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
         receipt=output/'project-recovery.json'
@@ -188,7 +247,7 @@ if args.browser:
     ng_pack=args.extractions.resolve()/'Ninja_Gaiden_U.zip' if args.extractions else None
     record(run('library-explorer',['node',QA/'library-explorer.cjs',EDITOR,receipt]+([str(ng_pack)] if ng_pack and ng_pack.exists() else []),receipt))
 index['passed']=all(row['passed'] for row in index['results'])
-index['requested']={'privateExtractions':bool(args.extractions),'realBrowser':bool(args.browser),'originalCartridges':bool(args.cartridges)}
+index['requested']={'privateExtractions':bool(args.extractions),'realBrowser':bool(args.browser),'originalCartridges':bool(args.cartridges),'frameEvidenceScreenshots':bool(args.evidence_shots)}
 (output/'index.json').write_text(json.dumps(index,indent=2)+'\n',encoding='utf-8')
 print(str(output/'index.json'))
 sys.exit(0 if index['passed'] else 1)

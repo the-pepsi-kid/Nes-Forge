@@ -68,7 +68,7 @@ python QA/verify.py --jobs 1
 python tools/verify_public_profile.py
 ```
 
-For browser checks, install Playwright Chromium and add `--browser`. `CHROMIUM_PATH` selects an existing Chromium executable. Private extraction and original-ROM suites are opt-in through `--extractions DIR --cartridges DIR`; those inputs are not distributed. Results identify the exact tested editor hash. [Publication checks and limitations](reviews/integrated-review-5/Publication.json) distinguish fresh public checks from retained private-review evidence.
+For browser checks, install Playwright Chromium and add `--browser`. `CHROMIUM_PATH` selects an existing Chromium executable. Without it, the runner uses the Chromium installed with the Node Playwright the suites run on. It launches that Chromium once from Node and once from Python, and records the path, version and Playwright versions in `index.json`. Private extraction and original-ROM suites are opt-in through `--extractions DIR --cartridges DIR`; those inputs are not distributed. `--evidence-shots DIR` (a folder outside the repository) also runs frame-evidence's screenshot-hash check. Results identify the exact tested editor hash. [Publication checks and limitations](reviews/integrated-review-5/Publication.json) distinguish fresh public checks from retained private-review evidence.
 
 The inventory tool is `python tools/inventory/scan_rom.py --help`; physical bank extraction is `node tools/extract-cartridge.cjs --help`.
 

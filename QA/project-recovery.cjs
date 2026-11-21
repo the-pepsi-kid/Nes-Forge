@@ -110,7 +110,7 @@ async function prepared(name) {
     labels.caughtUp = await s.page.$eval('#forge15State', e => e.textContent);
     // a failing write: the indicator must say so (writes are refused by the storage for this test)
     await s.page.evaluate(() => { const put = IDBObjectStore.prototype.put; window.__restorePut = () => { IDBObjectStore.prototype.put = put; }; IDBObjectStore.prototype.put = function (...a) { if (this.transaction.db.name === 'nes-forge-recovery-journal') throw new DOMException('simulated quota exceeded', 'QuotaExceededError'); return put.apply(this, a); }; });
-    await editScene(s.page, 10, 120); await sleep(800);
+    await editScene(s.page, 10, 120); await s.page.waitForFunction(() => /recovery failed/.test(document.getElementById('forge15State').textContent), null, {timeout: 8000}).catch(() => {});
     labels.failed = await s.page.$eval('#forge15State', e => e.textContent); labels.failedTitle = await s.page.$eval('#forge15State', e => e.title);
     if (shots) await s.page.screenshot({path: path.join(shots, 'recovery_indicator_failed.png'), clip: {x: 0, y: 0, width: 1440, height: 120}});
     await s.page.evaluate(() => window.__restorePut()); await s.page.evaluate(() => Forge.services.ProjectStore.autoSave());
@@ -156,10 +156,15 @@ async function prepared(name) {
   {
     const s = await prepared('damaged');
     await editScene(s.page, 11, 96); await committed(s.page); const previous = await content(s.page);
-    await editScene(s.page, 13, 104); await committed(s.page);
+    // one click, so exactly one new recovery point follows the "previous" one (several clicks can be written as several
+    // points on a loaded machine)
+    await s.page.evaluate(() => { S.selTile = 13; });
+    const box = await s.page.$eval('#cv', c => { const r = c.getBoundingClientRect(); return {x: r.left, y: r.top, w: r.width}; });
+    await s.page.mouse.click(box.x + 64 * box.w / 256, box.y + 104 * box.w / 256); await committed(s.page);
     // damage the newest copy of the edited scene's section in storage
     const damaged = await s.page.evaluate(async () => { const r = Forge.services.ProjectStore.recoveryState(); const J = Forge.services.RecoveryJournal, heads = await J.heads(), h = heads.find(x => x.session === r.session);
       const prevHashes = new Set(h.prev.sections.map(x => x[1])), target = h.sections.find(([n, hash]) => n.startsWith('scene:') && !prevHashes.has(hash));
+      if (!target) throw Error('test setup: the newest recovery point holds no scene change (seq ' + h.seq + ', previous ' + h.prev.seq + ')');
       const db = await J.open(); await new Promise((res, rej) => { const tx = db.transaction('blobs', 'readwrite'), st = tx.objectStore('blobs'), id = h.session + '|' + target[1]; st.get(id).onsuccess = e => { const v = e.target.result; v.text = v.text.slice(0, v.text.length >> 1); st.put(v); }; tx.oncomplete = res; tx.onerror = rej; });
       return target[0]; });
     await s.page.close({runBeforeUnload: false}); await s.ctx.close();

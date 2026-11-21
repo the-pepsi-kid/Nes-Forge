@@ -109,6 +109,9 @@ async function until(fn, ms = 900000, every = 500) { const t = Date.now(); for (
     await page.evaluate(() => { switchTab('scene'); S.selTile = 9; });
     for (let i = 0; i < 4; i++) await page.mouse.click(box.x + (60 + i * 16) * box.w / 256, box.y + 104 * box.w / 256);
     const beforeClose = await serialize();
+    // where Ninja Gaiden's results were imported (its notice appears in the tab that imported them)
+    const beforeCloseState = await page.evaluate(async () => ({imported: (await Forge.services.FrameEvidence.investigations()).map(p => p.job?.id), catalogs: Object.keys(Forge.services.InvestigationPanel.state().catalogs), notices: Forge.services.InvestigationPanel.state().notices}));
+    report.steps.beforeClose = {ngJobState: job(ngJobId).state, ngImportedInEarlierTab: beforeCloseState.imported.includes(ngJobId), catalogsInEarlierTab: beforeCloseState.catalogs};
     await page.close({runBeforeUnload: true}); await sleep(1500);
     page = await ctx.newPage(); hook(page); page.setDefaultTimeout(900000);
     await page.goto('file://' + editor); await page.waitForFunction('window.Forge?.services?.InvestigationPanel');
@@ -133,24 +136,42 @@ async function until(fn, ms = 900000, every = 500) { const t = Date.now(); for (
     const cat = st.catalogs, ngCat = cat[NINJA], smbCat = Object.entries(cat).find(([k]) => k !== NINJA)?.[1];
     check('When each job finishes, its validated frames enter the library without a click; Ninja Gaiden\'s recovered catalog is registered through the existing mechanism; SMB3 is said to have none',
       lib.frames === 25 && lib.chr === 32 && ['registered', 'already'].includes(ngCat?.state) && smbCat?.state === 'none' && st.notices.some(n => /added to the library/.test(n)) && (await serialize()) === projectBeforeImports,
-      {lib, ngCatalog: ngCat, smbCatalog: smbCat, notices: st.notices.slice(0, 4)});
+      {lib, ngCatalog: ngCat, smbCatalog: smbCat, notices: st.notices.slice(0, 4), jobFailures: {ng: job(ngJobId).failures, smb3: job(smbJobId).failures, smb3Results: job(smbJobId).results.length}});
     const ngFinal = job(ngJobId);
     check('The finished Ninja Gaiden job reads "completed · recovered after 1 worker restart"; the restart is not listed as a failure; unresolved evidence is listed separately',
       await page.$eval('#agentLabJobs tr[data-job="' + ngJobId + '"] .al-state', e => /completed 22\/22 · recovered after 1 worker restart/.test(e.textContent)) &&
       await page.$eval('#agentLabJobs tr[data-job="' + ngJobId + '"] .al-failure', e => e.textContent === 'none') && await page.$eval('#agentLabJobs tr[data-job="' + ngJobId + '"] .al-unresolved', e => /mid-frame/.test(e.textContent)),
       {failures: ngFinal.failures});
     // ---- 9 navigate the findings in Resources ----
-    // the notice's Open in Library is in the tab that ran the import: if Ninja Gaiden finished before Forge was
-    // reopened, that was the earlier tab; then open the frame from Resources › Library instead
+    // Ninja Gaiden's "Open in Library" notice is in the tab that imported its results. If that was this tab, a missing
+    // notice is a failure (with the panel's state and DOM recorded); if it was the earlier tab, Resources › Library is used.
+    const noticeDiag = await page.evaluate(() => ({stateNotices: Forge.services.InvestigationPanel.state().notices, catalogsHere: Object.keys(Forge.services.InvestigationPanel.state().catalogs),
+      dom: [...document.querySelectorAll('#agentLabNotices li')].map(li => ({text: li.textContent.slice(0, 120), openButton: !!li.querySelector('button[data-action="open-library"]')})),
+      panelRendered: !!document.getElementById('agentLabJobs')}));
+    const ngImportedHere = noticeDiag.catalogsHere.includes(NINJA) && !report.steps.beforeClose.ngImportedInEarlierTab;
     const viaNotice = await page.evaluate(() => { const b = [...document.querySelectorAll('#agentLabNotices button[data-action="open-library"]')].find(x => /Ninja/.test(x.parentElement.textContent)); if (b) b.click(); return !!b; });
+    report.steps.ninjaNotice = {...noticeDiag, ngImportedHere, viaNotice};
+    if (ngImportedHere) check('The tab that imported Ninja Gaiden\'s results shows its notice with "Open in Library"', viaNotice, report.steps.ninjaNotice);
     if (!viaNotice) { await page.click('#frx-open'); await page.click('#frx-lib'); await page.fill('#frx-search', 'Stage 2-2'); await page.waitForTimeout(500);
       await page.evaluate(() => [...document.querySelectorAll('#frx-items .frx-item')].find(b => /Library · frame/.test(b.textContent)).click()); }
-    report.steps.openedNinjaFrameVia = viaNotice ? 'notice Open in Library' : 'Resources › Library search (its notice was shown in the earlier tab)';
+    report.steps.openedNinjaFrameVia = viaNotice ? 'notice Open in Library' : ngImportedHere ? 'Resources › Library search (notice missing: see the failed check)' : 'Resources › Library search (results were imported in the earlier tab)';
     await page.waitForFunction(() => /Sprites ·/i.test(document.getElementById('frx-preview')?.innerText || ''));
     await shot('10_open_in_library_frame');
     await page.$eval('#frx-preview', el => { const s = [...el.querySelectorAll('.frx-label')].find(x => /Sprites/i.test(x.textContent)); el.scrollTop = s.offsetTop - el.offsetTop - 30; });
     await shot('11_frame_sprites_chr_links');
     const ngText = await page.$eval('#frx-preview', el => el.textContent);
+    // the frame's CHR bank links: with Ninja Gaiden's catalog registered they must be enabled; if none is, record why
+    const chrLinks = () => page.evaluate(async () => ({selected: Forge.services.ResourceRelationshipPreview.summary().selected, graphNodes: Forge.services.ResourceRelationshipPreview.summary().nodes,
+      buttons: [...document.querySelectorAll('#frx-preview button')].filter(b => /^CHR bank \d+$/.test(b.textContent)).map(b => ({text: b.textContent, disabled: b.disabled, title: b.title})),
+      chrEntriesInLibrary: (await Forge.services.ResourceLibrary.list({kind: 'chr', limit: 1})).total,
+      catalogPack: ((await Forge.commands.run('library.packs')).result || []).filter(p => p.origin === 'rom-catalog').map(p => ({state: p.state, entries: p.stats?.entries}))}));
+    // the preview renders asynchronously (it can be re-rendered while the library loads): wait up to 10 s for its links
+    await page.waitForFunction(() => [...document.querySelectorAll('#frx-preview button')].some(b => /^CHR bank \d+$/.test(b.textContent) && !b.disabled), null, {timeout: 10000}).catch(() => {});
+    let links = await chrLinks();
+    report.steps.chrLinksAtFirstRender = links;
+    const enabledFirst = links.buttons.some(b => !b.disabled);
+    check('A Ninja Gaiden frame opened from its notice links its sprites to enabled CHR bank entries', enabledFirst, links);
+    if (!enabledFirst) { await page.click('#frx-refresh'); await page.waitForTimeout(1500); links = await chrLinks(); report.steps.chrLinksAfterRefresh = links; }
     await page.evaluate(() => [...document.querySelectorAll('#frx-preview button')].find(b => /^CHR bank \d+$/.test(b.textContent) && !b.disabled).click());
     await page.waitForFunction(() => /Library · chr/.test(document.querySelector('#frx-items .frx-item[aria-current="true"]')?.textContent || ''));
     await shot('12_chr_bank_entry');
@@ -174,7 +195,7 @@ async function until(fn, ms = 900000, every = 500) { const t = Date.now(); for (
     await page.evaluate(() => { document.getElementById('frx-close')?.click(); switchTab('scene'); });
     // ---- 10 the same ROM imported again ----
     const jobsBefore = jobs().length;
-    await page.setInputFiles('#projectGatewayFile', NG); await sleep(3000);
+    await page.setInputFiles('#projectGatewayFile', NG); await page.waitForFunction(() => Forge.services.InvestigationPanel.state().notices.some(n => /already investigated/.test(n)), null, {timeout: 30000}).catch(() => {});
     await page.evaluate(() => Forge.services.InvestigationPanel.refresh()); await panel(); await shot('16_same_rom_imported_again_no_duplicate');
     const dupNotice = (await ps()).notices.find(n => /already investigated/.test(n));
     const again = await page.evaluate(id => Forge.services.InvestigationPanel.importJob(id), ngJobId);
