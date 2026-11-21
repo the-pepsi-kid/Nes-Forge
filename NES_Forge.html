@@ -34907,6 +34907,9 @@ const SourceROMs=(()=>{const map=new Map();
     get(sha256){const hit=map.get(sha256);if(hit)return hit;
       // the open investigated project carries its own cartridge
       try{const p=services.ProjectStore.capture();if(p?.investigation?.source?.sha256===sha256){const bytes=services.NativeEngineProject.validate(p).bytes;map.set(sha256,{bytes,name:p.investigation.source.name});return map.get(sha256);}}catch(_){}
+      // a ROM opened in this session (Open ROM / project / ZIP, Import ROM, the emulator's Load ROM): identified by its
+      // SHA-256 when it was imported
+      try{const bytes=services.RomImports?.bytes?.(sha256);if(bytes){map.set(sha256,{bytes,name:services.RomImports.list().find(r=>r.sha256===sha256)?.name||'cartridge.nes'});return map.get(sha256);}}catch(_){}
       return null;},
     async verify(bytes,sha256){return (await digest(bytes))===sha256;},
     list:()=>[...map.entries()].map(([sha256,v])=>({sha256,name:v.name,bytes:v.bytes.length}))});})();

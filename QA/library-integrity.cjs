@@ -154,12 +154,13 @@ async function sheetTiles(page, tiles) {
   check('I: the CHR Sheet\'s sprite bank ($1000) shows each copied tile with the cartridge\'s pattern (read back from the screen in its pixel-value preview)', sheetOk && await s.page.evaluate(() => S.chrBank === 'spr'), {sheetDiff});
   // ---------------- K: project copies are independent ----------------
   const editTile = copy1.pieces[0].tile, original = scene1.sprChr[editTile][0][0], colour = (original + 1) % 4;
-  const box = await s.page.$eval('#cv', c => { const r = c.getBoundingClientRect(); return {x: r.left, y: r.top, w: r.width, h: r.height}; });
-  await s.page.mouse.click(box.x + ((editTile % 16) * 8 + 4) * box.w / 128, box.y + (Math.floor(editTile / 16) * 8 + 4) * box.h / 128);
+  // the editor's own path: select the tile on the sheet, choose the colour, paint the pixel (each control scrolled into view)
+  const box = await s.page.$eval('#cv', c => { const r = c.getBoundingClientRect(); return {w: r.width, h: r.height}; });
+  await s.page.locator('#cv').click({position: {x: ((editTile % 16) * 8 + 4) * box.w / 128, y: (Math.floor(editTile / 16) * 8 + 4) * box.h / 128}});
   await s.page.waitForFunction(t => S.editTile === t, editTile);
   await s.page.keyboard.press(String(colour + 1));
-  const ed = await s.page.$eval('#chrEditCanvas', c => { const r = c.getBoundingClientRect(); return {x: r.left, y: r.top, w: r.width}; });
-  await s.page.mouse.click(ed.x + ed.w / 16, ed.y + ed.w / 16); await committed(s.page);
+  const ed = await s.page.$eval('#chrEditCanvas', c => c.getBoundingClientRect().width);
+  await s.page.locator('#chrEditCanvas').click({position: {x: ed / 16, y: ed / 16}}); await committed(s.page);
   await shot('K1_copy_edited_in_chr_sheet');
   const used2 = await s.page.evaluate(async id => { const r = await Forge.commands.run('library.usePose', {id, mode: 'copy'}); if (!r.ok) throw Error(r.error.message); return {id: S.metasprites[S.metasprites.length - 1].id}; }, poseId);
   await committed(s.page);
@@ -212,15 +213,15 @@ async function sheetTiles(page, tiles) {
   const symbols = await readJson(s.page, 'rom:' + NINJA.slice(0, 16) + ':symbols:symbols'), ram = await readJson(s.page, 'rom:' + NINJA.slice(0, 16) + ':ram-map:ram');
   const reAt = async (id, opts = {}) => s.page.evaluate(async ([x, o]) => { const r = await Forge.commands.run('library.inspectCode', {id: x, ...o}); if (!r.ok) return {error: r.error.message};
     const RE = Forge.services.REAnalysisUI; for (let t = Date.now(); Date.now() - t < 60000; await new Promise(res => setTimeout(res, 200))) { const g = RE.getState(); if (g.opened && !g.busy && !g.pendingSelection && g.selection) break; }
-    const a = RE.currentAnalysis(), sel = RE.getState().selection; if (!a || !sel) return {error: 'the RE workspace did not open the location', state: RE.getState()}; const len = Math.min(sel.length, 256);
+    const a = RE.currentAnalysis(), sel = RE.getState().selection; if (!r.result.opened || !a || !sel) return {error: 'the RE workspace did not open the location: ' + (r.result.reason || ''), state: RE.getState()}; const len = Math.min(sel.length, 256);
     let dis = null; try { dis = a.disassemble({fileOffset: sel.fileOffset, length: Math.min(sel.length, 64), cpuAddress: sel.cpuAddress ?? undefined, variant: sel.variant}); } catch (e) { dis = {error: e.message}; }
     return {fileOffset: r.result.fileOffset, cpu: r.result.cpuAddress, code: r.result.code, selection: sel, bytes: a.read(sel.fileOffset, len).bytes, lines: Array.isArray(dis?.lines) ? dis.lines.length : Array.isArray(dis?.instructions) ? dis.instructions.length : null}; }, [id, opts]);
   const rePose = await reAt(poseId), reRoom = await reAt('rom:' + NINJA.slice(0, 16) + ':room:ng:0:0'), reFrame = await reAt(framePick, {code: true});
   await shot('X2_frame_code_location_in_code_re');
   const romBytes = r => r && !r.error && Buffer.from(r.bytes).equals(ROM.subarray(r.selection.fileOffset, r.selection.fileOffset + r.bytes.length));
   const symMapped = (symbols.items || []).filter(t => Array.isArray(t) && Number.isInteger(t[0]) && Number.isInteger(t[1])).length;
-  report.phases.X.code = {symbols: (symbols.items || []).length, symbolsWithAddress: symMapped, ramLabels: (ram.items || []).length, pose: rePose && {fileOffset: rePose.fileOffset, bytes: romBytes(rePose)},
-    room: reRoom && {fileOffset: reRoom.fileOffset, length: reRoom.selection?.length, bytes: romBytes(reRoom)}, frameCode: reFrame && {fileOffset: reFrame.fileOffset, cpu: reFrame.cpu, code: reFrame.code, bytes: romBytes(reFrame), lines: reFrame.lines}};
+  report.phases.X.code = {symbols: (symbols.items || []).length, symbolsWithAddress: symMapped, ramLabels: (ram.items || []).length, pose: rePose && {fileOffset: rePose.fileOffset, bytes: romBytes(rePose), error: rePose.error},
+    room: reRoom && {fileOffset: reRoom.fileOffset, length: reRoom.selection?.length, bytes: romBytes(reRoom), error: reRoom.error}, frameCode: reFrame && {fileOffset: reFrame.fileOffset, cpu: reFrame.cpu, code: reFrame.code, bytes: romBytes(reFrame), lines: reFrame.lines, error: reFrame.error}};
   check('X: code-oriented resources are all there and open in CODE/RE: 1992 symbols and 89 RAM labels; the pose\'s piece stream, room 0\'s data and the frame\'s code location open at their recorded offsets, and the RE workspace shows the cartridge\'s bytes there',
     (symbols.items || []).length === 1992 && (ram.items || []).length === 89 && rePose.fileOffset === primary.fileOffset && romBytes(rePose) && reRoom.fileOffset === 16 && romBytes(reRoom) &&
     reFrame && !reFrame.error && reFrame.code === true && Number.isInteger(reFrame.cpu) && romBytes(reFrame), report.phases.X.code);
