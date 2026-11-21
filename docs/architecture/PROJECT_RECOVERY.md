@@ -55,25 +55,26 @@ not finish before a large project's tab closed. Edits made in the last 30 s were
     `recovery behind · N changes since HH:MM:SS` (warning colour, after 2 s), `recovery failed · use Save As` or
     `recovery unavailable`. The tooltip gives the details.
 
-## Measured (`QA/project-recovery.cjs`, Ninja Gaiden investigated project, 5,743,162 characters)
+## Measured (`QA/project-recovery.cjs`, build `a6c05ae9…`, Ninja Gaiden investigated project, 5,743,162 characters)
 
 | | |
 |---|---|
-| First recovery copy of the project | 5.74 M characters written in 61 ms |
-| Edit to durable recovery point | median 26 ms, max 77 ms (8 scene edits); metasprite edit 11 ms |
+| First recovery copy of the project | 5.74 M characters written in 61–269 ms (three runs) |
+| Edit to durable recovery point | median 31 ms, max 40 ms (8 scene edits); metasprite edit 3 ms |
 | Data written per edit | 661 characters (the changed section), not the 5.7 MB project |
-| Reading the project's sections | about 11 ms |
+| Reading the project's sections | about 12–14 ms |
 
 | Scenario | Result |
 |---|---|
-| Tab closed right after the edits, before any write finished (browser kept running) | every scene and metasprite edit restored; "every change" |
+| Tab closed right after scene and metasprite edits, before any write finished (browser kept running) | every edit restored; "every change" |
 | Tab closed after the indicator showed ✓ | every edit restored; "every change" |
 | Page refreshed right after the edits | every edit restored; "every change" |
 | Browser process killed (SIGKILL) after ✓ | every edit restored; message says the browser ended unexpectedly (not "every change") |
 | Browser process killed right after the edits | the edits were restored; same honest message |
 | A stored section damaged | detected by checksum; previous point restored; message names the section and the lost change |
 | Storage refusing writes and the close-time record failing | status showed "recovery failed · use Save As"; restore reported "8 later changes … could not be recovered" |
-| Browser killed during the 5.7 MB first write | one complete point restored, every section verified, never a mix |
+| Write aborted after its records were issued (deterministic) | previous point unchanged and checksum-verified; status "recovery failed"; the next write restored exactly |
+| Browser killed 0/15/30/60/120 ms into the 5.7 MB first write | every restore was one complete, verified point. In three kills the write was still in flight, and the earlier project was restored intact. In two it had finished, and the large project was restored. None was a mix |
 | A second tab while the first is open | the first tab's work is not offered; it is offered after that tab closes |
 
 ## Limits (reported, not hidden)
@@ -86,9 +87,12 @@ not finish before a large project's tab closed. Edits made in the last 30 s were
   - For a closed or refreshed tab while the browser keeps running, every edit was preserved in testing.
 - **Power loss or an OS crash** depends on Chromium's IndexedDB durability ("relaxed" by default: committed data is
   handed to the OS, without a forced flush). This was not tested here.
-- **First copy of a newly opened large project.** Until it is written (61 ms for 5.7 MB; the indicator shows
-  "preparing…"), the close-time record cannot hold the whole project, because localStorage allows about 5 MB.
-  Changes made in that window can be lost. The opened file itself is not affected.
+- **First copy of a newly opened large project.** Until it is written (61–269 ms for 5.7 MB; the indicator shows
+  "preparing…" or "saving…"), the close-time record cannot hold the whole project, because localStorage allows about
+  5 MB.
+  - If the browser dies in that window, the restore gives the previous point, for example the project open before
+    the import. Its message says the final moments cannot be confirmed.
+  - The opened file itself is not affected.
 - **Close-time record size.** It is bounded by the localStorage quota. If the uncommitted changes exceed it, the
   restore reports them as lost.
 - **Not recovered:** the undo history and the running emulator state, as before.

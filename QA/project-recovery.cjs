@@ -36,7 +36,7 @@ async function importNinja(page) {
   await page.waitForFunction(() => !document.getElementById('investigationImport')?.disabled);
   await page.click('#investigationImport'); await page.waitForFunction(() => !!S.investigation);
 }
-const committed = page => page.waitForFunction(() => { const r = Forge.services.ProjectStore.recoveryState(); return r.baseline && !r.writing && r.committedSeq === r.editSeq; }, null, {timeout: 60000});
+const committed = page => page.waitForFunction(() => { const r = Forge.services.ProjectStore.recoveryState(); return r.baseline && !r.writing && r.committedSeq === r.editSeq && r.committedChangeSeq === r.changeSeq; }, null, {timeout: 60000});
 // A scene edit through the canvas and a metasprite edit through its inspector, as a user makes them.
 async function editScene(page, tile, row) {
   await page.evaluate(() => { if (S.tab !== 'scene') switchTab('scene'); });
@@ -185,16 +185,57 @@ async function prepared(name) {
     await r.ctx.close();
   }
   {
-    // the browser is killed while the 5.7 MB first copy is being written: the earlier point stays intact
-    const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-recovery-interrupted-'));
+    // an interrupted write leaves the previous point intact (deterministic): the journal's transaction is aborted
+    // after its writes were issued, as when a tab dies mid-commit
+    const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-recovery-aborted-'));
     const s = await open(profile);
     await editScene(s.page, 5, 40); await committed(s.page); const small = await content(s.page);
-    await importNinja(s.page); const midWrite = await rs(s.page); await killBrowser(profile);
-    const r = await reopenAndRestore(profile, 'interrupted_baseline');
-    const kind = r.text === small ? 'earlier small project' : (r.text && JSON.parse(r.text).investigation ? 'large project' : 'other');
-    report.scenarios.interruptedWrite = {stateWhenKilled: {writing: midWrite.writing, baseline: midWrite.baseline, label: midWrite.label}, restoredKind: kind, message: (r.state.report || {}).text};
-    check('Browser killed during the large first write: the restored project is one complete point (never a mix), with every section verified', r.restored && (kind === 'earlier small project' || kind === 'large project'), report.scenarios.interruptedWrite);
+    const before = await s.page.evaluate(async () => { const r = Forge.services.ProjectStore.recoveryState(), J = Forge.services.RecoveryJournal, h = (await J.heads()).find(x => x.session === r.session);
+      return {seq: h.seq, editSeq: h.editSeq, blobs: (await J.storedHashes(r.session)).size}; });
+    await s.page.evaluate(() => { const tx0 = IDBDatabase.prototype.transaction; window.__aborted = 0; window.__restoreTx = () => { IDBDatabase.prototype.transaction = tx0; };
+      IDBDatabase.prototype.transaction = function (...a) { const tx = tx0.apply(this, a); if (this.name === 'nes-forge-recovery-journal' && a[1] === 'readwrite') Promise.resolve().then(() => { try { tx.abort(); window.__aborted++; } catch (_) {} }); return tx; }; });
+    await importNinja(s.page); await s.page.waitForFunction(() => window.__aborted > 0 && !Forge.services.ProjectStore.recoveryState().writing);
+    const during = await s.page.evaluate(async () => { const r = Forge.services.ProjectStore.recoveryState(), J = Forge.services.RecoveryJournal; window.__restoreTx(); const h = (await J.heads()).find(x => x.session === r.session);
+      return {seq: h.seq, editSeq: h.editSeq, blobs: (await J.storedHashes(r.session)).size, label: r.label, lastError: r.lastError, aborted: window.__aborted}; });
+    if (shots) await s.page.screenshot({path: path.join(shots, 'recovery_indicator_aborted_write.png'), clip: {x: 0, y: 0, width: 1440, height: 120}});
+    // with the aborted write, the stored point is still the small project, untouched
+    const kept = await s.page.evaluate(async () => { const r = Forge.services.ProjectStore.recoveryState(), J = Forge.services.RecoveryJournal, h = (await J.heads()).find(x => x.session === r.session), m = await J.blobs(r.session, h.sections.map(x => x[1]));
+      return h.sections.every(([n, hash]) => m.has(hash) && J.hash(m.get(hash)) === hash) && !h.sections.some(([n]) => n === 'f:investigation'); });
+    await s.page.evaluate(() => Forge.services.ProjectStore.autoSave()); await committed(s.page); const large = await content(s.page);
+    await s.page.close({runBeforeUnload: true}); await sleep(500); await s.ctx.close();
+    const r = await reopenAndRestore(profile, 'after_aborted_write');
+    report.scenarios.abortedWrite = {before, during, previousPointIntactAndVerified: kept, restoredLarge: r.text === large, message: (r.state.report || {}).text};
+    check('An interrupted write (transaction aborted after its writes were issued) leaves the previous point complete and verified; the indicator reports the failure; the next write succeeds and restores exactly',
+      during.aborted > 0 && during.seq === before.seq && during.editSeq === before.editSeq && during.blobs === before.blobs && kept && /recovery failed/.test(during.label) && r.restored && r.text === large && small !== large, report.scenarios.abortedWrite);
     await r.ctx.close();
+  }
+  {
+    // the browser process is killed at different moments while the 5.7 MB first copy is written: every restore is one
+    // complete point (the earlier small project or the large one), never a mix
+    const attempts = [];
+    for (const delay of [0, 15, 30, 60, 120]) {
+      const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-recovery-kill-'));
+      const s = await open(profile);
+      await editScene(s.page, 5, 40); await committed(s.page); const small = await content(s.page);
+      await s.page.setInputFiles('#projectGatewayFile', cart);
+      await s.page.waitForFunction(() => [...document.querySelectorAll('#projectGatewayPanel button')].some(b => /investigated project/i.test(b.textContent)));
+      await s.page.evaluate(() => [...document.querySelectorAll('#projectGatewayPanel button')].find(b => /investigated project/i.test(b.textContent)).click());
+      await s.page.waitForFunction(() => document.getElementById('investigationPrepare') || document.getElementById('investigationImport'));
+      await s.page.evaluate(() => { const p = document.getElementById('investigationPrepare'); if (p && !p.disabled) p.click(); });
+      await s.page.waitForFunction(() => !document.getElementById('investigationImport')?.disabled);
+      await s.page.evaluate(() => document.getElementById('investigationImport').click());
+      await sleep(delay);
+      const atKill = await s.page.evaluate(() => ({writing: Forge.services.ProjectStore.recoveryState().writing, imported: !!S.investigation, baselineLarge: Forge.services.ProjectStore.recoveryState().committedAt})).catch(() => null);
+      await killBrowser(profile);
+      const r = await reopenAndRestore(profile, 'killed_' + delay + 'ms');
+      const kind = !r.text ? 'nothing restored' : r.text === small ? 'earlier small project' : JSON.parse(r.text).investigation ? 'large project' : 'other';
+      attempts.push({delayMs: delay, stateJustBeforeKill: atKill, restored: kind, message: (r.state.report || {}).text});
+      await r.ctx.close();
+    }
+    report.scenarios.killedDuringLargeWrite = attempts;
+    const interrupted = attempts.filter(a => a.stateJustBeforeKill?.writing && a.restored === 'earlier small project').length;
+    check('Browser killed at 5 moments during the 5.7 MB first write: every restore is one complete, checksum-verified point (' + interrupted + ' kill(s) landed while that write was in flight and restored the earlier point)',
+      attempts.every(a => a.restored === 'earlier small project' || a.restored === 'large project') && attempts.every(a => !/^Recovery restored/.test(a.message || '')), attempts);
   }
   {
     // another open tab's work is not offered as recovery; a blank session leaves nothing to recover

@@ -82,7 +82,7 @@ async function until(fn, ms = 900000, every = 500) { const t = Date.now(); for (
     await page.click('.tab:text-is("METASPRITES")');
     await page.evaluate(() => { const f = S.metasprites[0]; Forge163.metasprites.select(f.id); const i = document.getElementById('msX163'); i.value = String(Number(i.value) + 2); i.dispatchEvent(new Event('change', {bubbles: true})); });
     await shot('04b_metasprite_edited_while_investigating');
-    await page.click('.tab:text-is("SCENE")'); await page.waitForFunction(() => { const r = Forge.services.ProjectStore.recoveryState(); return r.committedSeq === r.editSeq && !r.writing; });
+    await page.click('.tab:text-is("SCENE")'); await page.waitForFunction(() => { const r = Forge.services.ProjectStore.recoveryState(); return r.committedSeq === r.editSeq && r.committedChangeSeq === r.changeSeq && !r.writing; });
     const statusLine = await page.$eval('#forge15State', e => e.textContent);
     await panel(); await shot('04_scene_edited_while_investigating');
     const workerAtEdit = job(ngJobId);
