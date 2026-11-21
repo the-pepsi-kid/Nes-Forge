@@ -40,8 +40,8 @@ const jobs = () => fs.readdirSync(path.join(root, 'jobs')).map(id => JSON.parse(
 async function until(fn, ms = 900000, every = 300, why = null) { const t = Date.now(); for (;;) { const v = await fn(); if (v) return v; if (Date.now() - t > ms) { let d = ''; try { d = why ? ': ' + JSON.stringify(await why()).slice(0, 4000) : ''; } catch (e) { d = ': (diagnostics failed: ' + e.message + ')'; } throw Error('timed out after ' + ms + ' ms' + d); } await sleep(every); } }
 // Counts catalog entries as they are written. 'hold': after K, the library's entry store is held by another
 // transaction (every later batch waits) and the test is told. 'throw': writes fail after K (a refusing browser).
-const HOOK = ({k, mode, flag}) => {
-  if (flag && localStorage.getItem(flag) !== '1') return;
+const HOOK = ({k, mode}) => {
+  window.__qaHook = mode;
   const put0 = IDBObjectStore.prototype.put; let n = 0, fired = false;
   IDBObjectStore.prototype.put = function (v, ...rest) {
     if (this.name === 'entries' && v && v.origin === 'rom-catalog' && this.transaction.db.name === 'nesforge-library') {
@@ -97,11 +97,22 @@ const inventory = page => page.evaluate(async sha => {
 }, NINJA);
 const catalogPack = page => page.evaluate(async sha => { const c = (await Forge.commands.run('library.catalogs')).result.find(x => x.sha === sha); return c ? {...c, pack: c.packKey ? await Forge.services.ResourceLibrary.getPack(c.packKey) : null} : null; }, NINJA);
 const status = page => page.evaluate(sha => Forge.services.LibraryCatalog.recoveryStatus().find(s => s.sha === sha) || null, NINJA);
+// Resources › Library, waiting (bounded) for the catalog's Retry; on a timeout, what the view shows instead
+async function libraryRetry(page, label) {
+  await page.click('#frx-open'); await page.click('#frx-lib');
+  try { await page.waitForSelector('#frx-catalog-status [data-action="retry-catalog"]', {timeout: 60000}); }
+  catch (_) {
+    const view = await page.evaluate(() => { const box = document.getElementById('frx-catalog-status'), b = box?.querySelector('[data-action="retry-catalog"]');
+      const vis = el => { if (!el) return null; const cs = getComputedStyle(el), r = el.getBoundingClientRect(); return {display: cs.display, visibility: cs.visibility, w: r.width, h: r.height}; };
+      return {explorer: document.getElementById('frx-root')?.className, library: document.getElementById('frx-lib')?.getAttribute('aria-pressed'), status: box ? box.textContent.slice(0, 400) : null, retry: vis(b)}; });
+    throw Error(label + ': Resources › Library shows no Retry within 60 s: ' + JSON.stringify({view, ...(await diagnose(page, label)())}).slice(0, 3000));
+  }
+}
 // What a stalled wait reports: every recovery status, the panel's view, the catalog marker and recent toasts.
 const diagnose = (page, label) => async () => ({label, ...(await page.evaluate(async sha => {
   const panel = Forge.services.InvestigationPanel.state(), c = (await Forge.commands.run('library.catalogs')).result.find(x => x.sha === sha);
   return {statuses: Forge.services.LibraryCatalog.recoveryStatus(), panel: {connected: panel.connected, error: panel.error, notices: (panel.notices || []).slice(0, 6), jobs: (panel.jobs || []).map(j => ({id: j.id, status: j.status, rom: j.rom?.sha256?.slice(0, 12), imported: j.imported}))},
-    catalog: c || null, marker: c?.packKey ? await Forge.services.ResourceLibrary.getPack(c.packKey) : null, puts: window.__qaCatalogPuts || 0, hook: localStorage.getItem('qa.failCatalog'),
+    catalog: c || null, marker: c?.packKey ? await Forge.services.ResourceLibrary.getPack(c.packKey) : null, puts: window.__qaCatalogPuts || 0, hook: window.__qaHook || null,
     toasts: [...document.querySelectorAll('.toast, #toast, [role=status]')].map(e => e.textContent.trim()).filter(Boolean).slice(-4)};
 }, NINJA))});
 (async () => {
@@ -228,12 +239,14 @@ const diagnose = (page, label) => async () => ({label, ...(await page.evaluate(a
   await s.ctx.close();
   // ---------------- E: failing writes: bounded attempts across sessions, visible state, manual Retry ----------------
   const P3 = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-catalog-p3-'));
-  const attempts = [], HOOK_E = {k: 60, mode: 'throw', flag: 'qa.failCatalog'};
-  const settled = (page, label, states = ['failed', 'needs-retry', 'complete']) => until(() => status(page).then(x => x && states.includes(x.state) ? x : null), 180000, 300, diagnose(page, label));
+  // the refusing storage is installed in each of these sessions by the test itself (not switched by stored state)
+  const attempts = [], HOOK_E = {k: 60, mode: 'throw'};
+  const settled = async (page, label, states = ['failed', 'needs-retry']) => {
+    const st = await until(() => status(page).then(x => x && [...states, 'complete'].includes(x.state) ? x : null), 180000, 300, diagnose(page, label));
+    if (st.state === 'complete') throw Error(label + ': the catalog completed although every catalog write is refused in this session: ' + JSON.stringify(await diagnose(page, label)()).slice(0, 3000));
+    return st; };
   const snapshot = async (page, session) => { const marker = await catalogPack(page); return {session, state: (await status(page))?.state, attempts: marker?.pack?.attempts, lastError: marker?.pack?.lastError,
     puts: await page.evaluate(() => window.__qaCatalogPuts || 0), log: await page.evaluate(() => window.__qaRecovery.filter(x => x.state !== 'waiting'))}; };
-  s = await open(P3, {hook: HOOK_E});
-  await s.page.evaluate(() => localStorage.setItem('qa.failCatalog', '1')); await s.ctx.close();
   // session 1: the ROM is imported, the frames come from the worker, the first attempt fails
   s = await open(P3, {hook: HOOK_E}); shot = shotOf(s.page);
   newPairingCode(); await pair(s.page); await s.page.setInputFiles('#projectGatewayFile', NG);
@@ -242,26 +255,24 @@ const diagnose = (page, label) => async () => ({label, ...(await page.evaluate(a
   // session 2: the second attempt runs at startup and fails; the third follows in the same tab after the backoff
   s = await open(P3, {hook: HOOK_E}); shot = shotOf(s.page);
   await settled(s.page, 'E session 2 (startup attempt)'); const second = await snapshot(s.page, 2);
-  await settled(s.page, 'E session 2 (attempt after the backoff)', ['needs-retry', 'complete']); await sleep(500);
+  await settled(s.page, 'E session 2 (attempt after the backoff)', ['needs-retry']); await sleep(500);
   const third = await snapshot(s.page, 2); await sleep(8000);
   const quiet2 = await s.page.evaluate(() => window.__qaCatalogPuts || 0);
   attempts.push(second, {...third, putsEightSecondsLater: quiet2});
   await s.page.evaluate(() => { const d = document.getElementById('agentLabPanel'); if (!d.open) d.querySelector('summary').click(); d.scrollIntoView({block: 'start'}); }); await shot('E0_each_failed_attempt_noticed'); await s.ctx.close();
   // session 3: the limit is remembered: no automatic attempt, nothing written, Retry offered
   s = await open(P3, {hook: HOOK_E}); shot = shotOf(s.page);
-  await settled(s.page, 'E session 3', ['needs-retry', 'complete']); await sleep(8000); attempts.push(await snapshot(s.page, 3));
+  await settled(s.page, 'E session 3', ['needs-retry']); await sleep(8000); attempts.push(await snapshot(s.page, 3));
   const tries = log => log.filter(x => x.state === 'completing').map(x => x.at), fails = log => log.filter(x => x.state === 'failed' || x.state === 'needs-retry');
   // the third attempt starts no earlier than the time the failure announced, which is the 30 s backoff after it
   const backoff = (() => { const c = tries(third.log), f = fails(third.log); return c.length >= 2 && f.length >= 1 && f[0].retryAt ? {announcedMs: f[0].retryAt - f[0].at, startedAfterMs: c[1] - f[0].at, notEarly: c[1] >= f[0].retryAt} : null; })();
-  await s.page.click('#frx-open'); await s.page.click('#frx-lib'); await s.page.waitForSelector('#frx-catalog-status [data-action="retry-catalog"]');
+  await libraryRetry(s.page, 'E session 3');
   const retryLine = await s.page.$eval('#frx-catalog-status', e => e.textContent); await shot('E1_needs_retry_visible');
-  await s.page.evaluate(() => localStorage.setItem('qa.failCatalog', '0'));
-  await s.page.evaluate(() => { IDBObjectStore.prototype.put = Object.getPrototypeOf(IDBObjectStore.prototype).put || IDBObjectStore.prototype.put; });
   await s.ctx.close();
   // the refusing storage is gone in a fresh session; the developer presses Retry
   s = await open(P3); shot = shotOf(s.page);
   await until(() => status(s.page).then(x => x && x.state === 'needs-retry'), 60000);
-  await s.page.click('#frx-open'); await s.page.click('#frx-lib'); await s.page.waitForSelector('#frx-catalog-status [data-action="retry-catalog"]');
+  await libraryRetry(s.page, 'E retry session');
   await s.page.click('#frx-catalog-status [data-action="retry-catalog"]');
   const doneE = await until(() => status(s.page).then(x => x && ['complete', 'needs-source'].includes(x.state) ? x : null), 180000);
   let finalE = doneE;
@@ -280,5 +291,5 @@ const diagnose = (page, label) => async () => ({label, ...(await page.evaluate(a
   report.passed = report.checks.length > 0 && report.checks.every(c => c.passed);
   fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n');
   console.log(report.passed ? 'catalog-recovery: all checks passed' : 'catalog-recovery: FAILED');
-  setTimeout(() => { fs.rmSync(root, {recursive: true, force: true}); process.exit(report.passed ? 0 : 1); }, 500);
+  setTimeout(() => { if (report.passed) for (const d of [root, P1, P2, P3]) fs.rmSync(d, {recursive: true, force: true}); process.exit(report.passed ? 0 : 1); }, 500);
 })().catch(async e => { console.log('FAILED', e.stack); report.passed = false; report.error = e.message; try { fs.writeFileSync(output, JSON.stringify(report, null, 2)); } catch (_) {} try { worker?.kill('SIGKILL'); } catch (_) {} process.exit(1); });
