@@ -219,3 +219,37 @@ The compatibility gaps in §9 are unchanged and still tracked:
 - CNROM (untested);
 - malformed headers (reported, never repaired);
 - incomplete sprite → actor relationships.
+
+## 11. Interrupted catalog registration (2026-11-21)
+
+A recovered catalog is registered in batches after the job's frames. Before this change, closing or killing Forge in
+between left the catalog part-registered: the next tab saw the job as imported, and nothing finished it until a manual
+**Import again**. The catalog now carries its own registration state, and Forge completes it on its own. There is
+still one library and one ROM identity: the catalog pack (`catalog:<sha>`), its entries (`rom:<sha16>:…`), the frames
+pack and the investigation receipt are the same records as before, and no separate recovery store exists.
+
+- **Marker**: registration writes the catalog pack first with `state: "registering"`, the attempt number, the time
+  and `lastError`. A finished registration rewrites it as `complete`; a failed one as `failed`, with the error.
+  `library.catalogs` lists every recovered catalog as complete, incomplete, failed or missing (frames of a profiled ROM
+  exist but no catalog was ever started), with attempts and the last error.
+- **Resume, not redo**: completion reuses the same registration. An entry already stored with the same content hash,
+  pack and evidence state (and, for poses, a rendition) is kept, not rewritten; the rest is written. Nothing is
+  extracted or investigated again. The frames, the investigation pack and the project are not touched.
+- **Triggers**: startup, a project change, a ROM import, and the Agent Lab panel's poll. The cartridge comes from the
+  open investigated project, a ROM opened in this session, or the paired worker's copy of the job's ROM (verified by
+  SHA-256). Without any of them the state is **needs-source**, and Resources › Library says so.
+- **Bounded attempts**: at most 3 automatic attempts per catalog, counted on the marker so they survive reloads, and
+  in the tab. After a failure the next attempt is scheduled 30 s later, then 120 s. After the third failure the state is
+  **needs-retry**: nothing retries on its own, in that tab or a later one, and Resources › Library shows the error with
+  a **Retry** button (`library.completeCatalog` with `manual: true` does the same). A completion in progress in one tab
+  holds a Web Lock (`nes-forge-catalog:<sha>`), so a second tab reports "being completed in another Forge tab".
+- **Visible**: every state change raises `forge:catalog-recovery`; failures and completions also appear as a toast and
+  as one panel notice per attempt.
+- **Test**: `QA/catalog-recovery.cjs` (owner-side, Ninja Gaiden). Registration is stopped part-way deterministically:
+  after a fixed number of catalog writes, the library's entry store is held by another transaction, then the browser is
+  killed (A) or the tab is closed normally (D). Phase B validates the completed catalog (590 entries, 32 CHR banks with
+  the cartridge's bytes, 22 frames with their hashes, links into CHR and CODE/RE, reuse as a Scene and Metasprite in
+  another project, project edits unchanged). Phase C restarts the worker and imports the ROM again, which is
+  recognized without a new job or import. Phase E makes every write fail and checks the bounded attempts, the backoff
+  and the manual Retry.
+

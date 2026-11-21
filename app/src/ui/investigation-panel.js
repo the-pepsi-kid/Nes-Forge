@@ -30,7 +30,7 @@ function pdb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(PDB,
 async function pairingOp(mode,value){const db=await pdb();try{return await new Promise((resolve,reject)=>{const tx=db.transaction(PSTORE,mode==='get'?'readonly':'readwrite'),st=tx.objectStore(PSTORE);
   const q=mode==='get'?st.get('current'):mode==='put'?st.put({id:'current',...value}):st.delete('current');let out=null;q.onsuccess=()=>{out=q.result??null;};tx.oncomplete=()=>resolve(out);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}finally{db.close();}}
 const settings={autoInvestigate:store.get('autoInvestigate')==='1',autoImport:store.get('autoImport')==='1',autoImportSince:Number(store.get('autoImportSince')||0)};
-const state={url:store.get('url')||'http://127.0.0.1:8787',pairing:null,connected:false,status:null,error:'',imported:[],timer:null,notices:[],pendingAuto:new Map(),requested:new Set(),autoTried:new Set(),catalogs:new Map(),busy:false,lastPoll:0,ready:null};
+const state={url:store.get('url')||'http://127.0.0.1:8787',pairing:null,connected:false,status:null,error:'',imported:[],timer:null,notices:[],pendingAuto:new Map(),requested:new Set(),autoTried:new Set(),catalogs:new Map(),catalogNoticed:new Map(),supplying:new Set(),busy:false,lastPoll:0,ready:null};
 const notice=(text,extra={})=>{state.notices.unshift({at:Date.now(),text,...extra});state.notices=state.notices.slice(0,6);render();};
 const root=el('details','agentLabPanel'),summary=el('summary','agentLabSummary','Background investigation · not paired');root.appendChild(summary);
 const body=el('div','agentLabBody');root.appendChild(body);anchor.before(root);
@@ -71,7 +71,8 @@ async function refresh(){
   if(state.pairing){try{state.status=await signedFetch('GET','/status');state.connected=true;state.error='';}catch(e){state.connected=false;state.error=e.message;if(e.status===401&&/revoked|unknown/.test(e.message))state.error+=' — pair again';}}
   try{state.imported=await services.FrameEvidence.investigations();}catch(_){state.imported=[];}
   render();
-  if(state.connected){await drainAuto();await autoImport();}
+  if(state.connected){await drainAuto();await autoImport();
+    for(const st of services.LibraryCatalog?.recoveryStatus?.()||[])if(st.state==='needs-source')await supplyCartridge(st.sha,{manual:!!st.manual});}
   return state.status;
 }
 function schedule(){
@@ -128,20 +129,21 @@ async function romBytesFor(job){
   const r=await signedFetch('GET','/jobs/'+encodeURIComponent(job.id)+'/rom'),bytes=Uint8Array.from(atob(r.rom),c=>c.charCodeAt(0));
   if(await services.RomImports.sha256(bytes)!==job.rom.sha256)throw Error('the worker returned different ROM bytes');return bytes;
 }
-// The ROM's recovered catalog, through the existing validated registration (only ROMs with a verified Forge profile).
+// The ROM's recovered catalog, through the library's validated registration (LibraryCatalog.completeCatalog), which
+// also finishes a registration that was interrupted and bounds automatic attempts. Only a success (or "no catalog for
+// this ROM") is remembered here; a failure is not, so the next pass asks the library again, which decides whether an
+// attempt is due, waits, or needs a visible manual Retry.
+const catalogText=(job,st)=>st.state==='complete'?(st.already?'The recovered catalog of '+job.rom.name+' is already in the library.':(st.resumed?'Completed the interrupted registration of the recovered catalog of ':'Registered the recovered catalog of ')+job.rom.name+': '+st.entries+' entries ('+st.chrBanks+' CHR banks'+(st.resumed?'; '+st.kept+' kept, '+st.written+' written':'')+').')
+  :'The recovered catalog of '+job.rom.name+': '+st.text+(st.lastError?' ('+st.lastError+')':'')+'.';
 async function registerCatalog(job){
   const sha=job.rom.sha256;if(state.catalogs.has(sha))return state.catalogs.get(sha);
-  const known=!!window.GameRENative?.profiles?.some(p=>p.sha256===sha);
-  let result;
-  if(!known)result={state:'none',text:'No recovered catalog for '+job.rom.name+': Forge has no verified profile for this ROM. Its frames keep CHR file offsets; CHR library entries stay unavailable.'};
-  else try{
-    let project=null;
-    if(S.investigation?.version===1&&S.investigation.source?.sha256===sha)project=services.ProjectStore.capture();
-    else project=await services.InvestigationProject.create(await romBytesFor(job),job.rom.name);// built in memory, never opened
-    const r=await services.LibraryCatalog.registerCatalog(project);
-    result={state:r.already?'already':'registered',text:r.already?'The recovered catalog of '+job.rom.name+' is already in the library.':'Registered the recovered catalog of '+job.rom.name+': '+r.stats.entries+' entries ('+r.stats.chrBanks+' CHR banks).'};
-  }catch(e){result={state:'failed',text:'The recovered catalog of '+job.rom.name+' was not registered: '+e.message};}
-  state.catalogs.set(sha,result);return result;
+  if(!window.GameRENative?.profiles?.some(p=>p.sha256===sha)){const none={state:'none',text:'No recovered catalog for '+job.rom.name+': Forge has no verified profile for this ROM. Its frames keep CHR file offsets; CHR library entries stay unavailable.'};state.catalogs.set(sha,none);return none;}
+  const Lc=services.LibraryCatalog;let st=await Lc.completeCatalog(sha,{name:job.rom.name,reason:'investigation'});
+  // the cartridge is not open in Forge: the worker that investigated it has a copy
+  if(st.state==='needs-source'){try{st=await Lc.completeCatalog(sha,{bytes:await romBytesFor(job),name:job.rom.name,reason:'investigation'});}catch(e){st={state:'failed',text:'the cartridge could not be fetched from the worker',lastError:e.message};}}
+  const result={state:st.state==='complete'?(st.already?'already':'registered'):st.state,text:catalogText(job,st),resumed:!!st.resumed};
+  if(st.state==='complete')state.catalogs.set(sha,result);
+  return result;
 }
 async function importJob(id,{auto=false}={}){
   const job=(state.status?.jobs||[]).find(j=>j.id===id)||{id,rom:{name:'ROM'}};
@@ -150,7 +152,9 @@ async function importJob(id,{auto=false}={}){
   const catalog=bundle.job?.rom?await registerCatalog({id,rom:bundle.job.rom}):null;
   await refresh();
   const what=r.imported?r.imported+' verified frame'+(r.imported===1?'':'s')+' from '+bundle.job.rom.name+' added to the library':'All '+r.already+' frames from '+bundle.job.rom.name+' were already in the library';
-  notice((auto?'Job finished · ':'')+what+(r.rejected.length?' · '+r.rejected.length+' record(s) rejected: '+r.rejected[0].problems.join('; '):'')+'.'+(catalog?' '+catalog.text:''),{open:r.entries?.[0]||null});
+  // a catalog that is not complete is reported by the library's own notice (one per attempt), not repeated here
+  const catalogNote=catalog&&['registered','already','none'].includes(catalog.state)?' '+catalog.text:catalog?' Its recovered catalog is not complete yet (see the next notice).':'';
+  notice((auto?'Job finished · ':'')+what+(r.rejected.length?' · '+r.rejected.length+' record(s) rejected: '+r.rejected[0].problems.join('; '):'')+'.'+catalogNote,{open:r.entries?.[0]||null});
   return {...r,catalog};
 }
 async function autoImport(){
@@ -158,6 +162,12 @@ async function autoImport(){
   try{
     const done=new Set(state.imported.map(p=>p.job?.id));
     for(const j of state.status?.jobs||[]){
+      // results already in the library (imported here or in an earlier session): their catalog must be complete too
+      if(j.state==='completed'&&done.has(j.id)&&!state.catalogs.has(j.rom.sha256)&&window.GameRENative?.profiles?.some(p=>p.sha256===j.rom.sha256)){
+        try{const c=await registerCatalog(j);if(c.state==='registered'&&state.catalogNoticed.get(j.rom.sha256)!==c.text){state.catalogNoticed.set(j.rom.sha256,c.text);notice(c.text);}}
+        catch(e){notice('The recovered catalog of '+j.rom.name+' could not be checked: '+e.message);}
+        continue;
+      }
       if(j.state!=='completed'||done.has(j.id)||state.autoTried.has(j.id)||!j.frames)continue;
       if(!(state.requested.has(j.id)||Date.parse(j.completed||j.updated)>=settings.autoImportSince))continue;
       state.autoTried.add(j.id);
@@ -239,6 +249,22 @@ function renderNotices(){
     ul.appendChild(li);}
   body.appendChild(ul);
 }
+// The library needs a cartridge to finish a catalog and the worker that investigated it has a copy: supply it (for a
+// manual Retry too). Attempts stay bounded by the library.
+async function supplyCartridge(sha,{manual=false}={}){
+  if(!state.connected||state.supplying.has(sha))return null;
+  const job=(state.status?.jobs||[]).find(j=>j.rom.sha256===sha&&j.state==='completed');if(!job)return null;
+  state.supplying.add(sha);
+  try{return await services.LibraryCatalog.completeCatalog(sha,{bytes:await romBytesFor(job),name:job.rom.name,manual,reason:manual?'retry':'worker cartridge'});}
+  catch(e){notice('The cartridge of '+job.rom.name+' could not be fetched from the worker: '+e.message);return null;}
+  finally{state.supplying.delete(sha);}
+}
+addEventListener('forge:catalog-recovery',e=>{if(e.detail?.state==='needs-source')void supplyCartridge(e.detail.sha,{manual:!!e.detail.manual});});
+// what the library does on its own (startup, a project or ROM opened) appears here too, once per state
+addEventListener('forge:catalog-recovery',e=>{const d=e.detail||{};
+  if(!['complete','failed','needs-retry','needs-source'].includes(d.state)||d.state==='complete'&&(d.already||!d.resumed))return;
+  const text='Recovered catalog of '+(d.name||'a ROM')+': '+(d.state==='complete'?'complete after an interrupted registration · '+d.entries+' entries ('+d.kept+' kept, '+d.written+' written)':d.text+(d.lastError?' ('+d.lastError+')':''))+'.';
+  if(state.catalogNoticed.get(d.sha)===text)return;state.catalogNoticed.set(d.sha,text);notice(text);});
 root.addEventListener('toggle',()=>{if(root.open){requestAnimationFrame(()=>root.scrollIntoView({block:'nearest'}));if(state.pairing)void refresh();}});
 render();
 state.ready=pairingOp('get').then(p=>{if(p?.key){state.pairing=p;state.url=p.url||state.url;schedule();return refresh();}render();}).catch(e=>{state.error='pairing storage unavailable: '+e.message;render();});

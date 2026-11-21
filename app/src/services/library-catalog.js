@@ -137,11 +137,24 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   // an earlier registration of this catalog is upgraded in place: what was observed at runtime, the per-stage
   // renditions and the links found since are kept
   const upgrade=prior?.state==='complete';
+  // A registration that did not finish (Forge closed, the browser ended, or a write failed) left its marker and the
+  // entries written so far. They are kept: an entry already stored with identical content (and, for a pose, its
+  // rendition) is not written or rendered again; the rest is written now.
+  const resuming=!upgrade&&!!prior&&prior.stats?.schema===CATALOG_SCHEMA;
+  const attempt=(prior&&prior.state!=='complete'?prior.attempts||0:0)+1;
+  const marker={packSha256:packKey,name:source.name+' · recovered catalog',origin:'rom-catalog',bytes:0,format:'NESForgeInvestigation',game:profile,sourceSha256:romSha,shelf,mode:'full',
+    intake:{state:'accepted',kind:'rom-catalog'},state:'registering',registered:prior?.registered||Date.now(),updated:Date.now(),attempts:attempt,lastAttemptAt:Date.now(),lastError:null,stats:{schema:CATALOG_SCHEMA}};
+  if(!upgrade)await L.putRecords([['packs',marker]]);
+  try{return await registerRecords();}
+  catch(error){if(!upgrade)await L.putRecords([['packs',{...marker,state:'failed',updated:Date.now(),lastError:String(error?.message||error).slice(0,300)}]]).catch(()=>{});throw error;}
+  async function registerRecords(){
   const layout=romLayout(rom);
   const records=[];
   for(const [cat,coll,kind] of RECORDS){const list=n.catalogs[cat]?.[coll];if(Array.isArray(list))list.forEach((r,i)=>records.push({kind,r,rid:String(r.id??i)}));}
   records.push({kind:'symbols',r:{id:'symbols',label:'Code symbols',items:n.catalogs.native.symbols||[]},rid:'symbols'},{kind:'ram-map',r:{id:'ram',label:'RAM labels',items:n.catalogs.native.ram||[]},rid:'ram'});
-  const started=Date.now(),stats={schema:CATALOG_SCHEMA,entries:0,renditions:0,chrBanks:0,verifiedPlacements:0,locations:0,inconsistentLocations:0,upgraded:upgrade};let ops=[];
+  const started=Date.now(),stats={schema:CATALOG_SCHEMA,entries:0,renditions:0,chrBanks:0,verifiedPlacements:0,locations:0,inconsistentLocations:0,upgraded:upgrade,resumed:resuming,kept:0,written:0,attempts:attempt};let ops=[];
+  const already=new Map();
+  if(resuming)for(const item of (await L.list({pack:packKey,limit:5000})).items){try{already.set(item.id,await L.entry(item.id));}catch(_){/* gone: written again */}}
   const described=services.InvestigatedLibrary.describe(project);
   for(const [i,{kind,r,rid}] of records.entries()){
     const id=idOf(romSha,kind,rid),label=String(r.label||r.name||(kind+' '+rid)).slice(0,160);
@@ -149,6 +162,11 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
     if(kind==='chr'&&rom&&Number.isInteger(r.fileOffset)){data=rom.slice(r.fileOffset,r.fileOffset+r.length);fileType='binary';stats.chrBanks++;}
     else data=JSON.stringify(r);
     const stored=await L.storeData(data);
+    const before=already.get(idOf(romSha,kind,rid));
+    if(before&&before.contentHash===stored.hash&&before.packSha256===packKey&&before.evidence?.state===decodedEvidence(kind,r,layout,profile).state&&(kind!=='pose'||before.rendition||before.renditionError)){
+      stats.entries++;stats.kept++;if(kind==='chr')stats.chrBanks++;if(before.rendition)stats.renditions++;stats.locations+=before.evidence?.total||0;stats.inconsistentLocations+=before.evidence?.inconsistent||0;
+      stats.verifiedPlacements+=(before.placement?.verified||[]).length;continue;
+    }
     const e={id,packSha256:packKey,path:kind+'/'+label,label,origin:'rom-catalog',shelf,sourceSha256:romSha,game:profile,kind,identified:true,fileType,size:stored.size,contentHash:stored.hash,loads:false,
       registered:Date.now(),data:{state:'stored'},validation:{state:'accepted',reason:'decoded by the NES Forge decoder for '+profile},
       evidence:decodedEvidence(kind,r,layout,profile)};
@@ -163,7 +181,7 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
     if(verified.length){e.placement={verified};stats.verifiedPlacements+=verified.length;}
     if(kind==='pose'){try{const rend=rendition(project,r.id,null,described);if(rend){const st=await L.storeData(JSON.stringify(rend));e.rendition={hash:st.hash,context:rend.context};stats.renditions++;}}
       catch(err){e.renditionError=String(err.message).slice(0,200);}}
-    ops.push(['entries',e]);stats.entries++;
+    ops.push(['entries',e]);stats.entries++;stats.written++;
     if(ops.length>=40){await L.putRecords(ops);ops=[];onProgress?.({done:i+1,total:records.length});}
   }
   await L.putRecords(ops);
@@ -171,9 +189,11 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   const shelfRecord=shelves.find(s=>s.shelf===shelf)||{shelf,sourceSha256:romSha,title:source.name.replace(/\.nes$/i,''),packs:[],created:Date.now()};
   if(!shelfRecord.packs.includes(packKey))shelfRecord.packs.push(packKey);shelfRecord.updated=Date.now();
   await L.putRecords([['shelves',shelfRecord],['packs',{packSha256:packKey,name:source.name+' · recovered catalog',origin:'rom-catalog',bytes:0,fileCount:records.length,
-    format:'NESForgeInvestigation',game:profile,sourceSha256:romSha,shelf,mode:'full',intake:{state:'accepted',kind:'rom-catalog'},state:'complete',registered:started,updated:Date.now(),stats}]]);
+    format:'NESForgeInvestigation',game:profile,sourceSha256:romSha,shelf,mode:'full',intake:{state:'accepted',kind:'rom-catalog'},state:'complete',registered:prior?.registered||started,updated:Date.now(),
+    attempts:upgrade?prior.attempts||1:attempt,lastAttemptAt:started,lastError:null,stats}]]);
   const links=await linkSameResources(romSha);
   return {packSha256:packKey,already:false,shelf,stats,links,ms:Date.now()-started};
+  }
 }
 
 // ---------- source ROMs open in this session ----------
@@ -405,9 +425,110 @@ if(typeof snapshot==='function'){
   try{snapshot=guarded;}catch(_){/* read-only binding: references stay protected by their library marker only */}
 }
 
+
+// ---------- recovered catalogs that did not finish ----------
+// A catalog whose registration stopped (Forge closed, the browser ended, a write failed) keeps its marker and the
+// entries written so far. Forge completes it on its own, from whichever copy of the cartridge it can reach: the open
+// project (an investigated project carries its cartridge), a ROM opened in this session, or bytes the caller supplies
+// (the background-investigation panel fetches the job's ROM from the paired worker). The library itself still stores
+// no ROM. Attempts are bounded: at most 3 automatic attempts per catalog (counted on its marker, so across sessions),
+// spaced 0 s, 30 s and 2 min apart within a tab; after that a visible Retry is needed. Every state change is announced
+// (event "forge:catalog-recovery", a toast for the important ones) and listed by recoveryStatus().
+const AUTO_ATTEMPTS=3,BACKOFF=[0,30000,120000];
+const recovery={status:new Map(),running:new Map(),failures:new Map(),nextAt:new Map(),timers:new Map()};
+const profileOf=sha=>window.GameRENative?.profiles?.find(p=>p.sha256===sha)||null;
+const STATE_TEXT={complete:'complete',completing:'completing…','completing-elsewhere':'being completed in another Forge tab',incomplete:'incomplete (registration was interrupted)',
+  'needs-source':'incomplete: open its ROM (or pair the background worker) so Forge can finish it',failed:'a completion attempt failed; Forge retries automatically',
+  'needs-retry':'automatic completion stopped after 3 failed attempts; use Retry',waiting:'the last completion attempt failed; Forge tries again automatically',unsupported:'no recovered catalog exists for this ROM'};
+function setStatus(sha,value){
+  const next={...(recovery.status.get(sha)||{}),sha,...value,at:Date.now()};next.text=STATE_TEXT[next.state]||next.state;
+  if(next.state==='waiting'&&next.retryAt)next.text+=' in about '+Math.max(1,Math.ceil((next.retryAt-Date.now())/1000))+' s';
+  if(next.state==='failed'&&next.attempts)next.text+=' (attempt '+next.attempts+' of '+AUTO_ATTEMPTS+' failed)';
+  recovery.status.set(sha,next);
+  try{window.dispatchEvent(new CustomEvent('forge:catalog-recovery',{detail:{...next}}));}catch(_){/* no DOM events */}
+  const label=next.name||'this ROM';
+  if(value.state==='completing'&&value.resuming)window.showToast?.('Completing the recovered catalog of '+label+' (its registration was interrupted)…');
+  if(value.state==='complete'&&value.written!==undefined&&!value.already)window.showToast?.('Recovered catalog of '+label+' complete: '+next.entries+' entries'+(value.kept?' ('+value.kept+' kept, '+value.written+' written)':''));
+  if(value.state==='failed'||value.state==='needs-retry')window.showToast?.('The recovered catalog of '+label+' could not be completed: '+(next.lastError||'unknown error')+(value.state==='needs-retry'?' · Retry it in Resources › Library':''));
+  return next;
+}
+// Catalog state per source ROM, from the library: complete, incomplete (a marker without completion), failed, or
+// missing (runtime evidence of a profiled ROM exists but no catalog was ever started).
+async function catalogState(){
+  const r=await C.run('library.packs'),packs=r.ok?r.result:[],out=new Map();
+  for(const p of packs){
+    if(p.origin!=='rom-catalog'||!p.sourceSha256)continue;
+    const cur=out.get(p.sourceSha256);
+    if(!cur||p.state==='complete'&&cur.state!=='complete'||cur.state!=='complete'&&(p.updated||0)>(cur.updated||0))
+      out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · recovered catalog$/,''),state:p.state==='complete'?'complete':p.state==='failed'?'failed':'incomplete',packKey:p.packSha256,updated:p.updated||0,entries:p.stats?.entries??null});
+  }
+  for(const p of packs)if(p.origin==='runtime-capture'&&p.sourceSha256&&profileOf(p.sourceSha256)&&!out.has(p.sourceSha256))
+    out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · runtime captures$/,''),state:'missing',packKey:null,updated:p.updated||0,entries:null});
+  for(const c of out.values())if(c.packKey&&c.state!=='complete'){const pack=await L.getPack(c.packKey);c.attempts=pack?.attempts||0;c.lastError=pack?.lastError||null;}
+  return [...out.values()];
+}
+async function sourceProject(sha,{bytes,name}){
+  try{const p=services.ProjectStore.capture();if(p?.investigation?.version===1&&p.investigation.source?.sha256===sha)return {project:p,source:'the open project'};}catch(_){/* no project */}
+  const known=bytes instanceof Uint8Array?{bytes,name}:SourceROMs.get(sha);
+  if(!known)return null;
+  if(!(await SourceROMs.verify(known.bytes,sha)))fail('the supplied cartridge does not match the catalog\'s SHA-256');
+  return {project:await services.InvestigationProject.create(known.bytes,known.name||name||'cartridge.nes'),source:bytes?'a cartridge supplied by '+(name?'the import':'the caller'):'a cartridge open in this session'};
+}
+function completeCatalog(sha,{bytes=null,name=null,manual=false,reason='automatic'}={}){
+  if(recovery.running.has(sha))return recovery.running.get(sha);
+  const job=(async()=>{
+    const st=(await catalogState()).find(c=>c.sha===sha)||null,label=st?.name||name||null;
+    if(st?.state==='complete')return setStatus(sha,{state:'complete',name:label,entries:st.entries,already:true});
+    if(!profileOf(sha))return setStatus(sha,{state:'unsupported',name:label});
+    const persisted=st?.attempts||0,inTab=recovery.failures.get(sha)||0;
+    if(!manual&&(persisted>=AUTO_ATTEMPTS||inTab>=AUTO_ATTEMPTS))return setStatus(sha,{state:'needs-retry',name:label,attempts:Math.max(persisted,inTab),lastError:st?.lastError||recovery.status.get(sha)?.lastError||null});
+    if(!manual&&Date.now()<(recovery.nextAt.get(sha)||0))return setStatus(sha,{state:'waiting',name:label,retryAt:recovery.nextAt.get(sha)});
+    let src;
+    try{src=await sourceProject(sha,{bytes,name});}catch(error){return failed(error,label,persisted);}
+    if(!src)return setStatus(sha,{state:'needs-source',name:label,attempts:persisted,lastError:st?.lastError||null,manual});
+    const resuming=!!st&&st.state!=='missing';
+    setStatus(sha,{state:'completing',name:label,reason,resuming,source:src.source});
+    const run=()=>registerCatalog(src.project);
+    try{
+      const r=typeof navigator!=='undefined'&&navigator.locks?await navigator.locks.request('nes-forge-catalog:'+sha,{ifAvailable:true},lock=>lock?run():null):await run();
+      if(r===null)return setStatus(sha,{state:'completing-elsewhere',name:label});
+      recovery.failures.delete(sha);recovery.nextAt.delete(sha);clearTimeout(recovery.timers.get(sha));recovery.timers.delete(sha);
+      return setStatus(sha,{state:'complete',name:label,entries:r.stats.entries,chrBanks:r.stats.chrBanks,kept:r.stats.kept||0,written:r.already?0:r.stats.written??r.stats.entries,already:!!r.already,resumed:!!r.stats.resumed,attempts:r.stats.attempts||null,source:src.source,lastError:null});
+    }catch(error){return failed(error,label,persisted);}
+  })().finally(()=>recovery.running.delete(sha));
+  async function failed(error,label,persisted){
+    const n=(recovery.failures.get(sha)||0)+1,delay=BACKOFF[Math.min(n,BACKOFF.length-1)];recovery.failures.set(sha,n);recovery.nextAt.set(sha,Date.now()+delay);
+    const st=(await catalogState().catch(()=>[])).find(c=>c.sha===sha),attempts=Math.max(n,st?.attempts||persisted+1);
+    recovery.nextAt.set(sha,Date.now()+delay);
+    // the next automatic attempt is scheduled here, once, so it does not depend on anything else polling; the limit
+    // is checked again when it runs
+    clearTimeout(recovery.timers.get(sha));
+    if(attempts<AUTO_ATTEMPTS)recovery.timers.set(sha,setTimeout(()=>{recovery.timers.delete(sha);void completeCatalog(sha,{reason:'retry after a failure'}).catch(()=>{});},delay+50));
+    return setStatus(sha,{state:attempts>=AUTO_ATTEMPTS?'needs-retry':'failed',name:label,attempts,retryAt:attempts<AUTO_ATTEMPTS?recovery.nextAt.get(sha):null,lastError:String(error?.message||error).slice(0,300)});
+  }
+  recovery.running.set(sha,job);return job;
+}
+// Every catalog that is not complete, once (automatic triggers: startup, a project change, a ROM import).
+async function resumeCatalogs({reason='automatic'}={}){
+  const out=[];
+  for(const c of await catalogState())if(c.state!=='complete')out.push(await completeCatalog(c.sha,{reason}));
+  return out;
+}
+function recoveryStatus(){return [...recovery.status.values()].map(s=>({...s}));}
+let projectTimer=null;
+function projectChanged(){clearTimeout(projectTimer);projectTimer=setTimeout(()=>{void resumeCatalogs({reason:'project'}).catch(()=>{});},600);}
+setTimeout(()=>{
+  void resumeCatalogs({reason:'startup'}).catch(()=>{});
+  services.RomImports?.subscribe(entry=>{void catalogState().then(list=>{const c=list.find(x=>x.sha===entry.sha256&&x.state!=='complete');if(c)return completeCatalog(entry.sha256,{bytes:services.RomImports.bytes(entry.sha256),name:entry.name,reason:'rom import'});}).catch(()=>{});});
+},1500);
+
 services.SourceROMs=SourceROMs;
-services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation});
+services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation,
+  catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,AUTO_ATTEMPTS});
 if(C?.register){
+  C.register({name:'library.catalogs',group:'library',title:'Recovered catalogs and their registration state',summary:'complete, incomplete (interrupted), failed or missing, with attempts and the last error.',run:()=>catalogState()});
+  C.register({name:'library.completeCatalog',group:'library',title:'Complete an interrupted catalog registration',summary:'Uses the open project or a ROM opened in this session; manual: true ignores the automatic attempt limit.',
+    args:{sha256:{type:'string',required:true},manual:{type:'boolean',default:false}},run:a=>completeCatalog(String(a.sha256),{manual:!!a.manual,reason:'command'})});
   C.register({name:'library.registerCatalog',group:'library',title:'Register the open ROM\'s recovered catalog',summary:'Every recovered record of the imported ROM becomes a library entry with its decoded location; poses get renditions.',run:()=>registerCatalog()});
   C.register({name:'library.surveyStages',group:'library',title:'Observe which sprites appear in each stage (runtime)',summary:'Ninja Gaiden (US): plays each area from its start and records enemy poses seen on screen as verified runtime placements.',
     args:{areas:{type:'string'},frames:{type:'int',default:1500,min:60,max:20000},boot:{type:'string',default:'checkpoint'}},

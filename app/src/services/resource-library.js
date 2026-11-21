@@ -298,8 +298,9 @@ async function verify({pack}={}){
     if(bytes.length!==blob.size||await sha256(bytes)!==blob.hash)problems.push({id:e.id,problem:'data does not match its content hash'});
   }
   const packs=pack?[await b.get('packs',pack)].filter(Boolean):await b.all('packs');
-  for(const p of packs){const n=entries.filter(e=>e.packSha256===p.packSha256).length;if(p.state==='complete'&&n!==p.fileCount)problems.push({pack:p.packSha256,problem:'has '+n+' entries for '+p.fileCount+' files'});
-    if(p.state!=='complete')problems.push({pack:p.packSha256,problem:'import '+p.state+' (resume with library.register, or library.discard)'});}
+  // an Agent Lab investigation pack is an import receipt: its frames are entries of the ROM's runtime-captures pack, which is counted
+  for(const p of packs){const n=entries.filter(e=>e.packSha256===p.packSha256).length;if(p.state==='complete'&&p.origin!=='agent-lab'&&n!==p.fileCount)problems.push({pack:p.packSha256,problem:'has '+n+' entries for '+p.fileCount+' files'});
+    if(p.state!=='complete')problems.push({pack:p.packSha256,problem:p.origin==='rom-catalog'?'catalog registration '+p.state+' (Forge completes it when its ROM is available; or library.completeCatalog)':'import '+p.state+' (resume with library.register, or library.discard)'});}
   return {entries:entries.length,blobsChecked:blobs,problems,ok:!problems.length};
 }
 async function discard(packSha256){

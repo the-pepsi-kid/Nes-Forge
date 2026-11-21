@@ -425,7 +425,7 @@ function setMode(next){
 function kindLabel(type){if(type.startsWith('lib · '))return 'Library · '+type.slice(6);return {library:'Library entry',chr:'CHR',metasprite:'Metasprite',actor:'Actor Definition','actor-record':'Native actor record',instance:'Actor Instance',sprite:'Sprite placements',entity:'Scene Entity'}[type]||type[0].toUpperCase()+type.slice(1);}
 let filterSignature='';
 function render(){
- if(!graph)return;let sel=nodeByKey(active);$('project-name').textContent=mode==='demo'?'Guided example':mode==='library'?'Resource library':(S.projectName||'Untitled');$('notice').innerHTML=mode==='library'?'<strong>LIBRARY</strong> · Every resource registered from extraction packs, identified or not. Locations are as the pack states them; your notes are kept apart from that evidence. Nothing here changes your project unless you open it explicitly.':mode==='demo'?'<strong>EXAMPLE DATA</strong> · Try clicking linked resources. This is a demonstration graph, not assets from the loaded project.':'<strong>LIVE PROJECT</strong> · Connections derive from actual resource IDs and declared references. Browsing is read-only. Explicit native-writer actions use the existing Undo transaction.';
+ if(!graph)return;let sel=nodeByKey(active);$('project-name').textContent=mode==='demo'?'Guided example':mode==='library'?'Resource library':(S.projectName||'Untitled');$('notice').innerHTML=mode==='library'?'<strong>LIBRARY</strong> · Every resource registered from extraction packs, identified or not. Locations are as the pack states them; your notes are kept apart from that evidence. Nothing here changes your project unless you open it explicitly.':mode==='demo'?'<strong>EXAMPLE DATA</strong> · Try clicking linked resources. This is a demonstration graph, not assets from the loaded project.':'<strong>LIVE PROJECT</strong> · Connections derive from actual resource IDs and declared references. Browsing is read-only. Explicit native-writer actions use the existing Undo transaction.';renderCatalogStatus();
  for(const [next,button] of [['live',$('live')],['demo',$('demo')],['library',$('lib')]])button.setAttribute('aria-pressed',String(mode===next));
  {const head=$('count').parentNode.firstChild;if(head&&head.nodeType===3)head.textContent=mode==='library'?'Library entries ':mode==='demo'?'Example resources ':'Project resources ';}
  const counts=mode==='live'&&graph.library?.counts;
@@ -566,6 +566,22 @@ function renderViewer(n){
 }
 // A captured frame: Scene -> Sprite -> CHR -> ROM location -> Code/RE, each link with the evidence it rests on
 const hx=(v,w=2)=>Number(v).toString(16).toUpperCase().padStart(w,'0');
+// Recovered catalogs that are not complete, in the library view: what Forge is doing about each and, where automatic
+// completion has stopped or failed, a Retry. Complete catalogs are not listed.
+function renderCatalogStatus(){
+ const host=$('notice');let box=document.getElementById('frx-catalog-status');
+ const list=mode==='library'?(window.Forge.services.LibraryCatalog?.recoveryStatus?.()||[]).filter(s=>s.state&&!['complete','unsupported'].includes(s.state)):[];
+ if(!list.length){box?.remove();return;}
+ if(!box){box=elt('div');box.id='frx-catalog-status';box.style.cssText='margin-top:4px;color:#ffb35a';}
+ if(box.parentNode!==host)host.append(box);
+ box.replaceChildren(...list.map(st=>{const row=elt('div',null,'Recovered catalog of '+(st.name||st.sha.slice(0,12))+': '+st.text+(st.lastError?' ('+st.lastError+')':'')+(st.attempts?' · attempts '+st.attempts+' of 3':''));row.dataset.catalog=st.sha;
+  if(['needs-retry','failed','needs-source','incomplete'].includes(st.state)){const b=elt('button','frx-context-shortcut','Retry');b.type='button';b.dataset.action='retry-catalog';
+   b.onclick=async()=>{b.disabled=true;await window.Forge.services.LibraryCatalog.completeCatalog(st.sha,{manual:true,reason:'retry'});reloadLibrary();};row.append(' ',b);}
+  return row;}));
+}
+// a completed catalog adds entries: reload the library view, keeping the selection
+function reloadLibrary(){if(mode!=='library')return;pendingSelect=active;setMode('library');}
+addEventListener('forge:catalog-recovery',e=>{if(mode!=='library')return;renderCatalogStatus();if(e.detail?.state==='complete'&&!e.detail.already&&root.classList.contains('frx-visible'))reloadLibrary();});
 function hasChrEntries(sourceSha256){const prefix=key('lib','rom:'+String(sourceSha256||'').slice(0,16)+':chr:');for(const k of graph.nodes.keys())if(k.startsWith(prefix))return true;return false;}
 async function renderFrameDetails(entry,host){
  const C=window.Forge.commands,P=window.Forge.services.LibraryProvenance,UI=window.Forge.services.LibraryProvenanceUI;

@@ -199,6 +199,7 @@ function commit(prepared,options={}){
   if(external){Forge15.dirty=false;status('Loaded project');}
   if(Forge.services.EditorView)Forge.services.EditorView.restore(p.editorView,priorView,refresh);else refresh();
   Forge.services.InvestigationUI?.projectChanged();
+  if(!options.history&&!options.sync)Forge.services.LibraryCatalog?.projectChanged?.();
   recoveryCommitted(options);return true;
 }
 function recoveryCommitted(options){

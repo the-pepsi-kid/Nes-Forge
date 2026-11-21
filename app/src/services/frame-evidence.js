@@ -289,7 +289,8 @@ async function importInvestigation(bundle){
     job:{id:job.id,state:job.state,plan:job.plan,editorSha256:job.editorSha256,checkpoint:job.checkpoint,compatibility:job.compatibility,failures:job.failures,completed:job.completed},
     stats:{records:(bundle.records||[]).length,imported:imported.length+(prior?.stats?.imported||0),already:already.length,rejected:rejected.length}};
   const framePack=(await L.getPack(framesPack))||{packSha256:framesPack,name:(job.rom.name||'ROM')+' · runtime captures',origin:'runtime-capture',bytes:0,fileCount:0,format:'NESForgeFrameEvidence',sourceSha256:romSha,shelf:romSha,mode:'full',intake:{state:'accepted',kind:'runtime-capture'},state:'complete',registered:Date.now()};
-  framePack.fileCount=(framePack.fileCount||0)+imported.length;framePack.updated=Date.now();
+  // the pack's count is what it holds (an earlier import that stopped part-way left some entries without counting them)
+  framePack.fileCount=(await L.list({pack:framesPack,limit:1})).total;framePack.updated=Date.now();
   await L.putRecords([['packs',pack],['packs',framePack]]);
   return {job:job.id,rom:romSha,imported:imported.length,already:already.length,rejected,entries:[...imported,...already]};
 }

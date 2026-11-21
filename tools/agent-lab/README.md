@@ -41,7 +41,10 @@ restarts. Two remembered options make the loop hands-free:
   with its source and SHA-256.
 - **Add verified results to the library when a job finishes** imports the job through the validated
   `library.importInvestigation` path, then registers the ROM's recovered catalog through
-  `LibraryCatalog.registerCatalog`. Only ROMs with a verified Forge profile have a catalog; for others Forge says so.
+  `LibraryCatalog.completeCatalog`. Only ROMs with a verified Forge profile have a catalog; for others Forge says so.
+  A registration interrupted by a close or crash is completed later without importing again, with the worker's copy
+  of the cartridge if Forge has none open; failures are retried at most 3 times, then wait for **Retry**
+  ([FRAME_EVIDENCE.md §11](../../docs/architecture/FRAME_EVIDENCE.md)).
   A notice offers **Open in Library**. Importing never changes the project, and manual Import / Import again remain.
 
 How the worker behaves:
