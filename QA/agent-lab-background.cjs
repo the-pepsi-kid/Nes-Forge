@@ -86,13 +86,16 @@ async function until(fn, ms = 1800000, every = 500) { const t = Date.now(); for 
     const smbJob = await api('POST', '/jobs', {rom: fs.readFileSync(smb3.file).toString('base64'), name: smb3.name, plan: 'generic'});
     const contraJob = await api('POST', '/jobs', {rom: fs.readFileSync(contra.file).toString('base64'), name: contra.name, plan: 'generic'});
     const paused = await page.evaluate(id => Forge.services.InvestigationPanel.control(id, 'pause'), contraJob.id);
-    const extra = await api('POST', '/jobs', {rom: fs.readFileSync(contra.file).toString('base64'), name: contra.name, plan: 'generic'}); const cancelled = await api('POST', '/jobs/' + extra.id + '/cancel');
+    // the same ROM and plan again is not a new job: the worker returns the paused one; a deliberate rerun is a separate job
+    const same = await api('POST', '/jobs', {rom: fs.readFileSync(contra.file).toString('base64'), name: contra.name, plan: 'generic'});
+    const extra = await api('POST', '/jobs', {rom: fs.readFileSync(contra.file).toString('base64'), name: contra.name, plan: 'generic', rerun: true}); const cancelled = await api('POST', '/jobs/' + extra.id + '/cancel');
     await until(() => job(smbJob.id).state === 'completed');
     const stillPaused = job(contraJob.id).state;
     await page.evaluate(id => Forge.services.InvestigationPanel.control(id, 'resume'), contraJob.id);
     await until(() => job(contraJob.id).state === 'completed');
-    check('A second mapper family (MMC3) is investigated; a job paused before it ran stays paused until resumed, then completes; a cancelled job never runs',
-      job(smbJob.id).results.length === 3 && stillPaused === 'paused' && paused.state === 'paused' && job(contraJob.id).results.length === 3 && cancelled.state === 'cancelled' && job(extra.id).results.length === 0,
+    check('A second mapper family (MMC3) is investigated; a job paused before it ran stays paused until resumed, then completes; the same ROM and plan again returns that job; a cancelled rerun never runs',
+      job(smbJob.id).results.length === 3 && stillPaused === 'paused' && paused.state === 'paused' && job(contraJob.id).results.length === 3 && cancelled.state === 'cancelled' && job(extra.id).results.length === 0 &&
+      same.duplicate === true && same.id === contraJob.id && extra.id !== contraJob.id,
       {smb3: job(smbJob.id).results.map(r => r.synchronization), contra: job(contraJob.id).results.map(r => r.synchronization)});
     await page.evaluate(() => Forge.services.InvestigationPanel.refresh()); await page.evaluate(() => document.getElementById('agentLabPanel').scrollIntoView({block: 'nearest'})); await shot('bg_2_panel_finished');
     // ---- import into the library ----
