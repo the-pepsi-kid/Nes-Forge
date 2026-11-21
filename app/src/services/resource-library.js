@@ -407,7 +407,7 @@ if(C?.register){
   R({name:'library.register',title:'Register an extraction pack',summary:'Keeps every file of the pack in the library (projects, unknown files and rejected entries included). Idempotent; resumes an interrupted import. Does not change the working project.',
     args:{bytes:{type:'bytes',required:true},name:{type:'string',default:'pack.zip'},mode:{type:'string',default:'full',enum:['full','index-only']}},
     run:a=>register(a.bytes,{name:a.name,mode:a.mode})});
-  R({name:'library.packs',title:'Registered packs',run:async()=>(await backend().all('packs')).map(p=>({packSha256:p.packSha256,name:p.name,game:p.game,sourceSha256:p.sourceSha256,shelf:p.shelf,state:p.state,mode:p.mode,fileCount:p.fileCount,intake:p.intake,stats:p.stats}))});
+  R({name:'library.packs',title:'Registered packs',run:async()=>(await backend().all('packs')).map(p=>({packSha256:p.packSha256,name:p.name,game:p.game,origin:p.origin||'pack',sourceSha256:p.sourceSha256,shelf:p.shelf,state:p.state,mode:p.mode,fileCount:p.fileCount,intake:p.intake,stats:p.stats,updated:p.updated||null,...(p.job?{job:p.job}:{})}))});
   R({name:'library.shelves',title:'Library shelves (one per source ROM)',run:()=>backend().all('shelves')});
   R({name:'library.list',title:'List library entries',args:{shelf:{type:'string'},pack:{type:'string'},kind:{type:'string'},search:{type:'string'},offset:{type:'int',default:0,min:0},limit:{type:'int',default:200,min:1,max:5000}},run:a=>list(a)});
   R({name:'library.inspect',title:'Inspect a library entry',summary:'The entry with its stated evidence and validation, and the developer\'s notes (kept separate).',args:{id:{type:'string',required:true}},

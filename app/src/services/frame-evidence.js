@@ -83,7 +83,7 @@ function rasterCheck(){
       frame:scene.captureMeta.frame,backgroundTileSources:[...regions].map(([k,n])=>({source:k.split(':')[0],chrOffset:Number(k.split(':')[1])<<10,tiles:n})).sort((x,y)=>x.chrOffset-y.chrOffset)};}
   catch(e){return {state:'not matched',reason:String(e.message).slice(0,240)};}
 }
-async function capture({label='frame',checkpoint=null,links=true,pixels=false}={}){
+async function capture({label='frame',checkpoint=null,links=true,pixels=false,scene=false}={}){
   if(!emu.loaded)fail('no ROM is loaded in the emulator');
   const file=emu.lastBuiltRom instanceof Uint8Array?emu.lastBuiltRom:null,layout=layoutOf(file);
   const cpuState={A:emu.A,X:emu.X,Y:emu.Y,SP:emu.SP,PC:emu.PC,P:(emu.C)|(emu.Z<<1)|(emu.I<<2)|(emu.D<<3)|(1<<5)|(emu.V<<6)|(emu.N<<7),cycles:emu.cycles};
@@ -112,6 +112,9 @@ async function capture({label='frame',checkpoint=null,links=true,pixels=false}={
   if(links)record.links=await libraryLinks(record);
   // the rendered pixels themselves, on request (a screenshot whose SHA-256 must equal rendered.framebufferSha256)
   if(pixels)record.rendered.rgba=b64(new Uint8Array(emu.frameBuffer.buffer,emu.frameBuffer.byteOffset,emu.frameBuffer.byteLength));
+  // the validated runtime capture of this frame (native tiles with their CHR offsets, per-scanline placement), so the
+  // frame can later be opened as an editable Scene; only when it rebuilt with 0 different pixels
+  if(scene&&record.synchronization.state==='matched'){try{record.scene=JSON.parse(JSON.stringify(window.forgeCapture.captureFromTrace()));}catch(_){record.scene=null;}}
   return record;
 }
 // library entries the frame's data belongs to: CHR bank entries by file offset (only entries the library holds)
@@ -205,7 +208,7 @@ async function registerFrame(record){
   const body={...record,rendered:{...record.rendered,rgba:undefined}},stored=await L.storeData(JSON.stringify(body));
   let preview=null;if(record.rendered.rgba){const st=await L.storeData(await pngOf(record.rendered.rgba));preview={hash:st.hash,derivation:'rendered framebuffer: pixels, not CHR data'};}
   const pc=record.cpu.pcLocation;
-  const e={id,packSha256:packKey,path:'frames/'+record.label+' F'+record.frame,label:record.label+' · frame '+record.frame,origin:'runtime-capture',shelf:romSha,sourceSha256:romSha,game:null,kind:'frame',identified:true,
+  const e={id,packSha256:packKey,path:'frames/'+record.label+' F'+record.frame,label:record.label+' · frame '+record.frame,origin:'runtime-capture',shelf:romSha,sourceSha256:romSha,game:String(record.rom.name||'').replace(/\.nes$/i,'')||null,kind:'frame',identified:true,
     fileType:'json',size:stored.size,contentHash:stored.hash,loads:false,registered:Date.now(),data:{state:'stored'},
     validation:{state:'accepted',reason:'state snapshot of frame '+record.frame+'; data and image '+(record.synchronization.state==='matched'?'rebuild with 0 different pixels':'not checked: '+record.synchronization.reason)},
     evidence:{state:'observed',basis:'emulator state snapshot (NESForgeFrameEvidence v1), frame '+record.frame,frame:record.frame,digests:record.digests,
@@ -216,12 +219,98 @@ async function registerFrame(record){
   await L.putRecords([['entries',e],['packs',pack]]);
   return {id,links:e.links.length,preview:!!preview};
 }
-services.FrameEvidence=Object.freeze({capture,capturePlan,runFrames,runUntil,registerFrame});
+// ---------- steps for an external runner (Agent Lab): boot, one target, checkpoints that leave the page ----------
+async function runTarget(target){
+  for(const [address,value] of Object.entries(target.ram||{}))emu.ram[Number(address)&0x7FF]=Number(value)&255;
+  const until=target.until?.length?await runUntil(target.until,target.maxFrames||6000):{reached:true,frames:0};
+  await runFrames(target.frames||1,target.inputs||[]);
+  return until;
+}
+async function loadedRomSha256(){const file=emu.lastBuiltRom instanceof Uint8Array?emu.lastBuiltRom:null;return file?sha256(file):null;}
+async function importCheckpoint(data,{romSha256,name}={}){
+  const loaded=await loadedRomSha256();
+  if(!romSha256||loaded!==romSha256)fail('the checkpoint belongs to ROM '+String(romSha256).slice(0,12)+'…, not the ROM loaded ('+String(loaded).slice(0,12)+'…)');
+  return services.EmulatorTimeline.importCheckpoint(data,name);
+}
+// ---------- importing an Agent Lab investigation (NESForgeInvestigationResults) ----------
+// Nothing is trusted: every record's section digests are recomputed, the screenshot is decoded and its pixels must hash
+// to the recorded framebuffer, and a scene artifact must re-render to that same framebuffer. Records that pass become
+// library entries on the ROM's shelf (idempotent by digest); records that fail are listed and nothing of them is kept.
+// The open project is never touched; opening a captured scene is a separate, explicit, undoable action.
+const HEX64=/^[0-9a-f]{64}$/;
+async function pngPixels(bytes){
+  const bitmap=await createImageBitmap(new Blob([bytes],{type:'image/png'}),{colorSpaceConversion:'none',premultiplyAlpha:'none'});
+  const c=document.createElement('canvas');c.width=bitmap.width;c.height=bitmap.height;const g=c.getContext('2d');g.drawImage(bitmap,0,0);
+  return {width:c.width,height:c.height,rgba:new Uint8Array(g.getImageData(0,0,c.width,c.height).data.buffer)};
+}
+async function verifyRecord(record,job,pngBytes){
+  const problems=[];
+  if(record?.format!=='NESForgeFrameEvidence'||record.version!==1)return {ok:false,problems:['not a frame evidence record']};
+  if(record.rom?.sha256!==job.rom.sha256)problems.push('it belongs to another ROM');
+  const keys=Object.keys(record.digests||{}).filter(k=>k!=='all');
+  for(const k of keys)if(!(k in record)||await sha256(JSON.stringify(record[k]))!==record.digests[k])problems.push('section '+k+' does not match its digest');
+  if(!keys.length||await sha256(JSON.stringify(Object.fromEntries(keys.map(k=>[k,record.digests[k]]))))!==record.digests.all)problems.push('the overall digest does not match');
+  let screenshot='missing';
+  if(pngBytes){try{const px=await pngPixels(pngBytes);screenshot=px.width===256&&px.height===240&&await sha256(px.rgba)===record.rendered.framebufferSha256?'verified':'pixels differ from the recorded framebuffer';}catch(e){screenshot='unreadable: '+e.message;}}
+  if(screenshot!=='verified')problems.push('screenshot '+screenshot);
+  let scene='none';
+  if(record.scene){try{const px=window.forgeCapture.scenePixels(record.scene,true).rgba;scene=await sha256(new Uint8Array(px.buffer,px.byteOffset,px.byteLength))===record.rendered.framebufferSha256?'verified':'does not re-render to the framebuffer';}catch(e){scene='unusable: '+e.message;}
+    if(scene!=='verified')problems.push('scene artifact '+scene);}
+  return {ok:!problems.length,problems,screenshot,scene};
+}
+async function importInvestigation(bundle){
+  const L=services.ResourceLibrary;if(!L)fail('the resource library is not available');await L.ensureMeta();
+  if(bundle?.format!=='NESForgeInvestigationResults'||bundle.version!==1)fail('not an investigation results bundle');
+  const job=bundle.job;if(!job?.id||!HEX64.test(job.rom?.sha256||'')||!HEX64.test(job.plan?.sha256||'')||!HEX64.test(job.editorSha256||''))fail('the bundle lacks its job, ROM, plan or emulator identity');
+  const romSha=job.rom.sha256,rom16=romSha.slice(0,16),framesPack='frames:'+rom16,imported=[],already=[],rejected=[];
+  for(const [i,item] of (bundle.records||[]).entries()){
+    const record=item.record,png=item.png?Uint8Array.from(atob(item.png),c=>c.charCodeAt(0)):null;
+    const check=await verifyRecord(record,job,png);
+    if(!check.ok){rejected.push({index:i,label:record?.label||null,problems:check.problems});continue;}
+    const id=framesPack+':'+record.frame+':'+record.digests.all.slice(0,12);
+    try{await L.entry(id);already.push(id);continue;}catch(_){/* new */}
+    const {scene,...body}=record,stored=await L.storeData(JSON.stringify(body)),pngStored=await L.storeData(png),sceneStored=scene?await L.storeData(JSON.stringify(scene)):null;
+    const links=await libraryLinks(record),pc=record.cpu.pcLocation;
+    const e={id,packSha256:framesPack,path:'frames/'+record.label+' F'+record.frame,label:record.label+' · frame '+record.frame,origin:'runtime-capture',shelf:romSha,sourceSha256:romSha,game:String(job.rom.name||'').replace(/\.nes$/i,'')||null,kind:'frame',identified:true,
+      fileType:'json',size:stored.size,contentHash:stored.hash,loads:false,registered:Date.now(),data:{state:'stored'},
+      validation:{state:'accepted',reason:'imported from Agent Lab job '+job.id+': digests recomputed, screenshot verified'+(scene?', scene re-renders to the framebuffer':'')},
+      evidence:{state:'observed',basis:'emulator state snapshot (NESForgeFrameEvidence v1), frame '+record.frame,frame:record.frame,digests:record.digests,
+        primary:Number.isInteger(pc?.fileOffset)?{role:'pc',name:'instruction at the snapshot (CPU PC)',fileOffset:pc.fileOffset,cpu:pc.cpu,region:'PRG ROM',code:true,check:'located through the mapped PRG window, which matched the cartridge file'}:null},
+      provenance:{job:job.id,plan:{name:job.plan.name,source:job.plan.source,sha256:job.plan.sha256,target:record.provenance?.plan?.target??null,targetSha256:record.provenance?.plan?.targetSha256??null},
+        emulatorBuild:job.editorSha256,execution:record.provenance?.execution||null,checkpoint:job.checkpoint?.boot||null,importedAt:Date.now()},
+      artifacts:{scene:sceneStored?{hash:sceneStored.hash,verified:'re-renders to the recorded framebuffer'}:null},
+      links:links.map(l=>({id:l.entryId,relation:'uses',basis:l.relation+'; '+l.basis,verified:true})),
+      preview:{hash:pngStored.hash,derivation:'rendered framebuffer: pixels, not CHR data'}};
+    await L.putRecords([['entries',e]]);imported.push(id);
+  }
+  const packKey='investigation:'+job.id,prior=await L.getPack(packKey);
+  const pack={packSha256:packKey,name:(job.rom.name||'ROM')+' · Agent Lab investigation',origin:'agent-lab',bytes:0,fileCount:(bundle.records||[]).length,format:'NESForgeInvestigationResults',sourceSha256:romSha,shelf:romSha,mode:'full',
+    intake:{state:'accepted',kind:'investigation'},state:'complete',registered:prior?.registered||Date.now(),updated:Date.now(),
+    job:{id:job.id,state:job.state,plan:job.plan,editorSha256:job.editorSha256,checkpoint:job.checkpoint,compatibility:job.compatibility,failures:job.failures,completed:job.completed},
+    stats:{records:(bundle.records||[]).length,imported:imported.length+(prior?.stats?.imported||0),already:already.length,rejected:rejected.length}};
+  const framePack=(await L.getPack(framesPack))||{packSha256:framesPack,name:(job.rom.name||'ROM')+' · runtime captures',origin:'runtime-capture',bytes:0,fileCount:0,format:'NESForgeFrameEvidence',sourceSha256:romSha,shelf:romSha,mode:'full',intake:{state:'accepted',kind:'runtime-capture'},state:'complete',registered:Date.now()};
+  framePack.fileCount=(framePack.fileCount||0)+imported.length;framePack.updated=Date.now();
+  await L.putRecords([['packs',pack],['packs',framePack]]);
+  return {job:job.id,rom:romSha,imported:imported.length,already:already.length,rejected,entries:[...imported,...already]};
+}
+async function investigations(){const r=await C.run('library.packs');return (r.ok?r.result:[]).filter(p=>p.origin==='agent-lab');}
+// a captured frame as an editable Scene: explicit, undoable, always a new Scene
+async function openFrameScene(entryId){
+  const L=services.ResourceLibrary,e=await L.entry(entryId);if(!e.artifacts?.scene?.hash)fail('this frame has no verified scene artifact');
+  const scene=JSON.parse(new TextDecoder().decode(await L.blobBytes(e.artifacts.scene.hash)));
+  scene.name=(e.label||'Captured frame').slice(0,60);scene.captureMeta={...(scene.captureMeta||{}),libraryEntry:e.id,sourceSha256:e.sourceSha256,investigation:e.provenance?.job||null};
+  const before=S.scenes.length;pushSceneFromCapture(scene,{target:'new'});if(S.scenes.length!==before+1)fail('the scene was not added');
+  return {scene:S.activeScene,name:S.scenes[S.activeScene].name};
+}
+services.FrameEvidence=Object.freeze({capture,capturePlan,runFrames,runUntil,runTarget,boot,registerFrame,importCheckpoint,loadedRomSha256,importInvestigation,verifyRecord,investigations,openFrameScene});
 if(C?.register){
   C.register({name:'emulator.frameEvidence',group:'emulator',title:'Frame evidence (state snapshot)',summary:'CPU, RAM, PPU, nametables, palette, OAM, mapper, mapped PRG/CHR banks with file offsets, and the rendered frame, with per-section SHA-256.',
     needs:'emulator',args:{label:{type:'string'}},run:a=>capture({label:a.label||'frame'})});
   C.register({name:'library.registerFrame',group:'library',title:'Add the current frame to the library',summary:'Captures the current frame\'s evidence (with its screenshot as a rendered preview) and stores it on the ROM\'s shelf, linked to the CHR bank entries it uses.',
     needs:'emulator',args:{label:{type:'string'}},run:async a=>registerFrame(await capture({label:a.label||'frame',pixels:true}))});
+  C.register({name:'library.importInvestigation',group:'library',title:'Import an Agent Lab investigation',summary:'Validates every record (digests, screenshot pixels, scene re-render) and adds the valid ones to the ROM\'s library shelf. The project is not changed.',
+    args:{bundle:{type:'object',required:true}},run:a=>importInvestigation(a.bundle)});
+  C.register({name:'library.openFrameScene',group:'library',title:'Open a captured frame as a new Scene',summary:'Adds the frame\'s verified runtime capture as a new Scene (one undo step).',args:{id:{type:'string',required:true}},run:a=>openFrameScene(a.id)});
   C.register({name:'emulator.capturePlan',group:'emulator',title:'Capture many frames from one boot',summary:'Boots once, restores a physical checkpoint for each target (mode checkpoint), or boots per target (mode cold, the reference).',
     args:{bytes:{type:'bytes',required:true},name:{type:'string'},plan:{type:'object',required:true},mode:{type:'string',default:'checkpoint'},trace:{type:'bool',default:false},pixels:{type:'bool',default:false}},
     run:a=>capturePlan({bytes:a.bytes,name:a.name,boot:a.plan.boot,targets:a.plan.targets||[],mode:a.mode,trace:a.trace,pixels:a.pixels})});

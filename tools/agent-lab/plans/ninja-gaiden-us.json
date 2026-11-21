@@ -1,0 +1,523 @@
+{
+ "format": "NESForgeCapturePlan",
+ "version": 1,
+ "name": "Ninja Gaiden (US) · every area from its first room",
+ "profile": "ninja-gaiden-us",
+ "match": {
+  "sha256": [
+   "07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e"
+  ]
+ },
+ "method": "The game's own time-over restart: area ($6D), room ($6E) and checkpoint room ($6F) are set to the area's first room (decoded from PRG bank 0 $AF2C), the timer ($63) to 1; the restart is detected by the timer reaching 0 and reloading to 140-150.",
+ "boot": {
+  "frames": 0,
+  "pressUntil": {
+   "buttons": {
+    "start": true
+   },
+   "every": 30,
+   "hold": 4,
+   "conditions": [
+    {
+     "vram": 151,
+     "equals": 24
+    },
+    {
+     "address": 109,
+     "equals": 0
+    }
+   ],
+   "maxFrames": 3000,
+   "after": 60
+  }
+ },
+ "targets": [
+  {
+   "label": "Stage 1-1 (area 0, room 0)",
+   "frames": 60
+  },
+  {
+   "label": "Stage 1-2 (area 1, room 1)",
+   "ram": {
+    "99": 1,
+    "109": 1,
+    "110": 1,
+    "111": 1,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 2-1 (area 2, room 2)",
+   "ram": {
+    "99": 1,
+    "109": 2,
+    "110": 2,
+    "111": 2,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 2-2 (area 3, room 6)",
+   "ram": {
+    "99": 1,
+    "109": 3,
+    "110": 6,
+    "111": 6,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 2-3 (area 4, room 9)",
+   "ram": {
+    "99": 1,
+    "109": 4,
+    "110": 9,
+    "111": 9,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 3-1 (area 5, room 10)",
+   "ram": {
+    "99": 1,
+    "109": 5,
+    "110": 10,
+    "111": 10,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 3-2 (area 6, room 11)",
+   "ram": {
+    "99": 1,
+    "109": 6,
+    "110": 11,
+    "111": 11,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 3-3 (area 7, room 12)",
+   "ram": {
+    "99": 1,
+    "109": 7,
+    "110": 12,
+    "111": 12,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 4-1 (area 8, room 13)",
+   "ram": {
+    "99": 1,
+    "109": 8,
+    "110": 13,
+    "111": 13,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 4-2 (area 9, room 16)",
+   "ram": {
+    "99": 1,
+    "109": 9,
+    "110": 16,
+    "111": 16,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 4-3 (area 10, room 17)",
+   "ram": {
+    "99": 1,
+    "109": 10,
+    "110": 17,
+    "111": 17,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 4-4 (area 11, room 21)",
+   "ram": {
+    "99": 1,
+    "109": 11,
+    "110": 21,
+    "111": 21,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 5-1 (area 12, room 22)",
+   "ram": {
+    "99": 1,
+    "109": 12,
+    "110": 22,
+    "111": 22,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 5-2 (area 13, room 23)",
+   "ram": {
+    "99": 1,
+    "109": 13,
+    "110": 23,
+    "111": 23,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 5-3 (area 14, room 27)",
+   "ram": {
+    "99": 1,
+    "109": 14,
+    "110": 27,
+    "111": 27,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 5-4 (area 15, room 34)",
+   "ram": {
+    "99": 1,
+    "109": 15,
+    "110": 34,
+    "111": 34,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 6-1 (area 16, room 35)",
+   "ram": {
+    "99": 1,
+    "109": 16,
+    "110": 35,
+    "111": 35,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 6-2 (area 17, room 36)",
+   "ram": {
+    "99": 1,
+    "109": 17,
+    "110": 36,
+    "111": 36,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 6-3 (area 18, room 41)",
+   "ram": {
+    "99": 1,
+    "109": 18,
+    "110": 41,
+    "111": 41,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 6-4 (area 19, room 45)",
+   "ram": {
+    "99": 1,
+    "109": 19,
+    "110": 45,
+    "111": 45,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 6-4 (area 20, room 46)",
+   "ram": {
+    "99": 1,
+    "109": 20,
+    "110": 46,
+    "111": 46,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  },
+  {
+   "label": "Stage 6-5 (area 21, room 47)",
+   "ram": {
+    "99": 1,
+    "109": 21,
+    "110": 47,
+    "111": 47,
+    "118": 2
+   },
+   "until": [
+    {
+     "address": 99,
+     "equals": 0
+    },
+    {
+     "address": 99,
+     "min": 140,
+     "max": 150
+    }
+   ],
+   "maxFrames": 6000,
+   "frames": 60
+  }
+ ]
+}

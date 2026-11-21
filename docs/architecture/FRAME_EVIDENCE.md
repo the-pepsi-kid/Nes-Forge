@@ -154,7 +154,41 @@ Blockers:
 Then persist per-area checkpoints the same way. The developer keeps working; results appear in Resources › Library as
 runtime captures with their evidence.
 
-## 8. Remaining issues
+## 8. Background investigation — implemented (2026-11-21, Agent Lab v0.4)
+
+The recommendation in §7 is built:
+
+| Piece | Where | What it does |
+|---|---|---|
+| Capture worker | `tools/agent-lab/capture_worker.cjs` | persistent queue (one `job.json` per job, atomic writes); isolated headless Chromium; plans as data; per-target results (record, PNG, digests); pause/resume/cancel between targets; resume after a crash; one job at a time, lowered priority, time limit per job; local API on 127.0.0.1 with a token |
+| Disk checkpoints | `EmulatorTimeline.exportCheckpoint/importCheckpoint` + worker | keyed by ROM SHA-256, editor SHA-256, mapper, header, boot plan; import fully decodes and validates before use; boot checkpoint used only if it restores to its saved state and was reproduced by a cold boot; target checkpoints must reproduce their capture digest |
+| Validated import | `library.importInvestigation` | recomputes every section digest, decodes the screenshot and checks its pixels against the framebuffer SHA-256, re-renders the scene artifact; valid records become `frame` entries (idempotent), invalid ones are listed and discarded; the project is never touched |
+| Navigation | Resources › Library, frame entries | Scene (open as a new Scene, undoable) → sprites with CHR file offsets → CHR bank entry → typed ROM location → CODE/RE; background CHR regions; PC → CODE/RE; every link labelled observed, verified or unverified; sprite → pose marked "not established" |
+| Status in Forge | "Background investigation" panel | connect, investigate the open ROM, per-job progress, discoveries, unresolved items, failures, pause/resume/cancel, import, imported list |
+
+Acceptance (`QA/agent-lab-background.cjs`, 11/11):
+
+| Measurement | Result |
+|---|---|
+| Developer edits while the worker runs | tile clicks 45–56 ms; build 69 ms; Forge's own emulator 300 frames 1.7 s |
+| Ninja Gaiden, 22 areas, first job (worker killed after 4 targets) | 67 s in total; after restart 52 s, boot restored from disk, 18 targets computed, none redone |
+| Same plan again | 12.5 s: no boot, 22 target checkpoints, identical evidence digests |
+| SMB3 (MMC3) and Contra (UxROM), generic plan | 3/3 frames each, all synchronization-checked |
+| Import | 28 records validated and imported, 0 rejected; re-import adds 0; the project unchanged |
+
+### Compatibility matrix (background investigation)
+
+| Item | State |
+|---|---|
+| MMC1 (Ninja Gaiden, Mega Man 2, Zelda II), MMC3 (SMB3), UxROM (Contra), AxROM (Battletoads) | verified: checkpoint == cold boot, frames rebuild at 0 px |
+| NROM via a damaged header (Super Mario Bros reads as mapper 66) | runs; the worker reports "damaged header suspected" and does not repair it |
+| MMC2 (Punch-Out!!) | runs; frames are **not** synchronization-checked (renderer outside the runtime trace); no scene artifact is produced |
+| CNROM (mapper 3) | **unverified**: no cartridge in the test set |
+| Mappers the emulator does not run | the job fails with that reason; nothing is claimed |
+| Reaching places in a game | game knowledge in a plan: Ninja Gaiden's restart plan only; other games get the generic first look |
+| Sprite → pose/actor | not established automatically (listed as unresolved) |
+
+## 9. Remaining issues
 
 - Forge reads Super Mario Bros' dirty iNES header as mapper 66 (GxROM). It runs only because the game never writes a
   bank register. Header cleaning belongs in ROM intake.

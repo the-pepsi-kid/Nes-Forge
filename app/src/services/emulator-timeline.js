@@ -184,6 +184,31 @@ function saveCheckpoint(name){return createCheckpoint(name,null);}
 // caller can inspect or restore their checkpoint, but ordinary deletion cannot
 // remove the only rollback state behind an active operation.
 function saveOwnedCheckpoint(name){const owner={},info=createCheckpoint(name,owner);return Object.freeze({...info,restore:()=>restoreCheckpoint(info.id),release:()=>deleteCheckpointOwned(info.id,owner)});}
+// A checkpoint leaves the session only as a portable record of the same validated codec. Importing one decodes and
+// validates it completely (prepare) against the machine now loaded before it becomes a checkpoint, and it is restored
+// only through the normal path. ROM identity (SHA-256 of the cartridge file) is checked by the caller, which holds the
+// file; the mapper the emulator runs is checked here.
+const u32b64=words=>bytesToBase64(new Uint8Array(words.buffer,words.byteOffset,words.byteLength));
+function b64u32(text){const bytes=base64ToBytes(String(text||''));if(bytes.length%4)fail('Invalid stored framebuffer words.');return new Uint32Array(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));}
+function exportCheckpoint(id){
+ syncSession();const entry=checkpoints.get(id);if(!entry)fail('Checkpoint is not available in this ROM session.');
+ return {format:'NESForgeEmulatorCheckpoint',version:1,name:entry.name,frame:entry.frame,mapper:emu.mapper,prgBytes:emu.prgSize,chrBytes:emu.chrRom?.length||0,
+  graph:bytesToBase64(entry.graph),video:{mode:entry.video.mode,data:u32b64(entry.video.data)},background:{mode:entry.background.mode,data:u32b64(entry.background.data)}};
+}
+function importCheckpoint(data,name){
+ requirePausedOperation();
+ if(!data||data.format!=='NESForgeEmulatorCheckpoint'||data.version!==1)fail('Not an emulator checkpoint.');
+ if(data.mapper!==emu.mapper||data.prgBytes!==emu.prgSize||data.chrBytes!==(emu.chrRom?.length||0))fail('The checkpoint was saved for a different cartridge configuration (mapper '+data.mapper+').');
+ const entry={session,frame:data.frame,graph:base64ToBytes(String(data.graph||'')),video:{mode:data.video?.mode,data:b64u32(data.video?.data)},background:{mode:data.background?.mode,data:b64u32(data.background?.data)}};
+ entry.size=entry.graph.byteLength+entry.video.data.byteLength+entry.background.data.byteLength+32;
+ if(entry.size>MAX_CHECKPOINT_BYTES)fail('One physical checkpoint exceeds the 32 MiB checkpoint budget.');
+ prepare(entry); // full decode and validation; nothing is stored if it throws
+ if(checkpoints.size>=MAX_CHECKPOINTS)fail('Delete a checkpoint before saving more than '+MAX_CHECKPOINTS+'.');
+ if(checkpointBytes+entry.size>MAX_CHECKPOINT_BYTES)fail('Checkpoint storage would exceed 32 MiB. Delete an existing checkpoint.');
+ const owner={};entry.id='checkpoint-'+session+'-'+nextCheckpoint++;entry.name=checkpointName(name||data.name||'imported checkpoint');entry.owner=owner;
+ checkpoints.set(entry.id,entry);checkpointBytes+=entry.size;message='Imported checkpoint “'+entry.name+'” at frame '+entry.frame+'.';notify();
+ const info=checkpointInfo(entry);return Object.freeze({...info,restore:()=>restoreCheckpoint(info.id),release:()=>deleteCheckpointOwned(info.id,owner)});
+}
 function deleteCheckpointOwned(id,owner){syncSession();const entry=checkpoints.get(id);if(!entry)return false;if(entry.owner&&entry.owner!==owner)fail('This checkpoint belongs to an active reversible operation. Restore or keep that operation first.');if(busy)fail('Wait for navigation or replay before deleting a checkpoint.');checkpoints.delete(id);checkpointBytes-=entry.size;notify();return true;}
 function deleteCheckpoint(id){return deleteCheckpointOwned(id,null);}
 function applyPrepared(state){const withVideo=new Set([...excluded]);withVideo.delete('frameBuffer');withVideo.delete('bgFrameBuffer');assignState(emu,state.emu,withVideo);assignState(apuCore,state.apu,callbacks);apuSilence();}
@@ -258,5 +283,5 @@ services.ProjectStore.commit=function(...args){const result=oldCommit.apply(this
 const oldReplace=Forge166.project.replaceProject;
 Forge166.project.replaceProject=function(...args){const result=oldReplace.apply(this,args);syncSession();return result;};
 identity=currentIdentity();
-services.EmulatorTimeline=Object.freeze({saveCheckpoint,saveOwnedCheckpoint,restoreCheckpoint,deleteCheckpoint,listCheckpoints,readRAM,patchRAM,validateScript,runScript,setEnabled,enableHistory:setEnabled,back:(count=1)=>seekRelative(-count),forward:(count=1)=>seekRelative(count),seekRelative,cancel,status(){syncSession();return rawStatus();},subscribe(fn){if(typeof fn!=='function')return ()=>{};listeners.add(fn);fn(rawStatus());return ()=>listeners.delete(fn);}});
+services.EmulatorTimeline=Object.freeze({saveCheckpoint,saveOwnedCheckpoint,exportCheckpoint,importCheckpoint,restoreCheckpoint,deleteCheckpoint,listCheckpoints,readRAM,patchRAM,validateScript,runScript,setEnabled,enableHistory:setEnabled,back:(count=1)=>seekRelative(-count),forward:(count=1)=>seekRelative(count),seekRelative,cancel,status(){syncSession();return rawStatus();},subscribe(fn){if(typeof fn!=='function')return ()=>{};listeners.add(fn);fn(rawStatus());return ()=>listeners.delete(fn);}});
 })();

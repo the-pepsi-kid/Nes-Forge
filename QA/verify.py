@@ -34,10 +34,11 @@ args = parser.parse_args()
 #   ninja-stage-table  ~330 s: decodes the catalog, then plays the game's own time-over restart for 22 areas
 #   library-workflow   ~420 s: plays three stages in Chromium, then the whole library workflow, restart included
 #   frame-evidence     ~6 min: 22 Ninja Gaiden areas and 7 other games, each by checkpoint and by cold boot
+#   agent-lab-background ~4 min: background jobs (Ninja Gaiden, MMC3, UxROM), a worker restart, import, navigation
 #   native-corpus, library-locations: several minutes with every cartridge
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420
-TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500}
+TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200}
 for item in args.timeout:
     suite, _, seconds = item.partition('=')
     if not suite or not seconds.isdigit():
@@ -134,6 +135,7 @@ with ThreadPoolExecutor(max_workers=args.jobs) as pool:
     for result in pool.map(editor_suite,cases):
         record(result)
 record(run('physical-extractor',['node',ROOT/'tools/extract-cartridge.cjs','--self-test']))
+record(run('agent-lab-worker',['node',ROOT/'tools/agent-lab/tests/capture_worker.test.cjs']))
 record(run('inventory',[sys.executable,'-m','unittest','discover','-s',ROOT/'tools/inventory/tests','-v']))
 # Several suites use the actual default TCP port. Keep them sequential.
 for name in ['wallet_crypto','siwe_format','localhost_server','authenticity_guards','rev8_frame_presentation',
@@ -161,6 +163,8 @@ if args.cartridges:
         record(run('library-locations',['node',QA/'library-locations.cjs',EDITOR,receipt,args.cartridges.resolve()]+([str(args.extractions.resolve())] if args.extractions else []),receipt))
         receipt=output/'frame-evidence.json'
         record(run('frame-evidence',['node',QA/'frame-evidence.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
+        receipt=output/'agent-lab-background.json'
+        record(run('agent-lab-background',['node',QA/'agent-lab-background.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
         receipt=output/'library-workflow.json'
         record(run('library-workflow',['node',QA/'library-workflow.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
     receipt=output/'native-corpus.json'

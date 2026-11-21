@@ -1,0 +1,14 @@
+{
+ "format": "NESForgeCapturePlan",
+ "version": 1,
+ "name": "Generic first look (any emulated mapper)",
+ "profile": null,
+ "match": {"any": true},
+ "method": "No game knowledge: boot with two Start presses, then three captures (idle, holding Right with a jump, Start then Right). Finds what the opening of a game shows; it does not discover levels.",
+ "boot": {"frames": 360, "inputs": [{"from": 120, "to": 124, "buttons": {"start": true}}, {"from": 240, "to": 244, "buttons": {"start": true}}]},
+ "targets": [
+  {"label": "idle", "frames": 30},
+  {"label": "holding right", "frames": 600, "inputs": [{"from": 0, "to": 599, "buttons": {"right": true}}, {"from": 200, "to": 210, "buttons": {"a": true}}]},
+  {"label": "start, then right", "frames": 900, "inputs": [{"from": 10, "to": 14, "buttons": {"start": true}}, {"from": 300, "to": 899, "buttons": {"right": true}}]}
+ ]
+}

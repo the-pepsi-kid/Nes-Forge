@@ -353,7 +353,10 @@ function sampleGraph(){
 }
 const nodeByKey=id=>graph.nodes.get(id);
 const elt=(tag,cls,content)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(content!==undefined)e.textContent=content;return e;};
-function choose(id){if(!nodeByKey(id))return;if(active!==id)contextNote='';active=id;if(follow&&mode==='live')syncContext(nodeByKey(active));render();}
+function choose(id){if(!nodeByKey(id))return;if(active!==id)contextNote='';active=id;if(follow&&mode==='live')syncContext(nodeByKey(active));render();
+ // following a link to a resource the current filters hide clears the filters, so the target is shown in the list
+ if(active===id&&!document.querySelector('#frx-items .frx-item[aria-current="true"]')){$('search').value='';$('kind').value='';$('stage').value='';render();
+  document.querySelector('#frx-items .frx-item[aria-current="true"]')?.scrollIntoView({block:'nearest'});}}
 // Follow is deliberately opt-in and scoped to RESOURCE SELECTION EVENTS only.
 // It never subscribes to editor tab switches and never rewrites project resources.
 function targetContext(n){
@@ -551,6 +554,58 @@ function renderViewer(n){
  window.Forge.services.ProjectLessons?.shortcut(tools,{...n.open,resourceKey:n.key});
  $('context-result').textContent=contextNote||(follow?'Follow on · choose a related asset to synchronize linked Scene/CHR/Collision.':'Independent browsing · selecting a resource does not modify editor selection.');
 }
+// A captured frame: Scene -> Sprite -> CHR -> ROM location -> Code/RE, each link with the evidence it rests on
+const hx=(v,w=2)=>Number(v).toString(16).toUpperCase().padStart(w,'0');
+async function renderFrameDetails(entry,host){
+ const C=window.Forge.commands,P=window.Forge.services.LibraryProvenance,UI=window.Forge.services.LibraryProvenanceUI;
+ const r=await C.run('library.read',{id:entry.id,as:'base64'});if(!r.ok)return;
+ const rec=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(r.result.base64),c=>c.charCodeAt(0))));
+ const box=elt('div','frx-frame');box.style.cssText='text-align:left;font-size:11px;margin:6px 0;border-top:1px solid #2c4458;padding-top:6px';
+ const head=t=>box.append(elt('span','frx-label',t)),note=t=>box.append(elt('div','frx-code',t));
+ const button=(label,fn,title)=>{const b=elt('button','frx-relationship',label);b.type='button';if(title)b.title=title;b.onclick=fn;return b;};
+ const chrEntry=bank=>'rom:'+entry.sourceSha256.slice(0,16)+':chr:chr:'+bank,inLibrary=id=>graph.nodes.has(key('lib',id));
+ const openBytes=loc=>{close();try{switchTab('disasm');}catch(_){}P.openAt({sourceSha256:entry.sourceSha256},loc).then(res=>UI.renderOrigin(null,res));};
+ head('Scene');
+ if(entry.artifacts?.scene){const b=button('Open as a new Scene',async()=>{const u=await C.run('library.openFrameScene',{id:entry.id});if(!u.ok){$('context-result').textContent=u.error.message;return;}close();try{switchTab('scene');}catch(_){}window.showToast?.('Added “'+u.result.name+'” as a new Scene. Undo removes it.');},
+   'The verified runtime capture of this frame (native tiles with their CHR offsets); it re-renders to the recorded framebuffer');b.dataset.frame='open-scene';box.append(b);note('Observed and verified: rebuilt from the frame\'s own tiles with 0 different pixels.');}
+ else note('No scene artifact: '+(rec.synchronization?.state==='matched'?'not stored with this record.':'the frame could not be synchronization-checked ('+(rec.synchronization?.reason||'unknown reason')+').'));
+ const visible=(rec.sprites||[]).filter(sp=>sp.visible),split=rec.ppu?.split;
+ head('Sprites · '+visible.length+' on screen (OAM at frame '+rec.frame+')');
+ if(split)note('Unverified: this frame switches CHR banks or scroll mid-frame (sprite 0 at line '+split.sprite0Line+'); sprite pattern locations use the banks at the end of the frame.');
+ for(const sp of visible.slice(0,32)){
+  const w=(rec.banks?.chr||[]).find(x=>sp.pattern>=x.ppu&&sp.pattern<=x.ppuEnd),fo=w&&Number.isInteger(w.fileOffset)?w.fileOffset+(sp.pattern-w.ppu):null;
+  const row=elt('div');row.className='frx-frame-sprite';row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';
+  row.append(elt('span','frx-code','#'+sp.index+' at '+sp.x+','+sp.y+' · tile $'+hx(sp.tile)+' · palette '+sp.palette+(sp.flipH?' · flipped':'')+' · '+(fo!==null?'CHR file 0x'+hx(fo,5):w?.source==='CHR RAM'?'CHR RAM (no cartridge offset)':'pattern location unknown')));
+  if(fo!==null){const id=chrEntry(w.chrBank4KiB),b=button('CHR bank '+w.chrBank4KiB,()=>choose(key('lib',id)),'Observed: OAM tile through the CHR mapping'+(split?'; unverified for this frame (mid-frame switch)':''));
+   if(!inLibrary(id)){b.disabled=true;b.title='No library entry for this CHR bank; register the ROM\'s recovered catalog';}
+   row.append(b,button('Bytes in RE',()=>openBytes({fileOffset:fo,length:sp.height===16?32:16,region:'CHR ROM',chrBank:{index:w.chrBank4KiB,size:4096},name:'sprite #'+sp.index+' tile'}),'The tile\'s bytes in the cartridge'));}
+  box.append(row);
+ }
+ if(visible.length>32)note('… '+(visible.length-32)+' more sprites.');
+ note('Sprite → pose or actor: not established (needs game knowledge or a decoded actor table).');
+ head('Background tiles');
+ const regions=rec.synchronization?.backgroundTileSources||[];
+ if(!regions.length)note('Not available for this frame.');
+ for(const src of regions){
+  if(src.source!=='CHR-ROM'){note(src.tiles+' tiles from CHR RAM (written by the game; no cartridge offset)');continue;}
+  const win=(rec.banks?.chr||[]).find(x=>x.offset!==undefined&&src.chrOffset>=x.offset&&src.chrOffset<x.offset+1024),bank=src.chrOffset>>12,id=chrEntry(bank);
+  const row=elt('div');row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';
+  row.append(elt('span','frx-code',src.tiles+' tiles from CHR ROM +0x'+hx(src.chrOffset,5)+' (bank '+bank+')'));
+  const b=button('CHR bank '+bank,()=>choose(key('lib',id)),'Observed through the renderer and verified by the 0-pixel rebuild');if(!inLibrary(id)){b.disabled=true;b.title='No library entry for this CHR bank';}row.append(b);
+  if(win)row.append(button('Bytes in RE',()=>openBytes({fileOffset:win.fileOffset+(src.chrOffset-win.offset),length:1024,region:'CHR ROM',chrBank:{index:bank,size:4096},name:'background CHR'})));
+  box.append(row);
+ }
+ head('Code at the snapshot');
+ const pc=rec.cpu?.pcLocation;
+ if(Number.isInteger(pc?.fileOffset)){const row=elt('div');row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap';row.append(elt('span','frx-code','PC $'+hx(pc.cpu,4)+' · file 0x'+hx(pc.fileOffset,5)+' · PRG bank '+pc.prgBank8KiB+' (8 KiB) · observed'),button('Inspect in CODE/RE',()=>{close();P.inspect({entryId:entry.id});}));box.append(row);}
+ else note('The PC is not in a uniquely located PRG window ('+(pc?.state||'unknown')+').');
+ note('How the machine reached this frame is not part of a snapshot; a trace can be replayed from the job\'s checkpoint.');
+ head('Provenance');
+ const pv=entry.provenance;
+ note(pv?'Agent Lab job '+pv.job+' · plan "'+pv.plan?.name+'" ('+String(pv.plan?.sha256).slice(0,12)+'…, target '+pv.plan?.target+') · emulator build '+String(pv.emulatorBuild).slice(0,12)+'… · '+(pv.execution?.source||'')+(pv.checkpoint?' · boot checkpoint '+pv.checkpoint.source:''):'Captured in this session (library.registerFrame).');
+ note('Frame '+rec.frame+' · evidence '+String(rec.digests?.all).slice(0,16)+'… · ROM '+entry.sourceSha256.slice(0,12)+'…');
+ host.append(box);
+}
 function libraryCard(n,tools){const UI=window.Forge.services.LibraryProvenanceUI;if(!UI)return;const holder=elt('div');holder.style.cssText='flex-basis:100%;width:100%';tools.appendChild(holder);
  UI.cardFor({...n.libraryRef},{compact:false}).then(c=>{if(active===n.key)holder.replaceChildren(c);}).catch(()=>{});}
 const hexDump=bytes=>{const lines=[];for(let i=0;i<Math.min(bytes.length,4096);i+=16){const row=[...bytes.subarray(i,i+16)];lines.push(i.toString(16).padStart(6,'0')+'  '+row.map(b=>b.toString(16).padStart(2,'0')).join(' ').padEnd(48)+'  '+row.map(b=>b>=32&&b<127?String.fromCharCode(b):'.').join(''));}return lines.join('\n')+(bytes.length>4096?'\n… '+(bytes.length-4096)+' more bytes':'');};
@@ -597,7 +652,7 @@ function renderLibraryViewer(n,host,tools,caption){
   row('Source ROM SHA-256',entry.sourceSha256||'Not declared by the pack');
   const P=window.Forge.services.LibraryProvenance,d=P?await P.resolve({entryId:id}):null;if(active!==n.key)return;
   if(d?.primary){
-   row('Evidence',ev.state==='decoded'?d.basis+(ev.total?' · '+ev.total+' recorded locations'+(ev.code?.length?', '+ev.code.length+' in code':''):''):'stated by the pack, not re-read from the ROM');
+   row('Evidence',ev.state==='decoded'?d.basis+(ev.total?' · '+ev.total+' recorded locations'+(ev.code?.length?', '+ev.code.length+' in code':''):''):ev.state==='observed'?(ev.basis||'observed at runtime'):'stated by the pack, not re-read from the ROM');
    row('Location',d.primary.name||d.primary.role);for(const [k,v] of P.rows(d.primary,d.rom))row(k,v);
   }else row('ROM location','Unknown. The entry stays in the library; its location can be identified later.');
   if(d){
@@ -611,6 +666,7 @@ function renderLibraryViewer(n,host,tools,caption){
   row('Pack',entry.packSha256.slice(0,16)+'… · '+entry.path);
   if(entry.project)row('Project inside the pack',JSON.stringify(entry.project));
   host.append(box);
+  if(entry.kind==='frame'){await renderFrameDetails(entry,host);if(active!==n.key)return;}
   // data on demand
   if(entry.data?.state==='stored'&&entry.fileType!=='image'){
    const show=elt('button','frx-relationship','Show data');show.type='button';show.onclick=async()=>{show.disabled=true;
