@@ -31834,7 +31834,7 @@ function renderCatalogStatus(){
  if(!list.length){box?.remove();return;}
  if(!box){box=elt('div');box.id='frx-catalog-status';box.style.cssText='margin-top:4px;color:#ffb35a';}
  if(box.parentNode!==host)host.append(box);
- box.replaceChildren(...list.map(st=>{const row=elt('div',null,'Recovered catalog of '+(st.name||st.sha.slice(0,12))+': '+st.text+(st.lastError?' ('+st.lastError+')':'')+(st.attempts?' · attempts '+st.attempts+' of 3':''));row.dataset.catalog=st.sha;
+ box.replaceChildren(...list.map(st=>{const row=elt('div',null,'Recovered catalog of '+(st.name||st.sha.slice(0,12))+': '+st.text+(st.lastError?' ('+st.lastError+')':'')+(st.attempts&&st.state!=='failed'?' · attempts '+st.attempts+' of '+(window.Forge.services.LibraryCatalog.AUTO_ATTEMPTS||3):''));row.dataset.catalog=st.sha;
   if(['needs-retry','failed','needs-source','incomplete'].includes(st.state)){const b=elt('button','frx-context-shortcut','Retry');b.type='button';b.dataset.action='retry-catalog';
    b.onclick=async()=>{b.disabled=true;await window.Forge.services.LibraryCatalog.completeCatalog(st.sha,{manual:true,reason:'retry'});reloadLibrary();};row.append(' ',b);}
   return row;}));
@@ -35150,14 +35150,14 @@ async function catalogState(){
   for(const c of out.values())if(c.packKey&&c.state!=='complete'){const pack=await L.getPack(c.packKey);c.attempts=pack?.attempts||0;c.lastError=pack?.lastError||null;}
   return [...out.values()];
 }
-async function sourceProject(sha,{bytes,name}){
+async function sourceProject(sha,{bytes,name,from}){
   try{const p=services.ProjectStore.capture();if(p?.investigation?.version===1&&p.investigation.source?.sha256===sha)return {project:p,source:'the open project'};}catch(_){/* no project */}
   const known=bytes instanceof Uint8Array?{bytes,name}:SourceROMs.get(sha);
   if(!known)return null;
   if(!(await SourceROMs.verify(known.bytes,sha)))fail('the supplied cartridge does not match the catalog\'s SHA-256');
-  return {project:await services.InvestigationProject.create(known.bytes,known.name||name||'cartridge.nes'),source:bytes?'a cartridge supplied by '+(name?'the import':'the caller'):'a cartridge open in this session'};
+  return {project:await services.InvestigationProject.create(known.bytes,known.name||name||'cartridge.nes'),source:bytes?'a cartridge from '+(from||'the caller'):'a cartridge open in this session'};
 }
-function completeCatalog(sha,{bytes=null,name=null,manual=false,reason='automatic'}={}){
+function completeCatalog(sha,{bytes=null,name=null,from=null,manual=false,reason='automatic'}={}){
   if(recovery.running.has(sha))return recovery.running.get(sha);
   const job=(async()=>{
     const st=(await catalogState()).find(c=>c.sha===sha)||null,label=st?.name||name||null;
@@ -35167,7 +35167,7 @@ function completeCatalog(sha,{bytes=null,name=null,manual=false,reason='automati
     if(!manual&&(persisted>=AUTO_ATTEMPTS||inTab>=AUTO_ATTEMPTS))return setStatus(sha,{state:'needs-retry',name:label,attempts:Math.max(persisted,inTab),lastError:st?.lastError||recovery.status.get(sha)?.lastError||null});
     if(!manual&&Date.now()<(recovery.nextAt.get(sha)||0))return setStatus(sha,{state:'waiting',name:label,retryAt:recovery.nextAt.get(sha)});
     let src;
-    try{src=await sourceProject(sha,{bytes,name});}catch(error){return failed(error,label,persisted);}
+    try{src=await sourceProject(sha,{bytes,name,from});}catch(error){return failed(error,label,persisted);}
     if(!src)return setStatus(sha,{state:'needs-source',name:label,attempts:persisted,lastError:st?.lastError||null,manual});
     const resuming=!!st&&st.state!=='missing';
     setStatus(sha,{state:'completing',name:label,reason,resuming,source:src.source});
@@ -35202,7 +35202,7 @@ let projectTimer=null;
 function projectChanged(){clearTimeout(projectTimer);projectTimer=setTimeout(()=>{void resumeCatalogs({reason:'project'}).catch(()=>{});},600);}
 setTimeout(()=>{
   void resumeCatalogs({reason:'startup'}).catch(()=>{});
-  services.RomImports?.subscribe(entry=>{void catalogState().then(list=>{const c=list.find(x=>x.sha===entry.sha256&&x.state!=='complete');if(c)return completeCatalog(entry.sha256,{bytes:services.RomImports.bytes(entry.sha256),name:entry.name,reason:'rom import'});}).catch(()=>{});});
+  services.RomImports?.subscribe(entry=>{void catalogState().then(list=>{const c=list.find(x=>x.sha===entry.sha256&&x.state!=='complete');if(c)return completeCatalog(entry.sha256,{bytes:services.RomImports.bytes(entry.sha256),name:entry.name,from:'the ROM import',reason:'rom import'});}).catch(()=>{});});
 },1500);
 
 services.SourceROMs=SourceROMs;
@@ -35977,7 +35977,7 @@ async function registerCatalog(job){
   if(!window.GameRENative?.profiles?.some(p=>p.sha256===sha)){const none={state:'none',text:'No recovered catalog for '+job.rom.name+': Forge has no verified profile for this ROM. Its frames keep CHR file offsets; CHR library entries stay unavailable.'};state.catalogs.set(sha,none);return none;}
   const Lc=services.LibraryCatalog;let st=await Lc.completeCatalog(sha,{name:job.rom.name,reason:'investigation'});
   // the cartridge is not open in Forge: the worker that investigated it has a copy
-  if(st.state==='needs-source'){try{st=await Lc.completeCatalog(sha,{bytes:await romBytesFor(job),name:job.rom.name,reason:'investigation'});}catch(e){st={state:'failed',text:'the cartridge could not be fetched from the worker',lastError:e.message};}}
+  if(st.state==='needs-source'){try{st=await Lc.completeCatalog(sha,{bytes:await romBytesFor(job),name:job.rom.name,from:'the paired worker',reason:'investigation'});}catch(e){st={state:'failed',text:'the cartridge could not be fetched from the worker',lastError:e.message};}}
   const result={state:st.state==='complete'?(st.already?'already':'registered'):st.state,text:catalogText(job,st),resumed:!!st.resumed};
   if(st.state==='complete')state.catalogs.set(sha,result);
   return result;
@@ -36092,7 +36092,7 @@ async function supplyCartridge(sha,{manual=false}={}){
   if(!state.connected||state.supplying.has(sha))return null;
   const job=(state.status?.jobs||[]).find(j=>j.rom.sha256===sha&&j.state==='completed');if(!job)return null;
   state.supplying.add(sha);
-  try{return await services.LibraryCatalog.completeCatalog(sha,{bytes:await romBytesFor(job),name:job.rom.name,manual,reason:manual?'retry':'worker cartridge'});}
+  try{return await services.LibraryCatalog.completeCatalog(sha,{bytes:await romBytesFor(job),name:job.rom.name,from:'the paired worker',manual,reason:manual?'retry':'worker cartridge'});}
   catch(e){notice('The cartridge of '+job.rom.name+' could not be fetched from the worker: '+e.message);return null;}
   finally{state.supplying.delete(sha);}
 }

@@ -467,14 +467,14 @@ async function catalogState(){
   for(const c of out.values())if(c.packKey&&c.state!=='complete'){const pack=await L.getPack(c.packKey);c.attempts=pack?.attempts||0;c.lastError=pack?.lastError||null;}
   return [...out.values()];
 }
-async function sourceProject(sha,{bytes,name}){
+async function sourceProject(sha,{bytes,name,from}){
   try{const p=services.ProjectStore.capture();if(p?.investigation?.version===1&&p.investigation.source?.sha256===sha)return {project:p,source:'the open project'};}catch(_){/* no project */}
   const known=bytes instanceof Uint8Array?{bytes,name}:SourceROMs.get(sha);
   if(!known)return null;
   if(!(await SourceROMs.verify(known.bytes,sha)))fail('the supplied cartridge does not match the catalog\'s SHA-256');
-  return {project:await services.InvestigationProject.create(known.bytes,known.name||name||'cartridge.nes'),source:bytes?'a cartridge supplied by '+(name?'the import':'the caller'):'a cartridge open in this session'};
+  return {project:await services.InvestigationProject.create(known.bytes,known.name||name||'cartridge.nes'),source:bytes?'a cartridge from '+(from||'the caller'):'a cartridge open in this session'};
 }
-function completeCatalog(sha,{bytes=null,name=null,manual=false,reason='automatic'}={}){
+function completeCatalog(sha,{bytes=null,name=null,from=null,manual=false,reason='automatic'}={}){
   if(recovery.running.has(sha))return recovery.running.get(sha);
   const job=(async()=>{
     const st=(await catalogState()).find(c=>c.sha===sha)||null,label=st?.name||name||null;
@@ -484,7 +484,7 @@ function completeCatalog(sha,{bytes=null,name=null,manual=false,reason='automati
     if(!manual&&(persisted>=AUTO_ATTEMPTS||inTab>=AUTO_ATTEMPTS))return setStatus(sha,{state:'needs-retry',name:label,attempts:Math.max(persisted,inTab),lastError:st?.lastError||recovery.status.get(sha)?.lastError||null});
     if(!manual&&Date.now()<(recovery.nextAt.get(sha)||0))return setStatus(sha,{state:'waiting',name:label,retryAt:recovery.nextAt.get(sha)});
     let src;
-    try{src=await sourceProject(sha,{bytes,name});}catch(error){return failed(error,label,persisted);}
+    try{src=await sourceProject(sha,{bytes,name,from});}catch(error){return failed(error,label,persisted);}
     if(!src)return setStatus(sha,{state:'needs-source',name:label,attempts:persisted,lastError:st?.lastError||null,manual});
     const resuming=!!st&&st.state!=='missing';
     setStatus(sha,{state:'completing',name:label,reason,resuming,source:src.source});
@@ -519,7 +519,7 @@ let projectTimer=null;
 function projectChanged(){clearTimeout(projectTimer);projectTimer=setTimeout(()=>{void resumeCatalogs({reason:'project'}).catch(()=>{});},600);}
 setTimeout(()=>{
   void resumeCatalogs({reason:'startup'}).catch(()=>{});
-  services.RomImports?.subscribe(entry=>{void catalogState().then(list=>{const c=list.find(x=>x.sha===entry.sha256&&x.state!=='complete');if(c)return completeCatalog(entry.sha256,{bytes:services.RomImports.bytes(entry.sha256),name:entry.name,reason:'rom import'});}).catch(()=>{});});
+  services.RomImports?.subscribe(entry=>{void catalogState().then(list=>{const c=list.find(x=>x.sha===entry.sha256&&x.state!=='complete');if(c)return completeCatalog(entry.sha256,{bytes:services.RomImports.bytes(entry.sha256),name:entry.name,from:'the ROM import',reason:'rom import'});}).catch(()=>{});});
 },1500);
 
 services.SourceROMs=SourceROMs;

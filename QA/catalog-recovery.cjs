@@ -224,7 +224,7 @@ const diagnose = (page, label) => async () => ({label, ...(await page.evaluate(a
   const invD = await inventory(s.page), noticesD = await s.page.evaluate(() => Forge.services.InvestigationPanel.state().notices);
   report.phases.D = {putsAtClose: putsD, catalogAtClose: atClose, completion: doneD, inventory: invD, notices: noticesD.slice(0, 4)};
   check('D: a registration interrupted by a normal tab close (frames imported, project not investigated) is completed when Forge reopens, with the cartridge fetched from the paired worker; nothing duplicated',
-    atClose?.state === 'incomplete' && doneD.state === 'complete' && doneD.resumed && doneD.kept > 0 && doneD.kept + doneD.written === 590 && /supplied/.test(doneD.source || '') && invD.catalogEntries === 590 && invD.chr === 32 && invD.frames === 22 && invD.uniqueIds === invD.total, report.phases.D);
+    atClose?.state === 'incomplete' && doneD.state === 'complete' && doneD.resumed && doneD.kept > 0 && doneD.kept + doneD.written === 590 && /paired worker/.test(doneD.source || '') && invD.catalogEntries === 590 && invD.chr === 32 && invD.frames === 22 && invD.uniqueIds === invD.total, report.phases.D);
   await s.ctx.close();
   // ---------------- E: failing writes: bounded attempts across sessions, visible state, manual Retry ----------------
   const P3 = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-catalog-p3-'));

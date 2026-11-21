@@ -574,7 +574,7 @@ function renderCatalogStatus(){
  if(!list.length){box?.remove();return;}
  if(!box){box=elt('div');box.id='frx-catalog-status';box.style.cssText='margin-top:4px;color:#ffb35a';}
  if(box.parentNode!==host)host.append(box);
- box.replaceChildren(...list.map(st=>{const row=elt('div',null,'Recovered catalog of '+(st.name||st.sha.slice(0,12))+': '+st.text+(st.lastError?' ('+st.lastError+')':'')+(st.attempts?' · attempts '+st.attempts+' of 3':''));row.dataset.catalog=st.sha;
+ box.replaceChildren(...list.map(st=>{const row=elt('div',null,'Recovered catalog of '+(st.name||st.sha.slice(0,12))+': '+st.text+(st.lastError?' ('+st.lastError+')':'')+(st.attempts&&st.state!=='failed'?' · attempts '+st.attempts+' of '+(window.Forge.services.LibraryCatalog.AUTO_ATTEMPTS||3):''));row.dataset.catalog=st.sha;
   if(['needs-retry','failed','needs-source','incomplete'].includes(st.state)){const b=elt('button','frx-context-shortcut','Retry');b.type='button';b.dataset.action='retry-catalog';
    b.onclick=async()=>{b.disabled=true;await window.Forge.services.LibraryCatalog.completeCatalog(st.sha,{manual:true,reason:'retry'});reloadLibrary();};row.append(' ',b);}
   return row;}));

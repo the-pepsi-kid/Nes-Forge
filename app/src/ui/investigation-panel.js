@@ -140,7 +140,7 @@ async function registerCatalog(job){
   if(!window.GameRENative?.profiles?.some(p=>p.sha256===sha)){const none={state:'none',text:'No recovered catalog for '+job.rom.name+': Forge has no verified profile for this ROM. Its frames keep CHR file offsets; CHR library entries stay unavailable.'};state.catalogs.set(sha,none);return none;}
   const Lc=services.LibraryCatalog;let st=await Lc.completeCatalog(sha,{name:job.rom.name,reason:'investigation'});
   // the cartridge is not open in Forge: the worker that investigated it has a copy
-  if(st.state==='needs-source'){try{st=await Lc.completeCatalog(sha,{bytes:await romBytesFor(job),name:job.rom.name,reason:'investigation'});}catch(e){st={state:'failed',text:'the cartridge could not be fetched from the worker',lastError:e.message};}}
+  if(st.state==='needs-source'){try{st=await Lc.completeCatalog(sha,{bytes:await romBytesFor(job),name:job.rom.name,from:'the paired worker',reason:'investigation'});}catch(e){st={state:'failed',text:'the cartridge could not be fetched from the worker',lastError:e.message};}}
   const result={state:st.state==='complete'?(st.already?'already':'registered'):st.state,text:catalogText(job,st),resumed:!!st.resumed};
   if(st.state==='complete')state.catalogs.set(sha,result);
   return result;
@@ -255,7 +255,7 @@ async function supplyCartridge(sha,{manual=false}={}){
   if(!state.connected||state.supplying.has(sha))return null;
   const job=(state.status?.jobs||[]).find(j=>j.rom.sha256===sha&&j.state==='completed');if(!job)return null;
   state.supplying.add(sha);
-  try{return await services.LibraryCatalog.completeCatalog(sha,{bytes:await romBytesFor(job),name:job.rom.name,manual,reason:manual?'retry':'worker cartridge'});}
+  try{return await services.LibraryCatalog.completeCatalog(sha,{bytes:await romBytesFor(job),name:job.rom.name,from:'the paired worker',manual,reason:manual?'retry':'worker cartridge'});}
   catch(e){notice('The cartridge of '+job.rom.name+' could not be fetched from the worker: '+e.message);return null;}
   finally{state.supplying.delete(sha);}
 }
