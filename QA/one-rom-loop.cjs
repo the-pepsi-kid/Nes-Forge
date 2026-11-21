@@ -140,7 +140,12 @@ async function until(fn, ms = 900000, every = 500) { const t = Date.now(); for (
       await page.$eval('#agentLabJobs tr[data-job="' + ngJobId + '"] .al-failure', e => e.textContent === 'none') && await page.$eval('#agentLabJobs tr[data-job="' + ngJobId + '"] .al-unresolved', e => /mid-frame/.test(e.textContent)),
       {failures: ngFinal.failures});
     // ---- 9 navigate the findings in Resources ----
-    await page.evaluate(() => [...document.querySelectorAll('#agentLabNotices button[data-action="open-library"]')].find(b => /Ninja/.test(b.parentElement.textContent)).click());
+    // the notice's Open in Library is in the tab that ran the import: if Ninja Gaiden finished before Forge was
+    // reopened, that was the earlier tab; then open the frame from Resources › Library instead
+    const viaNotice = await page.evaluate(() => { const b = [...document.querySelectorAll('#agentLabNotices button[data-action="open-library"]')].find(x => /Ninja/.test(x.parentElement.textContent)); if (b) b.click(); return !!b; });
+    if (!viaNotice) { await page.click('#frx-open'); await page.click('#frx-lib'); await page.fill('#frx-search', 'Stage 2-2'); await page.waitForTimeout(500);
+      await page.evaluate(() => [...document.querySelectorAll('#frx-items .frx-item')].find(b => /Library · frame/.test(b.textContent)).click()); }
+    report.steps.openedNinjaFrameVia = viaNotice ? 'notice Open in Library' : 'Resources › Library search (its notice was shown in the earlier tab)';
     await page.waitForFunction(() => /Sprites ·/i.test(document.getElementById('frx-preview')?.innerText || ''));
     await shot('10_open_in_library_frame');
     await page.$eval('#frx-preview', el => { const s = [...el.querySelectorAll('.frx-label')].find(x => /Sprites/i.test(x.textContent)); el.scrollTop = s.offsetTop - el.offsetTop - 30; });

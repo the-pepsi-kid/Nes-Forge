@@ -100,8 +100,10 @@ async function prepared(name) {
     await s.page.evaluate(() => Forge.services.ProjectStore.saveBrowser('Recovery QA'));
     labels.savedToBrowser = await s.page.$eval('#forge15State', e => e.textContent);
     // hold the journal's stores with another transaction: the write waits, the indicator must say it is behind
-    await s.page.evaluate(() => { window.__hold = true; const r = indexedDB.open('nes-forge-recovery-journal'); r.onsuccess = () => { const db = r.result, tx = db.transaction(['heads', 'blobs'], 'readwrite'), st = tx.objectStore('heads'); const spin = () => { if (window.__hold) st.get('none').onsuccess = spin; }; spin(); }; });
-    await editScene(s.page, 9, 136); await sleep(2600);
+    await s.page.evaluate(() => { window.__hold = true; window.__holding = false; const r = indexedDB.open('nes-forge-recovery-journal'); r.onsuccess = () => { const db = r.result, tx = db.transaction(['heads', 'blobs'], 'readwrite'), st = tx.objectStore('heads'); const spin = () => { window.__holding = true; if (window.__hold) st.get('none').onsuccess = spin; }; spin(); }; });
+    await s.page.waitForFunction(() => window.__holding);
+    // the label turns "behind" once a change has waited 2 s; it refreshes every second
+    await editScene(s.page, 9, 136); await s.page.waitForFunction(() => /recovery behind/.test(document.getElementById('forge15State').textContent), null, {timeout: 8000}).catch(() => {});
     labels.behind = await s.page.$eval('#forge15State', e => e.textContent); labels.behindLevel = await s.page.$eval('#forge15State', e => e.dataset.recovery);
     if (shots) await s.page.screenshot({path: path.join(shots, 'recovery_indicator_behind.png'), clip: {x: 0, y: 0, width: 1440, height: 120}});
     await s.page.evaluate(() => { window.__hold = false; }); await committed(s.page);
