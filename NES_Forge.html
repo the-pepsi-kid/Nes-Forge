@@ -31301,7 +31301,7 @@ const elt=(tag,cls,content)=>{const e=document.createElement(tag);if(cls)e.class
 function choose(id){if(!nodeByKey(id))return;if(active!==id)contextNote='';active=id;if(follow&&mode==='live')syncContext(nodeByKey(active));render();
  // following a link to a resource the current filters hide clears the filters, so the target is shown in the list
  if(active===id&&!document.querySelector('#frx-items .frx-item[aria-current="true"]')){$('search').value='';$('kind').value='';$('stage').value='';render();
-  document.querySelector('#frx-items .frx-item[aria-current="true"]')?.scrollIntoView({block:'nearest'});}}
+  document.querySelector('#frx-items .frx-item[aria-current="true"]')?.scrollIntoView?.({block:'nearest'});}}
 // Follow is deliberately opt-in and scoped to RESOURCE SELECTION EVENTS only.
 // It never subscribes to editor tab switches and never rewrites project resources.
 function targetContext(n){
