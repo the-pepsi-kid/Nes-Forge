@@ -35,10 +35,12 @@ args = parser.parse_args()
 #   library-workflow   ~420 s: plays three stages in Chromium, then the whole library workflow, restart included
 #   frame-evidence     ~6 min: 22 Ninja Gaiden areas and 7 other games, each by checkpoint and by cold boot
 #   agent-lab-background ~4 min: background jobs (Ninja Gaiden, MMC3, UxROM), a worker restart, import, navigation
+#   project-recovery   ~4 min: the 5.7 MB Ninja Gaiden project through close, refresh, kill, damage and failed writes
+#   one-rom-loop       ~5 min: pairing, automatic investigation and registration (Ninja Gaiden, SMB3), restarts, security
 #   native-corpus, library-locations: several minutes with every cartridge
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420
-TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200}
+TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200}
 for item in args.timeout:
     suite, _, seconds = item.partition('=')
     if not suite or not seconds.isdigit():
@@ -165,6 +167,10 @@ if args.cartridges:
         record(run('frame-evidence',['node',QA/'frame-evidence.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
         receipt=output/'agent-lab-background.json'
         record(run('agent-lab-background',['node',QA/'agent-lab-background.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
+        receipt=output/'project-recovery.json'
+        record(run('project-recovery',['node',QA/'project-recovery.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
+        receipt=output/'one-rom-loop.json'
+        record(run('one-rom-loop',['node',QA/'one-rom-loop.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
         receipt=output/'library-workflow.json'
         record(run('library-workflow',['node',QA/'library-workflow.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
     receipt=output/'native-corpus.json'

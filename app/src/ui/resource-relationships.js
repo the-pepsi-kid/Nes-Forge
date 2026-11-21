@@ -56,6 +56,7 @@ style.textContent=`
 .frx-relgrid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
 .frx-relcol{min-width:0}
 .frx-relhead{font-size:10px;color:#8faabe;letter-spacing:1.2px;text-transform:uppercase;font-weight:750;margin:0 0 8px;display:flex;gap:7px;align-items:center}
+.frx-relationship:disabled{opacity:.45;cursor:not-allowed;border-style:dashed;background:transparent}.frx-unavailable{font-size:10px;color:#ffb35a;font-style:italic}
 .frx-relationship{width:100%;background:#102236;border:1px solid #25415a;border-radius:8px;color:#e2eefb;display:flex;gap:10px;align-items:center;text-align:left;margin:0 0 7px;padding:10px;min-width:0}
 .frx-relationship:hover{background:#16334b;border-color:#438eaa}
 .frx-relationship .frx-relmain{flex:1;min-width:0}
@@ -134,6 +135,15 @@ const array=x=>Array.isArray(x)?x:[];
 // A Scene buffer can be the storage owner of an imported tile sheet. Its
 // generated atlas is not evidence of the source game's room placement.
 const isTileSheet=scene=>scene?.captureMeta?.mode==='native-chr'&&scene.buildInclude===false;
+// What the relationships shown for a resource rest on: illustrative, observed at runtime, decoded, or stated by a pack.
+function connectionEvidence(sel){
+ if(mode==='demo')return 'Illustrative only';
+ const origin=sel.libraryEntry?.origin;
+ if(origin==='runtime-capture')return 'Observed at runtime (a synchronized emulator snapshot): sprite and background CHR links are cartridge offsets read through the mapper at that frame; sprite → actor relationships are not established';
+ if(origin==='rom-catalog')return 'Decoded by the NES Forge decoder for this exact ROM; locations are checked against the cartridge layout';
+ if(sel.libraryEntry)return 'Stated by the extraction pack that registered it; Forge validated the pack, not each relationship';
+ return 'Declared IDs and source-owner receipts; native consumer observations have partial coverage';
+}
 function addNode(g,type,id,name,summary,scope,open,details='',source='Current NES Forge project',derived=false){return g.add({key:key(type,id),type,id:String(id),name:String(name||id),summary,scope,open,details,source,derived});}
 function nativeLinks(g, scene, from) {
  const services=window.Forge.services,source=services.ResourceContext.source(scene);
@@ -402,7 +412,7 @@ async function libraryGraph(){
  for(const e of items){
   const n=g.add({key:key('lib',e.id),type:'lib · '+e.kind,id:e.id,name:e.notes?.name||e.path.split('/').pop(),summary:(e.identified===false||e.kind==='unknown'?'Unidentified ':'')+e.kind+' from '+(packName.get(e.packSha256)||'a registered pack')+'. '+
    (e.data==='needs-source'?'Registered index-only: its data is read from the pack when opened again.':e.data==='stored-unreadable'?'Stored exactly as archived; the archive entry could not be read.':'Stored in the library.')+(e.validation==='rejected'?' The intake rejected it; it is kept anyway.':''),
-   scope:(e.game||'Unknown source')+' · '+e.path,open:e.loads?{kind:'library-project'}:e.kind==='pose'&&e.rendition?{kind:'library-pose'}:null,details:'',source:'Resource library · '+(e.origin==='rom-catalog'?'recovered ROM catalog':'pack '+e.packSha256.slice(0,12)+'…'),libraryEntry:e,
+   scope:(e.game||'Unknown source')+' · '+e.path,open:e.loads?{kind:'library-project'}:e.kind==='pose'&&e.rendition?{kind:'library-pose'}:null,details:'',source:'Resource library · '+(e.origin==='rom-catalog'?'recovered ROM catalog':e.origin==='runtime-capture'?'runtime capture (Agent Lab investigation)':'pack '+e.packSha256.slice(0,12)+'…'),libraryEntry:e,
    stageNames:[...new Set((e.stages||[]).map(s=>s.stage))],stageBadge:[...new Set((e.stages||[]).map(s=>s.stage+(s.basis==='runtime'?' (observed)':s.basis==='rom-table'?' (ROM table)':'')))].join(', ')});
   if(e.preview)g.edge(n.key,key('lib','pack:'+e.packSha256.slice(0,16)+':'+(e.previewPath||'')),'preview image');
  }
@@ -459,7 +469,7 @@ function render(){
  function relations(id,edges,direction){const host=$(id);host.replaceChildren();if(!edges.length){host.append(elt('div','frx-empty',direction==='deps'?'No explicit dependencies recorded for this resource.':'No declared consumers found. This does not prove the resource is unused.'));return;}for(const e of edges){const related=nodeByKey(direction==='deps'?e.to:e.from);if(!related)continue;const b=elt('button','frx-relationship');b.type='button';const glyph=elt('span','frx-glyph',icons[related.type]||'◆'),middle=elt('span','frx-relmain');middle.append(elt('span','frx-rt',related.name),elt('span','frx-why',e.why+(e.confidence==='demo'?' · example':e.confidence==='receipt'?' · source receipt':'')));b.append(glyph,middle,elt('span','frx-linkglyph','›'));b.onclick=()=>choose(related.key);host.appendChild(b);}}
  relations('deps',deps,'deps');relations('users',users,'users');
  renderViewer(sel);$('guidance').innerHTML='<b>Reading this view:</b> “Depends on” shows explicit inputs and ownership dependencies. “Used by” shows resources that reference this one. Derived CHR/palette/sprite panels are not separately stored canonical assets. Build eligibility is not inferred from these links.';
- $('details').replaceChildren();for(const [label,value,code] of [['Resource key',sel.key,true],['Ownership / scope',sel.scope],['Provenance',sel.source],['Additional context',sel.details||'No additional metadata'],['Connection evidence',mode==='demo'?'Illustrative only':'Declared IDs and source-owner receipts; native consumer observations have partial coverage']]){$('details').append(elt('span','frx-label',label),elt('div',code?'frx-code':'frx-value',value));}
+ $('details').replaceChildren();for(const [label,value,code] of [['Resource key',sel.key,true],['Ownership / scope',sel.scope],['Provenance',sel.source],['Additional context',sel.details||'No additional metadata'],['Connection evidence',connectionEvidence(sel)]]){$('details').append(elt('span','frx-label',label),elt('div',code?'frx-code':'frx-value',value));}
  $('open-editor').textContent=mode==='demo'?'Example view — no editor action':(sel.evidenceKind||sel.apuAuditDigest)?'Export source evidence JSON ↓':sel.open?'Open in '+({scene:'Scene',tile:'CHR Sheet',chr:'CHR Sheet',sprites:'Sprites',meta:'Metatiles',collision:'Collision',animation:'Animation',pose:'Metasprites',world:'World',entity:'Entity Studio',actor:'Gameplay Core',instance:'Gameplay Core',behavior:'Behavior editor',audio:'Audio','cv-courtyard':'Scene','cv-upload':'CHR Sheet','native-cues':'ROM Audio Library','native-art':'native artwork',source:'source investigation','library-entry':'Library'}[sel.open.kind]||'editor')+' ↗':'Read-only evidence · no editor';
  $('action-note').textContent=mode==='demo'?'Switch to Live project to navigate real resources.':sel.open?.kind==='native-art'?'This explicit action opens the registered native writer. If absent, its dedicated Scene is added in one Undo step; snapshots are preserved.':sel.derived?'This resource has a Scene owner. Open in editor selects that Scene explicitly; Follow only applies to resource selections inside this workspace.':sel.type==='source'?'Source investigation requires matching ROM identity; this panel does not treat recognition as a verified native encoder.':sel.open?.kind==='native-art'?'This explicit action opens the registered native writer. If absent, its dedicated Scene is added in one Undo step; snapshots are preserved.':'Navigation uses existing NES Forge editor services and selection APIs.';
  $('unknown').textContent=mode==='demo'?'The example audio has no claimed runtime jump binding. Such links must be recovered or authored explicitly.':sel.type==='audio'?'Audio data is project-wide; no Scene-to-sound gameplay trigger is assumed.':sel.type==='source'?'A native ROM source receipt does not imply a full native graphics, behavior, or audio encoder.':'Declared references and native source receipts are distinguished. Known native consumers cover bounded observations; other runtime uses remain unknown.';
@@ -556,6 +566,7 @@ function renderViewer(n){
 }
 // A captured frame: Scene -> Sprite -> CHR -> ROM location -> Code/RE, each link with the evidence it rests on
 const hx=(v,w=2)=>Number(v).toString(16).toUpperCase().padStart(w,'0');
+function hasChrEntries(sourceSha256){const prefix=key('lib','rom:'+String(sourceSha256||'').slice(0,16)+':chr:');for(const k of graph.nodes.keys())if(k.startsWith(prefix))return true;return false;}
 async function renderFrameDetails(entry,host){
  const C=window.Forge.commands,P=window.Forge.services.LibraryProvenance,UI=window.Forge.services.LibraryProvenanceUI;
  const r=await C.run('library.read',{id:entry.id,as:'base64'});if(!r.ok)return;
@@ -564,6 +575,12 @@ async function renderFrameDetails(entry,host){
  const head=t=>box.append(elt('span','frx-label',t)),note=t=>box.append(elt('div','frx-code',t));
  const button=(label,fn,title)=>{const b=elt('button','frx-relationship',label);b.type='button';if(title)b.title=title;b.onclick=fn;return b;};
  const chrEntry=bank=>'rom:'+entry.sourceSha256.slice(0,16)+':chr:chr:'+bank,inLibrary=id=>graph.nodes.has(key('lib',id));
+ const anyChr=hasChrEntries(entry.sourceSha256),why=anyChr?'this CHR bank has no library entry':'this ROM has no CHR entries in the library (no recovered catalog registered)';
+ // an unavailable link stays visible, looks unavailable, and says why next to it (not only in a tooltip)
+ const chrLink=(bank,title)=>{const id=chrEntry(bank),b=button('CHR bank '+bank,()=>choose(key('lib',id)),title);if(inLibrary(id))return [b];
+  b.disabled=true;b.title='Unavailable: '+why;b.dataset.unavailable='true';const r=elt('span','frx-unavailable','unavailable: '+why);return [b,r];};
+ // where the cartridge's CHR ROM starts in the file: any mapped window gives it (file offset minus CHR offset)
+ const chrBase=(rec.banks?.chr||[]).find(x=>Number.isInteger(x.fileOffset)&&Number.isInteger(x.offset)),fileOf=chrOffset=>chrBase?chrBase.fileOffset-chrBase.offset+chrOffset:null;
  const openBytes=loc=>{close();try{switchTab('disasm');}catch(_){}P.openAt({sourceSha256:entry.sourceSha256},loc).then(res=>UI.renderOrigin(null,res));};
  head('Scene');
  if(entry.artifacts?.scene){const b=button('Open as a new Scene',async()=>{const u=await C.run('library.openFrameScene',{id:entry.id});if(!u.ok){$('context-result').textContent=u.error.message;return;}close();try{switchTab('scene');}catch(_){}window.showToast?.('Added “'+u.result.name+'” as a new Scene. Undo removes it.');},
@@ -571,14 +588,13 @@ async function renderFrameDetails(entry,host){
  else note('No scene artifact: '+(rec.synchronization?.state==='matched'?'not stored with this record.':'the frame could not be synchronization-checked ('+(rec.synchronization?.reason||'unknown reason')+').'));
  const visible=(rec.sprites||[]).filter(sp=>sp.visible),split=rec.ppu?.split;
  head('Sprites · '+visible.length+' on screen (OAM at frame '+rec.frame+')');
+ if(!anyChr)note('CHR library entries: none for this ROM, so CHR bank links are unavailable. The cartridge file offsets below are observed; "Bytes in RE" opens them in the ROM.');
  if(split)note('Unverified: this frame switches CHR banks or scroll mid-frame (sprite 0 at line '+split.sprite0Line+'); sprite pattern locations use the banks at the end of the frame.');
  for(const sp of visible.slice(0,32)){
   const w=(rec.banks?.chr||[]).find(x=>sp.pattern>=x.ppu&&sp.pattern<=x.ppuEnd),fo=w&&Number.isInteger(w.fileOffset)?w.fileOffset+(sp.pattern-w.ppu):null;
   const row=elt('div');row.className='frx-frame-sprite';row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';
   row.append(elt('span','frx-code','#'+sp.index+' at '+sp.x+','+sp.y+' · tile $'+hx(sp.tile)+' · palette '+sp.palette+(sp.flipH?' · flipped':'')+' · '+(fo!==null?'CHR file 0x'+hx(fo,5):w?.source==='CHR RAM'?'CHR RAM (no cartridge offset)':'pattern location unknown')));
-  if(fo!==null){const id=chrEntry(w.chrBank4KiB),b=button('CHR bank '+w.chrBank4KiB,()=>choose(key('lib',id)),'Observed: OAM tile through the CHR mapping'+(split?'; unverified for this frame (mid-frame switch)':''));
-   if(!inLibrary(id)){b.disabled=true;b.title='No library entry for this CHR bank; register the ROM\'s recovered catalog';}
-   row.append(b,button('Bytes in RE',()=>openBytes({fileOffset:fo,length:sp.height===16?32:16,region:'CHR ROM',chrBank:{index:w.chrBank4KiB,size:4096},name:'sprite #'+sp.index+' tile'}),'The tile\'s bytes in the cartridge'));}
+  if(fo!==null){row.append(...chrLink(w.chrBank4KiB,'Observed: OAM tile through the CHR mapping'+(split?'; unverified for this frame (mid-frame switch)':'')),button('Bytes in RE',()=>openBytes({fileOffset:fo,length:sp.height===16?32:16,region:'CHR ROM',chrBank:{index:w.chrBank4KiB,size:4096},name:'sprite #'+sp.index+' tile'}),'The tile\'s bytes in the cartridge'));}
   box.append(row);
  }
  if(visible.length>32)note('… '+(visible.length-32)+' more sprites.');
@@ -591,8 +607,11 @@ async function renderFrameDetails(entry,host){
   const win=(rec.banks?.chr||[]).find(x=>x.offset!==undefined&&src.chrOffset>=x.offset&&src.chrOffset<x.offset+1024),bank=src.chrOffset>>12,id=chrEntry(bank);
   const row=elt('div');row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';
   row.append(elt('span','frx-code',src.tiles+' tiles from CHR ROM +0x'+hx(src.chrOffset,5)+' (bank '+bank+')'));
-  const b=button('CHR bank '+bank,()=>choose(key('lib',id)),'Observed through the renderer and verified by the 0-pixel rebuild');if(!inLibrary(id)){b.disabled=true;b.title='No library entry for this CHR bank';}row.append(b);
-  if(win)row.append(button('Bytes in RE',()=>openBytes({fileOffset:win.fileOffset+(src.chrOffset-win.offset),length:1024,region:'CHR ROM',chrBank:{index:bank,size:4096},name:'background CHR'})));
+  row.append(...chrLink(bank,'Observed through the renderer and verified by the 0-pixel rebuild'));
+  const fo=win?win.fileOffset+(src.chrOffset-win.offset):fileOf(src.chrOffset);
+  if(fo!==null)row.append(button('Bytes in RE',()=>openBytes({fileOffset:fo,length:1024,region:'CHR ROM',chrBank:{index:bank,size:4096},name:'background CHR'}),'The cartridge bytes of these tiles'));
+  else row.append(elt('span','frx-unavailable','bytes unavailable: the CHR ROM position in the file is unknown for this frame'));
+  if(!win&&fo!==null)row.append(elt('span','frx-code','(loaded by a mid-frame bank switch: not in the end-of-frame windows)'));
   box.append(row);
  }
  head('Code at the snapshot');
@@ -645,7 +664,7 @@ function renderLibraryViewer(n,host,tools,caption){
     host.append(row);}
   }
   if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);
-   if(entry.preview?.derivation)host.append(elt('div','frx-code','Preview: '+entry.preview.derivation+'. The tile data is in the linked CHR entries.'));}
+   if(entry.preview?.derivation)host.append(elt('div','frx-code','Preview: '+entry.preview.derivation+'. '+(entry.kind!=='frame'?'':hasChrEntries(entry.sourceSha256)?'The original cartridge tile data is in this ROM\'s CHR library entries, linked below.':'This ROM has no CHR entries in the library (no recovered catalog registered), so the cartridge tile data is not linked here; the file offsets below locate it in the ROM.')));}
   // evidence: decoded or stated locations, each address type on its own row, or that the location is unknown
   const ev=entry.evidence||{state:'none'},box=elt('div');box.style.cssText='text-align:left;font-size:11px;margin:6px 0';
   const row=(label,value)=>{box.append(elt('span','frx-label',label),elt('div','frx-code',value));};

@@ -204,7 +204,7 @@ register({name:'rom.inspect',group:'rom',title:'Inspect a ROM (intake report)',
 register({name:'rom.import',group:'rom',title:'Import a ROM as a new project',mutates:true,
   summary:'Same as "Prepare investigated game" + "Import as new project": preserved source and every recovered catalog, one ProjectStore commit.',
   args:{bytes:{type:'bytes',required:true},name:{type:'string',default:'rom.nes'}},
-  run:async a=>{const project=await services.InvestigationProject.create(a.bytes,a.name);commitProject(project,'rom-import',{open:true});rememberBuildable();
+  run:async a=>{const project=await services.InvestigationProject.create(a.bytes,a.name);commitProject(project,'rom-import',{open:true});rememberBuildable();void services.RomImports?.record(a.bytes,a.name,'command');
     let described=null;try{described=cp(services.InvestigationProject.describe(project.investigation));}catch(_){described=null;}
     return {name:store().capture().projectName,investigation:described};}});
 

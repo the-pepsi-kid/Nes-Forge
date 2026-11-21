@@ -24,10 +24,11 @@ const check = (name, passed, detail) => { report.checks.push({name, passed: !!pa
 const NINJA = '07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e';
 const carts = fs.readdirSync(cartDir).filter(f => /\.nes$/i.test(f)).map(f => ({file: path.join(cartDir, f), name: f, sha: sha(fs.readFileSync(path.join(cartDir, f)))}));
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-agentlab-')), PORT = 8791, TOKEN = crypto.randomBytes(12).toString('hex');
-let worker = null;
+let worker = null, pairingCode = null;
+// the admin token is for this script (no Origin header); Forge pairs with the single-use code the worker prints
 function startWorker() {
   worker = spawn(process.execPath, [WORKER, 'serve', '--root', root, '--forge', editor, '--port', String(PORT), '--token', TOKEN], {env: process.env, stdio: ['ignore', 'pipe', 'pipe']});
-  worker.stdout.on('data', d => process.stderr.write('[worker] ' + d)); worker.stderr.on('data', d => process.stderr.write('[worker] ' + d));
+  worker.stdout.on('data', d => { const m = /pairing code ([A-Z2-9]{4}-[A-Z2-9]{4})/.exec(String(d)); if (m) pairingCode = m[1]; process.stderr.write('[worker] ' + d); }); worker.stderr.on('data', d => process.stderr.write('[worker] ' + d));
   return new Promise(r => setTimeout(r, 1500));
 }
 const job = id => JSON.parse(fs.readFileSync(path.join(root, 'jobs', id, 'job.json'), 'utf8'));
@@ -49,7 +50,7 @@ async function until(fn, ms = 1800000, every = 500) { const t = Date.now(); for 
     // the ROM open in Forge, its recovered catalog in the library (for CHR links), and the panel connected
     await run('rom.import', {__b64: fs.readFileSync(ng.file).toString('base64'), name: 'Ninja Gaiden (U).nes'}); await run('library.registerCatalog');
     await page.evaluate(() => { document.getElementById('agentLabPanel').open = true; });
-    const connected = await page.evaluate(([u, t]) => Forge.services.InvestigationPanel.connect(u, t), ['http://127.0.0.1:' + PORT, TOKEN]);
+    const connected = await page.evaluate(([u, c]) => Forge.services.InvestigationPanel.pair(u, c), ['http://127.0.0.1:' + PORT, pairingCode]);
     const tStart = Date.now(), ngJob = await page.evaluate(() => Forge.services.InvestigationPanel.investigate());
     check('Forge connects to the local worker and starts a background investigation of the open ROM (its profile plan)', connected && ngJob.state === 'queued' && /every area/.test(ngJob.plan.name), {plan: ngJob.plan.name});
     // ---- the developer keeps working while the worker runs ----
@@ -80,7 +81,7 @@ async function until(fn, ms = 1800000, every = 500) { const t = Date.now(); for 
     const run2 = resumed.runs[1];
     check('After the worker is killed mid-job and restarted, the job resumes at its first unfinished target from the disk boot checkpoint, without redoing finished targets',
       stale === 'running' && resumed.state === 'completed' && resumed.results.length === 22 && resumed.runs.length === 2 && run2.boots === 0 && run2.restoredFromDisk && run2.targetsComputed + run2.targetsFromCheckpoint === 22 - doneBeforeKill &&
-      resumed.failures.some(f => /stopped while this job was running/.test(f.error)), {doneBeforeKill, stale, runs: report.measurements.ninjaGaidenFirstJob.runs});
+      (resumed.interruptions || []).some(i => /stopped while this job was running/.test(i.detail)) && !resumed.failures.some(f => /stopped while this job was running/.test(f.error)), {doneBeforeKill, stale, runs: report.measurements.ninjaGaidenFirstJob.runs});
     // ---- a second mapper family through the API; pause/resume; cancel ----
     const smbJob = await api('POST', '/jobs', {rom: fs.readFileSync(smb3.file).toString('base64'), name: smb3.name, plan: 'generic'});
     const contraJob = await api('POST', '/jobs', {rom: fs.readFileSync(contra.file).toString('base64'), name: contra.name, plan: 'generic'});
@@ -140,7 +141,9 @@ async function until(fn, ms = 1800000, every = 500) { const t = Date.now(); for 
     const pcInspect = await page.evaluate(async id => (await Forge.commands.run('library.inspectCode', {id})).result, imports[ngJob.id].entries[3]);
     check('The frame\'s PC opens in CODE/RE at its cartridge file offset', pcInspect.opened && pcInspect.code && Number.isInteger(pcInspect.fileOffset), {fileOffset: pcInspect.fileOffset, cpu: pcInspect.cpuAddress});
     // ---- the same plan again: verified disk checkpoints, no boot, no restart sequences ----
-    const t2 = Date.now(), again = await api('POST', '/jobs', {rom: fs.readFileSync(ng.file).toString('base64'), name: ng.name, plan: 'profile'});
+    const dup = await api('POST', '/jobs', {rom: fs.readFileSync(ng.file).toString('base64'), name: 'renamed copy.nes', plan: 'profile'});
+    check('The same ROM with the same plan and emulator build is not queued twice: the existing job is returned', dup.duplicate === true && dup.id === ngJob.id, {id: dup.id});
+    const t2 = Date.now(), again = await api('POST', '/jobs', {rom: fs.readFileSync(ng.file).toString('base64'), name: ng.name, plan: 'profile', rerun: true});
     const second = await until(() => { const j = job(again.id); return j.state === 'completed' ? j : null; });
     const firstDigests = resumed.results.map(r => r.digest), secondDigests = second.results.map(r => r.digest);
     report.measurements.ninjaGaidenSecondJob = {ms: Date.now() - t2, run: second.runs[0]};

@@ -7,9 +7,9 @@
   function updateStatus(message){
     const el=document.getElementById('forge15State');if(!el)return;
     const status=window.Forge15||{},clock=t=>t?new Date(t).toLocaleTimeString():'—';
-    el.className=status.dirty?'dirty':'clean';
-    el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
-    el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
+    const r=status.recovery;el.className=status.dirty?'dirty':'clean';el.dataset.recovery=r?.level||'';
+    el.textContent=message||((status.dirty?'● Unsaved changes':'✓ Saved')+' · '+(r?.text||'recovery '+clock(status.lastRecovery)));
+    el.title=(status.dirty?'Unsaved changes: not yet saved to a project file or browser save.':'Saved: no changes since the last save.')+'\n'+(r?.detail||'')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery copy: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
   F.release=Object.freeze({version:'2.0.0-alpha.12',name:'Integrated Review 6',maturity:'alpha',candidate:'integrated-review-6-public',schema:16,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});

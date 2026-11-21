@@ -199,3 +199,23 @@ Acceptance (`QA/agent-lab-background.cjs`, 11/11):
 - The per-scanline runtime trace runs on every emulated frame. Recording it only on frames that will be captured may
   speed bulk work (not measured).
 - PPU emulation is scanline-based, not dot-exact. Mid-scanline effects are outside what a record can claim.
+
+## 10. One ROM, no manual steps (2026-11-21, Agent Lab v0.4.1)
+
+Once Forge is paired with the worker, with both remembered options on, importing a ROM queues its investigation, and
+the finished job's validated frames enter the library on their own. The ROM's recovered catalog is registered too,
+when Forge has a verified profile for it; for other ROMs Forge says there is none.
+- **ROM identity**: the job is for the ROM named by the import event (project gateway, Import ROM, emulator Load ROM,
+  `rom.import`), identified by SHA-256.
+- **Duplicates**: the same ROM, plan, emulator build and verification reuses the existing job.
+- **Statuses**: worker restarts appear as recovered interruptions, not failures. Unavailable CHR links are visibly
+  disabled with their reason, and frame previews say whether the cartridge CHR data is linked.
+- **Security**: pairing and signed requests ([AGENT_LAB_SECURITY.md](AGENT_LAB_SECURITY.md)).
+- **Recovery**: project recovery no longer loses recent edits ([PROJECT_RECOVERY.md](PROJECT_RECOVERY.md)).
+- **Acceptance**: `QA/one-rom-loop.cjs`, with Ninja Gaiden and SMB3.
+
+The compatibility gaps in §9 are unchanged and still tracked:
+- MMC2 synchronization;
+- CNROM (untested);
+- malformed headers (reported, never repaired);
+- incomplete sprite → actor relationships.

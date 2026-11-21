@@ -17,7 +17,7 @@ const cp=value=>JSON.parse(JSON.stringify(value)), $=id=>document.getElementById
 const state={epoch:0,recoveryPhase:'checking',recoveryToken:0,lastIntent:'startup'};
 const preparedLoads=new WeakSet();
 const portableCompletions=new WeakSet();
-let recoveryWrite=Promise.resolve(),checkPromise=null;
+let checkPromise=null;
 let projectEditActive=false;
 const fail=message=>{throw Error(message);};
 S.nativeGame=null;
@@ -26,19 +26,28 @@ function status(message){
   if(Forge.release?.updateStatus)return Forge.release.updateStatus(message);
   const el=$('forge15State');if(!el)return;
   const clock=t=>t?new Date(t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
-  el.className=Forge15.dirty?'dirty':'clean';
-  el.textContent=message||((Forge15.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(Forge15.lastRecovery));
-  el.title='Modified: '+(Forge15.dirty?'yes':'no')+'\nBrowser save: '+clock(Forge15.lastBrowserSave)+'\nRecovery: '+clock(Forge15.lastRecovery)+'\nPortable save: '+clock(Forge15.lastPortable);
+  const r=Forge15.recovery;el.className=Forge15.dirty?'dirty':'clean';el.dataset.recovery=r?.level||'';
+  el.textContent=message||((Forge15.dirty?'● Unsaved changes':'✓ Saved')+' · '+(r?.text||'recovery '+clock(Forge15.lastRecovery)));
+  el.title=(Forge15.dirty?'Unsaved changes: not yet saved to a project file or browser save.':'Saved: no changes since the last save.')+'\n'+(r?.detail||'')+'\nBrowser save: '+clock(Forge15.lastBrowserSave)+'\nRecovery copy: '+clock(Forge15.lastRecovery)+'\nPortable save: '+clock(Forge15.lastPortable);
 }
 function writeSchema(){return S.nativeGame?.version===3?16:S.nativeGame?.version===2?15:S.investigation?14:S.nativeGame?13:12;}
 function assertTarget(options){const target=options?.targetVersion??options?.targetSchema,schema=writeSchema();if(target!==undefined&&target!==schema)fail('Project schema '+schema+' is required: downgrade or format changes would lose native recipes or canonical authoring records. Export with this project format or retain the original older file.');}
-function capture(options={}){
+// The ROM's base64 is reused while its bytes are unchanged (checked by a fast checksum, not by identity alone).
+const romText=new WeakMap();
+function romBase64(bytes){
+  let sum=2166136261;for(let i=0;i<bytes.length;i++)sum=Math.imul(sum^bytes[i],16777619);
+  const hit=romText.get(bytes);if(hit&&hit.length===bytes.length&&hit.sum===sum)return hit.text;
+  const text=bytesToBase64(bytes);romText.set(bytes,{length:bytes.length,sum,text});return text;
+}
+// The project's fields as live references (no copy). capture() is a deep copy of this; crash recovery reads it per
+// section so an edit to one scene does not copy or rewrite the whole project.
+function captureFields(options={}){
   assertTarget(options);
   Forge164.model.ensure();
   saveCurrentScene();
   Forge161.worlds.ensure();
   S.asmSource=$('codeInput')?.value??S.asmSource;
-  return cp({format:'NESForge',version:writeSchema(),foundation:Forge.release.version,romLayout:Forge.services.WorldConfig.get().enabled?4:3,worldAuthoring:3,
+  return {format:'NESForge',version:writeSchema(),foundation:Forge.release.version,romLayout:Forge.services.WorldConfig.get().enabled?4:3,worldAuthoring:3,
     metatileExtension:1,metaspriteExtension:2,entityAnimationExtension:1,
     chr:S.chr,sprChr:S.sprChr,nt:S.nt,attr:S.attr,pal:S.pal,sprPal:S.sprPal,oam:S.oam,
     scenes:S.scenes,activeScene:S.activeScene,asmSource:S.asmSource,instruments:S.instruments,
@@ -46,13 +55,14 @@ function capture(options={}){
     tileProps:S.tileProps,animations:S.animations,metasprites:S.metasprites,worlds:S.worlds,
     mapper:S.mapper,mirroring:S.mirroring,hasSRAM:S.hasSRAM,prgBanks:S.prgBanks,chrBanks:S.chrBanks,
     packScenes:S.packScenes!==false,projectName:S.projectName,
-    importedRom:S.importedRom?bytesToBase64(S.importedRom):null,
-    ...(S.nativeGame?{nativeGame:cp(S.nativeGame)}:{}),
-    ...(S.investigation?{investigation:cp(S.investigation)}:{}),
+    importedRom:S.importedRom?romBase64(S.importedRom):null,
+    ...(S.nativeGame?{nativeGame:S.nativeGame}:{}),
+    ...(S.investigation?{investigation:S.investigation}:{}),
     ...(options.includeEditorView===true?{editorView:Forge.services.EditorView?.capture()||{worldId:S.worlds[Forge161.worlds.state.selected]?.id}}:{}),
     selTile:S.selTile,editTile:S.editTile,selSprite:S.selSprite,selEntity:S.selEntity,chrBank:S.chrBank,
-    _selAnim:S._selAnim||0,_animFrame:S._animFrame||0,gameplay:Forge165.config.get(),worldRuntime:Forge.services.WorldConfig.get(),audioRuntime:Forge.services.AudioConfig.get(),gameplayCore:cp(S.gameplayCore||Forge.services.GameplayModel.defaults())});
+    _selAnim:S._selAnim||0,_animFrame:S._animFrame||0,gameplay:Forge165.config.get(),worldRuntime:Forge.services.WorldConfig.get(),audioRuntime:Forge.services.AudioConfig.get(),gameplayCore:S.gameplayCore||Forge.services.GameplayModel.defaults()};
 }
+function capture(options={}){return cp(captureFields(options));}
 function serialize(options={}){return JSON.stringify(Store.capture(options));}
 // View preferences are excluded only at explicit authoring-source boundaries.
 // Raw recipe v1 hashing remains unchanged and still hashes every supplied field.
@@ -188,7 +198,13 @@ function commit(prepared,options={}){
   $('undoBtn').disabled=!undoStack.length;
   if(external){Forge15.dirty=false;status('Loaded project');}
   if(Forge.services.EditorView)Forge.services.EditorView.restore(p.editorView,priorView,refresh);else refresh();
-  Forge.services.InvestigationUI?.projectChanged();return true;
+  Forge.services.InvestigationUI?.projectChanged();
+  recoveryCommitted(options);return true;
+}
+function recoveryCommitted(options){
+  if(typeof rec==='undefined'||!rec.enabled)return;
+  if(options.history)return noteChange('edit','snapshot');
+  if(rec.meaningful||options.intent!=='startup'){rec.meaningful=true;publishStatus();schedule();}
 }
 function load(input,options={}){return Store.commit(Store.prepareLoad(input),options);}
 // Bounded canonical edits are not project replacement. Only private preparers
@@ -422,76 +438,281 @@ async function openFile(event){
     Store.load(text,{intent:'file-open'});broadcastState('projectOpen');showToast('Opened '+file.name);return true;
   }catch(error){reportError(error);return false;}
 }
+// ---------- crash recovery: a per-tab journal of project sections (see services/recovery-journal.js) ----------
+// A recovery point is written shortly after every edit (the first write starts as soon as the edit's handler ends,
+// later ones at most every MIN_GAP ms while edits continue), plus a check every few seconds for changes made without
+// an edit signal. Only changed sections are written, in one atomic transaction. When the tab closes, hides or
+// refreshes, the changed sections not yet committed are also written synchronously to localStorage. A restore says
+// exactly which point it recovered and whether later changes existed that could not be recovered.
+const Journal=Forge.services.RecoveryJournal;
+const MIN_GAP=150,CLEAN_REASONS=new Set(['welcome','fullSync','sceneSelect','selectTile','eyedrop','sprSelect']),LOAD_REASONS=new Set(['projectLoad','projectOpen','projectDrop','zipProject','zipAssets']);
+const rec={session:Journal?.session||null,startedAt:Date.now(),enabled:!!Journal,unavailable:Journal?null:'recovery storage is missing',meaningful:false,
+  editSeq:0,actions:0,committedActions:0,lastActionAt:0,writeSeq:0,committed:new Map(),committedSeq:0,committedAt:0,lastHead:null,stored:new Set(),writing:null,again:false,timer:null,lastStart:0,
+  firstUncommittedAt:0,lastError:null,retryAt:0,checkEvery:4000,lastCheck:0,offered:null,report:null,inv:null,tail:null,
+  metrics:{writes:0,lastMs:0,lastComputeMs:0,lastBytes:0,lastSections:0,baselineMs:0,baselineBytes:0,emergencies:0,lastEmergencyMs:0,lastEmergencyBytes:0}};
+const clockText=t=>t?new Date(t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
+function recoverySections(){
+  const fields=captureFields({includeEditorView:true}),out=[];
+  for(const key of Object.keys(fields)){
+    const value=fields[key];if(value===undefined)continue;
+    if(key==='scenes'&&Array.isArray(value)){out.push(['n:scenes',String(value.length)]);value.forEach((scene,i)=>out.push(['scene:'+i,JSON.stringify(scene)]));continue;}
+    if(key==='investigation'&&value&&typeof value==='object'){
+      // Replaced wholesale on load, never edited in place: reuse its text while the object is the same.
+      if(rec.inv?.ref!==value){const text=JSON.stringify(value);rec.inv={ref:value,text,hash:Journal.hash(text)};}
+      out.push(['f:investigation',rec.inv.text,rec.inv.hash]);continue;
+    }
+    const text=JSON.stringify(value);if(text!==undefined)out.push(['f:'+key,text]);
+  }
+  for(const section of out)if(section[2]===undefined)section[2]=Journal.hash(section[1]);
+  return out;
+}
+function assembleSections(list,textOf){
+  const data={};
+  for(const [name,hash] of list){
+    const text=textOf(name,hash);if(typeof text!=='string')fail('section '+name+' is missing');
+    if(name==='n:scenes'){const n=Number(text);if(!Number.isInteger(n)||n<0)fail('scene count is invalid');data.scenes=new Array(n);continue;}
+    if(name.startsWith('scene:')){const i=Number(name.slice(6));if(!data.scenes||!Number.isInteger(i)||i>=data.scenes.length)fail('scene section '+name+' is out of range');data.scenes[i]=JSON.parse(text);continue;}
+    if(name.startsWith('f:'))data[name.slice(2)]=JSON.parse(text);else fail('unknown section '+name);
+  }
+  if(data.scenes&&data.scenes.some(scene=>scene===undefined))fail('a scene section is missing');
+  return data;
+}
+function recoveryLabel(){
+  if(!rec.enabled)return {level:'warn',text:'recovery unavailable',detail:'Crash recovery is off: '+(rec.unavailable||'storage unavailable')+'. Use Save Project As to keep your work.'};
+  if(rec.lastError&&rec.committedSeq!==rec.editSeq)return {level:'warn',text:'recovery failed · use Save As',detail:'The last recovery write failed: '+rec.lastError+'. Forge retries automatically.'};
+  if(!rec.meaningful)return {level:'ok',text:'recovery ready',detail:'Nothing to recover yet: the project has not been opened or edited in this tab.'};
+  if(!rec.lastHead)return {level:'busy',text:'recovery preparing…',detail:'Writing the first recovery copy of this project. Until it is written, closing the tab can lose this session\'s changes.'};
+  const behind=Math.max(rec.editSeq>rec.committedSeq?1:0,rec.actions-rec.committedActions);
+  if(behind<=0)return {level:'ok',text:'recovery ✓ '+clockText(rec.committedAt),detail:'Every change is in the recovery copy (last written '+clockText(rec.committedAt)+').'};
+  if(rec.firstUncommittedAt&&Date.now()-rec.firstUncommittedAt>2000)return {level:'warn',text:'recovery behind · '+behind+' change'+(behind===1?'':'s')+' since '+clockText(rec.firstUncommittedAt),detail:'Changes made since '+clockText(rec.firstUncommittedAt)+' are not in the recovery copy yet.'};
+  return {level:'busy',text:'recovery saving…',detail:behind>0?behind+' change'+(behind===1?' is':'s are')+' being written to the recovery copy.':'Updating the recovery copy.'};
+}
+function publishStatus(){const l=recoveryLabel();Forge15.recovery=l;Forge15.lastRecovery=rec.committedAt||Forge15.lastRecovery;status();}
+function schedule(delay){
+  if(!rec.enabled||rec.timer)return;
+  const wait=delay??Math.max(0,MIN_GAP-(performance.now()-rec.lastStart));
+  rec.timer=setTimeout(()=>{rec.timer=null;void flush('edit');},rec.writing?Math.max(wait,MIN_GAP):wait);
+}
+// An edit signal (an undo snapshot or a change broadcast): record it synchronously, write soon. editSeq counts every
+// signal (it decides whether a recovery point covers everything); actions counts user actions for messages: one per
+// undo snapshot, or per broadcast that does not follow a snapshot within 300 ms.
+function noteChange(reason,kind){
+  if(CLEAN_REASONS.has(reason))return;
+  rec.meaningful=true;
+  if(!LOAD_REASONS.has(reason)){
+    const now=Date.now();rec.editSeq++;
+    if(kind==='snapshot'||now-rec.lastActionAt>300)rec.actions++;if(kind==='snapshot')rec.lastActionAt=now;
+    if(!rec.firstUncommittedAt)rec.firstUncommittedAt=now;
+    if(rec.session)Journal.marker.write(rec.session,{editSeq:rec.editSeq,actions:rec.actions,at:now,projectName:S.projectName});
+  }
+  publishStatus();schedule();
+}
+function flush(reason){
+  if(!rec.enabled||!rec.meaningful)return Promise.resolve(false);
+  if(rec.writing){rec.again=true;return rec.writing;}
+  if(rec.retryAt&&Date.now()<rec.retryAt&&reason!=='explicit'&&reason!=='close'){schedule(rec.retryAt-Date.now());return Promise.resolve(false);}
+  const t0=performance.now();let sections;
+  try{sections=recoverySections();}catch(error){rec.lastError='the project could not be read ('+error.message+')';publishStatus();return Promise.resolve(false);}
+  const computeMs=performance.now()-t0,editSeq=rec.editSeq,actions=rec.actions,at=Date.now(),list=sections.map(([n,,h])=>[n,h]),names=new Set(list.map(x=>x[0]));
+  const changed=sections.filter(([n,,h])=>rec.committed.get(n)!==h),removed=[...rec.committed.keys()].some(n=>!names.has(n));
+  rec.metrics.lastComputeMs=computeMs;
+  if(rec.lastHead&&!changed.length&&!removed){
+    if(rec.committedSeq!==editSeq){rec.committedSeq=editSeq;rec.committedActions=actions;if(rec.session)Journal.tail.clearIfCovered(rec.session,editSeq);}
+    rec.firstUncommittedAt=0;rec.lastError=null;publishStatus();return Promise.resolve(true);
+  }
+  const prev=rec.lastHead?{seq:rec.lastHead.seq,editSeq:rec.lastHead.editSeq,actions:rec.lastHead.actions,at:rec.lastHead.at,sections:rec.lastHead.sections}:null;
+  const head={session:rec.session,seq:rec.writeSeq+1,editSeq,actions,at,aliveAt:at,startedAt:rec.startedAt,projectName:S.projectName,version:Forge.release.version,offerable:true,sections:list,prev};
+  const blobs=changed.filter(([,,h])=>!rec.stored.has(h)).map(([,text,h])=>({hash:h,text}));
+  const keep=new Set([...list.map(x=>x[1]),...(prev?prev.sections.map(x=>x[1]):[])]);
+  const drop=[...new Set((rec.lastHead?.prev?.sections||[]).map(x=>x[1]).filter(h=>!keep.has(h)&&!blobs.some(b=>b.hash===h)))];
+  const bytes=blobs.reduce((n,b)=>n+b.text.length,0),baseline=!rec.lastHead;
+  rec.lastStart=performance.now();
+  const job=Journal.write(head,blobs,drop).then(()=>{
+    for(const b of blobs)rec.stored.add(b.hash);for(const h of drop)rec.stored.delete(h);
+    rec.writeSeq=head.seq;rec.lastHead=head;rec.committed=new Map(list);rec.committedSeq=Math.max(rec.committedSeq,editSeq);rec.committedActions=Math.max(rec.committedActions,actions);rec.committedAt=at;rec.lastError=null;rec.retryAt=0;
+    if(rec.editSeq===editSeq)rec.firstUncommittedAt=0;
+    Journal.tail.clearIfCovered(rec.session,editSeq);
+    const ms=performance.now()-t0;Object.assign(rec.metrics,{writes:rec.metrics.writes+1,lastMs:ms,lastBytes:bytes,lastSections:blobs.length});if(baseline)Object.assign(rec.metrics,{baselineMs:ms,baselineBytes:bytes});
+    autoSaveWarning=false;return true;
+  },error=>{rec.lastError=error?.message||String(error);rec.retryAt=Date.now()+5000;return false;}).finally(()=>{
+    rec.writing=null;publishStatus();
+    if(rec.again||rec.editSeq!==rec.committedSeq){rec.again=false;schedule();}
+  });
+  rec.writing=job;publishStatus();return job;
+}
+// Closing, refreshing or hiding the tab: write what is not committed yet synchronously, then try a normal write too.
+function closeTime(kind){
+  if(!rec.enabled||!rec.meaningful||!rec.session)return;
+  if(kind==='pagehide')Journal.end.write(rec.session,{editSeq:rec.editSeq,actions:rec.actions,at:Date.now()});
+  const t0=performance.now();let sections;try{sections=recoverySections();}catch(_){return;}
+  const list=sections.map(([n,,h])=>[n,h]),names=new Set(list.map(x=>x[0]));
+  const changed=sections.filter(([n,,h])=>rec.committed.get(n)!==h);
+  if(rec.lastHead&&!changed.length&&![...rec.committed.keys()].some(n=>!names.has(n))&&rec.committedSeq===rec.editSeq)return;
+  const record={session:rec.session,kind,base:rec.lastHead?.seq||0,editSeq:rec.editSeq,actions:rec.actions,at:Date.now(),projectName:S.projectName,sections:list,blobs:changed.map(([,text,h])=>[h,text])};
+  const ok=Journal.tail.write(rec.session,record);rec.tail={kind,ok,editSeq:rec.editSeq,bytes:record.blobs.reduce((n,b)=>n+b[1].length,0)};
+  rec.metrics.emergencies++;rec.metrics.lastEmergencyMs=performance.now()-t0;rec.metrics.lastEmergencyBytes=rec.tail.bytes;
+  void flush('close');
+}
+// ---------- offering and restoring an earlier session ----------
 function localRecovery(){try{return localStorage.getItem(AUTOSAVE_KEY);}catch(_){return null;}}
-function recoveryPhase(phase){state.recoveryPhase=phase;recoveryPending=phase!=='ready';$('autosaveBanner').classList.toggle('show',phase==='offered'||phase==='restoring');}
+function recoveryPhase(phase){state.recoveryPhase=phase;recoveryPending=phase==='offered'||phase==='restoring';$('autosaveBanner').classList.toggle('show',phase==='offered'||phase==='restoring'||phase==='notice');}
+function banner(mode,text){
+  const el=$('autosaveText');if(el)el.textContent=text;
+  const b=$('autosaveBanner');if(!b)return;b.dataset.mode=mode;
+  for(const c of b.querySelectorAll('.ab-restore,.ab-dismiss'))c.hidden=mode!=='offer';const ok=$('autosaveOk');if(ok)ok.hidden=mode!=='notice';
+}
 function recoveryError(error){autoSaveWarning=true;const el=$('issueStatus');if(el){el.textContent='Browser recovery unavailable — portable Save As still works';el.title=error?.message||String(error);}}
-async function readRecovery(){
+async function readLegacyRecovery(){
   let db;try{db=await db_open();return await new Promise((resolve,reject)=>{const tx=db.transaction(Forge15.recoveryStore,'readonly'),request=tx.objectStore(Forge15.recoveryStore).get(Forge15.recoveryKey);request.onsuccess=()=>resolve(request.result||null);request.onerror=()=>reject(request.error);tx.onabort=()=>reject(tx.error||Error('Recovery read aborted'));});}finally{db?.close();}
 }
-async function deleteRecovery(token){
-  let db;try{db=await db_open();if(token!==state.recoveryToken)return false;await new Promise((resolve,reject)=>{const tx=db.transaction(Forge15.recoveryStore,'readwrite');tx.objectStore(Forge15.recoveryStore).delete(Forge15.recoveryKey);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Recovery deletion aborted'));});return true;}finally{db?.close();}
+async function deleteLegacyRecovery(){
+  let db;try{db=await db_open();await new Promise((resolve,reject)=>{const tx=db.transaction(Forge15.recoveryStore,'readwrite');tx.objectStore(Forge15.recoveryStore).delete(Forge15.recoveryKey);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Recovery deletion aborted'));});}finally{db?.close();}
+  try{localStorage.removeItem(AUTOSAVE_KEY);}catch(_){}
+}
+// The most recent earlier session that holds work: not this tab, not another open tab. Blank sessions and sessions
+// older than 14 days are pruned; at most five earlier sessions are kept.
+async function findOffer(){
+  let offer=null,journalHeads=[];
+  if(rec.enabled){
+    try{journalHeads=await Journal.heads();}catch(error){rec.enabled=false;rec.unavailable=error.message;}
+  }
+  if(rec.enabled){
+    const live=await Journal.liveSessions(journalHeads),now=Date.now();
+    const earlier=journalHeads.filter(h=>h.session!==rec.session&&!live.has(h.session));
+    const candidates=[];
+    for(const head of earlier){
+      if(!head.offerable||now-(head.at||0)>14*86400000){await Journal.deleteSession(head.session).catch(()=>{});continue;}
+      const t=Journal.tail.read(head.session),m=Journal.marker.read(head.session),ended=Journal.end.read(head.session);
+      candidates.push({kind:'journal',head,tail:t.value&&t.value.session===head.session?t.value:null,tailProblem:t.problem||null,marker:m,ended,at:Math.max(head.at||0,t.value?.at||0,m?.at||0)});
+    }
+    candidates.sort((a,b)=>b.at-a.at);
+    for(const old of candidates.slice(5))await Journal.deleteSession(old.head.session).catch(()=>{});
+    // localStorage records whose session never committed a point (or was removed): nothing to restore from.
+    const known=new Set(journalHeads.map(h=>h.session));for(const s of Journal.local.sessions())if(s!==rec.session&&!known.has(s)&&!live.has(s))Journal.local.clear(s);
+    if(candidates.length)offer={...candidates[0],others:Math.min(4,candidates.length-1)};
+  }
+  const local=localRecovery();let legacy=null;
+  try{legacy=await readLegacyRecovery();}catch(_){legacy=null;}
+  let legacyText=null;if(local)try{if(JSON.parse(local)?.scenes)legacyText=local;}catch(_){}
+  if(legacy?.state||legacyText){const at=legacy?.timestamp||0;if(!offer||at>offer.at)offer={kind:'legacy',record:legacy,local:legacyText,at,others:offer?1:0};}
+  else if(local&&!legacyText){try{localStorage.removeItem(AUTOSAVE_KEY);}catch(_){}}
+  return offer;
+}
+function offerText(offer){
+  const when=offer.at?new Date(offer.at).toLocaleString():'an earlier session';
+  if(offer.kind==='legacy')return 'Recovery found from '+when+' (older Forge recovery copy). Restore it or dismiss it. This tab is protected separately.';
+  const h=offer.head,changes=Math.max(h.actions||0,offer.tail?.actions||0,offer.marker?.actions||0);
+  return 'Recovery found: “'+(h.projectName||'Untitled')+'”, last change '+when+(changes?' · '+changes+' change'+(changes===1?'':'s')+' in that session':'')+(offer.others?' · '+offer.others+' older session'+(offer.others===1?'':'s')+' kept':'')+'. Restore it or dismiss it. This tab is protected separately.';
 }
 async function checkRecovery(){
   if(checkPromise&&state.recoveryPhase==='checking')return checkPromise;
+  if(state.recoveryPhase==='offered'&&rec.offered)return true;
   const token=++state.recoveryToken;recoveryPhase('checking');
   checkPromise=(async()=>{
-    const local=localRecovery();let legacy=null,localTime=0;
-    if(local)try{const value=JSON.parse(local);if(value?.scenes)legacy=local;localTime=value?.timestamp||0;}catch(_){}
     try{
-      const record=await readRecovery();if(token!==state.recoveryToken)return false;
-      // A corrupt/unknown record is still the user's recovery data. Only an
-      // explicit dismissal may remove it; startup must never overwrite it.
-      const offered=local!==null||record!==null;Forge15.lastRecovery=record?.timestamp||localTime||Forge15.lastRecovery;
-      recoveryPhase(offered?'offered':'ready');status(offered?'Recovery available · restore or dismiss':state.lastIntent==='startup'?'Untitled project · ready':undefined);return offered;
-    }catch(error){if(token!==state.recoveryToken)return false;recoveryPhase(local!==null?'offered':'unavailable');recoveryError(error);return local!==null;}
+      const offer=await findOffer();if(token!==state.recoveryToken)return false;
+      rec.offered=offer;if(offer)banner('offer',offerText(offer));
+      recoveryPhase(offer?'offered':'ready');publishStatus();
+      if(offer)status('Recovery available · restore or dismiss');else if(state.lastIntent==='startup')status('Untitled project · ready');
+      return !!offer;
+    }catch(error){if(token!==state.recoveryToken)return false;recoveryPhase('ready');recoveryError(error);return false;}
   })();
   return checkPromise;
 }
-async function writeRecovery(text,epoch,token,now){
-  let db;try{
-    db=await db_open();
-    if(state.epoch!==epoch||state.recoveryToken!==token||state.recoveryPhase!=='ready')return false;
-    await new Promise((resolve,reject)=>{const tx=db.transaction(Forge15.recoveryStore,'readwrite');tx.objectStore(Forge15.recoveryStore).put({key:Forge15.recoveryKey,timestamp:now,state:text});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});
-    if(state.epoch!==epoch||state.recoveryToken!==token)return false;
-    try{localStorage.setItem(AUTOSAVE_KEY,JSON.stringify({indexedDB:true,timestamp:now}));}catch(_){}
-    Forge15.lastRecovery=now;autoSaveWarning=false;status();return true;
-  }finally{db?.close();}
+// Read the newest readable point of an offered session: the close-time record, then the head, then the previous head.
+async function readPoint(offer){
+  const {head,tail,marker,ended}=offer,problems=offer.tailProblem?['close-time record: '+offer.tailProblem]:[],tries=[];
+  if(tail&&tail.editSeq>head.editSeq)tries.push({source:'close',sections:tail.sections,editSeq:tail.editSeq,actions:tail.actions,at:tail.at,inline:new Map(tail.blobs||[])});
+  tries.push({source:'latest',sections:head.sections,editSeq:head.editSeq,actions:head.actions,at:head.at});
+  if(head.prev)tries.push({source:'previous',sections:head.prev.sections,editSeq:head.prev.editSeq,actions:head.prev.actions,at:head.prev.at});
+  for(const point of tries){
+    try{
+      if(!Array.isArray(point.sections)||!point.sections.length)fail('it lists no sections');
+      const need=point.sections.map(([,h])=>h).filter(h=>!point.inline?.has(h)),stored=await Journal.blobs(head.session,need),texts=new Map();
+      for(const [name,h] of point.sections){const text=point.inline?.get(h)??stored.get(h);if(typeof text!=='string')fail('section '+name+' is missing');if(Journal.hash(text)!==h)fail('section '+name+' does not match its checksum');texts.set(name,text);}
+      const data=assembleSections(point.sections,name=>texts.get(name));
+      return {text:JSON.stringify(data),report:{source:point.source,editSeq:point.editSeq,actions:point.actions??null,at:point.at,markerEditSeq:marker?.editSeq??null,markerActions:marker?.actions??null,markerAt:marker?.at??null,
+        endedNormally:!!ended,endEditSeq:ended?.editSeq??null,endActions:ended?.actions??null,endAt:ended?.at??null,problems,projectName:head.projectName}};
+    }catch(error){problems.push(point.source+' point: '+error.message);}
+  }
+  fail('No recovery point of that session could be read ('+problems.join('; ')+'). It has been kept; dismiss it explicitly to remove it.');
 }
-function autoSave(){
-  if(state.recoveryPhase!=='ready'||recoveryPending)return Promise.resolve(false);
-  const epoch=state.epoch,token=state.recoveryToken,now=Date.now();let text;
-  try{text=Store.serialize({includeEditorView:true});}catch(error){reportError(error);return Promise.resolve(false);}
-  // Serialize writers so an earlier async open cannot finish after a later save.
-  const job=recoveryWrite.catch(()=>{}).then(()=>writeRecovery(text,epoch,token,now));
-  recoveryWrite=job;return job.catch(error=>{recoveryError(error);return false;});
+function restoreMessage(r){
+  const through=clockText(r.at),damaged=r.problems.length?' Note: '+r.problems.join('; ')+'.':'';
+  if(r.source==='legacy')return {complete:null,text:'Restored an older Forge recovery copy from '+through+'. That format did not record later changes, so Forge cannot confirm whether any were lost.'};
+  // Changes known to exist: the session's normal-end record (reliable), else the per-edit marker (may lag behind a
+  // browser that was killed, so it can prove a loss but never completeness).
+  const known=r.endedNormally?r.endEditSeq:r.markerEditSeq,knownActions=r.endedNormally?r.endActions:r.markerActions,knownAt=r.endedNormally?r.endAt:r.markerAt;
+  if(known!==null&&known>r.editSeq){const lost=Math.max(1,(knownActions??0)-(r.actions??0));
+    return {complete:false,lost,text:'Recovered changes through '+through+'. '+lost+' later change'+(lost===1?'':'s')+' (made until '+clockText(knownAt)+') could not be recovered.'+damaged};}
+  if(r.endedNormally)return {complete:true,text:'Recovery restored: every change through '+through+'.'+damaged};
+  return {complete:null,text:'Restored every change Forge had recorded (through '+through+'). Forge or the browser ended unexpectedly, so changes made in its last moments cannot be confirmed.'+damaged};
 }
 async function restoreRecovery(){
-  const token=++state.recoveryToken,epoch=state.epoch,before=Store.serialize();recoveryPhase('restoring');
+  if(!rec.offered&&!(await checkRecovery()))return false;
+  const offer=rec.offered,token=++state.recoveryToken,epoch=state.epoch,before=Store.serialize();recoveryPhase('restoring');
   try{
-    const local=localRecovery();let text=null;
-    if(local)try{if(JSON.parse(local)?.scenes)text=local;}catch(_){}
-    const record=text?null:await readRecovery();text=text||record?.state;
+    let text,report;
+    if(offer.kind==='legacy'){text=offer.local||offer.record?.state;if(!text)fail('Recovery data could not be read. It has been preserved; dismiss it explicitly to remove it.');report={source:'legacy',at:offer.at,editSeq:null,markerEditSeq:null,problems:[]};}
+    else ({text,report}=await readPoint(offer));
     if(token!==state.recoveryToken)return false;
     if(epoch!==state.epoch||Store.serialize()!==before){recoveryPhase('offered');status('Workspace changed · recovery remains available');return false;}
-    if(!text)fail('Recovery data could not be read. It has been preserved; dismiss it explicitly to start a new recovery copy.');
     const prepared=Store.prepareLoad(text);Store.commit(prepared,{intent:'recovery'});const restoredEpoch=state.epoch;Forge15.dirty=true;
-    await recoveryWrite.catch(()=>{});if(token!==state.recoveryToken)return false;
-    await deleteRecovery(token);if(token!==state.recoveryToken)return false;
-    try{localStorage.removeItem(AUTOSAVE_KEY);}catch(_){}
-    recoveryPhase('ready');if(state.epoch!==restoredEpoch)return true;
-    broadcastState('restore');Forge15.dirty=true;status('Recovered workspace · save when ready');showToast('Recovery restored');return true;
-  }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
+    // The restored project is protected by this tab's journal before the earlier session's data is removed.
+    rec.meaningful=true;const written=await flush('explicit');if(rec.writing)await rec.writing;
+    if(token!==state.recoveryToken)return false;
+    if(written||rec.lastHead){if(offer.kind==='legacy')await deleteLegacyRecovery();else await Journal.deleteSession(offer.head.session);}
+    rec.offered=null;const message=restoreMessage(report);rec.report={...report,...message};
+    if(state.epoch!==restoredEpoch){recoveryPhase('ready');return true;}
+    broadcastState('restore');Forge15.dirty=true;
+    banner('notice',message.text);recoveryPhase(message.complete===true?'ready':'notice');
+    status(message.complete===true?'Recovered workspace · save when ready':'Partly recovered workspace · see notice');showToast(message.complete===true?'Recovery restored':'Recovery incomplete — see the notice');
+    return true;
+  }catch(error){if(token===state.recoveryToken){recoveryPhase('offered');banner('offer',offerText(offer));}reportError(error);return false;}
 }
 async function dismissRecovery(){
-  const token=++state.recoveryToken;recoveryPhase('deleting');
+  if(state.recoveryPhase==='notice'){recoveryPhase('ready');return true;}
+  const offer=rec.offered,token=++state.recoveryToken;recoveryPhase('deleting');
   try{
-    await recoveryWrite.catch(()=>{});if(token!==state.recoveryToken)return false;
-    await deleteRecovery(token);if(token!==state.recoveryToken)return false;
-    try{localStorage.removeItem(AUTOSAVE_KEY);}catch(_){}
-    recoveryPhase('ready');status();return true;
+    if(offer?.kind==='legacy')await deleteLegacyRecovery();else if(offer)await Journal.deleteSession(offer.head.session);
+    if(token!==state.recoveryToken)return false;
+    rec.offered=null;recoveryPhase('ready');publishStatus();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:12,maxSchema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,authoringData,prepareLoad,commit,load,applyNativeGameEdit,applyNativeLayoutEdit,openNativeResourcePage,openInvestigatedResource,applyLibraryUse,applyNativeWorldEdit,openNativeWorldResource,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+// The explicit "write recovery now" entry point (also used by tests and older callers).
+async function autoSave(){
+  if(!rec.enabled)return false;
+  rec.meaningful=true;if(rec.writing)await rec.writing.catch(()=>{});
+  const ok=await flush('explicit');if(rec.writing)await rec.writing.catch(()=>{});
+  return ok&&rec.committedSeq===rec.editSeq;
+}
+function recoveryState(){
+  const l=recoveryLabel();
+  return {session:rec.session,enabled:rec.enabled,meaningful:rec.meaningful,editSeq:rec.editSeq,committedSeq:rec.committedSeq,actions:rec.actions,committedActions:rec.committedActions,committedAt:rec.committedAt,writing:!!rec.writing,
+    baseline:!!rec.lastHead,label:l.text,level:l.level,detail:l.detail,lastError:rec.lastError,phase:state.recoveryPhase,offered:rec.offered?{kind:rec.offered.kind,at:rec.offered.at,session:rec.offered.head?.session||null}:null,
+    report:rec.report,tail:rec.tail,metrics:{...rec.metrics},usesLocks:!!Journal?.usesLocks};
+}
+function startRecovery(){
+  clearInterval(_autoSaveTimer);_autoSaveTimer=null;
+  if(!rec.enabled){publishStatus();return;}
+  Journal.hold();
+  Journal.open().then(()=>{if(rec.session)return Journal.storedHashes(rec.session).then(set=>{rec.stored=set;});}).catch(error=>{rec.enabled=false;rec.unavailable=error.message;publishStatus();});
+  const original=snapshot;snapshot=function(...args){const result=original.apply(this,args);if(!undoPaused)noteChange('edit','snapshot');return result;};
+  const broadcast=broadcastState;broadcastState=function(reason,...rest){noteChange(reason||'edit');return broadcast.call(this,reason,...rest);};
+  const close=kind=>()=>closeTime(kind);
+  addEventListener('pagehide',close('pagehide'));addEventListener('pageshow',e=>{if(e.persisted&&rec.session)Journal.end.clear(rec.session);});addEventListener('beforeunload',close('beforeunload'));addEventListener('freeze',close('freeze'));
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')closeTime('hidden');});
+  setInterval(()=>{
+    if(rec.writing||!rec.meaningful){publishStatus();return;}
+    const due=Date.now()-rec.lastCheck>=rec.checkEvery;
+    if(due){rec.lastCheck=Date.now();void flush('check').then(()=>{rec.checkEvery=Math.min(20000,Math.max(4000,Math.round(rec.metrics.lastComputeMs*150)));});}
+    else if(!Journal.usesLocks&&rec.lastHead&&Date.now()-(rec.lastHead.aliveAt||0)>10000){rec.lastHead={...rec.lastHead,aliveAt:Date.now()};void Journal.write(rec.lastHead).catch(()=>{});}
+    publishStatus();
+  },1000);
+  publishStatus();
+}
+const Store=Forge.services.ProjectStore={schema:12,maxSchema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,authoringData,prepareLoad,commit,load,applyNativeGameEdit,applyNativeLayoutEdit,openNativeResourcePage,openInvestigatedResource,applyLibraryUse,applyNativeWorldEdit,openNativeWorldResource,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery,recoveryState,flushRecovery:()=>flush('explicit'),closeTime};
+startRecovery();
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};

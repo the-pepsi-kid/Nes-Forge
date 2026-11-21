@@ -246,6 +246,8 @@ input[type=file]{display:none}
 .autosave-banner button:hover{background:var(--bdr);color:#fff}
 .autosave-banner .ab-restore{background:#1a3a2a;border-color:#2a6a4a;color:var(--grn)}
 .autosave-banner .ab-dismiss{background:#3a1a1a;border-color:#6a3a3a;color:var(--red)}
+.autosave-banner[data-mode="notice"]{background:#3a2e14;border-bottom-color:#8a6a2a;color:#ffd98a}
+#forge15State[data-recovery="warn"]{color:#ffb35a;border-color:#8a5a2a}#forge15State[data-recovery="busy"]{color:#9fd3ff}
 /* ═══ v8: ROM CONFIG ═══ */
 .rom-cfg{margin:4px 0}
 .rom-cfg label{display:block;font-size:8px;color:var(--dim);margin:3px 0 1px}
@@ -806,9 +808,10 @@ input[type=file]{display:none}
 
 <!-- v8: Autosave recovery banner -->
 <div class="autosave-banner" id="autosaveBanner">
-<span>Recovery found. Autosave is held until you Restore or Dismiss.</span>
+<span id="autosaveText">Recovery found. Restore it or dismiss it. This tab is protected separately.</span>
 <button class="ab-restore" onclick="db_restoreAutosave()">Restore</button>
 <button class="ab-dismiss" onclick="db_dismissAutosave()">Dismiss</button>
+<button class="ab-ok" id="autosaveOk" hidden onclick="db_dismissAutosave()">OK</button>
 </div>
 
 <div class="bar"><div id="issueStatus" role="status" style="max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Ready • local, offline</div>
@@ -9149,9 +9152,9 @@ F.project={create,openRom,classifyRom,replaceProject};
   function updateStatus(message){
     const el=document.getElementById('forge15State');if(!el)return;
     const status=window.Forge15||{},clock=t=>t?new Date(t).toLocaleTimeString():'—';
-    el.className=status.dirty?'dirty':'clean';
-    el.textContent=message||((status.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(status.lastRecovery));
-    el.title='Modified: '+(status.dirty?'yes':'no')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
+    const r=status.recovery;el.className=status.dirty?'dirty':'clean';el.dataset.recovery=r?.level||'';
+    el.textContent=message||((status.dirty?'● Unsaved changes':'✓ Saved')+' · '+(r?.text||'recovery '+clock(status.lastRecovery)));
+    el.title=(status.dirty?'Unsaved changes: not yet saved to a project file or browser save.':'Saved: no changes since the last save.')+'\n'+(r?.detail||'')+'\nBrowser save: '+clock(status.lastBrowserSave)+'\nRecovery copy: '+clock(status.lastRecovery)+'\nPortable save: '+clock(status.lastPortable);
   }
   F.release=Object.freeze({version:'2.0.0-alpha.12',name:'Integrated Review 6',maturity:'alpha',candidate:'integrated-review-6-public',schema:16,updateStatus,
     romLayout:3,worldRomLayout:4,worldSource:1,nfex:1,metatile:1,world:3,metasprite:2,gameplay:2,audio:1});
@@ -9343,6 +9346,93 @@ services.GameplayModel=Object.freeze({defaults,normalize,validateProject,validat
     entity:(id,project)=>index(project).entities.get(id)||null,
     metasprite:(id,project)=>index(project).metasprites.get(id)||null});
 })();
+/*
+ * NES FORGE MODULE: src/services/recovery-journal.js
+ * Entry: Forge.services.RecoveryJournal
+ * Purpose: durable storage for crash recovery of the open project. It replaces the single whole-project recovery
+ *   record that was written every 30 s (and that could not finish when a large project's tab closed).
+ *   - Each browser tab is a session. A session's recovery point is a head record listing the project's sections
+ *     (top-level fields and one section per scene) by content hash; the section texts are blobs keyed by session and
+ *     hash. Writing a new point stores only the sections that changed, and the head and its new blobs are written in
+ *     one IndexedDB transaction: a point is either complete or absent, never partial. The head keeps the previous
+ *     point too, so a damaged section can fall back to it.
+ *   - A synchronous localStorage tail covers the moment the tab closes while a write is still in flight: the changed
+ *     sections, with their hashes, written during pagehide/beforeunload/visibilitychange.
+ *   - A synchronous localStorage marker records every edit's sequence number, so a restore can tell whether changes
+ *     made after the recovered point existed (and how many), instead of claiming success.
+ *   - Web Locks mark live sessions, so one tab never offers another open tab's work as "recovery".
+ *   Project-specific orchestration (what a section is, when to write, restore and messages) lives in ProjectStore.
+ * Bundle order: before src/services/project-store.js.
+ */
+(()=>{
+'use strict';
+const F=window.Forge=window.Forge||{};F.services=F.services||{};
+const DB='nes-forge-recovery-journal',VERSION=1,HEADS='heads',BLOBS='blobs',LS='forge.recovery.',LOCK='nes-forge-session:';
+// 2 x 53-bit hashes plus the length: change detection and integrity checks for the user's own data (not a security hash).
+function cyrb53(text,seed){let h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;for(let i=0,ch;i<text.length;i++){ch=text.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
+  h1=Math.imul(h1^(h1>>>16),2246822507);h1^=Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507);h2^=Math.imul(h1^(h1>>>13),3266489909);return 4294967296*(2097151&h2)+(h1>>>0);}
+const hash=text=>text.length.toString(36)+'-'+cyrb53(text,1).toString(36)+'-'+cyrb53(text,7).toString(36);
+const session=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
+let dbPromise=null;
+function open(){
+  if(dbPromise)return dbPromise;
+  dbPromise=new Promise((resolve,reject)=>{
+    if(typeof indexedDB==='undefined')return reject(Error('IndexedDB is not available in this browser'));
+    const req=indexedDB.open(DB,VERSION);
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(HEADS))db.createObjectStore(HEADS,{keyPath:'session'});if(!db.objectStoreNames.contains(BLOBS))db.createObjectStore(BLOBS,{keyPath:'id'});};
+    req.onsuccess=()=>{const db=req.result;db.onversionchange=()=>{db.close();dbPromise=null;};db.onclose=()=>{dbPromise=null;};resolve(db);};
+    req.onerror=()=>{dbPromise=null;reject(req.error||Error('Recovery storage could not be opened'));};
+    req.onblocked=()=>{};
+  });
+  return dbPromise;
+}
+const txDone=tx=>new Promise((resolve,reject)=>{tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error||Error('Recovery write failed'));tx.onabort=()=>reject(tx.error||Error('Recovery write aborted'));});
+const req=r=>new Promise((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+const blobId=(s,h)=>s+'|'+h,range=s=>IDBKeyRange.bound(s+'|',s+'|￿');
+// One atomic recovery point: new blobs, removed blobs and the head in a single transaction.
+async function write(head,blobs=[],drop=[]){
+  const db=await open(),tx=db.transaction([HEADS,BLOBS],'readwrite'),b=tx.objectStore(BLOBS);
+  for(const {hash:h,text} of blobs)b.put({id:blobId(head.session,h),session:head.session,hash:h,text});
+  for(const h of drop)b.delete(blobId(head.session,h));
+  tx.objectStore(HEADS).put(head);
+  return txDone(tx);
+}
+async function heads(){const db=await open(),tx=db.transaction(HEADS,'readonly');return req(tx.objectStore(HEADS).getAll());}
+async function blobs(sessionId,hashes){
+  const db=await open(),tx=db.transaction(BLOBS,'readonly'),store=tx.objectStore(BLOBS),out=new Map();
+  await Promise.all([...new Set(hashes)].map(h=>req(store.get(blobId(sessionId,h))).then(r=>{if(r&&typeof r.text==='string')out.set(h,r.text);})));
+  return out;
+}
+async function storedHashes(sessionId){const db=await open(),tx=db.transaction(BLOBS,'readonly');return new Set((await req(tx.objectStore(BLOBS).getAllKeys(range(sessionId)))).map(k=>String(k).slice(sessionId.length+1)));}
+async function deleteSession(sessionId){
+  const db=await open(),tx=db.transaction([HEADS,BLOBS],'readwrite');
+  tx.objectStore(HEADS).delete(sessionId);tx.objectStore(BLOBS).delete(range(sessionId));
+  await txDone(tx);local.clear(sessionId);return true;
+}
+// localStorage: synchronous, so it survives a tab closing mid-write; small records only.
+const local={
+  key:(kind,s)=>LS+kind+'.'+s,
+  get(kind,s){try{const v=localStorage.getItem(this.key(kind,s));return v?JSON.parse(v):null;}catch(_){return null;}},
+  set(kind,s,value){try{localStorage.setItem(this.key(kind,s),JSON.stringify(value));return true;}catch(_){return false;}},
+  remove(kind,s){try{localStorage.removeItem(this.key(kind,s));}catch(_){/* storage unavailable */}},
+  clear(s){this.remove('marker',s);this.remove('tail',s);this.remove('end',s);},
+  sessions(){const out=new Set();try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(LS)){const m=/^forge\.recovery\.(?:marker|tail|end)\.(.+)$/.exec(k);if(m)out.add(m[1]);}}}catch(_){}return out;}
+};
+const marker={write:(s,value)=>local.set('marker',s,value),read:s=>local.get('marker',s)};
+// Written only when the page is really going away (pagehide): evidence that the session ended normally, with its last
+// change count. Without it (browser killed, crash) a restore cannot confirm that nothing was lost in the last moments.
+const end={write:(s,value)=>local.set('end',s,value),read:s=>local.get('end',s),clear:s=>local.remove('end',s)};
+const tail={write:(s,value)=>local.set('tail',s,value),read:s=>{try{const v=localStorage.getItem(local.key('tail',s));if(!v)return {value:null};return {value:JSON.parse(v)};}catch(e){return {value:null,problem:'the close-time record was unreadable ('+e.message+')'};}},
+  clearIfCovered(s,editSeq){const t=local.get('tail',s);if(t&&t.editSeq<=editSeq)local.remove('tail',s);}};
+// Live sessions: each tab holds a Web Lock for its lifetime. Without Web Locks, a head written in the last 20 s counts as live.
+const locks=typeof navigator!=='undefined'&&navigator.locks&&typeof navigator.locks.request==='function'?navigator.locks:null;
+function hold(){if(!locks)return false;try{locks.request(LOCK+session,{mode:'exclusive'},()=>new Promise(()=>{})).catch(()=>{});return true;}catch(_){return false;}}
+async function liveSessions(allHeads){
+  if(locks){try{const q=await locks.query();return new Set([...(q.held||[]),...(q.pending||[])].map(l=>l.name).filter(n=>n?.startsWith(LOCK)).map(n=>n.slice(LOCK.length)));}catch(_){/* fall through */}}
+  const now=Date.now();return new Set((allHeads||[]).filter(h=>now-(h.aliveAt||h.at||0)<20000).map(h=>h.session));
+}
+F.services.RecoveryJournal=Object.freeze({database:DB,session,hash,open,write,heads,blobs,storedHashes,deleteSession,local,marker,tail,end,hold,liveSessions,usesLocks:!!locks});
+})();
 /* NES FORGE CONNECTION: src/services/project-store.js
  * Canonical lifecycle: capture -> prepareLoad -> commit/load; recovery epoch and persistence
  * stay here. Punch-Out UI materializers use these APIs plus the existing snapshot/Undo owner.
@@ -9362,7 +9452,7 @@ const cp=value=>JSON.parse(JSON.stringify(value)), $=id=>document.getElementById
 const state={epoch:0,recoveryPhase:'checking',recoveryToken:0,lastIntent:'startup'};
 const preparedLoads=new WeakSet();
 const portableCompletions=new WeakSet();
-let recoveryWrite=Promise.resolve(),checkPromise=null;
+let checkPromise=null;
 let projectEditActive=false;
 const fail=message=>{throw Error(message);};
 S.nativeGame=null;
@@ -9371,19 +9461,28 @@ function status(message){
   if(Forge.release?.updateStatus)return Forge.release.updateStatus(message);
   const el=$('forge15State');if(!el)return;
   const clock=t=>t?new Date(t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
-  el.className=Forge15.dirty?'dirty':'clean';
-  el.textContent=message||((Forge15.dirty?'● Modified':'✓ Saved')+' · recovery '+clock(Forge15.lastRecovery));
-  el.title='Modified: '+(Forge15.dirty?'yes':'no')+'\nBrowser save: '+clock(Forge15.lastBrowserSave)+'\nRecovery: '+clock(Forge15.lastRecovery)+'\nPortable save: '+clock(Forge15.lastPortable);
+  const r=Forge15.recovery;el.className=Forge15.dirty?'dirty':'clean';el.dataset.recovery=r?.level||'';
+  el.textContent=message||((Forge15.dirty?'● Unsaved changes':'✓ Saved')+' · '+(r?.text||'recovery '+clock(Forge15.lastRecovery)));
+  el.title=(Forge15.dirty?'Unsaved changes: not yet saved to a project file or browser save.':'Saved: no changes since the last save.')+'\n'+(r?.detail||'')+'\nBrowser save: '+clock(Forge15.lastBrowserSave)+'\nRecovery copy: '+clock(Forge15.lastRecovery)+'\nPortable save: '+clock(Forge15.lastPortable);
 }
 function writeSchema(){return S.nativeGame?.version===3?16:S.nativeGame?.version===2?15:S.investigation?14:S.nativeGame?13:12;}
 function assertTarget(options){const target=options?.targetVersion??options?.targetSchema,schema=writeSchema();if(target!==undefined&&target!==schema)fail('Project schema '+schema+' is required: downgrade or format changes would lose native recipes or canonical authoring records. Export with this project format or retain the original older file.');}
-function capture(options={}){
+// The ROM's base64 is reused while its bytes are unchanged (checked by a fast checksum, not by identity alone).
+const romText=new WeakMap();
+function romBase64(bytes){
+  let sum=2166136261;for(let i=0;i<bytes.length;i++)sum=Math.imul(sum^bytes[i],16777619);
+  const hit=romText.get(bytes);if(hit&&hit.length===bytes.length&&hit.sum===sum)return hit.text;
+  const text=bytesToBase64(bytes);romText.set(bytes,{length:bytes.length,sum,text});return text;
+}
+// The project's fields as live references (no copy). capture() is a deep copy of this; crash recovery reads it per
+// section so an edit to one scene does not copy or rewrite the whole project.
+function captureFields(options={}){
   assertTarget(options);
   Forge164.model.ensure();
   saveCurrentScene();
   Forge161.worlds.ensure();
   S.asmSource=$('codeInput')?.value??S.asmSource;
-  return cp({format:'NESForge',version:writeSchema(),foundation:Forge.release.version,romLayout:Forge.services.WorldConfig.get().enabled?4:3,worldAuthoring:3,
+  return {format:'NESForge',version:writeSchema(),foundation:Forge.release.version,romLayout:Forge.services.WorldConfig.get().enabled?4:3,worldAuthoring:3,
     metatileExtension:1,metaspriteExtension:2,entityAnimationExtension:1,
     chr:S.chr,sprChr:S.sprChr,nt:S.nt,attr:S.attr,pal:S.pal,sprPal:S.sprPal,oam:S.oam,
     scenes:S.scenes,activeScene:S.activeScene,asmSource:S.asmSource,instruments:S.instruments,
@@ -9391,13 +9490,14 @@ function capture(options={}){
     tileProps:S.tileProps,animations:S.animations,metasprites:S.metasprites,worlds:S.worlds,
     mapper:S.mapper,mirroring:S.mirroring,hasSRAM:S.hasSRAM,prgBanks:S.prgBanks,chrBanks:S.chrBanks,
     packScenes:S.packScenes!==false,projectName:S.projectName,
-    importedRom:S.importedRom?bytesToBase64(S.importedRom):null,
-    ...(S.nativeGame?{nativeGame:cp(S.nativeGame)}:{}),
-    ...(S.investigation?{investigation:cp(S.investigation)}:{}),
+    importedRom:S.importedRom?romBase64(S.importedRom):null,
+    ...(S.nativeGame?{nativeGame:S.nativeGame}:{}),
+    ...(S.investigation?{investigation:S.investigation}:{}),
     ...(options.includeEditorView===true?{editorView:Forge.services.EditorView?.capture()||{worldId:S.worlds[Forge161.worlds.state.selected]?.id}}:{}),
     selTile:S.selTile,editTile:S.editTile,selSprite:S.selSprite,selEntity:S.selEntity,chrBank:S.chrBank,
-    _selAnim:S._selAnim||0,_animFrame:S._animFrame||0,gameplay:Forge165.config.get(),worldRuntime:Forge.services.WorldConfig.get(),audioRuntime:Forge.services.AudioConfig.get(),gameplayCore:cp(S.gameplayCore||Forge.services.GameplayModel.defaults())});
+    _selAnim:S._selAnim||0,_animFrame:S._animFrame||0,gameplay:Forge165.config.get(),worldRuntime:Forge.services.WorldConfig.get(),audioRuntime:Forge.services.AudioConfig.get(),gameplayCore:S.gameplayCore||Forge.services.GameplayModel.defaults()};
 }
+function capture(options={}){return cp(captureFields(options));}
 function serialize(options={}){return JSON.stringify(Store.capture(options));}
 // View preferences are excluded only at explicit authoring-source boundaries.
 // Raw recipe v1 hashing remains unchanged and still hashes every supplied field.
@@ -9533,7 +9633,13 @@ function commit(prepared,options={}){
   $('undoBtn').disabled=!undoStack.length;
   if(external){Forge15.dirty=false;status('Loaded project');}
   if(Forge.services.EditorView)Forge.services.EditorView.restore(p.editorView,priorView,refresh);else refresh();
-  Forge.services.InvestigationUI?.projectChanged();return true;
+  Forge.services.InvestigationUI?.projectChanged();
+  recoveryCommitted(options);return true;
+}
+function recoveryCommitted(options){
+  if(typeof rec==='undefined'||!rec.enabled)return;
+  if(options.history)return noteChange('edit','snapshot');
+  if(rec.meaningful||options.intent!=='startup'){rec.meaningful=true;publishStatus();schedule();}
 }
 function load(input,options={}){return Store.commit(Store.prepareLoad(input),options);}
 // Bounded canonical edits are not project replacement. Only private preparers
@@ -9767,76 +9873,281 @@ async function openFile(event){
     Store.load(text,{intent:'file-open'});broadcastState('projectOpen');showToast('Opened '+file.name);return true;
   }catch(error){reportError(error);return false;}
 }
+// ---------- crash recovery: a per-tab journal of project sections (see services/recovery-journal.js) ----------
+// A recovery point is written shortly after every edit (the first write starts as soon as the edit's handler ends,
+// later ones at most every MIN_GAP ms while edits continue), plus a check every few seconds for changes made without
+// an edit signal. Only changed sections are written, in one atomic transaction. When the tab closes, hides or
+// refreshes, the changed sections not yet committed are also written synchronously to localStorage. A restore says
+// exactly which point it recovered and whether later changes existed that could not be recovered.
+const Journal=Forge.services.RecoveryJournal;
+const MIN_GAP=150,CLEAN_REASONS=new Set(['welcome','fullSync','sceneSelect','selectTile','eyedrop','sprSelect']),LOAD_REASONS=new Set(['projectLoad','projectOpen','projectDrop','zipProject','zipAssets']);
+const rec={session:Journal?.session||null,startedAt:Date.now(),enabled:!!Journal,unavailable:Journal?null:'recovery storage is missing',meaningful:false,
+  editSeq:0,actions:0,committedActions:0,lastActionAt:0,writeSeq:0,committed:new Map(),committedSeq:0,committedAt:0,lastHead:null,stored:new Set(),writing:null,again:false,timer:null,lastStart:0,
+  firstUncommittedAt:0,lastError:null,retryAt:0,checkEvery:4000,lastCheck:0,offered:null,report:null,inv:null,tail:null,
+  metrics:{writes:0,lastMs:0,lastComputeMs:0,lastBytes:0,lastSections:0,baselineMs:0,baselineBytes:0,emergencies:0,lastEmergencyMs:0,lastEmergencyBytes:0}};
+const clockText=t=>t?new Date(t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
+function recoverySections(){
+  const fields=captureFields({includeEditorView:true}),out=[];
+  for(const key of Object.keys(fields)){
+    const value=fields[key];if(value===undefined)continue;
+    if(key==='scenes'&&Array.isArray(value)){out.push(['n:scenes',String(value.length)]);value.forEach((scene,i)=>out.push(['scene:'+i,JSON.stringify(scene)]));continue;}
+    if(key==='investigation'&&value&&typeof value==='object'){
+      // Replaced wholesale on load, never edited in place: reuse its text while the object is the same.
+      if(rec.inv?.ref!==value){const text=JSON.stringify(value);rec.inv={ref:value,text,hash:Journal.hash(text)};}
+      out.push(['f:investigation',rec.inv.text,rec.inv.hash]);continue;
+    }
+    const text=JSON.stringify(value);if(text!==undefined)out.push(['f:'+key,text]);
+  }
+  for(const section of out)if(section[2]===undefined)section[2]=Journal.hash(section[1]);
+  return out;
+}
+function assembleSections(list,textOf){
+  const data={};
+  for(const [name,hash] of list){
+    const text=textOf(name,hash);if(typeof text!=='string')fail('section '+name+' is missing');
+    if(name==='n:scenes'){const n=Number(text);if(!Number.isInteger(n)||n<0)fail('scene count is invalid');data.scenes=new Array(n);continue;}
+    if(name.startsWith('scene:')){const i=Number(name.slice(6));if(!data.scenes||!Number.isInteger(i)||i>=data.scenes.length)fail('scene section '+name+' is out of range');data.scenes[i]=JSON.parse(text);continue;}
+    if(name.startsWith('f:'))data[name.slice(2)]=JSON.parse(text);else fail('unknown section '+name);
+  }
+  if(data.scenes&&data.scenes.some(scene=>scene===undefined))fail('a scene section is missing');
+  return data;
+}
+function recoveryLabel(){
+  if(!rec.enabled)return {level:'warn',text:'recovery unavailable',detail:'Crash recovery is off: '+(rec.unavailable||'storage unavailable')+'. Use Save Project As to keep your work.'};
+  if(rec.lastError&&rec.committedSeq!==rec.editSeq)return {level:'warn',text:'recovery failed · use Save As',detail:'The last recovery write failed: '+rec.lastError+'. Forge retries automatically.'};
+  if(!rec.meaningful)return {level:'ok',text:'recovery ready',detail:'Nothing to recover yet: the project has not been opened or edited in this tab.'};
+  if(!rec.lastHead)return {level:'busy',text:'recovery preparing…',detail:'Writing the first recovery copy of this project. Until it is written, closing the tab can lose this session\'s changes.'};
+  const behind=Math.max(rec.editSeq>rec.committedSeq?1:0,rec.actions-rec.committedActions);
+  if(behind<=0)return {level:'ok',text:'recovery ✓ '+clockText(rec.committedAt),detail:'Every change is in the recovery copy (last written '+clockText(rec.committedAt)+').'};
+  if(rec.firstUncommittedAt&&Date.now()-rec.firstUncommittedAt>2000)return {level:'warn',text:'recovery behind · '+behind+' change'+(behind===1?'':'s')+' since '+clockText(rec.firstUncommittedAt),detail:'Changes made since '+clockText(rec.firstUncommittedAt)+' are not in the recovery copy yet.'};
+  return {level:'busy',text:'recovery saving…',detail:behind>0?behind+' change'+(behind===1?' is':'s are')+' being written to the recovery copy.':'Updating the recovery copy.'};
+}
+function publishStatus(){const l=recoveryLabel();Forge15.recovery=l;Forge15.lastRecovery=rec.committedAt||Forge15.lastRecovery;status();}
+function schedule(delay){
+  if(!rec.enabled||rec.timer)return;
+  const wait=delay??Math.max(0,MIN_GAP-(performance.now()-rec.lastStart));
+  rec.timer=setTimeout(()=>{rec.timer=null;void flush('edit');},rec.writing?Math.max(wait,MIN_GAP):wait);
+}
+// An edit signal (an undo snapshot or a change broadcast): record it synchronously, write soon. editSeq counts every
+// signal (it decides whether a recovery point covers everything); actions counts user actions for messages: one per
+// undo snapshot, or per broadcast that does not follow a snapshot within 300 ms.
+function noteChange(reason,kind){
+  if(CLEAN_REASONS.has(reason))return;
+  rec.meaningful=true;
+  if(!LOAD_REASONS.has(reason)){
+    const now=Date.now();rec.editSeq++;
+    if(kind==='snapshot'||now-rec.lastActionAt>300)rec.actions++;if(kind==='snapshot')rec.lastActionAt=now;
+    if(!rec.firstUncommittedAt)rec.firstUncommittedAt=now;
+    if(rec.session)Journal.marker.write(rec.session,{editSeq:rec.editSeq,actions:rec.actions,at:now,projectName:S.projectName});
+  }
+  publishStatus();schedule();
+}
+function flush(reason){
+  if(!rec.enabled||!rec.meaningful)return Promise.resolve(false);
+  if(rec.writing){rec.again=true;return rec.writing;}
+  if(rec.retryAt&&Date.now()<rec.retryAt&&reason!=='explicit'&&reason!=='close'){schedule(rec.retryAt-Date.now());return Promise.resolve(false);}
+  const t0=performance.now();let sections;
+  try{sections=recoverySections();}catch(error){rec.lastError='the project could not be read ('+error.message+')';publishStatus();return Promise.resolve(false);}
+  const computeMs=performance.now()-t0,editSeq=rec.editSeq,actions=rec.actions,at=Date.now(),list=sections.map(([n,,h])=>[n,h]),names=new Set(list.map(x=>x[0]));
+  const changed=sections.filter(([n,,h])=>rec.committed.get(n)!==h),removed=[...rec.committed.keys()].some(n=>!names.has(n));
+  rec.metrics.lastComputeMs=computeMs;
+  if(rec.lastHead&&!changed.length&&!removed){
+    if(rec.committedSeq!==editSeq){rec.committedSeq=editSeq;rec.committedActions=actions;if(rec.session)Journal.tail.clearIfCovered(rec.session,editSeq);}
+    rec.firstUncommittedAt=0;rec.lastError=null;publishStatus();return Promise.resolve(true);
+  }
+  const prev=rec.lastHead?{seq:rec.lastHead.seq,editSeq:rec.lastHead.editSeq,actions:rec.lastHead.actions,at:rec.lastHead.at,sections:rec.lastHead.sections}:null;
+  const head={session:rec.session,seq:rec.writeSeq+1,editSeq,actions,at,aliveAt:at,startedAt:rec.startedAt,projectName:S.projectName,version:Forge.release.version,offerable:true,sections:list,prev};
+  const blobs=changed.filter(([,,h])=>!rec.stored.has(h)).map(([,text,h])=>({hash:h,text}));
+  const keep=new Set([...list.map(x=>x[1]),...(prev?prev.sections.map(x=>x[1]):[])]);
+  const drop=[...new Set((rec.lastHead?.prev?.sections||[]).map(x=>x[1]).filter(h=>!keep.has(h)&&!blobs.some(b=>b.hash===h)))];
+  const bytes=blobs.reduce((n,b)=>n+b.text.length,0),baseline=!rec.lastHead;
+  rec.lastStart=performance.now();
+  const job=Journal.write(head,blobs,drop).then(()=>{
+    for(const b of blobs)rec.stored.add(b.hash);for(const h of drop)rec.stored.delete(h);
+    rec.writeSeq=head.seq;rec.lastHead=head;rec.committed=new Map(list);rec.committedSeq=Math.max(rec.committedSeq,editSeq);rec.committedActions=Math.max(rec.committedActions,actions);rec.committedAt=at;rec.lastError=null;rec.retryAt=0;
+    if(rec.editSeq===editSeq)rec.firstUncommittedAt=0;
+    Journal.tail.clearIfCovered(rec.session,editSeq);
+    const ms=performance.now()-t0;Object.assign(rec.metrics,{writes:rec.metrics.writes+1,lastMs:ms,lastBytes:bytes,lastSections:blobs.length});if(baseline)Object.assign(rec.metrics,{baselineMs:ms,baselineBytes:bytes});
+    autoSaveWarning=false;return true;
+  },error=>{rec.lastError=error?.message||String(error);rec.retryAt=Date.now()+5000;return false;}).finally(()=>{
+    rec.writing=null;publishStatus();
+    if(rec.again||rec.editSeq!==rec.committedSeq){rec.again=false;schedule();}
+  });
+  rec.writing=job;publishStatus();return job;
+}
+// Closing, refreshing or hiding the tab: write what is not committed yet synchronously, then try a normal write too.
+function closeTime(kind){
+  if(!rec.enabled||!rec.meaningful||!rec.session)return;
+  if(kind==='pagehide')Journal.end.write(rec.session,{editSeq:rec.editSeq,actions:rec.actions,at:Date.now()});
+  const t0=performance.now();let sections;try{sections=recoverySections();}catch(_){return;}
+  const list=sections.map(([n,,h])=>[n,h]),names=new Set(list.map(x=>x[0]));
+  const changed=sections.filter(([n,,h])=>rec.committed.get(n)!==h);
+  if(rec.lastHead&&!changed.length&&![...rec.committed.keys()].some(n=>!names.has(n))&&rec.committedSeq===rec.editSeq)return;
+  const record={session:rec.session,kind,base:rec.lastHead?.seq||0,editSeq:rec.editSeq,actions:rec.actions,at:Date.now(),projectName:S.projectName,sections:list,blobs:changed.map(([,text,h])=>[h,text])};
+  const ok=Journal.tail.write(rec.session,record);rec.tail={kind,ok,editSeq:rec.editSeq,bytes:record.blobs.reduce((n,b)=>n+b[1].length,0)};
+  rec.metrics.emergencies++;rec.metrics.lastEmergencyMs=performance.now()-t0;rec.metrics.lastEmergencyBytes=rec.tail.bytes;
+  void flush('close');
+}
+// ---------- offering and restoring an earlier session ----------
 function localRecovery(){try{return localStorage.getItem(AUTOSAVE_KEY);}catch(_){return null;}}
-function recoveryPhase(phase){state.recoveryPhase=phase;recoveryPending=phase!=='ready';$('autosaveBanner').classList.toggle('show',phase==='offered'||phase==='restoring');}
+function recoveryPhase(phase){state.recoveryPhase=phase;recoveryPending=phase==='offered'||phase==='restoring';$('autosaveBanner').classList.toggle('show',phase==='offered'||phase==='restoring'||phase==='notice');}
+function banner(mode,text){
+  const el=$('autosaveText');if(el)el.textContent=text;
+  const b=$('autosaveBanner');if(!b)return;b.dataset.mode=mode;
+  for(const c of b.querySelectorAll('.ab-restore,.ab-dismiss'))c.hidden=mode!=='offer';const ok=$('autosaveOk');if(ok)ok.hidden=mode!=='notice';
+}
 function recoveryError(error){autoSaveWarning=true;const el=$('issueStatus');if(el){el.textContent='Browser recovery unavailable — portable Save As still works';el.title=error?.message||String(error);}}
-async function readRecovery(){
+async function readLegacyRecovery(){
   let db;try{db=await db_open();return await new Promise((resolve,reject)=>{const tx=db.transaction(Forge15.recoveryStore,'readonly'),request=tx.objectStore(Forge15.recoveryStore).get(Forge15.recoveryKey);request.onsuccess=()=>resolve(request.result||null);request.onerror=()=>reject(request.error);tx.onabort=()=>reject(tx.error||Error('Recovery read aborted'));});}finally{db?.close();}
 }
-async function deleteRecovery(token){
-  let db;try{db=await db_open();if(token!==state.recoveryToken)return false;await new Promise((resolve,reject)=>{const tx=db.transaction(Forge15.recoveryStore,'readwrite');tx.objectStore(Forge15.recoveryStore).delete(Forge15.recoveryKey);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Recovery deletion aborted'));});return true;}finally{db?.close();}
+async function deleteLegacyRecovery(){
+  let db;try{db=await db_open();await new Promise((resolve,reject)=>{const tx=db.transaction(Forge15.recoveryStore,'readwrite');tx.objectStore(Forge15.recoveryStore).delete(Forge15.recoveryKey);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Recovery deletion aborted'));});}finally{db?.close();}
+  try{localStorage.removeItem(AUTOSAVE_KEY);}catch(_){}
+}
+// The most recent earlier session that holds work: not this tab, not another open tab. Blank sessions and sessions
+// older than 14 days are pruned; at most five earlier sessions are kept.
+async function findOffer(){
+  let offer=null,journalHeads=[];
+  if(rec.enabled){
+    try{journalHeads=await Journal.heads();}catch(error){rec.enabled=false;rec.unavailable=error.message;}
+  }
+  if(rec.enabled){
+    const live=await Journal.liveSessions(journalHeads),now=Date.now();
+    const earlier=journalHeads.filter(h=>h.session!==rec.session&&!live.has(h.session));
+    const candidates=[];
+    for(const head of earlier){
+      if(!head.offerable||now-(head.at||0)>14*86400000){await Journal.deleteSession(head.session).catch(()=>{});continue;}
+      const t=Journal.tail.read(head.session),m=Journal.marker.read(head.session),ended=Journal.end.read(head.session);
+      candidates.push({kind:'journal',head,tail:t.value&&t.value.session===head.session?t.value:null,tailProblem:t.problem||null,marker:m,ended,at:Math.max(head.at||0,t.value?.at||0,m?.at||0)});
+    }
+    candidates.sort((a,b)=>b.at-a.at);
+    for(const old of candidates.slice(5))await Journal.deleteSession(old.head.session).catch(()=>{});
+    // localStorage records whose session never committed a point (or was removed): nothing to restore from.
+    const known=new Set(journalHeads.map(h=>h.session));for(const s of Journal.local.sessions())if(s!==rec.session&&!known.has(s)&&!live.has(s))Journal.local.clear(s);
+    if(candidates.length)offer={...candidates[0],others:Math.min(4,candidates.length-1)};
+  }
+  const local=localRecovery();let legacy=null;
+  try{legacy=await readLegacyRecovery();}catch(_){legacy=null;}
+  let legacyText=null;if(local)try{if(JSON.parse(local)?.scenes)legacyText=local;}catch(_){}
+  if(legacy?.state||legacyText){const at=legacy?.timestamp||0;if(!offer||at>offer.at)offer={kind:'legacy',record:legacy,local:legacyText,at,others:offer?1:0};}
+  else if(local&&!legacyText){try{localStorage.removeItem(AUTOSAVE_KEY);}catch(_){}}
+  return offer;
+}
+function offerText(offer){
+  const when=offer.at?new Date(offer.at).toLocaleString():'an earlier session';
+  if(offer.kind==='legacy')return 'Recovery found from '+when+' (older Forge recovery copy). Restore it or dismiss it. This tab is protected separately.';
+  const h=offer.head,changes=Math.max(h.actions||0,offer.tail?.actions||0,offer.marker?.actions||0);
+  return 'Recovery found: “'+(h.projectName||'Untitled')+'”, last change '+when+(changes?' · '+changes+' change'+(changes===1?'':'s')+' in that session':'')+(offer.others?' · '+offer.others+' older session'+(offer.others===1?'':'s')+' kept':'')+'. Restore it or dismiss it. This tab is protected separately.';
 }
 async function checkRecovery(){
   if(checkPromise&&state.recoveryPhase==='checking')return checkPromise;
+  if(state.recoveryPhase==='offered'&&rec.offered)return true;
   const token=++state.recoveryToken;recoveryPhase('checking');
   checkPromise=(async()=>{
-    const local=localRecovery();let legacy=null,localTime=0;
-    if(local)try{const value=JSON.parse(local);if(value?.scenes)legacy=local;localTime=value?.timestamp||0;}catch(_){}
     try{
-      const record=await readRecovery();if(token!==state.recoveryToken)return false;
-      // A corrupt/unknown record is still the user's recovery data. Only an
-      // explicit dismissal may remove it; startup must never overwrite it.
-      const offered=local!==null||record!==null;Forge15.lastRecovery=record?.timestamp||localTime||Forge15.lastRecovery;
-      recoveryPhase(offered?'offered':'ready');status(offered?'Recovery available · restore or dismiss':state.lastIntent==='startup'?'Untitled project · ready':undefined);return offered;
-    }catch(error){if(token!==state.recoveryToken)return false;recoveryPhase(local!==null?'offered':'unavailable');recoveryError(error);return local!==null;}
+      const offer=await findOffer();if(token!==state.recoveryToken)return false;
+      rec.offered=offer;if(offer)banner('offer',offerText(offer));
+      recoveryPhase(offer?'offered':'ready');publishStatus();
+      if(offer)status('Recovery available · restore or dismiss');else if(state.lastIntent==='startup')status('Untitled project · ready');
+      return !!offer;
+    }catch(error){if(token!==state.recoveryToken)return false;recoveryPhase('ready');recoveryError(error);return false;}
   })();
   return checkPromise;
 }
-async function writeRecovery(text,epoch,token,now){
-  let db;try{
-    db=await db_open();
-    if(state.epoch!==epoch||state.recoveryToken!==token||state.recoveryPhase!=='ready')return false;
-    await new Promise((resolve,reject)=>{const tx=db.transaction(Forge15.recoveryStore,'readwrite');tx.objectStore(Forge15.recoveryStore).put({key:Forge15.recoveryKey,timestamp:now,state:text});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});
-    if(state.epoch!==epoch||state.recoveryToken!==token)return false;
-    try{localStorage.setItem(AUTOSAVE_KEY,JSON.stringify({indexedDB:true,timestamp:now}));}catch(_){}
-    Forge15.lastRecovery=now;autoSaveWarning=false;status();return true;
-  }finally{db?.close();}
+// Read the newest readable point of an offered session: the close-time record, then the head, then the previous head.
+async function readPoint(offer){
+  const {head,tail,marker,ended}=offer,problems=offer.tailProblem?['close-time record: '+offer.tailProblem]:[],tries=[];
+  if(tail&&tail.editSeq>head.editSeq)tries.push({source:'close',sections:tail.sections,editSeq:tail.editSeq,actions:tail.actions,at:tail.at,inline:new Map(tail.blobs||[])});
+  tries.push({source:'latest',sections:head.sections,editSeq:head.editSeq,actions:head.actions,at:head.at});
+  if(head.prev)tries.push({source:'previous',sections:head.prev.sections,editSeq:head.prev.editSeq,actions:head.prev.actions,at:head.prev.at});
+  for(const point of tries){
+    try{
+      if(!Array.isArray(point.sections)||!point.sections.length)fail('it lists no sections');
+      const need=point.sections.map(([,h])=>h).filter(h=>!point.inline?.has(h)),stored=await Journal.blobs(head.session,need),texts=new Map();
+      for(const [name,h] of point.sections){const text=point.inline?.get(h)??stored.get(h);if(typeof text!=='string')fail('section '+name+' is missing');if(Journal.hash(text)!==h)fail('section '+name+' does not match its checksum');texts.set(name,text);}
+      const data=assembleSections(point.sections,name=>texts.get(name));
+      return {text:JSON.stringify(data),report:{source:point.source,editSeq:point.editSeq,actions:point.actions??null,at:point.at,markerEditSeq:marker?.editSeq??null,markerActions:marker?.actions??null,markerAt:marker?.at??null,
+        endedNormally:!!ended,endEditSeq:ended?.editSeq??null,endActions:ended?.actions??null,endAt:ended?.at??null,problems,projectName:head.projectName}};
+    }catch(error){problems.push(point.source+' point: '+error.message);}
+  }
+  fail('No recovery point of that session could be read ('+problems.join('; ')+'). It has been kept; dismiss it explicitly to remove it.');
 }
-function autoSave(){
-  if(state.recoveryPhase!=='ready'||recoveryPending)return Promise.resolve(false);
-  const epoch=state.epoch,token=state.recoveryToken,now=Date.now();let text;
-  try{text=Store.serialize({includeEditorView:true});}catch(error){reportError(error);return Promise.resolve(false);}
-  // Serialize writers so an earlier async open cannot finish after a later save.
-  const job=recoveryWrite.catch(()=>{}).then(()=>writeRecovery(text,epoch,token,now));
-  recoveryWrite=job;return job.catch(error=>{recoveryError(error);return false;});
+function restoreMessage(r){
+  const through=clockText(r.at),damaged=r.problems.length?' Note: '+r.problems.join('; ')+'.':'';
+  if(r.source==='legacy')return {complete:null,text:'Restored an older Forge recovery copy from '+through+'. That format did not record later changes, so Forge cannot confirm whether any were lost.'};
+  // Changes known to exist: the session's normal-end record (reliable), else the per-edit marker (may lag behind a
+  // browser that was killed, so it can prove a loss but never completeness).
+  const known=r.endedNormally?r.endEditSeq:r.markerEditSeq,knownActions=r.endedNormally?r.endActions:r.markerActions,knownAt=r.endedNormally?r.endAt:r.markerAt;
+  if(known!==null&&known>r.editSeq){const lost=Math.max(1,(knownActions??0)-(r.actions??0));
+    return {complete:false,lost,text:'Recovered changes through '+through+'. '+lost+' later change'+(lost===1?'':'s')+' (made until '+clockText(knownAt)+') could not be recovered.'+damaged};}
+  if(r.endedNormally)return {complete:true,text:'Recovery restored: every change through '+through+'.'+damaged};
+  return {complete:null,text:'Restored every change Forge had recorded (through '+through+'). Forge or the browser ended unexpectedly, so changes made in its last moments cannot be confirmed.'+damaged};
 }
 async function restoreRecovery(){
-  const token=++state.recoveryToken,epoch=state.epoch,before=Store.serialize();recoveryPhase('restoring');
+  if(!rec.offered&&!(await checkRecovery()))return false;
+  const offer=rec.offered,token=++state.recoveryToken,epoch=state.epoch,before=Store.serialize();recoveryPhase('restoring');
   try{
-    const local=localRecovery();let text=null;
-    if(local)try{if(JSON.parse(local)?.scenes)text=local;}catch(_){}
-    const record=text?null:await readRecovery();text=text||record?.state;
+    let text,report;
+    if(offer.kind==='legacy'){text=offer.local||offer.record?.state;if(!text)fail('Recovery data could not be read. It has been preserved; dismiss it explicitly to remove it.');report={source:'legacy',at:offer.at,editSeq:null,markerEditSeq:null,problems:[]};}
+    else ({text,report}=await readPoint(offer));
     if(token!==state.recoveryToken)return false;
     if(epoch!==state.epoch||Store.serialize()!==before){recoveryPhase('offered');status('Workspace changed · recovery remains available');return false;}
-    if(!text)fail('Recovery data could not be read. It has been preserved; dismiss it explicitly to start a new recovery copy.');
     const prepared=Store.prepareLoad(text);Store.commit(prepared,{intent:'recovery'});const restoredEpoch=state.epoch;Forge15.dirty=true;
-    await recoveryWrite.catch(()=>{});if(token!==state.recoveryToken)return false;
-    await deleteRecovery(token);if(token!==state.recoveryToken)return false;
-    try{localStorage.removeItem(AUTOSAVE_KEY);}catch(_){}
-    recoveryPhase('ready');if(state.epoch!==restoredEpoch)return true;
-    broadcastState('restore');Forge15.dirty=true;status('Recovered workspace · save when ready');showToast('Recovery restored');return true;
-  }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
+    // The restored project is protected by this tab's journal before the earlier session's data is removed.
+    rec.meaningful=true;const written=await flush('explicit');if(rec.writing)await rec.writing;
+    if(token!==state.recoveryToken)return false;
+    if(written||rec.lastHead){if(offer.kind==='legacy')await deleteLegacyRecovery();else await Journal.deleteSession(offer.head.session);}
+    rec.offered=null;const message=restoreMessage(report);rec.report={...report,...message};
+    if(state.epoch!==restoredEpoch){recoveryPhase('ready');return true;}
+    broadcastState('restore');Forge15.dirty=true;
+    banner('notice',message.text);recoveryPhase(message.complete===true?'ready':'notice');
+    status(message.complete===true?'Recovered workspace · save when ready':'Partly recovered workspace · see notice');showToast(message.complete===true?'Recovery restored':'Recovery incomplete — see the notice');
+    return true;
+  }catch(error){if(token===state.recoveryToken){recoveryPhase('offered');banner('offer',offerText(offer));}reportError(error);return false;}
 }
 async function dismissRecovery(){
-  const token=++state.recoveryToken;recoveryPhase('deleting');
+  if(state.recoveryPhase==='notice'){recoveryPhase('ready');return true;}
+  const offer=rec.offered,token=++state.recoveryToken;recoveryPhase('deleting');
   try{
-    await recoveryWrite.catch(()=>{});if(token!==state.recoveryToken)return false;
-    await deleteRecovery(token);if(token!==state.recoveryToken)return false;
-    try{localStorage.removeItem(AUTOSAVE_KEY);}catch(_){}
-    recoveryPhase('ready');status();return true;
+    if(offer?.kind==='legacy')await deleteLegacyRecovery();else if(offer)await Journal.deleteSession(offer.head.session);
+    if(token!==state.recoveryToken)return false;
+    rec.offered=null;recoveryPhase('ready');publishStatus();return true;
   }catch(error){if(token===state.recoveryToken)recoveryPhase('offered');reportError(error);return false;}
 }
-const Store=Forge.services.ProjectStore={schema:12,maxSchema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,authoringData,prepareLoad,commit,load,applyNativeGameEdit,applyNativeLayoutEdit,openNativeResourcePage,openInvestigatedResource,applyLibraryUse,applyNativeWorldEdit,openNativeWorldResource,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery};
+// The explicit "write recovery now" entry point (also used by tests and older callers).
+async function autoSave(){
+  if(!rec.enabled)return false;
+  rec.meaningful=true;if(rec.writing)await rec.writing.catch(()=>{});
+  const ok=await flush('explicit');if(rec.writing)await rec.writing.catch(()=>{});
+  return ok&&rec.committedSeq===rec.editSeq;
+}
+function recoveryState(){
+  const l=recoveryLabel();
+  return {session:rec.session,enabled:rec.enabled,meaningful:rec.meaningful,editSeq:rec.editSeq,committedSeq:rec.committedSeq,actions:rec.actions,committedActions:rec.committedActions,committedAt:rec.committedAt,writing:!!rec.writing,
+    baseline:!!rec.lastHead,label:l.text,level:l.level,detail:l.detail,lastError:rec.lastError,phase:state.recoveryPhase,offered:rec.offered?{kind:rec.offered.kind,at:rec.offered.at,session:rec.offered.head?.session||null}:null,
+    report:rec.report,tail:rec.tail,metrics:{...rec.metrics},usesLocks:!!Journal?.usesLocks};
+}
+function startRecovery(){
+  clearInterval(_autoSaveTimer);_autoSaveTimer=null;
+  if(!rec.enabled){publishStatus();return;}
+  Journal.hold();
+  Journal.open().then(()=>{if(rec.session)return Journal.storedHashes(rec.session).then(set=>{rec.stored=set;});}).catch(error=>{rec.enabled=false;rec.unavailable=error.message;publishStatus();});
+  const original=snapshot;snapshot=function(...args){const result=original.apply(this,args);if(!undoPaused)noteChange('edit','snapshot');return result;};
+  const broadcast=broadcastState;broadcastState=function(reason,...rest){noteChange(reason||'edit');return broadcast.call(this,reason,...rest);};
+  const close=kind=>()=>closeTime(kind);
+  addEventListener('pagehide',close('pagehide'));addEventListener('pageshow',e=>{if(e.persisted&&rec.session)Journal.end.clear(rec.session);});addEventListener('beforeunload',close('beforeunload'));addEventListener('freeze',close('freeze'));
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')closeTime('hidden');});
+  setInterval(()=>{
+    if(rec.writing||!rec.meaningful){publishStatus();return;}
+    const due=Date.now()-rec.lastCheck>=rec.checkEvery;
+    if(due){rec.lastCheck=Date.now();void flush('check').then(()=>{rec.checkEvery=Math.min(20000,Math.max(4000,Math.round(rec.metrics.lastComputeMs*150)));});}
+    else if(!Journal.usesLocks&&rec.lastHead&&Date.now()-(rec.lastHead.aliveAt||0)>10000){rec.lastHead={...rec.lastHead,aliveAt:Date.now()};void Journal.write(rec.lastHead).catch(()=>{});}
+    publishStatus();
+  },1000);
+  publishStatus();
+}
+const Store=Forge.services.ProjectStore={schema:12,maxSchema:Forge.release.schema,state,capture,prepareSnapshot:capture,serialize,authoringData,prepareLoad,commit,load,applyNativeGameEdit,applyNativeLayoutEdit,openNativeResourcePage,openInvestigatedResource,applyLibraryUse,applyNativeWorldEdit,openNativeWorldResource,applySettingsEdit,appendScene,appendAssets,applyAudioImport,initializeBlank,saveBrowser,saveCompletionToken,completePortableSave,openBrowser,openFile,checkRecovery,autoSave,restoreRecovery,dismissRecovery,recoveryState,flushRecovery:()=>flush('explicit'),closeTime};
+startRecovery();
 // These names are compatibility entry points only; active ownership is here.
 // Resolve the service method at call time for instrumentable routing contracts.
 projectData=function(options){return Store.capture(options);};
@@ -29442,6 +29753,8 @@ async function openFile(input){
   }
   if(own!==generation)return false;
   current=result;render();
+  // A ROM opened here is an import: listeners (background investigation) receive these exact bytes.
+  if(result.kind==='rom')void services.RomImports?.record(bytes,input.name,'project-gateway',{sha256:result.source?.sha256});
   // Every extraction pack opened here is kept in the resource library (complete, compressed, idempotent).
   if(result.kind==='extraction'&&services.ResourceLibrary)registerInLibrary(bytes,input.name);
   // When exact bytes match an embedded, validated catalog, open its canonical
@@ -31001,6 +31314,7 @@ style.textContent=`
 .frx-relgrid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
 .frx-relcol{min-width:0}
 .frx-relhead{font-size:10px;color:#8faabe;letter-spacing:1.2px;text-transform:uppercase;font-weight:750;margin:0 0 8px;display:flex;gap:7px;align-items:center}
+.frx-relationship:disabled{opacity:.45;cursor:not-allowed;border-style:dashed;background:transparent}.frx-unavailable{font-size:10px;color:#ffb35a;font-style:italic}
 .frx-relationship{width:100%;background:#102236;border:1px solid #25415a;border-radius:8px;color:#e2eefb;display:flex;gap:10px;align-items:center;text-align:left;margin:0 0 7px;padding:10px;min-width:0}
 .frx-relationship:hover{background:#16334b;border-color:#438eaa}
 .frx-relationship .frx-relmain{flex:1;min-width:0}
@@ -31079,6 +31393,15 @@ const array=x=>Array.isArray(x)?x:[];
 // A Scene buffer can be the storage owner of an imported tile sheet. Its
 // generated atlas is not evidence of the source game's room placement.
 const isTileSheet=scene=>scene?.captureMeta?.mode==='native-chr'&&scene.buildInclude===false;
+// What the relationships shown for a resource rest on: illustrative, observed at runtime, decoded, or stated by a pack.
+function connectionEvidence(sel){
+ if(mode==='demo')return 'Illustrative only';
+ const origin=sel.libraryEntry?.origin;
+ if(origin==='runtime-capture')return 'Observed at runtime (a synchronized emulator snapshot): sprite and background CHR links are cartridge offsets read through the mapper at that frame; sprite → actor relationships are not established';
+ if(origin==='rom-catalog')return 'Decoded by the NES Forge decoder for this exact ROM; locations are checked against the cartridge layout';
+ if(sel.libraryEntry)return 'Stated by the extraction pack that registered it; Forge validated the pack, not each relationship';
+ return 'Declared IDs and source-owner receipts; native consumer observations have partial coverage';
+}
 function addNode(g,type,id,name,summary,scope,open,details='',source='Current NES Forge project',derived=false){return g.add({key:key(type,id),type,id:String(id),name:String(name||id),summary,scope,open,details,source,derived});}
 function nativeLinks(g, scene, from) {
  const services=window.Forge.services,source=services.ResourceContext.source(scene);
@@ -31347,7 +31670,7 @@ async function libraryGraph(){
  for(const e of items){
   const n=g.add({key:key('lib',e.id),type:'lib · '+e.kind,id:e.id,name:e.notes?.name||e.path.split('/').pop(),summary:(e.identified===false||e.kind==='unknown'?'Unidentified ':'')+e.kind+' from '+(packName.get(e.packSha256)||'a registered pack')+'. '+
    (e.data==='needs-source'?'Registered index-only: its data is read from the pack when opened again.':e.data==='stored-unreadable'?'Stored exactly as archived; the archive entry could not be read.':'Stored in the library.')+(e.validation==='rejected'?' The intake rejected it; it is kept anyway.':''),
-   scope:(e.game||'Unknown source')+' · '+e.path,open:e.loads?{kind:'library-project'}:e.kind==='pose'&&e.rendition?{kind:'library-pose'}:null,details:'',source:'Resource library · '+(e.origin==='rom-catalog'?'recovered ROM catalog':'pack '+e.packSha256.slice(0,12)+'…'),libraryEntry:e,
+   scope:(e.game||'Unknown source')+' · '+e.path,open:e.loads?{kind:'library-project'}:e.kind==='pose'&&e.rendition?{kind:'library-pose'}:null,details:'',source:'Resource library · '+(e.origin==='rom-catalog'?'recovered ROM catalog':e.origin==='runtime-capture'?'runtime capture (Agent Lab investigation)':'pack '+e.packSha256.slice(0,12)+'…'),libraryEntry:e,
    stageNames:[...new Set((e.stages||[]).map(s=>s.stage))],stageBadge:[...new Set((e.stages||[]).map(s=>s.stage+(s.basis==='runtime'?' (observed)':s.basis==='rom-table'?' (ROM table)':'')))].join(', ')});
   if(e.preview)g.edge(n.key,key('lib','pack:'+e.packSha256.slice(0,16)+':'+(e.previewPath||'')),'preview image');
  }
@@ -31404,7 +31727,7 @@ function render(){
  function relations(id,edges,direction){const host=$(id);host.replaceChildren();if(!edges.length){host.append(elt('div','frx-empty',direction==='deps'?'No explicit dependencies recorded for this resource.':'No declared consumers found. This does not prove the resource is unused.'));return;}for(const e of edges){const related=nodeByKey(direction==='deps'?e.to:e.from);if(!related)continue;const b=elt('button','frx-relationship');b.type='button';const glyph=elt('span','frx-glyph',icons[related.type]||'◆'),middle=elt('span','frx-relmain');middle.append(elt('span','frx-rt',related.name),elt('span','frx-why',e.why+(e.confidence==='demo'?' · example':e.confidence==='receipt'?' · source receipt':'')));b.append(glyph,middle,elt('span','frx-linkglyph','›'));b.onclick=()=>choose(related.key);host.appendChild(b);}}
  relations('deps',deps,'deps');relations('users',users,'users');
  renderViewer(sel);$('guidance').innerHTML='<b>Reading this view:</b> “Depends on” shows explicit inputs and ownership dependencies. “Used by” shows resources that reference this one. Derived CHR/palette/sprite panels are not separately stored canonical assets. Build eligibility is not inferred from these links.';
- $('details').replaceChildren();for(const [label,value,code] of [['Resource key',sel.key,true],['Ownership / scope',sel.scope],['Provenance',sel.source],['Additional context',sel.details||'No additional metadata'],['Connection evidence',mode==='demo'?'Illustrative only':'Declared IDs and source-owner receipts; native consumer observations have partial coverage']]){$('details').append(elt('span','frx-label',label),elt('div',code?'frx-code':'frx-value',value));}
+ $('details').replaceChildren();for(const [label,value,code] of [['Resource key',sel.key,true],['Ownership / scope',sel.scope],['Provenance',sel.source],['Additional context',sel.details||'No additional metadata'],['Connection evidence',connectionEvidence(sel)]]){$('details').append(elt('span','frx-label',label),elt('div',code?'frx-code':'frx-value',value));}
  $('open-editor').textContent=mode==='demo'?'Example view — no editor action':(sel.evidenceKind||sel.apuAuditDigest)?'Export source evidence JSON ↓':sel.open?'Open in '+({scene:'Scene',tile:'CHR Sheet',chr:'CHR Sheet',sprites:'Sprites',meta:'Metatiles',collision:'Collision',animation:'Animation',pose:'Metasprites',world:'World',entity:'Entity Studio',actor:'Gameplay Core',instance:'Gameplay Core',behavior:'Behavior editor',audio:'Audio','cv-courtyard':'Scene','cv-upload':'CHR Sheet','native-cues':'ROM Audio Library','native-art':'native artwork',source:'source investigation','library-entry':'Library'}[sel.open.kind]||'editor')+' ↗':'Read-only evidence · no editor';
  $('action-note').textContent=mode==='demo'?'Switch to Live project to navigate real resources.':sel.open?.kind==='native-art'?'This explicit action opens the registered native writer. If absent, its dedicated Scene is added in one Undo step; snapshots are preserved.':sel.derived?'This resource has a Scene owner. Open in editor selects that Scene explicitly; Follow only applies to resource selections inside this workspace.':sel.type==='source'?'Source investigation requires matching ROM identity; this panel does not treat recognition as a verified native encoder.':sel.open?.kind==='native-art'?'This explicit action opens the registered native writer. If absent, its dedicated Scene is added in one Undo step; snapshots are preserved.':'Navigation uses existing NES Forge editor services and selection APIs.';
  $('unknown').textContent=mode==='demo'?'The example audio has no claimed runtime jump binding. Such links must be recovered or authored explicitly.':sel.type==='audio'?'Audio data is project-wide; no Scene-to-sound gameplay trigger is assumed.':sel.type==='source'?'A native ROM source receipt does not imply a full native graphics, behavior, or audio encoder.':'Declared references and native source receipts are distinguished. Known native consumers cover bounded observations; other runtime uses remain unknown.';
@@ -31501,6 +31824,7 @@ function renderViewer(n){
 }
 // A captured frame: Scene -> Sprite -> CHR -> ROM location -> Code/RE, each link with the evidence it rests on
 const hx=(v,w=2)=>Number(v).toString(16).toUpperCase().padStart(w,'0');
+function hasChrEntries(sourceSha256){const prefix=key('lib','rom:'+String(sourceSha256||'').slice(0,16)+':chr:');for(const k of graph.nodes.keys())if(k.startsWith(prefix))return true;return false;}
 async function renderFrameDetails(entry,host){
  const C=window.Forge.commands,P=window.Forge.services.LibraryProvenance,UI=window.Forge.services.LibraryProvenanceUI;
  const r=await C.run('library.read',{id:entry.id,as:'base64'});if(!r.ok)return;
@@ -31509,6 +31833,12 @@ async function renderFrameDetails(entry,host){
  const head=t=>box.append(elt('span','frx-label',t)),note=t=>box.append(elt('div','frx-code',t));
  const button=(label,fn,title)=>{const b=elt('button','frx-relationship',label);b.type='button';if(title)b.title=title;b.onclick=fn;return b;};
  const chrEntry=bank=>'rom:'+entry.sourceSha256.slice(0,16)+':chr:chr:'+bank,inLibrary=id=>graph.nodes.has(key('lib',id));
+ const anyChr=hasChrEntries(entry.sourceSha256),why=anyChr?'this CHR bank has no library entry':'this ROM has no CHR entries in the library (no recovered catalog registered)';
+ // an unavailable link stays visible, looks unavailable, and says why next to it (not only in a tooltip)
+ const chrLink=(bank,title)=>{const id=chrEntry(bank),b=button('CHR bank '+bank,()=>choose(key('lib',id)),title);if(inLibrary(id))return [b];
+  b.disabled=true;b.title='Unavailable: '+why;b.dataset.unavailable='true';const r=elt('span','frx-unavailable','unavailable: '+why);return [b,r];};
+ // where the cartridge's CHR ROM starts in the file: any mapped window gives it (file offset minus CHR offset)
+ const chrBase=(rec.banks?.chr||[]).find(x=>Number.isInteger(x.fileOffset)&&Number.isInteger(x.offset)),fileOf=chrOffset=>chrBase?chrBase.fileOffset-chrBase.offset+chrOffset:null;
  const openBytes=loc=>{close();try{switchTab('disasm');}catch(_){}P.openAt({sourceSha256:entry.sourceSha256},loc).then(res=>UI.renderOrigin(null,res));};
  head('Scene');
  if(entry.artifacts?.scene){const b=button('Open as a new Scene',async()=>{const u=await C.run('library.openFrameScene',{id:entry.id});if(!u.ok){$('context-result').textContent=u.error.message;return;}close();try{switchTab('scene');}catch(_){}window.showToast?.('Added “'+u.result.name+'” as a new Scene. Undo removes it.');},
@@ -31516,14 +31846,13 @@ async function renderFrameDetails(entry,host){
  else note('No scene artifact: '+(rec.synchronization?.state==='matched'?'not stored with this record.':'the frame could not be synchronization-checked ('+(rec.synchronization?.reason||'unknown reason')+').'));
  const visible=(rec.sprites||[]).filter(sp=>sp.visible),split=rec.ppu?.split;
  head('Sprites · '+visible.length+' on screen (OAM at frame '+rec.frame+')');
+ if(!anyChr)note('CHR library entries: none for this ROM, so CHR bank links are unavailable. The cartridge file offsets below are observed; "Bytes in RE" opens them in the ROM.');
  if(split)note('Unverified: this frame switches CHR banks or scroll mid-frame (sprite 0 at line '+split.sprite0Line+'); sprite pattern locations use the banks at the end of the frame.');
  for(const sp of visible.slice(0,32)){
   const w=(rec.banks?.chr||[]).find(x=>sp.pattern>=x.ppu&&sp.pattern<=x.ppuEnd),fo=w&&Number.isInteger(w.fileOffset)?w.fileOffset+(sp.pattern-w.ppu):null;
   const row=elt('div');row.className='frx-frame-sprite';row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';
   row.append(elt('span','frx-code','#'+sp.index+' at '+sp.x+','+sp.y+' · tile $'+hx(sp.tile)+' · palette '+sp.palette+(sp.flipH?' · flipped':'')+' · '+(fo!==null?'CHR file 0x'+hx(fo,5):w?.source==='CHR RAM'?'CHR RAM (no cartridge offset)':'pattern location unknown')));
-  if(fo!==null){const id=chrEntry(w.chrBank4KiB),b=button('CHR bank '+w.chrBank4KiB,()=>choose(key('lib',id)),'Observed: OAM tile through the CHR mapping'+(split?'; unverified for this frame (mid-frame switch)':''));
-   if(!inLibrary(id)){b.disabled=true;b.title='No library entry for this CHR bank; register the ROM\'s recovered catalog';}
-   row.append(b,button('Bytes in RE',()=>openBytes({fileOffset:fo,length:sp.height===16?32:16,region:'CHR ROM',chrBank:{index:w.chrBank4KiB,size:4096},name:'sprite #'+sp.index+' tile'}),'The tile\'s bytes in the cartridge'));}
+  if(fo!==null){row.append(...chrLink(w.chrBank4KiB,'Observed: OAM tile through the CHR mapping'+(split?'; unverified for this frame (mid-frame switch)':'')),button('Bytes in RE',()=>openBytes({fileOffset:fo,length:sp.height===16?32:16,region:'CHR ROM',chrBank:{index:w.chrBank4KiB,size:4096},name:'sprite #'+sp.index+' tile'}),'The tile\'s bytes in the cartridge'));}
   box.append(row);
  }
  if(visible.length>32)note('… '+(visible.length-32)+' more sprites.');
@@ -31536,8 +31865,11 @@ async function renderFrameDetails(entry,host){
   const win=(rec.banks?.chr||[]).find(x=>x.offset!==undefined&&src.chrOffset>=x.offset&&src.chrOffset<x.offset+1024),bank=src.chrOffset>>12,id=chrEntry(bank);
   const row=elt('div');row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';
   row.append(elt('span','frx-code',src.tiles+' tiles from CHR ROM +0x'+hx(src.chrOffset,5)+' (bank '+bank+')'));
-  const b=button('CHR bank '+bank,()=>choose(key('lib',id)),'Observed through the renderer and verified by the 0-pixel rebuild');if(!inLibrary(id)){b.disabled=true;b.title='No library entry for this CHR bank';}row.append(b);
-  if(win)row.append(button('Bytes in RE',()=>openBytes({fileOffset:win.fileOffset+(src.chrOffset-win.offset),length:1024,region:'CHR ROM',chrBank:{index:bank,size:4096},name:'background CHR'})));
+  row.append(...chrLink(bank,'Observed through the renderer and verified by the 0-pixel rebuild'));
+  const fo=win?win.fileOffset+(src.chrOffset-win.offset):fileOf(src.chrOffset);
+  if(fo!==null)row.append(button('Bytes in RE',()=>openBytes({fileOffset:fo,length:1024,region:'CHR ROM',chrBank:{index:bank,size:4096},name:'background CHR'}),'The cartridge bytes of these tiles'));
+  else row.append(elt('span','frx-unavailable','bytes unavailable: the CHR ROM position in the file is unknown for this frame'));
+  if(!win&&fo!==null)row.append(elt('span','frx-code','(loaded by a mid-frame bank switch: not in the end-of-frame windows)'));
   box.append(row);
  }
  head('Code at the snapshot');
@@ -31590,7 +31922,7 @@ function renderLibraryViewer(n,host,tools,caption){
     host.append(row);}
   }
   if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);
-   if(entry.preview?.derivation)host.append(elt('div','frx-code','Preview: '+entry.preview.derivation+'. The tile data is in the linked CHR entries.'));}
+   if(entry.preview?.derivation)host.append(elt('div','frx-code','Preview: '+entry.preview.derivation+'. '+(entry.kind!=='frame'?'':hasChrEntries(entry.sourceSha256)?'The original cartridge tile data is in this ROM\'s CHR library entries, linked below.':'This ROM has no CHR entries in the library (no recovered catalog registered), so the cartridge tile data is not linked here; the file offsets below locate it in the ROM.')));}
   // evidence: decoded or stated locations, each address type on its own row, or that the location is unknown
   const ev=entry.evidence||{state:'none'},box=elt('div');box.style.cssText='text-align:left;font-size:11px;margin:6px 0';
   const row=(label,value)=>{box.append(elt('span','frx-label',label),elt('div','frx-code',value));};
@@ -33762,7 +34094,7 @@ register({name:'rom.inspect',group:'rom',title:'Inspect a ROM (intake report)',
 register({name:'rom.import',group:'rom',title:'Import a ROM as a new project',mutates:true,
   summary:'Same as "Prepare investigated game" + "Import as new project": preserved source and every recovered catalog, one ProjectStore commit.',
   args:{bytes:{type:'bytes',required:true},name:{type:'string',default:'rom.nes'}},
-  run:async a=>{const project=await services.InvestigationProject.create(a.bytes,a.name);commitProject(project,'rom-import',{open:true});rememberBuildable();
+  run:async a=>{const project=await services.InvestigationProject.create(a.bytes,a.name);commitProject(project,'rom-import',{open:true});rememberBuildable();void services.RomImports?.record(a.bytes,a.name,'command');
     let described=null;try{described=cp(services.InvestigationProject.describe(project.investigation));}catch(_){described=null;}
     return {name:store().capture().projectName,investigation:described};}});
 
@@ -35312,83 +35644,303 @@ if(C?.register){
 }
 })();
 /*
+ * NES FORGE MODULE: src/services/rom-imports.js
+ * Entry: Forge.services.RomImports
+ * Purpose: one event for "the developer imported a ROM", carrying that ROM's exact bytes, name, SHA-256 and the path
+ *   it came through. Listeners (the background investigation panel) act on the ROM named by the event, never on a
+ *   guess between the project's source ROM and whatever the emulator last ran.
+ *   Sources: the project gateway (Open ROM / project / ZIP, when the file is a ROM), the legacy Import ROM button
+ *   (when the import succeeded) and the emulator's Load ROM (when the emulator accepted it). ROMs that Forge builds
+ *   itself (Build & Run) are not imports and raise no event.
+ *   The last few imported ROMs are kept in memory for this tab only (never stored).
+ * Bundle order: after the legacy editor and the emulator (it wraps importRom and emuLoadRom), before the panel.
+ */
+(()=>{
+'use strict';
+const F=window.Forge,services=F.services,MAX=6,list=[],listeners=new Set();
+const hex=buf=>[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+async function sha256(bytes){
+  if(window.NativeEngineFormat?.sha256)return window.NativeEngineFormat.sha256(bytes);
+  return hex(await crypto.subtle.digest('SHA-256',bytes));
+}
+async function record(bytes,name,via,extra={}){
+  const data=bytes instanceof Uint8Array?bytes.slice():new Uint8Array(bytes);
+  const entry=Object.freeze({sha256:extra.sha256||await sha256(data),name:String(name||'rom.nes').slice(0,160),via:String(via),at:Date.now(),size:data.length,
+    ines:data.length>=16&&data[0]===0x4e&&data[1]===0x45&&data[2]===0x53&&data[3]===0x1a,bytes:data});
+  const i=list.findIndex(e=>e.sha256===entry.sha256);if(i>=0)list.splice(i,1);list.push(entry);while(list.length>MAX)list.shift();
+  for(const fn of [...listeners])try{fn(entry);}catch(_){/* a listener never breaks an import */}
+  return entry;
+}
+const strip=({bytes,...e})=>e;
+// the legacy Import ROM button: record when the import succeeded
+if(typeof importRom==='function'){
+  const original=importRom;
+  importRom=function(rom,name,...rest){const result=original.call(this,rom,name,...rest);
+    if(result!==false&&rom&&rom.length)void record(rom instanceof Uint8Array?rom:new Uint8Array(rom),name||'Imported ROM','import-rom');return result;};
+}
+// the emulator's Load ROM: record when the emulator accepted the file
+if(typeof emuLoadRom==='function'){
+  const original=emuLoadRom;
+  emuLoadRom=async function(e,...rest){
+    const file=e?.target?.files?.[0],read=file?file.arrayBuffer().then(b=>new Uint8Array(b)).catch(()=>null):null;
+    const result=await original.call(this,e,...rest);
+    const bytes=read?await read:null;
+    if(bytes&&typeof emu!=='undefined'&&emu.loaded&&emu.romName===file.name)void record(bytes,file.name,'emulator-load');
+    return result;
+  };
+}
+services.RomImports=Object.freeze({record,sha256,
+  list:()=>list.map(strip),last:()=>list.length?strip(list[list.length-1]):null,
+  bytes:sha=>list.find(e=>e.sha256===sha)?.bytes.slice()||null,
+  subscribe(fn){if(typeof fn!=='function')throw Error('listener must be a function');listeners.add(fn);return()=>listeners.delete(fn);}});
+})();
+/*
  * NES FORGE MODULE: src/ui/investigation-panel.js
  * Entry: Forge.services.InvestigationPanel (and the "Background investigation" panel above Scene resources)
- * Purpose: a compact status of the Agent Lab worker investigating a ROM in the background, while the developer keeps
- *   working. It connects to the local worker (tools/agent-lab/capture_worker.cjs serve: 127.0.0.1 only, with its token),
- *   starts an investigation of the ROM open in Forge, shows each job's progress, discoveries (frames captured and
- *   synchronization-checked), unresolved items and failures, pauses/resumes/cancels jobs, and imports finished results
- *   into the library through library.importInvestigation (validated there). Importing never changes the project.
- *   Without a worker, Forge works exactly as before; nothing here runs unless the developer connects.
- * Bundle order: after src/services/frame-evidence.js.
+ * Purpose: the developer's view of the local Agent Lab worker (tools/agent-lab/capture_worker.cjs serve), so ROMs are
+ *   investigated in the background while they keep building.
+ *   - Pairing: the worker prints a single-use code; Forge exchanges it once for a client id and secret, keeps the
+ *     secret only as a non-extractable WebCrypto HMAC key in IndexedDB, and signs every request. No token is shown,
+ *     typed after pairing, or kept in localStorage (see docs/architecture/AGENT_LAB_SECURITY.md).
+ *   - Opt-in automation (remembered): "Investigate ROMs I import" queues the ROM named by each import event
+ *     (Forge.services.RomImports) — never a guess between the project's and the emulator's ROM; the worker returns
+ *     the existing job for a ROM already investigated with the same plan and emulator build. "Add verified results
+ *     to the library" imports a job's results when it finishes, through the validated FrameEvidence import, and
+ *     registers the ROM's recovered catalog through LibraryCatalog.registerCatalog when Forge has one.
+ *   - Manual controls stay: investigate a chosen ROM, pause, resume, cancel, import, import again.
+ *   Importing never changes the project. Without a worker, Forge works exactly as before.
+ * Bundle order: after src/services/frame-evidence.js and src/services/rom-imports.js.
  */
 (()=>{
 'use strict';
 const F=window.Forge,services=F.services;
 const anchor=document.getElementById('sceneContext');if(!anchor)return;
 const el=(tag,id,text)=>{const n=document.createElement(tag);if(id)n.id=id;if(text!==undefined)n.textContent=text;return n;};
-const store={get(k){try{return localStorage.getItem('forge.agentLab.'+k);}catch(_){return null;}},set(k,v){try{localStorage.setItem('forge.agentLab.'+k,v);}catch(_){/* per-viewer convenience only */}}};
-const state={url:store.get('url')||'http://127.0.0.1:8787',token:store.get('token')||'',connected:false,status:null,error:'',imported:[],timer:null,busy:false};
-const root=el('details','agentLabPanel'),summary=el('summary','agentLabSummary','Background investigation · not connected');root.appendChild(summary);
+const store={get(k){try{return localStorage.getItem('forge.agentLab.'+k);}catch(_){return null;}},set(k,v){try{localStorage.setItem('forge.agentLab.'+k,v);}catch(_){/* per-viewer convenience */}},del(k){try{localStorage.removeItem('forge.agentLab.'+k);}catch(_){}}};
+store.del('token');// earlier versions kept a plain token here
+const enc=new TextEncoder(),hex=buf=>[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+const b64url=bytes=>{let s='';for(const b of new Uint8Array(bytes))s+=String.fromCharCode(b);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');};
+// ---------- pairing: the key lives in IndexedDB as a non-extractable CryptoKey ----------
+const PDB='nes-forge-agent-lab',PSTORE='pairing';
+function pdb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(PDB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(PSTORE))r.result.createObjectStore(PSTORE,{keyPath:'id'});};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+async function pairingOp(mode,value){const db=await pdb();try{return await new Promise((resolve,reject)=>{const tx=db.transaction(PSTORE,mode==='get'?'readonly':'readwrite'),st=tx.objectStore(PSTORE);
+  const q=mode==='get'?st.get('current'):mode==='put'?st.put({id:'current',...value}):st.delete('current');let out=null;q.onsuccess=()=>{out=q.result??null;};tx.oncomplete=()=>resolve(out);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}finally{db.close();}}
+const settings={autoInvestigate:store.get('autoInvestigate')==='1',autoImport:store.get('autoImport')==='1',autoImportSince:Number(store.get('autoImportSince')||0)};
+const state={url:store.get('url')||'http://127.0.0.1:8787',pairing:null,connected:false,status:null,error:'',imported:[],timer:null,notices:[],pendingAuto:new Map(),requested:new Set(),autoTried:new Set(),catalogs:new Map(),busy:false,lastPoll:0,ready:null};
+const notice=(text,extra={})=>{state.notices.unshift({at:Date.now(),text,...extra});state.notices=state.notices.slice(0,6);render();};
+const root=el('details','agentLabPanel'),summary=el('summary','agentLabSummary','Background investigation · not paired');root.appendChild(summary);
 const body=el('div','agentLabBody');root.appendChild(body);anchor.before(root);
 const css=el('style');css.textContent='#agentLabPanel{flex:1 0 100%;box-sizing:border-box;font:12px/1.45 system-ui;padding:4px 10px;border-top:1px solid var(--bdr)}#agentLabPanel summary{cursor:pointer;color:var(--acc,#7fd4ff)}'+
- '#agentLabBody .al-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:4px 0}#agentLabBody input{min-width:200px;font:inherit}#agentLabBody button{font:inherit}'+
- '#agentLabBody table{border-collapse:collapse;width:100%;margin:4px 0}#agentLabBody td,#agentLabBody th{border-bottom:1px solid var(--bdr);padding:2px 6px;text-align:left;vertical-align:top}#agentLabBody .al-note{opacity:.8}';
+ '#agentLabBody .al-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:4px 0}#agentLabBody input[type=text]{min-width:180px;font:inherit}#agentLabBody button,#agentLabBody select{font:inherit}'+
+ '#agentLabBody table{border-collapse:collapse;width:100%;margin:4px 0}#agentLabBody td,#agentLabBody th{border-bottom:1px solid var(--bdr);padding:2px 6px;text-align:left;vertical-align:top}#agentLabBody .al-note{opacity:.8}'+
+ '#agentLabBody .al-state{font-weight:600;white-space:nowrap}#agentLabBody [data-state=running] .al-state{color:#7fd4ff}#agentLabBody [data-state=queued] .al-state{color:#c8c8ff}#agentLabBody [data-state=paused] .al-state{color:#ffd27f}'+
+ '#agentLabBody [data-state=failed] .al-state,#agentLabBody [data-state=cancelled] .al-state{color:#ff8a8a}#agentLabBody [data-state=completed] .al-state{color:#8be28b}#agentLabBody [data-state=interrupted] .al-state{color:#ffb35a}'+
+ '#agentLabBody .al-recovered{color:#ffd27f}#agentLabBody .al-unresolved{color:#d8c8ff}#agentLabBody .al-failure{color:#ff9a9a}#agentLabNotices{margin:4px 0;padding:0;list-style:none}#agentLabNotices li{margin:2px 0}';
 document.head.appendChild(css);
-async function api(method,path,payload){
-  const r=await fetch(state.url.replace(/\/$/,'')+path,{method,headers:{'content-type':'application/json','x-forge-agent-token':state.token},...(payload?{body:JSON.stringify(payload)}:{})});
-  const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||('worker answered '+r.status));return data;
+// ---------- requests ----------
+async function signedFetch(method,pathName,payload){
+  const p=state.pairing;if(!p)throw Error('not paired with a worker');
+  const text=payload===undefined?'':JSON.stringify(payload),time=Date.now(),nonce=b64url(crypto.getRandomValues(new Uint8Array(18)));
+  const msg=[method,pathName,String(time),nonce,hex(await crypto.subtle.digest('SHA-256',enc.encode(text)))].join('\n');
+  const sig=b64url(await crypto.subtle.sign('HMAC',p.key,enc.encode(msg)));
+  const r=await fetch(state.url.replace(/\/$/,'')+pathName,{method,headers:{'content-type':'application/json','x-forge-client':p.clientId,'x-forge-time':String(time),'x-forge-nonce':nonce,'x-forge-signature':sig},...(payload===undefined?{}:{body:text})});
+  const data=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(Error(data.error||('worker answered '+r.status)),{status:r.status});return data;
 }
-function currentRom(){
-  try{const p=services.ProjectStore.capture();if(p.investigation){const bytes=services.NativeEngineProject.validate(p).bytes;return {bytes,name:p.investigation.source?.name||'rom.nes'};}}catch(_){}
-  if(typeof emu!=='undefined'&&emu.loaded&&emu.lastBuiltRom instanceof Uint8Array)return {bytes:emu.lastBuiltRom,name:emu.romName||'rom.nes'};
-  return null;
+async function pair(url,code){
+  url=String(url||state.url).trim();
+  const r=await fetch(url.replace(/\/$/,'')+'/pair',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({code:String(code||'').trim(),name:'NES Forge'})});
+  const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||('pairing failed ('+r.status+')'));
+  const raw=Uint8Array.from(atob(data.secret),c=>c.charCodeAt(0));
+  const key=await crypto.subtle.importKey('raw',raw,{name:'HMAC',hash:'SHA-256'},false,['sign']);raw.fill(0);
+  const pairing={url,clientId:data.clientId,workerId:data.workerId,key,pairedAt:Date.now()};
+  await pairingOp('put',pairing);state.pairing=pairing;state.url=url;store.set('url',url);
+  notice('Paired with worker '+data.workerId+'. The key stays in this browser and cannot be read back.');
+  await refresh();schedule();drainAuto();return true;
+}
+async function forget(){
+  try{if(state.pairing)await signedFetch('DELETE','/clients/'+encodeURIComponent(state.pairing.clientId));}catch(_){/* the worker may be offline; the local key is removed anyway */}
+  await pairingOp('delete');state.pairing=null;state.connected=false;state.status=null;clearInterval(state.timer);notice('Pairing removed from this browser.');render();
+}
+// ---------- the worker's state ----------
+async function refresh(){
+  state.lastPoll=Date.now();
+  if(state.pairing){try{state.status=await signedFetch('GET','/status');state.connected=true;state.error='';}catch(e){state.connected=false;state.error=e.message;if(e.status===401&&/revoked|unknown/.test(e.message))state.error+=' — pair again';}}
+  try{state.imported=await services.FrameEvidence.investigations();}catch(_){state.imported=[];}
+  render();
+  if(state.connected){await drainAuto();await autoImport();}
+  return state.status;
+}
+function schedule(){
+  clearInterval(state.timer);
+  state.timer=setInterval(()=>{
+    if(!state.pairing||state.busy)return;
+    const jobs=state.status?.jobs||[],active=jobs.some(j=>['queued','running','interrupted'].includes(j.state))||state.pendingAuto.size;
+    const every=root.open&&!document.hidden?2000:(settings.autoImport||settings.autoInvestigate)&&active?4000:document.hidden?20000:10000;
+    if(Date.now()-state.lastPoll>=every){state.busy=true;refresh().finally(()=>{state.busy=false;});}
+  },1000);
+}
+// ---------- which ROM ----------
+function candidates(){
+  const out=[];
+  for(const r of (services.RomImports?.list()||[]).slice().reverse())out.push({key:'import:'+r.sha256,label:'Imported '+new Date(r.at).toLocaleTimeString()+': '+r.name+' · '+r.sha256.slice(0,12),sha256:r.sha256,name:r.name,bytes:()=>services.RomImports.bytes(r.sha256)});
+  try{const p=services.ProjectStore.capture();if(p.investigation||p.nativeGame){const bytes=services.NativeEngineProject.validate(p).bytes,name=p.investigation?.source?.name||p.projectName||'rom.nes';
+    out.push({key:'project',label:'Project source ROM: '+name,name,bytes:()=>bytes});}}catch(_){/* no preserved source ROM */}
+  if(typeof emu!=='undefined'&&emu.loaded&&emu.lastBuiltRom instanceof Uint8Array)out.push({key:'emulator',label:'Emulator ROM: '+(emu.romName||'rom.nes'),name:emu.romName||'rom.nes',bytes:()=>emu.lastBuiltRom});
+  return out;
 }
 const b64=bytes=>{let s='';for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(s);};
-async function connect(url=state.url,token=state.token){state.url=url;state.token=token;store.set('url',url);store.set('token',token);await refresh();if(state.connected)schedule();return state.connected;}
-function schedule(){clearInterval(state.timer);state.timer=setInterval(()=>{if(root.open&&!document.hidden)refresh();},2000);}
-async function refresh(){
-  try{state.status=await api('GET','/status');state.connected=true;state.error='';}catch(e){state.connected=false;state.error=e.message;}
-  try{state.imported=await services.FrameEvidence.investigations();}catch(_){state.imported=[];}
-  render();return state.status;
+async function enqueue(rom,reason){
+  const bytes=rom.bytes instanceof Uint8Array?rom.bytes:rom.bytes();if(!bytes)throw Error('the ROM bytes are no longer available; import it again');
+  let job;try{job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan:'profile',reason});}
+  catch(e){if(/no profile plan/.test(e.message))job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan:'generic',reason});else throw e;}
+  state.requested.add(job.id);return job;
 }
-async function investigate(plan='profile'){
-  const rom=currentRom();if(!rom)throw Error('import a ROM or load one in the emulator first');
-  let job;try{job=await api('POST','/jobs',{rom:b64(rom.bytes),name:rom.name,plan});}catch(e){if(plan==='profile'&&/no profile plan/.test(e.message))job=await api('POST','/jobs',{rom:b64(rom.bytes),name:rom.name,plan:'generic'});else throw e;}
+async function investigate(choice){
+  const all=candidates(),rom=typeof choice==='object'&&choice?.bytes?choice:all.find(c=>c.key===(choice||document.getElementById('agentLabRom')?.value))||all[0];
+  if(!rom)throw Error('import a ROM first (Open ROM / project / ZIP, Import ROM, or the emulator\'s Load ROM)');
+  const job=await enqueue(rom,'manual');
+  notice(job.duplicate?rom.name+' is already '+(job.state==='completed'?'investigated':job.state)+' with the same plan and emulator build (job '+job.id+'); no new job was queued.':'Queued '+rom.name+' for investigation ('+job.plan.name+').');
   await refresh();return job;
 }
-async function control(id,action){const r=await api('POST','/jobs/'+encodeURIComponent(id)+'/'+action);await refresh();return r;}
-async function importJob(id){const bundle=await api('GET','/jobs/'+encodeURIComponent(id)+'/bundle');const r=await services.FrameEvidence.importInvestigation(bundle);await refresh();return r;}
+// imports announced by RomImports: queued while paired, kept for this tab until then
+services.RomImports?.subscribe(entry=>{
+  if(!settings.autoInvestigate)return;
+  if(!entry.ines){notice(entry.name+' is not an iNES ROM; it was not investigated.');return;}
+  state.pendingAuto.set(entry.sha256,entry);
+  if(!state.pairing||!state.connected)notice(entry.name+' will be investigated when the worker is '+(state.pairing?'reachable':'paired')+'.');
+  void drainAuto();
+});
+async function drainAuto(){
+  if(!state.pairing||!state.connected||state.draining)return;state.draining=true;
+  try{for(const [sha,entry] of [...state.pendingAuto]){
+    try{const job=await enqueue({name:entry.name,bytes:()=>services.RomImports.bytes(sha)},'import');state.pendingAuto.delete(sha);
+      notice(job.duplicate?'Imported '+entry.name+': already '+(job.state==='completed'?'investigated':job.state)+' with this plan and emulator build (job '+job.id+'); reusing it.':'Imported '+entry.name+': queued for background investigation ('+job.plan.name+').');}
+    catch(e){if(e.status===401||e instanceof TypeError)break;state.pendingAuto.delete(sha);notice('Could not queue '+entry.name+': '+e.message);}
+  }}finally{state.draining=false;}
+}
+// ---------- results into the library ----------
+async function romBytesFor(job){
+  const local=services.RomImports?.bytes(job.rom.sha256);if(local)return local;
+  const r=await signedFetch('GET','/jobs/'+encodeURIComponent(job.id)+'/rom'),bytes=Uint8Array.from(atob(r.rom),c=>c.charCodeAt(0));
+  if(await services.RomImports.sha256(bytes)!==job.rom.sha256)throw Error('the worker returned different ROM bytes');return bytes;
+}
+// The ROM's recovered catalog, through the existing validated registration (only ROMs with a verified Forge profile).
+async function registerCatalog(job){
+  const sha=job.rom.sha256;if(state.catalogs.has(sha))return state.catalogs.get(sha);
+  const known=!!window.GameRENative?.profiles?.some(p=>p.sha256===sha);
+  let result;
+  if(!known)result={state:'none',text:'No recovered catalog for '+job.rom.name+': Forge has no verified profile for this ROM. Its frames keep CHR file offsets; CHR library entries stay unavailable.'};
+  else try{
+    let project=null;
+    if(S.investigation?.version===1&&S.investigation.source?.sha256===sha)project=services.ProjectStore.capture();
+    else project=await services.InvestigationProject.create(await romBytesFor(job),job.rom.name);// built in memory, never opened
+    const r=await services.LibraryCatalog.registerCatalog(project);
+    result={state:r.already?'already':'registered',text:r.already?'The recovered catalog of '+job.rom.name+' is already in the library.':'Registered the recovered catalog of '+job.rom.name+': '+r.stats.entries+' entries ('+r.stats.chrBanks+' CHR banks).'};
+  }catch(e){result={state:'failed',text:'The recovered catalog of '+job.rom.name+' was not registered: '+e.message};}
+  state.catalogs.set(sha,result);return result;
+}
+async function importJob(id,{auto=false}={}){
+  const job=(state.status?.jobs||[]).find(j=>j.id===id)||{id,rom:{name:'ROM'}};
+  const bundle=await signedFetch('GET','/jobs/'+encodeURIComponent(id)+'/bundle');
+  const r=await services.FrameEvidence.importInvestigation(bundle);
+  const catalog=bundle.job?.rom?await registerCatalog({id,rom:bundle.job.rom}):null;
+  await refresh();
+  const what=r.imported?r.imported+' verified frame'+(r.imported===1?'':'s')+' from '+bundle.job.rom.name+' added to the library':'All '+r.already+' frames from '+bundle.job.rom.name+' were already in the library';
+  notice((auto?'Job finished · ':'')+what+(r.rejected.length?' · '+r.rejected.length+' record(s) rejected: '+r.rejected[0].problems.join('; '):'')+'.'+(catalog?' '+catalog.text:''),{open:r.entries?.[0]||null});
+  return {...r,catalog};
+}
+async function autoImport(){
+  if(!settings.autoImport||state.autoImporting)return;state.autoImporting=true;
+  try{
+    const done=new Set(state.imported.map(p=>p.job?.id));
+    for(const j of state.status?.jobs||[]){
+      if(j.state!=='completed'||done.has(j.id)||state.autoTried.has(j.id)||!j.frames)continue;
+      if(!(state.requested.has(j.id)||Date.parse(j.completed||j.updated)>=settings.autoImportSince))continue;
+      state.autoTried.add(j.id);
+      try{await importJob(j.id,{auto:true});}catch(e){notice('Automatic import of '+j.rom.name+' failed: '+e.message+' · use Import to retry.');}
+    }
+  }finally{state.autoImporting=false;}
+}
+async function control(id,action){const r=await signedFetch('POST','/jobs/'+encodeURIComponent(id)+'/'+action);await refresh();return r;}
+function setOptions({autoInvestigate,autoImport:imp}={}){
+  if(typeof autoInvestigate==='boolean'){settings.autoInvestigate=autoInvestigate;store.set('autoInvestigate',autoInvestigate?'1':'0');}
+  if(typeof imp==='boolean'){if(imp&&!settings.autoImport){settings.autoImportSince=Date.now();store.set('autoImportSince',String(settings.autoImportSince));}settings.autoImport=imp;store.set('autoImport',imp?'1':'0');}
+  render();schedule();void refresh();return {...settings};
+}
+// ---------- presentation ----------
+function stateText(j){
+  const p=j.progress||{done:0,targets:0},n=p.done+'/'+p.targets;
+  switch(j.state){
+    case 'queued':return j.recovered?'queued · resumes at '+n:'queued · waiting for the worker';
+    case 'running':return 'running '+n+(p.current?' · '+p.current:'')+(j.control?' · '+j.control+' requested':'');
+    case 'paused':return 'paused at '+n+(j.failures.some(f=>f.stage==='limit')?' · time limit':'');
+    case 'interrupted':return 'interrupted at '+n+' · worker stopped; resumes automatically';
+    case 'completed':return 'completed '+n+(j.recovered?' · recovered after '+j.interruptions.length+' worker restart'+(j.interruptions.length===1?'':'s'):'');
+    case 'failed':return 'failed at '+n;
+    case 'cancelled':return 'cancelled at '+n;
+    default:return j.state+' '+n;
+  }
+}
 function render(){
-  const s=state.status,jobs=s?.jobs||[],running=jobs.find(j=>j.state==='running'),importedIds=new Set(state.imported.map(p=>p.job?.id));
-  summary.textContent='Background investigation · '+(!state.connected?(state.error&&state.token?'worker unreachable':'not connected'):running?'running '+running.progress.done+'/'+running.progress.targets+' · '+running.rom.name:jobs.length?'idle · '+jobs.filter(j=>j.state==='completed').length+' finished':'idle')+(state.imported.length?' · '+state.imported.length+' imported':'');
+  const s=state.status,jobs=s?.jobs||[],running=jobs.find(j=>j.state==='running'),queued=jobs.filter(j=>j.state==='queued'||j.state==='interrupted').length,importedIds=new Set(state.imported.map(p=>p.job?.id));
+  summary.textContent='Background investigation · '+(!state.pairing?'not paired':!state.connected?'worker unreachable':running?'running '+running.progress.done+'/'+running.progress.targets+' · '+running.rom.name+(queued?' · '+queued+' queued':''):queued?queued+' queued':jobs.length?'idle · '+jobs.filter(j=>j.state==='completed').length+' finished':'idle')+
+    (state.imported.length?' · '+state.imported.length+' in library':'')+(settings.autoInvestigate||settings.autoImport?' · auto':'');
   body.replaceChildren();
-  const conn=el('div');conn.className='al-row';const url=el('input','agentLabUrl');url.value=state.url;url.setAttribute('aria-label','Worker address');const token=el('input','agentLabToken');token.value=state.token;token.placeholder='token printed by the worker';token.setAttribute('aria-label','Worker token');
-  const go=el('button','agentLabConnect',state.connected?'Reconnect':'Connect');go.type='button';go.onclick=()=>connect(url.value.trim(),token.value.trim());conn.append(url,token,go);body.appendChild(conn);
-  if(!state.connected){body.appendChild(el('p','agentLabHelp','Start the local worker: node tools/agent-lab/capture_worker.cjs serve --root <private folder> --forge NES_Forge.html, then paste its token. Forge works the same without it.'+(state.error&&state.token?' Last error: '+state.error:'')));return;}
-  const act=el('div');act.className='al-row';const inv=el('button','agentLabInvestigate','Investigate this ROM in the background');inv.type='button';inv.disabled=!currentRom();inv.onclick=()=>investigate().catch(e=>{state.error=e.message;render();});act.appendChild(inv);
-  act.appendChild(el('span','agentLabWorker',' Worker '+(s.worker.state==='running'?'busy':'idle')+' · one job at a time · results are imported only when you choose.'));body.appendChild(act);
-  if(state.error)body.appendChild(el('p','agentLabError','Problem: '+state.error));
-  const table=el('table','agentLabJobs'),head=el('tr');for(const h of ['ROM · plan','State','Discoveries','Unresolved','Failures',''])head.appendChild(el('th',null,h));table.appendChild(head);
+  const conn=el('div');conn.className='al-row';
+  if(!state.pairing){
+    const url=el('input','agentLabUrl');url.type='text';url.value=state.url;url.setAttribute('aria-label','Worker address');
+    const code=el('input','agentLabCode');code.type='text';code.placeholder='pairing code, e.g. ABCD-EFGH';code.autocomplete='off';code.setAttribute('aria-label','Pairing code');code.size=14;
+    const go=el('button','agentLabPair','Pair');go.type='button';go.onclick=()=>pair(url.value,code.value).catch(e=>{state.error=e.message;render();});
+    conn.append(url,code,go);body.appendChild(conn);
+    body.appendChild(el('p','agentLabHelp','Start the local worker: node tools/agent-lab/capture_worker.cjs serve --root <private folder> --forge NES_Forge.html. It prints a single-use pairing code; enter it here once. Forge works the same without it.'+(state.error?' Last error: '+state.error:'')));
+    renderNotices();return;
+  }
+  conn.append(el('span','agentLabPaired','Paired with worker '+(state.pairing.workerId||'?')+' at '+state.url+(state.connected?'':' · unreachable: '+state.error)));
+  const forgetBtn=el('button','agentLabForget','Forget pairing');forgetBtn.type='button';forgetBtn.onclick=()=>forget();conn.append(forgetBtn);body.appendChild(conn);
+  const opts=el('div');opts.className='al-row';
+  const opt=(id,label,value,fn)=>{const l=el('label');const c=el('input',id);c.type='checkbox';c.checked=value;c.onchange=()=>fn(c.checked);l.append(c,' '+label);opts.appendChild(l);};
+  opt('agentLabAutoInvestigate','Investigate ROMs I import',settings.autoInvestigate,v=>setOptions({autoInvestigate:v}));
+  opt('agentLabAutoImport','Add verified results to the library when a job finishes',settings.autoImport,v=>setOptions({autoImport:v}));
+  opts.appendChild(el('span','agentLabOptsNote','Remembered in this browser. Results are validated on import; your project is never changed.'));opts.lastChild.className='al-note';body.appendChild(opts);
+  const act=el('div');act.className='al-row';const sel=el('select','agentLabRom');sel.setAttribute('aria-label','ROM to investigate');
+  const cands=candidates();for(const c of cands){const o=el('option',null,c.label);o.value=c.key;sel.appendChild(o);}
+  if(!cands.length){const o=el('option',null,'No ROM imported in this tab yet');o.value='';sel.appendChild(o);sel.disabled=true;}
+  const inv=el('button','agentLabInvestigate','Investigate selected ROM');inv.type='button';inv.disabled=!cands.length||!state.connected;inv.onclick=()=>investigate().catch(e=>{state.error=e.message;notice('Could not queue: '+e.message);});
+  act.append(sel,inv);if(s)act.appendChild(el('span','agentLabWorker','Worker '+(s.worker.state==='running'?'busy':'idle')+' · one job at a time'));body.appendChild(act);
+  renderNotices();
+  const table=el('table','agentLabJobs'),head=el('tr');for(const h of ['ROM · plan','State','Discoveries','Unresolved evidence','Failures',''])head.appendChild(el('th',null,h));table.appendChild(head);
   for(const j of jobs.slice(-12).reverse()){
-    const tr=el('tr');tr.dataset.job=j.id;
-    tr.append(el('td',null,j.rom.name+' · '+j.plan.name),el('td',null,j.state+(j.control?' ('+j.control+' requested)':'')+' · '+j.progress.done+'/'+j.progress.targets),
-      el('td',null,j.frames+' frames, '+j.synchronized+' synchronization-checked'+(j.checkpoint?.boot?' · boot '+(j.checkpoint.boot.source==='disk'?'restored from disk':'checkpoint created'):'')),
-      el('td',null,j.unresolved.length?j.unresolved.slice(0,3).join(' · ')+(j.unresolved.length>3?' · …':''):'none'),el('td',null,j.failures.length?j.failures.slice(-2).map(f=>f.stage+': '+f.error).join(' · '):'none'));
+    const tr=el('tr');tr.dataset.job=j.id;tr.dataset.state=j.state;
+    const stateCell=el('td');const st=el('span',null,stateText(j));st.className='al-state';stateCell.appendChild(st);
+    if(j.recovered&&j.state!=='completed'){const r=el('div',null,'recovered from '+j.interruptions.length+' worker restart'+(j.interruptions.length===1?'':'s'));r.className='al-recovered';stateCell.appendChild(r);}
+    if(importedIds.has(j.id))stateCell.appendChild(el('div',null,'✓ in the library'));
+    const unresolved=el('td');unresolved.className='al-unresolved';unresolved.textContent=j.unresolved.length?j.unresolved.slice(0,3).join(' · ')+(j.unresolved.length>3?' · …':''):'none';
+    const failures=el('td');failures.className='al-failure';failures.textContent=j.failures.length?j.failures.slice(-2).map(f=>f.stage+': '+f.error).join(' · '):'none';
+    tr.append(el('td',null,j.rom.name+' · '+j.plan.name),stateCell,el('td',null,j.frames+' frames, '+j.synchronized+' synchronization-checked'+(j.checkpoint?.boot?' · boot '+(j.checkpoint.boot.source==='disk'?'restored from disk':'checkpoint created'):'')),unresolved,failures);
     const cell=el('td');
-    const button=(label,fn)=>{const b=el('button',null,label);b.type='button';b.dataset.action=label.toLowerCase();b.onclick=()=>fn().catch(e=>{state.error=e.message;render();});cell.appendChild(b);};
-    if(['queued','running','interrupted'].includes(j.state))button('Pause',()=>control(j.id,'pause'));
-    if(['paused','failed','interrupted'].includes(j.state))button('Resume',()=>control(j.id,'resume'));
-    if(!['completed','cancelled'].includes(j.state))button('Cancel',()=>control(j.id,'cancel'));
-    if(j.frames)button(importedIds.has(j.id)?'Import again':'Import',async()=>{const r=await importJob(j.id);state.error=r.rejected.length?r.rejected.length+' record(s) rejected: '+r.rejected[0].problems.join('; '):'';render();});
+    const button=(label,action,fn)=>{const b=el('button',null,label);b.type='button';b.dataset.action=action;b.onclick=()=>fn().catch(e=>{state.error=e.message;notice(label+' failed: '+e.message);});cell.appendChild(b);};
+    if(['queued','running','interrupted'].includes(j.state))button('Pause','pause',()=>control(j.id,'pause'));
+    if(['paused','failed','interrupted'].includes(j.state))button('Resume','resume',()=>control(j.id,'resume'));
+    if(!['completed','cancelled'].includes(j.state))button('Cancel','cancel',()=>control(j.id,'cancel'));
+    if(j.frames)button(importedIds.has(j.id)?'Import again':'Import','import',()=>importJob(j.id));
     tr.appendChild(cell);table.appendChild(tr);
   }
   body.appendChild(table);
-  if(state.imported.length)body.appendChild(el('p','agentLabImported','In the library: '+state.imported.map(p=>p.name.replace(' · Agent Lab investigation','')+' ('+(p.stats?.imported||0)+' frames'+(p.stats?.rejected?', '+p.stats.rejected+' rejected':'')+')').join(' · ')+'. Browse them in ▣ Resources › Library (Library · frame).'));
 }
-root.addEventListener('toggle',()=>{if(root.open){requestAnimationFrame(()=>root.scrollIntoView({block:'nearest'}));if(state.token)connect().catch(()=>{});}else clearInterval(state.timer);});
+function renderNotices(){
+  if(!state.notices.length)return;
+  const ul=el('ul','agentLabNotices');
+  for(const n of state.notices){const li=el('li',null,new Date(n.at).toLocaleTimeString()+' · '+n.text);
+    if(n.open){const b=el('button',null,'Open in Library');b.type='button';b.dataset.action='open-library';b.onclick=()=>services.ResourceRelationshipPreview?.openLibraryEntry(n.open);li.append(' ',b);}
+    ul.appendChild(li);}
+  body.appendChild(ul);
+}
+root.addEventListener('toggle',()=>{if(root.open){requestAnimationFrame(()=>root.scrollIntoView({block:'nearest'}));if(state.pairing)void refresh();}});
 render();
-services.InvestigationPanel=Object.freeze({connect,refresh,investigate,control,importJob,state:()=>({connected:state.connected,error:state.error,jobs:state.status?.jobs||[],imported:state.imported.map(p=>({job:p.job?.id,stats:p.stats}))})});
+state.ready=pairingOp('get').then(p=>{if(p?.key){state.pairing=p;state.url=p.url||state.url;schedule();return refresh();}render();}).catch(e=>{state.error='pairing storage unavailable: '+e.message;render();});
+services.InvestigationPanel=Object.freeze({pair,forget,refresh,investigate,control,importJob,setOptions,candidates:()=>candidates().map(({bytes,...c})=>c),whenReady:()=>state.ready,
+  state:()=>({paired:!!state.pairing,connected:state.connected,error:state.error,settings:{...settings},jobs:state.status?.jobs||[],pending:[...state.pendingAuto.keys()],notices:state.notices.map(n=>n.text),
+    imported:state.imported.map(p=>({job:p.job?.id,stats:p.stats})),catalogs:Object.fromEntries(state.catalogs)})});
 })();
 /*
  * NES FORGE MODULE: src/ui/studio-shell.js

@@ -20,35 +20,68 @@ python -m unittest discover -s tools\agent-lab\tests -v
 
 `--rom-dir` enables batch analysis (`--max-roms` 10 by default, 800 hard ceiling). The ceiling is **not** a statement that 800 games have working native adapters. Qwen requests run sequentially through the same local model instance. The v0.3 Qwen integration produces suggestions, **not six independently functioning LLM agents**; see [roles and work orders](../../docs/architecture/ROM_ASSET_ARCHITECTURE.md).
 
-## Background capture worker (v0.4)
+## Background capture worker (v0.4.1)
 
-`capture_worker.cjs` investigates a ROM while you keep working in Forge. It runs Forge's own emulator in an isolated
-headless Chromium (its own process and profile; nothing is shared with an open Forge window), follows a capture plan,
-and writes synchronized frame-evidence records with screenshots, hashes, CHR associations, sprites, CPU/PPU/APU state
-and code locations. Needs Node 18+ and Playwright's Chromium.
+`capture_worker.cjs` investigates ROMs while you keep working in Forge. It runs Forge's own emulator in an isolated
+headless Chromium, with its own process and profile; nothing is shared with an open Forge window. It follows a
+capture plan and writes synchronized frame-evidence records with screenshots, hashes, CHR associations, sprites,
+CPU/PPU/APU state and code locations. It needs Node 18+ and Playwright's Chromium.
 
 ```bash
 node tools/agent-lab/capture_worker.cjs serve --root <private folder> --forge NES_Forge.html
 ```
 
-It prints a token. In Forge, open **Background investigation** (above Scene resources), paste the token, Connect, and
-choose **Investigate this ROM in the background**. Import a finished job's results from the same panel; they appear in
-▣ Resources › Library as `frame` entries.
+The worker prints a **pairing code**. In Forge, open **Background investigation** (above Scene resources), enter the
+address and the code, then click **Pair**. This happens once per browser profile; the pairing survives worker
+restarts. Two remembered options make the loop hands-free:
 
-- **Plans** (`plans/*.json`, `NESForgeCapturePlan`): data, not code. `generic.json` (any emulated mapper, no game
-  knowledge) and `ninja-gaiden-us.json` (every area through the game's own restart; matched by SHA-256).
-- **Queue**: `<root>/jobs/<id>/job.json`. States: queued, running, paused, completed, failed, interrupted, cancelled.
-  A job left running by a stopped worker resumes at its first unfinished target. Pause and cancel apply between targets.
-- **Checkpoints**: `<root>/checkpoints/<key>/`, keyed by ROM SHA-256, editor SHA-256 (emulator build), mapper, header
-  and boot plan. A boot checkpoint is used only if it restores to the exact state it was saved from, and was first
-  reproduced by a cold boot. Target checkpoints skip restart sequences and must reproduce their recorded capture digest.
-- **Limits**: one job at a time, lowered CPU priority, a time limit per job (paused when reached), frame limits per target.
-- **Compatibility**: damaged iNES headers are reported, never repaired; a mapper the emulator cannot run fails the job
-  with that reason; frames that cannot be synchronization-checked (MMC2) stay marked unverified.
-- **Commands**: `run --once`, `enqueue --rom … [--plan generic|profile|file] [--verify cold]`, `status`,
-  `pause|resume|cancel --job ID`. The API binds 127.0.0.1 only and requires the token.
-- **Tests**: `node tools/agent-lab/tests/capture_worker.test.cjs` (no browser or ROM);
-  `QA/agent-lab-background.cjs` (owner-side, end to end, with a worker restart).
+- **Investigate ROMs I import** queues the ROM named by each import event. The project gateway (Open ROM / project /
+  ZIP), Import ROM, the emulator's Load ROM and the `rom.import` command all raise one. Forge never chooses between
+  the project's ROM and the emulator's ROM on its own; the manual "Investigate selected ROM" lists each candidate
+  with its source and SHA-256.
+- **Add verified results to the library when a job finishes** imports the job through the validated
+  `library.importInvestigation` path, then registers the ROM's recovered catalog through
+  `LibraryCatalog.registerCatalog`. Only ROMs with a verified Forge profile have a catalog; for others Forge says so.
+  A notice offers **Open in Library**. Importing never changes the project, and manual Import / Import again remain.
+
+How the worker behaves:
+
+- **Plans** (`plans/*.json`, `NESForgeCapturePlan`) are data, not code:
+  - `generic.json`: any emulated mapper, no game knowledge.
+  - `ninja-gaiden-us.json`: every area through the game's own restart; matched by SHA-256.
+- **Queue**: `<root>/jobs/<id>/job.json`.
+  - States: queued, running, paused, completed, failed, interrupted, cancelled.
+  - A job left running by a stopped worker is recorded as an *interruption*, not a failure. It resumes at its first
+    unfinished target and shows as "completed · recovered after N worker restart(s)". Unresolved evidence (for
+    example mid-frame bank switches, or sprite → actor relationships) is listed separately from failures.
+- **No duplicates**: a ROM already queued, running or investigated with the same plan, emulator build and
+  verification returns the existing job. `rerun: true` in `POST /jobs` asks for a deliberate re-investigation.
+- **Checkpoints**: `<root>/checkpoints/<key>/`, keyed by ROM SHA-256, editor SHA-256 (the emulator build), mapper,
+  header and boot plan.
+  - A boot checkpoint is used only if it restores to the exact state it was saved from, and was first reproduced by a
+    cold boot.
+  - Target checkpoints skip restart sequences, and must reproduce their recorded capture digest.
+- **Limits**: one job at a time, lowered CPU priority, a time limit per job (the job is paused when reached), and
+  frame limits per target.
+- **Compatibility**: damaged iNES headers are reported, never repaired. A mapper the emulator cannot run fails the job
+  with that reason. Frames that cannot be synchronization-checked (MMC2) stay marked unverified.
+- **Security**: see [AGENT_LAB_SECURITY.md](../../docs/architecture/AGENT_LAB_SECURITY.md).
+  - The API answers only on 127.0.0.1, to a loopback `Host`, and to allowed origins (`null`, plus `--allow-origin`).
+  - Every Forge request is signed with a non-extractable key obtained by pairing.
+  - Scripts use the admin token in `<root>/token`; browsers cannot use it.
+  - Secrets and data are user-only: 0600 files, 0700 folders.
+- **Commands**:
+  - `run --once`
+  - `enqueue --rom … [--plan generic|profile|file] [--verify cold]`
+  - `status`
+  - `pause|resume|cancel --job ID`
+  - `pair` (a new pairing code)
+  - `clients [--revoke ID]`
+- **Tests**:
+  - `node tools/agent-lab/tests/capture_worker.test.cjs`: no browser or ROM.
+  - `QA/agent-lab-background.cjs`, owner-side.
+  - `QA/one-rom-loop.cjs`, owner-side: the hands-free loop for Ninja Gaiden and SMB3, including worker restart,
+    closing Forge, duplicates, checkpoint reuse and API security.
 
 ## Independent extraction and discovery paths
 

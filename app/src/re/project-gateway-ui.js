@@ -72,6 +72,8 @@ async function openFile(input){
   }
   if(own!==generation)return false;
   current=result;render();
+  // A ROM opened here is an import: listeners (background investigation) receive these exact bytes.
+  if(result.kind==='rom')void services.RomImports?.record(bytes,input.name,'project-gateway',{sha256:result.source?.sha256});
   // Every extraction pack opened here is kept in the resource library (complete, compressed, idempotent).
   if(result.kind==='extraction'&&services.ResourceLibrary)registerInLibrary(bytes,input.name);
   // When exact bytes match an embedded, validated catalog, open its canonical
