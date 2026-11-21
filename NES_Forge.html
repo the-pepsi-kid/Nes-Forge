@@ -5097,7 +5097,7 @@ function captureFromTrace(){const t=emu.captureTrace;if(!t?.complete)throw Error
 }
 captureRuntimeData=captureFromTrace;
 // Exposed for deterministic diagnostics and exported regression tests.
-window.forgeCapture={scenePixels,countPixelDifferences,captureFromTrace,liveScene,sampledBackground,rasterMap};
+window.forgeCapture={scenePixels,countPixelDifferences,captureFromTrace,liveScene,sampledBackground,rasterMap,physicalChr};
 function captureExact(label='Runtime'){if(!emu.loaded)return;emuPause();renderEmu();try{const scene=captureFromTrace();scene.name=label+' F'+scene.captureMeta.frame;const result=pushSceneFromCapture(scene);if(result){document.getElementById('viewShow').checked=false;render();showToast('Captured F'+scene.captureMeta.frame+' • BG + sprites: 0 / 61,440 pixels different');}return result;}catch(e){return reportError(e);}}
 emuCapture=()=>captureExact();emuCaptureNametable=emuCapture;emuCaptureHybrid=()=>captureExact('Layered');
 window.emuCaptureRawNametable=function(){if(!emu.loaded)return;emuPause();try{const scene=previous.captureRuntimeData();scene.name='Raw nametable F'+emu.frameCount;scene.captureMeta.note='Unscrolled end-of-frame memory inspection; NOT the visible viewport. Use Capture Runtime Scene for a validated match.';return pushSceneFromCapture(scene);}catch(e){reportError(e);}};
@@ -31509,7 +31509,8 @@ function renderLibraryViewer(n,host,tools,caption){
       showPlaced(u.result,msg);};row.append(b);}
     host.append(row);}
   }
-  if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);}
+  if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);
+   if(entry.preview?.derivation)host.append(elt('div','frx-code','Preview: '+entry.preview.derivation+'. The tile data is in the linked CHR entries.'));}
   // evidence: decoded or stated locations, each address type on its own row, or that the location is unknown
   const ev=entry.evidence||{state:'none'},box=elt('div');box.style.cssText='text-align:left;font-size:11px;margin:6px 0';
   const row=(label,value)=>{box.append(elt('span','frx-label',label),elt('div','frx-code',value));};
@@ -31521,7 +31522,7 @@ function renderLibraryViewer(n,host,tools,caption){
   }else row('ROM location','Unknown. The entry stays in the library; its location can be identified later.');
   if(d){
    row('Code',d.code.length?d.code.slice(0,6).map(l=>(l.name||l.role)+(l.owner&&l.owner!==d.label?' ('+l.owner+')':'')+': '+P.short(l)).join('\n')+(d.code.length>6?'\n… '+(d.code.length-6)+' more':'')+(d.code[0].basis&&d.code[0].basis!=='decoded with this record'?'\nBasis: '+d.code[0].basis:''):'No verified code relationship is recorded for this resource.');
-   for(const l of d.links){const b=elt('button','frx-relationship','Same resource: '+l.label+' ('+(l.origin==='rom-catalog'?'recovered catalog':'extraction pack')+')');b.type='button';b.title=l.basis;b.onclick=()=>choose(key('lib',l.id));box.append(elt('span','frx-label','Linked record'),b,elt('div','frx-code','Basis: '+l.basis));}
+   for(const l of d.links){const b=elt('button','frx-relationship',(l.relation==='same-resource'?'Same resource: ':'Uses: ')+l.label+' ('+({'rom-catalog':'recovered catalog','runtime-capture':'runtime capture'}[l.origin]||'extraction pack')+')');b.type='button';b.title=l.basis;b.onclick=()=>choose(key('lib',l.id));box.append(elt('span','frx-label','Linked record'),b,elt('div','frx-code','Basis: '+l.basis));}
    if(d.primary||d.code.length){const b=elt('button','frx-relationship','Inspect in CODE/RE');b.type='button';b.dataset.lpv='inspect';b.onclick=()=>{close();P.inspect({entryId:id});};box.append(b);}
   }
   row('Kind',entry.kind+(entry.identified===false?' (not identified by the intake)':'')+' · '+entry.fileType+' · '+entry.size+' bytes');
@@ -34477,22 +34478,28 @@ async function linkSameResources(romSha){
 }
 
 // ---------- runtime stage survey (Ninja Gaiden US) ----------
-async function surveyStages({areas,frames=1500}={}){
+async function surveyStages({areas,frames=1500,boot='checkpoint'}={}){
   const project=services.ProjectStore.capture(),n=project.investigation;
   if(n?.catalogs?.native?.profile?.id!=='ninja-gaiden-us')fail('the runtime stage survey is written for Ninja Gaiden (US); open its investigated project first');
   const rom=services.NativeEngineProject.validate(project).bytes,scenes=n.catalogs.native.scenes,romSha=n.source.sha256;
   const enemyPoses=new Map(n.catalogs.native.poses.filter(p=>p.owner==='enemy').map(p=>[p.selector,p]));
   const run=async(name,args)=>{const r=await C.run(name,args);if(!r.ok)fail(name+': '+r.error.message);return r.result;};
   const press=async button=>{await run('input.set',{buttons:{[button]:true}});await run('emulator.frames',{count:4});await run('input.set',{buttons:{[button]:false}});};
-  const list=areas||[...new Set(scenes.map(s=>s.area))],results=[];
+  const list=areas||[...new Set(scenes.map(s=>s.area))],results=[],t0=performance.now();
+  if(!['checkpoint','cold'].includes(boot))fail('boot must be checkpoint or cold');
+  // the game boots once; every area starts from a restored physical checkpoint of that state ("cold" boots per area,
+  // kept as the reference the checkpoint path is compared with)
+  const startGame=async()=>{await run('emulator.load',{bytes:rom,name:'survey.nes'});
+    let ready=false;for(let f=0;f<3000&&!ready;f+=30){await run('emulator.frames',{count:26});await press('start');ready=emu.vram[0x97]===0x18&&emu.ram[0x6D]===0;}
+    if(ready)await run('emulator.frames',{count:60});return ready;};
+  let checkpoint=null,boots=0;
+  if(boot==='checkpoint'){boots++;if(!(await startGame()))fail('the game did not reach its first stage');checkpoint=services.EmulatorTimeline.saveOwnedCheckpoint('stage survey boot');}
+  try{
   for(const area of list){
     const stage=scenes.find(s=>s.area===area)?.stage?.label||null,rooms=scenes.filter(s=>s.area===area),firstRoom=rooms[0]?.areaFirstRoom??rooms[0]?.room;
     // enemy types the ROM's own spawn tables place in this area's rooms; observations are checked against them
     const tableTypes=new Set(rooms.flatMap(r=>(r.enemies||[]).map(e=>e.type)));
-    await run('emulator.load',{bytes:rom,name:'survey.nes'});
-    let ready=false;for(let f=0;f<3000&&!ready;f+=30){await run('emulator.frames',{count:26});await press('start');ready=emu.vram[0x97]===0x18&&emu.ram[0x6D]===0;}
-    if(!ready){results.push({area,stage,error:'the game did not reach its first stage'});continue;}
-    await run('emulator.frames',{count:60});
+    if(checkpoint)checkpoint.restore();else{boots++;if(!(await startGame())){results.push({area,stage,error:'the game did not reach its first stage'});continue;}}
     if(area){
       // time over: the game's own death routine restarts at the area ($6D) and room ($6E, checkpoint $6F) held in RAM;
       // both are set to the area's first room (PRG bank 0 $AF2C), and the restart must land there
@@ -34532,6 +34539,8 @@ async function surveyStages({areas,frames=1500}={}){
       tableTypes:[...tableTypes].sort((a,b)=>a-b),
       observations:[...seen.values()].map(o=>({...o,poseId:enemyPoses.has(o.pose)?'enemy:'+o.pose:null,inSpawnTables:tableTypes.has(o.type)})).sort((a,b)=>a.type-b.type||a.pose-b.pose)});
   }
+  }finally{checkpoint?.release();}
+  const timing={boot,boots,ms:Math.round(performance.now()-t0)};
   // record: a pose seen on screen in an area is a verified (runtime) placement, with its route and sample counts
   const firstRoom=new Map();for(const s of scenes)if(s.stage&&!firstRoom.has(s.stage.label))firstRoom.set(s.stage.label,s.id);
   const described=services.InvestigatedLibrary.describe(project);
@@ -34549,7 +34558,7 @@ async function surveyStages({areas,frames=1500}={}){
       await L.putRecords([['entries',e]]);recorded++;
     }
   }
-  return {areas:results,recorded};
+  return {areas:results,recorded,timing};
 }
 
 // ---------- using a library sprite in the working project ----------
@@ -34652,8 +34661,8 @@ services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rend
 if(C?.register){
   C.register({name:'library.registerCatalog',group:'library',title:'Register the open ROM\'s recovered catalog',summary:'Every recovered record of the imported ROM becomes a library entry with its decoded location; poses get renditions.',run:()=>registerCatalog()});
   C.register({name:'library.surveyStages',group:'library',title:'Observe which sprites appear in each stage (runtime)',summary:'Ninja Gaiden (US): plays each area from its start and records enemy poses seen on screen as verified runtime placements.',
-    args:{areas:{type:'string'},frames:{type:'int',default:1500,min:60,max:20000}},
-    run:a=>surveyStages({areas:a.areas?String(a.areas).split(',').map(v=>Number(v.trim())).filter(Number.isInteger):undefined,frames:a.frames})});
+    args:{areas:{type:'string'},frames:{type:'int',default:1500,min:60,max:20000},boot:{type:'string',default:'checkpoint'}},
+    run:a=>surveyStages({areas:a.areas?String(a.areas).split(',').map(v=>Number(v.trim())).filter(Number.isInteger):undefined,frames:a.frames,boot:a.boot})});
   C.register({name:'library.rendition',group:'library',title:'A library sprite\'s stored rendition',summary:'Pieces, the tiles they use and the palette of the room it was drawn in; per stage when observed there.',
     args:{id:{type:'string',required:true},stage:{type:'string'}},
     run:async a=>{const e=await L.entry(a.id),ref=(a.stage&&e.renditions?.[a.stage])||e.rendition;if(!ref)fail('this entry has no rendition');
@@ -34713,6 +34722,7 @@ async function resolve(ref){
   if(ev?.state==='decoded'&&ev.primary){out.primary=ev.primary;out.locations=ev.locations||[ev.primary];out.code=(ev.code||[]).map(l=>({...l,owner:out.label,basis:'decoded with this record'}));}
   else if(ev?.state==='decoded'){const l=legacyDecoded(ev);if(l){out.primary=l;out.locations=[l];}}
   else if(ev?.state==='stated'){const l=statedLocation(ev.fields);if(l){out.primary=l;out.locations=[l];}}
+  else if(ev?.state==='observed'&&ev.primary){out.primary=ev.primary;out.locations=[ev.primary];if(ev.primary.code)out.code=[{...ev.primary,owner:out.label,basis:'observed at runtime (state snapshot)'}];}
   else if(!e&&r.location){out.primary={...r.location,name:'location recorded when it was used',check:'copied into the project when it was used; the library entry is not in this browser'};out.locations=[out.primary];}
   // code that draws this pose, established at runtime: the enemy slot type seen showing it on screen
   if(e?.kind==='pose'){
@@ -34820,7 +34830,7 @@ function card(d,{compact=false,context=''}={}){
     if(d.code.length)for(const l of d.code.slice(0,8))box.append(locationBlock(l,d.rom,d,{full:false}));
     else box.append(el('div','lpv-note','No verified code relationship is recorded for this resource. Its raw location is shown above.'));
     if(d.related.length){box.append(el('div','lpv-sub','Related'));const ul=el('ul','lpv-list');for(const r of d.related)ul.append(el('li',null,r.label+' · '+r.relation+' — '+r.basis));box.append(ul);}
-    if(d.links.length){box.append(el('div','lpv-sub','Same resource, other records'));const ul=el('ul','lpv-list');for(const l of d.links)ul.append(el('li',null,l.label+' ('+(l.origin==='rom-catalog'?'recovered catalog':'extraction pack')+') — '+l.basis));box.append(ul);}
+    if(d.links.length){box.append(el('div','lpv-sub','Linked records'));const ul=el('ul','lpv-list');for(const l of d.links)ul.append(el('li',null,(l.relation==='same-resource'?'Same resource: ':'Uses: ')+l.label+' ('+({'rom-catalog':'recovered catalog','runtime-capture':'runtime capture'}[l.origin]||'extraction pack')+') — '+l.basis));box.append(ul);}
   }else if(d.code.length)box.append(el('div','lpv-note',plural(d.code.length,'code location')+' recorded · first: '+(d.code[0].name||d.code[0].role)+' at '+short(d.code[0])));
   else box.append(el('div','lpv-note','No verified code relationship recorded.'));
   const actions=el('div');
@@ -34900,6 +34910,235 @@ if(C?.register){
     args:{id:{type:'string'},metaspriteId:{type:'string'}},run:async a=>summary(await resolve(refOf(a)))});
   C.register({name:'library.inspectCode',group:'library',title:'Inspect in CODE/RE',summary:'Opens the source ROM in the RE analysis workspace at the resource\'s recorded location (its data, or a related routine with code:true).',
     args:{id:{type:'string'},metaspriteId:{type:'string'},role:{type:'string'},code:{type:'bool',default:false}},run:a=>inspect(refOf(a),{role:a.role||null,code:!!a.code})});
+}
+})();
+/*
+ * NES FORGE MODULE: src/services/frame-evidence.js
+ * Entry: Forge.services.FrameEvidence, commands emulator.frameEvidence and emulator.capturePlan
+ * Purpose: one frame-indexed evidence record per emulator frame, ROM-agnostic, and a capture plan that reaches many
+ *   frames from one boot by restoring a physical checkpoint (EmulatorTimeline).
+ *
+ *   A record is a STATE SNAPSHOT of one completed frame: CPU registers, RAM, PPU registers, nametables, palette RAM,
+ *   OAM (raw and decoded), mapper registers, the PRG and CHR banks mapped at that moment with their cartridge file
+ *   offsets, and the rendered framebuffer. It is not an execution trace: how the machine reached this state is only
+ *   recorded when a trace is asked for, by replaying the last frames from the same checkpoint with RERuntime
+ *   observation on (deterministic emulation makes the replay the same execution).
+ *   Rendered pixels and original data are kept apart: the framebuffer is "rendered"; CHR windows are cartridge data
+ *   with file offsets; the frame's tiles are re-read through the renderer's own trace and the rebuilt image must match
+ *   the framebuffer pixel for pixel, which checks that the data and the image belong to the same frame.
+ *   Every section has its own SHA-256 so two captures of "the same" frame can be compared field by field.
+ * Bundle order: after src/ui/library-provenance.js.
+ */
+(()=>{
+'use strict';
+const F=window.Forge,services=F.services,C=F.commands;
+const fail=message=>{throw Error('Frame evidence: '+message);};
+const hex=(n,w=4)=>Number(n).toString(16).toUpperCase().padStart(w,'0');
+const b64=bytes=>{let s='';for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(s);};
+async function sha256(data){const bytes=typeof data==='string'?new TextEncoder().encode(data):data;return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');}
+// mapper registers live on the emulator object; record every plain mapper field (no ROM buffers, no functions)
+const MAPPER_FIELD=/^(mmc\d|prgBank|chrBank|prgPage|chrPages|mirroring|initialMirror)/;
+function mapperState(){
+  const out={};
+  for(const key of Object.keys(emu).sort()){
+    if(!MAPPER_FIELD.test(key))continue;const v=emu[key];
+    if(v===null||['number','boolean','string'].includes(typeof v))out[key]=v;
+    else if(Array.isArray(v)||ArrayBuffer.isView(v))out[key]=Array.from(v);
+    else if(typeof v==='object')out[key]=JSON.parse(JSON.stringify(v,(k,x)=>ArrayBuffer.isView(x)?Array.from(x):x));
+  }
+  return out;
+}
+function layoutOf(file){
+  if(!(file instanceof Uint8Array)||file.length<16||file[0]!==0x4e||file[1]!==0x45||file[2]!==0x53||file[3]!==0x1a)return null;
+  const trainer=file[6]&4?512:0;return {trainer,prgStart:16+trainer,prgBytes:file[4]*16384,chrStart:16+trainer+file[4]*16384,chrBytes:file[5]*8192,mapper:(file[6]>>4)|(file[7]&0xf0)};
+}
+// PRG: what the CPU sees in each 8 KiB window, located in the cartridge by content (independent of any mapper model)
+function prgWindows(layout,file){
+  const out=[];if(!emu.prgRom)return out;
+  for(let base=0x8000;base<0x10000;base+=0x2000){
+    const bytes=new Uint8Array(0x2000);for(let i=0;i<0x2000;i++)bytes[i]=cpuRead(base+i)&255;
+    const matches=[];
+    for(let off=0;off+0x2000<=emu.prgRom.length;off+=0x2000){let same=true;for(let i=0;i<0x2000;i+=1){if(emu.prgRom[off+i]!==bytes[i]){same=false;break;}}if(same)matches.push(off);}
+    const fileOk=layout&&file?matches.every(off=>{for(let i=0;i<0x2000;i+=97)if(file[layout.prgStart+off+i]!==bytes[i])return false;return true;}):null;
+    out.push({cpu:base,cpuEnd:base+0x1FFF,prgOffsets:matches,fileOffsets:layout?matches.map(o=>layout.prgStart+o):[],prgBank8KiB:matches.map(o=>o/0x2000),
+      located:matches.length===1?'unique':matches.length?'ambiguous: identical banks':'not in PRG ROM (RAM or open bus)',matchesFile:fileOk});
+  }
+  return out;
+}
+// CHR: the source of each 1 KiB of the pattern tables through the renderer's own mapping, checked against the file
+function chrWindows(layout,file){
+  const out=[],physical=window.forgeCapture?.physicalChr;if(!physical)return out;
+  for(let addr=0;addr<0x2000;addr+=0x400){
+    const {src,off}=physical(addr),ram=emu.hasChrRam||src===emu.chrRam;
+    const row={ppu:addr,ppuEnd:addr+0x3FF,source:ram?'CHR RAM':'CHR ROM',offset:off};
+    if(!ram&&layout){row.fileOffset=layout.chrStart+off;row.chrBank1KiB=off>>10;row.chrBank4KiB=off>>12;
+      let same=!!file;if(file)for(let i=0;i<0x400;i++)if(file[row.fileOffset+i]!==src[(off+i)%src.length]){same=false;break;}row.matchesFile=same;}
+    out.push(row);
+  }
+  return out;
+}
+function sprites(){
+  const tall=!!(emu.ppuCtrl&0x20),table=emu.ppuCtrl&0x08?0x1000:0,physical=window.forgeCapture?.physicalChr,out=[];
+  for(let i=0;i<64;i++){
+    const y=emu.oamMem[i*4],tile=emu.oamMem[i*4+1],attr=emu.oamMem[i*4+2],x=emu.oamMem[i*4+3];
+    const addr=tall?((tile&1)<<12)|((tile&0xFE)<<4):table|(tile<<4);
+    const src=physical?physical(addr):null;
+    out.push({index:i,x,y,tile,attr,palette:attr&3,behind:!!(attr&0x20),flipH:!!(attr&0x40),flipV:!!(attr&0x80),height:tall?16:8,visible:y<0xEF,
+      pattern:addr,chrOffset:src&&src.src!==emu.chrRam?src.off:null});
+  }
+  return out;
+}
+// the frame's tiles re-read through the renderer's trace; the rebuilt image must equal the framebuffer
+function rasterCheck(){
+  try{const scene=window.forgeCapture.captureFromTrace();const v=scene.captureMeta.validation,raster=scene.raster;
+    // the CHR regions the frame's background tiles were read from (renderer's own reads, 1 KiB granularity)
+    const regions=new Map();for(const s of raster.sources||[])if(s?.kind==='CHR-ROM'||s?.kind==='CHR-RAM'){const k=s.kind+':'+(s.offset>>10);regions.set(k,(regions.get(k)||0)+1);}
+    return {state:'matched',backgroundDifferentPixels:v.backgroundDifferentPixels,compositeDifferentPixels:v.compositeDifferentPixels,nativeTiles:scene.captureMeta.nativeTiles,paletteSets:scene.captureMeta.paletteSets,
+      frame:scene.captureMeta.frame,backgroundTileSources:[...regions].map(([k,n])=>({source:k.split(':')[0],chrOffset:Number(k.split(':')[1])<<10,tiles:n})).sort((x,y)=>x.chrOffset-y.chrOffset)};}
+  catch(e){return {state:'not matched',reason:String(e.message).slice(0,240)};}
+}
+async function capture({label='frame',checkpoint=null,links=true,pixels=false}={}){
+  if(!emu.loaded)fail('no ROM is loaded in the emulator');
+  const file=emu.lastBuiltRom instanceof Uint8Array?emu.lastBuiltRom:null,layout=layoutOf(file);
+  const cpuState={A:emu.A,X:emu.X,Y:emu.Y,SP:emu.SP,PC:emu.PC,P:(emu.C)|(emu.Z<<1)|(emu.I<<2)|(emu.D<<3)|(1<<5)|(emu.V<<6)|(emu.N<<7),cycles:emu.cycles};
+  const ppu={ctrl:emu.ppuCtrl,mask:emu.ppuMask,status:emu.ppuStatus,vAddr:emu.vAddr,tAddr:emu.tAddr,fineX:emu.fineX,wLatch:!!emu.wLatch,mirroring:emu.mirroring,
+    split:emu.spr0Line>=0?{sprite0Line:emu.spr0Line,chrBank0Pre:emu.chrBank0Pre,chrBank1Pre:emu.chrBank1Pre,chrBank0Post:emu.chrBank0Post,chrBank1Post:emu.chrBank1Post,tAddrPre:emu.tAddrPre,tAddrPost:emu.tAddrPost}:null};
+  const record={format:'NESForgeFrameEvidence',version:1,kind:'state-snapshot',label:String(label).slice(0,120),frame:emu.frameCount,checkpoint,
+    rom:{name:emu.romName||null,sha256:file?await sha256(file):null,mapper:emu.mapper,prgBytes:emu.prgSize,chrBytes:emu.chrRom?.length||0,chrRam:!!emu.hasChrRam},
+    cpu:cpuState,
+    memory:{ram:b64(emu.ram),sram:emu.sram?b64(emu.sram):null,chrRam:emu.hasChrRam?b64(emu.chrRam):null},
+    // APU registers as the CPU last wrote them (the checkpoint restores the whole APU; this is its register view)
+    apu:{registers:Array.from(emu.apuRegs||[]),status:emu.apuStatus,frameCounter:emu.apuFrameCounter},
+    ppu,
+    nametables:b64(emu.vram),palette:Array.from(emu.palRam),oam:b64(emu.oamMem),sprites:sprites(),
+    mapper:mapperState(),
+    banks:{prg:prgWindows(layout,file),chr:chrWindows(layout,file)},
+    rendered:{width:256,height:240,derivation:'rendered by the emulator: pixels, not CHR data',framebufferSha256:await sha256(new Uint8Array(emu.frameBuffer.buffer,emu.frameBuffer.byteOffset,emu.frameBuffer.byteLength)),
+      backgroundSha256:emu.bgFrameBuffer?await sha256(new Uint8Array(emu.bgFrameBuffer.buffer,emu.bgFrameBuffer.byteOffset,emu.bgFrameBuffer.byteLength)):null},
+    synchronization:rasterCheck(),
+    trace:{state:'not recorded',note:'A state snapshot. Ask for a trace to replay the frames before it with code coverage on.'}};
+  // where the CPU is: the instruction address in the cartridge (through the PRG window that holds it)
+  const win=record.banks.prg.find(w=>cpuState.PC>=w.cpu&&cpuState.PC<=w.cpuEnd);
+  record.cpu.pcLocation=win&&win.located==='unique'?{fileOffset:win.fileOffsets[0]+(cpuState.PC-win.cpu),prgBank8KiB:win.prgBank8KiB[0],cpu:cpuState.PC}:{state:win?win.located:'PC below $8000 (RAM)'};
+  const sections={cpu:record.cpu,memory:record.memory,apu:record.apu,ppu:record.ppu,nametables:record.nametables,palette:record.palette,oam:record.oam,mapper:record.mapper,banks:record.banks,rendered:record.rendered};
+  record.digests={};for(const [k,v] of Object.entries(sections))record.digests[k]=await sha256(JSON.stringify(v));
+  record.digests.all=await sha256(JSON.stringify(record.digests));
+  if(links)record.links=await libraryLinks(record);
+  // the rendered pixels themselves, on request (a screenshot whose SHA-256 must equal rendered.framebufferSha256)
+  if(pixels)record.rendered.rgba=b64(new Uint8Array(emu.frameBuffer.buffer,emu.frameBuffer.byteOffset,emu.frameBuffer.byteLength));
+  return record;
+}
+// library entries the frame's data belongs to: CHR bank entries by file offset (only entries the library holds)
+async function libraryLinks(record){
+  const L=services.ResourceLibrary,out=[];if(!L||!record.rom.sha256)return out;
+  const prefix='rom:'+record.rom.sha256.slice(0,16)+':';
+  const seen=new Set();
+  for(const w of record.banks.chr){if(w.fileOffset===undefined||seen.has(w.chrBank4KiB))continue;seen.add(w.chrBank4KiB);
+    const id=prefix+'chr:chr:'+w.chrBank4KiB;try{const e=await L.entry(id);if(e.evidence?.primary?.fileOffset!==undefined&&w.fileOffset>=e.evidence.primary.fileOffset&&w.fileOffset<e.evidence.primary.fileOffset+(e.evidence.primary.length||4096))
+      out.push({entryId:id,relation:'CHR bank mapped at PPU $'+hex(w.ppu)+(w.matchesFile?' (bytes checked against the cartridge file)':''),basis:'file offset 0x'+hex(w.fileOffset,5)+' lies in this library entry'});}catch(_){}}
+  return out;
+}
+// ---------- capture plans: many frames from one boot ----------
+const ALL={a:false,b:false,select:false,start:false,up:false,down:false,left:false,right:false};
+async function runFrames(count,inputs=[]){
+  // inputs: [{from,to,buttons}] relative to this run. Frames with the same buttons run as one batch; the full button
+  // state is set before each batch.
+  let f=0;
+  while(f<count){
+    const held={...ALL};for(const span of inputs)if(f>=span.from&&f<=span.to)Object.assign(held,span.buttons);
+    let next=count;for(const span of inputs){if(span.from>f&&span.from<next)next=span.from;if(span.to+1>f&&span.to+1<next)next=span.to+1;}
+    const r1=await C.run('input.set',{buttons:held});if(!r1.ok)fail(r1.error.message);
+    const r2=await C.run('emulator.frames',{count:next-f});if(!r2.ok)fail(r2.error.message);f=next;
+  }
+  await C.run('input.set',{buttons:{...ALL}});
+}
+async function runUntil(conditions=[],maxFrames=6000){
+  // sequential RAM conditions: each must hold (in order) before the next is checked; frames run directly, as the
+  // emulator.frames command runs them (emulator tab active while they run), without a command call per frame
+  let step=0,frames=0;const tab=S.tab;S.tab='emu';
+  try{while(step<conditions.length&&frames<maxFrames){emuRunFrame();frames++;
+    const c=conditions[step],v=emu.ram[c.address&0x7FF];if(('equals' in c?v===c.equals:true)&&('min' in c?v>=c.min:true)&&('max' in c?v<=c.max:true))step++;}}
+  finally{S.tab=tab;}
+  return {reached:step===conditions.length,frames};
+}
+// boot: fixed frames with inputs, then optionally "press until": repeat a press every N frames until RAM/VRAM
+// conditions hold (e.g. a title screen that needs Start, without pausing the game once it runs)
+async function boot(bytes,name,plan){
+  const r=await C.run('emulator.load',{bytes,name:name||'capture.nes'});if(!r.ok)fail(r.error.message);
+  await runFrames(plan.frames||0,plan.inputs||[]);
+  if(plan.pressUntil){const {buttons,every=30,hold=4,conditions=[],maxFrames=3000,after=0}=plan.pressUntil;let frames=0,ok=false;
+    const holds=()=>conditions.every(c=>{const v=c.vram!==undefined?emu.vram[c.vram&0x7FF]:emu.ram[c.address&0x7FF];return ('equals' in c?v===c.equals:true)&&('min' in c?v>=c.min:true)&&('max' in c?v<=c.max:true);});
+    while(frames<maxFrames&&!(ok=holds())){await runFrames(every,[{from:every-hold,to:every-1,buttons}]);frames+=every;}
+    if(!ok)fail('the boot did not reach its conditions within '+maxFrames+' frames');
+    if(after)await runFrames(after,[]);}
+}
+async function capturePlan({bytes,name,boot:bootPlan={frames:120,inputs:[]},targets=[],mode='checkpoint',trace=false,pixels=false}={}){
+  if(!(bytes instanceof Uint8Array))fail('give the ROM bytes');if(!['checkpoint','cold'].includes(mode))fail('mode must be checkpoint or cold');
+  const T=services.EmulatorTimeline,t0=performance.now(),results=[];let checkpoint=null,bootMs=0,boots=0;
+  if(mode==='checkpoint'){const b0=performance.now();await boot(bytes,name,bootPlan);boots++;bootMs+=performance.now()-b0;checkpoint=T.saveOwnedCheckpoint('capture plan boot');}
+  try{
+    for(const target of targets){
+      const s0=performance.now();
+      if(mode==='cold'){const b0=performance.now();await boot(bytes,name,bootPlan);boots++;bootMs+=performance.now()-b0;}else checkpoint.restore();
+      for(const [address,value] of Object.entries(target.ram||{}))emu.ram[Number(address)&0x7FF]=Number(value)&255;
+      const until=target.until?.length?await runUntil(target.until,target.maxFrames||6000):{reached:true,frames:0};
+      await runFrames(target.frames||1,target.inputs||[]);
+      const record=await capture({label:target.label||'target',pixels,checkpoint:mode==='checkpoint'?{id:checkpoint.id,name:checkpoint.name,frame:checkpoint.frame}:null});
+      record.reached=until;record.ms=Math.round(performance.now()-s0);
+      if(trace){record.trace=await replayTrace(mode,checkpoint,bytes,name,bootPlan,target);}
+      results.push(record);
+    }
+  }finally{checkpoint?.release();}
+  return {mode,boots,bootMs:Math.round(bootMs),ms:Math.round(performance.now()-t0),results};
+}
+// the execution that led to the snapshot: replay the target's last frames from the same start with code coverage on
+async function replayTrace(mode,checkpoint,bytes,name,bootPlan,target){
+  const R=services.RERuntime;if(!R)return {state:'unavailable',note:'RE runtime observation is not loaded'};
+  if(mode==='checkpoint')checkpoint.restore();else await boot(bytes,name,bootPlan);
+  for(const [address,value] of Object.entries(target.ram||{}))emu.ram[Number(address)&0x7FF]=Number(value)&255;
+  if(target.until?.length)await runUntil(target.until,target.maxFrames||6000);
+  const frames=target.frames||1,lead=Math.max(0,frames-1);await runFrames(lead,(target.inputs||[]));
+  await R.start({});const start=emu.frameCount;
+  await runFrames(1,(target.inputs||[]).map(s=>({...s,from:s.from-lead,to:s.to-lead})));
+  const status=R.stop('frame evidence trace complete');const cov=R.coverage({limit:256});
+  return {state:'recorded',kind:'execution trace (code coverage)',frames:[start,emu.frameCount],instructions:status.instructions,coverageEntries:cov.total,
+    sample:cov.results.slice(0,24).map(c=>({pc:c.pc,fileOffset:c.fileOffset??null,count:c.count??null})),note:'Replayed from the same start; deterministic emulation makes it the execution that produced the snapshot.'};
+}
+// ---------- a frame in the library ----------
+// The record is stored as a runtime observation of its ROM. Its screenshot is a preview marked as rendered pixels; the
+// CHR data it shows stays in the CHR bank entries the record links to (by file offset), never in the screenshot.
+async function pngOf(rgbaB64){
+  const bytes=Uint8Array.from(atob(rgbaB64),c=>c.charCodeAt(0)),c=document.createElement('canvas');c.width=256;c.height=240;
+  c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(bytes.buffer),256,240),0,0);
+  const blob=await new Promise(res=>c.toBlob(res,'image/png'));return new Uint8Array(await blob.arrayBuffer());
+}
+async function registerFrame(record){
+  const L=services.ResourceLibrary;if(!L)fail('the resource library is not available');await L.ensureMeta();
+  if(!record?.rom?.sha256)fail('the frame has no source ROM identity');
+  const romSha=record.rom.sha256,packKey='frames:'+romSha.slice(0,16),id=packKey+':'+record.frame+':'+record.digests.all.slice(0,12);
+  const body={...record,rendered:{...record.rendered,rgba:undefined}},stored=await L.storeData(JSON.stringify(body));
+  let preview=null;if(record.rendered.rgba){const st=await L.storeData(await pngOf(record.rendered.rgba));preview={hash:st.hash,derivation:'rendered framebuffer: pixels, not CHR data'};}
+  const pc=record.cpu.pcLocation;
+  const e={id,packSha256:packKey,path:'frames/'+record.label+' F'+record.frame,label:record.label+' · frame '+record.frame,origin:'runtime-capture',shelf:romSha,sourceSha256:romSha,game:null,kind:'frame',identified:true,
+    fileType:'json',size:stored.size,contentHash:stored.hash,loads:false,registered:Date.now(),data:{state:'stored'},
+    validation:{state:'accepted',reason:'state snapshot of frame '+record.frame+'; data and image '+(record.synchronization.state==='matched'?'rebuild with 0 different pixels':'not checked: '+record.synchronization.reason)},
+    evidence:{state:'observed',basis:'emulator state snapshot (NESForgeFrameEvidence v1), frame '+record.frame,frame:record.frame,digests:record.digests,
+      primary:Number.isInteger(pc.fileOffset)?{role:'pc',name:'instruction at the snapshot (CPU PC)',fileOffset:pc.fileOffset,cpu:pc.cpu,region:'PRG ROM',code:true,check:'located through the mapped PRG window, which matched the cartridge file'}:null},
+    links:(record.links||[]).map(l=>({id:l.entryId,relation:'uses',basis:l.relation+'; '+l.basis,verified:true})),...(preview?{preview}:{})};
+  const pack=(await L.getPack(packKey))||{packSha256:packKey,name:(record.rom.name||'ROM')+' · runtime captures',origin:'runtime-capture',bytes:0,fileCount:0,format:'NESForgeFrameEvidence',sourceSha256:romSha,shelf:romSha,mode:'full',intake:{state:'accepted',kind:'runtime-capture'},state:'complete',registered:Date.now()};
+  pack.fileCount=(pack.fileCount||0)+1;pack.updated=Date.now();
+  await L.putRecords([['entries',e],['packs',pack]]);
+  return {id,links:e.links.length,preview:!!preview};
+}
+services.FrameEvidence=Object.freeze({capture,capturePlan,runFrames,runUntil,registerFrame});
+if(C?.register){
+  C.register({name:'emulator.frameEvidence',group:'emulator',title:'Frame evidence (state snapshot)',summary:'CPU, RAM, PPU, nametables, palette, OAM, mapper, mapped PRG/CHR banks with file offsets, and the rendered frame, with per-section SHA-256.',
+    needs:'emulator',args:{label:{type:'string'}},run:a=>capture({label:a.label||'frame'})});
+  C.register({name:'library.registerFrame',group:'library',title:'Add the current frame to the library',summary:'Captures the current frame\'s evidence (with its screenshot as a rendered preview) and stores it on the ROM\'s shelf, linked to the CHR bank entries it uses.',
+    needs:'emulator',args:{label:{type:'string'}},run:async a=>registerFrame(await capture({label:a.label||'frame',pixels:true}))});
+  C.register({name:'emulator.capturePlan',group:'emulator',title:'Capture many frames from one boot',summary:'Boots once, restores a physical checkpoint for each target (mode checkpoint), or boots per target (mode cold, the reference).',
+    args:{bytes:{type:'bytes',required:true},name:{type:'string'},plan:{type:'object',required:true},mode:{type:'string',default:'checkpoint'},trace:{type:'bool',default:false},pixels:{type:'bool',default:false}},
+    run:a=>capturePlan({bytes:a.bytes,name:a.name,boot:a.plan.boot,targets:a.plan.targets||[],mode:a.mode,trace:a.trace,pixels:a.pixels})});
 }
 })();
 /*

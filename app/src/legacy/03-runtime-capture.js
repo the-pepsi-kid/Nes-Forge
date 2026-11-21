@@ -101,7 +101,7 @@ function captureFromTrace(){const t=emu.captureTrace;if(!t?.complete)throw Error
 }
 captureRuntimeData=captureFromTrace;
 // Exposed for deterministic diagnostics and exported regression tests.
-window.forgeCapture={scenePixels,countPixelDifferences,captureFromTrace,liveScene,sampledBackground,rasterMap};
+window.forgeCapture={scenePixels,countPixelDifferences,captureFromTrace,liveScene,sampledBackground,rasterMap,physicalChr};
 function captureExact(label='Runtime'){if(!emu.loaded)return;emuPause();renderEmu();try{const scene=captureFromTrace();scene.name=label+' F'+scene.captureMeta.frame;const result=pushSceneFromCapture(scene);if(result){document.getElementById('viewShow').checked=false;render();showToast('Captured F'+scene.captureMeta.frame+' • BG + sprites: 0 / 61,440 pixels different');}return result;}catch(e){return reportError(e);}}
 emuCapture=()=>captureExact();emuCaptureNametable=emuCapture;emuCaptureHybrid=()=>captureExact('Layered');
 window.emuCaptureRawNametable=function(){if(!emu.loaded)return;emuPause();try{const scene=previous.captureRuntimeData();scene.name='Raw nametable F'+emu.frameCount;scene.captureMeta.note='Unscrolled end-of-frame memory inspection; NOT the visible viewport. Use Capture Runtime Scene for a validated match.';return pushSceneFromCapture(scene);}catch(e){reportError(e);}};

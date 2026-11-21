@@ -227,22 +227,28 @@ async function linkSameResources(romSha){
 }
 
 // ---------- runtime stage survey (Ninja Gaiden US) ----------
-async function surveyStages({areas,frames=1500}={}){
+async function surveyStages({areas,frames=1500,boot='checkpoint'}={}){
   const project=services.ProjectStore.capture(),n=project.investigation;
   if(n?.catalogs?.native?.profile?.id!=='ninja-gaiden-us')fail('the runtime stage survey is written for Ninja Gaiden (US); open its investigated project first');
   const rom=services.NativeEngineProject.validate(project).bytes,scenes=n.catalogs.native.scenes,romSha=n.source.sha256;
   const enemyPoses=new Map(n.catalogs.native.poses.filter(p=>p.owner==='enemy').map(p=>[p.selector,p]));
   const run=async(name,args)=>{const r=await C.run(name,args);if(!r.ok)fail(name+': '+r.error.message);return r.result;};
   const press=async button=>{await run('input.set',{buttons:{[button]:true}});await run('emulator.frames',{count:4});await run('input.set',{buttons:{[button]:false}});};
-  const list=areas||[...new Set(scenes.map(s=>s.area))],results=[];
+  const list=areas||[...new Set(scenes.map(s=>s.area))],results=[],t0=performance.now();
+  if(!['checkpoint','cold'].includes(boot))fail('boot must be checkpoint or cold');
+  // the game boots once; every area starts from a restored physical checkpoint of that state ("cold" boots per area,
+  // kept as the reference the checkpoint path is compared with)
+  const startGame=async()=>{await run('emulator.load',{bytes:rom,name:'survey.nes'});
+    let ready=false;for(let f=0;f<3000&&!ready;f+=30){await run('emulator.frames',{count:26});await press('start');ready=emu.vram[0x97]===0x18&&emu.ram[0x6D]===0;}
+    if(ready)await run('emulator.frames',{count:60});return ready;};
+  let checkpoint=null,boots=0;
+  if(boot==='checkpoint'){boots++;if(!(await startGame()))fail('the game did not reach its first stage');checkpoint=services.EmulatorTimeline.saveOwnedCheckpoint('stage survey boot');}
+  try{
   for(const area of list){
     const stage=scenes.find(s=>s.area===area)?.stage?.label||null,rooms=scenes.filter(s=>s.area===area),firstRoom=rooms[0]?.areaFirstRoom??rooms[0]?.room;
     // enemy types the ROM's own spawn tables place in this area's rooms; observations are checked against them
     const tableTypes=new Set(rooms.flatMap(r=>(r.enemies||[]).map(e=>e.type)));
-    await run('emulator.load',{bytes:rom,name:'survey.nes'});
-    let ready=false;for(let f=0;f<3000&&!ready;f+=30){await run('emulator.frames',{count:26});await press('start');ready=emu.vram[0x97]===0x18&&emu.ram[0x6D]===0;}
-    if(!ready){results.push({area,stage,error:'the game did not reach its first stage'});continue;}
-    await run('emulator.frames',{count:60});
+    if(checkpoint)checkpoint.restore();else{boots++;if(!(await startGame())){results.push({area,stage,error:'the game did not reach its first stage'});continue;}}
     if(area){
       // time over: the game's own death routine restarts at the area ($6D) and room ($6E, checkpoint $6F) held in RAM;
       // both are set to the area's first room (PRG bank 0 $AF2C), and the restart must land there
@@ -282,6 +288,8 @@ async function surveyStages({areas,frames=1500}={}){
       tableTypes:[...tableTypes].sort((a,b)=>a-b),
       observations:[...seen.values()].map(o=>({...o,poseId:enemyPoses.has(o.pose)?'enemy:'+o.pose:null,inSpawnTables:tableTypes.has(o.type)})).sort((a,b)=>a.type-b.type||a.pose-b.pose)});
   }
+  }finally{checkpoint?.release();}
+  const timing={boot,boots,ms:Math.round(performance.now()-t0)};
   // record: a pose seen on screen in an area is a verified (runtime) placement, with its route and sample counts
   const firstRoom=new Map();for(const s of scenes)if(s.stage&&!firstRoom.has(s.stage.label))firstRoom.set(s.stage.label,s.id);
   const described=services.InvestigatedLibrary.describe(project);
@@ -299,7 +307,7 @@ async function surveyStages({areas,frames=1500}={}){
       await L.putRecords([['entries',e]]);recorded++;
     }
   }
-  return {areas:results,recorded};
+  return {areas:results,recorded,timing};
 }
 
 // ---------- using a library sprite in the working project ----------
@@ -402,8 +410,8 @@ services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rend
 if(C?.register){
   C.register({name:'library.registerCatalog',group:'library',title:'Register the open ROM\'s recovered catalog',summary:'Every recovered record of the imported ROM becomes a library entry with its decoded location; poses get renditions.',run:()=>registerCatalog()});
   C.register({name:'library.surveyStages',group:'library',title:'Observe which sprites appear in each stage (runtime)',summary:'Ninja Gaiden (US): plays each area from its start and records enemy poses seen on screen as verified runtime placements.',
-    args:{areas:{type:'string'},frames:{type:'int',default:1500,min:60,max:20000}},
-    run:a=>surveyStages({areas:a.areas?String(a.areas).split(',').map(v=>Number(v.trim())).filter(Number.isInteger):undefined,frames:a.frames})});
+    args:{areas:{type:'string'},frames:{type:'int',default:1500,min:60,max:20000},boot:{type:'string',default:'checkpoint'}},
+    run:a=>surveyStages({areas:a.areas?String(a.areas).split(',').map(v=>Number(v.trim())).filter(Number.isInteger):undefined,frames:a.frames,boot:a.boot})});
   C.register({name:'library.rendition',group:'library',title:'A library sprite\'s stored rendition',summary:'Pieces, the tiles they use and the palette of the room it was drawn in; per stage when observed there.',
     args:{id:{type:'string',required:true},stage:{type:'string'}},
     run:async a=>{const e=await L.entry(a.id),ref=(a.stage&&e.renditions?.[a.stage])||e.rendition;if(!ref)fail('this entry has no rendition');

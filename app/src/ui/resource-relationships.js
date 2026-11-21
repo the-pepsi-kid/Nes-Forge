@@ -589,7 +589,8 @@ function renderLibraryViewer(n,host,tools,caption){
       showPlaced(u.result,msg);};row.append(b);}
     host.append(row);}
   }
-  if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);}
+  if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);
+   if(entry.preview?.derivation)host.append(elt('div','frx-code','Preview: '+entry.preview.derivation+'. The tile data is in the linked CHR entries.'));}
   // evidence: decoded or stated locations, each address type on its own row, or that the location is unknown
   const ev=entry.evidence||{state:'none'},box=elt('div');box.style.cssText='text-align:left;font-size:11px;margin:6px 0';
   const row=(label,value)=>{box.append(elt('span','frx-label',label),elt('div','frx-code',value));};
@@ -601,7 +602,7 @@ function renderLibraryViewer(n,host,tools,caption){
   }else row('ROM location','Unknown. The entry stays in the library; its location can be identified later.');
   if(d){
    row('Code',d.code.length?d.code.slice(0,6).map(l=>(l.name||l.role)+(l.owner&&l.owner!==d.label?' ('+l.owner+')':'')+': '+P.short(l)).join('\n')+(d.code.length>6?'\n… '+(d.code.length-6)+' more':'')+(d.code[0].basis&&d.code[0].basis!=='decoded with this record'?'\nBasis: '+d.code[0].basis:''):'No verified code relationship is recorded for this resource.');
-   for(const l of d.links){const b=elt('button','frx-relationship','Same resource: '+l.label+' ('+(l.origin==='rom-catalog'?'recovered catalog':'extraction pack')+')');b.type='button';b.title=l.basis;b.onclick=()=>choose(key('lib',l.id));box.append(elt('span','frx-label','Linked record'),b,elt('div','frx-code','Basis: '+l.basis));}
+   for(const l of d.links){const b=elt('button','frx-relationship',(l.relation==='same-resource'?'Same resource: ':'Uses: ')+l.label+' ('+({'rom-catalog':'recovered catalog','runtime-capture':'runtime capture'}[l.origin]||'extraction pack')+')');b.type='button';b.title=l.basis;b.onclick=()=>choose(key('lib',l.id));box.append(elt('span','frx-label','Linked record'),b,elt('div','frx-code','Basis: '+l.basis));}
    if(d.primary||d.code.length){const b=elt('button','frx-relationship','Inspect in CODE/RE');b.type='button';b.dataset.lpv='inspect';b.onclick=()=>{close();P.inspect({entryId:id});};box.append(b);}
   }
   row('Kind',entry.kind+(entry.identified===false?' (not identified by the intake)':'')+' · '+entry.fileType+' · '+entry.size+' bytes');

@@ -49,6 +49,7 @@ async function resolve(ref){
   if(ev?.state==='decoded'&&ev.primary){out.primary=ev.primary;out.locations=ev.locations||[ev.primary];out.code=(ev.code||[]).map(l=>({...l,owner:out.label,basis:'decoded with this record'}));}
   else if(ev?.state==='decoded'){const l=legacyDecoded(ev);if(l){out.primary=l;out.locations=[l];}}
   else if(ev?.state==='stated'){const l=statedLocation(ev.fields);if(l){out.primary=l;out.locations=[l];}}
+  else if(ev?.state==='observed'&&ev.primary){out.primary=ev.primary;out.locations=[ev.primary];if(ev.primary.code)out.code=[{...ev.primary,owner:out.label,basis:'observed at runtime (state snapshot)'}];}
   else if(!e&&r.location){out.primary={...r.location,name:'location recorded when it was used',check:'copied into the project when it was used; the library entry is not in this browser'};out.locations=[out.primary];}
   // code that draws this pose, established at runtime: the enemy slot type seen showing it on screen
   if(e?.kind==='pose'){
@@ -156,7 +157,7 @@ function card(d,{compact=false,context=''}={}){
     if(d.code.length)for(const l of d.code.slice(0,8))box.append(locationBlock(l,d.rom,d,{full:false}));
     else box.append(el('div','lpv-note','No verified code relationship is recorded for this resource. Its raw location is shown above.'));
     if(d.related.length){box.append(el('div','lpv-sub','Related'));const ul=el('ul','lpv-list');for(const r of d.related)ul.append(el('li',null,r.label+' · '+r.relation+' — '+r.basis));box.append(ul);}
-    if(d.links.length){box.append(el('div','lpv-sub','Same resource, other records'));const ul=el('ul','lpv-list');for(const l of d.links)ul.append(el('li',null,l.label+' ('+(l.origin==='rom-catalog'?'recovered catalog':'extraction pack')+') — '+l.basis));box.append(ul);}
+    if(d.links.length){box.append(el('div','lpv-sub','Linked records'));const ul=el('ul','lpv-list');for(const l of d.links)ul.append(el('li',null,(l.relation==='same-resource'?'Same resource: ':'Uses: ')+l.label+' ('+({'rom-catalog':'recovered catalog','runtime-capture':'runtime capture'}[l.origin]||'extraction pack')+') — '+l.basis));box.append(ul);}
   }else if(d.code.length)box.append(el('div','lpv-note',plural(d.code.length,'code location')+' recorded · first: '+(d.code[0].name||d.code[0].role)+' at '+short(d.code[0])));
   else box.append(el('div','lpv-note','No verified code relationship recorded.'));
   const actions=el('div');
