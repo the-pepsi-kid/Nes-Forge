@@ -102,7 +102,7 @@ async function sheetTiles(page, tiles) {
   let s = await open(P1), shot = shotOf(s.page);
   await pair(s.page); await importInvestigated(s.page, NG);
   const ngJob = await until(() => jobs().find(j => j.rom.sha256 === NINJA && j.state === 'completed'), 600000);
-  await until(() => s.page.evaluate(x => Forge.services.LibraryCatalog.catalogState().then(l => l.find(c => c.sha === x && c.state === 'complete'))), 600000, 500,
+  await until(() => s.page.evaluate(x => Forge.services.LibraryCatalog.catalogState().then(l => l.find(c => c.sha === x && c.state === 'complete') || null), NINJA), 600000, 500,
     () => s.page.evaluate(() => ({statuses: Forge.services.LibraryCatalog.recoveryStatus(), notices: Forge.services.InvestigationPanel.state().notices})));
   await until(() => inventory(s.page, NINJA).then(i => i.frames === 22 ? i : null), 300000);
   const invS = await inventory(s.page, NINJA);
