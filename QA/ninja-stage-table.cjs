@@ -2,7 +2,8 @@
 // Ninja Gaiden (US) stage table, owner-side (needs the cartridge; nothing from it is written to the report):
 // the native catalog's stages come from PRG bank 0 $AF6E (one BCD act/stage byte per area, read by $EB45 when the HUD
 // is drawn), cover every room, survive save/reopen, and match what the game itself draws: for every area, from a fresh
-// start, the game's own time-over restart draws the catalog's "STAGE x-y" at VRAM $2096.
+// start (one boot, restored from a physical checkpoint for each area), the game's own time-over restart draws the
+// catalog's "STAGE x-y" at VRAM $2096.
 //   node QA/ninja-stage-table.cjs <NES_Forge.html> <report.json> <folder with the cartridge>
 const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict'), crypto = require('node:crypto');
 const {loadForge} = require('./t/u/harness.cjs');
@@ -40,10 +41,16 @@ check('The stages survive save/reopen', async () => {
 check('Emulator: for every area the game draws the catalog\'s stage on the HUD', async () => {
   const bytes = new Uint8Array(fs.readFileSync(cart)), press = async b => { await R('input.set', {buttons: {[b]: true}}); await R('emulator.frames', {count: 4}); await R('input.set', {buttons: {[b]: false}}); };
   const hud = () => J('[...emu.vram.slice(0x96,0x99)]'), seen = [];
+  // boot once; every area starts from a restored physical checkpoint of that state (CPU, PPU, mapper, RAM), so no
+  // attempt can influence the next one
+  await R('emulator.load', {bytes, name: 'ng.nes'});
+  for (let f = 0; f < 3000; f += 30) { await R('emulator.frames', {count: 26}); await press('start'); if (hud()[1] === 0x18 && J('emu.ram[0x6D]') === 0) break; }
+  await R('emulator.frames', {count: 60});
+  h.run(`window.__ngBoot=Forge.services.EmulatorTimeline.saveOwnedCheckpoint('qa stage-table boot')`);
+  const bootRam = J('[...emu.ram]');
   for (let area = 0; area < 22; area++) {
-    await R('emulator.load', {bytes, name: 'ng.nes'});
-    for (let f = 0; f < 3000; f += 30) { await R('emulator.frames', {count: 26}); await press('start'); if (hud()[1] === 0x18 && J('emu.ram[0x6D]') === 0) break; }
-    await R('emulator.frames', {count: 60});
+    if (area) { h.run('window.__ngBoot.restore()'); assert.deepEqual(J('[...emu.ram]'), bootRam, 'area ' + area + ' starts from the boot checkpoint'); }
+    process.stderr.write('stage table: area ' + area + '\n');
     if (area) { // time over: the game's own death routine restarts the area ($6D) and redraws the HUD
       h.run(`emu.ram[0x6D]=${area};emu.ram[0x63]=1;emu.ram[0x76]=Math.max(emu.ram[0x76],2)`);
       let zero = false, restarted = false;
@@ -53,10 +60,11 @@ check('Emulator: for every area the game draws the catalog\'s stage on the HUD',
     const d = hud(), stage = scenes.find(s => s.area === area).stage; seen.push(d[0] + '-' + d[2]);
     assert.equal(J('emu.ram[0x6D]'), area); assert.deepEqual(d, [stage.act, 0x18, stage.number], 'area ' + area + ' HUD');
   }
+  h.run('window.__ngBoot.release()');
   return seen;
 });
 (async () => {
-  for (const [name, fn] of checks) { try { const r = await fn(); report.checks.push({name, passed: true, ...(r ? {observed: r} : {})}); } catch (e) { report.checks.push({name, passed: false, error: String(e.message).slice(0, 500)}); } }
+  for (const [name, fn] of checks) { process.stderr.write("check: " + name + "\n"); try { const r = await fn(); report.checks.push({name, passed: true, ...(r ? {observed: r} : {})}); } catch (e) { report.checks.push({name, passed: false, error: String(e.message).slice(0, 500)}); } }
   report.passed = report.checks.every(c => c.passed);
   for (const c of report.checks) console.log((c.passed ? 'PASS ' : 'FAIL ') + c.name + (c.error ? ': ' + c.error : ''));
   if (output) fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n');

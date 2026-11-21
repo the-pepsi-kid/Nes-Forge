@@ -33,15 +33,17 @@ async function sha(text){const b=await crypto.subtle.digest('SHA-256',new TextEn
 // region and physical PRG/CHR bank it lies in, and the CPU address the decoder recorded. The CPU window is the one
 // that bank occupies when the address is read; a PPU address is only shown where the decoder recorded one (a CHR bank
 // number never becomes a PPU address here). Every location is checked against the cartridge layout in the header.
-const CATALOG_SCHEMA=2;
-const CODE_ROLE=/(^|\.)(dispatch|reader|writer)$|^states\[\d+\]\.source$/;
+const CATALOG_SCHEMA=3;
+// code: the routines a record names (its state entry points, the code that reads or writes it). An actor's
+// "dispatch" is the table of state entry pointers, which is data.
+const CODE_ROLE=/(^|\.)(reader|writer)$|^states\[\d+\]\.source$/;
 function romLayout(rom){
   if(!rom||rom.length<16||rom[0]!==0x4e||rom[1]!==0x45||rom[2]!==0x53||rom[3]!==0x1a)return null;
   const trainer=rom[6]&4?512:0,prgBytes=rom[4]*16384,chrBytes=rom[5]*8192;
   return {mapper:(rom[6]>>4)|(rom[7]&0xf0),trainer,prgStart:16+trainer,prgBytes,chrStart:16+trainer+prgBytes,chrBytes,byteLength:rom.length};
 }
 const ROLE_NAMES={source:'data',pointerSource:'pointer table entry',attributesSource:'attribute bytes','extent.source':'horizontal extent code','extent.verticalSource':'vertical extent code',
-  dispatch:'dispatch code',reader:'code that reads it',writer:'code that writes it','audioEvent.writer':'area-start audio writer (code)','audioEvent.source':'area-start cue byte',record:'record',
+  dispatch:'state pointer table',reader:'code that reads it',writer:'code that writes it','audioEvent.writer':'area-start audio writer (code)','audioEvent.source':'area-start cue byte',record:'record',
   table:'command table entry',header:'cue header',sample:'DPCM sample bytes'};
 const KIND_DATA={pose:'pose piece stream',room:'room record',stage:'stage table',animation:'animation script',location:'location record',chr:'CHR pattern bank'};
 function roleName(kind,role,record){

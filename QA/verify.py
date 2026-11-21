@@ -5,6 +5,8 @@ import json
 import os
 import subprocess
 import sys
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -19,24 +21,75 @@ parser.add_argument('--cartridges', type=Path, help='Folder containing original 
 parser.add_argument('--browser', action='store_true', help='Also run the separate real-browser smoke test')
 parser.add_argument('--jobs', type=int, choices=range(1, 4), default=3,
                     help='Concurrent editor suites; use 1 on shared or slower machines')
+parser.add_argument('--timeout', action='append', default=[], metavar='SUITE=SECONDS',
+                    help='Time limit for one suite (repeatable); overrides the defaults below')
+parser.add_argument('--timeout-scale', type=float, default=1.0,
+                    help='Multiply every time limit, e.g. 2 on a slow or shared machine')
+parser.add_argument('--idle-timeout', type=int, default=300,
+                    help='Hang detection: stop a suite that prints nothing for this many seconds')
 args = parser.parse_args()
+# Time limits. Most suites finish well inside the default. The slow ones are measured (alone, 4-core container):
+#   extraction         ~600 s: every record of all 18 packs through the real intake, which also registers each pack
+#                      in the resource library (about half the time)
+#   ninja-stage-table  ~330 s: decodes the catalog, then plays the game's own time-over restart for 22 areas
+#   library-workflow   ~420 s: plays three stages in Chromium, then the whole library workflow, restart included
+#   native-corpus, library-locations: several minutes with every cartridge
+# Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
+DEFAULT_TIMEOUT = 420
+TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900}
+for item in args.timeout:
+    suite, _, seconds = item.partition('=')
+    if not suite or not seconds.isdigit():
+        parser.error('--timeout needs SUITE=SECONDS, got ' + item)
+    TIMEOUTS[suite] = int(seconds)
+def limit_for(name):
+    return max(1, int(TIMEOUTS.get(name, DEFAULT_TIMEOUT) * args.timeout_scale))
 output = args.output.resolve()
 output.mkdir(parents=True, exist_ok=True)
 env = dict(os.environ)
 env['PYTHONDONTWRITEBYTECODE'] = '1'
 env['NODE_PATH'] = os.pathsep.join(filter(None,[str(QA/'node_modules'),env.get('NODE_PATH')]))
 digest = hashlib.sha256(EDITOR.read_bytes()).hexdigest()
-index = {'editorSha256':digest,'results':[]}
+args_idle = args.idle_timeout
+index = {'editorSha256':digest,'results':[],'limits':{'default':limit_for('default-suite'),'suites':{k:limit_for(k) for k in TIMEOUTS},'idle':args.idle_timeout}}
+
+def execute(command, limit, idle):
+    """Run one suite. Stops it when it exceeds its time limit, or prints nothing for `idle` seconds (a hang)."""
+    proc = subprocess.Popen([str(arg) for arg in command], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True, encoding='utf-8', errors='replace', bufsize=1)
+    lines, last = [], [time.monotonic()]
+    def pump():
+        for line in proc.stdout:
+            lines.append(line)
+            last[0] = time.monotonic()
+    reader = threading.Thread(target=pump, daemon=True)
+    reader.start()
+    start, stopped = time.monotonic(), None
+    while proc.poll() is None:
+        time.sleep(0.25)
+        now = time.monotonic()
+        if now - start > limit:
+            stopped = 'exceeded its time limit of %d s' % limit
+        elif now - last[0] > idle:
+            stopped = 'printed nothing for %d s (possible hang)' % idle
+        if stopped:
+            proc.kill()
+            break
+    proc.wait()
+    reader.join(5)
+    return proc.returncode, ''.join(lines), stopped, time.monotonic() - start
 
 def run(name, args, receipt=None):
+    limit = limit_for(name)
     try:
         if receipt:
             receipt.unlink(missing_ok=True)
-        proc = subprocess.run([str(arg) for arg in args], cwd=ROOT, env=env, capture_output=True,
-                              text=True, encoding='utf-8', errors='replace', timeout=420)
-        log = (proc.stdout+'\n'+proc.stderr).strip()
-        (output/(name+'.log')).write_text(log+'\n',encoding='utf-8')
-        row = {'suite':name,'passed':proc.returncode==0,'exitCode':proc.returncode}
+        code, log, stopped, seconds = execute(args, limit, args_idle)
+        (output/(name+'.log')).write_text(log.strip()+'\n',encoding='utf-8')
+        row = {'suite':name,'passed':code==0 and not stopped,'exitCode':code,'seconds':round(seconds,1),'limit':limit}
+        if stopped:
+            row['reason']='Stopped: '+stopped+'. See '+name+'.log (output so far).'
+            raise StopIteration
         if receipt:
             if not receipt.exists():
                 raise ValueError('The suite did not write its evidence file.')
@@ -55,9 +108,11 @@ def run(name, args, receipt=None):
                 row['passed'] = False
         if not row['passed']:
             row['reason']='See '+name+'.log and any corresponding JSON receipt.'
-    except (OSError,ValueError,subprocess.TimeoutExpired) as err:
-        row={'suite':name,'passed':False,'reason':str(err)}
-    print(('PASS ' if row['passed'] else 'FAIL ')+name,flush=True)
+    except StopIteration:
+        pass
+    except (OSError,ValueError) as err:
+        row={'suite':name,'passed':False,'reason':str(err),'limit':limit}
+    print(('PASS ' if row['passed'] else 'FAIL ')+name+(' (%.0f s)' % row['seconds'] if 'seconds' in row else '')+('' if row['passed'] else ' · '+row.get('reason','')),flush=True)
     return row
 
 def editor_suite(case):

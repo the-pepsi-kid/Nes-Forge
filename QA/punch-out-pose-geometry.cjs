@@ -109,7 +109,7 @@ check('Emulator: the half-size build follows the original game trace from the pa
 (async () => {
   if (!rom) { report.skipped = 'No Punch-Out PRG1 cartridge in ' + (corpus ? 'the supplied directory' : 'arguments'); report.passed = true; }
   else {
-    for (const [name, fn] of checks) { try { await fn(); report.checks.push({name, passed: true}); } catch (e) { report.checks.push({name, passed: false, error: String(e.message).slice(0, 600)}); } }
+    for (const [name, fn] of checks) { process.stderr.write("check: " + name + "\n"); try { await fn(); report.checks.push({name, passed: true}); } catch (e) { report.checks.push({name, passed: false, error: String(e.message).slice(0, 600)}); } }
     report.total = report.checks.length; report.checksPassed = report.checks.filter(c => c.passed).length; report.passed = report.checksPassed === report.total;
   }
   for (const c of report.checks) console.log((c.passed ? 'PASS ' : 'FAIL ') + c.name + (c.error ? ': ' + c.error : ''));

@@ -91,6 +91,54 @@ Every entry shows its ROM SHA-256, bank, file offset, CPU/PPU address and mapper
 | Code, tables, unknown data | hex and 6502 disassembly at the location, with bank and mapper context and known symbols | rename, describe, mark as table, code or data |
 | Catalogues, RAM maps | tables | — |
 
+### 5a. ROM locations: one row per address type (implemented)
+
+A recovered-catalog entry keeps every location its decoded record names (Ninja Gaiden: 10,184 across 590 entries).
+Each location keeps its own address types, and one is never derived from another:
+
+| Row | Meaning | Example: `thrower_pic_08` pose data |
+|---|---|---|
+| File offset | byte offset into the .nes file, header included | 0x08E4F, 16 bytes |
+| Region | PRG ROM, CHR ROM or header, from the iNES header layout | PRG ROM, +0x08E3F |
+| PRG / CHR bank | the physical bank the decoder names, with its size | PRG bank 2 of 16 KiB |
+| CPU address | the address the decoder recorded | $8E3F |
+| Mapper state | what must be mapped to read it there | PRG bank 2 at $8000–$BFFF (mapper 1, header) |
+| PPU address | only where the decoder recorded one | not established |
+| Check | offset, bank and CPU address agree with the cartridge layout | consistent |
+
+CHR data has no CPU address ("read by the PPU"); a CHR bank number never becomes a PPU address. Pack locations stay
+"stated by the pack" with the pack's own field names. Code locations (state entries, readers, writers) are kept apart
+from data; an actor's dispatch is its *table of state entry pointers*, which is data. Earlier registrations upgrade in
+place and keep runtime observations.
+
+### 5b. One resource, several records (implemented)
+
+A pack file and a catalog record of the same resource are linked only on verified identity: the same source ROM
+SHA-256, the decoder record id the pack file names, and matching content (pose pieces; or the identical room location).
+Names never link records. Both records stay, with their own previews, observations and notes; each shows the link and
+its basis. Ninja Gaiden: 250 linked (202 poses, 48 rooms), none mismatched.
+
+### 5c. Provenance through WYSIWYG and CODE/RE (implemented)
+
+A library sprite used in a project carries its source identity (library entry, game, kind, source ROM SHA-256, stage,
+primary ROM location, reference or copy, `derivedFrom`) in the project itself. The same description is shown in the
+Scene panel, the Metasprite editor, Resources (Live project, with a link to its library entry), CODE and RE/DISASM.
+**Inspect in CODE/RE** opens the source ROM in the RE analysis workspace at the recorded file offset, CPU origin and
+bank: the data, or a routine. Where no verified code relationship exists it says so and still shows the raw location.
+Code relationships come from the decoded record (readers, writers, state entries) or from runtime evidence (a pose shown
+on screen by an enemy slot type: that type's actor routines), each with its basis. The source ROM is read from memory:
+imported in this session, or chosen by the developer and checked against the recorded SHA-256. Nothing stores it.
+
+### 5d. Architectural requirement: comparative RE across ROMs (not implemented)
+
+Verified assembly and runtime discoveries must become reusable when investigating similar mechanisms in other ROMs.
+Today they are specific to one cartridge: the catalog records addresses, and the runtime survey hard-codes Ninja
+Gaiden's RAM layout (eight enemy slots: type $0400, pose $0438, flags $0498). The library should hold them as
+*mechanism* records (e.g. "enemy slot table", "metasprite draw routine", "stage table read when the HUD is drawn"):
+the shape of the data and code, the evidence for each instance (ROM, bank, address, runtime observation), and the
+checks that confirm another instance. A finding in a second ROM is then a new instance with its own evidence, never a
+copied claim. Recorded here as a requirement; the current work does not interrupt for it.
+
 ## 6. Stage placement
 
 The hierarchy is **game → stage → area/room → screen/page → category → resource**. Selecting a stage sorts its
@@ -155,7 +203,8 @@ Stage 2-2 scrolls leftward from a wall, which is why the first right-only route 
 | Catalogues persist across closing Forge | `QA/catalog-persistence.cjs` 5/5 |
 | Every pack entry, unrecognised files included, is in the library after closing and reopening Forge, with preview and data, or a stated `needs source` | `QA/library-persistence.cjs`, `QA/library-explorer.cjs`, `QA/library-all-packs.cjs` (owner, all 18 packs) |
 | Notes persist, separately from verified findings | `QA/library-explorer.cjs` |
-| Reference and copy with the dependency closure; the source is unchanged; provenance survives save/reopen | `QA/library-workflow.cjs` (owner): a Stage 1-1 sprite referenced and a Stage 2-2 sprite copied into an ordinary project |
+| Reference and copy with the dependency closure; the source is unchanged; provenance survives save/reopen | `QA/library-workflow.cjs` (owner): a Stage 1-1 sprite referenced and a Stage 2-2 sprite copied; provenance in Scene, Metasprites, Resources and CODE; Inspect in CODE/RE (data and runtime-associated routine); reopen after closing the browser |
+| Decoded ROM locations are typed, consistent with the cartridge and re-read independently | `QA/library-locations.cjs` (owner): `thrower_pic_08`, a CHR bank, the thrower's state table and entries, linking, Inspect, schema upgrade |
 | A shared-resource warning lists every user | Partly: editing a reference asks first and declining leaves it unchanged (`QA/library-workflow.cjs`); listing every project that uses an entry needs portable snapshots |
 | A build refuses an unsupported native edit and names the asset | exists today |
 

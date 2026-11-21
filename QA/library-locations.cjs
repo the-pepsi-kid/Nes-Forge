@@ -16,7 +16,7 @@ const {chromium} = require('playwright');
 const [editorArg, output, cartDir, packDir] = process.argv.slice(2);
 const editor = path.resolve(editorArg), sha = b => crypto.createHash('sha256').update(b).digest('hex');
 const report = {editorSha256: sha(fs.readFileSync(editor)), checks: []};
-const check = (name, passed, detail) => report.checks.push({name, passed: !!passed, ...(detail === undefined ? {} : {detail})});
+const check = (name, passed, detail) => { report.checks.push({name, passed: !!passed, ...(detail === undefined ? {} : {detail})}); process.stderr.write((passed ? 'ok ' : 'not ok ') + name + '\n'); };
 const NINJA = '07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e', PREFIX = 'rom:07d9e57e35184667:';
 (async () => {
   const cart = fs.readdirSync(cartDir).map(f => path.join(cartDir, f)).find(f => /\.nes$/i.test(f) && sha(fs.readFileSync(f)) === NINJA);
@@ -37,7 +37,7 @@ const NINJA = '07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e'
     await run('rom.import', {__b64: rom.toString('base64'), name: 'Ninja Gaiden (U).nes'});
     const reg = await run('library.registerCatalog');
     report.stats = reg.stats;
-    check('Every decoded location agrees with the cartridge layout', reg.stats.schema === 2 && reg.stats.locations > 10000 && reg.stats.inconsistentLocations === 0, reg.stats);
+    check('Every decoded location agrees with the cartridge layout', reg.stats.schema >= 3 && reg.stats.locations > 10000 && reg.stats.inconsistentLocations === 0, reg.stats);
     // 1. thrower_pic_08: the stored, typed location
     const id = PREFIX + 'pose:enemy:8', prov = await run('library.provenance', {id}), p = prov.primary;
     check('thrower_pic_08: file offset 0x8E4F (16 bytes), PRG ROM, physical PRG bank 2 of 16 KiB, CPU $8E3F in $8000-$BFFF, mapper 1, no PPU address',
@@ -49,6 +49,12 @@ const NINJA = '07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e'
     check('Re-read from the cartridge: the pose pointer at file 0x' + ptr.toString(16).toUpperCase() + ' points to $8E3F, and the stream there holds the decoded pieces',
       word === 0x8E3F && rom[at] === pose.pieces.length && pieces.every((q, i) => q.tile === pose.pieces[i].tile && q.x === pose.pieces[i].x && q.y === pose.pieces[i].y),
       {pointer: '$' + word.toString(16), count: rom[at], pieces: pieces.length});
+    // 2b. code is code: an actor's dispatch is its table of state entry pointers (data); its entries are the code
+    const thrower = await run('library.provenance', {id: PREFIX + 'actor:ng-actor:2'}), actor = await record(PREFIX + 'actor:ng-actor:2');
+    const words = actor.states.map((st, i) => rom[actor.dispatch.fileOffset + 2 * i] | rom[actor.dispatch.fileOffset + 2 * i + 1] << 8);
+    check('Code locations are routines: the thrower\'s state pointer table is data, its words (re-read) are the recorded state entries, and only those entries are code',
+      thrower.code.length === actor.states.length && thrower.code.every(c => /^states\[\d+\]\.source$/.test(c.role)) && words.every((w, i) => w === actor.states[i].entry && thrower.code[i].cpu === w),
+      {code: thrower.code.map(c => c.role + ' $' + c.cpu.toString(16)), table: words.map(w => '$' + w.toString(16))});
     // 3. a CHR bank keeps CHR-only address types
     const chr = (await run('library.provenance', {id: PREFIX + 'chr:chr:2'})).primary;
     check('A CHR bank is located in CHR ROM, physical CHR bank 2 of 4 KiB, with no CPU or PPU address substituted',
@@ -99,7 +105,7 @@ const NINJA = '07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e'
     const old = await run('library.provenance', {id});
     const up = await run('library.registerCatalog'), after = await page.evaluate(id => Forge.services.ResourceLibrary.entry(id), id);
     check('A library registered before typed locations shows its old location, then upgrades in place keeping runtime observations and renditions',
-      old.primary?.fileOffset === 0x8E50 && old.primary.prgBank?.index === 2 && /^not checked/.test(old.primary.check) && up.stats.upgraded === true && up.stats.schema === 2 &&
+      old.primary?.fileOffset === 0x8E50 && old.primary.prgBank?.index === 2 && /^not checked/.test(old.primary.check) && up.stats.upgraded === true && up.stats.schema === reg.stats.schema &&
       after.evidence.primary.fileOffset === 0x8E4F && after.placement.verified.some(v => v.basis === 'runtime' && v.stage === 'Stage 2-2') && !!after.renditions?.['Stage 2-2'],
       {old: old.primary, upgraded: up.stats.upgraded, placements: after.placement?.verified?.length});
     check('No uncaught page errors', errors.length === 0, errors.slice(0, 3));
