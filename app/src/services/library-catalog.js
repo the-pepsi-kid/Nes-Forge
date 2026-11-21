@@ -494,7 +494,8 @@ function completeCatalog(sha,{bytes=null,name=null,from=null,manual=false,reason
     if(!profileOf(sha))return setStatus(sha,{state:'unsupported',name:label});
     const persisted=st?st.attempts||0:((await L.getMeta(FAILURES+sha).catch(()=>null))?.failures||0),inTab=recovery.failures.get(sha)||0;
     if(!manual&&(persisted>=AUTO_ATTEMPTS||inTab>=AUTO_ATTEMPTS))return setStatus(sha,{state:'needs-retry',name:label,attempts:Math.max(persisted,inTab),lastError:st?.lastError||recovery.status.get(sha)?.lastError||null});
-    if(!manual&&Date.now()<(recovery.nextAt.get(sha)||0))return setStatus(sha,{state:'waiting',name:label,retryAt:recovery.nextAt.get(sha)});
+    // during the backoff after a failure the failure stays the visible state (no churn); the scheduled attempt follows
+    if(!manual&&Date.now()<(recovery.nextAt.get(sha)||0)){const cur=recovery.status.get(sha);if(cur?.state==='failed')return {...cur};return setStatus(sha,{state:'waiting',name:label,retryAt:recovery.nextAt.get(sha)});}
     let src;
     const markerBefore=st?.markerAttempts||0;
     try{src=await sourceProject(sha,{bytes,name,from});}catch(error){return failed(error,label,markerBefore);}
@@ -552,13 +553,13 @@ async function recognize(sha){
     // recovered: verified results of an investigation are in the library, so investigating again would redo that work
     recovered:investigations.length>0&&frames>0,open:firstFrame||onShelf.items[0]?.id||null};
 }
-function recognitionText(name,r){
+function recognitionText(name,r,{job=null}={}){
   const parts=[];
   if(r.catalog.state==='complete')parts.push('recovered catalog complete ('+r.catalog.entries+' entries)');
   else if(['incomplete','failed','missing'].includes(r.catalog.state))parts.push('recovered catalog incomplete (Forge completes it)');
   if(r.frames)parts.push(r.frames+' verified frame'+(r.frames===1?'':'s'));
   for(const p of r.otherPacks)parts.push(p.name+' ('+p.files+' files)');
-  return 'Recognized '+name+': already in your library · '+(parts.join(' · ')||r.entries+' entries')+'. Nothing is extracted again.';
+  return 'Recognized '+name+': already in your library · '+(parts.join(' · ')||r.entries+' entries')+(job?' (from job '+job+')':'')+'. Nothing is extracted again.';
 }
 // imports: recognize first, then finish an incomplete catalog with the imported cartridge (subscribed once every
 // module has loaded, so no import is missed)

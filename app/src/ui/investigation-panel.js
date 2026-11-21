@@ -115,7 +115,7 @@ services.RomImports?.subscribe(entry=>{void (async()=>{
   if(!entry.ines){notice(entry.name+' is not an iNES ROM; it was not investigated.');return;}
   let known=null;try{known=await services.LibraryCatalog?.recognize?.(entry.sha256);}catch(_){known=null;}
   if(known?.recovered){const job=known.investigations[known.investigations.length-1];state.recognized.set(entry.sha256,known);
-    notice(services.LibraryCatalog.recognitionText(entry.name,known).replace(/\.$/,'')+' (investigated by job '+job.jobId+'). No new investigation was queued; Investigate selected ROM runs it again.',{open:known.open});return;}
+    notice(services.LibraryCatalog.recognitionText(entry.name,known,{job:job.jobId})+' No new investigation was queued; Investigate selected ROM runs one on request.',{open:known.open});return;}
   state.pendingAuto.set(entry.sha256,entry);
   if(!state.pairing||!state.connected)notice(entry.name+' will be investigated when the worker is '+(state.pairing?'reachable':'paired')+'.');
   void drainAuto();
