@@ -30,7 +30,7 @@ function pdb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(PDB,
 async function pairingOp(mode,value){const db=await pdb();try{return await new Promise((resolve,reject)=>{const tx=db.transaction(PSTORE,mode==='get'?'readonly':'readwrite'),st=tx.objectStore(PSTORE);
   const q=mode==='get'?st.get('current'):mode==='put'?st.put({id:'current',...value}):st.delete('current');let out=null;q.onsuccess=()=>{out=q.result??null;};tx.oncomplete=()=>resolve(out);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}finally{db.close();}}
 const settings={autoInvestigate:store.get('autoInvestigate')==='1',autoImport:store.get('autoImport')==='1',autoImportSince:Number(store.get('autoImportSince')||0)};
-const state={url:store.get('url')||'http://127.0.0.1:8787',pairing:null,connected:false,status:null,error:'',imported:[],timer:null,notices:[],pendingAuto:new Map(),requested:new Set(),autoTried:new Set(),catalogs:new Map(),catalogNoticed:new Map(),supplying:new Set(),busy:false,lastPoll:0,ready:null};
+const state={url:store.get('url')||'http://127.0.0.1:8787',pairing:null,connected:false,status:null,error:'',imported:[],timer:null,notices:[],pendingAuto:new Map(),requested:new Set(),autoTried:new Set(),catalogs:new Map(),catalogNoticed:new Map(),supplying:new Set(),recognized:new Map(),busy:false,lastPoll:0,ready:null};
 const notice=(text,extra={})=>{state.notices.unshift({at:Date.now(),text,...extra});state.notices=state.notices.slice(0,6);render();};
 const root=el('details','agentLabPanel'),summary=el('summary','agentLabSummary','Background investigation · not paired');root.appendChild(summary);
 const body=el('div','agentLabBody');root.appendChild(body);anchor.before(root);
@@ -108,13 +108,18 @@ async function investigate(choice){
   await refresh();return job;
 }
 // imports announced by RomImports: queued while paired, kept for this tab until then
-services.RomImports?.subscribe(entry=>{
+// A ROM whose verified results are already in the library is recognized there first: no job is queued and nothing
+// is extracted again (Investigate selected ROM still runs it on request).
+services.RomImports?.subscribe(entry=>{void (async()=>{
   if(!settings.autoInvestigate)return;
   if(!entry.ines){notice(entry.name+' is not an iNES ROM; it was not investigated.');return;}
+  let known=null;try{known=await services.LibraryCatalog?.recognize?.(entry.sha256);}catch(_){known=null;}
+  if(known?.recovered){const job=known.investigations[known.investigations.length-1];state.recognized.set(entry.sha256,known);
+    notice(services.LibraryCatalog.recognitionText(entry.name,known).replace(/\.$/,'')+' (investigated by job '+job.jobId+'). No new investigation was queued; Investigate selected ROM runs it again.',{open:known.open});return;}
   state.pendingAuto.set(entry.sha256,entry);
   if(!state.pairing||!state.connected)notice(entry.name+' will be investigated when the worker is '+(state.pairing?'reachable':'paired')+'.');
   void drainAuto();
-});
+})();});
 async function drainAuto(){
   if(!state.pairing||!state.connected||state.draining)return;state.draining=true;
   try{for(const [sha,entry] of [...state.pendingAuto]){
@@ -152,8 +157,8 @@ async function importJob(id,{auto=false}={}){
   const catalog=bundle.job?.rom?await registerCatalog({id,rom:bundle.job.rom}):null;
   await refresh();
   const what=r.imported?r.imported+' verified frame'+(r.imported===1?'':'s')+' from '+bundle.job.rom.name+' added to the library':'All '+r.already+' frames from '+bundle.job.rom.name+' were already in the library';
-  // a catalog that is not complete is reported by the library's own notice (one per attempt), not repeated here
-  const catalogNote=catalog&&['registered','already','none'].includes(catalog.state)?' '+catalog.text:catalog?' Its recovered catalog is not complete yet (see the next notice).':'';
+  // the catalog's registration (or its failure) is noticed once, from the library's own event; here only what no event says
+  const catalogNote=catalog&&['already','none'].includes(catalog.state)?' '+catalog.text:'';
   notice((auto?'Job finished · ':'')+what+(r.rejected.length?' · '+r.rejected.length+' record(s) rejected: '+r.rejected[0].problems.join('; '):'')+'.'+catalogNote,{open:r.entries?.[0]||null});
   return {...r,catalog};
 }
@@ -164,7 +169,7 @@ async function autoImport(){
     for(const j of state.status?.jobs||[]){
       // results already in the library (imported here or in an earlier session): their catalog must be complete too
       if(j.state==='completed'&&done.has(j.id)&&!state.catalogs.has(j.rom.sha256)&&window.GameRENative?.profiles?.some(p=>p.sha256===j.rom.sha256)){
-        try{const c=await registerCatalog(j);if(c.state==='registered'&&state.catalogNoticed.get(j.rom.sha256)!==c.text){state.catalogNoticed.set(j.rom.sha256,c.text);notice(c.text);}}
+        try{await registerCatalog(j);} // its outcome is noticed once, from the library's own event
         catch(e){notice('The recovered catalog of '+j.rom.name+' could not be checked: '+e.message);}
         continue;
       }
@@ -259,12 +264,23 @@ async function supplyCartridge(sha,{manual=false}={}){
   catch(e){notice('The cartridge of '+job.rom.name+' could not be fetched from the worker: '+e.message);return null;}
   finally{state.supplying.delete(sha);}
 }
-addEventListener('forge:catalog-recovery',e=>{if(e.detail?.state==='needs-source')void supplyCartridge(e.detail.sha,{manual:!!e.detail.manual});});
-// what the library does on its own (startup, a project or ROM opened) appears here too, once per state
+// What the library does (at startup, on a project or ROM opened, or for this panel) is noticed here once per state:
+// a registration completed, each failed attempt, the stop after the limit. A missing cartridge is reported only when
+// the paired worker cannot supply it; otherwise the worker's copy is fetched without a notice.
+const catalogNotice=(d,text)=>{if(state.catalogNoticed.get(d.sha)===text)return;state.catalogNoticed.set(d.sha,text);notice(text);};
+async function needsSource(d){
+  try{await state.ready;}catch(_){/* pairing storage unavailable */}
+  const job=state.connected&&(state.status?.jobs||[]).find(j=>j.rom.sha256===d.sha&&j.state==='completed');
+  if(job){await supplyCartridge(d.sha,{manual:!!d.manual});return;}
+  catalogNotice(d,'Recovered catalog of '+(d.name||'a ROM')+': incomplete. '+(!state.pairing?'Open its ROM (or pair the background worker) so Forge can finish it.':
+    state.connected?'The paired worker has no finished job for this ROM; open its ROM so Forge can finish it.':'Forge finishes it when the paired worker is reachable again, or when you open its ROM.'));
+}
 addEventListener('forge:catalog-recovery',e=>{const d=e.detail||{};
-  if(!['complete','failed','needs-retry','needs-source'].includes(d.state)||d.state==='complete'&&(d.already||!d.resumed))return;
-  const text='Recovered catalog of '+(d.name||'a ROM')+': '+(d.state==='complete'?'complete after an interrupted registration · '+d.entries+' entries ('+d.kept+' kept, '+d.written+' written)':d.text+(d.lastError?' ('+d.lastError+')':''))+'.';
-  if(state.catalogNoticed.get(d.sha)===text)return;state.catalogNoticed.set(d.sha,text);notice(text);});
+  if(d.state==='needs-source'){void needsSource(d);return;}
+  if(d.state==='complete'&&!d.already)return catalogNotice(d,'Recovered catalog of '+(d.name||'a ROM')+': '+(d.resumed?'completed after an interrupted registration':'registered')+' · '+d.entries+' entries ('+
+    (d.chrBanks!=null?d.chrBanks+' CHR banks':'')+(d.resumed?'; '+d.kept+' kept, '+d.written+' written':'')+').');
+  if(d.state==='failed'||d.state==='needs-retry')catalogNotice(d,'Recovered catalog of '+(d.name||'a ROM')+': '+d.text+(d.lastError?' ('+d.lastError+')':'')+'.');
+});
 root.addEventListener('toggle',()=>{if(root.open){requestAnimationFrame(()=>root.scrollIntoView({block:'nearest'}));if(state.pairing)void refresh();}});
 render();
 state.ready=pairingOp('get').then(p=>{if(p?.key){state.pairing=p;state.url=p.url||state.url;schedule();return refresh();}render();}).catch(e=>{state.error='pairing storage unavailable: '+e.message;render();});

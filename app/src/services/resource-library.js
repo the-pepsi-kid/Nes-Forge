@@ -393,12 +393,22 @@ async function storeData(bytes){
 }
 async function putRecords(ops){await ensureMeta();for(let i=0;i<ops.length;i+=BATCH)await backend().putMany(ops.slice(i,i+BATCH));}
 async function getPack(key){return backend().get('packs',key);}
+// Full entry records of one pack, a page at a time, in a stable order (by id): for code that must see every entry of
+// a large pack without holding all of them or relying on a listing limit.
+async function entriesPage({pack,offset=0,limit=1000}={}){
+  if(!pack)fail('entriesPage needs a pack');
+  const rows=(await backend().byIndex('entries','packSha256',pack)).sort((a,c)=>a.id<c.id?-1:a.id>c.id?1:0);
+  return {total:rows.length,offset,items:rows.slice(offset,offset+Math.max(1,limit))};
+}
+// Small bookkeeping records (key-addressed), e.g. recovery attempts that happen before any pack record exists.
+async function getMeta(key){await ensureMeta();return backend().get('meta',String(key));}
+async function deleteMeta(key){await backend().deleteMany([['meta',String(key)]]);}
 async function setVerifiedPlacement(id,placements,{replaceBasis}={}){
   const e=await entry(id),kept=(e.placement?.verified||[]).filter(p=>!replaceBasis||p.basis!==replaceBasis);
   e.placement={...(e.placement||{}),verified:[...kept,...placements]};await backend().putMany([['entries',e]]);return e.placement;
 }
 services.ResourceLibrary=Object.freeze({schema:SCHEMA,register,status,list,entry,readEntry,notesOf,annotate,verify,discard,exportShelf,importLibrary,openProject,
-  storeData,blobBytes,putRecords,getPack,setVerifiedPlacement,ensureMeta,
+  storeData,blobBytes,putRecords,getPack,entriesPage,getMeta,deleteMeta,setVerifiedPlacement,ensureMeta,
   backend:()=>backend().kind,_resetForTests:()=>{backendInstance?.close();backendInstance=null;}});
 
 // ---------- commands ----------

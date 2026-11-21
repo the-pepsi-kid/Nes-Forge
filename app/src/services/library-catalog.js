@@ -124,7 +124,7 @@ function rendition(project,poseId,contextRoomId,d=services.InvestigatedLibrary.d
 }
 
 // ---------- registration ----------
-async function registerCatalog(project=services.ProjectStore.capture(),{onProgress}={}){
+async function registerCatalog(project=services.ProjectStore.capture(),{onProgress,pageSize=1000}={}){
   const n=project?.investigation;
   if(!n||n.version!==1||!n.catalogs?.native)fail('the open project has no recovered ROM catalog; import a ROM with a verified profile first');
   await L.ensureMeta();
@@ -154,7 +154,10 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   records.push({kind:'symbols',r:{id:'symbols',label:'Code symbols',items:n.catalogs.native.symbols||[]},rid:'symbols'},{kind:'ram-map',r:{id:'ram',label:'RAM labels',items:n.catalogs.native.ram||[]},rid:'ram'});
   const started=Date.now(),stats={schema:CATALOG_SCHEMA,entries:0,renditions:0,chrBanks:0,verifiedPlacements:0,locations:0,inconsistentLocations:0,upgraded:upgrade,resumed:resuming,kept:0,written:0,attempts:attempt};let ops=[];
   const already=new Map();
-  if(resuming)for(const item of (await L.list({pack:packKey,limit:5000})).items){try{already.set(item.id,await L.entry(item.id));}catch(_){/* gone: written again */}}
+  // every entry already written, read page by page (no listing limit): a catalog of any size is resumed, not rewritten
+  if(resuming)for(let offset=0;;offset+=pageSize){const page=await L.entriesPage({pack:packKey,offset,limit:pageSize});stats.pagesRead=(stats.pagesRead||0)+1;
+    for(const item of page.items)already.set(item.id,item);if(offset+pageSize>=page.total)break;}
+  stats.alreadyStored=already.size;
   const described=services.InvestigatedLibrary.describe(project);
   for(const [i,{kind,r,rid}] of records.entries()){
     const id=idOf(romSha,kind,rid),label=String(r.label||r.name||(kind+' '+rid)).slice(0,160);
@@ -431,14 +434,16 @@ if(typeof snapshot==='function'){
 // entries written so far. Forge completes it on its own, from whichever copy of the cartridge it can reach: the open
 // project (an investigated project carries its cartridge), a ROM opened in this session, or bytes the caller supplies
 // (the background-investigation panel fetches the job's ROM from the paired worker). The library itself still stores
-// no ROM. Attempts are bounded: at most 3 automatic attempts per catalog (counted on its marker, so across sessions),
+// no ROM. Attempts are bounded: at most 3 automatic attempts per catalog, across sessions: a registration counts on
+// the catalog's marker, a failure before any registration starts (no marker yet) on a library meta record
+// ("catalog-failures:<sha>"), cleared on success. They are
 // spaced 0 s, 30 s and 2 min apart within a tab; after that a visible Retry is needed. Every state change is announced
 // (event "forge:catalog-recovery", a toast for the important ones) and listed by recoveryStatus().
-const AUTO_ATTEMPTS=3,BACKOFF=[0,30000,120000];
+const AUTO_ATTEMPTS=3,BACKOFF=[0,30000,120000],FAILURES='catalog-failures:';
 const recovery={status:new Map(),running:new Map(),failures:new Map(),nextAt:new Map(),timers:new Map()};
 const profileOf=sha=>window.GameRENative?.profiles?.find(p=>p.sha256===sha)||null;
 const STATE_TEXT={complete:'complete',completing:'completing…','completing-elsewhere':'being completed in another Forge tab',incomplete:'incomplete (registration was interrupted)',
-  'needs-source':'incomplete: open its ROM (or pair the background worker) so Forge can finish it',failed:'a completion attempt failed; Forge retries automatically',
+  'needs-source':'incomplete: waiting for its cartridge (open its ROM; a paired background worker supplies it automatically)',failed:'a completion attempt failed; Forge retries automatically',
   'needs-retry':'automatic completion stopped after 3 failed attempts; use Retry',waiting:'the last completion attempt failed; Forge tries again automatically',unsupported:'no recovered catalog exists for this ROM'};
 function setStatus(sha,value){
   const next={...(recovery.status.get(sha)||{}),sha,...value,at:Date.now()};next.text=STATE_TEXT[next.state]||next.state;
@@ -464,7 +469,11 @@ async function catalogState(){
   }
   for(const p of packs)if(p.origin==='runtime-capture'&&p.sourceSha256&&profileOf(p.sourceSha256)&&!out.has(p.sourceSha256))
     out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · runtime captures$/,''),state:'missing',packKey:null,updated:p.updated||0,entries:null});
-  for(const c of out.values())if(c.packKey&&c.state!=='complete'){const pack=await L.getPack(c.packKey);c.attempts=pack?.attempts||0;c.lastError=pack?.lastError||null;}
+  for(const c of out.values())if(c.state!=='complete'){
+    const pack=c.packKey?await L.getPack(c.packKey):null,pre=await L.getMeta(FAILURES+c.sha).catch(()=>null);
+    c.markerAttempts=pack?.attempts||0;c.preFailures=pre?.failures||0;c.attempts=c.markerAttempts+c.preFailures;
+    c.lastError=(pre?.at||0)>(pack?.lastAttemptAt||0)?pre.lastError:(pack?.lastError||pre?.lastError||null);
+  }
   return [...out.values()];
 }
 async function sourceProject(sha,{bytes,name,from}){
@@ -478,13 +487,14 @@ function completeCatalog(sha,{bytes=null,name=null,from=null,manual=false,reason
   if(recovery.running.has(sha))return recovery.running.get(sha);
   const job=(async()=>{
     const st=(await catalogState()).find(c=>c.sha===sha)||null,label=st?.name||name||null;
-    if(st?.state==='complete')return setStatus(sha,{state:'complete',name:label,entries:st.entries,already:true});
+    if(st?.state==='complete'){await L.deleteMeta(FAILURES+sha).catch(()=>{});return setStatus(sha,{state:'complete',name:label,entries:st.entries,already:true});}
     if(!profileOf(sha))return setStatus(sha,{state:'unsupported',name:label});
-    const persisted=st?.attempts||0,inTab=recovery.failures.get(sha)||0;
+    const persisted=st?st.attempts||0:((await L.getMeta(FAILURES+sha).catch(()=>null))?.failures||0),inTab=recovery.failures.get(sha)||0;
     if(!manual&&(persisted>=AUTO_ATTEMPTS||inTab>=AUTO_ATTEMPTS))return setStatus(sha,{state:'needs-retry',name:label,attempts:Math.max(persisted,inTab),lastError:st?.lastError||recovery.status.get(sha)?.lastError||null});
     if(!manual&&Date.now()<(recovery.nextAt.get(sha)||0))return setStatus(sha,{state:'waiting',name:label,retryAt:recovery.nextAt.get(sha)});
     let src;
-    try{src=await sourceProject(sha,{bytes,name,from});}catch(error){return failed(error,label,persisted);}
+    const markerBefore=st?.markerAttempts||0;
+    try{src=await sourceProject(sha,{bytes,name,from});}catch(error){return failed(error,label,markerBefore);}
     if(!src)return setStatus(sha,{state:'needs-source',name:label,attempts:persisted,lastError:st?.lastError||null,manual});
     const resuming=!!st&&st.state!=='missing';
     setStatus(sha,{state:'completing',name:label,reason,resuming,source:src.source});
@@ -492,19 +502,24 @@ function completeCatalog(sha,{bytes=null,name=null,from=null,manual=false,reason
     try{
       const r=typeof navigator!=='undefined'&&navigator.locks?await navigator.locks.request('nes-forge-catalog:'+sha,{ifAvailable:true},lock=>lock?run():null):await run();
       if(r===null)return setStatus(sha,{state:'completing-elsewhere',name:label});
-      recovery.failures.delete(sha);recovery.nextAt.delete(sha);clearTimeout(recovery.timers.get(sha));recovery.timers.delete(sha);
+      recovery.failures.delete(sha);recovery.nextAt.delete(sha);clearTimeout(recovery.timers.get(sha));recovery.timers.delete(sha);await L.deleteMeta(FAILURES+sha).catch(()=>{});
       return setStatus(sha,{state:'complete',name:label,entries:r.stats.entries,chrBanks:r.stats.chrBanks,kept:r.stats.kept||0,written:r.already?0:r.stats.written??r.stats.entries,already:!!r.already,resumed:!!r.stats.resumed,attempts:r.stats.attempts||null,source:src.source,lastError:null});
-    }catch(error){return failed(error,label,persisted);}
+    }catch(error){return failed(error,label,markerBefore);}
   })().finally(()=>recovery.running.delete(sha));
-  async function failed(error,label,persisted){
-    const n=(recovery.failures.get(sha)||0)+1,delay=BACKOFF[Math.min(n,BACKOFF.length-1)];recovery.failures.set(sha,n);recovery.nextAt.set(sha,Date.now()+delay);
-    const st=(await catalogState().catch(()=>[])).find(c=>c.sha===sha),attempts=Math.max(n,st?.attempts||persisted+1);
+  async function failed(error,label,markerBefore){
+    const n=(recovery.failures.get(sha)||0)+1,delay=BACKOFF[Math.min(n,BACKOFF.length-1)],message=String(error?.message||error).slice(0,300);recovery.failures.set(sha,n);recovery.nextAt.set(sha,Date.now()+delay);
+    let st=(await catalogState().catch(()=>[])).find(c=>c.sha===sha);
+    // it failed before a registration started (the marker did not count it): count it where later sessions see it
+    if((st?.markerAttempts||0)===markerBefore){const pre=await L.getMeta(FAILURES+sha).catch(()=>null);
+      await L.putRecords([['meta',{key:FAILURES+sha,sha,failures:(pre?.failures||0)+1,lastError:message,at:Date.now()}]]).catch(()=>{});
+      st=(await catalogState().catch(()=>[])).find(c=>c.sha===sha)||st;}
+    const attempts=Math.max(n,st?.attempts||0);
     recovery.nextAt.set(sha,Date.now()+delay);
     // the next automatic attempt is scheduled here, once, so it does not depend on anything else polling; the limit
     // is checked again when it runs
     clearTimeout(recovery.timers.get(sha));
     if(attempts<AUTO_ATTEMPTS)recovery.timers.set(sha,setTimeout(()=>{recovery.timers.delete(sha);void completeCatalog(sha,{reason:'retry after a failure'}).catch(()=>{});},delay+50));
-    return setStatus(sha,{state:attempts>=AUTO_ATTEMPTS?'needs-retry':'failed',name:label,attempts,retryAt:attempts<AUTO_ATTEMPTS?recovery.nextAt.get(sha):null,lastError:String(error?.message||error).slice(0,300)});
+    return setStatus(sha,{state:attempts>=AUTO_ATTEMPTS?'needs-retry':'failed',name:label,attempts,retryAt:attempts<AUTO_ATTEMPTS?recovery.nextAt.get(sha):null,lastError:message});
   }
   recovery.running.set(sha,job);return job;
 }
@@ -517,15 +532,48 @@ async function resumeCatalogs({reason='automatic'}={}){
 function recoveryStatus(){return [...recovery.status.values()].map(s=>({...s}));}
 let projectTimer=null;
 function projectChanged(){clearTimeout(projectTimer);projectTimer=setTimeout(()=>{void resumeCatalogs({reason:'project'}).catch(()=>{});},600);}
+// ---------- recognizing a ROM that was recovered before ----------
+// What the library already holds for a ROM (by SHA-256): its recovered catalog, verified frames, the investigations they
+// came from and other packs of the same cartridge. Read from the library only: no worker, no ROM bytes, nothing redone.
+async function recognize(sha){
+  sha=String(sha||'').toLowerCase();if(!/^[0-9a-f]{64}$/.test(sha))fail('recognize needs a ROM SHA-256');
+  const r=await C.run('library.packs'),packs=(r.ok?r.result:[]).filter(p=>p.sourceSha256===sha);
+  const onShelf=await L.list({shelf:sha,limit:1}),catalog=(await catalogState()).find(c=>c.sha===sha)||null;
+  const frames=packs.filter(p=>p.origin==='runtime-capture').reduce((n,p)=>n+(p.fileCount||0),0);
+  const investigations=packs.filter(p=>p.origin==='agent-lab'&&p.state==='complete').map(p=>({jobId:p.job?.id||null,plan:p.job?.plan?.name||p.job?.plan?.id||null,
+    imported:p.stats?.imported||0,completed:p.job?.completed||null,editorSha256:p.job?.editorSha256||null}));
+  const other=packs.filter(p=>!['agent-lab','runtime-capture','rom-catalog'].includes(p.origin)).map(p=>({name:p.name,origin:p.origin,files:p.fileCount||0}));
+  const firstFrame=frames?(await L.list({shelf:sha,kind:'frame',limit:1})).items[0]?.id||null:null;
+  return {sha,known:onShelf.total>0||other.length>0,entries:onShelf.total,counts:onShelf.counts,
+    catalog:catalog?{state:catalog.state,entries:catalog.entries}:{state:profileOf(sha)?'none':'unsupported'},frames,investigations,otherPacks:other,
+    // recovered: verified results of an investigation are in the library, so investigating again would redo that work
+    recovered:investigations.length>0&&frames>0,open:firstFrame||onShelf.items[0]?.id||null};
+}
+function recognitionText(name,r){
+  const parts=[];
+  if(r.catalog.state==='complete')parts.push('recovered catalog complete ('+r.catalog.entries+' entries)');
+  else if(['incomplete','failed','missing'].includes(r.catalog.state))parts.push('recovered catalog incomplete (Forge completes it)');
+  if(r.frames)parts.push(r.frames+' verified frame'+(r.frames===1?'':'s'));
+  for(const p of r.otherPacks)parts.push(p.name+' ('+p.files+' files)');
+  return 'Recognized '+name+': already in your library · '+(parts.join(' · ')||r.entries+' entries')+'. Nothing is extracted again.';
+}
+// imports: recognize first, then finish an incomplete catalog with the imported cartridge (subscribed once every
+// module has loaded, so no import is missed)
 setTimeout(()=>{
-  void resumeCatalogs({reason:'startup'}).catch(()=>{});
-  services.RomImports?.subscribe(entry=>{void catalogState().then(list=>{const c=list.find(x=>x.sha===entry.sha256&&x.state!=='complete');if(c)return completeCatalog(entry.sha256,{bytes:services.RomImports.bytes(entry.sha256),name:entry.name,from:'the ROM import',reason:'rom import'});}).catch(()=>{});});
-},1500);
+  services.RomImports?.subscribe(entry=>{void (async()=>{
+    const r=await recognize(entry.sha256);
+    if(r.known){window.showToast?.(recognitionText(entry.name,r));try{window.dispatchEvent(new CustomEvent('forge:rom-recognized',{detail:{...r,name:entry.name}}));}catch(_){/* no DOM events */}}
+    if(['incomplete','failed','missing'].includes(r.catalog.state))await completeCatalog(entry.sha256,{bytes:services.RomImports.bytes(entry.sha256),name:entry.name,from:'the ROM import',reason:'rom import'});
+  })().catch(()=>{});});
+},0);
+setTimeout(()=>{void resumeCatalogs({reason:'startup'}).catch(()=>{});},1500);
 
 services.SourceROMs=SourceROMs;
 services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation,
-  catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,AUTO_ATTEMPTS});
+  catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,recognize,recognitionText,AUTO_ATTEMPTS});
 if(C?.register){
+  C.register({name:'library.recognize',group:'library',title:'What the library already holds for a ROM',summary:'By SHA-256: recovered catalog, verified frames, investigations and other packs; read from the library only.',
+    args:{sha256:{type:'string',required:true}},run:a=>recognize(String(a.sha256))});
   C.register({name:'library.catalogs',group:'library',title:'Recovered catalogs and their registration state',summary:'complete, incomplete (interrupted), failed or missing, with attempts and the last error.',run:()=>catalogState()});
   C.register({name:'library.completeCatalog',group:'library',title:'Complete an interrupted catalog registration',summary:'Uses the open project or a ROM opened in this session; manual: true ignores the automatic attempt limit.',
     args:{sha256:{type:'string',required:true},manual:{type:'boolean',default:false}},run:a=>completeCatalog(String(a.sha256),{manual:!!a.manual,reason:'command'})});

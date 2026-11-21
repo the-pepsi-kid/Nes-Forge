@@ -41,10 +41,11 @@ args = parser.parse_args()
 #   project-recovery   ~4 min: the 5.7 MB Ninja Gaiden project through close, refresh, kill, damage and failed writes
 #   one-rom-loop       ~5 min: pairing, automatic investigation and registration (Ninja Gaiden, SMB3), restarts, security
 #   catalog-recovery   ~6 min: recovered-catalog registration interrupted (kill, close), completed, validated, retried
+#   library-integrity  ~6 min: copied pose vs cartridge CHR, independent copies, recognition across sessions, Zelda II
 #   native-corpus, library-locations: several minutes with every cartridge
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420
-TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500}
+TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500}
 for item in args.timeout:
     suite, _, seconds = item.partition('=')
     if not suite or not seconds.isdigit():
@@ -234,6 +235,8 @@ if args.cartridges:
         receipt=output/'catalog-recovery.json'
         # its screenshots show cartridge graphics: only into the evidence folder outside the repository
         record(run('catalog-recovery',['node',QA/'catalog-recovery.cjs',EDITOR,receipt,args.cartridges.resolve()]+([str(shots[0]/'catalog-recovery')] if shots else []),receipt))
+        receipt=output/'library-integrity.json'
+        record(run('library-integrity',['node',QA/'library-integrity.cjs',EDITOR,receipt,args.cartridges.resolve()]+([str(shots[0]/'library-integrity')] if shots else []),receipt))
         receipt=output/'library-workflow.json'
         record(run('library-workflow',['node',QA/'library-workflow.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
     receipt=output/'native-corpus.json'

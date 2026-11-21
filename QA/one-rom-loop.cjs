@@ -190,16 +190,16 @@ async function until(fn, ms = 900000, every = 500) { const t = Date.now(); for (
     const inspector = await page.$eval('#frx-details', e => e.textContent);
     check('Navigation: frame → CHR bank entry → its bytes in CODE/RE for Ninja Gaiden; the preview is labelled rendered pixels and points to the cartridge data that is (or is not) linked',
       /CHR file 0x/.test(ngText) && /original cartridge tile data is in this ROM's CHR library entries/.test(ngText) && re.fileOffset >= 16 + 8 * 16384 && re.cpuAddress === null &&
-      /rendered framebuffer: pixels, not CHR data/.test(smbText) && /no CHR entries in the library \(no recovered catalog registered\)/.test(smbText) && /Observed at runtime/.test(inspector), {re});
-    check('Unavailable CHR links are visibly disabled (dimmed, dashed) with the reason next to each', smbLinks.length > 0 && smbLinks.every(l => l.disabled && Number(l.opacity) < 0.6 && /unavailable: this ROM has no CHR entries/.test(l.reason || '')), {sample: smbLinks.slice(0, 2), count: smbLinks.length});
+      /rendered framebuffer: pixels, not CHR data/.test(smbText) && /has no recovered catalog in the library/.test(smbText) && /Observed at runtime/.test(inspector), {re});
+    check('Unavailable CHR links are visibly disabled (dimmed, dashed) with the reason next to each', smbLinks.length > 0 && smbLinks.every(l => l.disabled && Number(l.opacity) < 0.6 && /unavailable: this ROM has no recovered catalog in the library/.test(l.reason || '')), {sample: smbLinks.slice(0, 2), count: smbLinks.length});
     await page.evaluate(() => { document.getElementById('frx-close')?.click(); switchTab('scene'); });
     // ---- 10 the same ROM imported again ----
     const jobsBefore = jobs().length;
-    await page.setInputFiles('#projectGatewayFile', NG); await page.waitForFunction(() => Forge.services.InvestigationPanel.state().notices.some(n => /already investigated/.test(n)), null, {timeout: 30000}).catch(() => {});
+    await page.setInputFiles('#projectGatewayFile', NG); await page.waitForFunction(() => Forge.services.InvestigationPanel.state().notices.some(n => /^Recognized Ninja Gaiden/.test(n)), null, {timeout: 30000}).catch(() => {});
     await page.evaluate(() => Forge.services.InvestigationPanel.refresh()); await panel(); await shot('16_same_rom_imported_again_no_duplicate');
-    const dupNotice = (await ps()).notices.find(n => /already investigated/.test(n));
+    const dupNotice = (await ps()).notices.find(n => /^Recognized Ninja Gaiden.*No new investigation was queued/.test(n));
     const again = await page.evaluate(id => Forge.services.InvestigationPanel.importJob(id), ngJobId);
-    check('Importing Ninja Gaiden again queues no new job (the finished one is reused) and importing its results again adds no entry',
+    check('Importing Ninja Gaiden again is recognized from the library (no new job requested) and importing its results again adds no entry',
       jobs().length === jobsBefore && !!dupNotice && again.imported === 0 && again.already === 22 && again.rejected.length === 0, {dupNotice, again: {imported: again.imported, already: again.already}});
     // ---- 11 checkpoint reuse and unchanged evidence hashes ----
     const t11 = Date.now(), rerun = await admin('POST', '/jobs', {rom: fs.readFileSync(NG).toString('base64'), name: 'Ninja Gaiden (U).nes', plan: 'profile', rerun: true});

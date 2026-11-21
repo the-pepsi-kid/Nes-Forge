@@ -416,6 +416,8 @@ async function libraryGraph(){
    stageNames:[...new Set((e.stages||[]).map(s=>s.stage))],stageBadge:[...new Set((e.stages||[]).map(s=>s.stage+(s.basis==='runtime'?' (observed)':s.basis==='rom-table'?' (ROM table)':'')))].join(', ')});
   if(e.preview)g.edge(n.key,key('lib','pack:'+e.packSha256.slice(0,16)+':'+(e.previewPath||'')),'preview image');
  }
+ // each recovered catalog's registration state: an incomplete one explains missing CHR entries
+ try{g.catalogs=new Map(((await window.Forge.services.LibraryCatalog?.catalogState?.())||[]).map(c=>[c.sha,c]));}catch(_){g.catalogs=new Map();}
  return g;
 }
 function setMode(next){
@@ -582,6 +584,10 @@ function renderCatalogStatus(){
 // a completed catalog adds entries: reload the library view, keeping the selection
 function reloadLibrary(){if(mode!=='library')return;pendingSelect=active;setMode('library');}
 addEventListener('forge:catalog-recovery',e=>{if(mode!=='library')return;renderCatalogStatus();if(e.detail?.state==='complete'&&!e.detail.already&&root.classList.contains('frx-visible'))reloadLibrary();});
+// why a ROM's cartridge tile data is not (all) linked: its recovered catalog is still incomplete, or there is none
+function catalogGap(sha){const c=graph?.catalogs?.get(sha);
+ if(c&&c.state!=='complete')return 'this ROM\'s recovered catalog is incomplete ('+(c.state==='failed'?'its last completion attempt failed':c.state==='missing'?'it was never registered':'its registration was interrupted')+'; Forge completes it when the cartridge is available)';
+ return null;}
 function hasChrEntries(sourceSha256){const prefix=key('lib','rom:'+String(sourceSha256||'').slice(0,16)+':chr:');for(const k of graph.nodes.keys())if(k.startsWith(prefix))return true;return false;}
 async function renderFrameDetails(entry,host){
  const C=window.Forge.commands,P=window.Forge.services.LibraryProvenance,UI=window.Forge.services.LibraryProvenanceUI;
@@ -591,7 +597,7 @@ async function renderFrameDetails(entry,host){
  const head=t=>box.append(elt('span','frx-label',t)),note=t=>box.append(elt('div','frx-code',t));
  const button=(label,fn,title)=>{const b=elt('button','frx-relationship',label);b.type='button';if(title)b.title=title;b.onclick=fn;return b;};
  const chrEntry=bank=>'rom:'+entry.sourceSha256.slice(0,16)+':chr:chr:'+bank,inLibrary=id=>graph.nodes.has(key('lib',id));
- const anyChr=hasChrEntries(entry.sourceSha256),why=anyChr?'this CHR bank has no library entry':'this ROM has no CHR entries in the library (no recovered catalog registered)';
+ const anyChr=hasChrEntries(entry.sourceSha256),why=catalogGap(entry.sourceSha256)||(anyChr?'this CHR bank has no library entry':'this ROM has no recovered catalog in the library');
  // an unavailable link stays visible, looks unavailable, and says why next to it (not only in a tooltip)
  const chrLink=(bank,title)=>{const id=chrEntry(bank),b=button('CHR bank '+bank,()=>choose(key('lib',id)),title);if(inLibrary(id))return [b];
   b.disabled=true;b.title='Unavailable: '+why;b.dataset.unavailable='true';const r=elt('span','frx-unavailable','unavailable: '+why);return [b,r];};
@@ -680,7 +686,7 @@ function renderLibraryViewer(n,host,tools,caption){
     host.append(row);}
   }
   if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);
-   if(entry.preview?.derivation)host.append(elt('div','frx-code','Preview: '+entry.preview.derivation+'. '+(entry.kind!=='frame'?'':hasChrEntries(entry.sourceSha256)?'The original cartridge tile data is in this ROM\'s CHR library entries, linked below.':'This ROM has no CHR entries in the library (no recovered catalog registered), so the cartridge tile data is not linked here; the file offsets below locate it in the ROM.')));}
+   if(entry.preview?.derivation)host.append(elt('div','frx-code','Preview: '+entry.preview.derivation+'. '+(entry.kind!=='frame'?'':catalogGap(entry.sourceSha256)?'The cartridge tile data is not all linked yet: '+catalogGap(entry.sourceSha256)+'. The file offsets below locate it in the ROM.':hasChrEntries(entry.sourceSha256)?'The original cartridge tile data is in this ROM\'s CHR library entries, linked below.':'This ROM has no recovered catalog in the library, so the cartridge tile data is not linked here; the file offsets below locate it in the ROM.')));}
   // evidence: decoded or stated locations, each address type on its own row, or that the location is unknown
   const ev=entry.evidence||{state:'none'},box=elt('div');box.style.cssText='text-align:left;font-size:11px;margin:6px 0';
   const row=(label,value)=>{box.append(elt('span','frx-label',label),elt('div','frx-code',value));};

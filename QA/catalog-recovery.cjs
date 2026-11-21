@@ -12,6 +12,7 @@
 // C  later sessions: worker restarted, Forge reopened, the same ROM imported again: recognized, nothing redone
 // D  registration interrupted by a normal tab close in another profile; completed with the cartridge from the worker
 // E  failing writes: bounded automatic attempts (3, across sessions), visible state, manual Retry completes it
+// F  failures before registration begins (the catalog's first write refused): still bounded across sessions, Retry
 'use strict';
 const fs = require('fs'), os = require('os'), path = require('path'), crypto = require('crypto'), {spawn, execSync} = require('child_process');
 const {chromium} = require('playwright');
@@ -53,11 +54,15 @@ const HOOK = ({k, mode}) => {
     return put0.call(this, v, ...rest);
   };
 };
-async function open(profile, {hook} = {}) {
+async function open(profile, {hook, refuseMarker = false} = {}) {
   const ctx = await chromium.launchPersistentContext(profile, {headless: true, viewport: {width: 1440, height: 900}});
   const page = ctx.pages()[0] || await ctx.newPage(), errors = [];
   page.on('pageerror', e => errors.push(e.message)); page.on('dialog', d => d.accept()); page.setDefaultTimeout(900000);
   if (hook) await page.addInitScript(HOOK, hook);
+  // F: the recovered catalog's first write (its "registering" record) is refused, as storage that rejects it would
+  if (refuseMarker) await page.addInitScript(() => { const put0 = IDBObjectStore.prototype.put; IDBObjectStore.prototype.put = function (v, ...rest) {
+    if (this.name === 'packs' && v && v.origin === 'rom-catalog' && v.state === 'registering' && this.transaction.db.name === 'nesforge-library') { window.__qaMarkerRefusals = (window.__qaMarkerRefusals || 0) + 1; throw new DOMException('simulated: the browser refused to store the catalog record', 'QuotaExceededError'); }
+    return put0.call(this, v, ...rest); }; });
   // every recovery state the library reports, from the first moment of the page (startup attempts included)
   await page.addInitScript(() => { window.__qaRecovery = []; addEventListener('forge:catalog-recovery', e => { const d = e.detail || {}; window.__qaRecovery.push({state: d.state, attempts: d.attempts ?? null, reason: d.reason || null, at: d.at, retryAt: d.retryAt || null}); }); });
   await page.goto('file://' + editor); await page.waitForFunction('window.Forge?.services?.InvestigationPanel && window.Forge.services.LibraryCatalog?.catalogState');
@@ -142,7 +147,12 @@ const diagnose = (page, label) => async () => ({label, ...(await page.evaluate(a
   await until(() => status(s.page).then(st => st && st.state === 'needs-source'), 30000);
   const before = await inventory(s.page), markerBefore = await catalogPack(s.page);
   await s.page.click('#frx-open'); await s.page.click('#frx-lib'); await s.page.waitForSelector('#frx-catalog-status');
-  const statusLine = await s.page.$eval('#frx-catalog-status', e => e.textContent); await shot('B1_reopened_incomplete_catalog_needs_rom'); await s.page.click('#frx-close');
+  await s.page.waitForFunction(() => /recovered catalog is incomplete/.test(document.getElementById('frx-preview')?.textContent || ''), null, {timeout: 20000}).catch(() => {});
+  const statusLine = await s.page.$eval('#frx-catalog-status', e => e.textContent), previewB = await s.page.$eval('#frx-preview', e => e.textContent); await shot('B1_reopened_incomplete_catalog_needs_rom'); await s.page.click('#frx-close');
+  const noticeB = await until(() => s.page.evaluate(() => Forge.services.InvestigationPanel.state().notices.find(n => /^Recovered catalog of .*: incomplete\./.test(n)) || null), 20000).catch(() => null);
+  check('B: the wording matches the state: the frame preview says the recovered catalog is incomplete (not that there is none); with the paired worker unreachable, one notice says Forge finishes it when the worker is reachable or the ROM is opened',
+    /recovered catalog is incomplete \(its registration was interrupted/.test(previewB) && !/has no recovered catalog/.test(previewB) && /when the paired worker is reachable again, or when you open its ROM/.test(noticeB || ''),
+    {preview: (previewB.match(/[^.]*recovered catalog[^.]*\./) || [null])[0], notice: noticeB});
   check('B: on reopening, Forge detects the incomplete registration, keeps what was recovered (22 frames, part of the catalog) and says it needs the cartridge',
     markerBefore?.state === 'incomplete' && markerBefore.pack?.attempts === 1 && before.frames === 22 && before.catalogEntries > 0 && before.catalogEntries < 590 && /open its ROM/.test(statusLine),
     {before, marker: {state: markerBefore?.state, attempts: markerBefore?.pack?.attempts}, statusLine});
@@ -208,15 +218,18 @@ const diagnose = (page, label) => async () => ({label, ...(await page.evaluate(a
   await s.page.evaluate(() => Forge.services.InvestigationPanel.whenReady()); await s.page.waitForFunction(() => Forge.services.InvestigationPanel.state().connected, null, {timeout: 20000});
   const invBefore = await inventory(s.page), jobsBefore = jobs().length, packBefore = (await catalogPack(s.page)).pack;
   await s.page.setInputFiles('#projectGatewayFile', NG);
-  await s.page.waitForFunction(() => Forge.services.InvestigationPanel.state().notices.some(n => /already investigated/.test(n)), null, {timeout: 30000}).catch(() => {});
-  const statusC = await until(() => status(s.page).then(st => st?.state === 'complete' ? st : null), 30000).catch(() => null);
+  // recognized from the library before any investigation is requested
+  await s.page.waitForFunction(() => Forge.services.InvestigationPanel.state().notices.some(n => /^Recognized /.test(n)), null, {timeout: 30000}).catch(() => {});
+  const recognizedC = await s.page.evaluate(sha => Forge.services.LibraryCatalog.recognize(sha), NINJA);
+  const noticeC = await s.page.evaluate(() => Forge.services.InvestigationPanel.state().notices.find(n => /^Recognized /.test(n)) || null);
   await s.page.evaluate(() => Forge.services.InvestigationPanel.refresh()); await s.page.waitForTimeout(1500);
   await s.page.evaluate(() => { const d = document.getElementById('agentLabPanel'); if (!d.open) d.querySelector('summary').click(); d.scrollIntoView({block: 'start'}); }); await shot('C1_same_rom_again_recognized');
   const invAfter = await inventory(s.page), packAfter = (await catalogPack(s.page)).pack;
   const resumeAgain = await s.page.evaluate(() => Forge.services.LibraryCatalog.resumeCatalogs({reason: 'test'}));
-  report.phases.C = {jobsBefore, jobsAfter: jobs().length, catalogStatus: statusC && {state: statusC.state, already: statusC.already}, catalogUpdatedBefore: packBefore.updated, catalogUpdatedAfter: packAfter.updated, inventorySame: JSON.stringify(invBefore) === JSON.stringify(invAfter), resumeAgain: resumeAgain.length};
-  check('C: closing Forge, restarting the worker and importing the same ROM again recognizes everything: no new job, no re-import, the catalog untouched (same record), nothing left to resume',
-    report.phases.C.jobsAfter === jobsBefore && report.phases.C.inventorySame && packAfter.updated === packBefore.updated && packAfter.state === 'complete' && resumeAgain.length === 0, report.phases.C);
+  report.phases.C = {jobsBefore, jobsAfter: jobs().length, recognized: {catalog: recognizedC.catalog, frames: recognizedC.frames, recovered: recognizedC.recovered}, notice: noticeC, catalogUpdatedBefore: packBefore.updated, catalogUpdatedAfter: packAfter.updated, inventorySame: JSON.stringify(invBefore) === JSON.stringify(invAfter), resumeAgain: resumeAgain.length};
+  check('C: closing Forge, restarting the worker and importing the same ROM again: recognized from the library before any investigation (no job requested), no re-import, the catalog untouched (same record), nothing left to resume',
+    report.phases.C.jobsAfter === jobsBefore && !!noticeC && /No new investigation was queued/.test(noticeC) && recognizedC.recovered && recognizedC.catalog.state === 'complete' && recognizedC.frames === 22 &&
+    report.phases.C.inventorySame && packAfter.updated === packBefore.updated && packAfter.state === 'complete' && resumeAgain.length === 0, report.phases.C);
   await s.ctx.close();
   // ---------------- D: interrupted by a normal tab close; completed with the worker's cartridge ----------------
   const P2 = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-catalog-p2-'));
@@ -236,6 +249,9 @@ const diagnose = (page, label) => async () => ({label, ...(await page.evaluate(a
   report.phases.D = {putsAtClose: putsD, catalogAtClose: atClose, completion: doneD, inventory: invD, notices: noticesD.slice(0, 4)};
   check('D: a registration interrupted by a normal tab close (frames imported, project not investigated) is completed when Forge reopens, with the cartridge fetched from the paired worker; nothing duplicated',
     atClose?.state === 'incomplete' && doneD.state === 'complete' && doneD.resumed && doneD.kept > 0 && doneD.kept + doneD.written === 590 && /paired worker/.test(doneD.source || '') && invD.catalogEntries === 590 && invD.chr === 32 && invD.frames === 22 && invD.uniqueIds === invD.total, report.phases.D);
+  check('D: one notice for the completion, and no "missing cartridge" notice while the paired worker supplies it',
+    noticesD.filter(n => /^Recovered catalog of .*completed after an interrupted registration/.test(n)).length === 1 && !noticesD.some(n => /^Recovered catalog of .*: incomplete\./.test(n)) &&
+    !noticesD.some(n => /^Completed the interrupted registration/.test(n)), {notices: noticesD});
   await s.ctx.close();
   // ---------------- E: failing writes: bounded attempts across sessions, visible state, manual Retry ----------------
   const P3 = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-catalog-p3-'));
@@ -285,11 +301,36 @@ const diagnose = (page, label) => async () => ({label, ...(await page.evaluate(a
   check('E: after the limit nothing retries on its own: no catalog writes in the same tab or in a new session (which shows needs-retry at once), and Retry is offered',
     attempts[2].putsEightSecondsLater === attempts[2].puts && attempts[3].state === 'needs-retry' && attempts[3].attempts === 3 && attempts[3].puts === 0 && tries(attempts[3].log).length === 0 && /Retry/.test(retryLine), {third: attempts[2], fourth: attempts[3], retryLine});
   check('E: the manual Retry completes the catalog, keeping the entries the failed attempts wrote; no duplicates', finalE.state === 'complete' && invE.catalogEntries === 590 && invE.chr === 32 && invE.uniqueIds === invE.total, report.phases.E);
+  check('No uncaught page errors (phase E)', s.errors.length === 0, s.errors.slice(0, 3));
+  await s.ctx.close();
+  // ---------------- F: failures before registration begins: the catalog's first write (its marker) is refused ----------------
+  const P4 = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-catalog-p4-')), META = 'catalog-failures:' + NINJA, early = [];
+  const snapF = async (page, session) => ({session, state: (await status(page))?.state, catalog: await page.evaluate(sha => Forge.commands.run('library.catalogs').then(r => { const c = r.result.find(x => x.sha === sha); return c && {state: c.state, packKey: c.packKey, attempts: c.attempts}; }), NINJA),
+    meta: await page.evaluate(k => Forge.services.ResourceLibrary.getMeta(k), META), refusals: await page.evaluate(() => window.__qaMarkerRefusals || 0)});
+  for (let session = 1; session <= 4; session++) {
+    s = await open(P4, {refuseMarker: true}); shot = shotOf(s.page);
+    if (session === 1) { newPairingCode(); await pair(s.page); await s.page.setInputFiles('#projectGatewayFile', NG); }
+    const st = await until(() => status(s.page).then(x => x && ['failed', 'needs-retry', 'complete'].includes(x.state) ? x : null), 180000, 300, diagnose(s.page, 'F session ' + session));
+    if (st.state === 'complete') throw Error('F session ' + session + ': the catalog completed although its first write is refused');
+    await sleep(session === 4 ? 8000 : 500); early.push(await snapF(s.page, session));
+    if (session === 4) { await s.page.evaluate(() => { const d = document.getElementById('agentLabPanel'); if (!d.open) d.querySelector('summary').click(); d.scrollIntoView({block: 'start'}); }); await shot('F1_failures_before_registration_bounded'); }
+    await s.ctx.close();
+  }
+  s = await open(P4); shot = shotOf(s.page);
+  await until(() => status(s.page).then(x => x && x.state === 'needs-retry'), 60000, 300, diagnose(s.page, 'F retry session'));
+  await libraryRetry(s.page, 'F retry session'); await s.page.click('#frx-catalog-status [data-action="retry-catalog"]');
+  const doneF = await until(() => status(s.page).then(x => x && x.state === 'complete' ? x : null), 180000, 300, diagnose(s.page, 'F after Retry'));
+  const metaAfter = await s.page.evaluate(k => Forge.services.ResourceLibrary.getMeta(k), META), invF = await inventory(s.page);
+  report.phases.F = {sessions: early, afterRetry: {state: doneF.state, written: doneF.written, source: doneF.source}, metaAfter: metaAfter || null, inventory: {catalog: invF.catalogEntries, chr: invF.chrBanks ?? invF.chr, frames: invF.frames}};
+  check('F: failures before any registration starts (no catalog record could be written) are still counted across sessions: attempts 1, 2, 3, then no automatic attempt in a 4th session (nothing tried), each with its error',
+    early.map(e => e.catalog?.attempts).join() === '1,2,3,3' && early.every(e => e.catalog?.state === 'missing' && e.catalog.packKey === null) && early[0].state === 'failed' && early[1].state === 'failed' &&
+    early[2].state === 'needs-retry' && early[3].state === 'needs-retry' && early[3].refusals === 0 && early.slice(0, 3).every(e => e.refusals >= 1 && /refused/.test(e.meta?.lastError || '')), report.phases.F);
+  check('F: Retry completes it once the storage accepts the record; the failure count is cleared', doneF.state === 'complete' && !metaAfter && invF.catalogEntries === 590 && invF.chr === 32 && invF.uniqueIds === invF.total, report.phases.F);
   check('No uncaught page errors', s.errors.length === 0, s.errors.slice(0, 3));
   await s.ctx.close();
   await stopWorker();
   report.passed = report.checks.length > 0 && report.checks.every(c => c.passed);
   fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n');
   console.log(report.passed ? 'catalog-recovery: all checks passed' : 'catalog-recovery: FAILED');
-  setTimeout(() => { if (report.passed) for (const d of [root, P1, P2, P3]) fs.rmSync(d, {recursive: true, force: true}); process.exit(report.passed ? 0 : 1); }, 500);
+  setTimeout(() => { if (report.passed) for (const d of [root, P1, P2, P3, P4]) fs.rmSync(d, {recursive: true, force: true}); process.exit(report.passed ? 0 : 1); }, 500);
 })().catch(async e => { console.log('FAILED', e.stack); report.passed = false; report.error = e.message; try { fs.writeFileSync(output, JSON.stringify(report, null, 2)); } catch (_) {} try { worker?.kill('SIGKILL'); } catch (_) {} process.exit(1); });

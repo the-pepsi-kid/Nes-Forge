@@ -233,18 +233,23 @@ pack and the investigation receipt are the same records as before, and no separa
   `library.catalogs` lists every recovered catalog as complete, incomplete, failed or missing (frames of a profiled ROM
   exist but no catalog was ever started), with attempts and the last error.
 - **Resume, not redo**: completion reuses the same registration. An entry already stored with the same content hash,
-  pack and evidence state (and, for poses, a rendition) is kept, not rewritten; the rest is written. Nothing is
+  pack and evidence state (and, for poses, a rendition) is kept, not rewritten; the rest is written. The entries
+  already stored are read page by page (`ResourceLibrary.entriesPage`, 1000 per page), so a catalog of any size is
+  resumed; the pack records `pagesRead` and `alreadyStored`. Nothing is
   extracted or investigated again. The frames, the investigation pack and the project are not touched.
 - **Triggers**: startup, a project change, a ROM import, and the Agent Lab panel's poll. The cartridge comes from the
   open investigated project, a ROM opened in this session, or the paired worker's copy of the job's ROM (verified by
   SHA-256). Without any of them the state is **needs-source**, and Resources › Library says so.
-- **Bounded attempts**: at most 3 automatic attempts per catalog, counted on the marker so they survive reloads, and
-  in the tab. After a failure the next attempt is scheduled 30 s later, then 120 s. After the third failure the state is
+- **Bounded attempts**: at most 3 automatic attempts per catalog, across sessions. A registration counts on the
+  marker. A failure before any registration starts (for example, the catalog's first record cannot be written) counts
+  on a library meta record, `catalog-failures:<sha>`, which a success clears. After a failure the next attempt is scheduled 30 s later, then 120 s. After the third failure the state is
   **needs-retry**: nothing retries on its own, in that tab or a later one, and Resources › Library shows the error with
   a **Retry** button (`library.completeCatalog` with `manual: true` does the same). A completion in progress in one tab
   holds a Web Lock (`nes-forge-catalog:<sha>`), so a second tab reports "being completed in another Forge tab".
-- **Visible**: every state change raises `forge:catalog-recovery`; failures and completions also appear as a toast and
-  as one panel notice per attempt.
+- **Visible**: every state change raises `forge:catalog-recovery`; failures and completions also appear as a toast.
+  The panel's notices come from these events only: one per completion and per failed attempt. A missing cartridge is
+  noticed only when the paired worker cannot supply it (not paired, unreachable, or no finished job for the ROM).
+  While a catalog is incomplete, a frame's preview says so instead of saying the ROM has no catalog.
 - **Test**: `QA/catalog-recovery.cjs` (owner-side, Ninja Gaiden). Registration is stopped part-way deterministically:
   after a fixed number of catalog writes, the library's entry store is held by another transaction, then the browser is
   killed (A) or the tab is closed normally (D). Phase B validates the completed catalog (590 entries, 32 CHR banks with
@@ -252,4 +257,23 @@ pack and the investigation receipt are the same records as before, and no separa
   another project, project edits unchanged). Phase C restarts the worker and imports the ROM again, which is
   recognized without a new job or import. Phase E makes every write fail and checks the bounded attempts, the backoff
   and the manual Retry.
+
+### Recognizing a recovered ROM
+
+`LibraryCatalog.recognize(sha)` (command `library.recognize`) reads what the library already holds for a ROM: its
+recovered catalog and state, verified frames, the investigations they came from, and other packs of the same
+cartridge. It needs no worker and no ROM bytes. When a ROM is opened (any import event), Forge recognizes it first:
+- a toast names what is known;
+- if an investigation's verified frames are already in the library, the panel queues **no** investigation and says
+  so; **Investigate selected ROM** still runs one on request;
+- an incomplete catalog is completed with the imported cartridge.
+
+`QA/library-integrity.cjs` (owner-side, Ninja Gaiden and Zelda II) checks the whole loop:
+- a recovered pose copied into a new project: tiles, palettes and pieces compared with the cartridge's CHR ROM and
+  the pose's own ROM bytes, also read back from the CHR Sheet's sprite bank;
+- project copies stay independent of the library and of each other;
+- after closing Forge and restarting the worker, the ROM is recognized without a job request, and visual and
+  code-oriented resources (frames, poses, CHR, rooms, symbols, RAM map, CODE/RE at recorded offsets) open;
+- Zelda II's registration is interrupted after 1120 entries and completed by the same generic recovery (two pages of
+  the resume scan).
 
