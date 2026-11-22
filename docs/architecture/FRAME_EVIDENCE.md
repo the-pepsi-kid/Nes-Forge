@@ -306,3 +306,19 @@ appears and unrelated tiles elsewhere. Each rendition now records the room and t
   - bosses whose poses are chosen through tables;
   - Zelda II's 8 Link poses whose art differs by room.
 
+### Status at a glance
+
+- **ROMs in your library** (top of Resources › Library; `library.roms`): one line per ROM the library knows. It shows:
+  - entries;
+  - the recovered catalog's state, with attempts and the last error when it is not complete;
+  - verified frames and investigations;
+  - how its sprites are drawn (in their room, seen at runtime, same in every room, room not established);
+  - other packs of the same cartridge.
+
+  It follows recovery events live. **Open** selects the ROM's entries.
+- **Background investigation notices** are kept for the browser profile (not only the tab). "Open in Library"
+  therefore still works after closing Forge, and other open tabs show new notices at once. Older ones are marked
+  "(earlier session)". A repeated notice updates its time instead of adding a line.
+- **The imported-ROM list itself stays per session.** Forge stores no ROM bytes. After reopening, the ROMs Forge
+  knows come from the library (the list above), not from the session's imports.
+

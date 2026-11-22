@@ -52,8 +52,16 @@ not finish before a large project's tab closed. Edits made in the last 30 s were
 - **Indicators** in the status bar:
   - `● Unsaved changes` / `✓ Saved` say whether there are changes since the last project or browser save.
   - The recovery part reads `recovery ✓ HH:MM:SS`, `recovery saving…`, `recovery preparing…`,
-    `recovery behind · N changes since HH:MM:SS` (warning colour, after 2 s), `recovery failed · use Save As` or
+    `recovery behind · N changes since HH:MM:SS` (after 2 s), `recovery failed · use Save As` or
     `recovery unavailable`. The tooltip gives the details.
+  - Each state has its own level (`data-recovery`) and colour: `ok`, `busy` (blue), `behind` (amber), `failed`
+    (red background, also used for "unavailable"). The text is shown in full at 10 px; it is never cut off.
+- **The restore toast** names its outcome, like the notice:
+  - "Recovery complete: every change came back";
+  - "Recovery restored: the last moments before Forge ended cannot be confirmed — see the notice", after an
+    unexpected end;
+  - "Recovery incomplete: N changes were lost — see the notice".
+  Before, an unexpected end with every change back still said "Recovery incomplete".
 
 ## Measured (`QA/project-recovery.cjs`, build `a6c05ae9…`, Ninja Gaiden investigated project, 5,743,162 characters)
 
