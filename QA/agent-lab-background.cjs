@@ -129,8 +129,8 @@ async function until(fn, ms = 1800000, every = 500) { const t = Date.now(); for 
     await page.waitForFunction(() => S.tab === 'disasm' && !!Forge.services.REAnalysisUI.getState().selection);
     const chrRe = await page.evaluate(() => Forge.services.REAnalysisUI.getState().selection);
     await shot('bg_5_chr_bank_in_re');
-    check('Navigation: a captured frame lists its sprites with CHR file offsets; a sprite leads to its CHR bank entry, whose typed ROM location opens in CODE/RE',
-      /CHR file 0x/.test(frameText) && /Sprite → pose or actor: not established/.test(frameText) && /CHR ROM/.test(chrText) && /physical bank \d+ of 4 KiB/.test(chrText) && chrRe.cpuAddress === null && chrRe.fileOffset >= 16 + 8 * 16384,
+    check('Navigation: a captured frame lists its sprites with CHR file offsets and the library poses they draw; a sprite leads to its CHR bank entry, whose typed ROM location opens in CODE/RE',
+      /CHR file 0x/.test(frameText) && /Sprite → pose/.test(frameText) && /established by/.test(frameText) && /CHR ROM/.test(chrText) && /physical bank \d+ of 4 KiB/.test(chrText) && chrRe.cpuAddress === null && chrRe.fileOffset >= 16 + 8 * 16384,
       {re: chrRe});
     await page.click('#frx-open'); await page.click('#frx-lib'); await page.fill('#frx-search', 'Stage 2-2'); await page.waitForTimeout(500);
     await page.evaluate(() => [...document.querySelectorAll('#frx-items .frx-item')].find(b => /Library · frame/.test(b.textContent)).click());
