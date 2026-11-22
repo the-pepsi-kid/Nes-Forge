@@ -390,4 +390,4 @@ if (require.main === module) (async () => {
     else { console.error('commands: serve, run, enqueue, status, pause, resume, cancel (see the header of this file)'); process.exitCode = 2; }
   } catch (e) { console.error('agent-lab:', e.message); process.exitCode = 1; }
 })();
-module.exports = {inspectRom, choosePlan, validatePlan, openRoot, enqueue, control, summary, listJobs, security, signature, newPairing, serve, STATES};
+module.exports = {inspectRom, choosePlan, validatePlan, openRoot, enqueue, control, summary, listJobs, bundle, security, signature, newPairing, serve, STATES};
