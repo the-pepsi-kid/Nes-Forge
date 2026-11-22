@@ -400,9 +400,14 @@ async function allPoses(page, sha, rom, ng) {
   report.phases.Z.romStatus = {before: zRowBefore && {entries: zRowBefore.entries, catalog: zRowBefore.catalog}, after: zRowAfter && {entries: zRowAfter.entries, catalog: zRowAfter.catalog, drawing: zRowAfter.drawing}, line: zRomLine};
   // a catalog completed after an interruption counts the poses it kept as well as those it wrote
   const zSummary = zPack?.stats?.poseContexts || {}, zSum = o => Object.values(o || {}).reduce((a, b) => a + (b || 0), 0), zNonZero = o => Object.entries(o || {}).filter(([, v]) => v).sort(), zSameCounts = (a, b) => same(zNonZero(a), zNonZero(b));
-  report.phases.Z.drawing = {fromEntries: zDrawn, storedSummary: zSummary, renditions: zPack?.stats?.renditions, kept: zDone.kept, shown: zRowAfter?.drawing};
-  check('Z: after the interrupted registration completes, the status says how all ' + zAfter.poses + ' of Zelda II\'s sprites are drawn, the kept ones included: the stored summary, library.roms and Resources > Library equal the count taken from the entries',
-    zAfter.poses > 0 && zSum(zDrawn) === zAfter.poses && !zDrawn.none && zSameCounts(zSummary, zDrawn) && zSum(zSummary) === zPack.stats.renditions && zSameCounts(zRowAfter?.drawing, zDrawn) &&
+  // a library completed by an earlier build has a summary that counts only the poses written on resuming: the status
+  // recounts from the entries (the pack record is put back afterwards)
+  const zShort = await s.page.evaluate(async x => { const L = Forge.services.ResourceLibrary, c = (await Forge.commands.run('library.catalogs')).result.find(v => v.sha === x), pack = await L.getPack(c.packKey), saved = JSON.parse(JSON.stringify(pack));
+    pack.stats.poseContexts = {decoded: 0, runtime: 0, 'same-everywhere': 0, default: 0}; pack.updated = Date.now() + 1; await L.putRecords([['packs', pack]]);
+    const row = (await Forge.commands.run('library.roms')).result.find(r => r.sha === x); await L.putRecords([['packs', saved]]); return row?.drawing || null; }, ZELDA);
+  report.phases.Z.drawing = {fromEntries: zDrawn, storedSummary: zSummary, renditions: zPack?.stats?.renditions, kept: zDone.kept, shown: zRowAfter?.drawing, shownFromShortSummary: zShort};
+  check('Z: after the interrupted registration completes, the status says how all ' + zAfter.poses + ' of Zelda II\'s sprites are drawn, the kept ones included: the stored summary, library.roms and Resources > Library equal the count taken from the entries, and a summary left short by an earlier build is recounted',
+    zAfter.poses > 0 && zSum(zDrawn) === zAfter.poses && !zDrawn.none && zSameCounts(zSummary, zDrawn) && zSum(zSummary) === zPack.stats.renditions && zSameCounts(zRowAfter?.drawing, zDrawn) && zSameCounts(zShort, zDrawn) &&
     /sprites: \d+ /.test(zRomLine || '') && Object.entries(zDrawn).every(([b, n]) => (zRomLine || '').includes(n + ' ' + {decoded: 'in their room', runtime: 'seen at runtime', 'same-everywhere': 'same in every room', default: 'room not established'}[b])), report.phases.Z.drawing);
   check('Z: the ROM status shows Zelda II\'s catalog as incomplete and waiting for its cartridge after the kill (1120 entries), then complete (1296 entries)',
     zRowBefore?.entries === 1120 && ['needs-source', 'incomplete'].includes(zRowBefore.catalog.state) && zRowAfter?.entries === 1296 && zRowAfter.catalog.state === 'complete' && zRowAfter.catalog.entries === 1296, report.phases.Z.romStatus);
