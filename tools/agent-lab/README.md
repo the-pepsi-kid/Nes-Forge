@@ -58,7 +58,9 @@ How the worker behaves:
   - States: queued, running, paused, completed, failed, interrupted, cancelled.
   - A job left running by a stopped worker is recorded as an *interruption*, not a failure. It resumes at its first
     unfinished target and shows as "completed · recovered after N worker restart(s)". Unresolved evidence (for
-    example mid-frame bank switches, or sprite → actor relationships) is listed separately from failures.
+    example sprites that could not be traced to one CHR location, or sprite → actor relationships) is listed
+    separately from failures. A frame split at its status bar is not unresolved when every drawn sprite has its
+    traced location.
 - **No duplicates**: a ROM already queued, running or investigated with the same plan, emulator build and
   verification returns the existing job. `rerun: true` in `POST /jobs` asks for a deliberate re-investigation.
 - **Checkpoints**: `<root>/checkpoints/<key>/`, keyed by ROM SHA-256, editor SHA-256 (the emulator build), mapper,
@@ -68,7 +70,9 @@ How the worker behaves:
   - Target checkpoints skip restart sequences, and must reproduce their recorded capture digest.
 - **Limits**: one job at a time, lowered CPU priority, a time limit per job (the job is paused when reached), and
   frame limits per target.
-- **Compatibility**: damaged iNES headers are reported, never repaired. A mapper the emulator cannot run fails the job
+- **Compatibility**: iNES headers are reported, never repaired. Junk in bytes 11-15 with byte 7 zero is a resolved
+  note (the mapper is unaffected); junk that reaches byte 7 is "damaged header suspected", with both readings of the
+  mapper. A dump Forge recognizes by SHA-256 is named. A mapper the emulator cannot run fails the job
   with that reason. A frame that does not rebuild from its trace stays marked unverified. MMC2 (Punch-Out!!) frames
   are synchronization-checked like the others: the trace keeps the bank each latch selected at every pattern fetch.
 - **Security**: see [AGENT_LAB_SECURITY.md](../../docs/architecture/AGENT_LAB_SECURITY.md).

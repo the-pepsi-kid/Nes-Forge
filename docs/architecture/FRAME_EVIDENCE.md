@@ -57,7 +57,8 @@ A **state snapshot** of one completed frame. It does not say how the machine got
 | `memory` | 2 KiB RAM, SRAM, CHR RAM (when the game uses it) |
 | `apu` | register view (the checkpoint restores the whole APU) |
 | `ppu` | control, mask, status, v/t/fine-X/w latches, mirroring; sprite-0 split banks and scroll when the frame splits |
-| `nametables`, `palette`, `oam` | 2 KiB VRAM, 32-byte palette RAM, 256-byte OAM; `sprites`: decoded OAM with each pattern's CHR offset |
+| `nametables`, `palette`, `oam` | 2 KiB VRAM, 32-byte palette RAM, 256-byte OAM, as at the snapshot (after the frame's vblank) |
+| `sprites` | the sprites the frame **drew**, from its runtime trace (OAM index, position, tile, attributes as drawn). OAM at the snapshot is not used: the game's vblank code has usually already copied the next frame's sprites into it. Each sprite's CHR offset is the one in effect when it was drawn (line time; fetch time for MMC2), given only when its drawn rows equal the cartridge bytes there (`chrOffsetAt: "fetch"`). A bank switch while it was drawn, or CHR RAM, makes no location claim. `spritesFrom` and `spritePatternsAt` say which applies; without a complete trace, OAM at the snapshot is listed, labelled. |
 | `mapper` | every mapper register field |
 | `banks.prg` | each 8 KiB CPU window located in PRG ROM **by content** (independent of the mapper model), checked against the file |
 | `banks.chr` | each 1 KiB of the pattern tables through the renderer's mapping: CHR ROM file offset, 1/4 KiB bank, checked against the file; or CHR RAM |
@@ -182,7 +183,8 @@ Acceptance (`QA/agent-lab-background.cjs`, 11/11):
 | Item | State |
 |---|---|
 | MMC1 (Ninja Gaiden, Mega Man 2, Zelda II), MMC3 (SMB3), UxROM (Contra), AxROM (Battletoads) | verified: checkpoint == cold boot, frames rebuild at 0 px |
-| NROM via a damaged header (Super Mario Bros reads as mapper 66) | runs; the worker reports "damaged header suspected" and does not repair it |
+| GxROM (Super Mario Bros. / Duck Hunt, mapper 66) | its header is correct (bytes 8-15 are zero); an earlier version of this table called it a damaged NROM header, which was wrong |
+| Junk in the iNES header | reported, never repaired: junk in bytes 11-15 with byte 7 zero is a resolved note (the mapper is unaffected: Punch-Out!! PRG 1 "MJR", Metroid and Castlevania PRG 1 "NI 1.3"); junk that reaches byte 7 is "damaged header suspected" with both readings (Mega Man "DiskDude!": 66 with byte 7, 2 from byte 6 alone). A dump Forge recognizes by SHA-256 is named. |
 | MMC2 (Punch-Out!!) | verified (§12): frames rebuild at 0 px with their scenes; checkpoint == cold boot; a plan reaches the Mike Tyson bout |
 | CNROM (mapper 3) | verified on a cartridge Forge builds itself (§13): checkpoint == cold boot, frames rebuild at 0 px, the world's CHR bank; no commercial CNROM cartridge in the test set |
 | Mappers the emulator does not run | the job fails with that reason; nothing is claimed |
@@ -191,8 +193,10 @@ Acceptance (`QA/agent-lab-background.cjs`, 11/11):
 
 ## 9. Remaining issues
 
-- Forge reads Super Mario Bros' dirty iNES header as mapper 66 (GxROM). It runs only because the game never writes a
-  bank register. Header cleaning belongs in ROM intake.
+- ~~Forge reads Super Mario Bros' dirty iNES header as mapper 66.~~ Corrected (2026-11-22): the cartridge in the set
+  is Super Mario Bros. / Duck Hunt, a GxROM (mapper 66) multicart with a correct header. The dirty header in the set is
+  Mega Man's ("DiskDude!" from byte 7, so it reads as mapper 66 instead of 2). Forge reports it and does not repair it.
+  Header cleaning, if wanted, belongs in ROM intake.
 - ~~MMC2 (Punch-Out!!) rendering bypasses the runtime trace.~~ Resolved (§12). What remains approximate is the order of
   pattern fetches within a line (34 background fetches, then the line's sprites), which is the scanline renderer's,
   not the PPU's dot timing.
@@ -386,4 +390,20 @@ use bank 0 and world 1 uses bank 1.
 
 **Not covered:** a commercial CNROM game, whose code may switch banks in ways Forge's engine does not, such as bus
 conflicts or mid-frame switches.
+
+## 14. The sprites a frame drew, and where they were drawn from (2026-11-22)
+
+- **One frame ahead.** Records used to list sprites from OAM at the snapshot. Most games copy the next frame's sprites
+  into OAM during vblank, which runs before the snapshot. In Ninja Gaiden's area captures, only 1 of up to 16 listed
+  sprites was actually in the frame (sprite 0, the status-bar split marker, which does not move).
+- **What the record lists now.** The sprites the frame drew, from its trace. Each one's CHR location is the one in
+  effect when it was drawn (line time, or fetch time for MMC2). It is claimed only when its drawn rows equal the
+  cartridge bytes there. The rebuild check (0 different pixels, composite) already used these same traced sprites.
+- **The status-bar caveat.** A frame that splits at its status bar is no longer reported as "sprite pattern
+  locations are unverified" when every drawn sprite has its traced location. The frame view in Resources › Library
+  shows those locations.
+- **Checked against the game's own data** (`QA/frame-evidence.cjs`). In all 22 Ninja Gaiden areas, every sprite drawn
+  from pattern table $0000 lies in the sprite bank that the game's room table gives for the room it is in (PRG
+  $AC90 + room, decoded by Forge's Ninja Gaiden decoder). For the seven other games, each drawn sprite has its traced
+  location, or makes no claim (CHR RAM).
 
