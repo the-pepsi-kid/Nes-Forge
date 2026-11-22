@@ -115,6 +115,9 @@ function png(rgba) { // 256x240 RGBA -> PNG
     const played = report.games.filter(g => g.equal !== undefined);
     check('Other games (one per emulated mapper family): every checkpoint capture equals its cold-boot capture', played.length >= 5 && played.every(g => g.equal), played.map(g => g.game + ': ' + (g.equal ? 'equal' : g.differing.join(','))));
     check('Other games: every mapped CHR ROM bank equals the cartridge bytes at its reported file offset', played.every(g => g.chrRomBanksMatchFile !== false), played.map(g => g.game + ': ' + g.chrRomBanksMatchFile));
+    // every mapper family's frames rebuild from their trace, MMC2 (latch-switched CHR) included
+    check('Other games: every frame of every mapper family rebuilds from its trace (synchronization matched), MMC2 included', played.length >= 5 && played.every(g => g.synchronization.every(x => x === 'matched')) &&
+      (played.some(g => g.mapper === 9) || !carts.some(x => /^Mike Tyson/i.test(x.name))), played.map(g => g.game + ' (mapper ' + g.mapper + '): ' + g.synchronization.join(', ')));
     check('No uncaught page errors', errors.length === 0, errors.slice(0, 3));
   } catch (e) { check('run', false, String(e.stack || e.message).slice(0, 800)); }
   await browser.close();
