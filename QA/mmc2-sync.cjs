@@ -21,16 +21,17 @@ const {spawnSync, spawn} = require('node:child_process');
 const root = path.resolve(__dirname, '..'), editor = path.resolve(process.argv[2] || path.join(root, 'NES_Forge.html'));
 const output = process.argv[3], corpus = process.argv[4];
 const {loadForge} = require('./t/u/harness.cjs');
-const PRG1 = '22ce21aa9c477d87e9cdc386b185f2166b18d438257640aa1d8e75ee9960e06e';
+const PRG1 = '22ce21aa9c477d87e9cdc386b185f2166b18d438257640aa1d8e75ee9960e06e', PRG0 = '0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952';
 const sha = b => crypto.createHash('sha256').update(b).digest('hex');
 const report = {suite: 'mmc2-sync', editorSha256: sha(fs.readFileSync(editor)), checks: [], frames: [], model: null, agentLab: null};
 const checks = [];
 const check = (name, fn) => checks.push([name, fn]);
-let rom = null, romFile = null;
+// PRG 1 is required; PRG 0, when supplied, goes through the same route and the same independent checks
+let rom = null, romFile = null, rom0 = null;
 if (corpus && fs.existsSync(corpus)) for (const n of fs.readdirSync(corpus)) {
   if (!n.toLowerCase().endsWith('.nes')) continue;
-  const b = new Uint8Array(fs.readFileSync(path.join(corpus, n)));
-  if (sha(b) === PRG1) { rom = b; romFile = path.join(corpus, n); break; }
+  const b = new Uint8Array(fs.readFileSync(path.join(corpus, n))), h = sha(b);
+  if (h === PRG1) { rom = b; romFile = path.join(corpus, n); } else if (h === PRG0) rom0 = b;
 }
 
 function forge() {
@@ -122,10 +123,11 @@ function verifyFrame(f, file) {
 }
 
 // ---------- in Forge: the route, evidence and traces ----------
-let session = null;
-const captured = [];
-async function route() {
-  if (session) return session;
+const sessions = {};
+const captured = [];   // every revision's frames, each with the cartridge it came from
+async function route(revision = 'PRG 1') {
+  if (sessions[revision]) return sessions[revision];
+  const cart = revision === 'PRG 1' ? rom : rom0, tag = revision === 'PRG 1' ? '' : revision + ' · ';
   const {h, R} = forge();
   const press = async (b, hold = 4, after = 12) => { await R('input.set', {buttons: {[b]: true}}); await R('emulator.frames', {count: hold});
     await R('input.set', {buttons: {[b]: false}}); await R('emulator.frames', {count: after}); };
@@ -134,9 +136,9 @@ async function route() {
     // nametables and OAM as they were while the frame was drawn (taken after its last line; the game's vblank code
     // that runs before the frame evidence is taken already prepares the next frame)
     const f = JSON.parse(h.run('JSON.stringify({trace:{rows:emu.captureTrace.rows,sources:emu.captureTrace.sources,tiles:emu.captureTrace.tiles,lineState:emu.captureTrace.lineState,sprites:emu.captureTrace.sprites,complete:emu.captureTrace.complete},vram:__drawn.vram,oam:__drawn.oam,drawnFrame:__drawn.frame})'));
-    captured.push({label, evidence: e, ...f});
+    captured.push({label: tag + label, revision, rom: cart, evidence: e, ...f});
   };
-  await R('emulator.load', {bytes: rom, name: 'Punch-Out.nes'});
+  await R('emulator.load', {bytes: cart, name: 'Punch-Out.nes'});
   // test instrumentation only: copy the nametables and OAM once a frame's last line is drawn
   h.run('(()=>{const inner=renderEmuLine;renderEmuLine=function(line,...rest){const r=inner.call(this,line,...rest);if(line===239)globalThis.__drawn={vram:Array.from(emu.vram),oam:Array.from(emu.oamMem),frame:emu.frameCount};return r;};})()');
   for (const at of [300, 700, 1200]) { await R('emulator.frames', {count: at - h.run('emu.frameCount')}); await grab('boot frame ' + at); }
@@ -146,15 +148,16 @@ async function route() {
   await press('start', 4, 30);
   for (let k = 1; k <= 8; k++) { await R('emulator.frames', {count: 150}); await grab('bout +' + k * 150 + ' frames'); }
   const fightStance = h.run('emu.ram[0xB1]');
-  session = {h, R, fightStance};
-  return session;
+  return (sessions[revision] = {h, R, fightStance});
 }
+const allRoutes = async () => { await route('PRG 1'); if (rom0) await route('PRG 0'); };
 
-check('Every frame along the route rebuilds from its trace with 0 different pixels (title, passcode, the Mike Tyson bout)', async () => {
-  const {fightStance} = await route();
+check('Every frame along the route rebuilds from its trace with 0 different pixels (title, passcode, the Mike Tyson bout), on every revision supplied', async () => {
+  await allRoutes();
   report.frames = captured.map(c => ({label: c.label, frame: c.evidence.frame, synchronization: c.evidence.synchronization.state, backgroundDifferentPixels: c.evidence.synchronization.backgroundDifferentPixels,
     compositeDifferentPixels: c.evidence.synchronization.compositeDifferentPixels, nativeTiles: c.evidence.synchronization.nativeTiles, latchAtCapture: c.evidence.mapper.mmc2?.latch, spritePatternsAt: c.evidence.spritePatternsAt}));
-  assert.equal(captured.length, 13);
+  report.revisions = Object.keys(sessions);
+  assert.equal(captured.length, 13 * report.revisions.length);
   for (const c of captured) {
     const s = c.evidence.synchronization;
     assert.equal(s.state, 'matched', c.label + ': ' + (s.reason || ''));
@@ -162,11 +165,11 @@ check('Every frame along the route rebuilds from its trace with 0 different pixe
     assert.equal(c.evidence.rom.mapper, 9); assert.equal(c.evidence.spritePatternsAt, 'fetch');
   }
   assert.ok(captured.filter(c => /^bout/.test(c.label)).every(c => c.evidence.synchronization.nativeTiles > 100), 'the bout frames draw the arena');
-  report.fightStanceByte = fightStance;
+  report.fightStanceByte = Object.fromEntries(Object.entries(sessions).map(([k, v]) => [k, v.fightStance]));
 });
 check('An independent MMC2 model predicts every line\'s pattern fetches: each visible background tile comes from the predicted tile and bank, each drawn sprite row equals the cartridge row in the predicted bank, and the latches end each line as recorded', async () => {
-  await route();
-  const per = captured.map(c => ({label: c.label, ...verifyFrame(c, rom)}));
+  await allRoutes();
+  const per = captured.map(c => ({label: c.label, ...verifyFrame(c, c.rom)}));
   const sum = k => per.reduce((n, p) => n + (Array.isArray(p[k]) ? p[k].length : p[k]), 0);
   report.model = {frames: per.length, lines: sum('lines'), backgroundFetches: sum('bgFetches'), visibleTiles: sum('visibleTiles'), spriteRows: sum('spriteRows'), latchSwitchLines: sum('latchSwitchLines'),
     continuityBreaks: sum('continuityBreaks'), tileMismatches: sum('tileMismatches'), bankMismatches: sum('bankMismatches'), spriteMismatches: sum('spriteMismatches'), latchMismatches: sum('latchMismatches'),
@@ -178,8 +181,8 @@ check('An independent MMC2 model predicts every line\'s pattern fetches: each vi
   assert.ok(report.model.visibleTiles > 50000 && report.model.spriteRows > 1000, 'the model checked the frames\' tiles and sprite rows');
 });
 check('Every tile the trace recorded equals the cartridge\'s bytes at its recorded offset', async () => {
-  await route();
-  const bad = captured.flatMap(c => verifyFrame(c, rom).fileMismatches.map(m => ({label: c.label, ...m})));
+  await allRoutes();
+  const bad = captured.flatMap(c => verifyFrame(c, c.rom).fileMismatches.map(m => ({label: c.label, ...m})));
   report.cartridge = {tiles: captured.reduce((n, c) => n + c.trace.sources.filter(s => s.kind === 'CHR-ROM').length, 0), mismatches: bad.length};
   assert.equal(bad.length, 0, JSON.stringify(bad[0]));
 });
@@ -235,6 +238,12 @@ check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Pu
     assert.ok(frames.every(f => f.synchronization === 'matched' && f.scene && !f.split && f.mapper === 9 && f.spritePatternsAt === 'fetch'), JSON.stringify(frames.find(f => f.synchronization !== 'matched' || !f.scene || f.split)));
     assert.ok(jobs.every(j => !j.unresolved.some(u => /not synchronization-checked|sprite pattern locations are unverified/.test(u))), JSON.stringify(jobs.map(j => j.unresolved)));
     assert.ok(frames.some(f => /fighting/.test(f.label) && new Set(f.banks).size > 1), 'the bout frame draws from several banks');
+    // PRG 1's header carries "MJR" in bytes 13-15 with byte 7 zero: a resolved note, the mapper unaffected; the file is
+    // a dump Forge recognizes; nothing about the header is left unresolved
+    report.agentLab.compatibility = full.map(j => j.compatibility.map(c => ({kind: c.kind, state: c.state, resolved: !!c.resolved})));
+    assert.ok(full.every(j => j.compatibility.some(c => c.kind === 'header' && c.state === 'junk in unused bytes' && c.resolved && /byte 7 is 0/.test(c.detail)) &&
+      j.compatibility.some(c => c.kind === 'identity' && c.state === 'recognized dump' && /Punch-Out/.test(c.detail))), JSON.stringify(report.agentLab.compatibility));
+    assert.ok(jobs.every(j => !j.unresolved.some(u => /header/.test(u))), JSON.stringify(jobs.map(j => j.unresolved)));
   } finally { fs.rmSync(dir, {recursive: true, force: true}); }
 });
 
