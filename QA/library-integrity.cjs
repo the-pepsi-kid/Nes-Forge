@@ -286,16 +286,39 @@ async function allPoses(page, sha, rom, ng) {
   await s.page.evaluate(() => Forge.services.InvestigationPanel.whenReady()); await s.page.waitForFunction(() => Forge.services.InvestigationPanel.state().connected, null, {timeout: 20000});
   if (await s.page.$('#autosaveBanner .ab-restore')) { await s.page.click('#autosaveBanner .ab-restore'); await s.page.waitForFunction(() => Forge.services.ProjectStore.recoveryState().report); }
   const jobsBefore = jobs().length, invX0 = await inventory(s.page, NINJA);
+  // the earlier session's notices are still here (kept for this browser profile), and their "Open in Library" works
+  await s.page.evaluate(() => { const d = document.getElementById('agentLabPanel'); if (!d.open) d.querySelector('summary').click(); d.scrollIntoView({block: 'start'}); });
+  const keptNotices = await s.page.$$eval('#agentLabPanel .agentLabNotices li', ls => ls.map(l => ({text: l.textContent, open: !!l.querySelector('[data-action="open-library"]')})));
+  const finished = keptNotices.find(n => /Job finished · 22 verified frames from Ninja Gaiden/.test(n.text) && n.open);
+  await shot('X0_notices_kept_after_reopen');
+  if (finished) await s.page.evaluate(() => [...document.querySelectorAll('#agentLabPanel .agentLabNotices li')].find(l => /Job finished · 22 verified frames/.test(l.textContent)).querySelector('[data-action="open-library"]').click());
+  const openedFromNotice = finished ? await s.page.waitForFunction(() => /Library · frame/.test(document.querySelector('#frx-items .frx-item[aria-current="true"]')?.textContent || '') && document.getElementById('frx-root').classList.contains('frx-visible'), null, {timeout: 20000}).then(() => true).catch(() => false) : false;
+  await s.page.evaluate(() => document.getElementById('frx-close')?.click());
+  report.phases.X = {keptNotices: keptNotices.slice(0, 6), openedFromNotice};
+  check('X: after closing Forge, the earlier session\'s notices are still listed (marked as such), and "Open in Library" on "Job finished" opens the frame in the library',
+    !!finished && /\(earlier session\)/.test(finished.text) && openedFromNotice, report.phases.X);
+  // a second tab of the same browser sees new notices at once
+  const tab2 = await s.ctx.newPage(); await tab2.goto('file://' + editor); await tab2.waitForFunction('window.Forge?.services?.InvestigationPanel');
   await s.page.setInputFiles('#projectGatewayFile', NG);
   const recognizedNotice = await until(() => s.page.evaluate(() => Forge.services.InvestigationPanel.state().notices.find(n => /^Recognized Ninja Gaiden/.test(n)) || null), 30000, 300,
     () => s.page.evaluate(() => Forge.services.InvestigationPanel.state()));
   await s.page.waitForTimeout(1500);
   const recognized = await s.page.evaluate(x => Forge.services.LibraryCatalog.recognize(x), NINJA), panelX = await s.page.evaluate(() => Forge.services.InvestigationPanel.state());
   await s.page.evaluate(() => { const d = document.getElementById('agentLabPanel'); if (!d.open) d.querySelector('summary').click(); d.scrollIntoView({block: 'start'}); }); await shot('X1_rom_recognized_no_investigation');
-  report.phases.X = {jobsBefore, jobsAfter: jobs().length, recognizedNotice, recognized: {catalog: recognized.catalog, frames: recognized.frames, investigations: recognized.investigations.length, recovered: recognized.recovered}, pending: panelX.pending};
+  const tab2Notice = await until(() => tab2.evaluate(() => Forge.services.InvestigationPanel.state().notices.find(n => /^Recognized Ninja Gaiden/.test(n)) || null), 15000).catch(() => null); await tab2.close();
+  report.phases.X = {...report.phases.X, tab2Notice, jobsBefore, jobsAfter: jobs().length, recognizedNotice, recognized: {catalog: recognized.catalog, frames: recognized.frames, investigations: recognized.investigations.length, recovered: recognized.recovered}, pending: panelX.pending};
   check('X: after closing Forge and restarting the worker, opening the same ROM is recognized from the library before any investigation: no job is requested, the notice names what is known',
     jobs().length === jobsBefore && panelX.pending.length === 0 && /No new investigation was queued/.test(recognizedNotice || '') && recognized.recovered && recognized.catalog.state === 'complete' && recognized.catalog.entries === 590 && recognized.frames === 22,
     report.phases.X);
+  check('X: a second open tab of the same browser shows the new notice at once (no reload)', !!tab2Notice && tab2Notice === recognizedNotice, {tab2Notice});
+  // one line per ROM: what the library holds and its state
+  const romsX = await s.page.evaluate(() => Forge.commands.run('library.roms').then(r => r.result)), ngRow = romsX.find(r => r.sha === NINJA);
+  await s.page.click('#frx-open'); await s.page.click('#frx-lib'); await s.page.waitForSelector('#frx-rom-status [data-rom]'); await shot('X3_rom_status_in_library');
+  const romLine = await s.page.$eval('#frx-rom-status [data-rom="' + NINJA + '"]', e => e.textContent); await s.page.evaluate(() => document.getElementById('frx-close')?.click());
+  report.phases.X.romStatus = {row: ngRow, line: romLine};
+  check('X: the library lists each ROM with its status: Ninja Gaiden has its 612 entries, a complete catalog of 590, 22 verified frames, 1 investigation and how its sprites are drawn (library.roms and Resources > Library agree)',
+    ngRow && ngRow.entries === 612 && ngRow.catalog.state === 'complete' && ngRow.catalog.entries === 590 && ngRow.frames === 22 && ngRow.investigations === 1 && ngRow.drawing?.decoded === 83 &&
+    /Ninja Gaiden \(U\)\.nes · 612 entries · catalog complete \(590\) · 22 verified frames · 1 investigation · sprites: 83 in their room/.test(romLine), report.phases.X.romStatus);
   // visual resources
   const invX = await inventory(s.page, NINJA), px = await project(s.page);
   const pc1 = px.metasprites.find(m => m.id === used1.id), psc = pc1 && px.scenes.find(x => x.id === pc1.sceneId);
@@ -356,7 +379,7 @@ async function allPoses(page, sha, rom, ng) {
   const pids = execSync('pgrep -f -- "--user-data-dir=' + PZ + '" || true').toString().split(/\s+/).filter(Boolean); for (const pid of pids) { try { process.kill(Number(pid), 'SIGKILL'); } catch (_) {} } await sleep(1500);
   s = await open(PZ); shot = shotOf(s.page);
   await until(() => status(s.page, ZELDA).then(x => x && x.state === 'needs-source'), 30000, 300, () => s.page.evaluate(() => Forge.services.LibraryCatalog.recoveryStatus()));
-  const zBefore = await inventory(s.page, ZELDA);
+  const zBefore = await inventory(s.page, ZELDA), zRowBefore = await s.page.evaluate(h => Forge.commands.run('library.roms').then(r => r.result.find(x => x.sha === h)), ZELDA);
   await s.page.click('#frx-open'); await s.page.click('#frx-lib'); await s.page.waitForSelector('#frx-catalog-status'); await shot('Z1_zelda_catalog_incomplete_after_kill'); await s.page.click('#frx-close');
   await s.page.click('#autosaveBanner .ab-restore'); await s.page.waitForFunction(() => Forge.services.ProjectStore.recoveryState().report);
   const zDone = await until(() => status(s.page, ZELDA).then(x => x && ['complete', 'failed', 'needs-retry'].includes(x.state) ? x : null), 300000, 500, () => s.page.evaluate(() => Forge.services.LibraryCatalog.recoveryStatus()));
@@ -369,6 +392,10 @@ async function allPoses(page, sha, rom, ng) {
   report.phases.Z = {expectedRecords: zExpected, putsAtHold: zPuts, atKill: zAtKill && {state: zAtKill.state, attempts: zAtKill.attempts}, before: zBefore, completion: {state: zDone.state, kept: zDone.kept, written: zDone.written, source: zDone.source, attempts: zDone.attempts},
     after: zAfter, scan: {pagesRead: zPack?.stats?.pagesRead, alreadyStored: zPack?.stats?.alreadyStored}, chr: {banks: zChr.length, contiguous: zOffsets.every((o, i) => o === zChrStart + i * 4096), bytes: zChr.every(c => Buffer.from(c.data, 'base64').equals(ZROM.subarray(c.fileOffset, c.fileOffset + c.length)))},
     verify: {ok: zVerify.ok, problems: zVerify.problems.slice(0, 3)}};
+  const zRowAfter = await s.page.evaluate(h => Forge.commands.run('library.roms').then(r => r.result.find(x => x.sha === h)), ZELDA);
+  report.phases.Z.romStatus = {before: zRowBefore && {entries: zRowBefore.entries, catalog: zRowBefore.catalog}, after: zRowAfter && {entries: zRowAfter.entries, catalog: zRowAfter.catalog, drawing: zRowAfter.drawing}};
+  check('Z: the ROM status shows Zelda II\'s catalog as incomplete and waiting for its cartridge after the kill (1120 entries), then complete (1296 entries)',
+    zRowBefore?.entries === 1120 && ['needs-source', 'incomplete'].includes(zRowBefore.catalog.state) && zRowAfter?.entries === 1296 && zRowAfter.catalog.state === 'complete' && zRowAfter.catalog.entries === 1296, report.phases.Z.romStatus);
   check('Z: Zelda II\'s registration, interrupted after 1120 entries by killing the browser, is detected as incomplete on reopening with what was written kept',
     zAtKill?.state === 'incomplete' && zBefore.catalog === 1120 && zBefore.uniqueIds === zBefore.total, report.phases.Z);
   check('Z: the same generic recovery completes it from the restored project: the 1120 entries are kept (read back in two pages of the resume scan), the rest written; every recovered record is in the library once; its 32 CHR banks hold the cartridge\'s bytes; the library verifies clean',

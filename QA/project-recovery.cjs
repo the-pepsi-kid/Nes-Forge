@@ -59,13 +59,17 @@ async function reopenAndRestore(profile, name) {
   const offered = await s.page.evaluate(() => Forge.services.ProjectStore.state.recoveryPhase === 'offered');
   const bannerOffer = await s.page.$eval('#autosaveText', e => e.textContent);
   if (shots) await s.page.screenshot({path: path.join(shots, 'recovery_' + name + '_offered.png')});
+  await recordToasts(s.page);
   const restored = offered ? await s.page.evaluate(() => Forge.services.ProjectStore.restoreRecovery()) : false;
   await sleep(300);
   const state = await rs(s.page), text = restored ? await content(s.page) : null, banner = await s.page.$eval('#autosaveText', e => e.textContent);
-  const statusLine = await s.page.$eval('#forge15State', e => e.textContent);
+  const statusLine = await s.page.$eval('#forge15State', e => e.textContent), toast = await lastRecoveryToast(s.page);
   if (shots) { await s.page.evaluate(() => switchTab('scene')); await sleep(300); await s.page.screenshot({path: path.join(shots, 'recovery_' + name + '_restored.png')}); }
-  return {...s, offered, bannerOffer, restored, state, text, banner, statusLine};
+  return {...s, offered, bannerOffer, restored, state, text, banner, statusLine, toast};
 }
+// the toasts the editor shows (its global showToast, wrapped in the page)
+const recordToasts = page => page.evaluate(() => { if (window.__toasts) return; window.__toasts = []; const real = window.showToast; window.showToast = (...a) => { window.__toasts.push(String(a[0])); return real.apply(window, a); }; });
+const lastRecoveryToast = page => page.evaluate(() => (window.__toasts || []).filter(t => /^Recovery /.test(t)).pop() || null);
 // Prepare a profile with the large project, its recovery baseline committed, and one committed edit.
 async function prepared(name) {
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-recovery-' + name + '-'));
@@ -105,6 +109,7 @@ async function prepared(name) {
     // the label turns "behind" once a change has waited 2 s; it refreshes every second
     await editScene(s.page, 9, 136); await s.page.waitForFunction(() => /recovery behind/.test(document.getElementById('forge15State').textContent), null, {timeout: 8000}).catch(() => {});
     labels.behind = await s.page.$eval('#forge15State', e => e.textContent); labels.behindLevel = await s.page.$eval('#forge15State', e => e.dataset.recovery);
+    labels.behindFits = await s.page.$eval('#forge15State', e => e.scrollWidth <= e.clientWidth + 1 && getComputedStyle(e).textOverflow !== 'ellipsis');
     if (shots) await s.page.screenshot({path: path.join(shots, 'recovery_indicator_behind.png'), clip: {x: 0, y: 0, width: 1440, height: 120}});
     await s.page.evaluate(() => { window.__hold = false; }); await committed(s.page);
     labels.caughtUp = await s.page.$eval('#forge15State', e => e.textContent);
@@ -112,12 +117,14 @@ async function prepared(name) {
     await s.page.evaluate(() => { const put = IDBObjectStore.prototype.put; window.__restorePut = () => { IDBObjectStore.prototype.put = put; }; IDBObjectStore.prototype.put = function (...a) { if (this.transaction.db.name === 'nes-forge-recovery-journal') throw new DOMException('simulated quota exceeded', 'QuotaExceededError'); return put.apply(this, a); }; });
     await editScene(s.page, 10, 120); await s.page.waitForFunction(() => /recovery failed/.test(document.getElementById('forge15State').textContent), null, {timeout: 8000}).catch(() => {});
     labels.failed = await s.page.$eval('#forge15State', e => e.textContent); labels.failedTitle = await s.page.$eval('#forge15State', e => e.title);
+    labels.failedLevel = await s.page.$eval('#forge15State', e => e.dataset.recovery); labels.failedFits = await s.page.$eval('#forge15State', e => e.scrollWidth <= e.clientWidth + 1);
+    labels.failedColour = await s.page.$eval('#forge15State', e => getComputedStyle(e).backgroundColor); labels.behindColour = labels.behindColour || null;
     if (shots) await s.page.screenshot({path: path.join(shots, 'recovery_indicator_failed.png'), clip: {x: 0, y: 0, width: 1440, height: 120}});
     await s.page.evaluate(() => window.__restorePut()); await s.page.evaluate(() => Forge.services.ProjectStore.autoSave());
     labels.recovered = await s.page.$eval('#forge15State', e => e.textContent);
     report.measurements.indicators = labels;
-    check('Indicators distinguish saved/unsaved and up-to-date, behind, failed and caught-up recovery',
-      /Unsaved changes · recovery ✓/.test(labels.upToDate) && /✓ Saved · recovery ✓/.test(labels.savedToBrowser) && /recovery behind · \d+ change/.test(labels.behind) && labels.behindLevel === 'warn' &&
+    check('Indicators distinguish saved/unsaved and up-to-date, behind, failed and caught-up recovery; "behind" and "failed" have their own levels, and the full text is shown (not cut off)',
+      /Unsaved changes · recovery ✓/.test(labels.upToDate) && /✓ Saved · recovery ✓/.test(labels.savedToBrowser) && /recovery behind · \d+ change/.test(labels.behind) && labels.behindLevel === 'behind' && labels.behindFits && labels.failedLevel === 'failed' && labels.failedFits &&
       /recovery ✓/.test(labels.caughtUp) && /recovery failed · use Save As/.test(labels.failed) && /simulated quota/.test(labels.failedTitle) && /recovery ✓/.test(labels.recovered), labels);
     await s.ctx.close();
   }
@@ -138,14 +145,15 @@ async function prepared(name) {
     let r;
     if (sc.sameContext) {
       const page = s.page, offered = await page.evaluate(() => Forge.services.ProjectStore.state.recoveryPhase === 'offered');
+      await recordToasts(page);
       const restored = offered ? await page.evaluate(() => Forge.services.ProjectStore.restoreRecovery()) : false;
-      r = {ctx: s.ctx, page, offered, restored, state: await rs(page), text: restored ? await content(page) : null, banner: await page.$eval('#autosaveText', e => e.textContent), statusLine: await page.$eval('#forge15State', e => e.textContent)};
+      r = {ctx: s.ctx, page, offered, restored, state: await rs(page), text: restored ? await content(page) : null, banner: await page.$eval('#autosaveText', e => e.textContent), statusLine: await page.$eval('#forge15State', e => e.textContent), toast: await lastRecoveryToast(page)};
       if (shots) { await page.evaluate(() => switchTab('scene')); await sleep(300); await page.screenshot({path: path.join(shots, 'recovery_' + sc.name + '_restored.png')}); }
     } else r = await reopenAndRestore(s.profile, sc.name);
     const equal = r.text === expected, rep = r.state.report || {};
     // completeness may be claimed only with evidence of a normal end; after a kill the message must say it cannot confirm
     const honest = sc.killed ? rep.complete !== true && /ended unexpectedly|could not be recovered/.test(rep.text || '') : (equal ? rep.complete === true : rep.complete === false);
-    report.scenarios[sc.name] = {how: sc.how, editsAtEnd: atEnd.editSeq, committedAtEnd: atEnd.committedSeq, offered: r.offered, restored: r.restored, identical: equal, source: rep.source, recoveredEditSeq: rep.editSeq, markerEditSeq: rep.markerEditSeq, message: rep.text, statusLine: r.statusLine, killedProcesses: s.killed, errors: (r.errors || []).slice(0, 3)};
+    report.scenarios[sc.name] = {toast: r.toast, complete: rep.complete ?? null, how: sc.how, editsAtEnd: atEnd.editSeq, committedAtEnd: atEnd.committedSeq, offered: r.offered, restored: r.restored, identical: equal, source: rep.source, recoveredEditSeq: rep.editSeq, markerEditSeq: rep.markerEditSeq, message: rep.text, statusLine: r.statusLine, killedProcesses: s.killed, errors: (r.errors || []).slice(0, 3)};
     if (sc.mayLose) check('Browser killed right after edits: the restored project is one consistent point (' + (equal ? 'every edit present' : 'later edits missing') + '), and the message does not claim completeness it cannot prove',
       r.offered && r.restored && honest, report.scenarios[sc.name]);
     else if (sc.killed) check(sc.how + ': every edit is restored; the message says the browser ended unexpectedly instead of claiming completeness', r.offered && r.restored && equal && honest, report.scenarios[sc.name]);
@@ -186,10 +194,16 @@ async function prepared(name) {
     await s.page.close({runBeforeUnload: true}); await sleep(800); await s.ctx.close();
     const r = await reopenAndRestore(s.profile, 'lost_changes');
     const rep = r.state.report || {};
-    report.scenarios.lostChanges = {statusBeforeClose: statusBefore, recoveredEditSeq: rep.editSeq, markerEditSeq: rep.markerEditSeq, message: rep.text, identicalToLastWrittenPoint: r.text === before, banner: r.banner, statusLine: r.statusLine};
+    report.scenarios.lostChanges = {toast: r.toast, complete: rep.complete ?? null, statusBeforeClose: statusBefore, recoveredEditSeq: rep.editSeq, markerEditSeq: rep.markerEditSeq, message: rep.text, identicalToLastWrittenPoint: r.text === before, banner: r.banner, statusLine: r.statusLine};
     check('When changes could not be written, the restore names how many were lost instead of "Recovery restored"',
       r.restored && r.text === before && rep.complete === false && rep.markerEditSeq > rep.editSeq && /could not be recovered/.test(r.banner) && !/^Recovery restored/.test(r.banner), report.scenarios.lostChanges);
     await r.ctx.close();
+    // the toast at a restore names its outcome: every change back / the last moments cannot be confirmed / N lost
+    const toasts = Object.entries(report.scenarios).filter(([, v]) => v && 'toast' in v).map(([k, v]) => ({scenario: k, complete: v.complete, toast: v.toast}));
+    const fits = t => t.complete === true ? /^Recovery complete: every change came back$/.test(t.toast || '') : t.complete === false ? /^Recovery incomplete: \d+ changes? (was|were) lost/.test(t.toast || '') :
+      /^Recovery restored: the last moments before Forge ended cannot be confirmed/.test(t.toast || '');
+    check('The restore toast states its outcome: "complete" only when every change came back, "cannot be confirmed" after an unexpected end, "incomplete" with the number lost',
+      toasts.length >= 4 && toasts.every(fits) && toasts.some(t => t.complete === true) && toasts.some(t => t.complete === null) && toasts.some(t => t.complete === false), toasts);
   }
   {
     // an interrupted write leaves the previous point intact (deterministic): the journal's transaction is aborted
