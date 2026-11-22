@@ -138,10 +138,12 @@ async function until(fn, ms = 900000, every = 500) { const t = Date.now(); for (
       lib.frames === 25 && lib.chr === 32 && ['registered', 'already'].includes(ngCat?.state) && smbCat?.state === 'none' && st.notices.some(n => /added to the library/.test(n)) && (await serialize()) === projectBeforeImports,
       {lib, ngCatalog: ngCat, smbCatalog: smbCat, notices: st.notices.slice(0, 4), jobFailures: {ng: job(ngJobId).failures, smb3: job(smbJobId).failures, smb3Results: job(smbJobId).results.length}});
     const ngFinal = job(ngJobId);
+    // unresolved evidence is listed apart from failures: for Ninja Gaiden that is the sprite → actor link; its status-bar
+    // split no longer leaves sprite locations unverified (each drawn sprite has its traced location)
     check('The finished Ninja Gaiden job reads "completed · recovered after 1 worker restart"; the restart is not listed as a failure; unresolved evidence is listed separately',
       await page.$eval('#agentLabJobs tr[data-job="' + ngJobId + '"] .al-state', e => /completed 22\/22 · recovered after 1 worker restart/.test(e.textContent)) &&
-      await page.$eval('#agentLabJobs tr[data-job="' + ngJobId + '"] .al-failure', e => e.textContent === 'none') && await page.$eval('#agentLabJobs tr[data-job="' + ngJobId + '"] .al-unresolved', e => /mid-frame/.test(e.textContent)),
-      {failures: ngFinal.failures});
+      await page.$eval('#agentLabJobs tr[data-job="' + ngJobId + '"] .al-failure', e => e.textContent === 'none') && await page.$eval('#agentLabJobs tr[data-job="' + ngJobId + '"] .al-unresolved', e => /sprite → pose\/actor/.test(e.textContent) && !/unverified/.test(e.textContent)),
+      {failures: ngFinal.failures, unresolved: await page.$eval('#agentLabJobs tr[data-job="' + ngJobId + '"] .al-unresolved', e => e.textContent)});
     // ---- 9 navigate the findings in Resources ----
     // Ninja Gaiden's "Open in Library" notice is in the tab that imported its results. If that was this tab, a missing
     // notice is a failure (with the panel's state and DOM recorded); if it was the earlier tab, Resources › Library is used.
