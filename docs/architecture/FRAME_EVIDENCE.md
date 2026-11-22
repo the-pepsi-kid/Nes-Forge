@@ -308,6 +308,8 @@ appears and unrelated tiles elsewhere. Each rendition now records the room and t
 
 ### Status at a glance
 
+- **Save and recovery state** is the chip in the Studio bar (`#studioState`): unsaved/saved, then the recovery state,
+  coloured by level (amber when behind, red when failed). Details in `PROJECT_RECOVERY.md`.
 - **ROMs in your library** (top of Resources › Library; `library.roms`): one line per ROM the library knows. It shows:
   - entries;
   - the recovered catalog's state, with attempts and the last error when it is not complete;

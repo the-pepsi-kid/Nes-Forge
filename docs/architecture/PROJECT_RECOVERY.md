@@ -49,7 +49,9 @@ not finish before a large project's tab closed. Edits made in the last 30 s were
     tab's journal *before* the earlier session's data is removed.
   - At most five earlier sessions are kept, and none older than 14 days. Blank sessions are not kept.
   - Records from the older single-record format are still offered once.
-- **Indicators** in the status bar:
+- **Indicators** in the status bar. The same chip appears in two places: the Studio bar (`#studioState`, the default
+  layout) and the classic toolbar (`#forge15State`), which the Studio layout hides. Both show the same text, level
+  and colour. On a phone the Studio chip takes its own row.
   - `● Unsaved changes` / `✓ Saved` say whether there are changes since the last project or browser save.
   - The recovery part reads `recovery ✓ HH:MM:SS`, `recovery saving…`, `recovery preparing…`,
     `recovery behind · N changes since HH:MM:SS` (after 2 s), `recovery failed · use Save As` or
