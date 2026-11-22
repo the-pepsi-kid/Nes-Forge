@@ -97,9 +97,10 @@ const NINJA = '07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e'
       groups.first === 'frx-group' && /^In Stage 2-2 · \d+$/.test(groups.heads[0]) && /^Everything else · \d+/.test(groups.heads[1]) && groups.count === groups.items + '/' + groups.items && /^Stage 2-2 · \d+$/.test(groups.option), groups);
     await page.selectOption('#frx-stage', ''); await page.fill('#frx-search', second.name); await page.waitForTimeout(400);
     await page.evaluate(() => [...document.querySelectorAll('#frx-items .frx-item')].find(b => /Library · pose/.test(b.textContent) && !/\.(json|png)/.test(b.textContent))?.click());
-    await page.waitForFunction(() => /Drawn with the palette/.test(document.getElementById('frx-preview').textContent));
-    const colours = await page.$eval('#frx-preview', el => el.textContent.match(/Drawn with the palette of .*?\)/)?.[0] || '');
-    check('With "All stages", a sprite is drawn with the colours of the stage where it was observed', /Area 3 · room 6 \(Stage 2-2\)/.test(colours), colours);
+    // the caption names the room the sprite is drawn in (its tile banks and palette) and the evidence for it
+    await page.waitForFunction(() => /Drawn as in|Same tiles in every room|Room not established/.test(document.getElementById('frx-preview').textContent));
+    const colours = await page.$eval('#frx-preview', el => [...el.querySelectorAll('.frx-code')].map(x => x.textContent).find(t => /^(Drawn as in|Same tiles in every room|⚠ Room not established)/.test(t)) || '');
+    check('With "All stages", a sprite is drawn in the room of the stage where it was observed (its tile banks and colours), and says so', /^Drawn as in Area 3 · room 6 \(Stage 2-2\): seen on screen in Stage 2-2 by the runtime stage survey/.test(colours), colours);
     await page.$eval('#frx-preview', el => { el.scrollTop = el.scrollHeight; });
     await page.fill('#frx-search', first.name); await page.waitForTimeout(400);
     const follow = await page.evaluate(() => ({selected: document.querySelector('#frx-items .frx-item[aria-current="true"]')?.textContent || '', first: document.querySelector('#frx-items .frx-item')?.textContent || '', name: document.getElementById('frx-name').textContent}));
