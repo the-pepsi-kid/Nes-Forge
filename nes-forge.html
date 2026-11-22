@@ -4321,7 +4321,7 @@ function cpuStepRaw(){return emuCPUCore.step();}
 // ── Frame runner ──
 function emuRunFrame(){if(!emu.loaded)return;const deadline=performance.now()+200;const start=emu._nextFrameCycle??emu.cycles;if(!Number.isFinite(start)||!Number.isFinite(emu.cycles))throw Error("Invalid CPU clock");emu.ppuStatus&=0x1F;emu.spr0Line=-1;emu.tAddrPre=emu.tAddr;emu.fineXPre=emu.fineX;emu.chrBank0Pre=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1;const scrollY=((emu.tAddr>>5)&31)*8+((emu.tAddr>>12)&7),ntY=(emu.tAddr>>11)&1;emu._rasterYBase=scrollY;emu._rasterNTY=ntY;
   const stepTo=target=>{let steps=0;while(emu.cycles<target){if((emu.irqPending||apuCore.irq)&&!emu.I){cpuPush(emu.PC>>8);cpuPush(emu.PC&255);cpuPush(cpuGetP()&~16);emu.I=1;emu.PC=cpuRead16(0xFFFE);emu.cycles+=7;apuClock(7);}cpuStep();emu.PC&=65535;if(++steps>20000)throw new Error('CPU did not advance safely');}};
-  try{for(let line=0;line<262;line++){if((line&15)===0&&performance.now()>deadline)throw Error("Frame exceeded 200 ms safety budget; paused to protect the page");const lineStart=start+line*341/3;emu._ppuFrameLine=line;if(line<240){const hit=renderEmuLine(line,emu._rasterYBase,emu._rasterNTY);if(hit>=0&&!(emu.ppuStatus&64)){stepTo(lineStart+hit/3);emu.ppuStatus|=64;emu.spr0Line=line;}stepTo(start+(line+1)*341/3);if(emu.mapper===4)mmc3ScanlineTick();}else {if(line===241){emu.ppuStatus|=128;if(emu.ppuCtrl&128)cpuNmi();}stepTo(start+(line+1)*341/3);}}
+  try{for(let line=0;line<262;line++){if((line&15)===0&&performance.now()>deadline)throw Error("Frame exceeded 200 ms safety budget; paused to protect the page");const lineStart=start+line*341/3;emu._ppuFrameLine=line;if(line<240){if(line===0)emu._chrLines=[[0,emu.chrBank0,emu.chrBank1]];else{const l=emu._chrLines[emu._chrLines.length-1];if(l[1]!==emu.chrBank0||l[2]!==emu.chrBank1)emu._chrLines.push([line,emu.chrBank0,emu.chrBank1]);}const hit=renderEmuLine(line,emu._rasterYBase,emu._rasterNTY);if(hit>=0&&!(emu.ppuStatus&64)){stepTo(lineStart+hit/3);emu.ppuStatus|=64;emu.spr0Line=line;}stepTo(start+(line+1)*341/3);if(emu.mapper===4)mmc3ScanlineTick();}else {if(line===241){emu.ppuStatus|=128;if(emu.ppuCtrl&128)cpuNmi();}stepTo(start+(line+1)*341/3);}}
   }finally{emu._ppuFrameLine=-1;}emu._nextFrameCycle=start+262*341/3;emu.tAddrPost=emu.tAddr;emu.fineXPost=emu.fineX;emu.chrBank0Post=emu.chrBank0;emu.chrBank1Post=emu.chrBank1;emu.frameCount++;
   // Read-only ROM-frame evidence hook. No native engine or emulator state changes.
   try{window.Forge?.services?.NativeAnimationTrace?.sample?.(emu,emuReadJoyState());}
@@ -35087,8 +35087,10 @@ async function surveyStages({areas,frames=1500,boot='checkpoint'}={}){
         if(!emu.ram[0x498+i])continue; // slot flags: zero when the slot holds no live enemy
         const type=emu.ram[0x400+i],pose=emu.ram[0x438+i],key=type+':'+pose,rec=seen.get(key)||{type,pose,samples:0,onScreen:0,rooms:[],banks:[]};
         rec.samples++;const cat=enemyPoses.get(pose);if(cat?.pieces?.length&&cat.pieces.every(pc=>onScreen.has(pc.tile))){rec.onScreen++;const room=emu.ram[0x6E];if(!rec.rooms.includes(room))rec.rooms.push(room);
-          // the CHR banks actually mapped for sprites at this moment (4 KiB at $0000 and $1000), not the room's record
-          const phys=window.forgeCapture?.physicalChr;if(phys){const k=(phys(0).off>>12)+'/'+(phys(0x1000).off>>12)+'@'+room;if(!rec.banks.includes(k)&&rec.banks.length<16)rec.banks.push(k);}}seen.set(key,rec);
+          // the CHR banks the game had mapped while it drew the play area (scanline 200, below the HUD split; the
+          // registers between frames hold the HUD's banks), as 4 KiB banks at $0000 and $1000
+          const lines=emu._chrLines||[];let at=lines[0];for(const l of lines)if(l[0]<=200)at=l;
+          if(at){const k=(at[1]>>12)+'/'+(at[2]>>12)+'@'+room;if(!rec.banks.includes(k)&&rec.banks.length<16)rec.banks.push(k);}}seen.set(key,rec);
       }
     }};
     let origin=pos(),best=origin,still=0,tries=0;
