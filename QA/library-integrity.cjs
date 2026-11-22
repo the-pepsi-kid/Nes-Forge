@@ -389,11 +389,21 @@ async function allPoses(page, sha, rom, ng) {
   const zChrStart = 16 + ZROM[4] * 16384, zOffsets = zChr.map(c => c.fileOffset).sort((a, b) => a - b);
   const zVerify = await s.page.evaluate(() => Forge.commands.run('library.verify', {}).then(r => r.result));
   await s.page.click('#frx-open'); await s.page.click('#frx-lib'); await s.page.waitForTimeout(1500); await shot('Z2_zelda_catalog_completed');
+  const zRomLine = await s.page.$eval('#frx-rom-status [data-rom="' + ZELDA + '"]', e => e.textContent).catch(() => null);
+  // how each stored pose is drawn, counted by the test from the entries themselves
+  const zDrawn = await s.page.evaluate(async x => { const L = Forge.services.ResourceLibrary, out = {}; for (let o = 0; ; o += 5000) { const p = await L.list({shelf: x, offset: o, limit: 5000});
+    for (const item of p.items) if (item.kind === 'pose' && item.origin === 'rom-catalog') { const e = await L.entry(item.id), b = e.rendition?.context?.basis || 'none'; out[b] = (out[b] || 0) + 1; } if (o + 5000 >= p.total) break; } return out; }, ZELDA);
   report.phases.Z = {expectedRecords: zExpected, putsAtHold: zPuts, atKill: zAtKill && {state: zAtKill.state, attempts: zAtKill.attempts}, before: zBefore, completion: {state: zDone.state, kept: zDone.kept, written: zDone.written, source: zDone.source, attempts: zDone.attempts},
     after: zAfter, scan: {pagesRead: zPack?.stats?.pagesRead, alreadyStored: zPack?.stats?.alreadyStored}, chr: {banks: zChr.length, contiguous: zOffsets.every((o, i) => o === zChrStart + i * 4096), bytes: zChr.every(c => Buffer.from(c.data, 'base64').equals(ZROM.subarray(c.fileOffset, c.fileOffset + c.length)))},
     verify: {ok: zVerify.ok, problems: zVerify.problems.slice(0, 3)}};
   const zRowAfter = await s.page.evaluate(h => Forge.commands.run('library.roms').then(r => r.result.find(x => x.sha === h)), ZELDA);
-  report.phases.Z.romStatus = {before: zRowBefore && {entries: zRowBefore.entries, catalog: zRowBefore.catalog}, after: zRowAfter && {entries: zRowAfter.entries, catalog: zRowAfter.catalog, drawing: zRowAfter.drawing}};
+  report.phases.Z.romStatus = {before: zRowBefore && {entries: zRowBefore.entries, catalog: zRowBefore.catalog}, after: zRowAfter && {entries: zRowAfter.entries, catalog: zRowAfter.catalog, drawing: zRowAfter.drawing}, line: zRomLine};
+  // a catalog completed after an interruption counts the poses it kept as well as those it wrote
+  const zSummary = zPack?.stats?.poseContexts || {}, zSum = o => Object.values(o || {}).reduce((a, b) => a + (b || 0), 0), zNonZero = o => Object.entries(o || {}).filter(([, v]) => v).sort(), zSameCounts = (a, b) => same(zNonZero(a), zNonZero(b));
+  report.phases.Z.drawing = {fromEntries: zDrawn, storedSummary: zSummary, renditions: zPack?.stats?.renditions, kept: zDone.kept, shown: zRowAfter?.drawing};
+  check('Z: after the interrupted registration completes, the status says how all ' + zAfter.poses + ' of Zelda II\'s sprites are drawn, the kept ones included: the stored summary, library.roms and Resources > Library equal the count taken from the entries',
+    zAfter.poses > 0 && zSum(zDrawn) === zAfter.poses && !zDrawn.none && zSameCounts(zSummary, zDrawn) && zSum(zSummary) === zPack.stats.renditions && zSameCounts(zRowAfter?.drawing, zDrawn) &&
+    /sprites: \d+ /.test(zRomLine || '') && Object.entries(zDrawn).every(([b, n]) => (zRomLine || '').includes(n + ' ' + {decoded: 'in their room', runtime: 'seen at runtime', 'same-everywhere': 'same in every room', default: 'room not established'}[b])), report.phases.Z.drawing);
   check('Z: the ROM status shows Zelda II\'s catalog as incomplete and waiting for its cartridge after the kill (1120 entries), then complete (1296 entries)',
     zRowBefore?.entries === 1120 && ['needs-source', 'incomplete'].includes(zRowBefore.catalog.state) && zRowAfter?.entries === 1296 && zRowAfter.catalog.state === 'complete' && zRowAfter.catalog.entries === 1296, report.phases.Z.romStatus);
   check('Z: Zelda II\'s registration, interrupted after 1120 entries by killing the browser, is detected as incomplete on reopening with what was written kept',

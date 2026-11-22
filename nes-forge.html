@@ -31859,7 +31859,8 @@ function renderRomStatus(){
   const bad=['failed','needs-retry','needs-source','incomplete','missing'].includes(r.catalog.state);
   const d=r.drawing,parts=[r.entries+' entries',(CAT[r.catalog.state]||r.catalog.state)+(r.catalog.entries?' ('+r.catalog.entries+')':'')+(bad&&r.catalog.attempts?' · '+r.catalog.attempts+' of 3 attempts':''),
    r.frames+' verified frame'+(r.frames===1?'':'s'),r.investigations+' investigation'+(r.investigations===1?'':'s')];
-  if(d)parts.push('sprites: '+[d.decoded&&d.decoded+' in their room',d.runtime&&d.runtime+' seen at runtime',d['same-everywhere']&&d['same-everywhere']+' same in every room',d.default&&d.default+' room not established'].filter(Boolean).join(', '));
+  const drawn=d?[d.decoded&&d.decoded+' in their room',d.runtime&&d.runtime+' seen at runtime',d['same-everywhere']&&d['same-everywhere']+' same in every room',d.default&&d.default+' room not established'].filter(Boolean):[];
+  if(drawn.length)parts.push('sprites: '+drawn.join(', '));
   for(const p of r.otherPacks||[])parts.push(p.name);
   const name=elt('strong',null,r.name);name.style.color=bad?'#ffb35a':'#e8f4fa';row.append(name,' · '+parts.join(' · ')+(bad&&r.catalog.lastError?' · last error: '+r.catalog.lastError:''));
   if(r.open){const b=elt('button','frx-context-shortcut','Open');b.type='button';b.dataset.action='open-rom';b.onclick=()=>{pendingSelect=key('lib',r.open);setMode('library');};row.append(' ',b);}
@@ -34974,7 +34975,9 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
     const stored=await L.storeData(data);
     const before=already.get(idOf(romSha,kind,rid));
     if(before&&before.contentHash===stored.hash&&before.packSha256===packKey&&before.evidence?.state===decodedEvidence(kind,r,layout,profile).state&&(kind!=='pose'||before.rendition?.context?.basis||before.renditionError)){
-      stats.entries++;stats.kept++;if(kind==='chr')stats.chrBanks++;if(before.rendition)stats.renditions++;stats.locations+=before.evidence?.total||0;stats.inconsistentLocations+=before.evidence?.inconsistent||0;
+      stats.entries++;stats.kept++;if(kind==='chr')stats.chrBanks++;if(before.rendition)stats.renditions++;
+      if(kind==='pose'&&before.rendition?.context?.basis){const b=before.rendition.context.basis;stats.poseContexts[b]=(stats.poseContexts[b]||0)+1;}
+      stats.locations+=before.evidence?.total||0;stats.inconsistentLocations+=before.evidence?.inconsistent||0;
       stats.verifiedPlacements+=(before.placement?.verified||[]).length;continue;
     }
     const e={id,packSha256:packKey,path:kind+'/'+label,label,origin:'rom-catalog',shelf,sourceSha256:romSha,game:profile,kind,identified:true,fileType,size:stored.size,contentHash:stored.hash,loads:false,
@@ -35381,6 +35384,19 @@ async function recognize(sha){
 }
 // Every ROM the library knows (any pack with its SHA-256): its catalog and registration state, frames, investigations
 // and how its poses are drawn. One list for the status view and the command line.
+// How the ROM's sprites are drawn, from the catalog's summary. A catalog completed after an interruption by an earlier
+// build counted only the poses written on resuming; then the summary falls short of its renditions and the stored
+// entries are counted instead (once per pack version).
+const drawingCache=new Map();
+async function drawingOf(pack){
+  const s=pack?.stats;if(!s?.poseContexts)return null;
+  const counted=Object.values(s.poseContexts).reduce((a,b)=>a+(b||0),0);if(counted>=(s.renditions||0))return s.poseContexts;
+  const key=pack.packSha256+'|'+(pack.updated||0);if(drawingCache.has(key))return drawingCache.get(key);
+  const out={decoded:0,runtime:0,'same-everywhere':0,default:0};
+  for(let offset=0;;offset+=1000){const page=await L.entriesPage({pack:pack.packSha256,offset,limit:1000});
+    for(const e of page.items){const b=e.kind==='pose'&&e.rendition?.context?.basis;if(b)out[b]=(out[b]||0)+1;}if(offset+1000>=page.total)break;}
+  drawingCache.set(key,out);return out;
+}
 async function romStatus(){
   const r=await C.run('library.packs'),packs=r.ok?r.result:[],shas=[...new Set(packs.map(p=>p.sourceSha256).filter(Boolean))],cats=await catalogState(),out=[];
   for(const sha of shas){
@@ -35388,7 +35404,7 @@ async function romStatus(){
     const named=packs.find(p=>p.sourceSha256===sha&&p.origin==='runtime-capture')?.name?.replace(/ · runtime captures$/,'')||c?.name||packs.find(p=>p.sourceSha256===sha)?.name||sha.slice(0,12);
     const state=live&&!['complete','unsupported'].includes(live.state)?live.state:k.catalog.state;
     out.push({sha,name:named,entries:k.entries,catalog:{state,entries:k.catalog.entries??null,attempts:c?.attempts||0,lastError:live?.lastError||c?.lastError||null,text:STATE_TEXT[state]||null},
-      frames:k.frames,investigations:k.investigations.length,lastInvestigation:k.investigations[k.investigations.length-1]?.jobId||null,drawing:pack?.stats?.poseContexts||null,
+      frames:k.frames,investigations:k.investigations.length,lastInvestigation:k.investigations[k.investigations.length-1]?.jobId||null,drawing:await drawingOf(pack),
       otherPacks:k.otherPacks,open:k.open});
   }
   return out.sort((a,b)=>a.name.localeCompare(b.name));

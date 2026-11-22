@@ -597,7 +597,8 @@ function renderRomStatus(){
   const bad=['failed','needs-retry','needs-source','incomplete','missing'].includes(r.catalog.state);
   const d=r.drawing,parts=[r.entries+' entries',(CAT[r.catalog.state]||r.catalog.state)+(r.catalog.entries?' ('+r.catalog.entries+')':'')+(bad&&r.catalog.attempts?' · '+r.catalog.attempts+' of 3 attempts':''),
    r.frames+' verified frame'+(r.frames===1?'':'s'),r.investigations+' investigation'+(r.investigations===1?'':'s')];
-  if(d)parts.push('sprites: '+[d.decoded&&d.decoded+' in their room',d.runtime&&d.runtime+' seen at runtime',d['same-everywhere']&&d['same-everywhere']+' same in every room',d.default&&d.default+' room not established'].filter(Boolean).join(', '));
+  const drawn=d?[d.decoded&&d.decoded+' in their room',d.runtime&&d.runtime+' seen at runtime',d['same-everywhere']&&d['same-everywhere']+' same in every room',d.default&&d.default+' room not established'].filter(Boolean):[];
+  if(drawn.length)parts.push('sprites: '+drawn.join(', '));
   for(const p of r.otherPacks||[])parts.push(p.name);
   const name=elt('strong',null,r.name);name.style.color=bad?'#ffb35a':'#e8f4fa';row.append(name,' · '+parts.join(' · ')+(bad&&r.catalog.lastError?' · last error: '+r.catalog.lastError:''));
   if(r.open){const b=elt('button','frx-context-shortcut','Open');b.type='button';b.dataset.action='open-rom';b.onclick=()=>{pendingSelect=key('lib',r.open);setMode('library');};row.append(' ',b);}
