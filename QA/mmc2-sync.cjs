@@ -17,7 +17,7 @@
 //    with cold-boot verification: every frame is synchronization-checked, has its scene, and no frame is reported with
 //    unverified sprite pattern locations.
 const fs = require('node:fs'), path = require('node:path'), os = require('node:os'), crypto = require('node:crypto'), assert = require('node:assert/strict');
-const {spawnSync} = require('node:child_process');
+const {spawnSync, spawn} = require('node:child_process');
 const root = path.resolve(__dirname, '..'), editor = path.resolve(process.argv[2] || path.join(root, 'NES_Forge.html'));
 const output = process.argv[3], corpus = process.argv[4];
 const {loadForge} = require('./t/u/harness.cjs');
@@ -204,7 +204,16 @@ check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Pu
       if (r.status !== 0) throw Error(args[0] + ': ' + (r.stderr || r.stdout).slice(-600)); return r.stdout; };
     cli('enqueue', '--rom', romFile, '--plan', 'generic', '--verify', 'cold');
     cli('enqueue', '--rom', romFile, '--plan', 'profile', '--verify', 'cold');
-    const t0 = Date.now(); cli('run', '--forge', editor, '--once'); const ms = Date.now() - t0;
+    // the worker runs for minutes: its log is forwarded and a heartbeat printed, so the suite is never silent
+    const t0 = Date.now();
+    await new Promise((resolve, reject) => {
+      const p = spawn(process.execPath, [worker, 'run', '--root', dir, '--forge', editor, '--once'], {env: process.env}); let err = '';
+      p.stdout.on('data', d => process.stdout.write(String(d).split('\n').filter(Boolean).map(l => '  agent-lab: ' + l + '\n').join('')));
+      p.stderr.on('data', d => { err += d; });
+      const beat = setInterval(() => console.log('  agent-lab: running · ' + Math.round((Date.now() - t0) / 1000) + ' s'), 30000);
+      p.on('exit', code => { clearInterval(beat); code === 0 ? resolve() : reject(Error('run: ' + err.slice(-600))); });
+    });
+    const ms = Date.now() - t0;
     const jobs = JSON.parse(cli('status'));
     const full = jobs.map(j => JSON.parse(fs.readFileSync(path.join(dir, 'jobs', j.id, 'job.json'), 'utf8')));
     const frames = full.flatMap(j => j.results.map(r => {

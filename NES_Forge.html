@@ -22997,13 +22997,15 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
  * Entry: Forge.services.MMC2Mapping / live mapper-9 wrappers
  * Purpose: Install MMC2 CPU/PPU mapping and scanline rendering while delegating every other mapper.
  * Connections: Wraps the legacy emulator functions; the shared Forge6502Core still owns CPU instruction behavior.
- * Contract: Retain offscreen background fetch side effects. Timing remains approximate; MMC2 runtime capture still explicitly refuses.
+ * Contract: Retain offscreen background fetch side effects. Timing remains approximate. Each line records what it
+ *   fetched (the latch-switched bank of every pattern fetch, the sprite bytes) in the runtime trace, so MMC2 frames are
+ *   synchronization-checked and captured like every other mapper's.
  * Developer walkthrough: app/docs/NATIVE_RECOVERY_TUTORIAL.md
  * Bundle order: app/source-manifest.json; regenerate with app/tools/bundle.py.
  */
 /* Add MMC2 bus mapping without altering prior mapper or instruction cores.
  * The existing scanline timing model remains approximate. The MMC2 renderer
- * fetches each pattern row once; capture refuses until its provenance is wired. */
+ * fetches each pattern row once and hands the runtime trace what it fetched. */
 (() => {
   'use strict';
   const api = ForgeMMC2,
@@ -23013,10 +23015,7 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
       read: cpuRead,
       write: mapperWrite,
       ppu: ppuBusRead,
-      line: renderEmuLine,
-      capture: emuCapture,
-      nametable: emuCaptureNametable,
-      hybrid: emuCaptureHybrid
+      line: renderEmuLine
     };
 
   function sync() {
@@ -23187,18 +23186,9 @@ parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uin
     window.forgeCapture?.recordFetchedLine?.(line, baseY, baseNTY, fetched);
     return hit;
   };
-  const capture = previous => function(...args) {
-    if (emu.mapper === 9) return reportError(Error(
-      'MMC2 runtime capture is not available. Use recovered source screens for native editing.'
-      ));
-    return previous(...args);
-  };
-  emuCapture = capture(prior.capture);
-  emuCaptureNametable = capture(prior.nametable);
-  emuCaptureHybrid = capture(prior.hybrid);
   Forge.services.MMC2Mapping = Object.freeze({
-    version: 1,
-    scope: 'Standard MMC2 physical banking; scanline rendering remains approximate. Runtime capture is explicitly unavailable for MMC2.'
+    version: 2,
+    scope: 'Standard MMC2 physical banking; scanline rendering remains approximate. Runtime capture comes from the trace of each pattern fetch (its latch-switched bank) and is checked by rebuilding the frame.'
   });
 })();
 /*
@@ -35832,6 +35822,9 @@ async function capture({label='frame',checkpoint=null,links=true,pixels=false,sc
     apu:{registers:Array.from(emu.apuRegs||[]),status:emu.apuStatus,frameCounter:emu.apuFrameCounter},
     ppu,
     nametables:b64(emu.vram),palette:Array.from(emu.palRam),oam:b64(emu.oamMem),sprites:sprites(),
+    // where the sprites' pattern locations come from: the bank in effect when each was fetched (MMC2, from the trace),
+    // or the banks mapped once the frame has ended (a frame that switches banks mid-frame may have drawn others)
+    spritePatternsAt:emu.mapper===9?'fetch':'frame-end',
     mapper:mapperState(),
     banks:{prg:prgWindows(layout,file),chr:chrWindows(layout,file)},
     rendered:{width:256,height:240,derivation:'rendered by the emulator: pixels, not CHR data',framebufferSha256:await sha256(new Uint8Array(emu.frameBuffer.buffer,emu.frameBuffer.byteOffset,emu.frameBuffer.byteLength)),
