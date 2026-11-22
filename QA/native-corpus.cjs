@@ -18,9 +18,23 @@ async function libraryRegistered(doc,name){
   if(Date.now()-said>20000){said=Date.now();console.log('  library: '+t.replace(/^.*Resource library: /,'').slice(0,160));}await new Promise(r=>setTimeout(r,50));}
  throw Error('The library registration of '+name+' did not finish: '+(line?.textContent||'(no status)'));
 }
+// The emulator pauses a frame that takes longer than 200 ms of wall time, to keep the page responsive. Alone, every
+// cartridge's frames take well under that (Shadowgate, the slowest seen: 34-74 ms). When the runner runs several suites
+// at once, one pause (another process, garbage collection) can push a single frame over it. Only that stop is retried,
+// once, in a fresh window, and the receipt records it: a cartridge that is really slow still fails.
+const SAFETY_STOP=/Frame exceeded 200 ms safety budget/;
 async function verifyCart(cart){
+ let result=await verifyCartOnce(cart);
+ if(!result.passed&&SAFETY_STOP.test(result.error||'')){
+  console.log('  '+cart.name+': a frame went over the emulator\'s 200 ms safety stop; retrying once in a fresh window');
+  const first=result.error;result=await verifyCartOnce(cart);result.retried={reason:'frame safety stop',firstAttempt:first};
+ }
+ report.cartridges.push(result);
+ console.log(cart.name,result.passed,result.error||'',result.retried?'(after one retry: frame safety stop)':'');
+}
+async function verifyCartOnce(cart){
  const a=load(editor),w=a.window,d=a.document,s=w.Forge.services,store=s.ProjectStore,g=s.ProjectGatewayUI,original=cart.bytes;
- const result={name:cart.name,sha256:hash(original),prgChrSha256:hash(original.subarray(16))};report.cartridges.push(result);
+ const result={name:cart.name,sha256:hash(original),prgChrSha256:hash(original.subarray(16))};
  try{
   await new Promise(r=>setTimeout(r,15));assert(await g.openFile(file(cart.name,original)),d.getElementById('projectGatewayStatus').textContent);
   const receipt=g.report();assert.equal(receipt.source.sha256,result.sha256);
@@ -80,7 +94,7 @@ async function verifyCart(cart){
   result.domErrors=[...a.errors,...a.consoleErrors,...a.domErrors];assert.equal(result.domErrors.length,0,JSON.stringify(result.domErrors));result.passed=true;
  }catch(e){result.passed=false;result.error=e.message;}
  finally{await new Promise(r=>setImmediate(r));w.close();}
- console.log(cart.name,result.passed,result.error||'');
+ return result;
 }
 (async()=>{
  for(const cart of sources)await verifyCart(cart);
@@ -121,6 +135,7 @@ async function verifyCart(cart){
  report.allPacksSourceVerified=report.unverifiedPacks.length===0;
  report.ok=report.cartridges.length>0&&report.cartridges.every(c=>c.passed)&&report.packMatches.every(p=>p.match||p.sourceCheck==='not-run-original-unavailable');
  report.total=report.cartridges.length;report.passed=report.cartridges.filter(c=>c.passed).length;
+ report.retried=report.cartridges.filter(c=>c.retried).map(c=>({name:c.name,reason:c.retried.reason,passedOnRetry:c.passed}));
  if(out)fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');
  process.exitCode=report.ok?0:1;
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -167,13 +167,18 @@ def run(name, args, receipt=None):
                 row['passed'] = row['passed'] and row['checksPassed']==row['total']
             if data.get('ok') is False:
                 row['passed'] = False
+            if data.get('retried'):
+                # A suite that retried something says so in its receipt (native-corpus: a cartridge whose frame went
+                # over the emulator's safety stop once). Keep it visible: in the index and on the PASS/FAIL line.
+                row['retried'] = data['retried']
         if not row['passed']:
             row['reason']='See '+name+'.log and any corresponding JSON receipt.'
     except StopIteration:
         pass
     except (OSError,ValueError) as err:
         row={'suite':name,'passed':False,'reason':str(err),'limit':limit}
-    print(('PASS ' if row['passed'] else 'FAIL ')+name+(' (%.0f s)' % row['seconds'] if 'seconds' in row else '')+('' if row['passed'] else ' · '+row.get('reason','')),flush=True)
+    retried=''.join(' · retried once: %s (%s)' % (r.get('name','?'),r.get('reason','?')) for r in row.get('retried',[]))
+    print(('PASS ' if row['passed'] else 'FAIL ')+name+(' (%.0f s)' % row['seconds'] if 'seconds' in row else '')+retried+('' if row['passed'] else ' · '+row.get('reason','')),flush=True)
     return row
 
 def editor_suite(case):
