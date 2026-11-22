@@ -143,9 +143,17 @@ async function prepared(name) {
     if (shots) await s.page.screenshot({path: path.join(shots, 'recovery_indicator_failed.png'), clip: {x: 0, y: 0, width: 1440, height: 120}});
     await s.page.evaluate(() => window.__restorePut()); await s.page.evaluate(() => Forge.services.ProjectStore.autoSave());
     labels.recovered = await s.page.$eval('#forge15State', e => e.textContent);
+    // one place for the state: in every Studio mode exactly one status chip is on screen, the Studio bar's
+    labels.chipsPerMode = {};
+    for (const m of ['library', 'edit', 'play', 'build']) {
+      await s.page.click('#studioMode-' + m); await sleep(250);
+      labels.chipsPerMode[m] = await s.page.evaluate(() => ['studioState', 'forge15State'].filter(id => { const e = document.getElementById(id), r = e && e.getBoundingClientRect(); return !!e && e.offsetParent !== null && r.width > 0 && r.bottom > 0 && r.top < innerHeight; }));
+    }
+    await s.page.click('#studioMode-edit');
+    labels.oneChip = Object.values(labels.chipsPerMode).every(v => v.length === 1 && v[0] === 'studioState');
     report.measurements.indicators = labels;
-    check('Indicators distinguish saved/unsaved and up-to-date, behind, failed and caught-up recovery; "behind" and "failed" have their own levels, and the Studio bar shows the same state in full (not cut off)',
-      /Unsaved changes · recovery ✓/.test(labels.upToDate) && /✓ Saved · recovery ✓/.test(labels.savedToBrowser) && /recovery behind · \d+ change/.test(labels.behind) && labels.behindLevel === 'behind' && labels.behindFits && labels.failedLevel === 'failed' && labels.failedFits &&
+    check('Indicators distinguish saved/unsaved and up-to-date, behind, failed and caught-up recovery; "behind" and "failed" have their own levels, and the Studio bar shows the same state in full (not cut off), in one place in every mode',
+      /Unsaved changes · recovery ✓/.test(labels.upToDate) && /✓ Saved · recovery ✓/.test(labels.savedToBrowser) && /recovery behind · \d+ change/.test(labels.behind) && labels.behindLevel === 'behind' && labels.behindFits && labels.failedLevel === 'failed' && labels.failedFits && labels.oneChip &&
       /recovery ✓/.test(labels.caughtUp) && /recovery failed · use Save As/.test(labels.failed) && /simulated quota/.test(labels.failedTitle) && /recovery ✓/.test(labels.recovered), labels);
     await s.ctx.close();
   }

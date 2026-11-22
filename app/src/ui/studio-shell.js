@@ -39,7 +39,10 @@ document.head.append(el('style',{id:'studioShellStyle',text:`
 .sb-state{font:600 11px/1.3 system-ui,sans-serif;padding:3px 9px;border:1px solid var(--bdr2);border-radius:999px;white-space:nowrap;flex:0 0 auto;background:#101a24}
 .sb-state.clean{color:#9be89b;border-color:#2f5f3a}.sb-state.dirty{color:#ffd27a;border-color:#6d5b2c}
 .sb-state[data-recovery="busy"]{color:#9fd3ff;border-color:#2f5a78}.sb-state[data-recovery="behind"]{color:#ffb35a;border-color:#b07a2a;background:#2a2010}
-.sb-state[data-recovery="failed"]{color:#ffb0a8;border-color:#c0443a;background:#3a1412}.sb-menu{position:relative}
+.sb-state[data-recovery="failed"]{color:#ffb0a8;border-color:#c0443a;background:#3a1412}
+/* one place for the save and recovery state: the classic toolbar's copy stays as the fallback when the Studio bar is absent */
+body.studio-on #forge15State{display:none}
+.sb-menu{position:relative}
 #studioToolsMenu{position:absolute;right:0;top:calc(100% + 2px);z-index:400;background:var(--bg2);border:1px solid var(--bdr2);min-width:240px;max-height:70vh;overflow:auto;padding:4px;box-shadow:0 6px 18px #000a}
 #studioToolsMenu button{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 8px}#studioToolsMenu button:hover{background:var(--bg3)}
 #studioToolsMenu .tm-h{color:var(--dim);font-size:9px;padding:6px 8px 2px;text-transform:uppercase;letter-spacing:1px}
