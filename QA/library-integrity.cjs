@@ -198,7 +198,7 @@ async function allPoses(page, sha, rom, ng) {
   const decodedId = Object.entries(contextsBefore).find(([, c]) => c?.basis === 'decoded')?.[0], unestablishedId = Object.entries(contextsBefore).find(([id, c]) => c?.basis === 'default' && !stored[id.split(':pose:')[1]])?.[0];
   const previewOf = async id => { await s.page.evaluate(x => Forge.services.ResourceRelationshipPreview.openLibraryEntry(x), id);
     await s.page.waitForFunction(() => /Drawn as in|Room not established|Same tiles in every room/.test(document.getElementById('frx-preview')?.textContent || ''), null, {timeout: 20000}).catch(() => {});
-    return s.page.$eval('#frx-preview', e => (e.textContent.match(/(Drawn as in|⚠ Room not established|Same tiles in every room)[^·]*/) || [''])[0]); };
+    return s.page.$eval('#frx-preview', e => [...e.querySelectorAll('.frx-code')].map(x => x.textContent).find(t => /^(Drawn as in|⚠ Room not established|Same tiles in every room)/.test(t)) || ''); };
   const decodedText = await previewOf(decodedId); await shot('G1_pose_drawn_in_decoded_room');
   const unestablishedText = unestablishedId ? await previewOf(unestablishedId) : null; await shot('G2_pose_room_not_established');
   await s.page.evaluate(() => document.getElementById('frx-close')?.click());

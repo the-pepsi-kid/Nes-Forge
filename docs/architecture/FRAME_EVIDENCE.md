@@ -277,3 +277,32 @@ cartridge. It needs no worker and no ROM bytes. When a ROM is opened (any import
 - Zelda II's registration is interrupted after 1120 entries and completed by the same generic recovery (two pages of
   the resume scan).
 
+### The room each recovered pose is drawn in (catalog schema 4)
+
+A pose's rendition, the drawing a copy receives, uses one room's tile banks and palette. Ninja Gaiden's 48 rooms
+use 24 different sprite bank pairs, so the room matters: the same tile numbers give a real sprite in a room where it
+appears and unrelated tiles elsewhere. Each rendition now records the room and the evidence for it (`context.basis`):
+
+| Basis | Meaning | Ninja Gaiden | Zelda II |
+|---|---|---|---|
+| `decoded` | An actor's own code selects the pose: an immediate stored to the enemy slot's action (`enemy_action`, whose script lists its poses) or pose (`enemy_pose`), directly or through a subroutine that stores A there. The ROM's spawn tables place that actor in the room; the first such room in game order. | 83 | 0 |
+| `runtime` | The stage survey saw it on screen in that room. A survey sighting replaces a drawing whose room is not established. | (after a survey) | — |
+| `same-everywhere` | Its tiles are identical under every room's banks. | 55 | 22 |
+| `default` | None of the above. Drawn in the default room and shown as "Room not established", with its number of art variants. | 64 | 8 |
+
+- **Where it shows:** Resources › Library says "Drawn as in <room>: <evidence>" or "⚠ Room not established …". The
+  provenance card of a copied sprite has a "Drawn as in" row.
+- **Updating old catalogs:** a catalog registered by an earlier Forge reads as `outdated` and is updated
+  automatically when its cartridge is available. Runtime observations and per-stage drawings are kept.
+- **Survey evidence:** the stage survey now records, for each sighting, the room (RAM `$6E`) and the CHR banks the
+  game had mapped for the play area. Ninja Gaiden sets its HUD banks in the NMI and the play area's after the
+  sprite-0 split, so the banks are read from the emulator's per-scanline log at scanline 200, not between frames.
+- **Validation (`QA/library-integrity.cjs`, phase G):** the survey plays five areas. At every sighting, the mapped
+  bank equals the room's recorded bank for each pattern table the pose uses. The decoded actor → pose links never
+  contradict the enemy type seen. Every stored stage drawing equals what the game drew.
+- **Not established:**
+  - poses whose actors are spawned by other actors (projectiles such as the axe), not by spawn tables;
+  - poses set by shared code (the defeat animation);
+  - bosses whose poses are chosen through tables;
+  - Zelda II's 8 Link poses whose art differs by room.
+
