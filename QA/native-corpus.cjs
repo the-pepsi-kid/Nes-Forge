@@ -9,6 +9,15 @@ const list=(base,ext)=>fs.readdirSync(base,{withFileTypes:true}).flatMap(item=>i
 const sources=list(corpus,'.nes').sort().map(p=>({name:path.basename(p),bytes:fs.readFileSync(p)}));
 const file=(name,bytes)=>({name,size:bytes.length,arrayBuffer:async()=>Uint8Array.from(bytes).buffer});
 async function wait(check){const end=Date.now()+60000;while(Date.now()<end){if(check())return;await new Promise(r=>setTimeout(r,15));}throw Error('Timed out waiting for the project action.');}
+// Opening a pack also registers it in the resource library, in the background (it never changes the project). Wait for
+// that to finish, and say so, so that no work is left running when the window closes: unfinished registrations kept
+// the process busy for minutes after the report was written.
+async function libraryRegistered(doc,name){
+ const line=doc.document.getElementById('projectGatewayLibrary'),end=Date.now()+600000;let said=Date.now();
+ while(Date.now()<end){const t=line?.textContent||'';if(t.includes(name)&&!/registering /.test(t))return t.replace(/^.*Resource library: /,'');
+  if(Date.now()-said>20000){said=Date.now();console.log('  library: '+t.replace(/^.*Resource library: /,'').slice(0,160));}await new Promise(r=>setTimeout(r,50));}
+ throw Error('The library registration of '+name+' did not finish: '+(line?.textContent||'(no status)'));
+}
 async function verifyCart(cart){
  const a=load(editor),w=a.window,d=a.document,s=w.Forge.services,store=s.ProjectStore,g=s.ProjectGatewayUI,original=cart.bytes;
  const result={name:cart.name,sha256:hash(original),prgChrSha256:hash(original.subarray(16))};report.cartridges.push(result);
@@ -100,6 +109,8 @@ async function verifyCart(cart){
     Object.defineProperty(picker,'files',{configurable:true,value:[file(source.name,source.bytes)]});picker.dispatchEvent(new w.Event('change'));
     await wait(()=>status.dataset.status&&status.dataset.status!=='reading');
     const expected=row.match==='exact'?'exact':'same-payload';assert.equal(status.dataset.status,expected);row.inEditorStatus=expected;
+    row.library=(await libraryRegistered(doc,path.basename(p))).slice(0,240);assert(/^(registered |.* is already registered)/.test(row.library),row.library);
+    console.log('pack',row.name,row.inEditorStatus,'· library:',row.library.slice(0,120));
    }
    assert.equal(pack.verifySource(w.Uint8Array.from([0,1,2,3])).status,'mismatch');assert.equal(before,s.ProjectStore.serialize());
    report.packMatches.push(row);
