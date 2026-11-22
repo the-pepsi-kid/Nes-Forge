@@ -58,9 +58,10 @@ How the worker behaves:
   - States: queued, running, paused, completed, failed, interrupted, cancelled.
   - A job left running by a stopped worker is recorded as an *interruption*, not a failure. It resumes at its first
     unfinished target and shows as "completed · recovered after N worker restart(s)". Unresolved evidence (for
-    example sprites that could not be traced to one CHR location, or sprite → actor relationships) is listed
-    separately from failures. A frame split at its status bar is not unresolved when every drawn sprite has its
-    traced location.
+    example sprites that could not be traced to one CHR location) is listed separately from failures. A frame split
+    at its status bar is not unresolved when every drawn sprite has its traced location. The worker does not link
+    sprites to poses; Forge does, once frames are imported, where its library has decoded poses for the ROM
+    (Resources › Library: a frame's "Sprite → pose", a pose's "Seen in captured frames").
 - **No duplicates**: a ROM already queued, running or investigated with the same plan, emulator build and
   verification returns the existing job. `rerun: true` in `POST /jobs` asks for a deliberate re-investigation.
 - **Checkpoints**: `<root>/checkpoints/<key>/`, keyed by ROM SHA-256, editor SHA-256 (the emulator build), mapper,

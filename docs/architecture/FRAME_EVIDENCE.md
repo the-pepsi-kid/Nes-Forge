@@ -189,7 +189,7 @@ Acceptance (`QA/agent-lab-background.cjs`, 11/11):
 | CNROM (mapper 3) | verified on a cartridge Forge builds itself (§13): checkpoint == cold boot, frames rebuild at 0 px, the world's CHR bank; no commercial CNROM cartridge in the test set |
 | Mappers the emulator does not run | the job fails with that reason; nothing is claimed |
 | Reaching places in a game | game knowledge in a plan: Ninja Gaiden's restart plan only; other games get the generic first look |
-| Sprite → pose/actor | not established automatically (listed as unresolved) |
+| Sprite → pose/actor | established in Forge where the library has decoded poses for the ROM (§16): every piece drawn in place, with the library's graphics or a complete layout; checked against Ninja Gaiden's own pose variables. The worker itself does not link. |
 
 ## 9. Remaining issues
 
@@ -200,8 +200,9 @@ Acceptance (`QA/agent-lab-background.cjs`, 11/11):
 - ~~MMC2 (Punch-Out!!) rendering bypasses the runtime trace.~~ Resolved (§12). What remains approximate is the order of
   pattern fetches within a line (34 background fetches, then the line's sprites), which is the scanline renderer's,
   not the PPU's dot timing.
-- Linking OAM sprites to pose records needs game knowledge (Ninja Gaiden: enemy slots); generic tile matching would
-  only give candidates.
+- ~~Linking OAM sprites to pose records needs game knowledge.~~ Done generically (§16) for ROMs whose catalog has
+  decoded poses. The game's pose variables are used only to check it. Small poses (1-2 pieces) whose room the library
+  has not established stay candidates.
 - The per-scanline runtime trace runs on every emulated frame. Recording it only on frames that will be captured may
   speed bulk work (not measured).
 - PPU emulation is scanline-based, not dot-exact. Mid-scanline effects are outside what a record can claim.
@@ -224,7 +225,7 @@ The compatibility gaps in §9 are unchanged and still tracked:
 - ~~MMC2 synchronization~~ (resolved, §12);
 - ~~CNROM (untested)~~ (verified on a Forge-built cartridge, §13);
 - malformed headers (reported, never repaired);
-- incomplete sprite → actor relationships.
+- ~~incomplete sprite → actor relationships~~ (sprite → pose links, §16; ROMs without decoded poses are still unlinked).
 
 ## 11. Interrupted catalog registration (2026-11-21)
 
@@ -417,4 +418,46 @@ With the original Castlevania US PRG 0 and PRG 1 and Mike Tyson's Punch-Out!! (U
 matching its pack's declared SHA-256 exactly), `QA/native-corpus.cjs` passes for 19 cartridges. All 18 extraction
 packs match their originals exactly, and `allPacksSourceVerified` is true. The cartridges stay private, outside the
 repository.
+
+## 16. Sprite → pose links (2026-11-22)
+
+A captured frame now points to the library's decoded poses it draws (`Forge.services.PoseLinks`, command
+`library.framePoses`), and a pose lists the captured frames that show it (`library.poseFrames`). This is generic: any
+ROM whose catalog has pose records (pieces with tile, relative x/y and attributes) is matched the same way. Today that
+is Ninja Gaiden (202 poses) and Zelda II (30).
+
+- **Layout.** Every piece of a pose must be drawn: its tile, its position relative to the other pieces, and its flips.
+  The whole pose may be mirrored when it has no decoded facing. A smaller pose whose pieces lie inside a larger matched
+  pose is not reported.
+- **Established, by layout and graphics.** Each drawn sprite's pattern is read from the cartridge CHR at the location
+  it was drawn from (§14), and it equals the library's drawing of that piece.
+- **Established, by layout.** The library has not established the room it draws the pose in (its drawing uses a
+  default room), so other graphics are no evidence against the match. A complete layout of 3 or more pieces then
+  establishes the pose, and the frame shows the CHR bank it is really drawn from.
+- **Candidate.**
+  - The same layout with other graphics, where the library's drawing is confirmed.
+  - A 1-2 piece pose whose drawing is unconfirmed.
+- **Ambiguous.** Several poses drawn exactly the same.
+- **Not linked.** Older records, whose sprite list is OAM at the snapshot.
+
+**Checked against the game itself (`QA/pose-links.cjs`).** Ninja Gaiden, 22 areas × 3 moments, 66 frames:
+- **102 established links:** 90 by layout and graphics, 12 by layout. Every one of them, 36 enemy links included, is a
+  pose that the game's own pose variables held in the frames that built the image (Ryu: RAM $83; enemies: the eight
+  slots' pose at $438+X). **None contradicts them.**
+- **Coverage.** Whenever a pose the game reported was drawn in place, Forge linked it: Ryu in 66 frames, enemies 35
+  times. "Drawn in place" was found by the test's own layout search.
+- **Candidates.** 13 candidates, all 1-2 piece poses with unconfirmed drawings.
+- **Negative cases:**
+  - one sprite moved by a pixel breaks a link;
+  - a sprite pointed at another CHR bank leaves a candidate;
+  - an older record is not linked;
+  - Super Mario Bros. 3, which has no decoded poses, says so.
+- **The library path.** Frames registered in the library give the same links. The frame view lists them, a pose opens
+  from there, and the pose lists the frames that show it.
+
+**Limits.**
+- Punch-Out!!'s fighter poses come from its own pose decoder and are not library pose entries, so Punch-Out frames are
+  not linked yet.
+- Zelda II's matching is the same code, but it has not been checked against the game's variables.
+- A link names the pose, not the actor slot. The game's actor tables are used only by the test.
 
