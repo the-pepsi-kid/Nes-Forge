@@ -13,6 +13,22 @@ from urllib.request import urlopen
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def resolve_chromium():
+    """The Chromium every browser suite uses, as QA/verify.py resolves it: CHROMIUM_PATH when it names a file, otherwise
+    Node Playwright's browser (Python Playwright may expect a build that is not installed). None: Playwright's own."""
+    explicit = os.environ.get('CHROMIUM_PATH')
+    if explicit and Path(explicit).is_file():
+        return explicit
+    env = dict(os.environ)
+    env['NODE_PATH'] = os.pathsep.join(filter(None, [str(ROOT / 'QA' / 'node_modules'), env.get('NODE_PATH')]))
+    try:
+        found = subprocess.run(['node', '-e', "process.stdout.write(require('playwright').chromium.executablePath())"], cwd=ROOT, env=env,
+                               capture_output=True, text=True, timeout=60).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return found if found and Path(found).is_file() else None
 sys.path.insert(0, str(ROOT/'tools'))
 from release_identity import release_name
 RELEASE_NAME = release_name()
@@ -94,8 +110,9 @@ try:
                 # and earlier builds), which landed inside timed clicks. It is the fallback only when the default
                 # launch has no WebGL, and then that first frame is waited for as its own measured step.
                 options = {'headless': True}
-                if os.getenv('CHROMIUM_PATH'):
-                    options['executable_path'] = os.environ['CHROMIUM_PATH']
+                chromium_path = resolve_chromium()
+                if chromium_path:
+                    options['executable_path'] = chromium_path
                 browser = playwright.chromium.launch(**options)
                 probe = browser.new_page()
                 renderer = probe.evaluate("(() => { const g = document.createElement('canvas').getContext('webgl'); if (!g) return null; const d = g.getExtension('WEBGL_debug_renderer_info'); return d ? g.getParameter(d.UNMASKED_RENDERER_WEBGL) : 'webgl'; })()")
