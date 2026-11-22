@@ -225,7 +225,10 @@ check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Pu
       return {plan: j.plan.name, label: r.label, synchronization: r.synchronization, scene: r.scene, split: r.split, mapper: rec.rom?.mapper, spritePatternsAt: rec.spritePatternsAt,
         banks: (rec.synchronization?.backgroundTileSources || []).map(s => s.chrOffset >> 12)};
     }));
-    report.agentLab = {ms, jobs: jobs.map(j => ({plan: j.plan.name, source: j.plan.source, state: j.state, frames: j.frames, synchronized: j.synchronized, unresolved: j.unresolved})), frames};
+    report.agentLab = {ms, jobs: jobs.map(j => ({plan: j.plan.name, source: j.plan.source, state: j.state, frames: j.frames, synchronized: j.synchronized, unresolved: j.unresolved})), frames,
+      verify: full.map(j => j.verify), boots: full.map(j => j.runs.reduce((n, r) => n + (r.boots || 0), 0))};
+    // cold-boot verification ran: besides the boot, every target was reproduced by a cold boot of its own
+    assert.ok(full.every(j => j.verify === 'cold' && j.runs.reduce((n, r) => n + (r.boots || 0), 0) >= 1 + j.results.length), JSON.stringify({verify: report.agentLab.verify, boots: report.agentLab.boots}));
     assert.equal(jobs.length, 2); assert.ok(jobs.every(j => j.state === 'completed'), JSON.stringify(jobs.map(j => j.state)));
     assert.ok(jobs.some(j => /Punch-Out/.test(j.plan.name)), 'the Punch-Out plan was chosen for this cartridge');
     assert.equal(frames.length, 3 + 4);

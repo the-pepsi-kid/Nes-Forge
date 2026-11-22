@@ -112,6 +112,9 @@ check('Agent Lab: the plan as a background job with cold-boot verification: ever
   assert.equal(job.state, 'completed'); assert.equal(job.frames, 3); assert.equal(job.synchronized, 3); assert.equal(job.failures.length, 0);
   const full = JSON.parse(fs.readFileSync(path.join(labRoot, 'jobs', job.id, 'job.json'), 'utf8'));
   assert.ok(full.results.every(r => r.synchronization === 'matched' && r.scene), JSON.stringify(full.results.map(r => [r.label, r.synchronization, r.scene])));
+  // cold-boot verification ran: besides the boot, every target was reproduced by a cold boot of its own
+  report.agentLab.boots = full.runs.reduce((n, r) => n + (r.boots || 0), 0); report.agentLab.verify = full.verify;
+  assert.equal(full.verify, 'cold'); assert.ok(report.agentLab.boots >= 1 + full.results.length, 'boots: ' + report.agentLab.boots);
   assert.ok(!job.unresolved.some(u => /not synchronization-checked/.test(u)), JSON.stringify(job.unresolved));
 });
 check('Forge imports the job\'s results into the library: every record validates (digests, screenshot pixels, scene re-render), none rejected', async () => {

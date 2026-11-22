@@ -98,7 +98,8 @@ a trace can be produced on demand instead of slowing every capture.
 | Super Mario Bros 3 | 4 (MMC3, IRQ split) | ROM | yes | yes | yes |
 | Battletoads | 7 (AxROM) | RAM | yes | PRG yes; CHR is RAM | yes |
 | Punch-Out!! | 9 (MMC2) | ROM | yes | offsets match the file | yes: the trace keeps each pattern fetch's latch-switched bank; an independent MMC2 model agrees on every line (§12) |
-| CNROM (3), mappers 11/66 as intended | — | — | not tested (no cartridge in the set) | — | — |
+| CNROM (3), on a cartridge Forge builds (§13) | 3 | ROM | yes | yes | yes |
+| Mappers 11/66 as intended | — | — | not tested (no cartridge in the set) | — | — |
 
 **Genuinely reusable (any emulated mapper):** checkpoints, capture plans, the evidence record, PRG location by
 content, CHR offsets for CHR ROM, synchronization by rebuild (every emulated mapper, MMC2 included), and trace on demand.
@@ -183,7 +184,7 @@ Acceptance (`QA/agent-lab-background.cjs`, 11/11):
 | MMC1 (Ninja Gaiden, Mega Man 2, Zelda II), MMC3 (SMB3), UxROM (Contra), AxROM (Battletoads) | verified: checkpoint == cold boot, frames rebuild at 0 px |
 | NROM via a damaged header (Super Mario Bros reads as mapper 66) | runs; the worker reports "damaged header suspected" and does not repair it |
 | MMC2 (Punch-Out!!) | verified (§12): frames rebuild at 0 px with their scenes; checkpoint == cold boot; a plan reaches the Mike Tyson bout |
-| CNROM (mapper 3) | **unverified**: no cartridge in the test set |
+| CNROM (mapper 3) | verified on a cartridge Forge builds itself (§13): checkpoint == cold boot, frames rebuild at 0 px, the world's CHR bank; no commercial CNROM cartridge in the test set |
 | Mappers the emulator does not run | the job fails with that reason; nothing is claimed |
 | Reaching places in a game | game knowledge in a plan: Ninja Gaiden's restart plan only; other games get the generic first look |
 | Sprite → pose/actor | not established automatically (listed as unresolved) |
@@ -217,7 +218,7 @@ when Forge has a verified profile for it; for other ROMs Forge says there is non
 
 The compatibility gaps in §9 are unchanged and still tracked:
 - ~~MMC2 synchronization~~ (resolved, §12);
-- CNROM (untested);
+- ~~CNROM (untested)~~ (verified on a Forge-built cartridge, §13);
 - malformed headers (reported, never repaired);
 - incomplete sprite → actor relationships.
 
@@ -368,4 +369,21 @@ rebuilt, checked or captured.
 - Nametables and OAM are taken once the frame's last line is drawn. The game's vblank code, which runs before frame
   evidence is taken, already prepares the next frame.
 - Only the PRG 1 cartridge was available. PRG 0 is untested.
+
+## 13. CNROM (2026-11-22)
+
+No CNROM cartridge is in the test set, but Forge builds CNROM itself. Worlds whose background graphics do not fit one
+256-tile bank get one 8 KB CHR bank per world group (mapper 3; see `QA/t/cnrom-world.cjs`). `QA/cnrom-investigation.cjs`
+investigates such a cartridge, built from repository inputs only: three worlds and synthetic art, so worlds 0 and 2
+use bank 0 and world 1 uses bank 1.
+
+| Check | Result |
+|---|---|
+| A capture plan visits each world (the engine's own screen variable, as a level select would) | from the boot checkpoint, every frame equals its cold-boot capture section by section and rebuilds at 0 different pixels |
+| CHR | every mapped CHR window equals the cartridge's bytes at its reported file offset; world 1's frame is mapped from, and its background tiles come from, bank 1; worlds 0 and 2 from bank 0 |
+| Agent Lab job, cold-boot verification (5 boots: the boot, its cold reproduction, one per world) | 3/3 frames synchronization-checked, each with its scene; no failures |
+| Import into the library (Chromium) | 3 records validated (digests, screenshot pixels, scene re-render), 0 rejected; a second import adds nothing |
+
+**Not covered:** a commercial CNROM game, whose code may switch banks in ways Forge's engine does not, such as bus
+conflicts or mid-frame switches.
 

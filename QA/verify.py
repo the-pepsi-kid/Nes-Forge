@@ -44,6 +44,7 @@ args = parser.parse_args()
 #   library-integrity  ~6 min: copied pose vs cartridge CHR, independent copies, recognition across sessions, Zelda II
 #   native-corpus, library-locations: several minutes with every cartridge
 #   mmc2-sync          Punch-Out!! (MMC2) frames along the route to the bout, an independent latch model, two Agent Lab jobs
+#   cnrom-investigation a CNROM cartridge Forge builds (3 worlds, 2 CHR banks): capture plan, Agent Lab job, import
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420
 TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 1200}
@@ -250,6 +251,9 @@ if args.cartridges:
 if args.browser:
     receipt=output/'browser.json'
     record(run('browser',[sys.executable,QA/'browser_review.py','--output',receipt],receipt))
+    # repository inputs only (a CNROM cartridge Forge builds itself); Chromium for the worker and the import
+    receipt=output/'cnrom-investigation.json'
+    record(run('cnrom-investigation',['node',QA/'cnrom-investigation.cjs',EDITOR,receipt],receipt))
     receipt=output/'library-persistence.json'
     lib_args=['node',QA/'library-persistence.cjs',EDITOR,receipt]+([str(args.extractions.resolve())] if args.extractions else [])
     record(run('library-persistence',lib_args,receipt))
