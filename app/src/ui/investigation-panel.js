@@ -29,9 +29,15 @@ const PDB='nes-forge-agent-lab',PSTORE='pairing';
 function pdb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(PDB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(PSTORE))r.result.createObjectStore(PSTORE,{keyPath:'id'});};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
 async function pairingOp(mode,value){const db=await pdb();try{return await new Promise((resolve,reject)=>{const tx=db.transaction(PSTORE,mode==='get'?'readonly':'readwrite'),st=tx.objectStore(PSTORE);
   const q=mode==='get'?st.get('current'):mode==='put'?st.put({id:'current',...value}):st.delete('current');let out=null;q.onsuccess=()=>{out=q.result??null;};tx.oncomplete=()=>resolve(out);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}finally{db.close();}}
+const NOTICE_LIMIT=8,readNotices=raw=>{try{const v=JSON.parse(raw||'[]');return Array.isArray(v)?v.filter(n=>n&&typeof n.text==='string'&&Number.isFinite(n.at)).slice(0,NOTICE_LIMIT):[];}catch(_){return [];}};
 const settings={autoInvestigate:store.get('autoInvestigate')==='1',autoImport:store.get('autoImport')==='1',autoImportSince:Number(store.get('autoImportSince')||0)};
-const state={url:store.get('url')||'http://127.0.0.1:8787',pairing:null,connected:false,status:null,error:'',imported:[],timer:null,notices:[],pendingAuto:new Map(),requested:new Set(),autoTried:new Set(),catalogs:new Map(),catalogNoticed:new Map(),supplying:new Set(),recognized:new Map(),busy:false,lastPoll:0,ready:null};
-const notice=(text,extra={})=>{state.notices.unshift({at:Date.now(),text,...extra});state.notices=state.notices.slice(0,6);render();};
+const state={url:store.get('url')||'http://127.0.0.1:8787',pairing:null,connected:false,status:null,error:'',imported:[],timer:null,notices:readNotices(store.get('notices')),pendingAuto:new Map(),requested:new Set(),autoTried:new Set(),catalogs:new Map(),catalogNoticed:new Map(),supplying:new Set(),recognized:new Map(),busy:false,lastPoll:0,ready:null};
+// Notices are kept for this browser profile (not only this tab), so "Open in Library" survives closing Forge; other
+// open tabs see them at once. A repeat of the latest notice updates its time instead of adding a line.
+const notice=(text,extra={})=>{if(state.notices[0]?.text===text){state.notices[0]={...state.notices[0],at:Date.now(),...extra};}else state.notices.unshift({at:Date.now(),text,...extra});
+  state.notices=state.notices.slice(0,NOTICE_LIMIT);store.set('notices',JSON.stringify(state.notices.map(({at,text,open})=>({at,text,open:open||null}))));render();};
+const LOADED_AT=Date.now();
+addEventListener('storage',e=>{if(e.key==='forge.agentLab.notices'){state.notices=readNotices(e.newValue);render();}});
 const root=el('details','agentLabPanel'),summary=el('summary','agentLabSummary','Background investigation · not paired');root.appendChild(summary);
 const body=el('div','agentLabBody');root.appendChild(body);anchor.before(root);
 const css=el('style');css.textContent='#agentLabPanel{flex:1 0 100%;box-sizing:border-box;font:12px/1.45 system-ui;padding:4px 10px;border-top:1px solid var(--bdr)}#agentLabPanel summary{cursor:pointer;color:var(--acc,#7fd4ff)}'+
@@ -249,7 +255,8 @@ function render(){
 function renderNotices(){
   if(!state.notices.length)return;
   const ul=el('ul','agentLabNotices');
-  for(const n of state.notices){const li=el('li',null,new Date(n.at).toLocaleTimeString()+' · '+n.text);
+  const today=new Date().toDateString();
+  for(const n of state.notices){const d=new Date(n.at),li=el('li',null,(d.toDateString()===today?d.toLocaleTimeString():d.toLocaleString())+(n.at<LOADED_AT?' (earlier session)':'')+' · '+n.text);
     if(n.open){const b=el('button',null,'Open in Library');b.type='button';b.dataset.action='open-library';b.onclick=()=>services.ResourceRelationshipPreview?.openLibraryEntry(n.open);li.append(' ',b);}
     ul.appendChild(li);}
   body.appendChild(ul);

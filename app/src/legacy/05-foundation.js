@@ -23,7 +23,7 @@ const SCROLL_DIRS=['none','horizontal','vertical','both'];
 // ── 1.5 UI/status ──────────────────────────────────────────────
 const f15Style=document.createElement('style');
 f15Style.textContent=`
-#forge15State{font:8px/1.25 'Courier New',monospace;padding:2px 6px;border:1px solid var(--bdr);background:#11131a;white-space:nowrap;max-width:270px;overflow:hidden;text-overflow:ellipsis}
+#forge15State{font:10px/1.3 'Courier New',monospace;padding:3px 8px;border:1px solid var(--bdr);border-radius:3px;background:#11131a;white-space:nowrap;max-width:none;overflow:visible}
 #forge15State.dirty{color:var(--ylw);border-color:#6d5b2c}#forge15State.clean{color:var(--grn);border-color:#315b31}
 #buildSceneSet{border:1px solid var(--bdr);max-height:190px;overflow:auto;margin:4px 0;background:#0b0b10}
 .f15-build-row{display:grid;grid-template-columns:20px 42px 1fr;align-items:center;gap:4px;padding:3px 4px;border-bottom:1px solid #181820;font-size:8px}

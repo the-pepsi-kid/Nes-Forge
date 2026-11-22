@@ -479,14 +479,14 @@ function assembleSections(list,textOf){
   return data;
 }
 function recoveryLabel(){
-  if(!rec.enabled)return {level:'warn',text:'recovery unavailable',detail:'Crash recovery is off: '+(rec.unavailable||'storage unavailable')+'. Use Save Project As to keep your work.'};
-  if(rec.lastError)return {level:'warn',text:'recovery failed · use Save As',detail:'The last recovery write failed: '+rec.lastError+'. Forge retries automatically.'};
+  if(!rec.enabled)return {level:'failed',text:'recovery unavailable',detail:'Crash recovery is off: '+(rec.unavailable||'storage unavailable')+'. Use Save Project As to keep your work.'};
+  if(rec.lastError)return {level:'failed',text:'recovery failed · use Save As',detail:'The last recovery write failed: '+rec.lastError+'. Forge retries automatically.'};
   if(!rec.meaningful)return {level:'ok',text:'recovery ready',detail:'Nothing to recover yet: the project has not been opened or edited in this tab.'};
   if(!rec.lastHead)return {level:'busy',text:'recovery preparing…',detail:'Writing the first recovery copy of this project. Until it is written, closing the tab can lose this session\'s changes.'};
   // any change signal (an edit or a project replacement) counts until a write covers it
   const behind=Math.max(rec.changeSeq>rec.committedChangeSeq?1:0,rec.actions-rec.committedActions);
   if(behind<=0)return {level:'ok',text:'recovery ✓ '+clockText(rec.committedAt),detail:'Every change is in the recovery copy (last written '+clockText(rec.committedAt)+').'};
-  if(rec.firstUncommittedAt&&Date.now()-rec.firstUncommittedAt>2000)return {level:'warn',text:'recovery behind · '+behind+' change'+(behind===1?'':'s')+' since '+clockText(rec.firstUncommittedAt),detail:'Changes made since '+clockText(rec.firstUncommittedAt)+' are not in the recovery copy yet.'};
+  if(rec.firstUncommittedAt&&Date.now()-rec.firstUncommittedAt>2000)return {level:'behind',text:'recovery behind · '+behind+' change'+(behind===1?'':'s')+' since '+clockText(rec.firstUncommittedAt),detail:'Changes made since '+clockText(rec.firstUncommittedAt)+' are not in the recovery copy yet.'};
   return {level:'busy',text:'recovery saving…',detail:behind>0?behind+' change'+(behind===1?' is':'s are')+' being written to the recovery copy.':'Updating the recovery copy.'};
 }
 function publishStatus(){const l=recoveryLabel();Forge15.recovery=l;Forge15.lastRecovery=rec.committedAt||Forge15.lastRecovery;status();}
@@ -668,7 +668,8 @@ async function restoreRecovery(){
     if(state.epoch!==restoredEpoch){recoveryPhase('ready');return true;}
     broadcastState('restore');Forge15.dirty=true;
     banner('notice',message.text);recoveryPhase(message.complete===true?'ready':'notice');
-    status(message.complete===true?'Recovered workspace · save when ready':'Partly recovered workspace · see notice');showToast(message.complete===true?'Recovery restored':'Recovery incomplete — see the notice');
+    status(message.complete===false?'Partly recovered workspace · see notice':'Recovered workspace · save when ready');
+    showToast(message.complete===true?'Recovery complete: every change came back':message.complete===false?'Recovery incomplete: '+message.lost+' change'+(message.lost===1?' was':'s were')+' lost — see the notice':'Recovery restored: the last moments before Forge ended cannot be confirmed — see the notice');
     return true;
   }catch(error){if(token===state.recoveryToken){recoveryPhase('offered');banner('offer',offerText(offer));}reportError(error);return false;}
 }

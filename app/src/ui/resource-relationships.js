@@ -418,6 +418,8 @@ async function libraryGraph(){
  }
  // each recovered catalog's registration state: an incomplete one explains missing CHR entries
  try{g.catalogs=new Map(((await window.Forge.services.LibraryCatalog?.catalogState?.())||[]).map(c=>[c.sha,c]));}catch(_){g.catalogs=new Map();}
+ // every ROM the library knows, for the status list at the top of the library view
+ try{g.roms=(await window.Forge.services.LibraryCatalog?.romStatus?.())||[];}catch(_){g.roms=[];}
  return g;
 }
 function setMode(next){
@@ -427,7 +429,7 @@ function setMode(next){
 function kindLabel(type){if(type.startsWith('lib · '))return 'Library · '+type.slice(6);return {library:'Library entry',chr:'CHR',metasprite:'Metasprite',actor:'Actor Definition','actor-record':'Native actor record',instance:'Actor Instance',sprite:'Sprite placements',entity:'Scene Entity'}[type]||type[0].toUpperCase()+type.slice(1);}
 let filterSignature='';
 function render(){
- if(!graph)return;let sel=nodeByKey(active);$('project-name').textContent=mode==='demo'?'Guided example':mode==='library'?'Resource library':(S.projectName||'Untitled');$('notice').innerHTML=mode==='library'?'<strong>LIBRARY</strong> · Every resource registered from extraction packs, identified or not. Locations are as the pack states them; your notes are kept apart from that evidence. Nothing here changes your project unless you open it explicitly.':mode==='demo'?'<strong>EXAMPLE DATA</strong> · Try clicking linked resources. This is a demonstration graph, not assets from the loaded project.':'<strong>LIVE PROJECT</strong> · Connections derive from actual resource IDs and declared references. Browsing is read-only. Explicit native-writer actions use the existing Undo transaction.';renderCatalogStatus();
+ if(!graph)return;let sel=nodeByKey(active);$('project-name').textContent=mode==='demo'?'Guided example':mode==='library'?'Resource library':(S.projectName||'Untitled');$('notice').innerHTML=mode==='library'?'<strong>LIBRARY</strong> · Every resource registered from extraction packs, identified or not. Locations are as the pack states them; your notes are kept apart from that evidence. Nothing here changes your project unless you open it explicitly.':mode==='demo'?'<strong>EXAMPLE DATA</strong> · Try clicking linked resources. This is a demonstration graph, not assets from the loaded project.':'<strong>LIVE PROJECT</strong> · Connections derive from actual resource IDs and declared references. Browsing is read-only. Explicit native-writer actions use the existing Undo transaction.';renderCatalogStatus();renderRomStatus();
  for(const [next,button] of [['live',$('live')],['demo',$('demo')],['library',$('lib')]])button.setAttribute('aria-pressed',String(mode===next));
  {const head=$('count').parentNode.firstChild;if(head&&head.nodeType===3)head.textContent=mode==='library'?'Library entries ':mode==='demo'?'Example resources ':'Project resources ';}
  const counts=mode==='live'&&graph.library?.counts;
@@ -581,9 +583,31 @@ function renderCatalogStatus(){
    b.onclick=async()=>{b.disabled=true;await window.Forge.services.LibraryCatalog.completeCatalog(st.sha,{manual:true,reason:'retry'});reloadLibrary();};row.append(' ',b);}
   return row;}));
 }
+// Every ROM in the library at a glance: its recovered catalog (and what Forge is doing about it), verified frames,
+// investigations and how its sprites are drawn. Shown in the library view only.
+function renderRomStatus(){
+ const host=$('notice');let box=document.getElementById('frx-rom-status');
+ const roms=mode==='library'?graph?.roms||[]:[];
+ if(!roms.length){box?.remove();return;}
+ if(!box){box=elt('details');box.id='frx-rom-status';box.open=true;box.style.cssText='margin-top:6px;font-size:11px;color:#cfe3ee';}
+ if(box.parentNode!==host)host.append(box);
+ const CAT={complete:'catalog complete',incomplete:'catalog incomplete',failed:'catalog: last attempt failed','needs-retry':'catalog stopped: use Retry','needs-source':'catalog incomplete: needs its cartridge',
+  missing:'catalog not registered yet',outdated:'catalog from an earlier Forge (updated automatically)',completing:'catalog completing…',updating:'catalog updating…',waiting:'catalog: retrying soon',none:'no recovered catalog',unsupported:'no recovered catalog'};
+ const rows=roms.map(r=>{const row=elt('div');row.dataset.rom=r.sha;row.style.cssText='margin:2px 0';
+  const bad=['failed','needs-retry','needs-source','incomplete','missing'].includes(r.catalog.state);
+  const d=r.drawing,parts=[r.entries+' entries',(CAT[r.catalog.state]||r.catalog.state)+(r.catalog.entries?' ('+r.catalog.entries+')':'')+(bad&&r.catalog.attempts?' · '+r.catalog.attempts+' of 3 attempts':''),
+   r.frames+' verified frame'+(r.frames===1?'':'s'),r.investigations+' investigation'+(r.investigations===1?'':'s')];
+  if(d)parts.push('sprites: '+[d.decoded&&d.decoded+' in their room',d.runtime&&d.runtime+' seen at runtime',d['same-everywhere']&&d['same-everywhere']+' same in every room',d.default&&d.default+' room not established'].filter(Boolean).join(', '));
+  for(const p of r.otherPacks||[])parts.push(p.name);
+  const name=elt('strong',null,r.name);name.style.color=bad?'#ffb35a':'#e8f4fa';row.append(name,' · '+parts.join(' · ')+(bad&&r.catalog.lastError?' · last error: '+r.catalog.lastError:''));
+  if(r.open){const b=elt('button','frx-context-shortcut','Open');b.type='button';b.dataset.action='open-rom';b.onclick=()=>{pendingSelect=key('lib',r.open);setMode('library');};row.append(' ',b);}
+  return row;});
+ box.replaceChildren(elt('summary',null,'ROMs in your library · '+roms.length),...rows);
+}
 // a completed catalog adds entries: reload the library view, keeping the selection
 function reloadLibrary(){if(mode!=='library')return;pendingSelect=active;setMode('library');}
-addEventListener('forge:catalog-recovery',e=>{if(mode!=='library')return;renderCatalogStatus();if(e.detail?.state==='complete'&&!e.detail.already&&root.classList.contains('frx-visible'))reloadLibrary();});
+addEventListener('forge:catalog-recovery',e=>{if(mode!=='library')return;renderCatalogStatus();
+ void window.Forge.services.LibraryCatalog?.romStatus?.().then(r=>{if(graph&&mode==='library'){graph.roms=r;renderRomStatus();}}).catch(()=>{});if(e.detail?.state==='complete'&&!e.detail.already&&root.classList.contains('frx-visible'))reloadLibrary();});
 // why a ROM's cartridge tile data is not (all) linked: its recovered catalog is still incomplete, or there is none
 function catalogGap(sha){const c=graph?.catalogs?.get(sha);
  if(c&&!['complete','outdated'].includes(c.state))return 'this ROM\'s recovered catalog is incomplete ('+(c.state==='failed'?'its last completion attempt failed':c.state==='missing'?'it was never registered':'its registration was interrupted')+'; Forge completes it when the cartridge is available)';

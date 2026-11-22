@@ -646,6 +646,20 @@ async function recognize(sha){
     // recovered: verified results of an investigation are in the library, so investigating again would redo that work
     recovered:investigations.length>0&&frames>0,open:firstFrame||onShelf.items[0]?.id||null};
 }
+// Every ROM the library knows (any pack with its SHA-256): its catalog and registration state, frames, investigations
+// and how its poses are drawn. One list for the status view and the command line.
+async function romStatus(){
+  const r=await C.run('library.packs'),packs=r.ok?r.result:[],shas=[...new Set(packs.map(p=>p.sourceSha256).filter(Boolean))],cats=await catalogState(),out=[];
+  for(const sha of shas){
+    const k=await recognize(sha),c=cats.find(x=>x.sha===sha),pack=c?.packKey?await L.getPack(c.packKey):null,live=recovery.status.get(sha);
+    const named=packs.find(p=>p.sourceSha256===sha&&p.origin==='runtime-capture')?.name?.replace(/ · runtime captures$/,'')||c?.name||packs.find(p=>p.sourceSha256===sha)?.name||sha.slice(0,12);
+    const state=live&&!['complete','unsupported'].includes(live.state)?live.state:k.catalog.state;
+    out.push({sha,name:named,entries:k.entries,catalog:{state,entries:k.catalog.entries??null,attempts:c?.attempts||0,lastError:live?.lastError||c?.lastError||null,text:STATE_TEXT[state]||null},
+      frames:k.frames,investigations:k.investigations.length,lastInvestigation:k.investigations[k.investigations.length-1]?.jobId||null,drawing:pack?.stats?.poseContexts||null,
+      otherPacks:k.otherPacks,open:k.open});
+  }
+  return out.sort((a,b)=>a.name.localeCompare(b.name));
+}
 function recognitionText(name,r,{job=null}={}){
   const parts=[];
   if(r.catalog.state==='complete')parts.push('recovered catalog complete ('+r.catalog.entries+' entries)');
@@ -668,8 +682,9 @@ setTimeout(()=>{void resumeCatalogs({reason:'startup'}).catch(()=>{});},1500);
 
 services.SourceROMs=SourceROMs;
 services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation,
-  catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,recognize,recognitionText,AUTO_ATTEMPTS});
+  catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,recognize,recognitionText,romStatus,AUTO_ATTEMPTS});
 if(C?.register){
+  C.register({name:'library.roms',group:'library',title:'Every ROM in the library and its status',summary:'Catalog state (attempts, last error), entries, verified frames, investigations and how its poses are drawn, per ROM SHA-256.',run:()=>romStatus()});
   C.register({name:'library.recognize',group:'library',title:'What the library already holds for a ROM',summary:'By SHA-256: recovered catalog, verified frames, investigations and other packs; read from the library only.',
     args:{sha256:{type:'string',required:true}},run:a=>recognize(String(a.sha256))});
   C.register({name:'library.catalogs',group:'library',title:'Recovered catalogs and their registration state',summary:'complete, incomplete (interrupted), failed or missing, with attempts and the last error.',run:()=>catalogState()});

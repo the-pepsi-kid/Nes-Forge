@@ -247,7 +247,7 @@ input[type=file]{display:none}
 .autosave-banner .ab-restore{background:#1a3a2a;border-color:#2a6a4a;color:var(--grn)}
 .autosave-banner .ab-dismiss{background:#3a1a1a;border-color:#6a3a3a;color:var(--red)}
 .autosave-banner[data-mode="notice"]{background:#3a2e14;border-bottom-color:#8a6a2a;color:#ffd98a}
-#forge15State[data-recovery="warn"]{color:#ffb35a;border-color:#8a5a2a}#forge15State[data-recovery="busy"]{color:#9fd3ff}
+#forge15State[data-recovery="behind"]{color:#ffb35a;border-color:#b07a2a;background:#2a2010}#forge15State[data-recovery="failed"]{color:#ffb0a8;border-color:#c0443a;background:#3a1412;font-weight:bold}#forge15State[data-recovery="busy"]{color:#9fd3ff;border-color:#2f5a78}
 /* ═══ v8: ROM CONFIG ═══ */
 .rom-cfg{margin:4px 0}
 .rom-cfg label{display:block;font-size:8px;color:var(--dim);margin:3px 0 1px}
@@ -5568,7 +5568,7 @@ const SCROLL_DIRS=['none','horizontal','vertical','both'];
 // ── 1.5 UI/status ──────────────────────────────────────────────
 const f15Style=document.createElement('style');
 f15Style.textContent=`
-#forge15State{font:8px/1.25 'Courier New',monospace;padding:2px 6px;border:1px solid var(--bdr);background:#11131a;white-space:nowrap;max-width:270px;overflow:hidden;text-overflow:ellipsis}
+#forge15State{font:10px/1.3 'Courier New',monospace;padding:3px 8px;border:1px solid var(--bdr);border-radius:3px;background:#11131a;white-space:nowrap;max-width:none;overflow:visible}
 #forge15State.dirty{color:var(--ylw);border-color:#6d5b2c}#forge15State.clean{color:var(--grn);border-color:#315b31}
 #buildSceneSet{border:1px solid var(--bdr);max-height:190px;overflow:auto;margin:4px 0;background:#0b0b10}
 .f15-build-row{display:grid;grid-template-columns:20px 42px 1fr;align-items:center;gap:4px;padding:3px 4px;border-bottom:1px solid #181820;font-size:8px}
@@ -9914,14 +9914,14 @@ function assembleSections(list,textOf){
   return data;
 }
 function recoveryLabel(){
-  if(!rec.enabled)return {level:'warn',text:'recovery unavailable',detail:'Crash recovery is off: '+(rec.unavailable||'storage unavailable')+'. Use Save Project As to keep your work.'};
-  if(rec.lastError)return {level:'warn',text:'recovery failed · use Save As',detail:'The last recovery write failed: '+rec.lastError+'. Forge retries automatically.'};
+  if(!rec.enabled)return {level:'failed',text:'recovery unavailable',detail:'Crash recovery is off: '+(rec.unavailable||'storage unavailable')+'. Use Save Project As to keep your work.'};
+  if(rec.lastError)return {level:'failed',text:'recovery failed · use Save As',detail:'The last recovery write failed: '+rec.lastError+'. Forge retries automatically.'};
   if(!rec.meaningful)return {level:'ok',text:'recovery ready',detail:'Nothing to recover yet: the project has not been opened or edited in this tab.'};
   if(!rec.lastHead)return {level:'busy',text:'recovery preparing…',detail:'Writing the first recovery copy of this project. Until it is written, closing the tab can lose this session\'s changes.'};
   // any change signal (an edit or a project replacement) counts until a write covers it
   const behind=Math.max(rec.changeSeq>rec.committedChangeSeq?1:0,rec.actions-rec.committedActions);
   if(behind<=0)return {level:'ok',text:'recovery ✓ '+clockText(rec.committedAt),detail:'Every change is in the recovery copy (last written '+clockText(rec.committedAt)+').'};
-  if(rec.firstUncommittedAt&&Date.now()-rec.firstUncommittedAt>2000)return {level:'warn',text:'recovery behind · '+behind+' change'+(behind===1?'':'s')+' since '+clockText(rec.firstUncommittedAt),detail:'Changes made since '+clockText(rec.firstUncommittedAt)+' are not in the recovery copy yet.'};
+  if(rec.firstUncommittedAt&&Date.now()-rec.firstUncommittedAt>2000)return {level:'behind',text:'recovery behind · '+behind+' change'+(behind===1?'':'s')+' since '+clockText(rec.firstUncommittedAt),detail:'Changes made since '+clockText(rec.firstUncommittedAt)+' are not in the recovery copy yet.'};
   return {level:'busy',text:'recovery saving…',detail:behind>0?behind+' change'+(behind===1?' is':'s are')+' being written to the recovery copy.':'Updating the recovery copy.'};
 }
 function publishStatus(){const l=recoveryLabel();Forge15.recovery=l;Forge15.lastRecovery=rec.committedAt||Forge15.lastRecovery;status();}
@@ -10103,7 +10103,8 @@ async function restoreRecovery(){
     if(state.epoch!==restoredEpoch){recoveryPhase('ready');return true;}
     broadcastState('restore');Forge15.dirty=true;
     banner('notice',message.text);recoveryPhase(message.complete===true?'ready':'notice');
-    status(message.complete===true?'Recovered workspace · save when ready':'Partly recovered workspace · see notice');showToast(message.complete===true?'Recovery restored':'Recovery incomplete — see the notice');
+    status(message.complete===false?'Partly recovered workspace · see notice':'Recovered workspace · save when ready');
+    showToast(message.complete===true?'Recovery complete: every change came back':message.complete===false?'Recovery incomplete: '+message.lost+' change'+(message.lost===1?' was':'s were')+' lost — see the notice':'Recovery restored: the last moments before Forge ended cannot be confirmed — see the notice');
     return true;
   }catch(error){if(token===state.recoveryToken){recoveryPhase('offered');banner('offer',offerText(offer));}reportError(error);return false;}
 }
@@ -31678,6 +31679,8 @@ async function libraryGraph(){
  }
  // each recovered catalog's registration state: an incomplete one explains missing CHR entries
  try{g.catalogs=new Map(((await window.Forge.services.LibraryCatalog?.catalogState?.())||[]).map(c=>[c.sha,c]));}catch(_){g.catalogs=new Map();}
+ // every ROM the library knows, for the status list at the top of the library view
+ try{g.roms=(await window.Forge.services.LibraryCatalog?.romStatus?.())||[];}catch(_){g.roms=[];}
  return g;
 }
 function setMode(next){
@@ -31687,7 +31690,7 @@ function setMode(next){
 function kindLabel(type){if(type.startsWith('lib · '))return 'Library · '+type.slice(6);return {library:'Library entry',chr:'CHR',metasprite:'Metasprite',actor:'Actor Definition','actor-record':'Native actor record',instance:'Actor Instance',sprite:'Sprite placements',entity:'Scene Entity'}[type]||type[0].toUpperCase()+type.slice(1);}
 let filterSignature='';
 function render(){
- if(!graph)return;let sel=nodeByKey(active);$('project-name').textContent=mode==='demo'?'Guided example':mode==='library'?'Resource library':(S.projectName||'Untitled');$('notice').innerHTML=mode==='library'?'<strong>LIBRARY</strong> · Every resource registered from extraction packs, identified or not. Locations are as the pack states them; your notes are kept apart from that evidence. Nothing here changes your project unless you open it explicitly.':mode==='demo'?'<strong>EXAMPLE DATA</strong> · Try clicking linked resources. This is a demonstration graph, not assets from the loaded project.':'<strong>LIVE PROJECT</strong> · Connections derive from actual resource IDs and declared references. Browsing is read-only. Explicit native-writer actions use the existing Undo transaction.';renderCatalogStatus();
+ if(!graph)return;let sel=nodeByKey(active);$('project-name').textContent=mode==='demo'?'Guided example':mode==='library'?'Resource library':(S.projectName||'Untitled');$('notice').innerHTML=mode==='library'?'<strong>LIBRARY</strong> · Every resource registered from extraction packs, identified or not. Locations are as the pack states them; your notes are kept apart from that evidence. Nothing here changes your project unless you open it explicitly.':mode==='demo'?'<strong>EXAMPLE DATA</strong> · Try clicking linked resources. This is a demonstration graph, not assets from the loaded project.':'<strong>LIVE PROJECT</strong> · Connections derive from actual resource IDs and declared references. Browsing is read-only. Explicit native-writer actions use the existing Undo transaction.';renderCatalogStatus();renderRomStatus();
  for(const [next,button] of [['live',$('live')],['demo',$('demo')],['library',$('lib')]])button.setAttribute('aria-pressed',String(mode===next));
  {const head=$('count').parentNode.firstChild;if(head&&head.nodeType===3)head.textContent=mode==='library'?'Library entries ':mode==='demo'?'Example resources ':'Project resources ';}
  const counts=mode==='live'&&graph.library?.counts;
@@ -31841,9 +31844,31 @@ function renderCatalogStatus(){
    b.onclick=async()=>{b.disabled=true;await window.Forge.services.LibraryCatalog.completeCatalog(st.sha,{manual:true,reason:'retry'});reloadLibrary();};row.append(' ',b);}
   return row;}));
 }
+// Every ROM in the library at a glance: its recovered catalog (and what Forge is doing about it), verified frames,
+// investigations and how its sprites are drawn. Shown in the library view only.
+function renderRomStatus(){
+ const host=$('notice');let box=document.getElementById('frx-rom-status');
+ const roms=mode==='library'?graph?.roms||[]:[];
+ if(!roms.length){box?.remove();return;}
+ if(!box){box=elt('details');box.id='frx-rom-status';box.open=true;box.style.cssText='margin-top:6px;font-size:11px;color:#cfe3ee';}
+ if(box.parentNode!==host)host.append(box);
+ const CAT={complete:'catalog complete',incomplete:'catalog incomplete',failed:'catalog: last attempt failed','needs-retry':'catalog stopped: use Retry','needs-source':'catalog incomplete: needs its cartridge',
+  missing:'catalog not registered yet',outdated:'catalog from an earlier Forge (updated automatically)',completing:'catalog completing…',updating:'catalog updating…',waiting:'catalog: retrying soon',none:'no recovered catalog',unsupported:'no recovered catalog'};
+ const rows=roms.map(r=>{const row=elt('div');row.dataset.rom=r.sha;row.style.cssText='margin:2px 0';
+  const bad=['failed','needs-retry','needs-source','incomplete','missing'].includes(r.catalog.state);
+  const d=r.drawing,parts=[r.entries+' entries',(CAT[r.catalog.state]||r.catalog.state)+(r.catalog.entries?' ('+r.catalog.entries+')':'')+(bad&&r.catalog.attempts?' · '+r.catalog.attempts+' of 3 attempts':''),
+   r.frames+' verified frame'+(r.frames===1?'':'s'),r.investigations+' investigation'+(r.investigations===1?'':'s')];
+  if(d)parts.push('sprites: '+[d.decoded&&d.decoded+' in their room',d.runtime&&d.runtime+' seen at runtime',d['same-everywhere']&&d['same-everywhere']+' same in every room',d.default&&d.default+' room not established'].filter(Boolean).join(', '));
+  for(const p of r.otherPacks||[])parts.push(p.name);
+  const name=elt('strong',null,r.name);name.style.color=bad?'#ffb35a':'#e8f4fa';row.append(name,' · '+parts.join(' · ')+(bad&&r.catalog.lastError?' · last error: '+r.catalog.lastError:''));
+  if(r.open){const b=elt('button','frx-context-shortcut','Open');b.type='button';b.dataset.action='open-rom';b.onclick=()=>{pendingSelect=key('lib',r.open);setMode('library');};row.append(' ',b);}
+  return row;});
+ box.replaceChildren(elt('summary',null,'ROMs in your library · '+roms.length),...rows);
+}
 // a completed catalog adds entries: reload the library view, keeping the selection
 function reloadLibrary(){if(mode!=='library')return;pendingSelect=active;setMode('library');}
-addEventListener('forge:catalog-recovery',e=>{if(mode!=='library')return;renderCatalogStatus();if(e.detail?.state==='complete'&&!e.detail.already&&root.classList.contains('frx-visible'))reloadLibrary();});
+addEventListener('forge:catalog-recovery',e=>{if(mode!=='library')return;renderCatalogStatus();
+ void window.Forge.services.LibraryCatalog?.romStatus?.().then(r=>{if(graph&&mode==='library'){graph.roms=r;renderRomStatus();}}).catch(()=>{});if(e.detail?.state==='complete'&&!e.detail.already&&root.classList.contains('frx-visible'))reloadLibrary();});
 // why a ROM's cartridge tile data is not (all) linked: its recovered catalog is still incomplete, or there is none
 function catalogGap(sha){const c=graph?.catalogs?.get(sha);
  if(c&&!['complete','outdated'].includes(c.state))return 'this ROM\'s recovered catalog is incomplete ('+(c.state==='failed'?'its last completion attempt failed':c.state==='missing'?'it was never registered':'its registration was interrupted')+'; Forge completes it when the cartridge is available)';
@@ -35353,6 +35378,20 @@ async function recognize(sha){
     // recovered: verified results of an investigation are in the library, so investigating again would redo that work
     recovered:investigations.length>0&&frames>0,open:firstFrame||onShelf.items[0]?.id||null};
 }
+// Every ROM the library knows (any pack with its SHA-256): its catalog and registration state, frames, investigations
+// and how its poses are drawn. One list for the status view and the command line.
+async function romStatus(){
+  const r=await C.run('library.packs'),packs=r.ok?r.result:[],shas=[...new Set(packs.map(p=>p.sourceSha256).filter(Boolean))],cats=await catalogState(),out=[];
+  for(const sha of shas){
+    const k=await recognize(sha),c=cats.find(x=>x.sha===sha),pack=c?.packKey?await L.getPack(c.packKey):null,live=recovery.status.get(sha);
+    const named=packs.find(p=>p.sourceSha256===sha&&p.origin==='runtime-capture')?.name?.replace(/ · runtime captures$/,'')||c?.name||packs.find(p=>p.sourceSha256===sha)?.name||sha.slice(0,12);
+    const state=live&&!['complete','unsupported'].includes(live.state)?live.state:k.catalog.state;
+    out.push({sha,name:named,entries:k.entries,catalog:{state,entries:k.catalog.entries??null,attempts:c?.attempts||0,lastError:live?.lastError||c?.lastError||null,text:STATE_TEXT[state]||null},
+      frames:k.frames,investigations:k.investigations.length,lastInvestigation:k.investigations[k.investigations.length-1]?.jobId||null,drawing:pack?.stats?.poseContexts||null,
+      otherPacks:k.otherPacks,open:k.open});
+  }
+  return out.sort((a,b)=>a.name.localeCompare(b.name));
+}
 function recognitionText(name,r,{job=null}={}){
   const parts=[];
   if(r.catalog.state==='complete')parts.push('recovered catalog complete ('+r.catalog.entries+' entries)');
@@ -35375,8 +35414,9 @@ setTimeout(()=>{void resumeCatalogs({reason:'startup'}).catch(()=>{});},1500);
 
 services.SourceROMs=SourceROMs;
 services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation,
-  catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,recognize,recognitionText,AUTO_ATTEMPTS});
+  catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,recognize,recognitionText,romStatus,AUTO_ATTEMPTS});
 if(C?.register){
+  C.register({name:'library.roms',group:'library',title:'Every ROM in the library and its status',summary:'Catalog state (attempts, last error), entries, verified frames, investigations and how its poses are drawn, per ROM SHA-256.',run:()=>romStatus()});
   C.register({name:'library.recognize',group:'library',title:'What the library already holds for a ROM',summary:'By SHA-256: recovered catalog, verified frames, investigations and other packs; read from the library only.',
     args:{sha256:{type:'string',required:true}},run:a=>recognize(String(a.sha256))});
   C.register({name:'library.catalogs',group:'library',title:'Recovered catalogs and their registration state',summary:'complete, incomplete (interrupted), failed or missing, with attempts and the last error.',run:()=>catalogState()});
@@ -36044,9 +36084,15 @@ const PDB='nes-forge-agent-lab',PSTORE='pairing';
 function pdb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(PDB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(PSTORE))r.result.createObjectStore(PSTORE,{keyPath:'id'});};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
 async function pairingOp(mode,value){const db=await pdb();try{return await new Promise((resolve,reject)=>{const tx=db.transaction(PSTORE,mode==='get'?'readonly':'readwrite'),st=tx.objectStore(PSTORE);
   const q=mode==='get'?st.get('current'):mode==='put'?st.put({id:'current',...value}):st.delete('current');let out=null;q.onsuccess=()=>{out=q.result??null;};tx.oncomplete=()=>resolve(out);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}finally{db.close();}}
+const NOTICE_LIMIT=8,readNotices=raw=>{try{const v=JSON.parse(raw||'[]');return Array.isArray(v)?v.filter(n=>n&&typeof n.text==='string'&&Number.isFinite(n.at)).slice(0,NOTICE_LIMIT):[];}catch(_){return [];}};
 const settings={autoInvestigate:store.get('autoInvestigate')==='1',autoImport:store.get('autoImport')==='1',autoImportSince:Number(store.get('autoImportSince')||0)};
-const state={url:store.get('url')||'http://127.0.0.1:8787',pairing:null,connected:false,status:null,error:'',imported:[],timer:null,notices:[],pendingAuto:new Map(),requested:new Set(),autoTried:new Set(),catalogs:new Map(),catalogNoticed:new Map(),supplying:new Set(),recognized:new Map(),busy:false,lastPoll:0,ready:null};
-const notice=(text,extra={})=>{state.notices.unshift({at:Date.now(),text,...extra});state.notices=state.notices.slice(0,6);render();};
+const state={url:store.get('url')||'http://127.0.0.1:8787',pairing:null,connected:false,status:null,error:'',imported:[],timer:null,notices:readNotices(store.get('notices')),pendingAuto:new Map(),requested:new Set(),autoTried:new Set(),catalogs:new Map(),catalogNoticed:new Map(),supplying:new Set(),recognized:new Map(),busy:false,lastPoll:0,ready:null};
+// Notices are kept for this browser profile (not only this tab), so "Open in Library" survives closing Forge; other
+// open tabs see them at once. A repeat of the latest notice updates its time instead of adding a line.
+const notice=(text,extra={})=>{if(state.notices[0]?.text===text){state.notices[0]={...state.notices[0],at:Date.now(),...extra};}else state.notices.unshift({at:Date.now(),text,...extra});
+  state.notices=state.notices.slice(0,NOTICE_LIMIT);store.set('notices',JSON.stringify(state.notices.map(({at,text,open})=>({at,text,open:open||null}))));render();};
+const LOADED_AT=Date.now();
+addEventListener('storage',e=>{if(e.key==='forge.agentLab.notices'){state.notices=readNotices(e.newValue);render();}});
 const root=el('details','agentLabPanel'),summary=el('summary','agentLabSummary','Background investigation · not paired');root.appendChild(summary);
 const body=el('div','agentLabBody');root.appendChild(body);anchor.before(root);
 const css=el('style');css.textContent='#agentLabPanel{flex:1 0 100%;box-sizing:border-box;font:12px/1.45 system-ui;padding:4px 10px;border-top:1px solid var(--bdr)}#agentLabPanel summary{cursor:pointer;color:var(--acc,#7fd4ff)}'+
@@ -36264,7 +36310,8 @@ function render(){
 function renderNotices(){
   if(!state.notices.length)return;
   const ul=el('ul','agentLabNotices');
-  for(const n of state.notices){const li=el('li',null,new Date(n.at).toLocaleTimeString()+' · '+n.text);
+  const today=new Date().toDateString();
+  for(const n of state.notices){const d=new Date(n.at),li=el('li',null,(d.toDateString()===today?d.toLocaleTimeString():d.toLocaleString())+(n.at<LOADED_AT?' (earlier session)':'')+' · '+n.text);
     if(n.open){const b=el('button',null,'Open in Library');b.type='button';b.dataset.action='open-library';b.onclick=()=>services.ResourceRelationshipPreview?.openLibraryEntry(n.open);li.append(' ',b);}
     ul.appendChild(li);}
   body.appendChild(ul);
