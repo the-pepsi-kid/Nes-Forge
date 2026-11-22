@@ -399,6 +399,9 @@ conflicts or mid-frame switches.
 - **What the record lists now.** The sprites the frame drew, from its trace. Each one's CHR location is the one in
   effect when it was drawn (line time, or fetch time for MMC2). It is claimed only when its drawn rows equal the
   cartridge bytes there. The rebuild check (0 different pixels, composite) already used these same traced sprites.
+- **Sprites that switch their own bank.** A sprite whose rows came from more than one place lists them by row
+  (`rowsFrom`), each row checked against the cartridge. Punch-Out!!'s latch sprites ($FD/$FE) do this: the first row
+  comes from one bank, and the rest, read after the latch has switched, from the other.
 - **The status-bar caveat.** A frame that splits at its status bar is no longer reported as "sprite pattern
   locations are unverified" when every drawn sprite has its traced location. The frame view in Resources › Library
   shows those locations.
