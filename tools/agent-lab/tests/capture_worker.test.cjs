@@ -10,6 +10,12 @@ test('A clean iNES header raises no compatibility item', () => { const r = W.ins
 test('A damaged header ("DiskDude!") is reported, its mapper read as-is and nothing repaired', () => {
   const b = rom(0x44, [...Buffer.from('iskDude!')]), copy = Buffer.from(b), r = W.inspectRom(b);
   assert.equal(r.items[0].state, 'damaged header suspected'); assert.equal(r.header.mapperFromHeader, 0x41); assert.match(r.items[0].detail, /Not repaired/); assert.ok(b.equals(copy)); });
+test('Junk in bytes 11-15 with byte 7 zero ("MJR") is a resolved note: the mapper comes from byte 6 alone, nothing repaired', () => {
+  const b = rom(0, [0, 0, 0, 0, 0, 0x4d, 0x4a, 0x52]), copy = Buffer.from(b), r = W.inspectRom(b);
+  assert.equal(r.items[0].state, 'junk in unused bytes'); assert.equal(r.items[0].resolved, true); assert.match(r.items[0].detail, /byte 7 is 0/); assert.ok(b.equals(copy)); });
+test('"DiskDude!" in byte 7 gives both readings of the mapper', () => {
+  const r = W.inspectRom(rom(0x44, [...Buffer.from('iskDude!')]));
+  assert.match(r.items[0].detail, /read with byte 7 is 65, from byte 6 alone it would be 1/); });
 test('A file that is not iNES is unsupported', () => { const r = W.inspectRom(Buffer.from('not a rom at all')); assert.equal(r.header, null); assert.equal(r.items[0].state, 'unsupported'); });
 test('Plans are validated', () => {
   assert.throws(() => W.validatePlan({format: 'x'}), /not a capture plan/);
@@ -33,6 +39,11 @@ test('The status summary lists a damaged header as unresolved', () => {
   const root = W.openRoot(fs.mkdtempSync(path.join(os.tmpdir(), 'agentlab-test-')));
   const {job} = W.enqueue(root, {romBytes: rom(0x44, [...Buffer.from('iskDude!')]), romName: 'dirty.nes', planSpec: 'generic'});
   assert.match(W.summary(job).unresolved.join(' '), /damaged header suspected/);
+  fs.rmSync(root, {recursive: true, force: true}); });
+test('A resolved header note is not listed as unresolved', () => {
+  const root = W.openRoot(fs.mkdtempSync(path.join(os.tmpdir(), 'agentlab-test-')));
+  const {job} = W.enqueue(root, {romBytes: rom(0, [0, 0, 0, 0, 0, 0x4d, 0x4a, 0x52]), romName: 'note.nes', planSpec: 'generic'});
+  assert.equal(job.compatibility[0].state, 'junk in unused bytes'); assert.doesNotMatch(W.summary(job).unresolved.join(' '), /junk in unused bytes|damaged header/);
   fs.rmSync(root, {recursive: true, force: true}); });
 test('Duplicate investigations: the same ROM, plan, emulator build and verification reuse the existing job', () => {
   const root = W.openRoot(fs.mkdtempSync(path.join(os.tmpdir(), 'agentlab-test-')));

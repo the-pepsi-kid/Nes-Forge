@@ -63,17 +63,37 @@ function chrWindows(layout,file){
   }
   return out;
 }
+// a traced sprite's rows, as drawn, equal the cartridge's pattern rows at its traced location
+function tracedRowsMatch(s){
+  if(!emu.chrRom?.length||!Number.isInteger(s.chrOffset)||!s.rows?.length)return false;
+  for(const r of s.rows){const py=s.attr&128?s.height-1-r:r,tile=py>=8?s.bottom:s.top,row=tile?.[py&7];if(!row)return false;
+    const at=(s.chrOffset+(py>>3)*16+(py&7))%emu.chrRom.length,lo=emu.chrRom[at],hi=emu.chrRom[(at+8)%emu.chrRom.length];
+    for(let x=0;x<8;x++)if(row[x]!==(((lo>>(7-x))&1)|(((hi>>(7-x))&1)<<1)))return false;}
+  return true;
+}
 function sprites(){
-  const tall=!!(emu.ppuCtrl&0x20),table=emu.ppuCtrl&0x08?0x1000:0,physical=window.forgeCapture?.physicalChr,out=[];
+  // The sprites the frame drew, from its runtime trace (OAM index, position, tile, attributes as drawn), each with the
+  // location its pattern was read from while it was drawn, checked against the cartridge. OAM at the snapshot is not
+  // used for this: the game's vblank code has usually already copied the next frame's sprites into it (the raw OAM
+  // stays in the record's oam section). Without a complete trace, OAM at the snapshot is listed instead, as before.
+  const trace=emu.captureTrace?.complete?emu.captureTrace:null,physical=window.forgeCapture?.physicalChr,out=[];
+  if(trace){
+    for(const d of trace.sprites){
+      if(!d)continue;
+      const ctrl=trace.lineState?.[d.y]?.ctrl??emu.ppuCtrl,tall=d.height===16,tile=d.sourceTile,attr=d.attr;
+      const addr=tall?((tile&1)<<12)|((tile&0xFE)<<4):(ctrl&0x08?0x1000:0)|(tile<<4);
+      const ok=!emu.hasChrRam&&!d.chrOffsetVaries&&tracedRowsMatch(d);
+      out.push({index:d.sourceOamIndex,x:d.x,y:d.y-1,tile,attr,palette:attr&3,behind:!!(attr&0x20),flipH:!!(attr&0x40),flipV:!!(attr&0x80),height:d.height,visible:true,drawn:true,lines:d.rows.length,
+        pattern:addr,chrOffset:ok?d.chrOffset:null,chrOffsetAt:emu.hasChrRam?'chr-ram':ok?'fetch':d.chrOffsetVaries?'varies while drawn':'not verified'});
+    }
+    return out;
+  }
+  const tallNow=!!(emu.ppuCtrl&0x20),table=emu.ppuCtrl&0x08?0x1000:0;
   for(let i=0;i<64;i++){
     const y=emu.oamMem[i*4],tile=emu.oamMem[i*4+1],attr=emu.oamMem[i*4+2],x=emu.oamMem[i*4+3];
-    const addr=tall?((tile&1)<<12)|((tile&0xFE)<<4):table|(tile<<4);
-    const src=physical?physical(addr):null;
-    // MMC2 switches CHR banks during the frame (latches): the bank a visible sprite was drawn from is the one the trace
-    // recorded when its pattern was fetched, not the one mapped once the frame has ended
-    const drawn=emu.mapper===9?emu.captureTrace?.sprites?.[i]:null;
-    out.push({index:i,x,y,tile,attr,palette:attr&3,behind:!!(attr&0x20),flipH:!!(attr&0x40),flipV:!!(attr&0x80),height:tall?16:8,visible:y<0xEF,
-      pattern:addr,chrOffset:Number.isInteger(drawn?.chrOffset)&&!emu.hasChrRam?drawn.chrOffset:src&&src.src!==emu.chrRam?src.off:null});
+    const addr=tallNow?((tile&1)<<12)|((tile&0xFE)<<4):table|(tile<<4),src=physical?physical(addr):null;
+    out.push({index:i,x,y,tile,attr,palette:attr&3,behind:!!(attr&0x20),flipH:!!(attr&0x40),flipV:!!(attr&0x80),height:tallNow?16:8,visible:y<0xEF,drawn:null,
+      pattern:addr,chrOffset:src&&src.src!==emu.chrRam?src.off:null,chrOffsetAt:emu.hasChrRam?'chr-ram':'frame-end'});
   }
   return out;
 }
@@ -100,15 +120,17 @@ async function capture({label='frame',checkpoint=null,links=true,pixels=false,sc
     apu:{registers:Array.from(emu.apuRegs||[]),status:emu.apuStatus,frameCounter:emu.apuFrameCounter},
     ppu,
     nametables:b64(emu.vram),palette:Array.from(emu.palRam),oam:b64(emu.oamMem),sprites:sprites(),
-    // where the sprites' pattern locations come from: the bank in effect when each was fetched (MMC2, from the trace),
-    // or the banks mapped once the frame has ended (a frame that switches banks mid-frame may have drawn others)
-    spritePatternsAt:emu.mapper===9?'fetch':'frame-end',
+    spritePatternsAt:null,   // set below, from the sprites
     mapper:mapperState(),
     banks:{prg:prgWindows(layout,file),chr:chrWindows(layout,file)},
     rendered:{width:256,height:240,derivation:'rendered by the emulator: pixels, not CHR data',framebufferSha256:await sha256(new Uint8Array(emu.frameBuffer.buffer,emu.frameBuffer.byteOffset,emu.frameBuffer.byteLength)),
       backgroundSha256:emu.bgFrameBuffer?await sha256(new Uint8Array(emu.bgFrameBuffer.buffer,emu.bgFrameBuffer.byteOffset,emu.bgFrameBuffer.byteLength)):null},
     synchronization:rasterCheck(),
     trace:{state:'not recorded',note:'A state snapshot. Ask for a trace to replay the frames before it with code coverage on.'}};
+  // where the drawn sprites' pattern locations come from: 'fetch' when every drawn sprite has its traced location,
+  // 'chr-ram' when patterns live in CHR RAM (no cartridge location), otherwise 'frame-end'
+  record.spritesFrom=record.sprites.some(s=>s.drawn===null)?'OAM at the snapshot':'the frame as drawn (runtime trace)';
+  record.spritePatternsAt=emu.hasChrRam?'chr-ram':record.sprites.every(s=>s.drawn!==null)&&record.sprites.filter(s=>s.visible).every(s=>s.chrOffsetAt==='fetch')?'fetch':'frame-end';
   // where the CPU is: the instruction address in the cartridge (through the PRG window that holds it)
   const win=record.banks.prg.find(w=>cpuState.PC>=w.cpu&&cpuState.PC<=w.cpuEnd);
   record.cpu.pcLocation=win&&win.located==='unique'?{fileOffset:win.fileOffsets[0]+(cpuState.PC-win.cpu),prgBank8KiB:win.prgBank8KiB[0],cpu:cpuState.PC}:{state:win?win.located:'PC below $8000 (RAM)'};

@@ -642,14 +642,20 @@ async function renderFrameDetails(entry,host){
    'The verified runtime capture of this frame (native tiles with their CHR offsets); it re-renders to the recorded framebuffer');b.dataset.frame='open-scene';box.append(b);note('Observed and verified: rebuilt from the frame\'s own tiles with 0 different pixels.');}
  else note('No scene artifact: '+(rec.synchronization?.state==='matched'?'not stored with this record.':'the frame could not be synchronization-checked ('+(rec.synchronization?.reason||'unknown reason')+').'));
  const visible=(rec.sprites||[]).filter(sp=>sp.visible),split=rec.ppu?.split;
- head('Sprites · '+visible.length+' on screen (OAM at frame '+rec.frame+')');
+ head('Sprites · '+visible.length+(/as drawn/.test(rec.spritesFrom||'')?' drawn in frame '+rec.frame+' (from its trace)':' on screen (OAM at frame '+rec.frame+')'));
  if(!anyChr)note('CHR library entries: none for this ROM, so CHR bank links are unavailable. The cartridge file offsets below are observed; "Bytes in RE" opens them in the ROM.');
- if(split)note('Unverified: this frame switches CHR banks or scroll mid-frame (sprite 0 at line '+split.sprite0Line+'); sprite pattern locations use the banks at the end of the frame.');
+ // a record that traced its drawn sprites gives each one's location as it was drawn (checked against the cartridge);
+ // older records, and frames whose sprites could not be traced to one location, use the banks at the end of the frame
+ const traced=rec.spritePatternsAt==='fetch';
+ if(split&&traced)note('This frame switches CHR banks or scroll mid-frame (sprite 0 at line '+split.sprite0Line+'). Each sprite\'s location is the bank in effect when it was drawn, from the frame\'s trace; its rows equal the cartridge bytes there.');
+ else if(split&&rec.spritePatternsAt!=='chr-ram')note('Unverified: this frame switches CHR banks or scroll mid-frame (sprite 0 at line '+split.sprite0Line+'); sprite pattern locations use the banks at the end of the frame.');
  for(const sp of visible.slice(0,32)){
-  const w=(rec.banks?.chr||[]).find(x=>sp.pattern>=x.ppu&&sp.pattern<=x.ppuEnd),fo=w&&Number.isInteger(w.fileOffset)?w.fileOffset+(sp.pattern-w.ppu):null;
+  const atFetch=sp.chrOffsetAt==='fetch'&&Number.isInteger(sp.chrOffset)&&fileOf(sp.chrOffset)!==null;
+  const w=(rec.banks?.chr||[]).find(x=>sp.pattern>=x.ppu&&sp.pattern<=x.ppuEnd),fo=atFetch?fileOf(sp.chrOffset):w&&Number.isInteger(w.fileOffset)?w.fileOffset+(sp.pattern-w.ppu):null;
+  const bank4KiB=atFetch?sp.chrOffset>>12:w?.chrBank4KiB;
   const row=elt('div');row.className='frx-frame-sprite';row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';
   row.append(elt('span','frx-code','#'+sp.index+' at '+sp.x+','+sp.y+' · tile $'+hx(sp.tile)+' · palette '+sp.palette+(sp.flipH?' · flipped':'')+' · '+(fo!==null?'CHR file 0x'+hx(fo,5):w?.source==='CHR RAM'?'CHR RAM (no cartridge offset)':'pattern location unknown')));
-  if(fo!==null){row.append(...chrLink(w.chrBank4KiB,'Observed: OAM tile through the CHR mapping'+(split?'; unverified for this frame (mid-frame switch)':'')),button('Bytes in RE',()=>openBytes({fileOffset:fo,length:sp.height===16?32:16,region:'CHR ROM',chrBank:{index:w.chrBank4KiB,size:4096},name:'sprite #'+sp.index+' tile'}),'The tile\'s bytes in the cartridge'));}
+  if(fo!==null){row.append(...chrLink(bank4KiB,atFetch?'Observed: the bank in effect when this sprite was drawn (from the frame\'s trace; its rows equal the cartridge bytes there)':'Observed: OAM tile through the CHR mapping'+(split?'; unverified for this frame (mid-frame switch)':'')),button('Bytes in RE',()=>openBytes({fileOffset:fo,length:sp.height===16?32:16,region:'CHR ROM',chrBank:{index:bank4KiB,size:4096},name:'sprite #'+sp.index+' tile'}),'The tile\'s bytes in the cartridge'));}
   box.append(row);
  }
  if(visible.length>32)note('… '+(visible.length-32)+' more sprites.');

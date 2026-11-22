@@ -66,7 +66,12 @@ function inspectRom(bytes) {
   if (bytes.length < 16 || bytes[0] !== 0x4e || bytes[1] !== 0x45 || bytes[2] !== 0x53 || bytes[3] !== 0x1a) return {header: null, items: [{kind: 'container', state: 'unsupported', detail: 'not an iNES file'}]};
   const nes2 = (bytes[7] & 0x0c) === 0x08, mapper = (bytes[6] >> 4) | (bytes[7] & 0xf0), tail = [...bytes.subarray(8, 16)];
   const header = {format: nes2 ? 'NES 2.0' : 'iNES', mapperFromHeader: mapper, prgBytes: bytes[4] * 16384, chrBytes: bytes[5] * 8192, trainer: !!(bytes[6] & 4), headerSha256: sha(bytes.subarray(0, 16))};
-  if (!nes2 && tail.slice(3).some(b => b !== 0)) items.push({kind: 'header', state: 'damaged header suspected', detail: 'iNES bytes 11-15 are not zero (' + Buffer.from(bytes.subarray(7, 16)).toString('latin1').replace(/[^\x20-\x7e]/g, '.') + '); byte 7 may carry junk, so the mapper read from it (' + mapper + ') may be wrong. Not repaired.'});
+  if (!nes2 && tail.slice(3).some(b => b !== 0)) {
+    const text = Buffer.from(bytes.subarray(7, 16)).toString('latin1').replace(/[^\x20-\x7e]/g, '.'), fromByte6 = bytes[6] >> 4;
+    // junk in bytes 11-15 matters only when byte 7 carries it too: byte 7 holds the mapper's upper half
+    if (bytes[7] === 0) items.push({kind: 'header', state: 'junk in unused bytes', resolved: true, detail: 'iNES bytes 11-15 are not zero (' + text + '); byte 7 is 0, so the mapper (' + mapper + ') comes from byte 6 alone and is not affected. Nothing repaired.'});
+    else items.push({kind: 'header', state: 'damaged header suspected', detail: 'iNES bytes 11-15 are not zero (' + text + ') and byte 7 is not zero: the mapper read with byte 7 is ' + mapper + ', from byte 6 alone it would be ' + fromByte6 + '. Not repaired.'});
+  }
   return {header, items};
 }
 
@@ -115,7 +120,7 @@ function summary(job) {
   const sync = job.results.filter(r => r.synchronization === 'matched').length;
   return {id: job.id, state: job.state, control: job.control || null, rom: {name: job.rom.name, sha256: job.rom.sha256}, plan: {name: job.plan.name, source: job.planSource, sha256: job.planSha256},
     progress: job.progress, frames: job.results.length, synchronized: sync,
-    unresolved: [...job.compatibility.filter(c => c.state !== 'emulated').map(c => c.kind + ': ' + c.state + (c.detail ? ' (' + c.detail + ')' : '')), ...job.results.filter(r => r.synchronization !== 'matched').map(r => r.label + ': frame not synchronization-checked (' + r.synchronizationReason + ')'), ...job.results.filter(r => !r.reached).map(r => r.label + ': target condition not reached'),
+    unresolved: [...job.compatibility.filter(c => c.state !== 'emulated' && !c.resolved).map(c => c.kind + ': ' + c.state + (c.detail ? ' (' + c.detail + ')' : '')), ...job.results.filter(r => r.synchronization !== 'matched').map(r => r.label + ': frame not synchronization-checked (' + r.synchronizationReason + ')'), ...job.results.filter(r => !r.reached).map(r => r.label + ': target condition not reached'),
       ...(job.results.some(r => r.split) ? [job.results.filter(r => r.split).length + ' frame(s) switch CHR banks or scroll mid-frame: their sprite pattern locations are unverified'] : []),
       ...(job.results.length ? ['sprite → pose/actor relationships: not established (needs game knowledge or a decoded actor table)'] : [])],
     failures: job.failures.filter(f => f.stage !== 'worker' || !/stopped while this job was running/.test(f.error)), interruptions: job.interruptions || job.failures.filter(f => f.stage === 'worker' && /stopped while this job was running/.test(f.error)).map(f => ({at: f.at, detail: f.error})),
@@ -143,7 +148,8 @@ const PAGE = {
   restore: async name => { window.__agentCk[name].restore(); return emu.frameCount; },
   release: async name => { window.__agentCk?.[name]?.release?.(); delete window.__agentCk?.[name]; return true; },
   target: async target => Forge.services.FrameEvidence.runTarget(target),
-  capture: async label => Forge.services.FrameEvidence.capture({label, links: false, pixels: true, scene: true})
+  capture: async label => Forge.services.FrameEvidence.capture({label, links: false, pixels: true, scene: true}),
+  recognize: async sha => { const m = Forge.services.RecoveryCoverage?.match?.(sha); return m ? {title: m.title || null, name: m.name || null} : null; }
 };
 function png(rgba) {
   const raw = Buffer.alloc(240 * (256 * 4 + 1)); for (let y = 0; y < 240; y++) rgba.copy(raw, y * 1025 + 1, y * 1024, y * 1024 + 1024);
@@ -163,6 +169,12 @@ async function runJob(root, job, session, editorSha, stop) {
   const loaded = await call(PAGE.load, [b64, job.rom.name]).catch(e => ({error: e.message}));
   if (loaded.error || !loaded.loaded) { job.state = 'failed'; job.failures.push({at: now(), stage: 'load', error: 'the emulator could not load this ROM' + (loaded.error ? ': ' + loaded.error : '') + ' (mapper ' + job.rom.header.mapperFromHeader + ' from the header)'}); return saveJob(root, job); }
   job.rom.mapperEmulated = loaded.mapper;
+  // a dump Forge recognizes by its SHA-256 is named (identity only: the header is still reported as it is)
+  if (!job.compatibility.some(c => c.kind === 'identity')) {
+    const known = await call(PAGE.recognize, job.rom.sha256).catch(() => null);
+    if (known) { const label = known.name || known.title; job.compatibility.push({kind: 'identity', state: 'recognized dump', resolved: true, detail: 'this exact file (SHA-256) is a dump Forge recognizes: ' + label});
+      for (const c of job.compatibility) if (c.kind === 'header') c.detail += ' The file is a recognized dump (' + label + ').'; }
+  }
   if (!job.compatibility.some(c => c.kind === 'mapper')) job.compatibility.push({kind: 'mapper', state: loaded.mapper === job.rom.header.mapperFromHeader ? 'emulated' : 'emulated as ' + loaded.mapper, detail: 'the emulator runs mapper ' + loaded.mapper});
   // ---- boot checkpoint: from disk when it restores exactly; otherwise boot, save, and verify ----
   const key = sha(JSON.stringify({rom: job.rom.sha256, editor: editorSha, mapper: loaded.mapper, header: job.rom.header.headerSha256, boot: job.plan.boot})), ckDir = path.join(root, 'checkpoints', key), bootFile = path.join(ckDir, 'boot.json');
@@ -226,7 +238,7 @@ async function runJob(root, job, session, editorSha, stop) {
     writeAtomic(path.join(dir, 'frames', name + '.png'), png(rgba));
     writeAtomic(path.join(dir, 'frames', name + '.json'), JSON.stringify(stored));
     job.results.push({index: i, label: target.label, file: 'frames/' + name + '.json', png: 'frames/' + name + '.png', digest: record.digests.all, frame: record.frame, ms: Date.now() - t0, source, reached: reached.reached,
-      synchronization: record.synchronization.state, synchronizationReason: record.synchronization.reason || null, scene: !!record.scene, split: !!record.ppu.split && record.spritePatternsAt !== 'fetch'});
+      synchronization: record.synchronization.state, synchronizationReason: record.synchronization.reason || null, scene: !!record.scene, split: !!record.ppu.split && !['fetch', 'chr-ram'].includes(record.spritePatternsAt)});
     job.results.sort((a, b) => a.index - b.index); job.progress.done = job.results.length; saveJob(root, job);
   }
   job.progress.current = null; run.ended = now(); run.ms = Date.now() - started;

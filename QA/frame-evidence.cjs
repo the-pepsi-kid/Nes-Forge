@@ -42,7 +42,7 @@ function png(rgba) { // 256x240 RGBA -> PNG
     const ng = carts.find(c => c.sha === NINJA); if (!ng) throw Error('Ninja Gaiden (US) cartridge not found');
     const ngB64 = fs.readFileSync(ng.file).toString('base64');
     await run('rom.import', {__b64: ngB64, name: 'Ninja Gaiden (U).nes'}); await run('library.registerCatalog');
-    const scenes = await page.evaluate(() => Forge.services.ProjectStore.capture().investigation.catalogs.native.scenes.map(s => ({area: s.area, room: s.room, first: s.areaFirstRoom, stage: s.stage})));
+    const scenes = await page.evaluate(() => Forge.services.ProjectStore.capture().investigation.catalogs.native.scenes.map(s => ({area: s.area, room: s.room, first: s.areaFirstRoom, stage: s.stage, spriteBank: s.spriteChrBank4KiB})));
     const areas = [...new Set(scenes.map(s => s.area))].sort((a, b) => a - b);
     const ngPlan = {boot: {frames: 0, pressUntil: {buttons: {start: true}, every: 30, hold: 4, conditions: [{vram: 0x97, equals: 0x18}, {address: 0x6D, equals: 0}], maxFrames: 3000, after: 60}},
       targets: areas.map(area => { const first = scenes.find(s => s.area === area); const room = first.first ?? first.room;
@@ -62,6 +62,17 @@ function png(rgba) { // 256x240 RGBA -> PNG
     const banksOk = warm.results.every(r => r.banks.prg.every(w => w.located === 'unique' && w.matchesFile) && r.banks.chr.every(w => w.source === 'CHR ROM' && w.matchesFile) &&
       r.banks.chr.every(w => rom.subarray(w.fileOffset, w.fileOffset + 16).equals(rom.subarray(16 + 8 * 16384 + w.offset, 16 + 8 * 16384 + w.offset + 16))));
     check('Mapped PRG and CHR banks are located in the cartridge file and their bytes match it', banksOk, warm.results[0].banks.chr.map(w => w.chrBank1KiB));
+    // sprites: the ones each frame drew (not OAM after the frame's vblank), each at the location it was drawn from. The
+    // test checks those locations against the game's own room table, decoded from PRG (sprite bank per room, $AC90):
+    // every sprite drawn from pattern table $0000 comes from the sprite bank of the room the game is in
+    const spriteRows = warm.results.map((r, i) => { const vis = r.sprites.filter(sp => sp.visible), room = Buffer.from(r.memory.ram, 'base64')[0x6E], expected = scenes.find(s => s.room === room)?.spriteBank;
+      const table0 = vis.filter(sp => sp.pattern < 0x1000 && Number.isInteger(sp.chrOffset)).map(sp => sp.chrOffset >> 12);
+      return {area: areas[i], room, from: r.spritesFrom, at: r.spritePatternsAt, split: !!r.ppu.split, drawn: vis.length, located: vis.filter(sp => sp.chrOffsetAt === 'fetch' && Number.isInteger(sp.chrOffset)).length,
+        roomSpriteBank: expected, table0Banks: [...new Set(table0)], table0Sprites: table0.length}; });
+    report.sprites = spriteRows;
+    check('Sprites are the ones each frame drew (from its trace), each with the CHR location it was drawn from; every sprite from pattern table $0000 is in the sprite bank the game\'s room table gives; frames split at the status bar are not left with unverified sprite locations',
+      spriteRows.every(x => /as drawn/.test(x.from) && x.at === 'fetch' && x.located === x.drawn && Number.isInteger(x.roomSpriteBank) && x.table0Banks.every(b => b === x.roomSpriteBank)) &&
+      spriteRows.some(x => x.split) && spriteRows.reduce((n, x) => n + x.table0Sprites, 0) > 50, spriteRows);
     const pcOk = warm.results.every(r => Number.isInteger(r.cpu.pcLocation.fileOffset) && rom[r.cpu.pcLocation.fileOffset] !== undefined);
     check('The CPU\'s position is located in the cartridge (PC to file offset through the mapped PRG window)', pcOk, warm.results.slice(0, 3).map(r => r.cpu.pcLocation));
     const links = warm.results[3].links || [];
@@ -109,12 +120,16 @@ function png(rgba) { // 256x240 RGBA -> PNG
         report.games.push({game: c.name.replace(/\.nes$/i, ''), mapper: r0.rom.mapper, chr: r0.rom.chrRam ? 'CHR RAM' : 'CHR ROM', checkpointMs: wMs, coldMs: kMs,
           equal: d.every(x => x.length === 0), differing: d.map(x => x.join('/')).filter(Boolean),
           chrRomBanksMatchFile: chrRom.length ? chrRom.every(x => x.matchesFile) : null, prgLocated: w.results.every(r => r.banks.prg.every(x => x.located !== 'not in PRG ROM (RAM or open bus)' && x.matchesFile !== false)),
-          synchronization: w.results.map(r => r.synchronization.state === 'matched' ? 'matched' : 'not matched: ' + r.synchronization.reason.slice(0, 90)), file: file.length});
+          synchronization: w.results.map(r => r.synchronization.state === 'matched' ? 'matched' : 'not matched: ' + r.synchronization.reason.slice(0, 90)), file: file.length,
+          spriteLocations: w.results.map(r => r.spritePatternsAt), spritesDrawn: w.results.map(r => r.sprites.filter(sp => sp.visible).length)});
       } catch (e) { report.games.push({game: c.name, state: 'error', error: String(e.message).slice(0, 200)}); }
     }
     const played = report.games.filter(g => g.equal !== undefined);
     check('Other games (one per emulated mapper family): every checkpoint capture equals its cold-boot capture', played.length >= 5 && played.every(g => g.equal), played.map(g => g.game + ': ' + (g.equal ? 'equal' : g.differing.join(','))));
     check('Other games: every mapped CHR ROM bank equals the cartridge bytes at its reported file offset', played.every(g => g.chrRomBanksMatchFile !== false), played.map(g => g.game + ': ' + g.chrRomBanksMatchFile));
+    // every family's drawn sprites have their draw-time locations (CHR ROM) or make no location claim (CHR RAM)
+    const otherSprites = report.games.filter(g => g.spriteLocations).map(g => g.game + ': ' + g.spriteLocations.join(', '));
+    check('Other games: every drawn sprite has the CHR ROM location it was drawn from, or (CHR RAM) makes no location claim', played.every(g => g.spriteLocations?.every(x => x === 'fetch' || x === 'chr-ram')), otherSprites);
     // every mapper family's frames rebuild from their trace, MMC2 (latch-switched CHR) included
     check('Other games: every frame of every mapper family rebuilds from its trace (synchronization matched), MMC2 included', played.length >= 5 && played.every(g => g.synchronization.every(x => x === 'matched')) &&
       (played.some(g => g.mapper === 9) || !carts.some(x => /^Mike Tyson/i.test(x.name))), played.map(g => g.game + ' (mapper ' + g.mapper + '): ' + g.synchronization.join(', ')));

@@ -74,8 +74,11 @@ function recordLine(line,baseY,baseNTY,fetched=null){
     if(s&&s.geom!==geom){t.geometryChange=true;continue;}
     const sf=fetched?.sprites[i],at=a=>sf?physicalWith(sf.banks,a):fetched?physicalWith(fetched.start,a):physicalChr(a);
     if(!s){s=t.sprites[i]={geom,y:top,x,height:h,attr,sourceOamIndex:i,sourceTile:tile,rows:[],top:tilePixels(readNativeTile(bank+baseTile*16,at(bank+baseTile*16)).bytes),bottom:h===16?tilePixels(readNativeTile(bank+(baseTile+1)*16,at(bank+(baseTile+1)*16)).bytes):null};
-      if(fetched)s.chrOffset=at(bank+baseTile*16).off;}
+      // where the sprite's pattern was when it was drawn (line time, or fetch time for MMC2), for every mapper
+      s.chrOffset=at(bank+baseTile*16).off;}
     const py=attr&128?h-1-(line-top):line-top,addr=bank+(baseTile+(py>>3))*16,target=py>=8?s.bottom:s.top;
+    // a bank switch while the sprite is drawn would put its rows in different places: then no single location is claimed
+    if(at(addr).off!==s.chrOffset+(py>>3)*16)s.chrOffsetVaries=true;
     // a renderer that fetched the row gives its bytes; a sprite it did not fetch (past the 8 per line) is read from the
     // pattern table directly, never through the PPU bus
     let p0,p1;if(sf){p0=sf.lo;p1=sf.hi;}else if(fetched){const b=readNativeTile(addr,at(addr)).bytes;p0=b[py&7];p1=b[(py&7)+8];}else{p0=ppuBusRead(addr+(py&7));p1=ppuBusRead(addr+(py&7)+8);}
