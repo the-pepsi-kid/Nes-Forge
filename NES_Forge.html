@@ -5076,8 +5076,10 @@ function recordLine(line,baseY,baseNTY,fetched=null){
       // where the sprite's pattern was when it was drawn (line time, or fetch time for MMC2), for every mapper
       s.chrOffset=at(bank+baseTile*16).off;}
     const py=attr&128?h-1-(line-top):line-top,addr=bank+(baseTile+(py>>3))*16,target=py>=8?s.bottom:s.top;
-    // a bank switch while the sprite is drawn would put its rows in different places: then no single location is claimed
-    if(at(addr).off!==s.chrOffset+(py>>3)*16)s.chrOffsetVaries=true;
+    // where this row's tile was read from; a bank switch while the sprite is drawn (an MMC2 latch sprite switches its
+    // own bank) puts its rows in different places, which the rows then say
+    const rowTile=at(addr).off;(s.rowAt||(s.rowAt={}))[py]=rowTile;
+    if(rowTile!==s.chrOffset+(py>>3)*16)s.chrOffsetVaries=true;
     // a renderer that fetched the row gives its bytes; a sprite it did not fetch (past the 8 per line) is read from the
     // pattern table directly, never through the PPU bus
     let p0,p1;if(sf){p0=sf.lo;p1=sf.hi;}else if(fetched){const b=readNativeTile(addr,at(addr)).bytes;p0=b[py&7];p1=b[(py&7)+8];}else{p0=ppuBusRead(addr+(py&7));p1=ppuBusRead(addr+(py&7)+8);}
@@ -31940,6 +31942,7 @@ async function renderFrameDetails(entry,host){
   const bank4KiB=atFetch?sp.chrOffset>>12:w?.chrBank4KiB;
   const row=elt('div');row.className='frx-frame-sprite';row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';
   row.append(elt('span','frx-code','#'+sp.index+' at '+sp.x+','+sp.y+' · tile $'+hx(sp.tile)+' · palette '+sp.palette+(sp.flipH?' · flipped':'')+' · '+(fo!==null?'CHR file 0x'+hx(fo,5):w?.source==='CHR RAM'?'CHR RAM (no cartridge offset)':'pattern location unknown')));
+  if(atFetch&&sp.rowsFrom)row.append(elt('span','frx-code','rows from '+sp.rowsFrom.length+' locations: '+sp.rowsFrom.map(g=>'rows '+g.firstRow+(g.lastRow>g.firstRow?'-'+g.lastRow:'')+' bank '+(g.chrOffset>>12)).join(', ')));
   if(fo!==null){row.append(...chrLink(bank4KiB,atFetch?'Observed: the bank in effect when this sprite was drawn (from the frame\'s trace; its rows equal the cartridge bytes there)':'Observed: OAM tile through the CHR mapping'+(split?'; unverified for this frame (mid-frame switch)':'')),button('Bytes in RE',()=>openBytes({fileOffset:fo,length:sp.height===16?32:16,region:'CHR ROM',chrBank:{index:bank4KiB,size:4096},name:'sprite #'+sp.index+' tile'}),'The tile\'s bytes in the cartridge'));}
   box.append(row);
  }
@@ -35798,7 +35801,7 @@ function chrWindows(layout,file){
 function tracedRowsMatch(s){
   if(!emu.chrRom?.length||!Number.isInteger(s.chrOffset)||!s.rows?.length)return false;
   for(const r of s.rows){const py=s.attr&128?s.height-1-r:r,tile=py>=8?s.bottom:s.top,row=tile?.[py&7];if(!row)return false;
-    const at=(s.chrOffset+(py>>3)*16+(py&7))%emu.chrRom.length,lo=emu.chrRom[at],hi=emu.chrRom[(at+8)%emu.chrRom.length];
+    const base=Number.isInteger(s.rowAt?.[py])?s.rowAt[py]:s.chrOffset+(py>>3)*16,at=(base+(py&7))%emu.chrRom.length,lo=emu.chrRom[at],hi=emu.chrRom[(at+8)%emu.chrRom.length];
     for(let x=0;x<8;x++)if(row[x]!==(((lo>>(7-x))&1)|(((hi>>(7-x))&1)<<1)))return false;}
   return true;
 }
@@ -35813,9 +35816,13 @@ function sprites(){
       if(!d)continue;
       const ctrl=trace.lineState?.[d.y]?.ctrl??emu.ppuCtrl,tall=d.height===16,tile=d.sourceTile,attr=d.attr;
       const addr=tall?((tile&1)<<12)|((tile&0xFE)<<4):(ctrl&0x08?0x1000:0)|(tile<<4);
-      const ok=!emu.hasChrRam&&!d.chrOffsetVaries&&tracedRowsMatch(d);
+      const ok=!emu.hasChrRam&&tracedRowsMatch(d);
+      // a sprite whose rows came from more than one place (an MMC2 latch sprite switches its own bank) lists them
+      let rowsFrom=null;
+      if(ok&&d.chrOffsetVaries){const groups=[];for(const r of [...d.rows].sort((a,b)=>a-b)){const py=d.attr&128?d.height-1-r:r,tileAt=d.rowAt?.[py]??d.chrOffset+(py>>3)*16,last=groups[groups.length-1];
+        if(last&&last.chrOffset===tileAt&&last.lastRow===r-1){last.lastRow=r;}else groups.push({firstRow:r,lastRow:r,chrOffset:tileAt});}rowsFrom=groups;}
       out.push({index:d.sourceOamIndex,x:d.x,y:d.y-1,tile,attr,palette:attr&3,behind:!!(attr&0x20),flipH:!!(attr&0x40),flipV:!!(attr&0x80),height:d.height,visible:true,drawn:true,lines:d.rows.length,
-        pattern:addr,chrOffset:ok?d.chrOffset:null,chrOffsetAt:emu.hasChrRam?'chr-ram':ok?'fetch':d.chrOffsetVaries?'varies while drawn':'not verified'});
+        pattern:addr,chrOffset:ok?(rowsFrom?rowsFrom[0].chrOffset:d.chrOffset):null,...(rowsFrom?{rowsFrom}:{}),chrOffsetAt:emu.hasChrRam?'chr-ram':ok?'fetch':'not verified'});
     }
     return out;
   }

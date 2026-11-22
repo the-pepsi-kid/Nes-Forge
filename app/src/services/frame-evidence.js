@@ -67,7 +67,7 @@ function chrWindows(layout,file){
 function tracedRowsMatch(s){
   if(!emu.chrRom?.length||!Number.isInteger(s.chrOffset)||!s.rows?.length)return false;
   for(const r of s.rows){const py=s.attr&128?s.height-1-r:r,tile=py>=8?s.bottom:s.top,row=tile?.[py&7];if(!row)return false;
-    const at=(s.chrOffset+(py>>3)*16+(py&7))%emu.chrRom.length,lo=emu.chrRom[at],hi=emu.chrRom[(at+8)%emu.chrRom.length];
+    const base=Number.isInteger(s.rowAt?.[py])?s.rowAt[py]:s.chrOffset+(py>>3)*16,at=(base+(py&7))%emu.chrRom.length,lo=emu.chrRom[at],hi=emu.chrRom[(at+8)%emu.chrRom.length];
     for(let x=0;x<8;x++)if(row[x]!==(((lo>>(7-x))&1)|(((hi>>(7-x))&1)<<1)))return false;}
   return true;
 }
@@ -82,9 +82,13 @@ function sprites(){
       if(!d)continue;
       const ctrl=trace.lineState?.[d.y]?.ctrl??emu.ppuCtrl,tall=d.height===16,tile=d.sourceTile,attr=d.attr;
       const addr=tall?((tile&1)<<12)|((tile&0xFE)<<4):(ctrl&0x08?0x1000:0)|(tile<<4);
-      const ok=!emu.hasChrRam&&!d.chrOffsetVaries&&tracedRowsMatch(d);
+      const ok=!emu.hasChrRam&&tracedRowsMatch(d);
+      // a sprite whose rows came from more than one place (an MMC2 latch sprite switches its own bank) lists them
+      let rowsFrom=null;
+      if(ok&&d.chrOffsetVaries){const groups=[];for(const r of [...d.rows].sort((a,b)=>a-b)){const py=d.attr&128?d.height-1-r:r,tileAt=d.rowAt?.[py]??d.chrOffset+(py>>3)*16,last=groups[groups.length-1];
+        if(last&&last.chrOffset===tileAt&&last.lastRow===r-1){last.lastRow=r;}else groups.push({firstRow:r,lastRow:r,chrOffset:tileAt});}rowsFrom=groups;}
       out.push({index:d.sourceOamIndex,x:d.x,y:d.y-1,tile,attr,palette:attr&3,behind:!!(attr&0x20),flipH:!!(attr&0x40),flipV:!!(attr&0x80),height:d.height,visible:true,drawn:true,lines:d.rows.length,
-        pattern:addr,chrOffset:ok?d.chrOffset:null,chrOffsetAt:emu.hasChrRam?'chr-ram':ok?'fetch':d.chrOffsetVaries?'varies while drawn':'not verified'});
+        pattern:addr,chrOffset:ok?(rowsFrom?rowsFrom[0].chrOffset:d.chrOffset):null,...(rowsFrom?{rowsFrom}:{}),chrOffsetAt:emu.hasChrRam?'chr-ram':ok?'fetch':'not verified'});
     }
     return out;
   }

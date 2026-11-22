@@ -655,6 +655,7 @@ async function renderFrameDetails(entry,host){
   const bank4KiB=atFetch?sp.chrOffset>>12:w?.chrBank4KiB;
   const row=elt('div');row.className='frx-frame-sprite';row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';
   row.append(elt('span','frx-code','#'+sp.index+' at '+sp.x+','+sp.y+' · tile $'+hx(sp.tile)+' · palette '+sp.palette+(sp.flipH?' · flipped':'')+' · '+(fo!==null?'CHR file 0x'+hx(fo,5):w?.source==='CHR RAM'?'CHR RAM (no cartridge offset)':'pattern location unknown')));
+  if(atFetch&&sp.rowsFrom)row.append(elt('span','frx-code','rows from '+sp.rowsFrom.length+' locations: '+sp.rowsFrom.map(g=>'rows '+g.firstRow+(g.lastRow>g.firstRow?'-'+g.lastRow:'')+' bank '+(g.chrOffset>>12)).join(', ')));
   if(fo!==null){row.append(...chrLink(bank4KiB,atFetch?'Observed: the bank in effect when this sprite was drawn (from the frame\'s trace; its rows equal the cartridge bytes there)':'Observed: OAM tile through the CHR mapping'+(split?'; unverified for this frame (mid-frame switch)':'')),button('Bytes in RE',()=>openBytes({fileOffset:fo,length:sp.height===16?32:16,region:'CHR ROM',chrBank:{index:bank4KiB,size:4096},name:'sprite #'+sp.index+' tile'}),'The tile\'s bytes in the cartridge'));}
   box.append(row);
  }
