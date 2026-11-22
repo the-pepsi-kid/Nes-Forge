@@ -378,8 +378,10 @@ async function surveyStages({areas,frames=1500,boot='checkpoint'}={}){
       const oam=emu.oamMem,onScreen=new Set();for(let s=0;s<64;s++)if(oam[s*4]<239)onScreen.add(oam[s*4+1]);
       for(let i=0;i<8;i++){
         if(!emu.ram[0x498+i])continue; // slot flags: zero when the slot holds no live enemy
-        const type=emu.ram[0x400+i],pose=emu.ram[0x438+i],key=type+':'+pose,rec=seen.get(key)||{type,pose,samples:0,onScreen:0,rooms:[]};
-        rec.samples++;const cat=enemyPoses.get(pose);if(cat?.pieces?.length&&cat.pieces.every(pc=>onScreen.has(pc.tile))){rec.onScreen++;const room=emu.ram[0x6E];if(!rec.rooms.includes(room))rec.rooms.push(room);}seen.set(key,rec);
+        const type=emu.ram[0x400+i],pose=emu.ram[0x438+i],key=type+':'+pose,rec=seen.get(key)||{type,pose,samples:0,onScreen:0,rooms:[],banks:[]};
+        rec.samples++;const cat=enemyPoses.get(pose);if(cat?.pieces?.length&&cat.pieces.every(pc=>onScreen.has(pc.tile))){rec.onScreen++;const room=emu.ram[0x6E];if(!rec.rooms.includes(room))rec.rooms.push(room);
+          // the CHR banks actually mapped for sprites at this moment (4 KiB at $0000 and $1000), not the room's record
+          const phys=window.forgeCapture?.physicalChr;if(phys){const k=(phys(0).off>>12)+'/'+(phys(0x1000).off>>12)+'@'+room;if(!rec.banks.includes(k)&&rec.banks.length<16)rec.banks.push(k);}}seen.set(key,rec);
       }
     }};
     let origin=pos(),best=origin,still=0,tries=0;
@@ -407,7 +409,7 @@ async function surveyStages({areas,frames=1500,boot='checkpoint'}={}){
     // verified only when seen on screen AND its enemy type is one the ROM's spawn tables place in this area;
     // anything else (projectiles, spawned helpers) is reported in the results but not recorded as placement
     if(!o.poseId||!o.onScreen||!o.inSpawnTables)continue;
-    const place={stage:r.stage,area:r.area,rooms:o.rooms||[],basis:'runtime',route:r.route,samples:o.samples,onScreen:o.onScreen,enemyType:o.type,romSha256:romSha};
+    const place={stage:r.stage,area:r.area,rooms:o.rooms||[],banks:o.banks||[],basis:'runtime',route:r.route,samples:o.samples,onScreen:o.onScreen,enemyType:o.type,romSha256:romSha};
     const seenRoom=scenes.find(s=>s.area===r.area&&s.room===o.rooms?.[0])?.id||firstRoom.get(r.stage);
     for(const [kind,rid] of [['pose',o.poseId],['actor','ng-actor:'+o.type]]){
       const id=idOf(romSha,kind,rid);let e;try{e=await L.entry(id);}catch(_){continue;}
