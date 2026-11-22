@@ -383,7 +383,8 @@ async function surveyStages({areas,frames=1500,boot='checkpoint'}={}){
           // the CHR banks the game had mapped while it drew the play area (scanline 200, below the HUD split; the
           // registers between frames hold the HUD's banks), as 4 KiB banks at $0000 and $1000
           const lines=emu._chrLines||[];let at=lines[0];for(const l of lines)if(l[0]<=200)at=l;
-          if(at){const k=(at[1]>>12)+'/'+(at[2]>>12)+'@'+room;if(!rec.banks.includes(k)&&rec.banks.length<16)rec.banks.push(k);}}seen.set(key,rec);
+          // (a frame without the sprite-0 split keeps the HUD's banks on every line: marked "!nosplit")
+          if(at){const k=(at[1]>>12)+'/'+(at[2]>>12)+'@'+room+(emu.spr0Line>=0?'':'!nosplit');if(!rec.banks.includes(k)&&rec.banks.length<16)rec.banks.push(k);}}seen.set(key,rec);
       }
     }};
     let origin=pos(),best=origin,still=0,tries=0;

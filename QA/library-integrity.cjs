@@ -12,6 +12,9 @@
 // Z  Zelda II: catalog registration interrupted after 1120 entries (more than one page of the resume scan), browser
 //    killed; completed by the same generic recovery after the project is restored; checked against the cartridge
 // P  every recovered pose of both ROMs (202 + 30): the stored rendition (what a copy receives) against the cartridge
+// G  the room each pose is drawn in, against gameplay: the stage survey plays 5 areas; the CHR banks the game had
+//    mapped for the play area at each sighting equal the room's recorded banks; the decoded actor -> pose links agree
+//    with the enemy types seen showing each pose; the drawing stored for each pose seen equals what the game drew
 'use strict';
 const fs = require('fs'), os = require('os'), path = require('path'), crypto = require('crypto'), {spawn, execSync} = require('child_process');
 const {chromium} = require('playwright');
@@ -146,6 +149,62 @@ async function allPoses(page, sha, rom, ng) {
   report.phases.S = {job: ngJob.id, inventory: invS};
   check('S: Ninja Gaiden investigated once in the background; its 22 verified frames and its recovered catalog (590 entries, 32 CHR banks) are in the library',
     invS.frames === 22 && invS.catalog === 590 && invS.chr === 32 && invS.uniqueIds === invS.total, invS);
+  // ---------------- G: drawing rooms against gameplay ----------------
+  const G_AREAS = [2, 5, 9, 17, 18], sha16 = NINJA.slice(0, 16);
+  const contextsBefore = await s.page.evaluate(async h => { const L = Forge.services.ResourceLibrary, out = {}; for (const it of (await L.list({shelf: h, kind: 'pose', limit: 400})).items) { const e = await L.entry(it.id); out[e.id] = e.rendition?.context || null; } return out; }, NINJA);
+  const basisCount = Object.values(contextsBefore).reduce((m, c) => { const k = c?.basis || 'none'; m[k] = (m[k] || 0) + 1; return m; }, {});
+  const surveyed = await s.page.evaluate(a => Forge.commands.run('library.surveyStages', {areas: a, frames: 1500}).then(r => r.ok ? r.result : {error: r.error.message}), G_AREAS.join(','));
+  if (surveyed.error) throw Error('stage survey: ' + surveyed.error);
+  const sightings = surveyed.areas.flatMap(a => (a.observations || []).filter(o => o.onScreen > 0 && o.inSpawnTables && o.poseId).map(o => ({...o, area: a.area, stage: a.stage})));
+  const roomRec = new Map(), actorLabel = new Map(), seenPoses = new Map();
+  for (const o of sightings) {
+    for (const k of o.banks || []) { const room = Number(k.split('@')[1].replace('!nosplit', '')), id = 'ng:' + o.area + ':' + room; if (!roomRec.has(id)) roomRec.set(id, await readJson(s.page, 'rom:' + sha16 + ':room:' + id).catch(() => null)); }
+    if (!actorLabel.has(o.type)) actorLabel.set(o.type, (await readJson(s.page, 'rom:' + sha16 + ':actor:ng-actor:' + o.type).catch(() => null))?.label || null);
+    if (!seenPoses.has(o.poseId)) seenPoses.set(o.poseId, await readJson(s.page, 'rom:' + sha16 + ':pose:' + o.poseId));
+  }
+  const artOf = (rec, b) => rec.pieces.map(p => { const o = chrStart + b[p.tile & 1] * 4096 + (p.tile & 254) * 16; return ROM.subarray(o, o + 32).toString('hex'); }).join('');
+  // G1: banks at each sighting (frames with the HUD split) against the room's record, for the pattern table(s) the
+  // pose's tiles use (8x16: a tile's low bit picks $0000 or $1000; the other half does not affect its drawing)
+  const g1 = {withSplit: 0, match: 0, noSplit: 0, mismatches: []};
+  for (const o of sightings) { const halves = new Set(seenPoses.get(o.poseId).pieces.map(p => p.tile & 1));
+    for (const k of o.banks || []) { const [b, roomRaw] = k.split('@'), noSplit = /!nosplit/.test(roomRaw), room = Number(roomRaw.replace('!nosplit', '')), r = roomRec.get('ng:' + o.area + ':' + room);
+      if (noSplit) { g1.noSplit++; continue; } g1.withSplit++; const actual = b.split('/').map(Number), want = r ? [r.spriteChrBank4KiB, r.backgroundChrBank4KiB] : null;
+      if (want && [...halves].every(h => actual[h] === want[h])) g1.match++; else g1.mismatches.push({pose: o.poseId, area: o.area, room, halves: [...halves], actual: b, record: want && want.join('/')}); } }
+  // G2: the decoded actor -> pose links against the enemy types seen showing each pose
+  const g2 = {agree: 0, contradiction: 0, notDecoded: 0, contradictions: []};
+  for (const o of sightings) { const c = contextsBefore['rom:' + sha16 + ':pose:' + o.poseId], label = actorLabel.get(o.type);
+    if (c?.basis !== 'decoded') { g2.notDecoded++; continue; } if ((c.actors || []).includes(label)) g2.agree++; else { g2.contradiction++; g2.contradictions.push({pose: o.poseId, seenWith: label, decoded: c.actors}); } }
+  // G3: what Forge stores for each pose seen (its drawing for that stage) against what the game drew there
+  const stored = await s.page.evaluate(async ([h, ids]) => { const L = Forge.services.ResourceLibrary, out = {}; for (const id of ids) { const e = await L.entry('rom:' + h + ':pose:' + id), get = async ref => ref ? JSON.parse(new TextDecoder().decode(await L.blobBytes(ref.hash))) : null;
+    out[id] = {renditions: Object.fromEntries(await Promise.all(Object.entries(e.renditions || {}).map(async ([st, ref]) => [st, await get(ref)]))), rendition: await get(e.rendition)}; } return out; }, [sha16, [...seenPoses.keys()]]);
+  const drawnArt = (rec, rend) => rec.pieces.map((p, i) => [rend.tiles[rend.pieces[i].tile], rend.tiles[rend.pieces[i].tile2]].map(t => { const b = []; for (let y = 0; y < 8; y++) { let lo = 0, hi = 0; for (let x = 0; x < 8; x++) { lo |= (t[y][x] & 1) << (7 - x); hi |= ((t[y][x] >> 1) & 1) << (7 - x); } b.push(lo); b.push(hi); } return Buffer.from([...b.filter((_, k) => k % 2 === 0), ...b.filter((_, k) => k % 2 === 1)]).toString('hex'); }).join('')).join('');
+  const g3 = {poses: 0, matches: 0, problems: []}, g4 = {sightingsWhereStage11Differs: 0, sightings: 0, posesNowConfirmed: 0, posesWrongBefore: new Set()};
+  for (const [id, rec] of seenPoses) {
+    const mine = sightings.filter(o => o.poseId === id), first = mine.find(o => (o.banks || []).some(k => !/!nosplit/.test(k)));
+    if (!first) continue; const k = first.banks.find(x => !/!nosplit/.test(x)), b = k.split('@')[0].split('/').map(Number), rend = stored[id].renditions[first.stage];
+    g3.poses++; if (rend && drawnArt(rec, rend) === artOf(rec, b)) g3.matches++; else g3.problems.push({pose: id, stage: first.stage, hasStageDrawing: !!rend});
+    const stage11 = artOf(rec, [0, 1]);
+    for (const o of mine) for (const kk of (o.banks || []).filter(x => !/!nosplit/.test(x))) { g4.sightings++; if (artOf(rec, kk.split('@')[0].split('/').map(Number)) !== stage11) { g4.sightingsWhereStage11Differs++; g4.posesWrongBefore.add(id); } }
+  }
+  for (const id of g4.posesWrongBefore) if (stored[id].rendition?.context?.confirmed) g4.posesNowConfirmed++;
+  report.phases.G = {areas: G_AREAS, contextsBefore: basisCount, sightings: sightings.length, g1, g2, g3, g4: {...g4, posesWrongBefore: g4.posesWrongBefore.size}};
+  check('G: at every sighting (frames with the HUD split), the CHR bank the game had mapped for the play area, for each pattern table the pose uses, equals the room\'s recorded bank (drawing rooms use the game\'s banks)',
+    g1.withSplit > 20 && g1.match === g1.withSplit, {withSplit: g1.withSplit, match: g1.match, noSplit: g1.noSplit, mismatches: g1.mismatches.slice(0, 5)});
+  check('G: the decoded actor -> pose links agree with gameplay: every pose with a decoded drawing room that was seen on screen was seen with one of its decoded enemy types (no contradiction)',
+    g2.agree > 10 && g2.contradiction === 0, {agree: g2.agree, notDecoded: g2.notDecoded, contradictions: g2.contradictions.slice(0, 5)});
+  check('G: for every pose seen in the surveyed stages, the drawing Forge stores for that stage has exactly the tiles the game drew (its mapped banks at the sighting)',
+    g3.poses > 10 && g3.matches === g3.poses, {poses: g3.poses, problems: g3.problems.slice(0, 5)});
+  // the library shows how each sprite is drawn
+  const decodedId = Object.entries(contextsBefore).find(([, c]) => c?.basis === 'decoded')?.[0], unestablishedId = Object.entries(contextsBefore).find(([id, c]) => c?.basis === 'default' && !stored[id.split(':pose:')[1]])?.[0];
+  const previewOf = async id => { await s.page.evaluate(x => Forge.services.ResourceRelationshipPreview.openLibraryEntry(x), id);
+    await s.page.waitForFunction(() => /Drawn as in|Room not established|Same tiles in every room/.test(document.getElementById('frx-preview')?.textContent || ''), null, {timeout: 20000}).catch(() => {});
+    return s.page.$eval('#frx-preview', e => (e.textContent.match(/(Drawn as in|⚠ Room not established|Same tiles in every room)[^·]*/) || [''])[0]); };
+  const decodedText = await previewOf(decodedId); await shot('G1_pose_drawn_in_decoded_room');
+  const unestablishedText = unestablishedId ? await previewOf(unestablishedId) : null; await shot('G2_pose_room_not_established');
+  await s.page.evaluate(() => document.getElementById('frx-close')?.click());
+  report.phases.G.ui = {decoded: {id: decodedId, text: decodedText}, unestablished: {id: unestablishedId, text: unestablishedText}};
+  check('G: Resources > Library says how each sprite is drawn: the room it is drawn in and the decoded evidence, or a visible "room not established" with its art variants',
+    /^Drawn as in .*selects? this pose in (its|their) own code, and the ROM's spawn tables place/.test(decodedText) && (!unestablishedId || /^⚠ Room not established: drawn with the tile banks and palette of .*not established/.test(unestablishedText || '')), report.phases.G.ui);
   const posesNg = await allPoses(s.page, NINJA, ROM, true); report.phases.P = {ninjaGaiden: posesNg};
   check('P: all 202 recovered Ninja Gaiden poses equal the cartridge: every piece\'s tile pair is the CHR ROM pattern of the recorded room\'s bank, its position, flips, priority and palette index are the record\'s, the palette is the room\'s, and each piece\'s [tile, x, y] and attribute bytes are at its recorded offsets',
     posesNg.poses === 202 && posesNg.bad.length === 0, {poses: posesNg.poses, pieces: posesNg.pieces, rooms: posesNg.rooms, bad: posesNg.bad.slice(0, 5)});
