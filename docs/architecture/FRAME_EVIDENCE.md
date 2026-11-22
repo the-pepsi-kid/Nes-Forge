@@ -372,7 +372,8 @@ rebuilt, checked or captured.
   of Forge's scanline renderer. It does not check that order against the PPU's dot timing.
 - Nametables and OAM are taken once the frame's last line is drawn. The game's vblank code, which runs before frame
   evidence is taken, already prepares the next frame.
-- Only the PRG 1 cartridge was available. PRG 0 is untested.
+- PRG 0, supplied later the same day, goes through the same route and checks. Both revisions reach the bout: 26 frames
+  and 6,240 lines show 0 differences, and 3,296 tiles equal their cartridge's bytes. The Agent Lab plan matches PRG 1 only.
 
 ## 13. CNROM (2026-11-22)
 
@@ -409,4 +410,11 @@ conflicts or mid-frame switches.
   from pattern table $0000 lies in the sprite bank that the game's room table gives for the room it is in (PRG
   $AC90 + room, decoded by Forge's Ninja Gaiden decoder). For the seven other games, each drawn sprite has its traced
   location, or makes no claim (CHR RAM).
+
+## 15. Every pack source-verified (2026-11-22)
+
+With the original Castlevania US PRG 0 and PRG 1 and Mike Tyson's Punch-Out!! (U) PRG 0 cartridges supplied (each
+matching its pack's declared SHA-256 exactly), `QA/native-corpus.cjs` passes for 19 cartridges. All 18 extraction
+packs match their originals exactly, and `allPacksSourceVerified` is true. The cartridges stay private, outside the
+repository.
 
