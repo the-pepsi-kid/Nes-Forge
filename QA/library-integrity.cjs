@@ -288,10 +288,10 @@ async function allPoses(page, sha, rom, ng) {
   const jobsBefore = jobs().length, invX0 = await inventory(s.page, NINJA);
   // the earlier session's notices are still here (kept for this browser profile), and their "Open in Library" works
   await s.page.evaluate(() => { const d = document.getElementById('agentLabPanel'); if (!d.open) d.querySelector('summary').click(); d.scrollIntoView({block: 'start'}); });
-  const keptNotices = await s.page.$$eval('#agentLabPanel .agentLabNotices li', ls => ls.map(l => ({text: l.textContent, open: !!l.querySelector('[data-action="open-library"]')})));
+  const keptNotices = await s.page.$$eval('#agentLabNotices li', ls => ls.map(l => ({text: l.textContent, open: !!l.querySelector('[data-action="open-library"]')})));
   const finished = keptNotices.find(n => /Job finished · 22 verified frames from Ninja Gaiden/.test(n.text) && n.open);
   await shot('X0_notices_kept_after_reopen');
-  if (finished) await s.page.evaluate(() => [...document.querySelectorAll('#agentLabPanel .agentLabNotices li')].find(l => /Job finished · 22 verified frames/.test(l.textContent)).querySelector('[data-action="open-library"]').click());
+  if (finished) await s.page.evaluate(() => [...document.querySelectorAll('#agentLabNotices li')].find(l => /Job finished · 22 verified frames/.test(l.textContent)).querySelector('[data-action="open-library"]').click());
   const openedFromNotice = finished ? await s.page.waitForFunction(() => /Library · frame/.test(document.querySelector('#frx-items .frx-item[aria-current="true"]')?.textContent || '') && document.getElementById('frx-root').classList.contains('frx-visible'), null, {timeout: 20000}).then(() => true).catch(() => false) : false;
   await s.page.evaluate(() => document.getElementById('frx-close')?.click());
   report.phases.X = {keptNotices: keptNotices.slice(0, 6), openedFromNotice};

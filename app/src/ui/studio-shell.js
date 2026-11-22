@@ -35,7 +35,11 @@ document.head.append(el('style',{id:'studioShellStyle',text:`
 .sb-modes{display:flex;gap:0;margin:0 6px}.sb-modes button{border-radius:0;margin-left:-1px}
 .sb-modes button[aria-selected="true"]{background:#14324a;border-color:var(--acc);color:#fff}
 .sb-project{color:var(--dim);max-width:34ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sb-project b{color:var(--txt)}
-.sb-spacer{flex:1}.sb-menu{position:relative}
+.sb-spacer{flex:1}
+.sb-state{font:600 11px/1.3 system-ui,sans-serif;padding:3px 9px;border:1px solid var(--bdr2);border-radius:999px;white-space:nowrap;flex:0 0 auto;background:#101a24}
+.sb-state.clean{color:#9be89b;border-color:#2f5f3a}.sb-state.dirty{color:#ffd27a;border-color:#6d5b2c}
+.sb-state[data-recovery="busy"]{color:#9fd3ff;border-color:#2f5a78}.sb-state[data-recovery="behind"]{color:#ffb35a;border-color:#b07a2a;background:#2a2010}
+.sb-state[data-recovery="failed"]{color:#ffb0a8;border-color:#c0443a;background:#3a1412}.sb-menu{position:relative}
 #studioToolsMenu{position:absolute;right:0;top:calc(100% + 2px);z-index:400;background:var(--bg2);border:1px solid var(--bdr2);min-width:240px;max-height:70vh;overflow:auto;padding:4px;box-shadow:0 6px 18px #000a}
 #studioToolsMenu button{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 8px}#studioToolsMenu button:hover{background:var(--bg3)}
 #studioToolsMenu .tm-h{color:var(--dim);font-size:9px;padding:6px 8px 2px;text-transform:uppercase;letter-spacing:1px}
@@ -76,7 +80,7 @@ body.studio-mode-library #studioPanel,body.studio-mode-build #studioPanel{displa
 #studioPalette input,#studioPalette textarea{font:12px inherit;background:var(--bg3);color:var(--txt);border:0;border-bottom:1px solid var(--bdr2);padding:8px}
 #studioPalette ul{list-style:none;margin:0;padding:0;overflow:auto;flex:1}#studioPalette li{padding:6px 10px;cursor:pointer}#studioPalette li[aria-selected="true"]{background:#14324a}
 #studioPalette pre{margin:0;padding:8px;max-height:30vh;overflow:auto;color:var(--dim);white-space:pre-wrap;border-top:1px solid var(--bdr)}
-@media(max-width:850px){.sp-body{flex-direction:column}.sp-list{flex:none;max-height:58vh}.sp-detail{border-left:0;border-top:1px solid var(--bdr);min-width:0}.sp-list{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}.sb-project{max-width:100%;order:9;width:100%}}
+@media(max-width:850px){.sp-body{flex-direction:column}.sp-list{flex:none;max-height:58vh}.sp-detail{border-left:0;border-top:1px solid var(--bdr);min-width:0}.sp-list{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}.sb-project{max-width:100%;order:9;width:100%}.sb-state{order:10;white-space:normal;flex:1 1 100%}}
 `}));
 
 // ---------- studio bar ----------
@@ -85,6 +89,8 @@ const byText=(selector,text)=>()=>[...document.querySelectorAll(selector)].find(
 const modes=[['library','Library','Every asset, its thumbnail and what it can do'],['edit','Edit','Scene, CHR, sprites, audio and the other editors'],['play','Play','Build and run in the emulator'],['build','Build','Check the build and download the ROM']];
 const modeButtons=modes.map(([id,label,title],i)=>el('button',{id:'studioMode-'+id,role:'tab','aria-selected':'false',title:title+' (Alt+'+(i+1)+')',onclick:()=>setMode(id)},label));
 const projectChip=el('span',{class:'sb-project',id:'studioProject','aria-live':'polite'});
+// the project's save and recovery state, the same text and levels as the classic toolbar's (Forge.release.updateStatus)
+const stateChip=el('span',{class:'sb-state clean',id:'studioState','aria-live':'polite',text:'Ready'});
 const toolsMenu=el('div',{id:'studioToolsMenu',role:'menu',hidden:''});
 const toolsButton=el('button',{id:'studioTools','aria-haspopup':'menu','aria-expanded':'false',onclick:()=>toggleTools()},'Tools ▾');
 const classicButton=el('button',{id:'studioClassic','aria-pressed':'false',title:'Show every original toolbar row as well',onclick:()=>setClassic(!document.body.classList.contains('studio-classic'))},'Classic layout');
@@ -95,7 +101,7 @@ const bar=el('div',{id:'studioBar',role:'toolbar','aria-label':'NES Forge studio
   el('button',{id:'studioSave',title:'Save in this browser',onclick:()=>clickOriginal(byText('.project-bar button','Save'))},'Save'),
   el('button',{id:'studioSaveAs',title:'Save a portable project file',onclick:()=>clickOriginal(byText('.project-bar button','Save Project As…'))||clickOriginal(byText('.project-bar button','Download Project'))},'Save As…'),
   el('nav',{class:'sb-modes',role:'tablist','aria-label':'Studio mode'},...modeButtons),
-  projectChip,el('span',{class:'sb-spacer'}),
+  projectChip,stateChip,el('span',{class:'sb-spacer'}),
   el('button',{id:'studioLearn',title:'Project lessons',onclick:()=>{setMode('edit');clickOriginal('#projectLessonsOpen');}},'Learn'),
   el('div',{class:'sb-menu'},toolsButton,toolsMenu));
 document.body.prepend(bar);

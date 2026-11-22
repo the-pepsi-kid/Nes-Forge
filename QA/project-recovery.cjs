@@ -109,7 +109,9 @@ async function prepared(name) {
     // the label turns "behind" once a change has waited 2 s; it refreshes every second
     await editScene(s.page, 9, 136); await s.page.waitForFunction(() => /recovery behind/.test(document.getElementById('forge15State').textContent), null, {timeout: 8000}).catch(() => {});
     labels.behind = await s.page.$eval('#forge15State', e => e.textContent); labels.behindLevel = await s.page.$eval('#forge15State', e => e.dataset.recovery);
-    labels.behindFits = await s.page.$eval('#forge15State', e => e.scrollWidth <= e.clientWidth + 1 && getComputedStyle(e).textOverflow !== 'ellipsis');
+    // the Studio bar (the default layout) shows the same state as the classic toolbar, in full
+    labels.studioBehind = await s.page.$eval('#studioState', e => ({text: e.textContent, level: e.dataset.recovery, visible: e.offsetWidth > 0, fits: e.scrollWidth <= e.clientWidth + 1 && getComputedStyle(e).textOverflow !== 'ellipsis'}));
+    labels.behindFits = labels.studioBehind.visible && labels.studioBehind.fits && labels.studioBehind.text === labels.behind && labels.studioBehind.level === 'behind';
     if (shots) await s.page.screenshot({path: path.join(shots, 'recovery_indicator_behind.png'), clip: {x: 0, y: 0, width: 1440, height: 120}});
     await s.page.evaluate(() => { window.__hold = false; }); await committed(s.page);
     labels.caughtUp = await s.page.$eval('#forge15State', e => e.textContent);
@@ -117,13 +119,15 @@ async function prepared(name) {
     await s.page.evaluate(() => { const put = IDBObjectStore.prototype.put; window.__restorePut = () => { IDBObjectStore.prototype.put = put; }; IDBObjectStore.prototype.put = function (...a) { if (this.transaction.db.name === 'nes-forge-recovery-journal') throw new DOMException('simulated quota exceeded', 'QuotaExceededError'); return put.apply(this, a); }; });
     await editScene(s.page, 10, 120); await s.page.waitForFunction(() => /recovery failed/.test(document.getElementById('forge15State').textContent), null, {timeout: 8000}).catch(() => {});
     labels.failed = await s.page.$eval('#forge15State', e => e.textContent); labels.failedTitle = await s.page.$eval('#forge15State', e => e.title);
-    labels.failedLevel = await s.page.$eval('#forge15State', e => e.dataset.recovery); labels.failedFits = await s.page.$eval('#forge15State', e => e.scrollWidth <= e.clientWidth + 1);
-    labels.failedColour = await s.page.$eval('#forge15State', e => getComputedStyle(e).backgroundColor); labels.behindColour = labels.behindColour || null;
+    labels.failedLevel = await s.page.$eval('#forge15State', e => e.dataset.recovery);
+    labels.studioFailed = await s.page.$eval('#studioState', e => ({text: e.textContent, level: e.dataset.recovery, visible: e.offsetWidth > 0, fits: e.scrollWidth <= e.clientWidth + 1}));
+    labels.failedFits = labels.studioFailed.visible && labels.studioFailed.fits && labels.studioFailed.text === labels.failed && labels.studioFailed.level === 'failed';
+    labels.failedColour = await s.page.$eval('#studioState', e => getComputedStyle(e).backgroundColor);
     if (shots) await s.page.screenshot({path: path.join(shots, 'recovery_indicator_failed.png'), clip: {x: 0, y: 0, width: 1440, height: 120}});
     await s.page.evaluate(() => window.__restorePut()); await s.page.evaluate(() => Forge.services.ProjectStore.autoSave());
     labels.recovered = await s.page.$eval('#forge15State', e => e.textContent);
     report.measurements.indicators = labels;
-    check('Indicators distinguish saved/unsaved and up-to-date, behind, failed and caught-up recovery; "behind" and "failed" have their own levels, and the full text is shown (not cut off)',
+    check('Indicators distinguish saved/unsaved and up-to-date, behind, failed and caught-up recovery; "behind" and "failed" have their own levels, and the Studio bar shows the same state in full (not cut off)',
       /Unsaved changes · recovery ✓/.test(labels.upToDate) && /✓ Saved · recovery ✓/.test(labels.savedToBrowser) && /recovery behind · \d+ change/.test(labels.behind) && labels.behindLevel === 'behind' && labels.behindFits && labels.failedLevel === 'failed' && labels.failedFits &&
       /recovery ✓/.test(labels.caughtUp) && /recovery failed · use Save As/.test(labels.failed) && /simulated quota/.test(labels.failedTitle) && /recovery ✓/.test(labels.recovered), labels);
     await s.ctx.close();
