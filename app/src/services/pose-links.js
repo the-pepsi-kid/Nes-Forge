@@ -136,10 +136,29 @@ async function frameEntryPoses(id){
   return {entry:entry.id,...await framePoses(JSON.parse(new TextDecoder().decode(bytes)),{sourceSha256:entry.sourceSha256})};
 }
 
-services.PoseLinks=Object.freeze({framePoses,frameEntryPoses,layoutMatches,posesOf});
+// the other way round: the captured frames of the same ROM in which a pose is established (each frame's links are
+// computed once per frame entry and pose set)
+const frameCache=new Map();
+async function poseFrames(poseEntryId){
+  const L=services.ResourceLibrary,pose=await L.entry(poseEntryId);
+  if(pose.kind!=='pose')fail(poseEntryId+' is not a pose entry');
+  const sha=pose.sourceSha256,frames=[];for(let offset=0;;offset+=1000){const page=await L.list({shelf:sha,kind:'frame',offset,limit:1000});frames.push(...page.items);if(offset+1000>=page.total)break;}
+  const poseKey=(poseCache.get(sha)?.key||'')+'#'+(await posesOf(sha)).length,out=[];
+  for(const f of frames){
+    const ck=f.id+'|'+poseKey;let r=frameCache.get(ck);
+    if(!r){try{r=await frameEntryPoses(f.id);}catch(_){r=null;}frameCache.set(ck,r);}
+    const link=r?.links?.find(l=>l.poseEntry===poseEntryId);
+    if(link)out.push({frameEntry:f.id,label:f.label||f.id,frame:r.frame,by:link.by,mirrored:link.mirrored,sprites:link.sprites});
+  }
+  return {pose:poseEntryId,frames:out,framesChecked:frames.length};
+}
+services.PoseLinks=Object.freeze({framePoses,frameEntryPoses,poseFrames,layoutMatches,posesOf});
 if(C?.register){
   C.register({name:'library.framePoses',group:'library',title:'Link a frame\'s sprites to library poses',
     summary:'For a frame entry (id) or a frame evidence record (record): the decoded poses of the same ROM drawn in it. Established only when every piece is drawn in place and its graphics equal the library\'s drawing; same layout with other graphics is a candidate. Read-only.',
     args:{id:{type:'string'},record:{type:'object'}},run:a=>a.id?frameEntryPoses(a.id):framePoses(a.record)});
+  C.register({name:'library.poseFrames',group:'library',title:'Captured frames that show a pose',
+    summary:'For a pose entry (id): the captured frames of the same ROM in which this pose is established (by library.framePoses). Read-only.',
+    args:{id:{type:'string',required:true}},run:a=>poseFrames(a.id)});
 }
 })();

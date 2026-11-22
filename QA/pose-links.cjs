@@ -123,20 +123,31 @@ function drawnInPlace(P, sprites) {
         out.push({id, same: JSON.stringify(viaLibrary.result.links.map(l => [l.poseEntry, l.sprites])) === JSON.stringify(direct.links.map(l => [l.poseEntry, l.sprites])), links: viaLibrary.result.links.length}); }
       return out;
     }, run.frames.filter(f => f.record).map(f => f.record));
-    const frameId = lib.find(x => x.links)?.id;
+    const registered = run.frames.filter(f => f.record), frameId = lib[registered.findIndex(f => f.area === 4)]?.id;   // the frame the view opens below
     await page.evaluate(id => { Forge.services.ResourceRelationshipPreview.open(); }, frameId);
     await page.waitForSelector('#frx-lib'); await page.click('#frx-lib'); await page.fill('#frx-search', 'area 4'); await page.waitForTimeout(500);
     await page.evaluate(() => [...document.querySelectorAll('#frx-items .frx-item')].find(b => /Library · frame/.test(b.textContent)).click());
     await page.waitForSelector('[data-frame="pose-links"] .frx-pose-link', {timeout: 60000});
     const view = await page.$eval('[data-frame="pose-links"]', el => ({rows: el.querySelectorAll('.frx-pose-link').length, text: el.textContent.slice(0, 600), first: el.querySelector('.frx-pose-link button')?.textContent}));
     if (shots) { await page.$eval('[data-frame="pose-links"]', el => el.scrollIntoView({block: 'center'})); await page.screenshot({path: path.join(shots, 'P1_frame_sprite_pose_links.png')}); }
+    const firstPose = await page.$eval('[data-frame="pose-links"] .frx-pose-link', el => el.dataset.pose);
     await page.click('[data-frame="pose-links"] .frx-pose-link button');
     await page.waitForFunction(label => (document.querySelector('#frx-items .frx-item[aria-current="true"]')?.textContent || '').includes(label), view.first, {timeout: 30000}).catch(() => null);
     const opened = await page.evaluate(() => document.querySelector('#frx-items .frx-item[aria-current="true"]')?.textContent || '');
-    if (shots) await page.screenshot({path: path.join(shots, 'P2_linked_pose_opened.png')});
-    report.library = {frames: lib, view, opened: opened.slice(0, 120)};
-    check('In the library: frames registered as library entries give the same links through library.framePoses; the frame view lists them and a pose opens in the library from there',
-      lib.length >= 2 && lib.every(x => x.same) && view.rows >= 2 && /established by/.test(view.text) && opened.includes(view.first), report.library);
+    // the other way round: the pose lists the captured frames that show it, and leads back to the frame
+    await page.waitForSelector('[data-pose="frames"]', {timeout: 60000});
+    await page.waitForTimeout(800);   // any second render of the same entry has finished
+    const seen = await page.$eval('[data-pose="frames"]', el => ({text: el.textContent, buttons: [...el.querySelectorAll('button')].map(b => b.textContent), lines: document.querySelectorAll('[data-pose="frames"]').length}));
+    const viaCommand = await page.evaluate(id => Forge.commands.run('library.poseFrames', {id}).then(r => r.ok ? r.result : r.error), firstPose);
+    if (shots) { await page.$eval('[data-pose="frames"]', el => el.scrollIntoView({block: 'center'})); await page.screenshot({path: path.join(shots, 'P2_linked_pose_opened.png')}); }
+    const frameButton = seen.buttons.find(t => /area 4 \+90/.test(t));
+    if (frameButton) await page.evaluate(t => [...document.querySelectorAll('[data-pose="frames"] button')].find(b => b.textContent === t).click(), frameButton);
+    await page.waitForFunction(() => /Library · frame/.test(document.querySelector('#frx-items .frx-item[aria-current="true"]')?.textContent || ''), null, {timeout: 30000}).catch(() => null);
+    const back = await page.evaluate(() => document.querySelector('#frx-items .frx-item[aria-current="true"]')?.textContent || '');
+    report.library = {frames: lib, view, opened: opened.slice(0, 120), pose: firstPose, seen, viaCommand: viaCommand?.frames?.map(f => f.frameEntry), back: back.slice(0, 80)};
+    check('In the library: frames registered as library entries give the same links through library.framePoses; the frame view lists them, a pose opens from there, and the pose lists the captured frames that show it, leading back to the frame',
+      lib.length >= 2 && lib.every(x => x.same) && view.rows >= 2 && /established by/.test(view.text) && opened.includes(view.first) &&
+      /Seen in \d+ captured frame/.test(seen.text) && seen.lines === 1 && !!frameButton && viaCommand?.frames?.some(f => f.frameEntry === frameId) && /area 4 \+90/.test(back), report.library);
     check('No uncaught page errors', errors.length === 0, errors.slice(0, 3));
   } catch (e) { check('run', false, String(e.stack || e.message).slice(0, 900)); }
   await browser.close();

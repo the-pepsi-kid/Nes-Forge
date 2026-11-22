@@ -139,7 +139,7 @@ const isTileSheet=scene=>scene?.captureMeta?.mode==='native-chr'&&scene.buildInc
 function connectionEvidence(sel){
  if(mode==='demo')return 'Illustrative only';
  const origin=sel.libraryEntry?.origin;
- if(origin==='runtime-capture')return 'Observed at runtime (a synchronized emulator snapshot): sprite and background CHR links are cartridge offsets read through the mapper at that frame; sprite → actor relationships are not established';
+ if(origin==='runtime-capture')return 'Observed at runtime (a synchronized emulator snapshot): sprite and background CHR links are cartridge offsets read through the mapper at that frame; its sprites are linked to the library\'s decoded poses where every piece is drawn in place (see Sprite → pose)';
  if(origin==='rom-catalog')return 'Decoded by the NES Forge decoder for this exact ROM; locations are checked against the cartridge layout';
  if(sel.libraryEntry)return 'Stated by the extraction pack that registered it; Forge validated the pack, not each relationship';
  return 'Declared IDs and source-owner receipts; native consumer observations have partial coverage';
@@ -720,14 +720,16 @@ function renderLibraryViewer(n,host,tools,caption){
  host.classList.add('frx-lib');
  const e=n.libraryEntry,C=window.Forge.commands,id=e.id;caption.textContent='Library entry · '+e.path;$('context-result').textContent='Read-only library view';
  host.append(elt('div','frx-preview-message','Loading…'));
+ // only the latest render of this view writes into it (two renders of the same entry can overlap)
+ const token={};host._renderToken=token;const stale=()=>active!==n.key||host._renderToken!==token;
  (async()=>{
-  const [ins,pv]=await Promise.all([C.run('library.inspect',{id}),C.run('library.preview',{id})]);if(active!==n.key)return;host.replaceChildren();
+  const [ins,pv]=await Promise.all([C.run('library.inspect',{id}),C.run('library.preview',{id})]);if(stale())return;host.replaceChildren();
   if(!ins.ok){host.append(elt('div','frx-preview-message',ins.error.message));return;}
   const entry=ins.result.entry,notes=ins.result.notes||{};
   if(entry.kind==='pose'&&entry.rendition){
    // the chosen stage's colours where the sprite was observed there, else a stage where it was observed
    const chosen=$('stage').value,observed=Object.keys(entry.renditions||{}),use=chosen&&entry.renditions?.[chosen]?chosen:observed[0]||'';
-   const r=await C.run('library.rendition',{id,stage:use});if(active!==n.key)return;
+   const r=await C.run('library.rendition',{id,stage:use});if(stale())return;
    if(r.ok){const rend=r.result.rendition,canvas=drawRendition(rend,4);host.append(canvas,elt('div','frx-code',drawnAs(rend.context)+' · '+rend.pieces.length+' pieces · 8×'+rend.spriteMode+
      (chosen&&use!==chosen?' · not observed in '+chosen+(use?'; these are the colours of '+use+', where it was observed':''):'')+(!use?' · not yet observed in a stage: the game may show it in other colours':'')));
     const row=elt('div');row.style.cssText='display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0';
@@ -738,7 +740,17 @@ function renderLibraryViewer(n,host,tools,caption){
       const d=u.result.dependencies,msg=(mode==='reference'?'Referenced':'Copied')+' “'+rend.name+'” into this scene: '+d.tilesAdded+' tiles added'+(d.tilesShared?', '+d.tilesShared+' shared':'')+
        ', palette rows '+d.palettes.map(p=>p.row+(p.reused?' (reused)':' (set)')).join(', ')+(mode==='reference'?'. It stays linked to the library; editing it asks to make a copy.':'. It is an independent copy.');
       showPlaced(u.result,msg);};row.append(b);}
-    host.append(row);}
+    host.append(row);
+    // the captured frames of this ROM that show this pose (established links), each opening the frame
+    // a newer render of the same entry may have replaced this one while it waited: then this one stops
+    const seen=await C.run('library.poseFrames',{id});if(stale())return;
+    if(seen.ok){const line=elt('div');line.dataset.pose='frames';line.style.cssText='display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;margin:4px 0';
+     if(!seen.result.frames.length)line.append(elt('span','frx-code',seen.result.framesChecked?'Not established in any of the '+seen.result.framesChecked+' captured frames of this ROM.':'No captured frames of this ROM in the library yet.'));
+     else{line.append(elt('span','frx-code','Seen in '+seen.result.frames.length+' captured frame'+(seen.result.frames.length===1?'':'s')+':'));
+      for(const f of seen.result.frames.slice(0,12)){const b=elt('button','frx-relationship',f.label);b.type='button';b.title='Established by '+f.by+(f.mirrored?', mirrored':'')+' · sprites #'+f.sprites.join(', #');b.onclick=()=>choose(key('lib',f.frameEntry));line.append(b);}
+      if(seen.result.frames.length>12)line.append(elt('span','frx-code','… '+(seen.result.frames.length-12)+' more'));}
+     host.append(line);}
+   }
   }
   if(pv.ok&&pv.result.preview){const img=elt('img');img.src=pv.result.preview;img.alt='Preview of '+e.path;img.style.cssText='image-rendering:pixelated;max-width:100%;max-height:300px;display:block;margin:0 auto 8px';host.append(img);
    if(entry.preview?.derivation)host.append(elt('div','frx-code','Preview: '+entry.preview.derivation+'. '+(entry.kind!=='frame'?'':catalogGap(entry.sourceSha256)?'The cartridge tile data is not all linked yet: '+catalogGap(entry.sourceSha256)+'. The file offsets below locate it in the ROM.':hasChrEntries(entry.sourceSha256)?'The original cartridge tile data is in this ROM\'s CHR library entries, linked below.':'This ROM has no recovered catalog in the library, so the cartridge tile data is not linked here; the file offsets below locate it in the ROM.')));}
@@ -746,7 +758,7 @@ function renderLibraryViewer(n,host,tools,caption){
   const ev=entry.evidence||{state:'none'},box=elt('div');box.style.cssText='text-align:left;font-size:11px;margin:6px 0';
   const row=(label,value)=>{box.append(elt('span','frx-label',label),elt('div','frx-code',value));};
   row('Source ROM SHA-256',entry.sourceSha256||'Not declared by the pack');
-  const P=window.Forge.services.LibraryProvenance,d=P?await P.resolve({entryId:id}):null;if(active!==n.key)return;
+  const P=window.Forge.services.LibraryProvenance,d=P?await P.resolve({entryId:id}):null;if(stale())return;
   if(d?.primary){
    row('Evidence',ev.state==='decoded'?d.basis+(ev.total?' · '+ev.total+' recorded locations'+(ev.code?.length?', '+ev.code.length+' in code':''):''):ev.state==='observed'?(ev.basis||'observed at runtime'):'stated by the pack, not re-read from the ROM');
    row('Location',d.primary.name||d.primary.role);for(const [k,v] of P.rows(d.primary,d.rom))row(k,v);
@@ -762,7 +774,7 @@ function renderLibraryViewer(n,host,tools,caption){
   row('Pack',entry.packSha256.slice(0,16)+'… · '+entry.path);
   if(entry.project)row('Project inside the pack',JSON.stringify(entry.project));
   host.append(box);
-  if(entry.kind==='frame'){await renderFrameDetails(entry,host);if(active!==n.key)return;}
+  if(entry.kind==='frame'){await renderFrameDetails(entry,host);if(stale())return;}
   // data on demand
   if(entry.data?.state==='stored'&&entry.fileType!=='image'){
    const show=elt('button','frx-relationship','Show data');show.type='button';show.onclick=async()=>{show.disabled=true;
