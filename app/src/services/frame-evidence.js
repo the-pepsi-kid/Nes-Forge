@@ -69,8 +69,11 @@ function sprites(){
     const y=emu.oamMem[i*4],tile=emu.oamMem[i*4+1],attr=emu.oamMem[i*4+2],x=emu.oamMem[i*4+3];
     const addr=tall?((tile&1)<<12)|((tile&0xFE)<<4):table|(tile<<4);
     const src=physical?physical(addr):null;
+    // MMC2 switches CHR banks during the frame (latches): the bank a visible sprite was drawn from is the one the trace
+    // recorded when its pattern was fetched, not the one mapped once the frame has ended
+    const drawn=emu.mapper===9?emu.captureTrace?.sprites?.[i]:null;
     out.push({index:i,x,y,tile,attr,palette:attr&3,behind:!!(attr&0x20),flipH:!!(attr&0x40),flipV:!!(attr&0x80),height:tall?16:8,visible:y<0xEF,
-      pattern:addr,chrOffset:src&&src.src!==emu.chrRam?src.off:null});
+      pattern:addr,chrOffset:Number.isInteger(drawn?.chrOffset)&&!emu.hasChrRam?drawn.chrOffset:src&&src.src!==emu.chrRam?src.off:null});
   }
   return out;
 }
@@ -97,6 +100,9 @@ async function capture({label='frame',checkpoint=null,links=true,pixels=false,sc
     apu:{registers:Array.from(emu.apuRegs||[]),status:emu.apuStatus,frameCounter:emu.apuFrameCounter},
     ppu,
     nametables:b64(emu.vram),palette:Array.from(emu.palRam),oam:b64(emu.oamMem),sprites:sprites(),
+    // where the sprites' pattern locations come from: the bank in effect when each was fetched (MMC2, from the trace),
+    // or the banks mapped once the frame has ended (a frame that switches banks mid-frame may have drawn others)
+    spritePatternsAt:emu.mapper===9?'fetch':'frame-end',
     mapper:mapperState(),
     banks:{prg:prgWindows(layout,file),chr:chrWindows(layout,file)},
     rendered:{width:256,height:240,derivation:'rendered by the emulator: pixels, not CHR data',framebufferSha256:await sha256(new Uint8Array(emu.frameBuffer.buffer,emu.frameBuffer.byteOffset,emu.frameBuffer.byteLength)),

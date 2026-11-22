@@ -226,7 +226,7 @@ async function runJob(root, job, session, editorSha, stop) {
     writeAtomic(path.join(dir, 'frames', name + '.png'), png(rgba));
     writeAtomic(path.join(dir, 'frames', name + '.json'), JSON.stringify(stored));
     job.results.push({index: i, label: target.label, file: 'frames/' + name + '.json', png: 'frames/' + name + '.png', digest: record.digests.all, frame: record.frame, ms: Date.now() - t0, source, reached: reached.reached,
-      synchronization: record.synchronization.state, synchronizationReason: record.synchronization.reason || null, scene: !!record.scene, split: !!record.ppu.split});
+      synchronization: record.synchronization.state, synchronizationReason: record.synchronization.reason || null, scene: !!record.scene, split: !!record.ppu.split && record.spritePatternsAt !== 'fetch'});
     job.results.sort((a, b) => a.index - b.index); job.progress.done = job.results.length; saveJob(root, job);
   }
   job.progress.current = null; run.ended = now(); run.ms = Date.now() - started;

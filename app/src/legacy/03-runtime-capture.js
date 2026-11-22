@@ -30,9 +30,12 @@ function nativeTileUnchanged(src,off,bytes){
   else for(let i=0;i<16;i++)if((src[(off+i)%src.length]||0)!==bytes[i])return false;
   return true;
 }
+// The pattern location for given 4 KiB bank registers, as they were when a renderer fetched the pattern (MMC2 switches
+// them during the line, on pattern reads).
+function physicalWith(banks,addr){const src=emu.hasChrRam?emu.chrRam:emu.chrRom;const off=(addr<4096?banks[0]:banks[1])+(addr&4095);return {src,off:src?.length?off%src.length:0};}
 function newTrace(){return {rows:Array(240).fill(null),linePal:Array(240),masks:Array(240),lineState:Array(240),palettes:[],palMap:new Map(),tiles:[blankTileData()],sources:[{kind:'blank'}],tileMap:new Map(),sprites:Array(64),complete:false,frame:emu.frameCount+1,rom:emu.romName,mapper:emu.mapper,geometryChange:false};}
-function traceTile(trace,addr){
-  const physical=physicalChr(addr),{src,off}=physical;let cache;
+function traceTile(trace,addr,physical=physicalChr(addr)){
+  const {src,off}=physical;let cache;
   // Mutable CHR-RAM retains the live read path, including mid-scanline writes.
   // Mapper banks are resolved before lookup, so bank switches cannot alias IDs.
   if(!emu.hasChrRam&&src?.length){
@@ -46,16 +49,21 @@ function traceTile(trace,addr){
   if(cache){if(cache.tiles.size>=MAX_TILES&&!cache.tiles.has(off))cache.tiles.clear();cache.tiles.set(off,{bytes,id});}
   return id;
 }
-function recordLine(line,baseY,baseNTY){
+// fetched (optional): what a renderer that resolves pattern memory itself actually fetched on this line, so nothing is
+// read again (an MMC2 pattern read can switch a CHR latch): {start:[chr0,chr1] at the line start, latch, chr (registers),
+// bg:[[chr0,chr1] per pattern fetch, in fetch order], sprites:[{banks:[chr0,chr1],lo,hi} by OAM index]}
+function recordLine(line,baseY,baseNTY,fetched=null){
   if(line===0||!emu.captureTrace)emu.captureTrace=newTrace();
   const t=emu.captureTrace,mask=emu.ppuMask,scrollX=(emu.tAddr&31)*8+emu.fineX,ntx=(emu.tAddr>>10)&1,worldY=baseY+line,ly=((worldY%240)+240)%240,nty=baseNTY^(Math.floor(worldY/240)&1);
   const pal=Array.from({length:32},(_,i)=>ppuBusRead(0x3F00+i));let key=pal.join(',');let p=t.palMap.get(key);if(p===undefined){p=t.palettes.length;t.palettes.push(pal);t.palMap.set(key,p);}t.linePal[line]=p;t.masks[line]=mask;
-  t.lineState[line]={ctrl:emu.ppuCtrl,mask,scrollX,localY:ly,ntY:nty,ntX:ntx,mirror:emu.mirroring,chr0:emu.chrBank0,chr1:emu.chrBank1,chrPages:emu.mapper===4?[...emu.chrPages]:null};
+  t.lineState[line]={ctrl:emu.ppuCtrl,mask,scrollX,localY:ly,ntY:nty,ntX:ntx,mirror:emu.mirroring,chr0:fetched?fetched.start[0]:emu.chrBank0,chr1:fetched?fetched.start[1]:emu.chrBank1,chrPages:emu.mapper===4?[...emu.chrPages]:null};
+  if(fetched?.latch)t.lineState[line].latch={atStart:[...fetched.latch.atStart],atEnd:[...fetched.latch.atEnd],chr:[...fetched.chr]};
   const row=[];
   for(let x=0;x<256;){
     if(!(mask&8)||(x<8&&!(mask&2))){const w=mask&8?8-x:256-x;row.push(x,w,0,0,0,0);x+=w;continue;}
     const wx=scrollX+x,lx=wx&255,nt=(nty*2+(ntx^((wx>>8)&1)))*1024,tr=ly>>3,tc=lx>>3,ti=emu.vram[ppuMirror(nt+tr*32+tc)],ab=emu.vram[ppuMirror(nt+960+(tr>>2)*8+(tc>>2))],pi=(ab>>((((tr>>1)&1)*2+((tc>>1)&1))*2))&3,addr=(emu.ppuCtrl&16?4096:0)+ti*16,w=Math.min(8-(lx&7),256-x);
-    row.push(x,w,traceTile(t,addr),lx&7,ly&7,pi);x+=w;
+    const f=fetched?.bg[((scrollX+x)>>3)-(scrollX>>3)];
+    row.push(x,w,traceTile(t,addr,f?physicalWith(f,addr):undefined),lx&7,ly&7,pi);x+=w;
   }
   t.rows[line]=row;
   // Freeze OAM/CHR used on visible lines, rather than the next frame's NMI data.
@@ -64,8 +72,13 @@ function recordLine(line,baseY,baseNTY){
     const tile=emu.oamMem[o+1],attr=emu.oamMem[o+2]&0xE3,x=emu.oamMem[o+3],bank=h===16?(tile&1)*4096:(emu.ppuCtrl&8?4096:0),baseTile=h===16?tile&254:tile;
     const geom=[top,x,h,tile,attr].join(',');let s=t.sprites[i];
     if(s&&s.geom!==geom){t.geometryChange=true;continue;}
-    if(!s){s=t.sprites[i]={geom,y:top,x,height:h,attr,sourceOamIndex:i,sourceTile:tile,rows:[],top:tilePixels(readNativeTile(bank+baseTile*16).bytes),bottom:h===16?tilePixels(readNativeTile(bank+(baseTile+1)*16).bytes):null};}
-    const py=attr&128?h-1-(line-top):line-top,addr=bank+(baseTile+(py>>3))*16,p0=ppuBusRead(addr+(py&7)),p1=ppuBusRead(addr+(py&7)+8),target=py>=8?s.bottom:s.top;
+    const sf=fetched?.sprites[i],at=a=>sf?physicalWith(sf.banks,a):fetched?physicalWith(fetched.start,a):physicalChr(a);
+    if(!s){s=t.sprites[i]={geom,y:top,x,height:h,attr,sourceOamIndex:i,sourceTile:tile,rows:[],top:tilePixels(readNativeTile(bank+baseTile*16,at(bank+baseTile*16)).bytes),bottom:h===16?tilePixels(readNativeTile(bank+(baseTile+1)*16,at(bank+(baseTile+1)*16)).bytes):null};
+      if(fetched)s.chrOffset=at(bank+baseTile*16).off;}
+    const py=attr&128?h-1-(line-top):line-top,addr=bank+(baseTile+(py>>3))*16,target=py>=8?s.bottom:s.top;
+    // a renderer that fetched the row gives its bytes; a sprite it did not fetch (past the 8 per line) is read from the
+    // pattern table directly, never through the PPU bus
+    let p0,p1;if(sf){p0=sf.lo;p1=sf.hi;}else if(fetched){const b=readNativeTile(addr,at(addr)).bytes;p0=b[py&7];p1=b[(py&7)+8];}else{p0=ppuBusRead(addr+(py&7));p1=ppuBusRead(addr+(py&7)+8);}
     target[py&7]=Array.from({length:8},(_,xx)=>((p0>>(7-xx))&1)|(((p1>>(7-xx))&1)<<1));s.rows.push(line-top);
   }
   if(line===239)t.complete=t.rows.every(Boolean);
@@ -101,7 +114,8 @@ function captureFromTrace(){const t=emu.captureTrace;if(!t?.complete)throw Error
 }
 captureRuntimeData=captureFromTrace;
 // Exposed for deterministic diagnostics and exported regression tests.
-window.forgeCapture={scenePixels,countPixelDifferences,captureFromTrace,liveScene,sampledBackground,rasterMap,physicalChr};
+window.forgeCapture={scenePixels,countPixelDifferences,captureFromTrace,liveScene,sampledBackground,rasterMap,physicalChr,
+  recordFetchedLine:(line,baseY,baseNTY,fetched)=>recordLine(line,baseY,baseNTY,fetched)};
 function captureExact(label='Runtime'){if(!emu.loaded)return;emuPause();renderEmu();try{const scene=captureFromTrace();scene.name=label+' F'+scene.captureMeta.frame;const result=pushSceneFromCapture(scene);if(result){document.getElementById('viewShow').checked=false;render();showToast('Captured F'+scene.captureMeta.frame+' • BG + sprites: 0 / 61,440 pixels different');}return result;}catch(e){return reportError(e);}}
 emuCapture=()=>captureExact();emuCaptureNametable=emuCapture;emuCaptureHybrid=()=>captureExact('Layered');
 window.emuCaptureRawNametable=function(){if(!emu.loaded)return;emuPause();try{const scene=previous.captureRuntimeData();scene.name='Raw nametable F'+emu.frameCount;scene.captureMeta.note='Unscrolled end-of-frame memory inspection; NOT the visible viewport. Use Capture Runtime Scene for a validated match.';return pushSceneFromCapture(scene);}catch(e){reportError(e);}};

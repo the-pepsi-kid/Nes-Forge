@@ -43,9 +43,10 @@ args = parser.parse_args()
 #   catalog-recovery   ~6 min: recovered-catalog registration interrupted (kill, close), completed, validated, retried
 #   library-integrity  ~6 min: copied pose vs cartridge CHR, independent copies, recognition across sessions, Zelda II
 #   native-corpus, library-locations: several minutes with every cartridge
+#   mmc2-sync          Punch-Out!! (MMC2) frames along the route to the bout, an independent latch model, two Agent Lab jobs
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420
-TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500}
+TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 1200}
 for item in args.timeout:
     suite, _, seconds = item.partition('=')
     if not suite or not seconds.isdigit():
@@ -210,6 +211,8 @@ if args.cartridges:
     record(run('investigated-library',['node',QA/'investigated-library.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
     receipt=output/'punch-out-pose-geometry.json'
     record(run('punch-out-pose-geometry',['node',QA/'punch-out-pose-geometry.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
+    receipt=output/'mmc2-sync.json'
+    record(run('mmc2-sync',['node',QA/'mmc2-sync.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
     receipt=output/'ninja-stage-table.json'
     record(run('ninja-stage-table',['node',QA/'ninja-stage-table.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
     if args.browser:

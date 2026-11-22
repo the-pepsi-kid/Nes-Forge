@@ -3,13 +3,15 @@
  * Entry: Forge.services.MMC2Mapping / live mapper-9 wrappers
  * Purpose: Install MMC2 CPU/PPU mapping and scanline rendering while delegating every other mapper.
  * Connections: Wraps the legacy emulator functions; the shared Forge6502Core still owns CPU instruction behavior.
- * Contract: Retain offscreen background fetch side effects. Timing remains approximate; MMC2 runtime capture still explicitly refuses.
+ * Contract: Retain offscreen background fetch side effects. Timing remains approximate. Each line records what it
+ *   fetched (the latch-switched bank of every pattern fetch, the sprite bytes) in the runtime trace, so MMC2 frames are
+ *   synchronization-checked and captured like every other mapper's.
  * Developer walkthrough: app/docs/NATIVE_RECOVERY_TUTORIAL.md
  * Bundle order: app/source-manifest.json; regenerate with app/tools/bundle.py.
  */
 /* Add MMC2 bus mapping without altering prior mapper or instruction cores.
  * The existing scanline timing model remains approximate. The MMC2 renderer
- * fetches each pattern row once; capture refuses until its provenance is wired. */
+ * fetches each pattern row once and hands the runtime trace what it fetched. */
 (() => {
   'use strict';
   const api = ForgeMMC2,
@@ -19,10 +21,7 @@
       read: cpuRead,
       write: mapperWrite,
       ppu: ppuBusRead,
-      line: renderEmuLine,
-      capture: emuCapture,
-      nametable: emuCaptureNametable,
-      hybrid: emuCaptureHybrid
+      line: renderEmuLine
     };
 
   function sync() {
@@ -103,6 +102,16 @@
     opaque.fill(0);
     claimed.fill(0);
     colors.fill(ppuBusRead(0x3f00));
+    // What this line fetched, for the runtime trace: the bank registers in effect at each pattern fetch (the latch
+    // switches after the triggering read, so a tile's two planes come from the bank before it) and the sprite bytes.
+    const s = emu.mmc2,
+      fetched = {
+        start: [emu.chrBank0, emu.chrBank1],
+        latch: {atStart: s.latch.slice(), atEnd: null},
+        chr: s.chr.slice(),
+        bg: [],
+        sprites: []
+      };
     // PPU background work includes 34 pattern fetches, even when the last
     // tiles fall outside the visible 256 pixels. Punch-Out puts an MMC2 latch
     // tile there; omitting it leaves the next row in Little Mac's CHR bank.
@@ -117,8 +126,9 @@
           t = emu.vram[ppuMirror(nt + tr * 32 + tc)],
           a = emu.vram[ppuMirror(nt + 960 + (tr >> 2) * 8 + (tc >> 2))],
           pal = (a >> ((((tr >> 1) & 1) * 2 + ((tc >> 1) & 1)) * 2)) & 3,
-          addr = (emu.ppuCtrl & 16 ? 4096 : 0) + t * 16 + (ly & 7),
-          lo = ppuBusRead(addr),
+          addr = (emu.ppuCtrl & 16 ? 4096 : 0) + t * 16 + (ly & 7);
+        fetched.bg[fetch] = [emu.chrBank0, emu.chrBank1];
+        const lo = ppuBusRead(addr),
           hi = ppuBusRead(addr + 8);
         for (let j = 0; j < 8; j++) {
           const px = fetch * 8 - (scroll & 7) + j;
@@ -159,8 +169,10 @@
           bank = h === 16 ? (tile & 1) * 4096 : (emu.ppuCtrl & 8 ? 4096 : 0),
           ti = h === 16 ? (tile & 254) + (py >> 3) : tile,
           addr = bank + ti * 16 + (py & 7),
+          banks = [emu.chrBank0, emu.chrBank1],
           lo = ppuBusRead(addr),
           hi = ppuBusRead(addr + 8);
+        fetched.sprites[i] = {banks, lo, hi};
         for (let px = 0; px < 8; px++) {
           const x = sx + px;
           if (x >= 256 || x < 8 && !(mask & 4)) continue;
@@ -175,19 +187,13 @@
         }
       }
     for (let x = 0; x < 256; x++) put(emu.frameBuffer, x, colors[x]);
+    fetched.latch.atEnd = s.latch.slice();
+    // the same runtime trace as every other mapper, from what was fetched (nothing is read again)
+    window.forgeCapture?.recordFetchedLine?.(line, baseY, baseNTY, fetched);
     return hit;
   };
-  const capture = previous => function(...args) {
-    if (emu.mapper === 9) return reportError(Error(
-      'MMC2 runtime capture is not available. Use recovered source screens for native editing.'
-      ));
-    return previous(...args);
-  };
-  emuCapture = capture(prior.capture);
-  emuCaptureNametable = capture(prior.nametable);
-  emuCaptureHybrid = capture(prior.hybrid);
   Forge.services.MMC2Mapping = Object.freeze({
-    version: 1,
-    scope: 'Standard MMC2 physical banking; scanline rendering remains approximate. Runtime capture is explicitly unavailable for MMC2.'
+    version: 2,
+    scope: 'Standard MMC2 physical banking; scanline rendering remains approximate. Runtime capture comes from the trace of each pattern fetch (its latch-switched bank) and is checked by rebuilding the frame.'
   });
 })();
