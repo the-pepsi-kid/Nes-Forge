@@ -52,6 +52,8 @@ How the worker behaves:
 - **Plans** (`plans/*.json`, `NESForgeCapturePlan`) are data, not code:
   - `generic.json`: any emulated mapper, no game knowledge.
   - `ninja-gaiden-us.json`: every area through the game's own restart; matched by SHA-256.
+  - `punch-out-us-prg1.json`: the title, passcode entry and the Mike Tyson bout (passcode 007 373 5963, recorded
+    inputs only); matched by the PRG 1 cartridge's SHA-256.
 - **Queue**: `<root>/jobs/<id>/job.json`.
   - States: queued, running, paused, completed, failed, interrupted, cancelled.
   - A job left running by a stopped worker is recorded as an *interruption*, not a failure. It resumes at its first
@@ -67,7 +69,8 @@ How the worker behaves:
 - **Limits**: one job at a time, lowered CPU priority, a time limit per job (the job is paused when reached), and
   frame limits per target.
 - **Compatibility**: damaged iNES headers are reported, never repaired. A mapper the emulator cannot run fails the job
-  with that reason. Frames that cannot be synchronization-checked (MMC2) stay marked unverified.
+  with that reason. A frame that does not rebuild from its trace stays marked unverified. MMC2 (Punch-Out!!) frames
+  are synchronization-checked like the others: the trace keeps the bank each latch selected at every pattern fetch.
 - **Security**: see [AGENT_LAB_SECURITY.md](../../docs/architecture/AGENT_LAB_SECURITY.md).
   - The API answers only on 127.0.0.1, to a loopback `Host`, and to allowed origins (`null`, plus `--allow-origin`).
   - Every Forge request is signed with a non-extractable key obtained by pairing.
