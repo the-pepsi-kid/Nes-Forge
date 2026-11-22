@@ -54,16 +54,33 @@ async function killBrowser(profile) {
   for (const pid of pids) { try { process.kill(Number(pid), 'SIGKILL'); } catch (_) { /* already gone */ } }
   await sleep(1500); return pids.length;
 }
+// While the recovery banner is shown it must not hide the Studio bar: every visible control and the state chip
+// stay uncovered (the topmost element at their centre is the control itself), below the banner.
+const bannerSamples = [];
+async function bannerLayout(page, scenario, when) {
+  const r = await page.evaluate(() => {
+    const bn = document.getElementById('autosaveBanner'), bar = document.getElementById('studioBar'), shown = !!bn && getComputedStyle(bn).display !== 'none';
+    if (!shown || !bar) return {shown, bar: !!bar};
+    const controls = [...bar.querySelectorAll('button,#studioState')].filter(e => e.offsetParent);
+    const covered = controls.filter(e => { const q = e.getBoundingClientRect(), top = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2); return !top || !e.contains(top); }).map(e => e.id || e.textContent.trim().slice(0, 16));
+    const b = bn.getBoundingClientRect(), chip = document.getElementById('studioState').getBoundingClientRect();
+    return {shown, mode: bn.dataset.mode, bannerBottom: Math.round(b.bottom), barTop: Math.round(bar.getBoundingClientRect().top), chipTop: Math.round(chip.top), controls: controls.length, covered};
+  });
+  if (r.shown) bannerSamples.push({scenario, when, ...r});
+  return r;
+}
 async function reopenAndRestore(profile, name) {
   const s = await open(profile);
   const offered = await s.page.evaluate(() => Forge.services.ProjectStore.state.recoveryPhase === 'offered');
   const bannerOffer = await s.page.$eval('#autosaveText', e => e.textContent);
+  await bannerLayout(s.page, name, 'offered');
   if (shots) await s.page.screenshot({path: path.join(shots, 'recovery_' + name + '_offered.png')});
   await recordToasts(s.page);
   const restored = offered ? await s.page.evaluate(() => Forge.services.ProjectStore.restoreRecovery()) : false;
   await sleep(300);
   const state = await rs(s.page), text = restored ? await content(s.page) : null, banner = await s.page.$eval('#autosaveText', e => e.textContent);
   const statusLine = await s.page.$eval('#forge15State', e => e.textContent), toast = await lastRecoveryToast(s.page);
+  await bannerLayout(s.page, name, 'after restore');
   if (shots) { await s.page.evaluate(() => switchTab('scene')); await sleep(300); await s.page.screenshot({path: path.join(shots, 'recovery_' + name + '_restored.png')}); }
   return {...s, offered, bannerOffer, restored, state, text, banner, statusLine, toast};
 }
@@ -208,6 +225,11 @@ async function prepared(name) {
       /^Recovery restored: the last moments before Forge ended cannot be confirmed/.test(t.toast || '');
     check('The restore toast states its outcome: "complete" only when every change came back, "cannot be confirmed" after an unexpected end, "incomplete" with the number lost',
       toasts.length >= 4 && toasts.every(fits) && toasts.some(t => t.complete === true) && toasts.some(t => t.complete === null) && toasts.some(t => t.complete === false), toasts);
+    // the banner (an offer, or a notice after an incomplete restore) sits above the Studio bar instead of over it
+    report.bannerLayout = bannerSamples;
+    check('The recovery banner never hides the Studio bar: with an offer or a notice shown, Open, Save, the modes and the state chip stay visible and clickable below it',
+      bannerSamples.some(b => b.mode === 'offer') && bannerSamples.some(b => b.mode === 'notice') && bannerSamples.every(b => b.controls >= 8 && b.covered.length === 0 && b.barTop >= b.bannerBottom - 1 && b.chipTop >= b.bannerBottom),
+      bannerSamples);
   }
   {
     // an interrupted write leaves the previous point intact (deterministic): the journal's transaction is aborted

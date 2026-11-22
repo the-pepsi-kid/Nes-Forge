@@ -38,7 +38,8 @@ not finish before a large project's tab closed. Edits made in the last 30 s were
   - **"Recovery restored: every change through …"** only when the session ended normally and the point covers its
     last change.
   - **"Recovered changes through … N later changes (made until …) could not be recovered."** when changes are known
-    to be missing. This notice is shown as a persistent banner, not just a toast.
+    to be missing. This notice is shown as a persistent banner, not just a toast. The banner (the offer to restore,
+    or this notice) takes its own row above the Studio bar; it never covers Open, Save, the modes or the state chip.
   - **"Restored every change Forge had recorded (through …). Forge or the browser ended unexpectedly, so changes made
     in its last moments cannot be confirmed."** after a crash or kill.
   - If a section fails its checksum, the previous complete point is restored. The message names the damaged section
