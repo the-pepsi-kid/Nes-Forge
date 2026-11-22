@@ -660,7 +660,22 @@ async function renderFrameDetails(entry,host){
   box.append(row);
  }
  if(visible.length>32)note('… '+(visible.length-32)+' more sprites.');
- note('Sprite → pose or actor: not established (needs game knowledge or a decoded actor table).');
+ // the library's decoded poses of this ROM drawn in the frame: established, candidates, ambiguous, not established
+ head('Sprite → pose');
+ const lp=await C.run('library.framePoses',{id:entry.id}),pl=lp.ok?lp.result:null;
+ if(!pl)note('Not available: '+(lp.error?.message||'unknown reason')+'.');
+ else if(pl.state!=='linked')note(pl.note);
+ else{
+  const list=elt('div');list.dataset.frame='pose-links';
+  const line=(cls,parts)=>{const row=elt('div');row.className=cls;row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';row.append(...parts);list.append(row);return row;};
+  const poseButton=(id,label)=>{const b=button(label,()=>choose(key('lib',id)),'Open this pose in the library');if(!inLibrary(id)){b.disabled=true;b.title='Unavailable: this pose is not among the library entries shown';}return b;};
+  const sprites=ids=>'sprites #'+ids.join(', #');
+  for(const l of pl.links){const row=line('frx-pose-link',[poseButton(l.poseEntry,l.label),elt('span','frx-code',sprites(l.sprites)+(l.mirrored?' · mirrored':'')+' · established by '+l.by+': '+l.evidence)]);row.dataset.pose=l.poseEntry;}
+  for(const c of pl.candidates)line('frx-pose-candidate',[poseButton(c.poseEntry,c.label),elt('span','frx-code',sprites(c.sprites)+' · '+c.state+', not established: '+c.evidence)]);
+  for(const a of pl.ambiguous)line('frx-pose-ambiguous',[elt('span','frx-code',sprites(a.sprites)+' · ambiguous, not established: drawn exactly as '+a.poses.map(p=>p.label).join(' and '))]);
+  line('frx-pose-rest',[elt('span','frx-code',pl.notEstablished.length?'Not established: '+pl.notEstablished.length+' of '+pl.sprites+' drawn sprite'+(pl.sprites===1?'':'s')+' belong to no established pose.':'Every drawn sprite belongs to an established pose.')]);
+  box.append(list);
+ }
  head('Background tiles');
  const regions=rec.synchronization?.backgroundTileSources||[];
  if(!regions.length)note('Not available for this frame.');

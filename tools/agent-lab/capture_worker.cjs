@@ -122,7 +122,7 @@ function summary(job) {
     progress: job.progress, frames: job.results.length, synchronized: sync,
     unresolved: [...job.compatibility.filter(c => c.state !== 'emulated' && !c.resolved).map(c => c.kind + ': ' + c.state + (c.detail ? ' (' + c.detail + ')' : '')), ...job.results.filter(r => r.synchronization !== 'matched').map(r => r.label + ': frame not synchronization-checked (' + r.synchronizationReason + ')'), ...job.results.filter(r => !r.reached).map(r => r.label + ': target condition not reached'),
       ...(job.results.some(r => r.split) ? [job.results.filter(r => r.split).length + ' frame(s) switch CHR banks or scroll mid-frame: their sprite pattern locations are unverified'] : []),
-      ...(job.results.length ? ['sprite → pose/actor relationships: not established (needs game knowledge or a decoded actor table)'] : [])],
+      ...(job.results.length ? ['sprite → pose/actor relationships: not established by the worker (Forge links a frame\'s drawn sprites to the decoded poses in its library, in Resources › Library)'] : [])],
     failures: job.failures.filter(f => f.stage !== 'worker' || !/stopped while this job was running/.test(f.error)), interruptions: job.interruptions || job.failures.filter(f => f.stage === 'worker' && /stopped while this job was running/.test(f.error)).map(f => ({at: f.at, detail: f.error})),
     recovered: (job.interruptions || []).length > 0 && ['running', 'completed', 'queued'].includes(job.state), requestedBy: job.requestedBy || null, reason: job.reason || null,
     checkpoint: job.checkpoint, created: job.created, updated: job.updated, completed: job.completed || null, runs: job.runs};
