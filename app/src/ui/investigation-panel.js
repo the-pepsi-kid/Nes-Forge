@@ -277,7 +277,7 @@ async function needsSource(d){
 }
 addEventListener('forge:catalog-recovery',e=>{const d=e.detail||{};
   if(d.state==='needs-source'){void needsSource(d);return;}
-  if(d.state==='complete'&&!d.already)return catalogNotice(d,'Recovered catalog of '+(d.name||'a ROM')+': '+(d.resumed?'completed after an interrupted registration':'registered')+' · '+d.entries+' entries ('+
+  if(d.state==='complete'&&!d.already)return catalogNotice(d,'Recovered catalog of '+(d.name||'a ROM')+': '+(d.upgraded?'updated to this version of Forge':d.resumed?'completed after an interrupted registration':'registered')+' · '+d.entries+' entries ('+
     (d.chrBanks!=null?d.chrBanks+' CHR banks':'')+(d.resumed?'; '+d.kept+' kept, '+d.written+' written':'')+').');
   if(d.state==='failed'||d.state==='needs-retry')catalogNotice(d,'Recovered catalog of '+(d.name||'a ROM')+': '+d.text+(d.lastError?' ('+d.lastError+')':'')+'.');
 });

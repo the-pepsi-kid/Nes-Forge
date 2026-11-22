@@ -150,6 +150,8 @@ function card(d,{compact=false,context=''}={}){
   definition(dl,'Source ROM',d.sourceSha256?'SHA-256 '+(compact?d.sourceSha256.slice(0,16)+'…':d.sourceSha256):'not recorded');
   if(d.entryId)definition(dl,'Library entry',d.entryId);
   if(d.stage)definition(dl,'Stage',d.stage+(d.placements.some(p=>p.stage===d.stage&&p.basis==='runtime')?' (observed at runtime)':d.placements.some(p=>p.stage===d.stage)?' (ROM table)':''));
+  // the room a sprite's tiles were drawn in when it was used, and on what evidence
+  const drawn=d.ref?.context;if(drawn?.basis)definition(dl,'Drawn as in',(drawn.label||'its room')+' · '+(drawn.basis==='default'?'room not established ('+(drawn.variants||'several')+' art variants)':drawn.basis==='same-everywhere'?'same tiles in every room':drawn.basis==='decoded'?'decoded from the ROM':'seen at runtime'));
   definition(dl,'ROM location',d.primary?short(d.primary):'unknown');
   if(d.basis)definition(dl,'Evidence',d.basis);
   box.append(dl);

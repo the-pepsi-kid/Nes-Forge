@@ -31846,8 +31846,16 @@ function reloadLibrary(){if(mode!=='library')return;pendingSelect=active;setMode
 addEventListener('forge:catalog-recovery',e=>{if(mode!=='library')return;renderCatalogStatus();if(e.detail?.state==='complete'&&!e.detail.already&&root.classList.contains('frx-visible'))reloadLibrary();});
 // why a ROM's cartridge tile data is not (all) linked: its recovered catalog is still incomplete, or there is none
 function catalogGap(sha){const c=graph?.catalogs?.get(sha);
- if(c&&c.state!=='complete')return 'this ROM\'s recovered catalog is incomplete ('+(c.state==='failed'?'its last completion attempt failed':c.state==='missing'?'it was never registered':'its registration was interrupted')+'; Forge completes it when the cartridge is available)';
+ if(c&&!['complete','outdated'].includes(c.state))return 'this ROM\'s recovered catalog is incomplete ('+(c.state==='failed'?'its last completion attempt failed':c.state==='missing'?'it was never registered':'its registration was interrupted')+'; Forge completes it when the cartridge is available)';
  return null;}
+// which room a library sprite is drawn in, and on what evidence (an unestablished room is said, not hidden)
+function drawnAs(c){
+ const room=(c?.label||'its room')+(c?.stage?' ('+c.stage+')':'');
+ if(!c?.basis)return 'Drawn with the tile banks and palette of '+room+' (recorded before the drawing room was checked)';
+ if(c.basis==='same-everywhere')return 'Same tiles in every room; drawn with the palette of '+room;
+ if(c.basis==='default')return '⚠ Room not established: drawn with the tile banks and palette of '+room+'. '+c.note[0].toUpperCase()+c.note.slice(1);
+ return 'Drawn as in '+room+': '+c.note;
+}
 function hasChrEntries(sourceSha256){const prefix=key('lib','rom:'+String(sourceSha256||'').slice(0,16)+':chr:');for(const k of graph.nodes.keys())if(k.startsWith(prefix))return true;return false;}
 async function renderFrameDetails(entry,host){
  const C=window.Forge.commands,P=window.Forge.services.LibraryProvenance,UI=window.Forge.services.LibraryProvenanceUI;
@@ -31933,7 +31941,7 @@ function renderLibraryViewer(n,host,tools,caption){
    // the chosen stage's colours where the sprite was observed there, else a stage where it was observed
    const chosen=$('stage').value,observed=Object.keys(entry.renditions||{}),use=chosen&&entry.renditions?.[chosen]?chosen:observed[0]||'';
    const r=await C.run('library.rendition',{id,stage:use});if(active!==n.key)return;
-   if(r.ok){const rend=r.result.rendition,canvas=drawRendition(rend,4);host.append(canvas,elt('div','frx-code','Drawn with the palette of '+(rend.context?.label||'its room')+(rend.context?.stage?' ('+rend.context.stage+')':'')+' · '+rend.pieces.length+' pieces · 8×'+rend.spriteMode+
+   if(r.ok){const rend=r.result.rendition,canvas=drawRendition(rend,4);host.append(canvas,elt('div','frx-code',drawnAs(rend.context)+' · '+rend.pieces.length+' pieces · 8×'+rend.spriteMode+
      (chosen&&use!==chosen?' · not observed in '+chosen+(use?'; these are the colours of '+use+', where it was observed':''):'')+(!use?' · not yet observed in a stage: the game may show it in other colours':'')));
     const row=elt('div');row.style.cssText='display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0';
     for(const [mode,label] of [['reference','Use in project (reference)'],['copy','Copy into project (tiles + palette)']]){
@@ -34732,7 +34740,8 @@ async function sha(text){const b=await crypto.subtle.digest('SHA-256',new TextEn
 // region and physical PRG/CHR bank it lies in, and the CPU address the decoder recorded. The CPU window is the one
 // that bank occupies when the address is read; a PPU address is only shown where the decoder recorded one (a CHR bank
 // number never becomes a PPU address here). Every location is checked against the cartridge layout in the header.
-const CATALOG_SCHEMA=3;
+// 4: each pose's rendition records the room it is drawn in and on what evidence (decoded / runtime / same-everywhere / not established)
+const CATALOG_SCHEMA=4;
 // code: the routines a record names (its state entry points, the code that reads or writes it). An actor's
 // "dispatch" is the table of state entry pointers, which is data.
 const CODE_ROLE=/(^|\.)(reader|writer)$|^states\[\d+\]\.source$/;
@@ -34822,6 +34831,77 @@ function rendition(project,poseId,contextRoomId,d=services.InvestigatedLibrary.d
     context:{roomId:context,label:room?.label||context,stage:room?.stage?.label||null}};
 }
 
+// ---------- the room each pose is drawn in ----------
+// A pose's rendition is drawn with one room's tile banks and palette. Which room, and on what evidence:
+//   decoded          (Ninja Gaiden) an actor's own code selects the pose, directly (enemy_pose) or through an action
+//                    script (enemy_action), and the ROM's spawn tables place that actor in the room (first in game order)
+//   runtime          the runtime stage survey saw it on screen in the room's area
+//   same-everywhere  its tiles are identical under every room's tile banks: the room does not change its art
+//   default          none of these: the catalog's default room, marked unconfirmed, with the number of art variants
+const OPLEN=o=>{if(o===0x20)return 3;if(o===0x00||o===0x40||o===0x60)return 1;const cc=o&3,b=(o>>2)&7;
+  return cc===1||cc===3?[2,2,2,3,2,2,3,3][b]:cc===2?[2,2,1,3,1,2,1,3][b]:[2,2,1,3,2,2,1,3][b];};
+// instructions that change A (loads, transfers, arithmetic and logic, shifts of A)
+const A_CHANGES=new Set([0xA1,0xA5,0xAD,0xB1,0xB5,0xB9,0xBD,0x8A,0x98,0x68,0x61,0x65,0x69,0x6D,0x71,0x75,0x79,0x7D,0xE1,0xE5,0xE9,0xED,0xF1,0xF5,0xF9,0xFD,
+  0x21,0x25,0x29,0x2D,0x31,0x35,0x39,0x3D,0x01,0x05,0x09,0x0D,0x11,0x15,0x19,0x1D,0x41,0x45,0x49,0x4D,0x51,0x55,0x59,0x5D,0x0A,0x4A,0x2A,0x6A]);
+// each room's tile banks for 8x16 sprites (a tile's low bit picks the pattern table), as the converter uses them
+function roomBanks(n,rom){
+  const out=new Map();
+  if(n.profile?.id==='ninja-gaiden-us'){for(const r of n.scenes)if(Number.isInteger(r.spriteChrBank4KiB))out.set(r.id,[r.spriteChrBank4KiB,r.backgroundChrBank4KiB]);return out;}
+  let s=null;try{s=window.GameRENative.open(rom);}catch(_){return out;}
+  for(const r of n.scenes){try{const g=s.scene(r.id).graphics;if(g&&Number.isInteger(g.chrBank4KiB))out.set(r.id,[g.chrBank4KiB-1,g.chrBank4KiB]);}catch(_){/* no representable graphics */}}
+  return out;
+}
+function poseArt(pose,banks,rom){const chr0=16+rom[4]*16384;let k='';for(const p of pose.pieces){const o=chr0+banks[p.tile&1]*4096+(p.tile&254)*16;for(let i=0;i<32;i++)k+=String.fromCharCode(rom[o+i]);}return k;}
+// Ninja Gaiden: which poses each actor's code selects. Each actor's code region (its first state routine up to the
+// next actor's) is decoded linearly; an immediate stored to the slot's action or pose (by STA, or by a subroutine
+// that stores A there first) is recorded, and an action selects its script's poses.
+function decodedPoseActors(n,rom){
+  const out=new Map();if(n.profile?.id!=='ninja-gaiden-us')return out;
+  const ramAt=label=>(n.ram||[]).find(r=>r[1]===label)?.[0],ACTION=ramAt('enemy_action'),POSE=ramAt('enemy_pose');
+  if(!Number.isInteger(ACTION)||!Number.isInteger(POSE))return out;
+  const fixed=cpu=>16+(rom[4]-1)*16384+(cpu-0xC000),target=a=>a===ACTION?'action':a===POSE?'pose':null,setters=new Map();
+  const setterOf=cpu=>{if(cpu<0xC000)return null;if(setters.has(cpu))return setters.get(cpu);let off=fixed(cpu),kind=null;
+    for(let k=0;k<12&&off<rom.length-2;k++){const o=rom[off];if(o===0x9D||o===0x99||o===0x8D){kind=target(rom[off+1]|rom[off+2]<<8);if(kind)break;}if(A_CHANGES.has(o)||o===0xA9||o===0x20||o===0x60||o===0x4C||o===0x40)break;off+=OPLEN(o);}
+    setters.set(cpu,kind);return kind;};
+  const entries=[];for(const a of n.actors||[])for(const st of a.states||[])if(st.entry>=0xC000)entries.push({actor:a.id,cpu:st.entry});
+  entries.sort((x,y)=>x.cpu-y.cpu);
+  const scripts=new Map((n.animations||[]).map(a=>[a.selector,a])),add=(pose,actor)=>{if(!out.has(pose))out.set(pose,new Set());out.get(pose).add(actor);};
+  for(let i=0;i<entries.length;){
+    let j=i+1;while(j<entries.length&&entries[j].actor===entries[i].actor)j++;
+    const actor=entries[i].actor,end=Math.min(j<entries.length?entries[j].cpu:entries[i].cpu+512,entries[i].cpu+1024);
+    let cpu=entries[i].cpu,A=null;
+    while(cpu<end){const off=fixed(cpu),o=rom[off],len=OPLEN(o);let w=null;
+      if(o===0xA9)A=rom[off+1];
+      else if(o===0x9D||o===0x99||o===0x8D){const kind=target(rom[off+1]|rom[off+2]<<8);if(kind&&A!==null)w={kind,value:A};}
+      else if(o===0x20){const kind=setterOf(rom[off+1]|rom[off+2]<<8);if(kind&&A!==null)w={kind,value:A};A=null;}
+      else if(A_CHANGES.has(o)||o===0x60||o===0x4C||o===0x40)A=null;
+      if(w){if(w.kind==='pose')add('enemy:'+w.value,actor);else{const sc=scripts.get(w.value);if(sc)for(const f of sc.frames||[])add((sc.owner==='enemy'?'enemy':'ryu')+':'+f.pose,actor);}}
+      cpu+=len;}
+    i=j;
+  }
+  return out;
+}
+function poseContexts(project,rom){
+  const n=project.investigation.catalogs.native,fallback=services.InvestigatedLibrary.describe(project).contextSceneId,out=new Map();
+  if(!rom||!Array.isArray(n.poses))return out;
+  const banks=roomBanks(n,rom),pairs=[...new Map([...banks.values()].map(b=>[b.join('/'),b])).values()],actors=decodedPoseActors(n,rom);
+  const spawn=new Map();for(const r of n.scenes||[])for(const e of r.enemies||[])if(e.actor){if(!spawn.has(e.actor))spawn.set(e.actor,new Set());spawn.get(e.actor).add(r.id);}
+  const roomLabel=id=>{const r=n.scenes.find(x=>x.id===id);return r?(r.stage?.label?r.stage.label+' · ':'')+r.label:id;};
+  const names=list=>list.map(id=>(n.actors||[]).find(a=>a.id===id)?.label||id).join(', ');
+  for(const p of n.poses){
+    const variants=pairs.length?new Set(pairs.map(b=>poseArt(p,b,rom))).size:0,linked=[...(actors.get(p.id)||[])];
+    const rooms=(n.scenes||[]).map(s=>s.id).filter(id=>banks.has(id)&&linked.some(a=>spawn.get(a)?.has(id)));
+    if(rooms.length){const arts=new Set(rooms.map(id=>poseArt(p,banks.get(id),rom))).size;
+      out.set(p.id,{roomId:rooms[0],basis:'decoded',confirmed:true,variants,actors:linked,rooms:rooms.length,
+        note:names(linked)+(linked.length>1?' select':' selects')+' this pose in '+(linked.length>1?'their':'its')+' own code, and the ROM\'s spawn tables place '+(linked.length>1?'them':'it')+' in '+roomLabel(rooms[0])+
+          (arts>1?'; its art differs between the '+rooms.length+' rooms where '+(linked.length>1?'they appear':'it appears')+' ('+arts+' variants)':'')});continue;}
+    if(variants===1){out.set(p.id,{roomId:fallback,basis:'same-everywhere',confirmed:true,variants,actors:linked,note:'its tiles are the same in every room'});continue;}
+    out.set(p.id,{roomId:fallback,basis:'default',confirmed:false,variants,actors:linked,
+      note:'the room this sprite appears in is not established'+(variants>1?'; its art differs between rooms ('+variants+' variants)':'')+(linked.length?'; '+names(linked)+(linked.length>1?' use':' uses')+' it, but no spawn table places '+(linked.length>1?'them':'it'):'')});
+  }
+  return out;
+}
+
 // ---------- registration ----------
 async function registerCatalog(project=services.ProjectStore.capture(),{onProgress,pageSize=1000}={}){
   const n=project?.investigation;
@@ -34857,7 +34937,9 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   if(resuming)for(let offset=0;;offset+=pageSize){const page=await L.entriesPage({pack:packKey,offset,limit:pageSize});stats.pagesRead=(stats.pagesRead||0)+1;
     for(const item of page.items)already.set(item.id,item);if(offset+pageSize>=page.total)break;}
   stats.alreadyStored=already.size;
-  const described=services.InvestigatedLibrary.describe(project);
+  const described=services.InvestigatedLibrary.describe(project),contexts=poseContexts(project,rom);
+  const actorLabel=id=>(n.catalogs.native.actors||[]).find(a=>a.id===id)?.label||id;
+  stats.poseContexts={decoded:0,runtime:0,'same-everywhere':0,default:0};
   for(const [i,{kind,r,rid}] of records.entries()){
     const id=idOf(romSha,kind,rid),label=String(r.label||r.name||(kind+' '+rid)).slice(0,160);
     let data,fileType='json';
@@ -34865,7 +34947,7 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
     else data=JSON.stringify(r);
     const stored=await L.storeData(data);
     const before=already.get(idOf(romSha,kind,rid));
-    if(before&&before.contentHash===stored.hash&&before.packSha256===packKey&&before.evidence?.state===decodedEvidence(kind,r,layout,profile).state&&(kind!=='pose'||before.rendition||before.renditionError)){
+    if(before&&before.contentHash===stored.hash&&before.packSha256===packKey&&before.evidence?.state===decodedEvidence(kind,r,layout,profile).state&&(kind!=='pose'||before.rendition?.context?.basis||before.renditionError)){
       stats.entries++;stats.kept++;if(kind==='chr')stats.chrBanks++;if(before.rendition)stats.renditions++;stats.locations+=before.evidence?.total||0;stats.inconsistentLocations+=before.evidence?.inconsistent||0;
       stats.verifiedPlacements+=(before.placement?.verified||[]).length;continue;
     }
@@ -34881,7 +34963,16 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
     else if((kind==='room'||kind==='location')&&r.group)verified.push({context:r.group,basis:'rom-table'});
     if(kind==='stage')verified.push({stage:r.label,areas:r.areas,basis:'rom-table',source:r.source});
     if(verified.length){e.placement={verified};stats.verifiedPlacements+=verified.length;}
-    if(kind==='pose'){try{const rend=rendition(project,r.id,null,described);if(rend){const st=await L.storeData(JSON.stringify(rend));e.rendition={hash:st.hash,context:rend.context};stats.renditions++;}}
+    if(kind==='pose'){
+      // drawn in a room where the pose is established to appear (see poseContexts); a runtime observation kept from an
+      // earlier registration counts when the code does not establish one
+      let ctx=contexts.get(r.id)||{roomId:null,basis:'default',confirmed:false,note:'the room this sprite appears in is not established'};
+      const seen=verified.find(v=>v.basis==='runtime'&&v.stage);
+      if(seen&&ctx.basis!=='decoded'){const room=n.catalogs.native.scenes.find(x=>x.stage?.label===seen.stage);if(room)ctx={...ctx,roomId:room.id,basis:'runtime',confirmed:true,note:'seen on screen in '+seen.stage+' by the runtime stage survey'};}
+      try{let rend=null;try{rend=rendition(project,r.id,ctx.roomId,described);}catch(err){ctx={...ctx,basis:'default',confirmed:false,note:'it could not be drawn in its room ('+String(err.message).slice(0,80)+'); '+ctx.note};}
+        if(!rend&&ctx.roomId){rend=rendition(project,r.id,null,described);}
+        if(rend){rend.context={...rend.context,basis:ctx.basis,confirmed:ctx.confirmed,variants:ctx.variants??null,actors:(ctx.actors||[]).map(actorLabel),note:ctx.note};
+          const st=await L.storeData(JSON.stringify(rend));e.rendition={hash:st.hash,context:rend.context};stats.renditions++;stats.poseContexts[ctx.basis]=(stats.poseContexts[ctx.basis]||0)+1;}}
       catch(err){e.renditionError=String(err.message).slice(0,200);}}
     ops.push(['entries',e]);stats.entries++;stats.written++;
     if(ops.length>=40){await L.putRecords(ops);ops=[];onProgress?.({done:i+1,total:records.length});}
@@ -35028,7 +35119,7 @@ async function surveyStages({areas,frames=1500,boot='checkpoint'}={}){
       const id=idOf(romSha,kind,rid);let e;try{e=await L.entry(id);}catch(_){continue;}
       const kept=(e.placement?.verified||[]).filter(p=>!(p.basis==='runtime'&&p.area===r.area));
       e.placement={...(e.placement||{}),verified:[...kept,place]};
-      if(kind==='pose'&&r.stage&&!e.renditions?.[r.stage]){try{const rend=rendition(project,o.poseId,firstRoom.get(r.stage),described);if(rend){const st=await L.storeData(JSON.stringify(rend));e.renditions={...(e.renditions||{}),[r.stage]:{hash:st.hash,context:rend.context}};}}catch(_){/* rendition stays default */}}
+      if(kind==='pose'&&r.stage&&!e.renditions?.[r.stage]){try{const rend=rendition(project,o.poseId,firstRoom.get(r.stage),described);if(rend){rend.context={...rend.context,basis:'runtime',confirmed:true,note:'seen on screen in '+r.stage+' by the runtime stage survey'};const st=await L.storeData(JSON.stringify(rend));e.renditions={...(e.renditions||{}),[r.stage]:{hash:st.hash,context:rend.context}};}}catch(_){/* rendition stays default */}}
       await L.putRecords([['entries',e]]);recorded++;
     }
   }
@@ -35144,7 +35235,7 @@ if(typeof snapshot==='function'){
 const AUTO_ATTEMPTS=3,BACKOFF=[0,30000,120000],FAILURES='catalog-failures:';
 const recovery={status:new Map(),running:new Map(),failures:new Map(),nextAt:new Map(),timers:new Map()};
 const profileOf=sha=>window.GameRENative?.profiles?.find(p=>p.sha256===sha)||null;
-const STATE_TEXT={complete:'complete',completing:'completing…','completing-elsewhere':'being completed in another Forge tab',incomplete:'incomplete (registration was interrupted)',
+const STATE_TEXT={complete:'complete',completing:'completing…',updating:'updating to this version of Forge…',outdated:'recorded by an earlier version of Forge; Forge updates it when its cartridge is available','completing-elsewhere':'being completed in another Forge tab',incomplete:'incomplete (registration was interrupted)',
   'needs-source':'incomplete: waiting for its cartridge (open its ROM; a paired background worker supplies it automatically)',failed:'a completion attempt failed; Forge retries automatically',
   'needs-retry':'automatic completion stopped after 3 failed attempts; use Retry',waiting:'the last completion attempt failed; Forge tries again automatically',unsupported:'no recovered catalog exists for this ROM'};
 function setStatus(sha,value){
@@ -35158,7 +35249,8 @@ function setStatus(sha,value){
   try{window.dispatchEvent(new CustomEvent('forge:catalog-recovery',{detail:{...next}}));}catch(_){/* no DOM events */}
   const label=next.name||'this ROM';
   if(value.state==='completing'&&value.resuming)window.showToast?.('Completing the recovered catalog of '+label+' (its registration was interrupted)…');
-  if(value.state==='complete'&&value.written!==undefined&&!value.already)window.showToast?.('Recovered catalog of '+label+' complete: '+next.entries+' entries'+(value.kept?' ('+value.kept+' kept, '+value.written+' written)':''));
+  if(value.state==='updating')window.showToast?.('Updating the recovered catalog of '+label+' to this version of Forge…');
+  if(value.state==='complete'&&value.written!==undefined&&!value.already)window.showToast?.('Recovered catalog of '+label+(value.upgraded?' updated':' complete')+': '+next.entries+' entries'+(value.kept?' ('+value.kept+' kept, '+value.written+' written)':''));
   if(value.state==='failed'||value.state==='needs-retry')window.showToast?.('The recovered catalog of '+label+' could not be completed: '+(next.lastError||'unknown error')+(value.state==='needs-retry'?' · Retry it in Resources › Library':''));
   return next;
 }
@@ -35170,7 +35262,7 @@ async function catalogState(){
     if(p.origin!=='rom-catalog'||!p.sourceSha256)continue;
     const cur=out.get(p.sourceSha256);
     if(!cur||p.state==='complete'&&cur.state!=='complete'||cur.state!=='complete'&&(p.updated||0)>(cur.updated||0))
-      out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · recovered catalog$/,''),state:p.state==='complete'?'complete':p.state==='failed'?'failed':'incomplete',packKey:p.packSha256,updated:p.updated||0,entries:p.stats?.entries??null});
+      out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · recovered catalog$/,''),state:p.state==='complete'?((p.stats?.schema||0)<CATALOG_SCHEMA?'outdated':'complete'):p.state==='failed'?'failed':'incomplete',packKey:p.packSha256,updated:p.updated||0,entries:p.stats?.entries??null});
   }
   for(const p of packs)if(p.origin==='runtime-capture'&&p.sourceSha256&&profileOf(p.sourceSha256)&&!out.has(p.sourceSha256))
     out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · runtime captures$/,''),state:'missing',packKey:null,updated:p.updated||0,entries:null});
@@ -35202,14 +35294,14 @@ function completeCatalog(sha,{bytes=null,name=null,from=null,manual=false,reason
     const markerBefore=st?.markerAttempts||0;
     try{src=await sourceProject(sha,{bytes,name,from});}catch(error){return failed(error,label,markerBefore);}
     if(!src)return setStatus(sha,{state:'needs-source',name:label,attempts:persisted,lastError:st?.lastError||null,manual});
-    const resuming=!!st&&st.state!=='missing';
-    setStatus(sha,{state:'completing',name:label,reason,resuming,source:src.source});
+    const resuming=!!st&&!['missing','outdated'].includes(st.state),updating=st?.state==='outdated';
+    setStatus(sha,{state:updating?'updating':'completing',name:label,reason,resuming,updating,source:src.source});
     const run=()=>registerCatalog(src.project);
     try{
       const r=typeof navigator!=='undefined'&&navigator.locks?await navigator.locks.request('nes-forge-catalog:'+sha,{ifAvailable:true},lock=>lock?run():null):await run();
       if(r===null)return setStatus(sha,{state:'completing-elsewhere',name:label});
       recovery.failures.delete(sha);recovery.nextAt.delete(sha);clearTimeout(recovery.timers.get(sha));recovery.timers.delete(sha);await L.deleteMeta(FAILURES+sha).catch(()=>{});
-      return setStatus(sha,{state:'complete',name:label,entries:r.stats.entries,chrBanks:r.stats.chrBanks,kept:r.stats.kept||0,written:r.already?0:r.stats.written??r.stats.entries,already:!!r.already,resumed:!!r.stats.resumed,attempts:r.stats.attempts||null,source:src.source,lastError:null});
+      return setStatus(sha,{state:'complete',name:label,entries:r.stats.entries,chrBanks:r.stats.chrBanks,kept:r.stats.kept||0,written:r.already?0:r.stats.written??r.stats.entries,already:!!r.already,resumed:!!r.stats.resumed,upgraded:!!r.stats.upgraded,poseContexts:r.stats.poseContexts||null,attempts:r.stats.attempts||null,source:src.source,lastError:null});
     }catch(error){return failed(error,label,markerBefore);}
   })().finally(()=>recovery.running.delete(sha));
   async function failed(error,label,markerBefore){
@@ -35259,6 +35351,7 @@ function recognitionText(name,r,{job=null}={}){
   const parts=[];
   if(r.catalog.state==='complete')parts.push('recovered catalog complete ('+r.catalog.entries+' entries)');
   else if(['incomplete','failed','missing'].includes(r.catalog.state))parts.push('recovered catalog incomplete (Forge completes it)');
+  else if(r.catalog.state==='outdated')parts.push('recovered catalog ('+r.catalog.entries+' entries, recorded by an earlier Forge; Forge updates it)');
   if(r.frames)parts.push(r.frames+' verified frame'+(r.frames===1?'':'s'));
   for(const p of r.otherPacks)parts.push(p.name+' ('+p.files+' files)');
   return 'Recognized '+name+': already in your library · '+(parts.join(' · ')||r.entries+' entries')+(job?' (from job '+job+')':'')+'. Nothing is extracted again.';
@@ -35269,7 +35362,7 @@ setTimeout(()=>{
   services.RomImports?.subscribe(entry=>{void (async()=>{
     const r=await recognize(entry.sha256);
     if(r.known){window.showToast?.(recognitionText(entry.name,r));try{window.dispatchEvent(new CustomEvent('forge:rom-recognized',{detail:{...r,name:entry.name}}));}catch(_){/* no DOM events */}}
-    if(['incomplete','failed','missing'].includes(r.catalog.state))await completeCatalog(entry.sha256,{bytes:services.RomImports.bytes(entry.sha256),name:entry.name,from:'the ROM import',reason:'rom import'});
+    if(['incomplete','failed','missing','outdated'].includes(r.catalog.state))await completeCatalog(entry.sha256,{bytes:services.RomImports.bytes(entry.sha256),name:entry.name,from:'the ROM import',reason:'rom import'});
   })().catch(()=>{});});
 },0);
 setTimeout(()=>{void resumeCatalogs({reason:'startup'}).catch(()=>{});},1500);
@@ -35447,6 +35540,8 @@ function card(d,{compact=false,context=''}={}){
   definition(dl,'Source ROM',d.sourceSha256?'SHA-256 '+(compact?d.sourceSha256.slice(0,16)+'…':d.sourceSha256):'not recorded');
   if(d.entryId)definition(dl,'Library entry',d.entryId);
   if(d.stage)definition(dl,'Stage',d.stage+(d.placements.some(p=>p.stage===d.stage&&p.basis==='runtime')?' (observed at runtime)':d.placements.some(p=>p.stage===d.stage)?' (ROM table)':''));
+  // the room a sprite's tiles were drawn in when it was used, and on what evidence
+  const drawn=d.ref?.context;if(drawn?.basis)definition(dl,'Drawn as in',(drawn.label||'its room')+' · '+(drawn.basis==='default'?'room not established ('+(drawn.variants||'several')+' art variants)':drawn.basis==='same-everywhere'?'same tiles in every room':drawn.basis==='decoded'?'decoded from the ROM':'seen at runtime'));
   definition(dl,'ROM location',d.primary?short(d.primary):'unknown');
   if(d.basis)definition(dl,'Evidence',d.basis);
   box.append(dl);
@@ -36191,7 +36286,7 @@ async function needsSource(d){
 }
 addEventListener('forge:catalog-recovery',e=>{const d=e.detail||{};
   if(d.state==='needs-source'){void needsSource(d);return;}
-  if(d.state==='complete'&&!d.already)return catalogNotice(d,'Recovered catalog of '+(d.name||'a ROM')+': '+(d.resumed?'completed after an interrupted registration':'registered')+' · '+d.entries+' entries ('+
+  if(d.state==='complete'&&!d.already)return catalogNotice(d,'Recovered catalog of '+(d.name||'a ROM')+': '+(d.upgraded?'updated to this version of Forge':d.resumed?'completed after an interrupted registration':'registered')+' · '+d.entries+' entries ('+
     (d.chrBanks!=null?d.chrBanks+' CHR banks':'')+(d.resumed?'; '+d.kept+' kept, '+d.written+' written':'')+').');
   if(d.state==='failed'||d.state==='needs-retry')catalogNotice(d,'Recovered catalog of '+(d.name||'a ROM')+': '+d.text+(d.lastError?' ('+d.lastError+')':'')+'.');
 });

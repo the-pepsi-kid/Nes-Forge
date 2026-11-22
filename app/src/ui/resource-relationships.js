@@ -586,8 +586,16 @@ function reloadLibrary(){if(mode!=='library')return;pendingSelect=active;setMode
 addEventListener('forge:catalog-recovery',e=>{if(mode!=='library')return;renderCatalogStatus();if(e.detail?.state==='complete'&&!e.detail.already&&root.classList.contains('frx-visible'))reloadLibrary();});
 // why a ROM's cartridge tile data is not (all) linked: its recovered catalog is still incomplete, or there is none
 function catalogGap(sha){const c=graph?.catalogs?.get(sha);
- if(c&&c.state!=='complete')return 'this ROM\'s recovered catalog is incomplete ('+(c.state==='failed'?'its last completion attempt failed':c.state==='missing'?'it was never registered':'its registration was interrupted')+'; Forge completes it when the cartridge is available)';
+ if(c&&!['complete','outdated'].includes(c.state))return 'this ROM\'s recovered catalog is incomplete ('+(c.state==='failed'?'its last completion attempt failed':c.state==='missing'?'it was never registered':'its registration was interrupted')+'; Forge completes it when the cartridge is available)';
  return null;}
+// which room a library sprite is drawn in, and on what evidence (an unestablished room is said, not hidden)
+function drawnAs(c){
+ const room=(c?.label||'its room')+(c?.stage?' ('+c.stage+')':'');
+ if(!c?.basis)return 'Drawn with the tile banks and palette of '+room+' (recorded before the drawing room was checked)';
+ if(c.basis==='same-everywhere')return 'Same tiles in every room; drawn with the palette of '+room;
+ if(c.basis==='default')return '⚠ Room not established: drawn with the tile banks and palette of '+room+'. '+c.note[0].toUpperCase()+c.note.slice(1);
+ return 'Drawn as in '+room+': '+c.note;
+}
 function hasChrEntries(sourceSha256){const prefix=key('lib','rom:'+String(sourceSha256||'').slice(0,16)+':chr:');for(const k of graph.nodes.keys())if(k.startsWith(prefix))return true;return false;}
 async function renderFrameDetails(entry,host){
  const C=window.Forge.commands,P=window.Forge.services.LibraryProvenance,UI=window.Forge.services.LibraryProvenanceUI;
@@ -673,7 +681,7 @@ function renderLibraryViewer(n,host,tools,caption){
    // the chosen stage's colours where the sprite was observed there, else a stage where it was observed
    const chosen=$('stage').value,observed=Object.keys(entry.renditions||{}),use=chosen&&entry.renditions?.[chosen]?chosen:observed[0]||'';
    const r=await C.run('library.rendition',{id,stage:use});if(active!==n.key)return;
-   if(r.ok){const rend=r.result.rendition,canvas=drawRendition(rend,4);host.append(canvas,elt('div','frx-code','Drawn with the palette of '+(rend.context?.label||'its room')+(rend.context?.stage?' ('+rend.context.stage+')':'')+' · '+rend.pieces.length+' pieces · 8×'+rend.spriteMode+
+   if(r.ok){const rend=r.result.rendition,canvas=drawRendition(rend,4);host.append(canvas,elt('div','frx-code',drawnAs(rend.context)+' · '+rend.pieces.length+' pieces · 8×'+rend.spriteMode+
      (chosen&&use!==chosen?' · not observed in '+chosen+(use?'; these are the colours of '+use+', where it was observed':''):'')+(!use?' · not yet observed in a stage: the game may show it in other colours':'')));
     const row=elt('div');row.style.cssText='display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0';
     for(const [mode,label] of [['reference','Use in project (reference)'],['copy','Copy into project (tiles + palette)']]){
