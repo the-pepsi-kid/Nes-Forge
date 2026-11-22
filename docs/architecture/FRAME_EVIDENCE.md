@@ -97,11 +97,11 @@ a trace can be produced on demand instead of slowing every capture.
 | Contra | 2 (UxROM) | RAM | yes | PRG yes; CHR is RAM | yes |
 | Super Mario Bros 3 | 4 (MMC3, IRQ split) | ROM | yes | yes | yes |
 | Battletoads | 7 (AxROM) | RAM | yes | PRG yes; CHR is RAM | yes |
-| Punch-Out!! | 9 (MMC2) | ROM | yes | offsets match the file | **unverified**: MMC2 renders outside the runtime trace, so no rebuild check; the latch-switched CHR mapping is not independently verified |
+| Punch-Out!! | 9 (MMC2) | ROM | yes | offsets match the file | yes: the trace keeps each pattern fetch's latch-switched bank; an independent MMC2 model agrees on every line (§12) |
 | CNROM (3), mappers 11/66 as intended | — | — | not tested (no cartridge in the set) | — | — |
 
 **Genuinely reusable (any emulated mapper):** checkpoints, capture plans, the evidence record, PRG location by
-content, CHR offsets for CHR ROM, synchronization by rebuild (all except MMC2), and trace on demand.
+content, CHR offsets for CHR ROM, synchronization by rebuild (every emulated mapper, MMC2 included), and trace on demand.
 **Game-specific:** how to reach a place (Ninja Gaiden's RAM restart), and runtime sprite-to-pose association
 (Ninja Gaiden enemy slots).
 
@@ -140,7 +140,7 @@ Blockers:
    from the page. An import of a folder of records (by digest, idempotent) is the missing bridge.
 4. Reaching places is game knowledge. Ninja Gaiden has a RAM restart; other games need recorded input routes or
    search, each with its own evidence.
-5. MMC2 frames cannot be synchronization-checked (§5).
+5. MMC2 frames cannot be synchronization-checked (§5). *Resolved 2026-11-22 (§12).*
 6. Execution traces are bounded by RE runtime limits (2 M instructions, 4,096 coverage entries) and record writes,
    not reads. Data-flow from ROM tables ("which bytes built this frame") needs read instrumentation.
 
@@ -182,7 +182,7 @@ Acceptance (`QA/agent-lab-background.cjs`, 11/11):
 |---|---|
 | MMC1 (Ninja Gaiden, Mega Man 2, Zelda II), MMC3 (SMB3), UxROM (Contra), AxROM (Battletoads) | verified: checkpoint == cold boot, frames rebuild at 0 px |
 | NROM via a damaged header (Super Mario Bros reads as mapper 66) | runs; the worker reports "damaged header suspected" and does not repair it |
-| MMC2 (Punch-Out!!) | runs; frames are **not** synchronization-checked (renderer outside the runtime trace); no scene artifact is produced |
+| MMC2 (Punch-Out!!) | verified (§12): frames rebuild at 0 px with their scenes; checkpoint == cold boot; a plan reaches the Mike Tyson bout |
 | CNROM (mapper 3) | **unverified**: no cartridge in the test set |
 | Mappers the emulator does not run | the job fails with that reason; nothing is claimed |
 | Reaching places in a game | game knowledge in a plan: Ninja Gaiden's restart plan only; other games get the generic first look |
@@ -192,8 +192,9 @@ Acceptance (`QA/agent-lab-background.cjs`, 11/11):
 
 - Forge reads Super Mario Bros' dirty iNES header as mapper 66 (GxROM). It runs only because the game never writes a
   bank register. Header cleaning belongs in ROM intake.
-- MMC2 (Punch-Out!!) rendering bypasses the runtime trace: no synchronization check, and the latch-aware CHR mapping
-  is unverified.
+- ~~MMC2 (Punch-Out!!) rendering bypasses the runtime trace.~~ Resolved (§12). What remains approximate is the order of
+  pattern fetches within a line (34 background fetches, then the line's sprites), which is the scanline renderer's,
+  not the PPU's dot timing.
 - Linking OAM sprites to pose records needs game knowledge (Ninja Gaiden: enemy slots); generic tile matching would
   only give candidates.
 - The per-scanline runtime trace runs on every emulated frame. Recording it only on frames that will be captured may
@@ -215,7 +216,7 @@ when Forge has a verified profile for it; for other ROMs Forge says there is non
 - **Acceptance**: `QA/one-rom-loop.cjs`, with Ninja Gaiden and SMB3.
 
 The compatibility gaps in §9 are unchanged and still tracked:
-- MMC2 synchronization;
+- ~~MMC2 synchronization~~ (resolved, §12);
 - CNROM (untested);
 - malformed headers (reported, never repaired);
 - incomplete sprite → actor relationships.
@@ -323,4 +324,48 @@ appears and unrelated tiles elsewhere. Each rendition now records the room and t
   "(earlier session)". A repeated notice updates its time instead of adding a line.
 - **The imported-ROM list itself stays per session.** Forge stores no ROM bytes. After reopening, the ROMs Forge
   knows come from the library (the list above), not from the session's imports.
+
+## 12. MMC2 synchronization (2026-11-22)
+
+MMC2 (Punch-Out!!) switches CHR banks during a frame. Each pattern table has a latch, set to $FD or $FE when the PPU
+reads the pattern row of tile $FD or $FE ($0FD8/$0FE8 for table 0, $1FD8-$1FDF/$1FE8-$1FEF for table 1). The latch
+changes after that read, so the tile itself still comes from the bank before it. The MMC2 renderer
+(`app/src/services/mmc2-emulator.js`) replaced the generic one and recorded no trace, so these frames could not be
+rebuilt, checked or captured.
+
+- **Trace.** For each line, the renderer now hands the runtime trace what it fetched:
+  - the bank registers in effect at each background pattern fetch;
+  - the bytes it read for each sprite row;
+  - the latch state at the line's start and end, and the four CHR registers.
+  The trace reads nothing again: a second read would switch the latches again. `recordLine(…, fetched)` in
+  `03-runtime-capture.js` takes this instead of reading through the PPU bus.
+- **Evidence.**
+  - MMC2 frames rebuild like every other mapper's, and carry `synchronization: matched` and a scene artifact.
+  - Sprite CHR offsets come from the trace, i.e. the bank at fetch time, and `spritePatternsAt: "fetch"` says so.
+    Other mappers keep `"frame-end"`.
+  - The emulator's Capture no longer refuses MMC2: it is the same validated trace capture.
+- **Agent Lab.**
+  - The plan `punch-out-us-prg1.json` uses recorded inputs only: title, passcode entry, and the Mike Tyson bout via
+    passcode 007 373 5963.
+  - Frames whose sprite locations come from fetch time are not reported as "unverified".
+- **Cost.** In Chromium, Punch-Out emulation takes 5.6–6.1 ms per frame (3.0 before). That is the trace every other
+  mapper already records (Ninja Gaiden: 5.7 ms), and still about three times faster than real time.
+
+**Acceptance (`QA/mmc2-sync.cjs`, owner-side, Punch-Out!! PRG 1):**
+
+| Check | Result |
+|---|---|
+| 13 frames along the route (boot, title, passcode, bout introduction, 8 frames of the bout) | all rebuild at 0 different pixels, background and composite |
+| An MMC2 model written in the test from the mapper's description replays every line from its recorded start latches: 3,120 lines, 106,080 background fetches, 101,375 visible tiles, 7,176 sprite rows | 0 tile, bank, sprite-row or latch differences; every line starts with the latches the previous one ended with |
+| The 1,648 tiles the traces recorded | equal the cartridge's bytes at their recorded offsets |
+| Latches switch inside frames | on 20 lines; 12 of 13 frames draw pattern table $1000 from two banks |
+| A bout frame captured as a Scene | 0 different pixels |
+| Agent Lab, cold-boot verified: the generic plan (3 frames) and the Punch-Out plan (4 frames, the bout included) | 7/7 synchronization-checked, each with its scene; none reported with unverified sprite locations |
+
+**Limits.**
+- The model checks the latch and bank logic and the trace against an independent implementation, for the fetch order
+  of Forge's scanline renderer. It does not check that order against the PPU's dot timing.
+- Nametables and OAM are taken once the frame's last line is drawn. The game's vblank code, which runs before frame
+  evidence is taken, already prepares the next frame.
+- Only the PRG 1 cartridge was available. PRG 0 is untested.
 
