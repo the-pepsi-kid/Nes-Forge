@@ -60,6 +60,8 @@ How the worker behaves:
     - nine by New Game with the opponent number (RAM $01) written over the frames before the bout loads.
 
     Each bout is captured while its fighter's full pose is on screen. Matched by the PRG 1 cartridge's SHA-256.
+  - `punch-out-us-prg0.json`: the same targets for the PRG 0 cartridge, matched by its SHA-256. Every route and
+    capture frame was checked on PRG 0 to show the same fighter; a unit test keeps the two plans' targets identical.
 - **Queue**: `<root>/jobs/<id>/job.json`.
   - States: queued, running, paused, completed, failed, interrupted, cancelled.
   - A job left running by a stopped worker is recorded as an *interruption*, not a failure. It resumes at its first

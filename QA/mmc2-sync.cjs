@@ -13,9 +13,9 @@
 // 4. The latches really switch inside frames: lines change latch state, and frames draw background tiles from more
 //    than one bank of the same pattern table.
 // 5. A bout frame is captured as an editable Scene (the emulator's Capture), validated at 0 different pixels.
-// 6. Agent Lab: background jobs on Punch-Out!! (the generic first look, and the Punch-Out plan that reaches the bout)
-//    with cold-boot verification: every frame is synchronization-checked, has its scene, and no frame is reported with
-//    unverified sprite pattern locations.
+// 6. Agent Lab: background jobs on Punch-Out!! (the generic first look, and the Punch-Out plan to all 14 fights; with
+//    PRG 0 supplied, also PRG 0's own plan) with cold-boot verification: every frame is synchronization-checked, has
+//    its scene, no frame is reported with unverified sprite pattern locations, and each fighting frame shows its fighter.
 const fs = require('node:fs'), path = require('node:path'), os = require('node:os'), crypto = require('node:crypto'), assert = require('node:assert/strict');
 const {spawnSync, spawn} = require('node:child_process');
 const root = path.resolve(__dirname, '..'), editor = path.resolve(process.argv[2] || path.join(root, 'NES_Forge.html'));
@@ -39,11 +39,11 @@ const report = {suite: 'mmc2-sync', editorSha256: sha(fs.readFileSync(editor)), 
 const checks = [];
 const check = (name, fn) => checks.push([name, fn]);
 // PRG 1 is required; PRG 0, when supplied, goes through the same route and the same independent checks
-let rom = null, romFile = null, rom0 = null;
+let rom = null, romFile = null, rom0 = null, rom0File = null;
 if (corpus && fs.existsSync(corpus)) for (const n of fs.readdirSync(corpus)) {
   if (!n.toLowerCase().endsWith('.nes')) continue;
   const b = new Uint8Array(fs.readFileSync(path.join(corpus, n))), h = sha(b);
-  if (h === PRG1) { rom = b; romFile = path.join(corpus, n); } else if (h === PRG0) rom0 = b;
+  if (h === PRG1) { rom = b; romFile = path.join(corpus, n); } else if (h === PRG0) { rom0 = b; rom0File = path.join(corpus, n); }
 }
 
 function forge() {
@@ -216,13 +216,14 @@ check('A bout frame is captured as an editable Scene (the emulator\'s Capture), 
   assert.equal(after.meta.mapper, 9);
   assert.equal(after.meta.validation.backgroundDifferentPixels, 0); assert.equal(after.meta.validation.compositeDifferentPixels, 0);
 });
-check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Punch-Out plan to all 14 fights, each fighting frame showing its fighter), verified by cold boots: every frame synchronization-checked, with its scene, none with unverified sprite locations', async () => {
+check('Agent Lab: background jobs on Punch-Out!! (generic first look, and each revision\'s plan to all 14 fights, each fighting frame showing its fighter), verified by cold boots: every frame synchronization-checked, with its scene, none with unverified sprite locations', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-mmc2-lab-')), worker = path.join(root, 'tools/agent-lab/capture_worker.cjs');
   try {
     const cli = (...args) => { const r = spawnSync(process.execPath, [worker, ...args, '--root', dir], {encoding: 'utf8', timeout: 900000, env: process.env});
       if (r.status !== 0) throw Error(args[0] + ': ' + (r.stderr || r.stdout).slice(-600)); return r.stdout; };
     cli('enqueue', '--rom', romFile, '--plan', 'generic', '--verify', 'cold');
     cli('enqueue', '--rom', romFile, '--plan', 'profile', '--verify', 'cold');
+    if (rom0) cli('enqueue', '--rom', rom0File, '--plan', 'profile', '--verify', 'cold');   // PRG 0 has a plan of its own
     // the worker runs for minutes: its log is forwarded and a heartbeat printed, so the suite is never silent
     const t0 = Date.now();
     await new Promise((resolve, reject) => {
@@ -234,19 +235,22 @@ check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Pu
     });
     const ms = Date.now() - t0;
     const jobs = JSON.parse(cli('status'));
-    const full = jobs.map(j => JSON.parse(fs.readFileSync(path.join(dir, 'jobs', j.id, 'job.json'), 'utf8'))), punchOut = PunchOutContent.open(rom);
+    const full = jobs.map(j => JSON.parse(fs.readFileSync(path.join(dir, 'jobs', j.id, 'job.json'), 'utf8')));
+    const content = {[PRG1]: PunchOutContent.open(rom), ...(rom0 ? {[PRG0]: PunchOutContent.open(rom0)} : {})}, revision = {[PRG1]: 'PRG 1', [PRG0]: 'PRG 0'};
     const frames = full.flatMap(j => j.results.map(r => {
       const rec = JSON.parse(fs.readFileSync(path.join(dir, 'jobs', j.id, r.file), 'utf8'));   // the record, with its provenance
-      return {plan: j.plan.name, label: r.label, synchronization: r.synchronization, scene: r.scene, split: r.split, mapper: rec.rom?.mapper, spritePatternsAt: rec.spritePatternsAt,
-        banks: (rec.synchronization?.backgroundTileSources || []).map(s => s.chrOffset >> 12), fighter: /fighting/.test(r.label) ? fighterShown(rec, punchOut) : null};
+      return {plan: j.plan.name, revision: revision[j.rom.sha256], label: r.label, synchronization: r.synchronization, scene: r.scene, split: r.split, mapper: rec.rom?.mapper, spritePatternsAt: rec.spritePatternsAt,
+        banks: (rec.synchronization?.backgroundTileSources || []).map(s => s.chrOffset >> 12), fighter: /fighting/.test(r.label) ? fighterShown(rec, content[j.rom.sha256]) : null};
     }));
-    report.agentLab = {ms, jobs: jobs.map(j => ({plan: j.plan.name, source: j.plan.source, state: j.state, frames: j.frames, synchronized: j.synchronized, unresolved: j.unresolved})), frames,
+    report.agentLab = {ms, jobs: jobs.map(j => ({plan: j.plan.name, source: j.plan.source, revision: revision[j.rom.sha256], state: j.state, frames: j.frames, synchronized: j.synchronized, unresolved: j.unresolved})), frames,
       verify: full.map(j => j.verify), boots: full.map(j => j.runs.reduce((n, r) => n + (r.boots || 0), 0))};
     // cold-boot verification ran: besides the boot, every target was reproduced by a cold boot of its own
     assert.ok(full.every(j => j.verify === 'cold' && j.runs.reduce((n, r) => n + (r.boots || 0), 0) >= 1 + j.results.length), JSON.stringify({verify: report.agentLab.verify, boots: report.agentLab.boots}));
-    assert.equal(jobs.length, 2); assert.ok(jobs.every(j => j.state === 'completed'), JSON.stringify(jobs.map(j => j.state)));
-    assert.ok(jobs.some(j => /Punch-Out/.test(j.plan.name)), 'the Punch-Out plan was chosen for this cartridge');
-    assert.equal(frames.length, 3 + 17);
+    assert.equal(jobs.length, rom0 ? 3 : 2); assert.ok(jobs.every(j => j.state === 'completed'), JSON.stringify(jobs.map(j => j.state)));
+    // each revision's plan was chosen for its own cartridge
+    assert.deepEqual(jobs.filter(j => /Punch-Out/.test(j.plan.name)).map(j => [revision[j.rom.sha256], j.plan.source]).sort(),
+      [...(rom0 ? [['PRG 0', 'profile punch-out-us-prg0.json']] : []), ['PRG 1', 'profile punch-out-us-prg1.json']], JSON.stringify(jobs.map(j => j.plan)));
+    assert.equal(frames.length, 3 + 17 + (rom0 ? 17 : 0));
     // the Punch-Out plan reaches all 14 fights: Glass Joe by New Game, four by passcode, nine by the opponent number in
     // RAM; each fighting frame shows that fighter's pose, drawn in place
     const expected = {'Mike Tyson bout · fighting': 'Mike Tyson', 'Don Flamenco bout (first fight) · fighting': 'Don Flamenco · first fight',
@@ -254,15 +258,17 @@ check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Pu
       ...Object.fromEntries([['Von Kaiser', 'Von Kaiser'], ['Piston Honda (first fight)', 'Piston Honda · first fight'], ['Great Tiger', 'Great Tiger'], ['Bald Bull (first fight)', 'Bald Bull · first fight'],
         ['Soda Popinski', 'Soda Popinski'], ['Bald Bull (rematch)', 'Bald Bull · rematch'], ['Don Flamenco (rematch)', 'Don Flamenco · rematch'], ['Mr. Sandman', 'Mr. Sandman'], ['Super Macho Man', 'Super Macho Man']]
         .map(([a, b]) => [a + ' bout (opponent set in RAM) · fighting', b]))};
-    report.agentLab.fighters = frames.filter(f => f.fighter !== null || /fighting/.test(f.label)).map(f => ({label: f.label, shows: f.fighter}));
-    assert.deepEqual(Object.fromEntries(frames.filter(f => expected[f.label]).map(f => [f.label, f.fighter])), expected, JSON.stringify(report.agentLab.fighters));
+    report.agentLab.fighters = frames.filter(f => f.fighter !== null || /fighting/.test(f.label)).map(f => ({revision: f.revision, label: f.label, shows: f.fighter}));
+    for (const rev of ['PRG 1', ...(rom0 ? ['PRG 0'] : [])])
+      assert.deepEqual(Object.fromEntries(frames.filter(f => f.revision === rev && expected[f.label]).map(f => [f.label, f.fighter])), expected, rev + ': ' + JSON.stringify(report.agentLab.fighters));
     assert.ok(frames.every(f => f.synchronization === 'matched' && f.scene && !f.split && f.mapper === 9 && f.spritePatternsAt === 'fetch'), JSON.stringify(frames.find(f => f.synchronization !== 'matched' || !f.scene || f.split)));
     assert.ok(jobs.every(j => !j.unresolved.some(u => /not synchronization-checked|sprite pattern locations are unverified/.test(u))), JSON.stringify(jobs.map(j => j.unresolved)));
     assert.ok(frames.some(f => /fighting/.test(f.label) && new Set(f.banks).size > 1), 'the bout frame draws from several banks');
-    // PRG 1's header carries "MJR" in bytes 13-15 with byte 7 zero: a resolved note, the mapper unaffected; the file is
-    // a dump Forge recognizes; nothing about the header is left unresolved
-    report.agentLab.compatibility = full.map(j => j.compatibility.map(c => ({kind: c.kind, state: c.state, resolved: !!c.resolved})));
-    assert.ok(full.every(j => j.compatibility.some(c => c.kind === 'header' && c.state === 'junk in unused bytes' && c.resolved && /byte 7 is 0/.test(c.detail)) &&
+    // PRG 1's header carries "MJR" in bytes 13-15 with byte 7 zero: a resolved note, the mapper unaffected; PRG 0's
+    // header is clean, so it has no header item. Each file is a dump Forge recognizes; nothing about a header is left
+    // unresolved
+    report.agentLab.compatibility = full.map(j => ({revision: revision[j.rom.sha256], items: j.compatibility.map(c => ({kind: c.kind, state: c.state, resolved: !!c.resolved}))}));
+    assert.ok(full.every(j => (j.rom.sha256 === PRG1 ? j.compatibility.some(c => c.kind === 'header' && c.state === 'junk in unused bytes' && c.resolved && /byte 7 is 0/.test(c.detail)) : !j.compatibility.some(c => c.kind === 'header')) &&
       j.compatibility.some(c => c.kind === 'identity' && c.state === 'recognized dump' && /Punch-Out/.test(c.detail))), JSON.stringify(report.agentLab.compatibility));
     assert.ok(jobs.every(j => !j.unresolved.some(u => /header/.test(u))), JSON.stringify(jobs.map(j => j.unresolved)));
   } finally { fs.rmSync(dir, {recursive: true, force: true}); }

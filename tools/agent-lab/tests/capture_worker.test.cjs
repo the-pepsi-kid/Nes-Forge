@@ -26,6 +26,12 @@ test('Plan choice: a profile plan only for the ROM it names, the generic plan ot
   assert.equal(W.choosePlan('profile', '07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e').plan.profile, 'ninja-gaiden-us');
   assert.equal(W.choosePlan(undefined, 'ab'.repeat(32)).source, 'generic.json');
   assert.throws(() => W.choosePlan('profile', 'ab'.repeat(32)), /no profile plan/); });
+test('Punch-Out!!: each revision gets its own plan, with the same targets (checked on both cartridges by QA/mmc2-sync.cjs)', () => {
+  const prg1 = W.choosePlan('profile', '22ce21aa9c477d87e9cdc386b185f2166b18d438257640aa1d8e75ee9960e06e'), prg0 = W.choosePlan('profile', '0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952');
+  assert.equal(prg1.plan.profile, 'punch-out-us-prg1'); assert.equal(prg0.plan.profile, 'punch-out-us-prg0');
+  assert.match(prg1.plan.name, /PRG 1/); assert.match(prg0.plan.name, /PRG 0/);
+  assert.deepEqual(prg0.plan.boot, prg1.plan.boot); assert.deepEqual(prg0.plan.targets, prg1.plan.targets);
+  assert.equal(prg0.plan.targets.filter(t => /fighting/.test(t.label)).length, 14); });
 test('Private output is refused inside a Git working tree', () => { assert.throws(() => W.openRoot(path.join(__dirname, 'private-out')), /inside the Git working tree/); });
 test('Job states: queued -> paused -> queued -> cancelled; a cancelled job cannot be resumed', () => {
   const root = W.openRoot(fs.mkdtempSync(path.join(os.tmpdir(), 'agentlab-test-')));

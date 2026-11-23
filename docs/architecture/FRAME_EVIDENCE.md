@@ -374,7 +374,7 @@ rebuilt, checked or captured.
 - Nametables and OAM are taken once the frame's last line is drawn. The game's vblank code, which runs before frame
   evidence is taken, already prepares the next frame.
 - PRG 0, supplied later the same day, goes through the same route and checks. Both revisions reach the bout: 26 frames
-  and 6,240 lines show 0 differences, and 3,296 tiles equal their cartridge's bytes. The Agent Lab plan matches PRG 1 only.
+  and 6,240 lines show 0 differences, and 3,296 tiles equal their cartridge's bytes. ~~The Agent Lab plan matches PRG 1 only.~~ PRG 0 has its own since §21.
 
 ## 13. CNROM (2026-11-22)
 
@@ -649,7 +649,7 @@ fighting frame shows that fighter's pose drawn in place. All four do: Mike Tyson
 Honda (rematch) and King Hippo. A frame imported from these jobs is linked and recorded like the ones above.
 
 **Not covered.** ~~Nine fights can only be reached by winning bouts.~~ They are reached through the opponent
-number since §20. The PRG 0 plan does not exist yet.
+number since §20. ~~The PRG 0 plan does not exist yet.~~ It does since §21.
 
 ## 20. All 14 Punch-Out!! fights (2026-11-23)
 
@@ -703,3 +703,20 @@ fighting frames shows its fighter's pose drawn in place. All 14 do. A user whose
 therefore gets a linked frame of every fight in the library, and through §18, a drawing as seen for every pose those
 frames establish.
 
+## 21. An Agent Lab plan for Punch-Out!! PRG 0 (2026-11-23)
+
+Until now the Agent Lab worker had a Punch-Out plan for PRG 1 only, so a PRG 0 cartridge got the generic first look.
+`punch-out-us-prg0.json` now gives PRG 0 the same 17 targets, matched by PRG 0's SHA-256.
+
+- **Same targets, checked, not assumed.** Before writing the plan, each of PRG 1's 14 fighting targets was replayed on
+  PRG 0 the way the worker runs it, and each frame showed the expected fighter's full pose drawn in place. The routes
+  (passcodes, Select+A+B, the opponent number in RAM $01) and the capture frames carry over unchanged.
+- **Kept in step.** A unit test (`tools/agent-lab/tests/capture_worker.test.cjs`) checks that each revision's SHA-256
+  chooses its own plan and that the two plans' boot and targets are identical.
+- **Checked by the worker.** `QA/mmc2-sync.cjs` now also runs PRG 0's plan, cold-boot verified, when the PRG 0
+  cartridge is supplied. Each revision's plan must be chosen for its own cartridge, and each of PRG 0's 14 fighting
+  frames must show its fighter, decoded with PRG 0's own pose records. PRG 0's header is clean, so its job has no
+  header item; PRG 1's "MJR" note is unchanged.
+- **Cost.** The three cold-boot-verified jobs (generic, PRG 1, PRG 0) take about 19 minutes on this machine, against 9
+  for the first two; `mmc2-sync`'s time limit in `QA/verify.py` is raised from 40 to 60 minutes. Its heartbeat every 30 s
+  still keeps the 300 s silence stop meaningful.

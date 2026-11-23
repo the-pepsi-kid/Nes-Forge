@@ -43,13 +43,13 @@ args = parser.parse_args()
 #   catalog-recovery   ~6 min: recovered-catalog registration interrupted (kill, close), completed, validated, retried
 #   library-integrity  ~6 min: copied pose vs cartridge CHR, independent copies, recognition across sessions, Zelda II
 #   native-corpus, library-locations: several minutes with every cartridge
-#   mmc2-sync          Punch-Out!! (MMC2) frames along the route to the bout, an independent latch model, two Agent Lab jobs
+#   mmc2-sync          Punch-Out!! (MMC2) frames along the route to the bout, an independent latch model, Agent Lab jobs (PRG 1, and PRG 0 when supplied)
 #   cnrom-investigation a CNROM cartridge Forge builds (3 worlds, 2 CHR banks): capture plan, Agent Lab job, import
 #   pose-links         Ninja Gaiden, 22 areas x 3 moments: drawn sprites linked to library poses, checked against RAM
 #   punch-out-pose-links  Punch-Out!! both revisions' catalogs, then all 14 fights (15 bouts) linked, checked against RAM
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420
-TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 2400, 'pose-links': 900, 'punch-out-pose-links': 2400}
+TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 3600, 'pose-links': 900, 'punch-out-pose-links': 2400}
 for item in args.timeout:
     suite, _, seconds = item.partition('=')
     if not suite or not seconds.isdigit():
