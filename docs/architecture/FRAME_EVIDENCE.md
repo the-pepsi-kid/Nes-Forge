@@ -689,3 +689,17 @@ are reached through $01 and played for 900 frames each. The six bouts of §19 ru
 - **Flips.** The horizontal flip the game applies after its pose routine (§19), found on King Hippo, also appears on
   Bald Bull (both fights), Soda Popinski and Mr. Sandman. Every such link agrees with the game.
 
+**Agent Lab reaches every fight.** The Punch-Out plan (`punch-out-us-prg1.json`) now has 17 targets:
+- the title and passcode entry;
+- the Mike Tyson bout's introduction;
+- one fighting frame for each of the 14 fights:
+  - Glass Joe, by New Game;
+  - four by passcode;
+  - nine by the opponent number, written in a RAM span of the target's inputs.
+
+Each is captured while that fighter's full pose is on screen; the offsets were found frame by frame. `QA/mmc2-sync.cjs`
+runs the plan cold-boot verified (the job takes about 9 minutes on this machine), and checks that each of the 14
+fighting frames shows its fighter's pose drawn in place. All 14 do. A user whose worker investigates the cartridge
+therefore gets a linked frame of every fight in the library, and through §18, a drawing as seen for every pose those
+frames establish.
+

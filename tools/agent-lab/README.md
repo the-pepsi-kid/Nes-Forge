@@ -53,10 +53,13 @@ How the worker behaves:
   (`{from, to, ram: {address: value}}`, written before every frame of the span):
   - `generic.json`: any emulated mapper, no game knowledge.
   - `ninja-gaiden-us.json`: every area through the game's own restart; matched by SHA-256.
-  - `punch-out-us-prg1.json`: the title, passcode entry and four bouts by passcode, recorded inputs only: Mike Tyson
-    (007 373 5963), Don Flamenco (005 737 5423), Piston Honda's rematch (777 807 3454) and King Hippo (135 792 4680,
-    then Select+A+B). Each bout is captured while its fighter's full pose is on screen. Matched by the PRG 1
-    cartridge's SHA-256.
+  - `punch-out-us-prg1.json`: the title, passcode entry and all 14 fights:
+    - Glass Joe by New Game;
+    - four by passcode: Mike Tyson (007 373 5963), Don Flamenco (005 737 5423), Piston Honda's rematch
+      (777 807 3454) and King Hippo (135 792 4680, then Select+A+B);
+    - nine by New Game with the opponent number (RAM $01) written over the frames before the bout loads.
+
+    Each bout is captured while its fighter's full pose is on screen. Matched by the PRG 1 cartridge's SHA-256.
 - **Queue**: `<root>/jobs/<id>/job.json`.
   - States: queued, running, paused, completed, failed, interrupted, cancelled.
   - A job left running by a stopped worker is recorded as an *interruption*, not a failure. It resumes at its first
