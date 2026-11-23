@@ -7,9 +7,9 @@
 // 2. Every drawing against the cartridge (this test reads the bytes itself): each drawn piece's pattern equals the CHR
 //    bank the pose selects, and the palette equals the fight's sprite palette bytes; pieces the library does not draw
 //    are only those with no bank of their own or in the upper pattern table.
-// 3. Every bout reachable without winning one, PRG 1: Glass Joe (new game), and the circuits' first bouts by passcode:
-//    Don Flamenco (005 737 5423), Piston Honda's rematch (777 807 3454), King Hippo (135 792 4680, then Select+A+B),
-//    Mike Tyson (007 373 5963); and the Mike Tyson bout on PRG 0:
+// 3. All 14 fights, PRG 1: Glass Joe (new game); the circuits' first bouts by passcode: Don Flamenco (005 737 5423),
+//    Piston Honda's rematch (777 807 3454), King Hippo (135 792 4680, then Select+A+B), Mike Tyson (007 373 5963); the
+//    other nine by setting the opponent number (RAM $01) after New Game; and the Mike Tyson bout on PRG 0:
 //    every link made in a frame without a delta pose agrees with the game's pose selector ($A1, full poses below $80)
 //    over the frames that built the image, none contradicts it, every link is to the fight being played; and whenever
 //    the game's current full pose is drawn in place (this test decodes it with the game's routine at the runtime base
@@ -56,9 +56,12 @@ async function bout(page, cart, route) {
     // it; a new game starts with Glass Joe
     if (route.code) { await press('start', 4, 90); await press('down', 8, 40); for (const d of route.code) { await press('a', 4, 12); for (let i = 0; i < +d; i++) await press('right', 4, 8); }
       if (route.sab) await FE.runFrames(330, [{from: 0, to: 29, buttons: {select: true, a: true, b: true}}]); else await press('start', 4, 300); await press('start', 4, 30); }
+    // any other fight: New Game with the opponent number (RAM $01, which the game indexes its fight table with at
+    // $AAF1) written before every frame of the first 150 after Start, between the game setting it and loading the bout
+    else if (route.opponent != null) { await press('start', 4, 90); await FE.runFrames(404, [{from: 0, to: 3, buttons: {start: true}}, {from: 0, to: 149, ram: {1: route.opponent}}]); await press('start', 4, 30); }
     else { await press('start', 4, 90); await press('start', 4, 400); await press('start', 4, 30); }
     const frames = [], hist = [], keep = {};
-    for (let n = 0; n < 1800; n++) {
+    for (let n = 0; n < (route.frames || 1800); n++) {
       await FE.runFrames(1);
       hist.push({f: emu.frameCount, a1: emu.ram[0xA1], b0: emu.ram[0xB0], b1: emu.ram[0xB1], m80: emu.ram[0x80], m81: emu.ram[0x81]});
       if (n % 6) continue;
@@ -200,7 +203,10 @@ function judge(run, content, fight) {
       {cart: p1, route: {tag: 'don', code: '0057375423'}, fight: 3, label: 'Don Flamenco, first fight (PRG 1)'},
       {cart: p1, route: {tag: 'piston', code: '7778073454'}, fight: 7, label: 'Piston Honda, rematch (PRG 1)'},
       {cart: p1, route: {tag: 'hippo', code: '1357924680', sab: true}, fight: 4, label: 'King Hippo (PRG 1)'},
-      ...(p0 ? [{cart: p0, route: TYSON, fight: 13, label: 'Mike Tyson (PRG 0)'}] : [])];
+      ...(p0 ? [{cart: p0, route: TYSON, fight: 13, label: 'Mike Tyson (PRG 0)'}] : []),
+      // the nine fights a passcode does not start: the opponent number set in RAM after New Game (900 frames each)
+      ...[[1, 'Von Kaiser'], [2, 'Piston Honda, first fight'], [5, 'Great Tiger'], [6, 'Bald Bull, first fight'], [8, 'Soda Popinski'], [9, 'Bald Bull, rematch'],
+        [10, 'Don Flamenco, rematch'], [11, 'Mr. Sandman'], [12, 'Super Macho Man']].map(([fight, name]) => ({cart: p1, route: {tag: 'opponent ' + fight, opponent: fight, frames: 900}, fight, label: name + ' (PRG 1, opponent set in RAM)'}))];
     const kept = [];
     for (const play of plays) {
       const t = Date.now(), run = await bout(page, play.cart, play.route), content = PunchOutContent.open(new Uint8Array(fs.readFileSync(play.cart.file)));
@@ -209,7 +215,7 @@ function judge(run, content, fight) {
     }
     const B = Object.values(report.bouts);
     check('In every bout, every link made in a frame without a delta pose agrees with the game\'s pose selector ($A1) over the frames that built the image; none contradicts it; every link is to the fight being played',
-      B.length >= 5 && B.every(b => b.links > 20 && b.agree > 10 && !b.contradictions.length && !b.wrongFight.length && b.ambiguous === 0) && report.bouts['Mike Tyson (PRG 1)'].modes['8x8-step2'] > 0 && report.bouts['Mike Tyson (PRG 1)'].modes['8x16'] > 0,
+      B.length >= 14 && new Set(plays.map(p => p.fight)).size === 14 && B.every(b => b.links > 20 && b.agree > 10 && !b.contradictions.length && !b.wrongFight.length && b.ambiguous === 0) && report.bouts['Mike Tyson (PRG 1)'].modes['8x8-step2'] > 0 && report.bouts['Mike Tyson (PRG 1)'].modes['8x16'] > 0,
       Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {links: b.links, agree: b.agree, flipped: b.flipped || 0, contradictions: b.contradictions.slice(0, 3), wrongFight: b.wrongFight.slice(0, 3), modes: b.modes, ambiguous: b.ambiguous}])));
     check('Coverage: whenever the game\'s current full pose is drawn in place (this test decodes it with the game\'s routine at the runtime base and sprite mode, and finds every piece on screen), Forge links it',
       B.every(b => b.drawnInPlace > 10 && b.missed.length === 0), Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {drawnInPlace: b.drawnInPlace, covered: b.covered, missed: b.missed.slice(0, 3)}])));

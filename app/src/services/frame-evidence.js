@@ -162,12 +162,16 @@ async function libraryLinks(record){
 // ---------- capture plans: many frames from one boot ----------
 const ALL={a:false,b:false,select:false,start:false,up:false,down:false,left:false,right:false};
 async function runFrames(count,inputs=[]){
-  // inputs: [{from,to,buttons}] relative to this run. Frames with the same buttons run as one batch; the full button
-  // state is set before each batch.
+  // inputs: [{from,to,buttons,ram}] relative to this run. Frames with the same buttons run as one batch; the full button
+  // state is set before each batch. ram ({address: value}) is written before every frame of its span, one frame at a
+  // time: a game that sets a variable once and reads it some frames later takes the value written in between
+  // (Punch-Out!!'s opponent number, RAM $01, between New Game and the bout's loading).
   let f=0;
   while(f<count){
-    const held={...ALL};for(const span of inputs)if(f>=span.from&&f<=span.to)Object.assign(held,span.buttons);
+    const held={...ALL},ram={};for(const span of inputs)if(f>=span.from&&f<=span.to){Object.assign(held,span.buttons||{});Object.assign(ram,span.ram||{});}
     let next=count;for(const span of inputs){if(span.from>f&&span.from<next)next=span.from;if(span.to+1>f&&span.to+1<next)next=span.to+1;}
+    const writes=Object.entries(ram);if(writes.length)next=f+1;
+    for(const [address,value] of writes)emu.ram[Number(address)&0x7FF]=Number(value)&255;
     const r1=await C.run('input.set',{buttons:held});if(!r1.ok)fail(r1.error.message);
     const r2=await C.run('emulator.frames',{count:next-f});if(!r2.ok)fail(r2.error.message);f=next;
   }
