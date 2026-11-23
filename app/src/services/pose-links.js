@@ -224,15 +224,22 @@ function needsObservedDrawing(entry,link){
   const c=entry.rendition?.context;
   return !c||c.confirmed===false||(c.undrawn||0)>0||(c.inherited||0)>0||!!(link.mode&&c.mode&&c.mode!==link.mode.key);
 }
-const observing=new Map(),observeTimers=new Map();
+// frames already gone through against the current set of poses (per ROM, this session): a frame registered later does
+// not make every earlier frame be read again
+const observing=new Map(),observeTimers=new Map(),observedFrames=new Map();
 async function recordObservations(sha){
   if(!/^[0-9a-f]{64}$/.test(sha||''))fail('recordObservations needs a ROM SHA-256');
   while(observing.has(sha))await observing.get(sha).catch(()=>{});
   const job=(async()=>{
     const L=services.ResourceLibrary,frames=[];
+    // only poses drawn in sprite-mode layouts record frames: a ROM without them has nothing to do
+    const poses=await posesOf(sha),key=poseCache.get(sha)?.key||'';
+    if(!poses.some(p=>p.mode))return {sourceSha256:sha,skipped:'no poses with sprite-mode layouts',frames:0,links:0,poses:0,observations:0,alreadyRecorded:0,drawingsUpdated:0,updated:[]};
+    let done=observedFrames.get(sha);if(!done||done.key!==key){done={key,ids:new Set()};observedFrames.set(sha,done);}
     for(let offset=0;;offset+=1000){const page=await L.list({shelf:sha,kind:'frame',offset,limit:1000});frames.push(...page.items);if(offset+1000>=page.total)break;}
-    const stats={sourceSha256:sha,frames:frames.length,links:0,poses:new Set(),observations:0,alreadyRecorded:0,drawingsUpdated:0,notLayoutPoses:0,updated:[]};
+    const stats={sourceSha256:sha,frames:frames.length,framesSkipped:0,links:0,poses:new Set(),observations:0,alreadyRecorded:0,drawingsUpdated:0,notLayoutPoses:0,updated:[]};
     for(const f of frames){
+      if(done.ids.has(f.id)){stats.framesSkipped++;continue;}
       let r;try{r=await frameEntryPoses(f.id);}catch(_){continue;}
       let record=null;
       for(const l of r.links){
@@ -251,6 +258,7 @@ async function recordObservations(sha){
         }
         await L.putRecords([['entries',e]]);
       }
+      done.ids.add(f.id);
     }
     return {...stats,poses:stats.poses.size};
   })();
