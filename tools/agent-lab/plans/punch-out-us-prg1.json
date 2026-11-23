@@ -1,14 +1,14 @@
 {
  "format": "NESForgeCapturePlan",
  "version": 1,
- "name": "Mike Tyson's Punch-Out!! (US, PRG 1) · title, passcode and four bouts (Mike Tyson, Don Flamenco, Piston Honda, King Hippo)",
+ "name": "Mike Tyson's Punch-Out!! (US, PRG 1) · title, passcode and all 14 fights",
  "profile": "punch-out-us-prg1",
  "match": {
   "sha256": [
    "22ce21aa9c477d87e9cdc386b185f2166b18d438257640aa1d8e75ee9960e06e"
   ]
  },
- "method": "Recorded inputs, no RAM changes: the title appears after 1200 frames; Start, then Down opens passcode entry; a passcode (entered with A and Right) starts a circuit's first bout: 007 373 5963 Mike Tyson, 005 737 5423 Don Flamenco (first fight), 777 807 3454 Piston Honda (rematch), 135 792 4680 then Select+A+B King Hippo. Each bout is captured while its fighter's full pose is on screen, not a delta pose: 740 (Mike Tyson), 600 (Don Flamenco), 680 (Piston Honda) and 712 (King Hippo) frames after the bout starts; the Mike Tyson bout also at its introduction. The same routes as QA/punch-out-pose-links.cjs, which checks the poses drawn in each bout against the game's own pose selector. MMC2: every frame's background and sprite patterns come from the bank each latch selected when the pattern was fetched.",
+ "method": "Recorded inputs: the title appears after 1200 frames; Start, then Down opens passcode entry; a passcode (entered with A and Right) starts a circuit's first bout: 007 373 5963 Mike Tyson, 005 737 5423 Don Flamenco (first fight), 777 807 3454 Piston Honda (rematch), 135 792 4680 then Select+A+B King Hippo. The other nine fights: New Game with the opponent number (RAM $01, which the bout's loading reads at $AAED to index the fight table at $A0D1) written before every frame of the first 150 after Start. Glass Joe: a plain New Game (the same frames, nothing written). Each bout is captured while its fighter's full pose is on screen, not a delta pose (the frame offsets were found frame by frame); the Mike Tyson bout also at its introduction. The same routes as QA/punch-out-pose-links.cjs, which checks the poses drawn in every fight against the game's own pose selector. MMC2: every frame's background and sprite patterns come from the bank each latch selected when the pattern was fetched.",
  "boot": {
   "frames": 1200,
   "inputs": []
@@ -2080,6 +2080,339 @@
     {
      "from": 1172,
      "to": 1175,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Glass Joe bout (new game) · fighting",
+   "frames": 1132,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 97,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 498,
+     "to": 501,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Von Kaiser bout (opponent set in RAM) · fighting",
+   "frames": 1259,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 97,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 243,
+     "ram": {
+      "1": 1
+     }
+    },
+    {
+     "from": 498,
+     "to": 501,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Piston Honda (first fight) bout (opponent set in RAM) · fighting",
+   "frames": 1233,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 97,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 243,
+     "ram": {
+      "1": 2
+     }
+    },
+    {
+     "from": 498,
+     "to": 501,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Great Tiger bout (opponent set in RAM) · fighting",
+   "frames": 1137,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 97,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 243,
+     "ram": {
+      "1": 5
+     }
+    },
+    {
+     "from": 498,
+     "to": 501,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Bald Bull (first fight) bout (opponent set in RAM) · fighting",
+   "frames": 1159,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 97,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 243,
+     "ram": {
+      "1": 6
+     }
+    },
+    {
+     "from": 498,
+     "to": 501,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Soda Popinski bout (opponent set in RAM) · fighting",
+   "frames": 1149,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 97,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 243,
+     "ram": {
+      "1": 8
+     }
+    },
+    {
+     "from": 498,
+     "to": 501,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Bald Bull (rematch) bout (opponent set in RAM) · fighting",
+   "frames": 1155,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 97,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 243,
+     "ram": {
+      "1": 9
+     }
+    },
+    {
+     "from": 498,
+     "to": 501,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Don Flamenco (rematch) bout (opponent set in RAM) · fighting",
+   "frames": 1132,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 97,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 243,
+     "ram": {
+      "1": 10
+     }
+    },
+    {
+     "from": 498,
+     "to": 501,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Mr. Sandman bout (opponent set in RAM) · fighting",
+   "frames": 1225,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 97,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 243,
+     "ram": {
+      "1": 11
+     }
+    },
+    {
+     "from": 498,
+     "to": 501,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Super Macho Man bout (opponent set in RAM) · fighting",
+   "frames": 1136,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 97,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 243,
+     "ram": {
+      "1": 12
+     }
+    },
+    {
+     "from": 498,
+     "to": 501,
      "buttons": {
       "start": true
      }

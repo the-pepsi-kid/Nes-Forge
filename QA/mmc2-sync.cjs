@@ -216,7 +216,7 @@ check('A bout frame is captured as an editable Scene (the emulator\'s Capture), 
   assert.equal(after.meta.mapper, 9);
   assert.equal(after.meta.validation.backgroundDifferentPixels, 0); assert.equal(after.meta.validation.compositeDifferentPixels, 0);
 });
-check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Punch-Out plan to four bouts, each fighting frame showing its fighter), verified by cold boots: every frame synchronization-checked, with its scene, none with unverified sprite locations', async () => {
+check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Punch-Out plan to all 14 fights, each fighting frame showing its fighter), verified by cold boots: every frame synchronization-checked, with its scene, none with unverified sprite locations', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-mmc2-lab-')), worker = path.join(root, 'tools/agent-lab/capture_worker.cjs');
   try {
     const cli = (...args) => { const r = spawnSync(process.execPath, [worker, ...args, '--root', dir], {encoding: 'utf8', timeout: 900000, env: process.env});
@@ -246,10 +246,14 @@ check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Pu
     assert.ok(full.every(j => j.verify === 'cold' && j.runs.reduce((n, r) => n + (r.boots || 0), 0) >= 1 + j.results.length), JSON.stringify({verify: report.agentLab.verify, boots: report.agentLab.boots}));
     assert.equal(jobs.length, 2); assert.ok(jobs.every(j => j.state === 'completed'), JSON.stringify(jobs.map(j => j.state)));
     assert.ok(jobs.some(j => /Punch-Out/.test(j.plan.name)), 'the Punch-Out plan was chosen for this cartridge');
-    assert.equal(frames.length, 3 + 7);
-    // the Punch-Out plan reaches four bouts (passcodes): each fighting frame shows that fighter's pose, drawn in place
+    assert.equal(frames.length, 3 + 17);
+    // the Punch-Out plan reaches all 14 fights: Glass Joe by New Game, four by passcode, nine by the opponent number in
+    // RAM; each fighting frame shows that fighter's pose, drawn in place
     const expected = {'Mike Tyson bout · fighting': 'Mike Tyson', 'Don Flamenco bout (first fight) · fighting': 'Don Flamenco · first fight',
-      'Piston Honda bout (rematch) · fighting': 'Piston Honda · rematch', 'King Hippo bout · fighting': 'King Hippo'};
+      'Piston Honda bout (rematch) · fighting': 'Piston Honda · rematch', 'King Hippo bout · fighting': 'King Hippo', 'Glass Joe bout (new game) · fighting': 'Glass Joe',
+      ...Object.fromEntries([['Von Kaiser', 'Von Kaiser'], ['Piston Honda (first fight)', 'Piston Honda · first fight'], ['Great Tiger', 'Great Tiger'], ['Bald Bull (first fight)', 'Bald Bull · first fight'],
+        ['Soda Popinski', 'Soda Popinski'], ['Bald Bull (rematch)', 'Bald Bull · rematch'], ['Don Flamenco (rematch)', 'Don Flamenco · rematch'], ['Mr. Sandman', 'Mr. Sandman'], ['Super Macho Man', 'Super Macho Man']]
+        .map(([a, b]) => [a + ' bout (opponent set in RAM) · fighting', b]))};
     report.agentLab.fighters = frames.filter(f => f.fighter !== null || /fighting/.test(f.label)).map(f => ({label: f.label, shows: f.fighter}));
     assert.deepEqual(Object.fromEntries(frames.filter(f => expected[f.label]).map(f => [f.label, f.fighter])), expected, JSON.stringify(report.agentLab.fighters));
     assert.ok(frames.every(f => f.synchronization === 'matched' && f.scene && !f.split && f.mapper === 9 && f.spritePatternsAt === 'fetch'), JSON.stringify(frames.find(f => f.synchronization !== 'matched' || !f.scene || f.split)));
