@@ -49,7 +49,8 @@ restarts. Two remembered options make the loop hands-free:
 
 How the worker behaves:
 
-- **Plans** (`plans/*.json`, `NESForgeCapturePlan`) are data, not code:
+- **Plans** (`plans/*.json`, `NESForgeCapturePlan`) are data, not code. A target's input spans may also write RAM
+  (`{from, to, ram: {address: value}}`, written before every frame of the span):
   - `generic.json`: any emulated mapper, no game knowledge.
   - `ninja-gaiden-us.json`: every area through the game's own restart; matched by SHA-256.
   - `punch-out-us-prg1.json`: the title, passcode entry and four bouts by passcode, recorded inputs only: Mike Tyson

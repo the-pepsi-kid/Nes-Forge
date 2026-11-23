@@ -648,6 +648,44 @@ moments were found frame by frame. `QA/mmc2-sync.cjs` runs the plan cold-boot ve
 fighting frame shows that fighter's pose drawn in place. All four do: Mike Tyson, Don Flamenco (first fight), Piston
 Honda (rematch) and King Hippo. A frame imported from these jobs is linked and recorded like the ones above.
 
-**Not covered.** Nine fights can only be reached by winning bouts (or from a saved state), so their poses are in the
-library but are not checked against the game. The PRG 0 plan does not exist yet.
+**Not covered.** ~~Nine fights can only be reached by winning bouts.~~ They are reached through the opponent
+number since §20. The PRG 0 plan does not exist yet.
+
+## 20. All 14 Punch-Out!! fights (2026-11-23)
+
+**The opponent number.** The fight table §17 reads (bank 13, at CPU $A0D1 once mapped) is indexed by RAM $01, the
+opponent number:
+- **Where it is read.** At $AAED the bout's loading code does `LDA $01 / ASL / TAY / LDA $A0D1,Y` and stores the
+  fight's bank and entry offset in $02 and $03.
+- **Where it is set.** New Game sets it at $A47A, from the circuit-start table at $A185 (0, 3, 7, 12, $14, 13). After
+  a bout, the next opponent comes from the table at $A10D.
+- **The window.** Writing $01 once does not work: before New Game it is overwritten, and at the introduction the
+  fight is already loaded. Written before every frame of the first 150 after New Game, it lands between the two, and
+  the game plays that fight.
+- **Checked.** Each of the 14 fights was identified from the poses the game then draws.
+
+**Frame runs that write RAM.** `FrameEvidence.runFrames`, which Agent Lab plan targets and the tests use, now takes
+`{from, to, ram: {address: value}}` in its input spans. The value is written before every frame of the span, and those
+frames run one at a time.
+
+**All 14 fights checked against the game (`QA/punch-out-pose-links.cjs`, 9/9).** The nine fights no passcode starts
+are reached through $01 and played for 900 frames each. The six bouts of §19 run as before.
+
+| Bout | Links | Agree with $A1 / contradict | Coverage | Drawn flipped |
+|---|---|---|---|---|
+| Von Kaiser | 70 | 35 / **0** | 35 / 35 | |
+| Piston Honda (first fight) | 64 | 31 / **0** | 31 / 31 | |
+| Great Tiger | 71 | 32 / **0** | 32 / 32 | |
+| Bald Bull (first fight) | 91 | 57 / **0** | 57 / 57 | 18 |
+| Soda Popinski | 103 | 75 / **0** | 74 / 74 | 18 |
+| Bald Bull (rematch) | 93 | 66 / **0** | 66 / 66 | 17 |
+| Don Flamenco (rematch) | 76 | 60 / **0** | 60 / 60 | |
+| Mr. Sandman | 89 | 67 / **0** | 67 / 67 | 8 |
+| Super Macho Man | 69 | 42 / **0** | 42 / 42 | |
+
+- **The other fights** are as in §19: Mike Tyson (both revisions), Glass Joe, Don Flamenco (first fight), Piston Honda
+  (rematch) and King Hippo, all with 0 contradictions and complete coverage.
+- **No noise.** No bout has a candidate, an ambiguous match, or a link to a fight other than the one played.
+- **Flips.** The horizontal flip the game applies after its pose routine (§19), found on King Hippo, also appears on
+  Bald Bull (both fights), Soda Popinski and Mr. Sandman. Every such link agrees with the game.
 
