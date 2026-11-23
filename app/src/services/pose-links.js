@@ -54,11 +54,12 @@ async function posesOf(sha){
           const ref=entry.layoutRenditions?.[l.key];let d=null;
           if(ref?.hash){try{d=JSON.parse(new TextDecoder().decode(await L.blobBytes(ref.hash)));}catch(_){d=null;}}
           poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:piecesOf(l.pieces),
-            height:l.height,mode:{key:l.key,label:l.label},drawing:d,context:ref?.context||entry.rendition?.context||null});
+            height:l.height,mode:{key:l.key,label:l.label},drawing:d,context:ref?.context||entry.rendition?.context||null,mirror:record.mirror!==false,flipToggle:!!record.flipToggle});
         }
         continue;
       }
-      poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:piecesOf(record.pieces),drawing,context:entry.rendition?.context||null});
+      poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:piecesOf(record.pieces),drawing,context:entry.rendition?.context||null,
+        mirror:record.mirror!==false,flipToggle:!!record.flipToggle});
     }catch(_){/* not a pose record this matcher reads */}
   }
   poseCache.set(sha,{key,poses});return poses;
@@ -80,15 +81,19 @@ function layoutMatches(sprites,poses){
   const out=[];
   for(const pose of poses){
     const p0=pose.pieces[0],fits=s=>!pose.height||s.height===pose.height;
-    for(const mirror of pose.facing!=null?[false]:[false,true]){
+    // mirror: the whole pose drawn the other way round (positions and flips), unless the pose has a decoded facing or
+    // its game draws each facing from its own record; toggle: every piece's horizontal flip inverted, positions as they
+    // are (a game that flips a whole pose after drawing it)
+    for(const mirror of pose.facing!=null||pose.mirror===false?[false]:[false,true])for(const toggle of pose.flipToggle?[false,true]:[false]){
+      const h=a=>flipH(a)!==(mirror!==toggle);
       for(const s of sprites){
-        if(!fits(s)||s.tile!==p0.tile||p0.attributes!=null&&(s.flipH!==(flipH(p0.attributes)!==mirror)||s.flipV!==flipV(p0.attributes)))continue;
+        if(!fits(s)||s.tile!==p0.tile||p0.attributes!=null&&(s.flipH!==h(p0.attributes)||s.flipV!==flipV(p0.attributes)))continue;
         const used=[s];let ok=true;
         for(const pk of pose.pieces.slice(1)){
-          const dx=(pk.x-p0.x)*(mirror?-1:1),dy=pk.y-p0.y,list=(pk.attributes==null?any.get(anyKey(pk.tile,s.x+dx,s.y+dy)):at.get(keyOf(pk.tile,s.x+dx,s.y+dy,flipH(pk.attributes)!==mirror,flipV(pk.attributes))))||[];
+          const dx=(pk.x-p0.x)*(mirror?-1:1),dy=pk.y-p0.y,list=(pk.attributes==null?any.get(anyKey(pk.tile,s.x+dx,s.y+dy)):at.get(keyOf(pk.tile,s.x+dx,s.y+dy,h(pk.attributes),flipV(pk.attributes))))||[];
           const t=list.find(t=>!used.includes(t)&&fits(t));if(!t){ok=false;break;}used.push(t);
         }
-        if(ok)out.push({pose,mirror,sprites:used});
+        if(ok)out.push({pose,mirror,toggle,sprites:used});
       }
     }
   }
@@ -140,9 +145,9 @@ async function framePoses(record,{sourceSha256}={}){
     const equal=checked.filter(c=>c.graphics==='equal'),pick=equal.length?equal:checked.filter(c=>c.graphics==='unchecked').length?checked.filter(c=>c.graphics==='unchecked'):checked;
     const describe=c=>({poseEntry:c.m.pose.entryId,poseId:c.m.pose.id,label:c.m.pose.label,owner:c.m.pose.owner,mirrored:c.m.mirror,sprites:c.m.sprites.map(s=>s.index),pieces:c.m.pose.pieces.length,
       at:{x:c.m.sprites[0].x-(c.m.mirror?-c.m.pose.pieces[0].x-8:c.m.pose.pieces[0].x),y:c.m.sprites[0].y-c.m.pose.pieces[0].y},
-      ...(c.m.pose.mode?{mode:c.m.pose.mode}:{}),
+      ...(c.m.pose.mode?{mode:c.m.pose.mode}:{}),...(c.m.toggle?{flipsToggled:true}:{}),
       graphics:c.graphics,banks:c.banks||[],evidence:(c.graphics==='equal'?'every piece drawn in place (tile, relative position, flips'+(c.m.mirror?', mirrored':'')+') with the graphics of the library\'s drawing'+(c.notCompared?' ('+c.notCompared+' pieces with no drawing in the library matched by layout only)':''):c.graphics==='differ'?'same layout and tile numbers; '+c.why:'layout matches; graphics not compared: '+c.why)+
-        (c.m.pose.mode?'; drawn as '+c.m.pose.mode.label:'')});
+        (c.m.pose.mode?'; drawn as '+c.m.pose.mode.label:'')+(c.m.toggle?'; flipped horizontally by the game after its pose routine (every piece\'s flip inverted)':'')});
     if(pick.length>1){ambiguous.push({sprites:group[0].sprites.map(s=>s.index),poses:pick.map(describe)});continue;}
     const one=describe(pick[0]),drawingUnconfirmed=pick[0].m.pose.context?.confirmed===false||pick[0].m.pose.context?.basis==='default';
     if(one.graphics==='equal'){links.push({...one,state:'established',by:'layout and graphics'});one.sprites.forEach(i=>linked.add(i));}
@@ -222,7 +227,7 @@ async function observedDrawing(sha,record,link,entry,frameLabel){
 }
 function needsObservedDrawing(entry,link){
   const c=entry.rendition?.context;
-  return !c||c.confirmed===false||(c.undrawn||0)>0||(c.inherited||0)>0||!!(link.mode&&c.mode&&c.mode!==link.mode.key);
+  return !c||c.confirmed===false||(c.undrawn||0)>0||(c.inherited||0)>0||!!(link.mode&&c.mode&&c.mode!==link.mode.key)||!!link.flipsToggled;
 }
 // frames already gone through against the current set of poses (per ROM, this session): a frame registered later does
 // not make every earlier frame be read again

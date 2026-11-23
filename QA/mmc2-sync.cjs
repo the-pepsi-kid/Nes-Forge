@@ -21,6 +21,18 @@ const {spawnSync, spawn} = require('node:child_process');
 const root = path.resolve(__dirname, '..'), editor = path.resolve(process.argv[2] || path.join(root, 'NES_Forge.html'));
 const output = process.argv[3], corpus = process.argv[4];
 const {loadForge} = require('./t/u/harness.cjs');
+// the game's own pose routine, run here in Node, to say which fighter an Agent Lab frame shows
+globalThis.Forge6502Core = globalThis.Forge6502Core || require('../app/src/services/cpu6502-core.js');
+const PunchOutContent = require('../app/src/re/punch-out-content.js');
+// one of a fight's full poses, decoded at the frame's base ($B0/$B1) and sprite mode ($80/$81), every piece among the
+// frame's drawn sprites (the fight is narrowed by its entry offset, RAM $03, which several fights share)
+function fighterShown(rec, content) {
+  const ram = Buffer.from(rec.memory.ram, 'base64'), sp = (rec.sprites || []).filter(s => s.visible), mode = {height: ram[0x80] === 16 ? 16 : 8, step: ram[0x81] === 2 ? 2 : 1};
+  for (const f of content.fights) { if (f.entryOffset !== ram[3]) continue;
+    for (const r of f.poses) { if (r.status !== 'source-record') continue; let p; try { p = content.pose(f.index, r.selector, {x: ram[0xB0], y: ram[0xB1], mode}); } catch (_) { continue; }
+      if (p.pieces.length >= 3 && p.pieces.every(q => sp.some(s => s.x === q.x && s.y === q.y - 1 && s.tile === q.tile))) return f.label; } }
+  return null;
+}
 const PRG1 = '22ce21aa9c477d87e9cdc386b185f2166b18d438257640aa1d8e75ee9960e06e', PRG0 = '0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952';
 const sha = b => crypto.createHash('sha256').update(b).digest('hex');
 const report = {suite: 'mmc2-sync', editorSha256: sha(fs.readFileSync(editor)), checks: [], frames: [], model: null, agentLab: null};
@@ -204,7 +216,7 @@ check('A bout frame is captured as an editable Scene (the emulator\'s Capture), 
   assert.equal(after.meta.mapper, 9);
   assert.equal(after.meta.validation.backgroundDifferentPixels, 0); assert.equal(after.meta.validation.compositeDifferentPixels, 0);
 });
-check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Punch-Out plan to the bout), verified by cold boots: every frame synchronization-checked, with its scene, none with unverified sprite locations', async () => {
+check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Punch-Out plan to four bouts, each fighting frame showing its fighter), verified by cold boots: every frame synchronization-checked, with its scene, none with unverified sprite locations', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-mmc2-lab-')), worker = path.join(root, 'tools/agent-lab/capture_worker.cjs');
   try {
     const cli = (...args) => { const r = spawnSync(process.execPath, [worker, ...args, '--root', dir], {encoding: 'utf8', timeout: 900000, env: process.env});
@@ -222,11 +234,11 @@ check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Pu
     });
     const ms = Date.now() - t0;
     const jobs = JSON.parse(cli('status'));
-    const full = jobs.map(j => JSON.parse(fs.readFileSync(path.join(dir, 'jobs', j.id, 'job.json'), 'utf8')));
+    const full = jobs.map(j => JSON.parse(fs.readFileSync(path.join(dir, 'jobs', j.id, 'job.json'), 'utf8'))), punchOut = PunchOutContent.open(rom);
     const frames = full.flatMap(j => j.results.map(r => {
       const rec = JSON.parse(fs.readFileSync(path.join(dir, 'jobs', j.id, r.file), 'utf8'));   // the record, with its provenance
       return {plan: j.plan.name, label: r.label, synchronization: r.synchronization, scene: r.scene, split: r.split, mapper: rec.rom?.mapper, spritePatternsAt: rec.spritePatternsAt,
-        banks: (rec.synchronization?.backgroundTileSources || []).map(s => s.chrOffset >> 12)};
+        banks: (rec.synchronization?.backgroundTileSources || []).map(s => s.chrOffset >> 12), fighter: /fighting/.test(r.label) ? fighterShown(rec, punchOut) : null};
     }));
     report.agentLab = {ms, jobs: jobs.map(j => ({plan: j.plan.name, source: j.plan.source, state: j.state, frames: j.frames, synchronized: j.synchronized, unresolved: j.unresolved})), frames,
       verify: full.map(j => j.verify), boots: full.map(j => j.runs.reduce((n, r) => n + (r.boots || 0), 0))};
@@ -234,7 +246,12 @@ check('Agent Lab: background jobs on Punch-Out!! (generic first look, and the Pu
     assert.ok(full.every(j => j.verify === 'cold' && j.runs.reduce((n, r) => n + (r.boots || 0), 0) >= 1 + j.results.length), JSON.stringify({verify: report.agentLab.verify, boots: report.agentLab.boots}));
     assert.equal(jobs.length, 2); assert.ok(jobs.every(j => j.state === 'completed'), JSON.stringify(jobs.map(j => j.state)));
     assert.ok(jobs.some(j => /Punch-Out/.test(j.plan.name)), 'the Punch-Out plan was chosen for this cartridge');
-    assert.equal(frames.length, 3 + 4);
+    assert.equal(frames.length, 3 + 7);
+    // the Punch-Out plan reaches four bouts (passcodes): each fighting frame shows that fighter's pose, drawn in place
+    const expected = {'Mike Tyson bout · fighting': 'Mike Tyson', 'Don Flamenco bout (first fight) · fighting': 'Don Flamenco · first fight',
+      'Piston Honda bout (rematch) · fighting': 'Piston Honda · rematch', 'King Hippo bout · fighting': 'King Hippo'};
+    report.agentLab.fighters = frames.filter(f => f.fighter !== null || /fighting/.test(f.label)).map(f => ({label: f.label, shows: f.fighter}));
+    assert.deepEqual(Object.fromEntries(frames.filter(f => expected[f.label]).map(f => [f.label, f.fighter])), expected, JSON.stringify(report.agentLab.fighters));
     assert.ok(frames.every(f => f.synchronization === 'matched' && f.scene && !f.split && f.mapper === 9 && f.spritePatternsAt === 'fetch'), JSON.stringify(frames.find(f => f.synchronization !== 'matched' || !f.scene || f.split)));
     assert.ok(jobs.every(j => !j.unresolved.some(u => /not synchronization-checked|sprite pattern locations are unverified/.test(u))), JSON.stringify(jobs.map(j => j.unresolved)));
     assert.ok(frames.some(f => /fighting/.test(f.label) && new Set(f.banks).size > 1), 'the bout frame draws from several banks');

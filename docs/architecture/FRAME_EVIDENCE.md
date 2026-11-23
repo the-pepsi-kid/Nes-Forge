@@ -352,7 +352,7 @@ rebuilt, checked or captured.
   - The emulator's Capture no longer refuses MMC2: it is the same validated trace capture.
 - **Agent Lab.**
   - The plan `punch-out-us-prg1.json` uses recorded inputs only: title, passcode entry, and the Mike Tyson bout via
-    passcode 007 373 5963.
+    passcode 007 373 5963. Since §19 it also reaches three more bouts by passcode.
   - Frames whose sprite locations come from fetch time are not reported as "unverified".
 - **Cost.** In Chromium, Punch-Out emulation takes 5.6–6.1 ms per frame (3.0 before). That is the trace every other
   mapper already records (Ninja Gaiden: 5.7 ms), and still about three times faster than real time.
@@ -366,7 +366,7 @@ rebuilt, checked or captured.
 | The 1,648 tiles the traces recorded | equal the cartridge's bytes at their recorded offsets |
 | Latches switch inside frames | on 20 lines; 12 of 13 frames draw pattern table $1000 from two banks |
 | A bout frame captured as a Scene | 0 different pixels |
-| Agent Lab, cold-boot verified: the generic plan (3 frames) and the Punch-Out plan (4 frames, the bout included) | 7/7 synchronization-checked, each with its scene; none reported with unverified sprite locations |
+| Agent Lab, cold-boot verified: the generic plan (3 frames) and the Punch-Out plan (4 frames, the bout included; 7 frames and four bouts since §19) | 7/7 synchronization-checked, each with its scene; none reported with unverified sprite locations |
 
 **Limits.**
 - The model checks the latch and bank logic and the trace against an independent implementation, for the fetch order
@@ -424,7 +424,7 @@ repository.
 A captured frame now points to the library's decoded poses it draws (`Forge.services.PoseLinks`, command
 `library.framePoses`), and a pose lists the captured frames that show it (`library.poseFrames`). This is generic: any
 ROM whose catalog has pose records (pieces with tile, relative x/y and attributes) is matched the same way. Today that
-is Ninja Gaiden (202 poses), Zelda II (30) and, since §17, Mike Tyson's Punch-Out!! (499 records per revision).
+is Ninja Gaiden (202 poses), Zelda II (30) and, since §17, Mike Tyson's Punch-Out!! (385 records per revision, §19).
 
 - **Layout.** Every piece of a pose must be drawn: its tile, its position relative to the other pieces, and its flips.
   The whole pose may be mirrored when it has no decoded facing. A smaller pose whose pieces lie inside a larger matched
@@ -469,9 +469,9 @@ catalog. Punch-Out's comes from a **catalog provider** (`src/services/punch-out-
 completion, resumption, recognition, the status chip and Agent Lab's "add to the library".
 
 **What is registered (per revision):**
-- **499 pose entries**, one per full-pose record of the 14 fights. Several selectors of a fight's pose table can name
-  one record: Mike Tyson's $08, $2E, $38, $4A and $52 are one record, and its entry lists all five. Without this,
-  those would be five identical poses and could only ever be "ambiguous".
+- **499 pose entries**, one per full-pose record of the 14 fights (385 since §19, one per physical record). Several
+  selectors of a fight's pose table can name one record: Mike Tyson's $08, $2E, $38, $4A and $52 are one record, and
+  its entry lists all five. Without this, those would be five identical poses and could only ever be "ambiguous".
 - **The 14 fights** (actors), **the 32 CHR banks** (4 KiB), and the RAM bytes the pose routine reads ($80/$81 sprite
   mode, $A1 pose selector, $A9 sprite bank, $B0/$B1 base position).
 
@@ -589,4 +589,65 @@ and after a ROM's catalog is registered, so frames registered before the catalog
 - **First frame only.** The first frame that establishes a pose gives its drawing. Later frames that show it with
   other banks or colours, such as a hit flash, are recorded but don't change it.
 - **Delta poses** are still not catalogued (§17).
+
+## 19. Five Punch-Out!! fights, and what they showed (2026-11-23)
+
+The checks in §17 played two fights. Five can be reached without winning a bout: Glass Joe (a new game) and the
+first bouts of the circuits, by passcode. The fourth passcode also needs Select+A+B held after the digits.
+
+| Fight | Route | Sprites |
+|---|---|---|
+| Glass Joe | new game | 8×8 |
+| Don Flamenco (first fight) | 005 737 5423 | 8×8 |
+| Piston Honda (rematch) | 777 807 3454 | 8×16 and 8×8 |
+| King Hippo | 135 792 4680, then Select+A+B | 8×8 |
+| Mike Tyson | 007 373 5963 | 8×16 and 8×8 |
+
+**The fights each passcode reaches were identified, not assumed.** For each one, the test checked which fight's
+decoded poses the game draws.
+
+**Two things the new fights showed**, both now handled:
+
+1. **A fight's first bout and its rematch use the same pose records.** Don Flamenco, Piston Honda and Bald Bull
+   share all of theirs (same bank, same addresses), and Von Kaiser and Great Tiger share some. With one entry per fight
+   and record, every Don Flamenco and Piston Honda match was "ambiguous" (164 and 179 times, 0 links).
+   - **Now:** the catalog has one entry per physical record (385 instead of 499), listing every fight and selector
+     that uses it. It is drawn with the first fight's colours, and says that the other fight uses other colours.
+   - **Upgrades:** this is the provider's version 2. A library that holds a version-1 catalog sees it as outdated, and
+     Forge registers it again when the cartridge is available. Entries with the same id keep what frames showed, and
+     the entries version 2 no longer has are removed with the old catalog.
+2. **The game flips some poses after drawing them.** King Hippo's pose $24 is drawn with every piece's horizontal
+   flip inverted, at the positions the pose routine gives. With the game's whole RAM in place, the routine still
+   writes the unflipped bits, so other code flips the pose afterwards.
+   - **Old behaviour:** the matcher, which mirrored a whole pose when the pose has no decoded facing, linked pose
+     $3A mirrored, and the game's selector contradicted it.
+   - **Now:** Punch-Out records say they are never mirrored as a whole (the game draws each facing from its own
+     record), and that the game may flip a whole pose horizontally. A link made that way says so ("flipped
+     horizontally by the game after its pose routine"), and such a pose gets its drawing as observed (§18).
+
+**Checked against the game itself (`QA/punch-out-pose-links.cjs`, 9/9).** Six bouts, 1,800 frames each, a record
+every 6th frame:
+
+| Bout | Links | Agree with $A1 / contradict | During a delta | Coverage |
+|---|---|---|---|---|
+| Mike Tyson (PRG 1) | 144 | 102 / **0** | 42 | 102 / 102 |
+| Glass Joe | 158 | 101 / **0** | 57 | 101 / 101 |
+| Don Flamenco (first fight) | 164 | 105 / **0** | 59 | 105 / 105 |
+| Piston Honda (rematch) | 179 (8×16: 125, 8×8: 54) | 104 / **0** | 75 | 104 / 104 |
+| King Hippo | 143 (32 drawn flipped) | 115 / **0** | 28 | 115 / 115 |
+| Mike Tyson (PRG 0) | 144 | 102 / **0** | 42 | 102 / 102 |
+
+- **No noise.** No bout has a candidate, an ambiguous match, or a link to a fight other than the one played.
+- **Drawings.** All 39,091 drawn pieces per revision equal the cartridge bytes.
+- **The upgrade (a new check).** A version-1 catalog planted for PRG 0 is outdated, and is replaced on completion: the
+  entry it no longer has is removed, the entry it still has keeps its observation, and one complete catalog remains.
+
+**Agent Lab (`punch-out-us-prg1.json`).** The plan now reaches the four passcode bouts. Each is captured at a moment
+when the fighter's full pose, not a delta, is on screen: 740, 600, 680 and 712 frames after the bout starts. Those
+moments were found frame by frame. `QA/mmc2-sync.cjs` runs the plan cold-boot verified, and checks that each
+fighting frame shows that fighter's pose drawn in place. All four do: Mike Tyson, Don Flamenco (first fight), Piston
+Honda (rematch) and King Hippo. A frame imported from these jobs is linked and recorded like the ones above.
+
+**Not covered.** Nine fights can only be reached by winning bouts (or from a saved state), so their poses are in the
+library but are not checked against the game. The PRG 0 plan does not exist yet.
 

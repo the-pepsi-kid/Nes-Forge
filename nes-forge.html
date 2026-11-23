@@ -35045,7 +35045,8 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   const resuming=!upgrade&&!!prior&&prior.stats?.schema===CATALOG_SCHEMA;
   const attempt=(prior&&prior.state!=='complete'?prior.attempts||0:0)+1;
   const marker={packSha256:packKey,name:source.name+' · recovered catalog',origin:'rom-catalog',bytes:0,format:'NESForgeInvestigation',game:profile,sourceSha256:romSha,shelf,mode:'full',
-    intake:{state:'accepted',kind:'rom-catalog'},state:'registering',registered:prior?.registered||Date.now(),updated:Date.now(),attempts:attempt,lastAttemptAt:Date.now(),lastError:null,stats:{schema:CATALOG_SCHEMA}};
+    intake:{state:'accepted',kind:'rom-catalog'},state:'registering',registered:prior?.registered||Date.now(),updated:Date.now(),attempts:attempt,lastAttemptAt:Date.now(),lastError:null,
+    stats:{schema:CATALOG_SCHEMA,...(view.provider?{provider:{id:view.provider.id,version:view.provider.version||1}}:{})}};
   if(!upgrade)await L.putRecords([['packs',marker]]);
   try{return await registerRecords();}
   catch(error){if(!upgrade)await L.putRecords([['packs',{...marker,state:'failed',updated:Date.now(),lastError:String(error?.message||error).slice(0,300)}]]).catch(()=>{});throw error;}
@@ -35054,7 +35055,8 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   const records=[];
   for(const [cat,coll,kind] of RECORDS){const list=n.catalogs[cat]?.[coll];if(Array.isArray(list))list.forEach((r,i)=>records.push({kind,r,rid:String(r.id??i)}));}
   records.push({kind:'symbols',r:{id:'symbols',label:'Code symbols',items:n.catalogs.native.symbols||[]},rid:'symbols'},{kind:'ram-map',r:{id:'ram',label:'RAM labels',items:n.catalogs.native.ram||[]},rid:'ram'});
-  const started=Date.now(),stats={schema:CATALOG_SCHEMA,entries:0,renditions:0,chrBanks:0,verifiedPlacements:0,locations:0,inconsistentLocations:0,upgraded:upgrade,resumed:resuming,kept:0,written:0,attempts:attempt};let ops=[];
+  const started=Date.now(),stats={schema:CATALOG_SCHEMA,entries:0,renditions:0,chrBanks:0,verifiedPlacements:0,locations:0,inconsistentLocations:0,upgraded:upgrade,resumed:resuming,kept:0,written:0,attempts:attempt,
+    ...(view.provider?{provider:{id:view.provider.id,version:view.provider.version||1}}:{})};let ops=[];
   const already=new Map();
   // every entry already written, read page by page (no listing limit): a catalog of any size is resumed, not rewritten
   if(resuming)for(let offset=0;;offset+=pageSize){const page=await L.entriesPage({pack:packKey,offset,limit:pageSize});stats.pagesRead=(stats.pagesRead||0)+1;
@@ -35081,7 +35083,7 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
       evidence:decodedEvidence(kind,r,layout,profile)};
     stats.locations+=e.evidence.total||0;stats.inconsistentLocations+=e.evidence.inconsistent||0;
     if(kind==='chr')e.record=cp(r);
-    let kept=null;if(upgrade){try{kept=await L.entry(id);}catch(_){kept=null;}}
+    let kept=null;if(upgrade||view.provider){try{kept=await L.entry(id);}catch(_){kept=null;}}
     const verified=(kept?.placement?.verified||[]).filter(p=>p.basis==='runtime');
     if(kept?.renditions)e.renditions=kept.renditions;if(kept?.links)e.links=kept.links;
     // what captured frames showed (PoseLinks.recordObservations) is kept through an upgrade
@@ -35122,6 +35124,11 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   await L.putRecords([['shelves',shelfRecord],['packs',{packSha256:packKey,name:source.name+' · recovered catalog',origin:'rom-catalog',bytes:0,fileCount:records.length,
     format:'NESForgeInvestigation',game:profile,sourceSha256:romSha,shelf,mode:'full',intake:{state:'accepted',kind:'rom-catalog'},state:'complete',registered:prior?.registered||started,updated:Date.now(),
     attempts:upgrade?prior.attempts||1:attempt,lastAttemptAt:started,lastError:null,stats}]]);
+  // a provider's earlier catalog versions of this ROM: entries written again (the same id) now belong to this pack;
+  // what is left in the old packs no longer exists (Punch-Out!! version 1 listed a rematch's records twice)
+  if(view.provider){const all=(await C.run('library.packs')).result||[];
+    for(const p of all)if(p.origin==='rom-catalog'&&p.sourceSha256===romSha&&p.packSha256!==packKey){try{const d=await L.discard(p.packSha256);stats.superseded=(stats.superseded||0)+d.entriesRemoved;}catch(_){/* already gone */}}
+    if(stats.superseded)await L.putRecords([['packs',{...(await L.getPack(packKey)),stats}]]);}
   const links=await linkSameResources(romSha);
   // frames registered before the catalog: their poses record them now
   services.PoseLinks?.scheduleObservations?.(romSha);
@@ -35409,8 +35416,9 @@ async function catalogState(){
   for(const p of packs){
     if(p.origin!=='rom-catalog'||!p.sourceSha256)continue;
     const cur=out.get(p.sourceSha256);
+    const pv=providerOf(p.sourceSha256),old=(p.stats?.schema||0)<CATALOG_SCHEMA||!!pv&&(p.stats?.provider?.version||1)!==(pv.version||1);
     if(!cur||p.state==='complete'&&cur.state!=='complete'||cur.state!=='complete'&&(p.updated||0)>(cur.updated||0))
-      out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · recovered catalog$/,''),state:p.state==='complete'?((p.stats?.schema||0)<CATALOG_SCHEMA?'outdated':'complete'):p.state==='failed'?'failed':'incomplete',packKey:p.packSha256,updated:p.updated||0,entries:p.stats?.entries??null});
+      out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · recovered catalog$/,''),state:p.state==='complete'?(old?'outdated':'complete'):p.state==='failed'?'failed':'incomplete',packKey:p.packSha256,updated:p.updated||0,entries:p.stats?.entries??null});
   }
   for(const p of packs)if(p.origin==='runtime-capture'&&p.sourceSha256&&profileOf(p.sourceSha256)&&!out.has(p.sourceSha256))
     out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · runtime captures$/,''),state:'missing',packKey:null,updated:p.updated||0,entries:null});
@@ -35570,8 +35578,8 @@ if(C?.register){
  * Purpose: Mike Tyson's Punch-Out!! (US, PRG 0 and PRG 1) fighter poses as library entries, so captured frames link to
  *   them (Resources › Library: a frame's "Sprite → pose", a pose's "Seen in captured frames") and they can be used in
  *   a project like any library sprite.
- *   - One pose entry per full-pose record of each fight. Several selectors of a fight's pose table can name the same
- *     record; the entry lists them all.
+ *   - One pose entry per physical full-pose record. Several selectors of a fight's pose table can name the same
+ *     record, and a fight's first bout and its rematch use the same records; the entry lists every fight and selector.
  *   - Each record is drawn by running the game's own pose routine (PunchOutContent, $C890) in the three sprite modes
  *     the game uses: row height and tile step from RAM $80/$81 (8x16, step 2; 8x8, step 2; 8x8, step 1). The game
  *     selects the mode per pose: Mike Tyson's special poses are 8x8 in a fight configured for 8x16. A captured frame
@@ -35620,36 +35628,52 @@ function layoutOf(content,fight,selector,mode){
     pieces:d.pieces.map(p=>({slot:p.slot,tile:p.tile,x:p.x-base.x,y:p.y-1-base.y,attributes:p.attributes,...(p.inheritsAttributes?{inheritsAttributes:true}:{})}))};
 }
 function recordLength(bytes,fileOffset){return 7+2*bytes[fileOffset+6];}
+function pointerOf(f,sel){const at=f.shapeTables[0]+sel;return {fileOffset:16+f.bank8KiB*8192+at-0x8000,length:2,bank8KiB:f.bank8KiB,cpu:at};}
 
 async function catalog(bytes,name){
   const input=Uint8Array.from(bytes),sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',input)),x=>x.toString(16).padStart(2,'0')).join('');
   const profile=PROFILES.find(p=>p.sha256===sha);if(!profile)throw Error('Punch-Out library: not a supported revision');
-  const content=window.PunchOutContent.open(input),poses=[],actors=[],stats={records:0,selectors:0,layouts:{},noLayout:0};
+  const content=window.PunchOutContent.open(input),poses=[],actors=[],stats={records:0,selectors:0,shared:0,layouts:{},noLayout:0};
+  // one entry per physical record (bank and address): a fight's first bout and its rematch (and a few other pairs of
+  // fights) use the very same records, so they are one pose, listed with every fight and selector that uses it
+  const records=new Map();
+  for(const f of content.fights)for(const r of f.poses){if(r.status!=='source-record')continue;const k=f.bank8KiB+':'+r.address;
+    if(!records.has(k))records.set(k,{bank8KiB:f.bank8KiB,address:r.address,fileOffset:r.fileOffset,uses:[]});
+    const rec=records.get(k);let u=rec.uses.find(x=>x.fight===f.index);if(!u){u={fight:f.index,label:f.label,selectors:[]};rec.uses.push(u);}u.selectors.push(r.selector);}
+  const base=label=>label.split(' · ')[0],part=label=>label.split(' · ')[1]||null;
+  let done=0;
+  for(const rec of records.values()){
+    if(++done%40===0)await tick();   // drawing every record in three modes takes seconds: let the page breathe
+    const f=content.fights[rec.uses[0].fight],first=rec.uses[0],layouts=[];
+    for(const m of MODES){const l=layoutOf(content,f.index,first.selectors[0],m);if(l){layouts.push(l);stats.layouts[m.key]=(stats.layouts[m.key]||0)+1;}}
+    if(!layouts.length)stats.noLayout++;
+    const configured=MODES.find(m=>m.height===f.spriteMode&&m.step===f.spriteMode/8).key,primary=layouts.find(l=>l.key===configured)||layouts[0]||null;
+    const fighters=[...new Set(rec.uses.map(u=>base(u.label)))],sels=first.selectors;
+    // "Don Flamenco · pose $3E (first fight and rematch)"; two fighters: "Von Kaiser and Great Tiger · pose …"
+    const who=fighters.length===1?fighters[0]+(rec.uses.length>1?'':(part(first.label)?' · '+part(first.label):'')):fighters.join(' and ');
+    const parts=fighters.length===1&&rec.uses.length>1?' ('+rec.uses.map(u=>part(u.label)||'bout').join(' and ')+')':'';
+    poses.push({id:'po:f'+f.index+':'+rec.address.toString(16),label:who+' · pose '+hex2(sels[0])+(sels.length>1?' (also '+sels.slice(1).map(hex2).join(', ')+')':'')+parts,
+      owner:fighters.join(' and '),fight:f.index,fights:rec.uses.map(u=>({fight:u.fight,label:u.label,selectors:u.selectors})),selectors:sels,address:rec.address,configuredMode:configured,
+      source:{fileOffset:rec.fileOffset,length:recordLength(input,rec.fileOffset),bank8KiB:rec.bank8KiB,cpu:rec.address},
+      pointerSources:rec.uses.flatMap(u=>u.selectors.map(s=>pointerOf(content.fights[u.fight],s))),
+      // the game draws each facing from its own record, so a pose is never matched mirrored as a whole; it may flip a
+      // whole pose horizontally after the pose routine (every piece's flip bit inverted, positions unchanged: King
+      // Hippo's pose $24 is drawn that way), which the routine alone does not show
+      mirror:false,flipToggle:true,
+      pieces:primary?primary.pieces:[],layouts,
+      limits:['Drawn by the game\'s own pose routine in each sprite mode the game uses; which mode the game draws a pose in is established when a captured frame links it.',
+        'The game may flip a whole pose horizontally after its pose routine; the decoded drawing shows the routine\'s flips.',
+        ...(rec.uses.length>1?['Used by '+rec.uses.map(u=>u.label).join(' and ')+'; drawn with the colours of '+first.label+'.']:[]),
+        'Delta poses ($80-$FF) that change this pose are not included.']});
+    stats.records++;stats.selectors+=rec.uses.reduce((n,u)=>n+u.selectors.length,0);if(rec.uses.length>1)stats.shared++;
+  }
   for(const f of content.fights){
-    const pointer=(sel)=>{const at=f.shapeTables[0]+sel;return {fileOffset:16+f.bank8KiB*8192+at-0x8000,length:2,bank8KiB:f.bank8KiB,cpu:at};};
-    const byAddress=new Map();
-    for(const r of f.poses){if(r.status!=='source-record')continue;if(!byAddress.has(r.address))byAddress.set(r.address,[]);byAddress.get(r.address).push(r);}
-    for(const [address,list] of byAddress){
-      const first=list[0],layouts=[];
-      for(const m of MODES){const l=layoutOf(content,f.index,first.selector,m);if(l){layouts.push(l);stats.layouts[m.key]=(stats.layouts[m.key]||0)+1;}}
-      if(!layouts.length)stats.noLayout++;
-      const configured=MODES.find(m=>m.height===f.spriteMode&&m.step===f.spriteMode/8).key,primary=layouts.find(l=>l.key===configured)||layouts[0]||null;
-      const sels=list.map(r=>r.selector);
-      poses.push({id:'po:f'+f.index+':'+address.toString(16),label:f.label+' · pose '+hex2(sels[0])+(sels.length>1?' (also '+sels.slice(1).map(hex2).join(', ')+')':''),
-        owner:f.label,fight:f.index,selectors:sels,address,configuredMode:configured,
-        source:{fileOffset:first.fileOffset,length:recordLength(input,first.fileOffset),bank8KiB:f.bank8KiB,cpu:address},
-        pointerSources:sels.map(pointer),
-        pieces:primary?primary.pieces:[],layouts,
-        limits:['Drawn by the game\'s own pose routine in each sprite mode the game uses; which mode the game draws a pose in is established when a captured frame links it.',
-          'Delta poses ($80-$FF) that change this pose are not included.']});
-      stats.records++;stats.selectors+=sels.length;
-    }
     actors.push({id:'po-fight:'+f.index,selector:f.index,label:f.label,owner:'opponent',bank8KiB:f.bank8KiB,spriteMode:f.spriteMode,base:{x:f.baseX,y:f.baseY},
       record:{fileOffset:f.entryFileOffset,length:16,bank8KiB:f.bank8KiB,cpu:0x8000+f.entryOffset},
       palette:{fileOffset:f.paletteFileOffset,length:32,bank8KiB:f.bank8KiB},config:{fileOffset:f.configFileOffset,length:96,bank8KiB:f.bank8KiB},
       fullPoses:f.poses.filter(p=>p.status==='source-record').length});
-    await tick();
   }
+  await tick();
   const graphics=Array.from({length:32},(_,bank)=>({id:'chr:'+bank,bank4KiB:bank,tiles:256,fileOffset:CHR_START+bank*4096,length:4096,meaning:'Physical CHR ROM patterns. Which bank a pose draws from is stated with the pose.'}));
   const ram=[[0x80,'sprite row height (8 or 16) the pose routine draws with'],[0x81,'tile step (1 or 2) the pose routine draws with'],[0x82,'tile mask for the step'],
     [0xA0,'pose draw request'],[0xA1,'pose selector being drawn (full poses below $80, delta poses from $80)'],[0xA9,'sprite CHR bank the pose\'s tile stream selects'],
@@ -35680,9 +35704,9 @@ function drawing(record,layout,bytes,fight){
     if(!bankKnown){undrawn++;return {tile:p.tile,x:p.x,y:p.y,pal:p.attributes&3,flipH,flipV,behind,drawn:false};}
     tiles[p.tile]=bank[p.tile];return {tile:p.tile,x:p.x,y:p.y,pal:p.attributes&3,flipH,flipV,behind};
   });
-  const sels=record.selectors.map(hex2).join(', ');
+  const sels=record.selectors.map(hex2).join(', '),others=(record.fights||[]).slice(1).map(u=>u.label);
   const note=!bankKnown?'its fight\'s pose table selects it ('+sels+'); its record does not select a CHR bank ($A9), so the game draws it from the bank set before it: the library cannot draw it (a captured frame that links it shows the bank); '+layout.label:
-    'its fight\'s pose table selects it ('+sels+'); tiles from CHR bank '+layout.chrBank4KiB+', which its tile stream selects ($A9), pattern table $0000; the fight\'s sprite palette; drawn as '+layout.label+
+    'its fight\'s pose table selects it ('+sels+'); tiles from CHR bank '+layout.chrBank4KiB+', which its tile stream selects ($A9), pattern table $0000; the sprite palette of '+f.label+(others.length?' ('+others.join(', ')+' uses the same record in other colours)':'')+'; drawn as '+layout.label+
     (layout.key===record.configuredMode?', the fight\'s configured sprite mode':'')+(undrawn?'; '+undrawn+' of its '+pieces.length+' pieces use the upper pattern table, whose bank the game sets elsewhere: not drawn':'')+
     (bankKnown&&inherited?'; '+inherited+' of its pieces keep the palette and flips of the pose before it (the routine does not write them): drawn with palette 0, unflipped':'');
   return {format:'NESForgeLibraryPose',version:1,poseId:record.id,name:record.label,spriteMode:layout.height,originX:0,originY:0,pieces,tiles,palette,
@@ -35695,7 +35719,9 @@ function poseDrawings(record,bytes){
   return out;
 }
 
-const provider=Object.freeze({id:'punch-out',profiles:PROFILES,catalog,poseDrawings,MODES});
+// 2: one entry per physical record (shared by a fight and its rematch); records say they are not mirrored as a whole
+//    and may be flipped horizontally after the pose routine
+const provider=Object.freeze({id:'punch-out',version:2,profiles:PROFILES,catalog,poseDrawings,MODES});
 LC.registerProvider(provider);
 services.PunchOutLibrary=provider;
 })();
@@ -36357,11 +36383,12 @@ async function posesOf(sha){
           const ref=entry.layoutRenditions?.[l.key];let d=null;
           if(ref?.hash){try{d=JSON.parse(new TextDecoder().decode(await L.blobBytes(ref.hash)));}catch(_){d=null;}}
           poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:piecesOf(l.pieces),
-            height:l.height,mode:{key:l.key,label:l.label},drawing:d,context:ref?.context||entry.rendition?.context||null});
+            height:l.height,mode:{key:l.key,label:l.label},drawing:d,context:ref?.context||entry.rendition?.context||null,mirror:record.mirror!==false,flipToggle:!!record.flipToggle});
         }
         continue;
       }
-      poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:piecesOf(record.pieces),drawing,context:entry.rendition?.context||null});
+      poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:piecesOf(record.pieces),drawing,context:entry.rendition?.context||null,
+        mirror:record.mirror!==false,flipToggle:!!record.flipToggle});
     }catch(_){/* not a pose record this matcher reads */}
   }
   poseCache.set(sha,{key,poses});return poses;
@@ -36383,15 +36410,19 @@ function layoutMatches(sprites,poses){
   const out=[];
   for(const pose of poses){
     const p0=pose.pieces[0],fits=s=>!pose.height||s.height===pose.height;
-    for(const mirror of pose.facing!=null?[false]:[false,true]){
+    // mirror: the whole pose drawn the other way round (positions and flips), unless the pose has a decoded facing or
+    // its game draws each facing from its own record; toggle: every piece's horizontal flip inverted, positions as they
+    // are (a game that flips a whole pose after drawing it)
+    for(const mirror of pose.facing!=null||pose.mirror===false?[false]:[false,true])for(const toggle of pose.flipToggle?[false,true]:[false]){
+      const h=a=>flipH(a)!==(mirror!==toggle);
       for(const s of sprites){
-        if(!fits(s)||s.tile!==p0.tile||p0.attributes!=null&&(s.flipH!==(flipH(p0.attributes)!==mirror)||s.flipV!==flipV(p0.attributes)))continue;
+        if(!fits(s)||s.tile!==p0.tile||p0.attributes!=null&&(s.flipH!==h(p0.attributes)||s.flipV!==flipV(p0.attributes)))continue;
         const used=[s];let ok=true;
         for(const pk of pose.pieces.slice(1)){
-          const dx=(pk.x-p0.x)*(mirror?-1:1),dy=pk.y-p0.y,list=(pk.attributes==null?any.get(anyKey(pk.tile,s.x+dx,s.y+dy)):at.get(keyOf(pk.tile,s.x+dx,s.y+dy,flipH(pk.attributes)!==mirror,flipV(pk.attributes))))||[];
+          const dx=(pk.x-p0.x)*(mirror?-1:1),dy=pk.y-p0.y,list=(pk.attributes==null?any.get(anyKey(pk.tile,s.x+dx,s.y+dy)):at.get(keyOf(pk.tile,s.x+dx,s.y+dy,h(pk.attributes),flipV(pk.attributes))))||[];
           const t=list.find(t=>!used.includes(t)&&fits(t));if(!t){ok=false;break;}used.push(t);
         }
-        if(ok)out.push({pose,mirror,sprites:used});
+        if(ok)out.push({pose,mirror,toggle,sprites:used});
       }
     }
   }
@@ -36443,9 +36474,9 @@ async function framePoses(record,{sourceSha256}={}){
     const equal=checked.filter(c=>c.graphics==='equal'),pick=equal.length?equal:checked.filter(c=>c.graphics==='unchecked').length?checked.filter(c=>c.graphics==='unchecked'):checked;
     const describe=c=>({poseEntry:c.m.pose.entryId,poseId:c.m.pose.id,label:c.m.pose.label,owner:c.m.pose.owner,mirrored:c.m.mirror,sprites:c.m.sprites.map(s=>s.index),pieces:c.m.pose.pieces.length,
       at:{x:c.m.sprites[0].x-(c.m.mirror?-c.m.pose.pieces[0].x-8:c.m.pose.pieces[0].x),y:c.m.sprites[0].y-c.m.pose.pieces[0].y},
-      ...(c.m.pose.mode?{mode:c.m.pose.mode}:{}),
+      ...(c.m.pose.mode?{mode:c.m.pose.mode}:{}),...(c.m.toggle?{flipsToggled:true}:{}),
       graphics:c.graphics,banks:c.banks||[],evidence:(c.graphics==='equal'?'every piece drawn in place (tile, relative position, flips'+(c.m.mirror?', mirrored':'')+') with the graphics of the library\'s drawing'+(c.notCompared?' ('+c.notCompared+' pieces with no drawing in the library matched by layout only)':''):c.graphics==='differ'?'same layout and tile numbers; '+c.why:'layout matches; graphics not compared: '+c.why)+
-        (c.m.pose.mode?'; drawn as '+c.m.pose.mode.label:'')});
+        (c.m.pose.mode?'; drawn as '+c.m.pose.mode.label:'')+(c.m.toggle?'; flipped horizontally by the game after its pose routine (every piece\'s flip inverted)':'')});
     if(pick.length>1){ambiguous.push({sprites:group[0].sprites.map(s=>s.index),poses:pick.map(describe)});continue;}
     const one=describe(pick[0]),drawingUnconfirmed=pick[0].m.pose.context?.confirmed===false||pick[0].m.pose.context?.basis==='default';
     if(one.graphics==='equal'){links.push({...one,state:'established',by:'layout and graphics'});one.sprites.forEach(i=>linked.add(i));}
@@ -36525,7 +36556,7 @@ async function observedDrawing(sha,record,link,entry,frameLabel){
 }
 function needsObservedDrawing(entry,link){
   const c=entry.rendition?.context;
-  return !c||c.confirmed===false||(c.undrawn||0)>0||(c.inherited||0)>0||!!(link.mode&&c.mode&&c.mode!==link.mode.key);
+  return !c||c.confirmed===false||(c.undrawn||0)>0||(c.inherited||0)>0||!!(link.mode&&c.mode&&c.mode!==link.mode.key)||!!link.flipsToggled;
 }
 // frames already gone through against the current set of poses (per ROM, this session): a frame registered later does
 // not make every earlier frame be read again

@@ -235,7 +235,8 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   const resuming=!upgrade&&!!prior&&prior.stats?.schema===CATALOG_SCHEMA;
   const attempt=(prior&&prior.state!=='complete'?prior.attempts||0:0)+1;
   const marker={packSha256:packKey,name:source.name+' · recovered catalog',origin:'rom-catalog',bytes:0,format:'NESForgeInvestigation',game:profile,sourceSha256:romSha,shelf,mode:'full',
-    intake:{state:'accepted',kind:'rom-catalog'},state:'registering',registered:prior?.registered||Date.now(),updated:Date.now(),attempts:attempt,lastAttemptAt:Date.now(),lastError:null,stats:{schema:CATALOG_SCHEMA}};
+    intake:{state:'accepted',kind:'rom-catalog'},state:'registering',registered:prior?.registered||Date.now(),updated:Date.now(),attempts:attempt,lastAttemptAt:Date.now(),lastError:null,
+    stats:{schema:CATALOG_SCHEMA,...(view.provider?{provider:{id:view.provider.id,version:view.provider.version||1}}:{})}};
   if(!upgrade)await L.putRecords([['packs',marker]]);
   try{return await registerRecords();}
   catch(error){if(!upgrade)await L.putRecords([['packs',{...marker,state:'failed',updated:Date.now(),lastError:String(error?.message||error).slice(0,300)}]]).catch(()=>{});throw error;}
@@ -244,7 +245,8 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   const records=[];
   for(const [cat,coll,kind] of RECORDS){const list=n.catalogs[cat]?.[coll];if(Array.isArray(list))list.forEach((r,i)=>records.push({kind,r,rid:String(r.id??i)}));}
   records.push({kind:'symbols',r:{id:'symbols',label:'Code symbols',items:n.catalogs.native.symbols||[]},rid:'symbols'},{kind:'ram-map',r:{id:'ram',label:'RAM labels',items:n.catalogs.native.ram||[]},rid:'ram'});
-  const started=Date.now(),stats={schema:CATALOG_SCHEMA,entries:0,renditions:0,chrBanks:0,verifiedPlacements:0,locations:0,inconsistentLocations:0,upgraded:upgrade,resumed:resuming,kept:0,written:0,attempts:attempt};let ops=[];
+  const started=Date.now(),stats={schema:CATALOG_SCHEMA,entries:0,renditions:0,chrBanks:0,verifiedPlacements:0,locations:0,inconsistentLocations:0,upgraded:upgrade,resumed:resuming,kept:0,written:0,attempts:attempt,
+    ...(view.provider?{provider:{id:view.provider.id,version:view.provider.version||1}}:{})};let ops=[];
   const already=new Map();
   // every entry already written, read page by page (no listing limit): a catalog of any size is resumed, not rewritten
   if(resuming)for(let offset=0;;offset+=pageSize){const page=await L.entriesPage({pack:packKey,offset,limit:pageSize});stats.pagesRead=(stats.pagesRead||0)+1;
@@ -271,7 +273,7 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
       evidence:decodedEvidence(kind,r,layout,profile)};
     stats.locations+=e.evidence.total||0;stats.inconsistentLocations+=e.evidence.inconsistent||0;
     if(kind==='chr')e.record=cp(r);
-    let kept=null;if(upgrade){try{kept=await L.entry(id);}catch(_){kept=null;}}
+    let kept=null;if(upgrade||view.provider){try{kept=await L.entry(id);}catch(_){kept=null;}}
     const verified=(kept?.placement?.verified||[]).filter(p=>p.basis==='runtime');
     if(kept?.renditions)e.renditions=kept.renditions;if(kept?.links)e.links=kept.links;
     // what captured frames showed (PoseLinks.recordObservations) is kept through an upgrade
@@ -312,6 +314,11 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   await L.putRecords([['shelves',shelfRecord],['packs',{packSha256:packKey,name:source.name+' · recovered catalog',origin:'rom-catalog',bytes:0,fileCount:records.length,
     format:'NESForgeInvestigation',game:profile,sourceSha256:romSha,shelf,mode:'full',intake:{state:'accepted',kind:'rom-catalog'},state:'complete',registered:prior?.registered||started,updated:Date.now(),
     attempts:upgrade?prior.attempts||1:attempt,lastAttemptAt:started,lastError:null,stats}]]);
+  // a provider's earlier catalog versions of this ROM: entries written again (the same id) now belong to this pack;
+  // what is left in the old packs no longer exists (Punch-Out!! version 1 listed a rematch's records twice)
+  if(view.provider){const all=(await C.run('library.packs')).result||[];
+    for(const p of all)if(p.origin==='rom-catalog'&&p.sourceSha256===romSha&&p.packSha256!==packKey){try{const d=await L.discard(p.packSha256);stats.superseded=(stats.superseded||0)+d.entriesRemoved;}catch(_){/* already gone */}}
+    if(stats.superseded)await L.putRecords([['packs',{...(await L.getPack(packKey)),stats}]]);}
   const links=await linkSameResources(romSha);
   // frames registered before the catalog: their poses record them now
   services.PoseLinks?.scheduleObservations?.(romSha);
@@ -599,8 +606,9 @@ async function catalogState(){
   for(const p of packs){
     if(p.origin!=='rom-catalog'||!p.sourceSha256)continue;
     const cur=out.get(p.sourceSha256);
+    const pv=providerOf(p.sourceSha256),old=(p.stats?.schema||0)<CATALOG_SCHEMA||!!pv&&(p.stats?.provider?.version||1)!==(pv.version||1);
     if(!cur||p.state==='complete'&&cur.state!=='complete'||cur.state!=='complete'&&(p.updated||0)>(cur.updated||0))
-      out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · recovered catalog$/,''),state:p.state==='complete'?((p.stats?.schema||0)<CATALOG_SCHEMA?'outdated':'complete'):p.state==='failed'?'failed':'incomplete',packKey:p.packSha256,updated:p.updated||0,entries:p.stats?.entries??null});
+      out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · recovered catalog$/,''),state:p.state==='complete'?(old?'outdated':'complete'):p.state==='failed'?'failed':'incomplete',packKey:p.packSha256,updated:p.updated||0,entries:p.stats?.entries??null});
   }
   for(const p of packs)if(p.origin==='runtime-capture'&&p.sourceSha256&&profileOf(p.sourceSha256)&&!out.has(p.sourceSha256))
     out.set(p.sourceSha256,{sha:p.sourceSha256,name:String(p.name||'').replace(/ · runtime captures$/,''),state:'missing',packKey:null,updated:p.updated||0,entries:null});

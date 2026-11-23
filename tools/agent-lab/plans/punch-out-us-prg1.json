@@ -1,14 +1,14 @@
 {
  "format": "NESForgeCapturePlan",
  "version": 1,
- "name": "Mike Tyson's Punch-Out!! (US, PRG 1) · title, passcode and the Mike Tyson bout",
+ "name": "Mike Tyson's Punch-Out!! (US, PRG 1) · title, passcode and four bouts (Mike Tyson, Don Flamenco, Piston Honda, King Hippo)",
  "profile": "punch-out-us-prg1",
  "match": {
   "sha256": [
    "22ce21aa9c477d87e9cdc386b185f2166b18d438257640aa1d8e75ee9960e06e"
   ]
  },
- "method": "Recorded inputs, no RAM changes: the title appears after 1200 frames; Start, then Down opens passcode entry; the passcode 007 373 5963 (entered with A and Right) starts the Mike Tyson bout. The same route as QA/punch-out-pose-geometry.cjs, which checks that it reaches the fight stance. MMC2: every frame's background and sprite patterns come from the bank each latch selected when the pattern was fetched.",
+ "method": "Recorded inputs, no RAM changes: the title appears after 1200 frames; Start, then Down opens passcode entry; a passcode (entered with A and Right) starts a circuit's first bout: 007 373 5963 Mike Tyson, 005 737 5423 Don Flamenco (first fight), 777 807 3454 Piston Honda (rematch), 135 792 4680 then Select+A+B King Hippo. Each bout is captured while its fighter's full pose is on screen, not a delta pose: 740 (Mike Tyson), 600 (Don Flamenco), 680 (Piston Honda) and 712 (King Hippo) frames after the bout starts; the Mike Tyson bout also at its introduction. The same routes as QA/punch-out-pose-links.cjs, which checks the poses drawn in each bout against the game's own pose selector. MMC2: every frame's background and sprite patterns come from the bank each latch selected when the pattern was fetched.",
  "boot": {
   "frames": 1200,
   "inputs": []
@@ -438,7 +438,7 @@
   },
   {
    "label": "Mike Tyson bout · fighting",
-   "frames": 1756,
+   "frames": 1896,
    "inputs": [
     {
      "from": 0,
@@ -835,6 +835,1251 @@
     {
      "from": 1122,
      "to": 1125,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Don Flamenco bout (first fight) · fighting",
+   "frames": 1672,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 101,
+     "buttons": {
+      "down": true
+     }
+    },
+    {
+     "from": 142,
+     "to": 145,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 158,
+     "to": 161,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 174,
+     "to": 177,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 190,
+     "to": 193,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 202,
+     "to": 205,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 214,
+     "to": 217,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 226,
+     "to": 229,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 238,
+     "to": 241,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 250,
+     "to": 253,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 266,
+     "to": 269,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 278,
+     "to": 281,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 290,
+     "to": 293,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 302,
+     "to": 305,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 314,
+     "to": 317,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 326,
+     "to": 329,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 338,
+     "to": 341,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 350,
+     "to": 353,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 366,
+     "to": 369,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 378,
+     "to": 381,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 390,
+     "to": 393,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 402,
+     "to": 405,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 418,
+     "to": 421,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 430,
+     "to": 433,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 442,
+     "to": 445,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 454,
+     "to": 457,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 466,
+     "to": 469,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 478,
+     "to": 481,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 490,
+     "to": 493,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 502,
+     "to": 505,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 518,
+     "to": 521,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 530,
+     "to": 533,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 542,
+     "to": 545,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 554,
+     "to": 557,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 566,
+     "to": 569,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 578,
+     "to": 581,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 594,
+     "to": 597,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 606,
+     "to": 609,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 618,
+     "to": 621,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 630,
+     "to": 633,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 642,
+     "to": 645,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 658,
+     "to": 661,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 670,
+     "to": 673,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 682,
+     "to": 685,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 698,
+     "to": 701,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 710,
+     "to": 713,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 722,
+     "to": 725,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 734,
+     "to": 737,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 1038,
+     "to": 1041,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "Piston Honda bout (rematch) · fighting",
+   "frames": 1944,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 101,
+     "buttons": {
+      "down": true
+     }
+    },
+    {
+     "from": 142,
+     "to": 145,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 158,
+     "to": 161,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 170,
+     "to": 173,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 182,
+     "to": 185,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 194,
+     "to": 197,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 206,
+     "to": 209,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 218,
+     "to": 221,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 230,
+     "to": 233,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 242,
+     "to": 245,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 258,
+     "to": 261,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 270,
+     "to": 273,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 282,
+     "to": 285,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 294,
+     "to": 297,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 306,
+     "to": 309,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 318,
+     "to": 321,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 330,
+     "to": 333,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 342,
+     "to": 345,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 358,
+     "to": 361,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 370,
+     "to": 373,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 382,
+     "to": 385,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 394,
+     "to": 397,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 406,
+     "to": 409,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 418,
+     "to": 421,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 430,
+     "to": 433,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 442,
+     "to": 445,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 458,
+     "to": 461,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 470,
+     "to": 473,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 482,
+     "to": 485,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 494,
+     "to": 497,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 506,
+     "to": 509,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 518,
+     "to": 521,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 530,
+     "to": 533,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 542,
+     "to": 545,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 554,
+     "to": 557,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 570,
+     "to": 573,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 586,
+     "to": 589,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 598,
+     "to": 601,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 610,
+     "to": 613,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 622,
+     "to": 625,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 634,
+     "to": 637,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 646,
+     "to": 649,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 658,
+     "to": 661,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 670,
+     "to": 673,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 686,
+     "to": 689,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 698,
+     "to": 701,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 710,
+     "to": 713,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 722,
+     "to": 725,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 738,
+     "to": 741,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 750,
+     "to": 753,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 762,
+     "to": 765,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 774,
+     "to": 777,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 786,
+     "to": 789,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 802,
+     "to": 805,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 814,
+     "to": 817,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 826,
+     "to": 829,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 838,
+     "to": 841,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 850,
+     "to": 853,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 862,
+     "to": 865,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 878,
+     "to": 881,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 890,
+     "to": 893,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 902,
+     "to": 905,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 914,
+     "to": 917,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 926,
+     "to": 929,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 1230,
+     "to": 1233,
+     "buttons": {
+      "start": true
+     }
+    }
+   ]
+  },
+  {
+   "label": "King Hippo bout · fighting",
+   "frames": 1918,
+   "inputs": [
+    {
+     "from": 0,
+     "to": 3,
+     "buttons": {
+      "start": true
+     }
+    },
+    {
+     "from": 94,
+     "to": 101,
+     "buttons": {
+      "down": true
+     }
+    },
+    {
+     "from": 142,
+     "to": 145,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 158,
+     "to": 161,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 170,
+     "to": 173,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 186,
+     "to": 189,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 198,
+     "to": 201,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 210,
+     "to": 213,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 222,
+     "to": 225,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 238,
+     "to": 241,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 250,
+     "to": 253,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 262,
+     "to": 265,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 274,
+     "to": 277,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 286,
+     "to": 289,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 298,
+     "to": 301,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 314,
+     "to": 317,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 326,
+     "to": 329,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 338,
+     "to": 341,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 350,
+     "to": 353,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 362,
+     "to": 365,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 374,
+     "to": 377,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 386,
+     "to": 389,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 398,
+     "to": 401,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 414,
+     "to": 417,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 426,
+     "to": 429,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 438,
+     "to": 441,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 450,
+     "to": 453,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 462,
+     "to": 465,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 474,
+     "to": 477,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 486,
+     "to": 489,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 498,
+     "to": 501,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 510,
+     "to": 513,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 522,
+     "to": 525,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 538,
+     "to": 541,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 550,
+     "to": 553,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 562,
+     "to": 565,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 578,
+     "to": 581,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 590,
+     "to": 593,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 602,
+     "to": 605,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 614,
+     "to": 617,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 626,
+     "to": 629,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 642,
+     "to": 645,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 654,
+     "to": 657,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 666,
+     "to": 669,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 678,
+     "to": 681,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 690,
+     "to": 693,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 702,
+     "to": 705,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 714,
+     "to": 717,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 730,
+     "to": 733,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 742,
+     "to": 745,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 754,
+     "to": 757,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 766,
+     "to": 769,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 778,
+     "to": 781,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 790,
+     "to": 793,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 802,
+     "to": 805,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 814,
+     "to": 817,
+     "buttons": {
+      "right": true
+     }
+    },
+    {
+     "from": 826,
+     "to": 829,
+     "buttons": {
+      "a": true
+     }
+    },
+    {
+     "from": 842,
+     "to": 871,
+     "buttons": {
+      "select": true,
+      "a": true,
+      "b": true
+     }
+    },
+    {
+     "from": 1172,
+     "to": 1175,
      "buttons": {
       "start": true
      }

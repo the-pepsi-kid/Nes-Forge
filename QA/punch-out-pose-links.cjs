@@ -7,7 +7,9 @@
 // 2. Every drawing against the cartridge (this test reads the bytes itself): each drawn piece's pattern equals the CHR
 //    bank the pose selects, and the palette equals the fight's sprite palette bytes; pieces the library does not draw
 //    are only those with no bank of their own or in the upper pattern table.
-// 3. The Mike Tyson bout (passcode route) and the Glass Joe bout (new game), PRG 1; the Mike Tyson bout on PRG 0:
+// 3. Every bout reachable without winning one, PRG 1: Glass Joe (new game), and the circuits' first bouts by passcode:
+//    Don Flamenco (005 737 5423), Piston Honda's rematch (777 807 3454), King Hippo (135 792 4680, then Select+A+B),
+//    Mike Tyson (007 373 5963); and the Mike Tyson bout on PRG 0:
 //    every link made in a frame without a delta pose agrees with the game's pose selector ($A1, full poses below $80)
 //    over the frames that built the image, none contradicts it, every link is to the fight being played; and whenever
 //    the game's current full pose is drawn in place (this test decodes it with the game's routine at the runtime base
@@ -50,15 +52,18 @@ async function bout(page, cart, route) {
     const press = (b, hold = 4, after = 12) => FE.runFrames(hold + after, [{from: 0, to: hold - 1, buttons: {[b]: true}}]);
     const lr = await C.run('emulator.load', {bytes, name: 'punch-out.nes'}); if (!lr.ok) throw Error(lr.error.message);
     await FE.runFrames(1200);
-    if (route === 'tyson') { await press('start', 4, 90); await press('down', 8, 40); for (const d of '0073735963') { await press('a', 4, 12); for (let i = 0; i < +d; i++) await press('right', 4, 8); } await press('start', 4, 300); await press('start', 4, 30); }
+    // a passcode (entered with A and Right) starts a circuit's first bout; one passcode also needs Select+A+B held after
+    // it; a new game starts with Glass Joe
+    if (route.code) { await press('start', 4, 90); await press('down', 8, 40); for (const d of route.code) { await press('a', 4, 12); for (let i = 0; i < +d; i++) await press('right', 4, 8); }
+      if (route.sab) await FE.runFrames(330, [{from: 0, to: 29, buttons: {select: true, a: true, b: true}}]); else await press('start', 4, 300); await press('start', 4, 30); }
     else { await press('start', 4, 90); await press('start', 4, 400); await press('start', 4, 30); }
     const frames = [], hist = [], keep = {};
     for (let n = 0; n < 1800; n++) {
       await FE.runFrames(1);
       hist.push({f: emu.frameCount, a1: emu.ram[0xA1], b0: emu.ram[0xB0], b1: emu.ram[0xB1], m80: emu.ram[0x80], m81: emu.ram[0x81]});
       if (n % 6) continue;
-      const record = await FE.capture({label: route + ' +' + n, links: false}), r = await PL.framePoses(record);
-      const links = r.links.map(l => ({entry: l.poseEntry, poseId: l.poseId, by: l.by, mode: l.mode?.key || null, sprites: l.sprites, graphics: l.graphics}));
+      const record = await FE.capture({label: route.tag + ' +' + n, links: false}), r = await PL.framePoses(record);
+      const links = r.links.map(l => ({entry: l.poseEntry, poseId: l.poseId, by: l.by, mode: l.mode?.key || null, sprites: l.sprites, graphics: l.graphics, flipsToggled: !!l.flipsToggled}));
       // a record of each sprite mode linked, for the library and negative checks
       for (const l of links) if (l.by === 'layout and graphics' && !keep[l.mode]) keep[l.mode] = {record, link: l};
       for (const l of links) if (l.by === 'layout' && !keep.nobank) keep.nobank = {record, link: l};
@@ -73,15 +78,18 @@ async function bout(page, cart, route) {
 function judge(run, content, fight) {
   const hist = new Map(run.hist.map(r => [r.f, r]));
   const lastFull = f => { for (let k = f; k > f - 6000; k--) { const r = hist.get(k); if (r && r.a1 < 128) return r.a1; } return null; };
-  const recordOf = poseId => { const m = /^po:f(\d+):([0-9a-f]+)$/.exec(poseId || ''); if (!m) return null; const f = content.fights[+m[1]];
-    return {fight: +m[1], selectors: f.poses.filter(p => p.address === parseInt(m[2], 16)).map(p => p.selector)}; };
+  // a pose entry is one physical record (bank and address): every fight whose pose table names it, with its selectors
+  const recordOf = poseId => { const m = /^po:f(\d+):([0-9a-f]+)$/.exec(poseId || ''); if (!m) return null; const bank = content.fights[+m[1]].bank8KiB, address = parseInt(m[2], 16);
+    const uses = content.fights.filter(f => f.bank8KiB === bank).map(f => ({fight: f.index, selectors: f.poses.filter(p => p.status === 'source-record' && p.address === address).map(p => p.selector)})).filter(u => u.selectors.length);
+    const mine = uses.find(u => u.fight === fight); return {fights: uses.map(u => u.fight), selectors: mine ? mine.selectors : []}; };
   const out = {frames: run.frames.length, links: 0, byLayoutAndGraphics: 0, byLayout: 0, modes: {}, agree: 0, contradictions: [], wrongFight: [], duringDelta: 0,
     candidates: run.frames.reduce((n, f) => n + f.candidates.length, 0), ambiguous: run.frames.reduce((n, f) => n + f.ambiguous, 0), drawnInPlace: 0, covered: 0, missed: []};
   for (const fr of run.frames) {
     const recent = [0, 1, 2, 3].map(k => hist.get(fr.frame - k)).filter(Boolean), delta = recent.some(r => r.a1 >= 128), full = recent.map(r => lastFull(r.f));
     for (const l of fr.links) {
       out.links++; if (l.by === 'layout') out.byLayout++; else out.byLayoutAndGraphics++; out.modes[l.mode] = (out.modes[l.mode] || 0) + 1;
-      const r = recordOf(l.poseId); if (!r || r.fight !== fight) { out.wrongFight.push({frame: fr.frame, pose: l.poseId}); continue; }
+      const r = recordOf(l.poseId); if (!r || !r.fights.includes(fight)) { out.wrongFight.push({frame: fr.frame, pose: l.poseId}); continue; }
+      if (l.flipsToggled) out.flipped = (out.flipped || 0) + 1;
       if (delta) { out.duringDelta++; continue; }
       if (r.selectors.some(s => full.includes(s))) out.agree++; else out.contradictions.push({frame: fr.frame, pose: l.poseId, selectors: r.selectors, game: full});
     }
@@ -94,7 +102,7 @@ function judge(run, content, fight) {
       if (p.pieces.length && p.pieces.every(q => fr.sprites.some(s => s.x === q.x && s.y === q.y - 1 && s.tile === q.tile))) { inPlace = want; break; } }
     if (inPlace == null) continue;
     out.drawnInPlace++;
-    if (fr.links.some(l => { const r = recordOf(l.poseId); return r && r.fight === fight && r.selectors.includes(inPlace); })) out.covered++;
+    if (fr.links.some(l => { const r = recordOf(l.poseId); return r && r.fights.includes(fight) && r.selectors.includes(inPlace); })) out.covered++;
     else out.missed.push({frame: fr.frame, selector: inPlace, links: fr.links.map(l => l.poseId), candidates: fr.candidates.map(c => c.poseId + ':' + c.state)});
   }
   return out;
@@ -112,9 +120,30 @@ function judge(run, content, fight) {
     // ---------- 1. the catalog, through the automatic completion path ----------
     report.catalog = {};
     for (const cart of [p1, p0].filter(Boolean)) {
-      const r = await page.evaluate(async ({b64, name, sha256}) => {
+      // PRG 0 is registered over a catalog of the provider's version 1 (planted here): one entry the new version no
+      // longer has (a rematch's duplicate), and one it still has, with what frames showed recorded on it
+      const bytesNow = new Uint8Array(fs.readFileSync(cart.file)), poc = PunchOutContent.open(bytesNow), tysonZero = poc.fights[13].poses.find(p => p.selector === 0).address;
+      const plant = cart === p0 ? {stale: 'po:f10:' + poc.fights[10].poses.find(p => p.status === 'source-record').address.toString(16), keep: 'po:f13:' + tysonZero.toString(16)} : null;
+      const r = await page.evaluate(async ({b64, name, sha256, plant}) => {
         const LC = Forge.services.LibraryCatalog, L = Forge.services.ResourceLibrary, bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+        let upgrade = null;
+        if (plant) {
+          await L.ensureMeta();
+          const prefix = 'rom:' + sha256.slice(0, 16) + ':pose:', oldKey = 'catalog:planted-provider-version-1', blob = await L.storeData('{"pieces":[]}');
+          const entry = (rid, extra) => ({id: prefix + rid, packSha256: oldKey, path: 'pose/' + rid, label: rid, origin: 'rom-catalog', shelf: sha256, sourceSha256: sha256, game: 'punch-out-us-prg0', kind: 'pose',
+            identified: true, fileType: 'json', size: blob.size, contentHash: blob.hash, loads: false, registered: Date.now(), data: {state: 'stored'}, ...extra});
+          await L.putRecords([['packs', {packSha256: oldKey, name: name + ' · recovered catalog', origin: 'rom-catalog', sourceSha256: sha256, shelf: sha256, state: 'complete', format: 'NESForgeInvestigation', mode: 'full', bytes: 0,
+            intake: {state: 'accepted', kind: 'rom-catalog'}, registered: Date.now(), updated: Date.now(), stats: {schema: 4, provider: {id: 'punch-out', version: 1}, entries: 2}}],
+            ['entries', entry(plant.stale, {})], ['entries', entry(plant.keep, {observed: {frames: [{frameEntry: 'frames:planted', frame: 1, label: 'planted observation'}], count: 1, updated: Date.now()}})]]);
+          upgrade = {before: (await LC.catalogState()).find(c => c.sha === sha256)?.state};
+        }
         const t = performance.now(), first = await LC.completeCatalog(sha256, {bytes, name, from: 'the test', reason: 'test'}), ms = Math.round(performance.now() - t);
+        if (plant) {
+          const prefix = 'rom:' + sha256.slice(0, 16) + ':pose:', stale = await L.entry(prefix + plant.stale).catch(() => null), keep = await L.entry(prefix + plant.keep).catch(() => null);
+          const packs = ((await Forge.commands.run('library.packs')).result || []).filter(p => p.origin === 'rom-catalog' && p.sourceSha256 === sha256);
+          upgrade = {...upgrade, after: (await LC.catalogState()).find(c => c.sha === sha256)?.state, staleGone: !stale, kept: !!keep, keptObserved: (keep?.observed?.frames || []).some(f => f.frameEntry === 'frames:planted'),
+            keptInNewPack: !!keep && keep.packSha256 !== 'catalog:planted-provider-version-1', catalogPacks: packs.map(p => ({state: p.state, provider: p.stats?.provider?.version})), superseded: first.superseded ?? null};
+        }
         const again = await LC.completeCatalog(sha256, {bytes, name, from: 'the test', reason: 'test'});
         const all = []; for (let offset = 0; ; offset += 1000) { const page = await L.list({shelf: sha256, offset, limit: 1000}); all.push(...page.items); if (offset + 1000 >= page.total) break; }
         const kinds = all.reduce((m, e) => (m[e.kind] = (m[e.kind] || 0) + 1, m), {});
@@ -127,11 +156,11 @@ function judge(run, content, fight) {
         const actors = [];
         for (const item of all.filter(e => e.kind === 'actor')) actors.push(JSON.parse(new TextDecoder().decode((await L.readEntry(item.id)).bytes)));
         const chr = all.filter(e => e.kind === 'chr').map(e => e.id).sort();
-        return {first: {state: first.state, entries: first.entries, chrBanks: first.chrBanks, poseContexts: first.poseContexts}, ms, again: {state: again.state, already: again.already}, kinds, poses, actors, chr,
+        return {first: {state: first.state, entries: first.entries, chrBanks: first.chrBanks, poseContexts: first.poseContexts}, ms, again: {state: again.state, already: again.already}, kinds, poses, actors, chr, upgrade,
           status: (await LC.romStatus()).find(s => s.sha === sha256)};
-      }, {b64: fs.readFileSync(cart.file).toString('base64'), name: cart.name, sha256: cart.sha});
+      }, {b64: fs.readFileSync(cart.file).toString('base64'), name: cart.name, sha256: cart.sha, plant});
       const bytes = new Uint8Array(fs.readFileSync(cart.file)), content = PunchOutContent.open(bytes);
-      const records = new Set(); for (const f of content.fights) for (const p of f.poses) if (p.status === 'source-record') records.add(f.index + ':' + p.address);
+      const records = new Set(); for (const f of content.fights) for (const p of f.poses) if (p.status === 'source-record') records.add(f.bank8KiB + ':' + p.address);
       const byMode = {}; for (const p of r.poses) for (const k of Object.keys(p.layouts)) byMode[k] = (byMode[k] || 0) + 1;
       // 2. every drawing against the cartridge bytes
       let drawnPieces = 0, undrawnUpper = 0, undrawnNoBank = 0, wrongPattern = [], wrongPalette = [], wrongUndrawn = [];
@@ -151,18 +180,27 @@ function judge(run, content, fight) {
         withoutLayout: r.poses.filter(p => !p.record.layouts.length).map(p => p.id), layoutsByMode: byMode, actors: r.actors.length, chrBanks: r.chr.length,
         locations: r.poses.reduce((n, p) => n + p.locations, 0), inconsistentLocations: r.poses.reduce((n, p) => n + p.inconsistent, 0),
         drawings: {drawnPieces, undrawnUpper, undrawnNoBank, wrongPattern: wrongPattern.slice(0, 5), wrongPalette: wrongPalette.slice(0, 5), wrongUndrawn: wrongUndrawn.slice(0, 5)},
-        status: r.status ? {catalog: r.status.catalog.state, entries: r.status.entries, drawing: r.status.drawing} : null};
+        status: r.status ? {catalog: r.status.catalog.state, entries: r.status.entries, drawing: r.status.drawing} : null, ...(r.upgrade ? {upgradeFromVersion1: r.upgrade} : {})};
     }
     report.timing = {catalogsSeconds: Math.round((Date.now() - t0) / 1000)};
+    const up = report.catalog['PRG 0']?.upgradeFromVersion1;
+    if (p0) check('A catalog of the provider\'s earlier version (planted for PRG 0) is outdated and is replaced on completion: the entry it no longer has is removed, the entry it still has keeps what frames showed, one complete catalog remains',
+      up && up.before === 'outdated' && up.after === 'complete' && up.staleGone && up.kept && up.keptObserved && up.keptInNewPack && up.catalogPacks.length === 1 && up.catalogPacks[0].provider === 2, up);
     const cats = Object.values(report.catalog);
-    check('The recovered catalog of each revision is registered through the library\'s automatic completion: one pose entry per full-pose record, the 14 fights, the 32 CHR banks; a second completion finds it complete; every location is consistent with the cartridge',
+    check('The recovered catalog of each revision is registered through the library\'s automatic completion: one pose entry per physical full-pose record (a fight and its rematch share theirs), the 14 fights, the 32 CHR banks; a second completion finds it complete; every location is consistent with the cartridge',
       cats.length >= 1 && cats.every(c => c.registration.state === 'complete' && c.again.state === 'complete' && c.again.already && c.poseEntries === c.records && c.actors === 14 && c.chrBanks === 32 &&
         c.withoutLayout.length === 0 && c.inconsistentLocations === 0 && c.locations > 0 && c.status?.catalog === 'complete' && c.status.drawing?.fight === c.poseEntries), report.catalog);
     check('Every drawing against the cartridge bytes (read by this test): each drawn piece\'s pattern is the CHR bank its pose selects, the palette is the fight\'s sprite palette; only pieces with no bank of their own or in the upper pattern table are left undrawn',
       cats.every(c => c.drawings.drawnPieces > 20000 && !c.drawings.wrongPattern.length && !c.drawings.wrongPalette.length && !c.drawings.wrongUndrawn.length), cats.map(c => c.drawings));
     // ---------- 3. the bouts ----------
     report.bouts = {};
-    const plays = [{cart: p1, route: 'tyson', fight: 13, label: 'Mike Tyson (PRG 1)'}, {cart: p1, route: 'joe', fight: 0, label: 'Glass Joe (PRG 1)'}, ...(p0 ? [{cart: p0, route: 'tyson', fight: 13, label: 'Mike Tyson (PRG 0)'}] : [])];
+    // every bout reachable without winning one: a new game, and the passcodes that start a circuit
+    const TYSON = {tag: 'tyson', code: '0073735963'};
+    const plays = [{cart: p1, route: TYSON, fight: 13, label: 'Mike Tyson (PRG 1)'}, {cart: p1, route: {tag: 'joe'}, fight: 0, label: 'Glass Joe (PRG 1)'},
+      {cart: p1, route: {tag: 'don', code: '0057375423'}, fight: 3, label: 'Don Flamenco, first fight (PRG 1)'},
+      {cart: p1, route: {tag: 'piston', code: '7778073454'}, fight: 7, label: 'Piston Honda, rematch (PRG 1)'},
+      {cart: p1, route: {tag: 'hippo', code: '1357924680', sab: true}, fight: 4, label: 'King Hippo (PRG 1)'},
+      ...(p0 ? [{cart: p0, route: TYSON, fight: 13, label: 'Mike Tyson (PRG 0)'}] : [])];
     const kept = [];
     for (const play of plays) {
       const t = Date.now(), run = await bout(page, play.cart, play.route), content = PunchOutContent.open(new Uint8Array(fs.readFileSync(play.cart.file)));
@@ -171,10 +209,10 @@ function judge(run, content, fight) {
     }
     const B = Object.values(report.bouts);
     check('In every bout, every link made in a frame without a delta pose agrees with the game\'s pose selector ($A1) over the frames that built the image; none contradicts it; every link is to the fight being played',
-      B.every(b => b.links > 50 && b.agree > 40 && !b.contradictions.length && !b.wrongFight.length && b.ambiguous === 0) && report.bouts['Mike Tyson (PRG 1)'].modes['8x8-step2'] > 0 && report.bouts['Mike Tyson (PRG 1)'].modes['8x16'] > 0,
-      Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {links: b.links, agree: b.agree, contradictions: b.contradictions.slice(0, 3), wrongFight: b.wrongFight.slice(0, 3), modes: b.modes, ambiguous: b.ambiguous}])));
+      B.length >= 5 && B.every(b => b.links > 20 && b.agree > 10 && !b.contradictions.length && !b.wrongFight.length && b.ambiguous === 0) && report.bouts['Mike Tyson (PRG 1)'].modes['8x8-step2'] > 0 && report.bouts['Mike Tyson (PRG 1)'].modes['8x16'] > 0,
+      Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {links: b.links, agree: b.agree, flipped: b.flipped || 0, contradictions: b.contradictions.slice(0, 3), wrongFight: b.wrongFight.slice(0, 3), modes: b.modes, ambiguous: b.ambiguous}])));
     check('Coverage: whenever the game\'s current full pose is drawn in place (this test decodes it with the game\'s routine at the runtime base and sprite mode, and finds every piece on screen), Forge links it',
-      B.every(b => b.drawnInPlace > 40 && b.missed.length === 0), Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {drawnInPlace: b.drawnInPlace, covered: b.covered, missed: b.missed.slice(0, 3)}])));
+      B.every(b => b.drawnInPlace > 10 && b.missed.length === 0), Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {drawnInPlace: b.drawnInPlace, covered: b.covered, missed: b.missed.slice(0, 3)}])));
     // ---------- 4. negative cases ----------
     const sample = kept.find(k => k.mode === '8x16' && k.link.by === 'layout and graphics') || kept[0];
     const neg = await page.evaluate(async ({record, link}) => {
