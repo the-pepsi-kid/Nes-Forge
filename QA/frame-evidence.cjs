@@ -122,7 +122,10 @@ function png(rgba) { // 256x240 RGBA -> PNG
           chrRomBanksMatchFile: chrRom.length ? chrRom.every(x => x.matchesFile) : null, prgLocated: w.results.every(r => r.banks.prg.every(x => x.located !== 'not in PRG ROM (RAM or open bus)' && x.matchesFile !== false)),
           synchronization: w.results.map(r => r.synchronization.state === 'matched' ? 'matched' : 'not matched: ' + r.synchronization.reason.slice(0, 90)), file: file.length,
           spriteLocations: w.results.map(r => r.spritePatternsAt), spritesDrawn: w.results.map(r => r.sprites.filter(sp => sp.visible).length)});
-      } catch (e) { report.games.push({game: c.name, state: 'error', error: String(e.message).slice(0, 200)}); }
+        // one line per game as it finishes: this phase takes minutes, and the runner stops a suite that prints nothing
+        // for 5 minutes as a possible hang (on a slower machine the phase alone passed that)
+        console.log('  other game done: ' + c.name.replace(/\.nes$/i, '') + ' · checkpoint ' + wMs + ' ms, cold boot ' + kMs + ' ms');
+      } catch (e) { report.games.push({game: c.name, state: 'error', error: String(e.message).slice(0, 200)}); console.log('  other game failed: ' + c.name + ' · ' + String(e.message).slice(0, 120)); }
     }
     const played = report.games.filter(g => g.equal !== undefined);
     check('Other games (one per emulated mapper family): every checkpoint capture equals its cold-boot capture', played.length >= 5 && played.every(g => g.equal), played.map(g => g.game + ': ' + (g.equal ? 'equal' : g.differing.join(','))));
