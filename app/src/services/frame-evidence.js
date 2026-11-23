@@ -249,6 +249,8 @@ async function registerFrame(record){
   const pack=(await L.getPack(packKey))||{packSha256:packKey,name:(record.rom.name||'ROM')+' · runtime captures',origin:'runtime-capture',bytes:0,fileCount:0,format:'NESForgeFrameEvidence',sourceSha256:romSha,shelf:romSha,mode:'full',intake:{state:'accepted',kind:'runtime-capture'},state:'complete',registered:Date.now()};
   pack.fileCount=(pack.fileCount||0)+1;pack.updated=Date.now();
   await L.putRecords([['entries',e],['packs',pack]]);
+  // the poses this frame establishes record it (and, where their drawing is incomplete, how they were drawn)
+  services.PoseLinks?.scheduleObservations?.(romSha);
   return {id,links:e.links.length,preview:!!preview};
 }
 // ---------- steps for an external runner (Agent Lab): boot, one target, checkpoints that leave the page ----------

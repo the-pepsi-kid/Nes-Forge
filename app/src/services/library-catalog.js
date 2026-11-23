@@ -274,6 +274,8 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
     let kept=null;if(upgrade){try{kept=await L.entry(id);}catch(_){kept=null;}}
     const verified=(kept?.placement?.verified||[]).filter(p=>p.basis==='runtime');
     if(kept?.renditions)e.renditions=kept.renditions;if(kept?.links)e.links=kept.links;
+    // what captured frames showed (PoseLinks.recordObservations) is kept through an upgrade
+    if(kept?.observed)e.observed=kept.observed;if(kept?.observedRendition)e.observedRendition=kept.observedRendition;
     if(kind==='room'&&r.stage)verified.push({stage:r.stage.label,area:r.area,room:r.room,basis:'rom-table',source:r.stage.source});
     else if((kind==='room'||kind==='location')&&r.group)verified.push({context:r.group,basis:'rom-table'});
     if(kind==='stage')verified.push({stage:r.label,areas:r.areas,basis:'rom-table',source:r.source});
@@ -285,7 +287,8 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
         for(const [k,d] of Object.entries(pd.layouts||{})){const st=await L.storeData(JSON.stringify(d));layouts[k]={hash:st.hash,context:d.context};}
         if(Object.keys(layouts).length)e.layoutRenditions=layouts;
         if(pd.rendition){const st=await L.storeData(JSON.stringify(pd.rendition));e.rendition={hash:st.hash,context:pd.rendition.context};stats.renditions++;
-          const b=pd.rendition.context.basis;stats.poseContexts[b]=(stats.poseContexts[b]||0)+1;}
+          const b=pd.rendition.context.basis;stats.poseContexts[b]=(stats.poseContexts[b]||0)+1;
+          if(e.observedRendition){e.decodedRendition=e.rendition;e.rendition=e.observedRendition;}}
         else e.renditionError='no layout of this pose keeps every piece together';}
       catch(err){e.renditionError=String(err.message).slice(0,200);}}
     else if(kind==='pose'){
@@ -310,6 +313,8 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
     format:'NESForgeInvestigation',game:profile,sourceSha256:romSha,shelf,mode:'full',intake:{state:'accepted',kind:'rom-catalog'},state:'complete',registered:prior?.registered||started,updated:Date.now(),
     attempts:upgrade?prior.attempts||1:attempt,lastAttemptAt:started,lastError:null,stats}]]);
   const links=await linkSameResources(romSha);
+  // frames registered before the catalog: their poses record them now
+  services.PoseLinks?.scheduleObservations?.(romSha);
   return {packSha256:packKey,already:false,shelf,stats,links,ms:Date.now()-started};
   }
 }

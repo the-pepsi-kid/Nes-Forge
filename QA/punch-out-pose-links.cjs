@@ -17,6 +17,11 @@
 // 5. In the library and on screen: frames registered as library entries give the same links through
 //    library.framePoses; Resources > Library's frame view lists them; a pose opens from there and lists the frames that
 //    show it; a pose with a complete drawing can be used in a project, one with an incomplete drawing is refused.
+// 6. What the frames showed, recorded on the poses (library.recordObservedPoses, also automatic after frames are
+//    registered): every registered frame is recorded on the poses it establishes; a pose drawn in another sprite mode
+//    than its default drawing, or with no CHR bank of its own, gets a drawing as observed whose every pattern row equals
+//    the cartridge bytes at the location its sprite was drawn from, with the frame's palette and flips; a complete
+//    drawing in the same mode is kept; recording again changes nothing; it survives a reload.
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const {chromium} = require('playwright');
 const [editorArg, output, cartDir, shots] = process.argv.slice(2);
@@ -56,6 +61,7 @@ async function bout(page, cart, route) {
       const links = r.links.map(l => ({entry: l.poseEntry, poseId: l.poseId, by: l.by, mode: l.mode?.key || null, sprites: l.sprites, graphics: l.graphics}));
       // a record of each sprite mode linked, for the library and negative checks
       for (const l of links) if (l.by === 'layout and graphics' && !keep[l.mode]) keep[l.mode] = {record, link: l};
+      for (const l of links) if (l.by === 'layout' && !keep.nobank) keep.nobank = {record, link: l};
       frames.push({frame: record.frame, state: r.state, sprites: record.sprites.filter(s => s.visible).map(s => ({index: s.index, tile: s.tile, x: s.x, y: s.y, height: s.height, flipH: s.flipH, flipV: s.flipV})),
         links, candidates: r.candidates.map(c => ({poseId: c.poseId, state: c.state, mode: c.mode?.key || null, pieces: c.pieces})), ambiguous: r.ambiguous.length});
     }
@@ -170,7 +176,7 @@ function judge(run, content, fight) {
     check('Coverage: whenever the game\'s current full pose is drawn in place (this test decodes it with the game\'s routine at the runtime base and sprite mode, and finds every piece on screen), Forge links it',
       B.every(b => b.drawnInPlace > 40 && b.missed.length === 0), Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {drawnInPlace: b.drawnInPlace, covered: b.covered, missed: b.missed.slice(0, 3)}])));
     // ---------- 4. negative cases ----------
-    const sample = kept.find(k => k.mode === '8x16') || kept[0];
+    const sample = kept.find(k => k.mode === '8x16' && k.link.by === 'layout and graphics') || kept[0];
     const neg = await page.evaluate(async ({record, link}) => {
       const PL = Forge.services.PoseLinks, copy = () => JSON.parse(JSON.stringify(record)), find = (r, i) => r.sprites.find(s => s.visible && s.index === i);
       const moved = copy(); find(moved, link.sprites[1]).x += 1;
@@ -218,6 +224,51 @@ function judge(run, content, fight) {
     check('In the library: frames registered as library entries give the same links through library.framePoses; the frame view lists them, a pose opens from there and lists the frames that show it; a complete drawing is used in a project, an incomplete one is refused and nothing changes',
       lib.length >= 2 && lib.every(x => x.same && x.links >= 1) && view.rows >= 1 && /established by/.test(view.text) && /Seen in \d+ captured frame/.test(seen.text) && seen.lines === 1 &&
         /bout/.test(drawnText) && use.complete.ok && use.complete.sprites > 0 && use.incomplete && use.incomplete.ok === false && /incomplete/.test(use.incomplete.message) && use.incomplete.unchanged, report.library);
+    // ---------- 6. what the frames showed, recorded on the poses ----------
+    const tysonKept = kept.filter(k => k.bout === 'Mike Tyson (PRG 1)'), nobank = tysonKept.find(k => k.mode === 'nobank'), eight = tysonKept.find(k => k.mode === '8x8-step2'), sixteen = tysonKept.find(k => k.mode === '8x16'), joe = kept.find(k => k.bout === 'Glass Joe (PRG 1)' && k.mode === '8x8');
+    const obs = await page.evaluate(async ({records, sha256}) => {
+      const S = Forge.services, L = S.ResourceLibrary, ids = [];
+      for (const r of records) ids.push((await S.FrameEvidence.registerFrame(r)).id);   // the frame with a no-bank pose (the others were registered above)
+      const first = await Forge.commands.run('library.recordObservedPoses', {sha256}), again = await Forge.commands.run('library.recordObservedPoses', {sha256});
+      return {ids, first: first.ok ? first.result : first.error, again: again.ok ? again.result : again.error};
+    }, {records: [nobank].filter(Boolean).map(k => k.record), sha256: PRG1});
+    const readPose = id => page.evaluate(async id => { const L = Forge.services.ResourceLibrary, e = await L.entry(id), rd = ref => ref?.hash ? L.blobBytes(ref.hash).then(b => JSON.parse(new TextDecoder().decode(b))) : null;
+      return {observed: e.observed || null, rendition: await rd(e.rendition), decoded: await rd(e.decodedRendition)}; }, id);
+    const cartBytes = new Uint8Array(fs.readFileSync(p1.file));
+    // this test's own reading of what a frame drew: each sprite's pattern rows from the cartridge at its traced location
+    const drawnRowsOf = s => { const h = s.height === 16 ? 16 : 8, out = []; for (let py = 0; py < h; py++) { const r = s.flipV ? h - 1 - py : py, g = (s.rowsFrom || []).find(g => r >= g.firstRow && r <= g.lastRow), base = (g ? g.chrOffset : s.chrOffset + (py >> 3) * 16) + 16 + 8 * 16384 + (py & 7);
+      out.push(Array.from({length: 8}, (_, x) => ((cartBytes[base] >> (7 - x)) & 1) | (((cartBytes[base + 8] >> (7 - x)) & 1) << 1))); } return out; };
+    const verifyObserved = (k, d) => { if (!d) return ['no drawing']; const bad = [], byIndex = new Map(k.record.sprites.filter(s => s.visible).map(s => [s.index, s]));
+      const pal = k.record.palette.map(v => v & 63); if (JSON.stringify(d.palette) !== JSON.stringify([0, 1, 2, 3].map(r => [16, 17, 18, 19].map(i => pal[i + r * 4])))) bad.push('palette');
+      k.link.sprites.forEach((i, n) => { const s = byIndex.get(i), p = d.pieces[n], rows = drawnRowsOf(s), got = d.spriteMode === 16 ? [...d.tiles[p.tile], ...d.tiles[p.tile2]] : d.tiles[p.tile];
+        if (JSON.stringify(rows) !== JSON.stringify(got)) bad.push('piece ' + n + ' pattern'); if (p.flipH !== s.flipH || p.flipV !== s.flipV || p.pal !== s.palette) bad.push('piece ' + n + ' attributes');
+        if (p.x !== d.pieces[0].x + (s.x - byIndex.get(k.link.sprites[0]).x) || p.y !== d.pieces[0].y + (s.y - byIndex.get(k.link.sprites[0]).y)) bad.push('piece ' + n + ' position'); });
+      return bad; };
+    const res = {};
+    for (const [name, k] of Object.entries({nobank, eight, sixteen, joe})) { if (!k) continue; const e = await readPose(k.link.entry);
+      res[name] = {pose: k.link.poseId, mode: k.link.mode, recorded: (e.observed?.frames || []).length, basis: e.rendition?.context?.basis, drawnMode: e.rendition?.context?.mode, decodedMode: e.decoded?.context?.mode || null,
+        complete: !!e.rendition && e.rendition.pieces.every(p => p.drawn !== false), problems: e.rendition?.context?.basis === 'runtime' ? verifyObserved(k, e.rendition) : [], note: (e.rendition?.context?.note || '').slice(0, 160)}; }
+    // it survives a reload, and the pose view says how it was drawn
+    await page.reload(); await page.waitForFunction('window.Forge?.services?.PoseLinks && window.Forge.services.PunchOutLibrary');
+    const after = eight ? await readPose(eight.link.entry) : null;
+    let viewText = '';
+    if (eight) { await page.evaluate(() => Forge.services.ResourceRelationshipPreview.open()); await page.waitForSelector('#frx-lib'); await page.click('#frx-lib');
+      await page.fill('#frx-search', eight.link.poseId.replace(/^po:/, '')); await page.waitForTimeout(400);
+      const label = await page.evaluate(id => Forge.services.ResourceLibrary.entry(id).then(e => e.label), eight.link.entry);
+      await page.fill('#frx-search', label); await page.waitForTimeout(500);
+      // both revisions hold a pose of this name: the PRG 1 entry (the frames are of PRG 1) names its ROM in the list
+      await page.evaluate(l => [...document.querySelectorAll('#frx-items .frx-item')].find(b => b.textContent.includes(l) && b.textContent.includes('punch-out-us-prg1')).click(), label);
+      await page.waitForFunction(() => /punch-out-us-prg1/.test(document.querySelector('#frx-items .frx-item[aria-current="true"]')?.textContent || '') &&
+        [...document.querySelectorAll('.frx-lib .frx-code')].some(e => /seen on screen in/.test(e.textContent)), null, {timeout: 60000}).catch(() => null);
+      viewText = await page.evaluate(() => [...document.querySelectorAll('.frx-lib .frx-code')].map(e => e.textContent).find(t => /Drawn as in/.test(t)) || '');
+      if (shots) { await page.evaluate(() => document.querySelector('.frx-lib canvas')?.scrollIntoView({block: 'center'})); await page.screenshot({path: path.join(shots, 'P5_punch_out_pose_as_observed.png')}); } }
+    const usable = nobank ? await page.evaluate(async id => { Forge.services.ProjectStore.initializeBlank(); const r = await Forge.commands.run('library.usePose', {id, mode: 'copy'}); return {ok: r.ok, sprites: r.result?.placed?.sprites, error: r.error?.message}; }, nobank.link.entry) : null;
+    report.observations = {recorded: obs.first, again: obs.again, poses: res, afterReload: after && {basis: after.rendition?.context?.basis, mode: after.rendition?.context?.mode, recorded: (after.observed?.frames || []).length}, viewText: viewText.slice(0, 300), usable};
+    check('What the frames showed is recorded on the poses: every registered frame on the poses it establishes; a pose drawn in another mode or with no bank of its own gets a drawing as observed, equal to the cartridge at its sprites\' traced locations with the frame\'s palette and flips; a complete drawing in the same mode is kept; recording again changes nothing; it survives a reload',
+      !!nobank && !!eight && !!sixteen && res.nobank.recorded >= 1 && res.nobank.basis === 'runtime' && res.nobank.complete && !res.nobank.problems.length &&
+        res.eight.basis === 'runtime' && res.eight.drawnMode === '8x8-step2' && res.eight.decodedMode === '8x16' && res.eight.complete && !res.eight.problems.length &&
+        res.sixteen.recorded >= 1 && res.sixteen.basis === 'fight' && (!res.joe || res.joe.basis === 'fight' && res.joe.recorded >= 1) &&
+        obs.again.observations === 0 && obs.again.drawingsUpdated === 0 && after?.rendition?.context?.basis === 'runtime' && /seen on screen in/.test(viewText) && !/in a stage/.test(viewText) && usable?.ok === true, report.observations);
     check('No uncaught page errors', errors.length === 0, errors.slice(0, 3));
   } catch (e) { check('run', false, String(e.stack || e.message).slice(0, 900)); }
   await browser.close();

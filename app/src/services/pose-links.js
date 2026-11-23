@@ -182,11 +182,95 @@ async function poseFrames(poseEntryId){
   }
   return {pose:poseEntryId,frames:out,framesChecked:frames.length};
 }
-services.PoseLinks=Object.freeze({framePoses,frameEntryPoses,poseFrames,layoutMatches,posesOf});
+// ---------- what the frames showed, recorded on the poses ----------
+// A pose whose library drawing comes in sprite-mode layouts (Punch-Out!!) records each captured frame that establishes
+// it (entry.observed). Where its default drawing is incomplete (pieces the library cannot draw), unconfirmed (no CHR
+// bank of its own), guesses palette and flips (inherited attribute bytes) or is in another sprite mode than the game
+// drew, the first frame that establishes it gives it a drawing as observed: each piece's pattern read from the
+// cartridge at the location its sprite was drawn from (row by row where a sprite's rows came from several banks), the
+// frame's sprite palette and the flips as drawn. That becomes the entry's drawing (basis "runtime"); the decoded one
+// is kept (entry.decodedRendition). Ninja Gaiden's and Zelda II's drawings depend on the room and stage, which the
+// stage survey records; frames do not change them here.
+async function drawnRows(sha,s){
+  const h=s.height===16?16:8,rows=[];
+  for(let py=0;py<h;py++){
+    const r=s.flipV?h-1-py:py,g=(s.rowsFrom||[]).find(g=>r>=g.firstRow&&r<=g.lastRow),base=g?g.chrOffset:s.chrOffset+(py>>3)*16;
+    const bytes=await chrBank(sha,base>>12);if(!bytes)return null;const at=(base&4095)+(py&7);
+    rows.push(Array.from({length:8},(_,x)=>((bytes[at]>>(7-x))&1)|(((bytes[at+8]>>(7-x))&1)<<1)));
+  }
+  return rows;
+}
+async function observedDrawing(sha,record,link,entry,frameLabel){
+  const byIndex=new Map((record.sprites||[]).filter(s=>s.visible).map(s=>[s.index,s])),tall=link.sprites.length&&byIndex.get(link.sprites[0])?.height===16;
+  const tiles={},keys=new Map(),pieces=[],banks=new Set();let next=0;
+  for(const i of link.sprites){
+    const s=byIndex.get(i);if(!s||!Number.isInteger(s.chrOffset)||s.chrOffsetAt!=='fetch')return null;
+    const rows=await drawnRows(sha,s);if(!rows)return null;
+    for(const g of s.rowsFrom||[{chrOffset:s.chrOffset}])banks.add(g.chrOffset>>12);
+    // identical patterns share a tile (8x16: identical pairs share a pair)
+    const sig=JSON.stringify(rows);let k=keys.get(sig);
+    if(k===undefined){k=next;next+=tall?2:1;keys.set(sig,k);tiles[k]=rows.slice(0,8);if(tall)tiles[k+1]=rows.slice(8,16);}
+    pieces.push({tile:k,...(tall?{tile2:k+1}:{}),x:s.x-link.at.x,y:s.y-link.at.y,pal:s.palette,flipH:s.flipH,flipV:s.flipV,behind:s.behind});
+  }
+  const pal=(record.palette||[]).map(v=>v&63),palette=[0,1,2,3].map(r=>[16,17,18,19].map(k=>pal[k+r*4]??15));
+  const prior=entry.rendition?.context||{},mode=link.mode;
+  return {format:'NESForgeLibraryPose',version:1,poseId:link.poseId,name:entry.label||link.label,spriteMode:tall?16:8,originX:0,originY:0,pieces,tiles,palette,
+    context:{roomId:null,label:prior.label||null,stage:null,basis:'runtime',confirmed:true,mode:mode?.key||null,chrBanks:[...banks].sort((a,b)=>a-b),
+      observedIn:{frameEntry:link.frameEntry,frame:record.frame,label:frameLabel},
+      note:'seen on screen in '+frameLabel+(mode?' as '+mode.label:'')+': each piece\'s pattern from the cartridge at the location its sprite was drawn from (CHR bank '+[...banks].sort((a,b)=>a-b).join(', ')+
+        '), the frame\'s sprite palette and the flips as drawn; the decoded drawing is kept'}};
+}
+function needsObservedDrawing(entry,link){
+  const c=entry.rendition?.context;
+  return !c||c.confirmed===false||(c.undrawn||0)>0||(c.inherited||0)>0||!!(link.mode&&c.mode&&c.mode!==link.mode.key);
+}
+const observing=new Map(),observeTimers=new Map();
+async function recordObservations(sha){
+  if(!/^[0-9a-f]{64}$/.test(sha||''))fail('recordObservations needs a ROM SHA-256');
+  while(observing.has(sha))await observing.get(sha).catch(()=>{});
+  const job=(async()=>{
+    const L=services.ResourceLibrary,frames=[];
+    for(let offset=0;;offset+=1000){const page=await L.list({shelf:sha,kind:'frame',offset,limit:1000});frames.push(...page.items);if(offset+1000>=page.total)break;}
+    const stats={sourceSha256:sha,frames:frames.length,links:0,poses:new Set(),observations:0,alreadyRecorded:0,drawingsUpdated:0,notLayoutPoses:0,updated:[]};
+    for(const f of frames){
+      let r;try{r=await frameEntryPoses(f.id);}catch(_){continue;}
+      let record=null;
+      for(const l of r.links){
+        stats.links++;
+        const e=await L.entry(l.poseEntry).catch(()=>null);if(!e)continue;
+        if(!e.layoutRenditions){stats.notLayoutPoses++;continue;}
+        stats.poses.add(e.id);
+        const seen=e.observed?.frames||[];if(seen.some(o=>o.frameEntry===f.id)){stats.alreadyRecorded++;continue;}
+        const label=f.label||f.id,obs={frameEntry:f.id,frame:r.frame,label,mode:l.mode?.key||null,by:l.by,banks:l.banks||[],sprites:l.sprites.length};
+        e.observed={frames:[...seen,obs].slice(-200),count:seen.length+1,updated:Date.now()};stats.observations++;
+        if(!e.observedRendition&&needsObservedDrawing(e,l)){
+          record??=JSON.parse(new TextDecoder().decode((await L.readEntry(f.id)).bytes));
+          const d=await observedDrawing(sha,record,{...l,frameEntry:f.id},e,label);
+          if(d){const st=await L.storeData(JSON.stringify(d));e.observedRendition={hash:st.hash,context:d.context};if(!e.decodedRendition&&e.rendition)e.decodedRendition=e.rendition;e.rendition=e.observedRendition;
+            stats.drawingsUpdated++;stats.updated.push({pose:e.id,label:e.label,mode:d.context.mode,banks:d.context.chrBanks,frame:label});}
+        }
+        await L.putRecords([['entries',e]]);
+      }
+    }
+    return {...stats,poses:stats.poses.size};
+  })();
+  observing.set(sha,job);
+  try{return await job;}finally{if(observing.get(sha)===job)observing.delete(sha);}
+}
+// after frames or a catalog are registered (FrameEvidence.registerFrame, LibraryCatalog.registerCatalog)
+function scheduleObservations(sha){
+  if(!/^[0-9a-f]{64}$/.test(sha||''))return;
+  clearTimeout(observeTimers.get(sha));
+  observeTimers.set(sha,setTimeout(()=>{observeTimers.delete(sha);void recordObservations(sha).then(r=>{if(r.drawingsUpdated||r.observations)try{window.dispatchEvent(new CustomEvent('forge:pose-observations',{detail:r}));}catch(_){}}).catch(()=>{});},400));
+}
+services.PoseLinks=Object.freeze({framePoses,frameEntryPoses,poseFrames,layoutMatches,posesOf,recordObservations,scheduleObservations});
 if(C?.register){
   C.register({name:'library.framePoses',group:'library',title:'Link a frame\'s sprites to library poses',
     summary:'For a frame entry (id) or a frame evidence record (record): the decoded poses of the same ROM drawn in it. Established only when every piece is drawn in place and its graphics equal the library\'s drawing; same layout with other graphics is a candidate. Read-only.',
     args:{id:{type:'string'},record:{type:'object'}},run:a=>a.id?frameEntryPoses(a.id):framePoses(a.record)});
+  C.register({name:'library.recordObservedPoses',group:'library',title:'Record on the poses what captured frames showed',
+    summary:'For a ROM (sha256): each frame that establishes a pose with sprite-mode layouts (Punch-Out!!) is recorded on the pose; a pose whose drawing is incomplete, unconfirmed or in another mode gets a drawing as observed. Idempotent; runs on its own after frames or a catalog are registered.',
+    args:{sha256:{type:'string',required:true}},run:a=>recordObservations(String(a.sha256))});
   C.register({name:'library.poseFrames',group:'library',title:'Captured frames that show a pose',
     summary:'For a pose entry (id): the captured frames of the same ROM in which this pose is established (by library.framePoses). Read-only.',
     args:{id:{type:'string',required:true}},run:a=>poseFrames(a.id)});

@@ -734,7 +734,7 @@ function renderLibraryViewer(n,host,tools,caption){
    const chosen=$('stage').value,observed=Object.keys(entry.renditions||{}),use=chosen&&entry.renditions?.[chosen]?chosen:observed[0]||'';
    const r=await C.run('library.rendition',{id,stage:use});if(stale())return;
    if(r.ok){const rend=r.result.rendition,canvas=drawRendition(rend,4);host.append(canvas,elt('div','frx-code',drawnAs(rend.context)+' · '+rend.pieces.length+' pieces · 8×'+rend.spriteMode+
-     (chosen&&use!==chosen&&rend.context?.basis!=='fight'?' · not observed in '+chosen+(use?'; these are the colours of '+use+', where it was observed':''):'')+(!use&&rend.context?.basis!=='fight'?' · not yet observed in a stage: the game may show it in other colours':'')));
+     (chosen&&use!==chosen&&!rend.context?.mode?' · not observed in '+chosen+(use?'; these are the colours of '+use+', where it was observed':''):'')+(!use&&!rend.context?.mode?' · not yet observed in a stage: the game may show it in other colours':'')));
     const row=elt('div');row.style.cssText='display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0';
     for(const [mode,label] of [['reference','Use in project (reference)'],['copy','Copy into project (tiles + palette)']]){
      const b=elt('button','frx-relationship',label);b.type='button';b.onclick=async()=>{b.disabled=true;

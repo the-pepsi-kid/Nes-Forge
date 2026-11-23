@@ -539,8 +539,54 @@ $80).
 **Limits.**
 - Delta poses are not catalogued, so frames showing a delta result that equals no full pose stay unlinked.
 - Which sprite mode the game draws a pose in is known only once a frame links it. The default drawing is the fight's
-  configured mode, which is wrong for some poses (Tyson's 8×8 poses).
+  configured mode, which is wrong for some poses (Tyson's 8×8 poses). Since §18, a linked frame replaces such a drawing
+  with the pose as it was drawn.
 - Only the Mike Tyson and Glass Joe bouts were played. The other twelve fights use the same code, but their links have
   not been checked against the game.
 - Registration draws 499 records in three modes and takes about 20 s in the browser, yielding between fights.
+
+## 18. What the frames showed, recorded on the poses (2026-11-23)
+
+A frame that links a pose (§16, §17) is now recorded on that pose. Where the library's own drawing of the pose falls
+short, the frame also gives the pose a drawing as observed. This is done by `PoseLinks.recordObservations`, the
+command `library.recordObservedPoses`. It runs on its own after a frame is registered (Agent Lab imports included)
+and after a ROM's catalog is registered, so frames registered before the catalog are counted too.
+
+- **Recorded.** Each frame that establishes a pose with sprite-mode layouts (Punch-Out!!) is listed on the pose
+  entry (`entry.observed`: the frame, the sprite mode, how the link was established, the CHR banks).
+- **Drawn as observed.** A pose gets a drawing from the first frame that establishes it when its default drawing:
+  - is incomplete (pieces in the upper pattern table);
+  - is unconfirmed (no CHR bank of its own);
+  - guesses palette and flips (inherited attribute bytes);
+  - or is in another sprite mode than the one the game drew.
+
+  The drawing as observed takes:
+  - each piece's pattern from the cartridge, at the location its sprite was drawn from (row by row where a
+    sprite's rows came from several banks, as MMC2 latch sprites' do);
+  - the frame's sprite palette;
+  - the flips as drawn.
+
+  It becomes the pose's drawing (basis "runtime", "seen on screen in <frame>"), so it is what Use in project places.
+  The decoded drawing is kept (`entry.decodedRendition`), and both survive a catalog upgrade.
+- **Kept as they are.** A complete drawing in the mode the game drew keeps its decoded drawing; the frame is only
+  recorded. Recording again changes nothing.
+- **Not changed here.** Ninja Gaiden's and Zelda II's drawings depend on the room and stage, which the stage survey
+  records (§11 onward), so frames do not change them.
+
+**Checked (`QA/punch-out-pose-links.cjs`, check 7):**
+- **Pose $16** (Tyson, 52 pieces). It is drawn as 8×8 sprites in a fight configured for 8×16, and its decoded 8×16
+  drawing is garbled. It now has the drawing it showed in frame 3059.
+- **Pose $3C** (11 pieces). It selects no CHR bank of its own, so the library could not draw it before. It now has
+  the drawing it showed in frame 3707, and it can be used in a project.
+- **Exactness.** In both, every pattern row equals the cartridge bytes at the location its sprite was drawn from
+  (read by the test), and the palette, flips and positions are the frame's.
+- **Unchanged.** Pose $00 (8×16, complete) and Glass Joe's pose $02 (8×8, complete) keep their decoded drawings, with
+  the frames recorded.
+- **Repeatable and persistent.** A second recording changes nothing, the result survives a page reload, and the pose
+  view says "seen on screen in …".
+
+**Limits.**
+- **First frame only.** The first frame that establishes a pose gives its drawing. Later frames that show it with
+  other banks or colours, such as a hit flash, are recorded but don't change it.
+- **Delta poses** are still not catalogued (§17).
 
