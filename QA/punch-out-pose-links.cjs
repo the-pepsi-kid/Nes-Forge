@@ -211,6 +211,8 @@ function judge(run, content, fight) {
     for (const play of plays) {
       const t = Date.now(), run = await bout(page, play.cart, play.route), content = PunchOutContent.open(new Uint8Array(fs.readFileSync(play.cart.file)));
       report.bouts[play.label] = {...judge(run, content, play.fight), seconds: Math.round((Date.now() - t) / 1000)};
+      // a line per bout: the bouts take minutes in all, and the runner stops a suite that prints nothing for 5 minutes
+      { const b = report.bouts[play.label]; console.log('  bout done: ' + play.label + ' · ' + b.links + ' links, ' + b.agree + ' agree with $A1, ' + b.contradictions.length + ' contradict, coverage ' + b.covered + '/' + b.drawnInPlace + ' · ' + b.seconds + ' s'); }
       for (const [mode, k] of Object.entries(run.keep)) kept.push({bout: play.label, mode, ...k});
     }
     const B = Object.values(report.bouts);
