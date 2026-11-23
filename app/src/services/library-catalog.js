@@ -196,14 +196,34 @@ function poseContexts(project,rom){
 }
 
 // ---------- registration ----------
-async function registerCatalog(project=services.ProjectStore.capture(),{onProgress,pageSize=1000}={}){
+// ---------- catalog providers ----------
+// Ninja Gaiden and Zelda II catalogs come from the investigation's native catalog (GameRENative). Other ROMs register a
+// provider: {id, profiles:[{sha256,id,name}], catalog(bytes,name) -> {n} (the same shape: n.source, n.catalogSha256,
+// n.catalogs.native with poses, actors, graphics, ram), poseDrawings(record,bytes) -> {rendition, layouts:{key:drawing}}}.
+// Punch-Out!! (src/services/punch-out-library.js) is one.
+const providers=[];
+function registerProvider(p){if(!p?.id||!Array.isArray(p.profiles)||typeof p.catalog!=='function'||typeof p.poseDrawings!=='function')fail('a catalog provider needs id, profiles, catalog and poseDrawings');
+  if(!providers.some(x=>x.id===p.id))providers.push(p);}
+const providerOf=sha=>providers.find(p=>p.profiles.some(x=>x.sha256===sha))||null;
+// what registerCatalog reads from a project: its catalog, its cartridge and, for a provider, how its poses are drawn
+async function catalogView(project){
+  let rom=null;try{rom=services.NativeEngineProject.validate(project).bytes;}catch(_){rom=null;}
   const n=project?.investigation;
-  if(!n||n.version!==1||!n.catalogs?.native)fail('the open project has no recovered ROM catalog; import a ROM with a verified profile first');
+  if(n?.version===1&&n.catalogs?.native)return {n,rom,provider:null};
+  const sha=n?.source?.sha256,provider=sha?providerOf(sha):null;
+  if(provider){
+    const bytes=rom||SourceROMs.get(sha)?.bytes||null;if(!bytes)fail('the cartridge of '+(n.source.name||sha.slice(0,12))+' is not available');
+    return {n:(await provider.catalog(bytes,n.source.name)).n,rom:bytes,provider};
+  }
+  fail('the open project has no recovered ROM catalog; import a ROM with a verified profile first');
+}
+async function registerCatalog(project=services.ProjectStore.capture(),{onProgress,pageSize=1000}={}){
+  const view=await catalogView(project),n=view.n;
   await L.ensureMeta();
   const source=n.source,romSha=source.sha256,shelf=romSha,profile=n.catalogs.native.profile?.id||source.profile;
   const packKey='catalog:'+await sha(JSON.stringify(n.catalogSha256));
   const prior=await L.getPack(packKey);
-  let rom=null;try{rom=services.NativeEngineProject.validate(project).bytes;}catch(_){rom=null;}
+  const rom=view.rom;
   if(rom)await SourceROMs.put(rom,source.name);
   if(prior?.state==='complete'&&prior.stats?.schema===CATALOG_SCHEMA)return {packSha256:packKey,already:true,shelf,stats:prior.stats,links:await linkSameResources(romSha)};
   // an earlier registration of this catalog is upgraded in place: what was observed at runtime, the per-stage
@@ -230,9 +250,9 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   if(resuming)for(let offset=0;;offset+=pageSize){const page=await L.entriesPage({pack:packKey,offset,limit:pageSize});stats.pagesRead=(stats.pagesRead||0)+1;
     for(const item of page.items)already.set(item.id,item);if(offset+pageSize>=page.total)break;}
   stats.alreadyStored=already.size;
-  const described=services.InvestigatedLibrary.describe(project),contexts=poseContexts(project,rom);
+  const described=view.provider?null:services.InvestigatedLibrary.describe(project),contexts=view.provider?new Map():poseContexts(project,rom);
   const actorLabel=id=>(n.catalogs.native.actors||[]).find(a=>a.id===id)?.label||id;
-  stats.poseContexts={decoded:0,runtime:0,'same-everywhere':0,default:0};
+  stats.poseContexts={decoded:0,runtime:0,'same-everywhere':0,default:0,...(view.provider?{fight:0}:{})};
   for(const [i,{kind,r,rid}] of records.entries()){
     const id=idOf(romSha,kind,rid),label=String(r.label||r.name||(kind+' '+rid)).slice(0,160);
     let data,fileType='json';
@@ -258,12 +278,22 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
     else if((kind==='room'||kind==='location')&&r.group)verified.push({context:r.group,basis:'rom-table'});
     if(kind==='stage')verified.push({stage:r.label,areas:r.areas,basis:'rom-table',source:r.source});
     if(verified.length){e.placement={verified};stats.verifiedPlacements+=verified.length;}
-    if(kind==='pose'){
+    if(kind==='pose'&&view.provider){
+      // a provider draws its own poses (Punch-Out!!: each sprite mode the game uses); the default drawing is the
+      // entry's rendition, every mode's drawing is kept for matching captured frames (layoutRenditions)
+      try{const pd=view.provider.poseDrawings(r,rom),layouts={};
+        for(const [k,d] of Object.entries(pd.layouts||{})){const st=await L.storeData(JSON.stringify(d));layouts[k]={hash:st.hash,context:d.context};}
+        if(Object.keys(layouts).length)e.layoutRenditions=layouts;
+        if(pd.rendition){const st=await L.storeData(JSON.stringify(pd.rendition));e.rendition={hash:st.hash,context:pd.rendition.context};stats.renditions++;
+          const b=pd.rendition.context.basis;stats.poseContexts[b]=(stats.poseContexts[b]||0)+1;}
+        else e.renditionError='no layout of this pose keeps every piece together';}
+      catch(err){e.renditionError=String(err.message).slice(0,200);}}
+    else if(kind==='pose'){
       // drawn in a room where the pose is established to appear (see poseContexts); a runtime observation kept from an
       // earlier registration counts when the code does not establish one
       let ctx=contexts.get(r.id)||{roomId:null,basis:'default',confirmed:false,note:'the room this sprite appears in is not established'};
       const seen=verified.find(v=>v.basis==='runtime'&&v.stage);
-      if(seen&&ctx.basis!=='decoded'){const room=n.catalogs.native.scenes.find(x=>x.stage?.label===seen.stage);if(room)ctx={...ctx,roomId:room.id,basis:'runtime',confirmed:true,note:'seen on screen in '+seen.stage+' by the runtime stage survey'};}
+      if(seen&&ctx.basis!=='decoded'){const room=(n.catalogs.native.scenes||[]).find(x=>x.stage?.label===seen.stage);if(room)ctx={...ctx,roomId:room.id,basis:'runtime',confirmed:true,note:'seen on screen in '+seen.stage+' by the runtime stage survey'};}
       try{let rend=null;try{rend=rendition(project,r.id,ctx.roomId,described);}catch(err){ctx={...ctx,basis:'default',confirmed:false,note:'it could not be drawn in its room ('+String(err.message).slice(0,80)+'); '+ctx.note};}
         if(!rend&&ctx.roomId){rend=rendition(project,r.id,null,described);}
         if(rend){rend.context={...rend.context,basis:ctx.basis,confirmed:ctx.confirmed,variants:ctx.variants??null,actors:(ctx.actors||[]).map(actorLabel),note:ctx.note};
@@ -438,6 +468,8 @@ async function usePose(id,{mode='reference',stage=null,x=null,y=null}={}){
   const e=await L.entry(id);if(e.kind!=='pose')fail('only sprite poses can be used this way so far');
   const ref=(stage&&e.renditions?.[stage])||e.rendition;if(!ref)fail('this sprite has no stored rendition; register its ROM catalog again');
   const rend=JSON.parse(new TextDecoder().decode(await L.blobBytes(ref.hash)));
+  const undrawn=rend.pieces.filter(p=>p.drawn===false||!rend.tiles?.[p.tile]||(rend.spriteMode===16&&!rend.tiles?.[p.tile2])).length;
+  if(undrawn)fail('this sprite\'s drawing is incomplete: '+undrawn+' of its '+rend.pieces.length+' pieces have no pattern in the library ('+(rend.context?.note||'not drawn')+'). It cannot be used in a project yet.');
   const store=services.ProjectStore,expected={epoch:store.state.epoch,snapshot:store.serialize()};
   guardOff++;
   try{
@@ -535,7 +567,7 @@ if(typeof snapshot==='function'){
 // (event "forge:catalog-recovery", a toast for the important ones) and listed by recoveryStatus().
 const AUTO_ATTEMPTS=3,BACKOFF=[0,30000,120000],FAILURES='catalog-failures:';
 const recovery={status:new Map(),running:new Map(),failures:new Map(),nextAt:new Map(),timers:new Map()};
-const profileOf=sha=>window.GameRENative?.profiles?.find(p=>p.sha256===sha)||null;
+const profileOf=sha=>window.GameRENative?.profiles?.find(p=>p.sha256===sha)||providerOf(sha)?.profiles.find(p=>p.sha256===sha)||null;
 const STATE_TEXT={complete:'complete',completing:'completing…',updating:'updating to this version of Forge…',outdated:'recorded by an earlier version of Forge; Forge updates it when its cartridge is available','completing-elsewhere':'being completed in another Forge tab',incomplete:'incomplete (registration was interrupted)',
   'needs-source':'incomplete: waiting for its cartridge (open its ROM; a paired background worker supplies it automatically)',failed:'a completion attempt failed; Forge retries automatically',
   'needs-retry':'automatic completion stopped after 3 failed attempts; use Retry',waiting:'the last completion attempt failed; Forge tries again automatically',unsupported:'no recovered catalog exists for this ROM'};
@@ -658,7 +690,7 @@ async function drawingOf(pack){
   const s=pack?.stats;if(!s?.poseContexts)return null;
   const counted=Object.values(s.poseContexts).reduce((a,b)=>a+(b||0),0);if(counted>=(s.renditions||0))return s.poseContexts;
   const key=pack.packSha256+'|'+(pack.updated||0);if(drawingCache.has(key))return drawingCache.get(key);
-  const out={decoded:0,runtime:0,'same-everywhere':0,default:0};
+  const out={decoded:0,runtime:0,'same-everywhere':0,default:0,fight:0};
   for(let offset=0;;offset+=1000){const page=await L.entriesPage({pack:pack.packSha256,offset,limit:1000});
     for(const e of page.items){const b=e.kind==='pose'&&e.rendition?.context?.basis;if(b)out[b]=(out[b]||0)+1;}if(offset+1000>=page.total)break;}
   drawingCache.set(key,out);return out;
@@ -697,7 +729,7 @@ setTimeout(()=>{void resumeCatalogs({reason:'startup'}).catch(()=>{});},1500);
 
 services.SourceROMs=SourceROMs;
 services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation,
-  catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,recognize,recognitionText,romStatus,AUTO_ATTEMPTS});
+  catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,recognize,recognitionText,romStatus,registerProvider,AUTO_ATTEMPTS});
 if(C?.register){
   C.register({name:'library.roms',group:'library',title:'Every ROM in the library and its status',summary:'Catalog state (attempts, last error), entries, verified frames, investigations and how its poses are drawn, per ROM SHA-256.',run:()=>romStatus()});
   C.register({name:'library.recognize',group:'library',title:'What the library already holds for a ROM',summary:'By SHA-256: recovered catalog, verified frames, investigations and other packs; read from the library only.',

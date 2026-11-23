@@ -597,7 +597,7 @@ function renderRomStatus(){
   const bad=['failed','needs-retry','needs-source','incomplete','missing'].includes(r.catalog.state);
   const d=r.drawing,parts=[r.entries+' entries',(CAT[r.catalog.state]||r.catalog.state)+(r.catalog.entries?' ('+r.catalog.entries+')':'')+(bad&&r.catalog.attempts?' · '+r.catalog.attempts+' of 3 attempts':''),
    r.frames+' verified frame'+(r.frames===1?'':'s'),r.investigations+' investigation'+(r.investigations===1?'':'s')];
-  const drawn=d?[d.decoded&&d.decoded+' in their room',d.runtime&&d.runtime+' seen at runtime',d['same-everywhere']&&d['same-everywhere']+' same in every room',d.default&&d.default+' room not established'].filter(Boolean):[];
+  const drawn=d?[d.decoded&&d.decoded+' in their room',d.fight&&d.fight+' in their fight',d.runtime&&d.runtime+' seen at runtime',d['same-everywhere']&&d['same-everywhere']+' same in every room',d.default&&d.default+' room not established'].filter(Boolean):[];
   if(drawn.length)parts.push('sprites: '+drawn.join(', '));
   for(const p of r.otherPacks||[])parts.push(p.name);
   const name=elt('strong',null,r.name);name.style.color=bad?'#ffb35a':'#e8f4fa';row.append(name,' · '+parts.join(' · ')+(bad&&r.catalog.lastError?' · last error: '+r.catalog.lastError:''));
@@ -731,7 +731,7 @@ function renderLibraryViewer(n,host,tools,caption){
    const chosen=$('stage').value,observed=Object.keys(entry.renditions||{}),use=chosen&&entry.renditions?.[chosen]?chosen:observed[0]||'';
    const r=await C.run('library.rendition',{id,stage:use});if(stale())return;
    if(r.ok){const rend=r.result.rendition,canvas=drawRendition(rend,4);host.append(canvas,elt('div','frx-code',drawnAs(rend.context)+' · '+rend.pieces.length+' pieces · 8×'+rend.spriteMode+
-     (chosen&&use!==chosen?' · not observed in '+chosen+(use?'; these are the colours of '+use+', where it was observed':''):'')+(!use?' · not yet observed in a stage: the game may show it in other colours':'')));
+     (chosen&&use!==chosen&&rend.context?.basis!=='fight'?' · not observed in '+chosen+(use?'; these are the colours of '+use+', where it was observed':''):'')+(!use&&rend.context?.basis!=='fight'?' · not yet observed in a stage: the game may show it in other colours':'')));
     const row=elt('div');row.style.cssText='display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0';
     for(const [mode,label] of [['reference','Use in project (reference)'],['copy','Copy into project (tiles + palette)']]){
      const b=elt('button','frx-relationship',label);b.type='button';b.onclick=async()=>{b.disabled=true;
@@ -747,7 +747,7 @@ function renderLibraryViewer(n,host,tools,caption){
     if(seen.ok){const line=elt('div');line.dataset.pose='frames';line.style.cssText='display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;margin:4px 0';
      if(!seen.result.frames.length)line.append(elt('span','frx-code',seen.result.framesChecked?'Not established in any of the '+seen.result.framesChecked+' captured frames of this ROM.':'No captured frames of this ROM in the library yet.'));
      else{line.append(elt('span','frx-code','Seen in '+seen.result.frames.length+' captured frame'+(seen.result.frames.length===1?'':'s')+':'));
-      for(const f of seen.result.frames.slice(0,12)){const b=elt('button','frx-relationship',f.label);b.type='button';b.title='Established by '+f.by+(f.mirrored?', mirrored':'')+' · sprites #'+f.sprites.join(', #');b.onclick=()=>choose(key('lib',f.frameEntry));line.append(b);}
+      for(const f of seen.result.frames.slice(0,12)){const b=elt('button','frx-relationship',f.label);b.type='button';b.title='Established by '+f.by+(f.mirrored?', mirrored':'')+(f.mode?', drawn as '+f.mode:'')+' · sprites #'+f.sprites.join(', #');b.onclick=()=>choose(key('lib',f.frameEntry));line.append(b);}
       if(seen.result.frames.length>12)line.append(elt('span','frx-code','… '+(seen.result.frames.length-12)+' more'));}
      host.append(line);}
    }

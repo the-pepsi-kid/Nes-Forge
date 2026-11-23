@@ -46,9 +46,10 @@ args = parser.parse_args()
 #   mmc2-sync          Punch-Out!! (MMC2) frames along the route to the bout, an independent latch model, two Agent Lab jobs
 #   cnrom-investigation a CNROM cartridge Forge builds (3 worlds, 2 CHR banks): capture plan, Agent Lab job, import
 #   pose-links         Ninja Gaiden, 22 areas x 3 moments: drawn sprites linked to library poses, checked against RAM
+#   punch-out-pose-links  Punch-Out!! both revisions' catalogs, then the Tyson and Glass Joe bouts linked, checked against RAM
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420
-TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 1200, 'pose-links': 900}
+TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 1200, 'pose-links': 900, 'punch-out-pose-links': 1200}
 for item in args.timeout:
     suite, _, seconds = item.partition('=')
     if not suite or not seconds.isdigit():
@@ -251,6 +252,8 @@ if args.cartridges:
         record(run('library-workflow',['node',QA/'library-workflow.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
         receipt=output/'pose-links.json'
         record(run('pose-links',['node',QA/'pose-links.cjs',EDITOR,receipt,args.cartridges.resolve()]+([str(shots[0]/'pose-links')] if shots else []),receipt))
+        receipt=output/'punch-out-pose-links.json'
+        record(run('punch-out-pose-links',['node',QA/'punch-out-pose-links.cjs',EDITOR,receipt,args.cartridges.resolve()]+([str(shots[0]/'punch-out-pose-links')] if shots else []),receipt))
     receipt=output/'native-corpus.json'
     raw_args=['node',QA/'native-corpus.cjs',EDITOR,receipt,args.cartridges.resolve()]
     if args.extractions:

@@ -14,6 +14,12 @@
  *   matched pose is not reported; several poses with the very same drawn sprites are reported as ambiguous.
  *   Frames recorded before sprites were traced (their sprite list is OAM at the snapshot, usually one frame ahead of
  *   the image) are not linked.
+ *   A pose record may carry several layouts (record.layouts: the same record drawn in each sprite mode the game uses,
+ *   Punch-Out!!); each is matched only against sprites of its height, with its own drawing, and a link names the mode.
+ *   Pieces the library cannot draw (record drawing marks them drawn: false) are matched by layout and not compared. A
+ *   pose whose drawing the library has not established (an unconfirmed room, or a record that does not select its own
+ *   CHR bank) is established by a complete layout of 3 or more pieces; the frame shows the bank. A layout of 1-2 pieces
+ *   with nothing to compare is not reported.
  * Bundle order: after src/services/frame-evidence.js.
  */
 (()=>{
@@ -37,10 +43,22 @@ async function posesOf(sha){
   for(const item of items){
     try{
       const {entry,bytes}=await L.readEntry(item.id),record=JSON.parse(new TextDecoder().decode(bytes));
-      if(!Array.isArray(record.pieces)||!record.pieces.length||!record.pieces.every(p=>Number.isInteger(p.tile)&&Number.isInteger(p.x)&&Number.isInteger(p.y)))continue;
+      if(!(Array.isArray(record.layouts)&&record.layouts.length)&&(!Array.isArray(record.pieces)||!record.pieces.length||!record.pieces.every(p=>Number.isInteger(p.tile)&&Number.isInteger(p.x)&&Number.isInteger(p.y))))continue;
       let drawing=null;
       if(entry.rendition?.hash){try{drawing=JSON.parse(new TextDecoder().decode(await L.blobBytes(entry.rendition.hash)));}catch(_){drawing=null;}}
-      poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:record.pieces.map(p=>({tile:p.tile,x:p.x,y:p.y,attributes:p.attributes|0})),drawing,context:entry.rendition?.context||null});
+      // a piece whose attribute byte the game leaves as the previous pose wrote it has no flips of its own: any match
+      const piecesOf=list=>list.map(p=>({tile:p.tile,x:p.x,y:p.y,attributes:p.inheritsAttributes?null:p.attributes|0}));
+      if(Array.isArray(record.layouts)&&record.layouts.length){
+        for(const l of record.layouts){
+          if(!Array.isArray(l.pieces)||!l.pieces.length||!l.pieces.every(p=>Number.isInteger(p.tile)&&Number.isInteger(p.x)&&Number.isInteger(p.y)))continue;
+          const ref=entry.layoutRenditions?.[l.key];let d=null;
+          if(ref?.hash){try{d=JSON.parse(new TextDecoder().decode(await L.blobBytes(ref.hash)));}catch(_){d=null;}}
+          poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:piecesOf(l.pieces),
+            height:l.height,mode:{key:l.key,label:l.label},drawing:d,context:ref?.context||entry.rendition?.context||null});
+        }
+        continue;
+      }
+      poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:piecesOf(record.pieces),drawing,context:entry.rendition?.context||null});
     }catch(_){/* not a pose record this matcher reads */}
   }
   poseCache.set(sha,{key,poses});return poses;
@@ -56,18 +74,19 @@ async function chrBank(sha,bank){
 // every placement of a pose among the drawn sprites: piece 0 anchors it, every other piece must be drawn at its
 // offset from piece 0 with its tile and flips (all offsets and horizontal flips reversed when mirrored)
 function layoutMatches(sprites,poses){
-  const at=new Map(),keyOf=(tile,x,y,h,v)=>tile+':'+x+':'+y+':'+(h?1:0)+(v?1:0);
-  for(const s of sprites){const k=keyOf(s.tile,s.x,s.y,s.flipH,s.flipV);if(!at.has(k))at.set(k,[]);at.get(k).push(s);}
+  const at=new Map(),any=new Map(),keyOf=(tile,x,y,h,v)=>tile+':'+x+':'+y+':'+(h?1:0)+(v?1:0),anyKey=(tile,x,y)=>tile+':'+x+':'+y;
+  for(const s of sprites){const k=keyOf(s.tile,s.x,s.y,s.flipH,s.flipV);if(!at.has(k))at.set(k,[]);at.get(k).push(s);
+    const a=anyKey(s.tile,s.x,s.y);if(!any.has(a))any.set(a,[]);any.get(a).push(s);}
   const out=[];
   for(const pose of poses){
-    const p0=pose.pieces[0];
+    const p0=pose.pieces[0],fits=s=>!pose.height||s.height===pose.height;
     for(const mirror of pose.facing!=null?[false]:[false,true]){
       for(const s of sprites){
-        if(s.tile!==p0.tile||s.flipH!==(flipH(p0.attributes)!==mirror)||s.flipV!==flipV(p0.attributes))continue;
+        if(!fits(s)||s.tile!==p0.tile||p0.attributes!=null&&(s.flipH!==(flipH(p0.attributes)!==mirror)||s.flipV!==flipV(p0.attributes)))continue;
         const used=[s];let ok=true;
         for(const pk of pose.pieces.slice(1)){
-          const dx=(pk.x-p0.x)*(mirror?-1:1),dy=pk.y-p0.y,list=at.get(keyOf(pk.tile,s.x+dx,s.y+dy,flipH(pk.attributes)!==mirror,flipV(pk.attributes)))||[];
-          const t=list.find(t=>!used.includes(t));if(!t){ok=false;break;}used.push(t);
+          const dx=(pk.x-p0.x)*(mirror?-1:1),dy=pk.y-p0.y,list=(pk.attributes==null?any.get(anyKey(pk.tile,s.x+dx,s.y+dy)):at.get(keyOf(pk.tile,s.x+dx,s.y+dy,flipH(pk.attributes)!==mirror,flipV(pk.attributes))))||[];
+          const t=list.find(t=>!used.includes(t)&&fits(t));if(!t){ok=false;break;}used.push(t);
         }
         if(ok)out.push({pose,mirror,sprites:used});
       }
@@ -79,7 +98,7 @@ function layoutMatches(sprites,poses){
   const groups=new Map();
   for(const m of kept){const k=m.sprites.map(s=>s.index).sort((a,b)=>a-b).join(',');if(!groups.has(k))groups.set(k,[]);
     // a symmetric pose matches its sprites both ways: one match per pose (the unmirrored one first)
-    if(!groups.get(k).some(o=>o.pose===m.pose))groups.get(k).push(m);}
+    if(!groups.get(k).some(o=>o.pose.entryId===m.pose.entryId))groups.get(k).push(m);}
   return [...groups.values()];
 }
 
@@ -88,17 +107,22 @@ function layoutMatches(sprites,poses){
 async function compareGraphics(sha,m){
   const d=m.pose.drawing;
   if(!d?.pieces||d.pieces.length!==m.pose.pieces.length)return {graphics:'unchecked',why:'the library holds no drawing of this pose'};
-  const banks=new Set();
+  const banks=new Set();let skipped=0;
+  for(const s of m.sprites)if(Number.isInteger(s.chrOffset)&&s.chrOffsetAt==='fetch')banks.add(s.chrOffset>>12);
   for(const [k,s] of m.sprites.entries()){
     if(!Number.isInteger(s.chrOffset)||s.chrOffsetAt!=='fetch')return {graphics:'unchecked',why:s.chrOffsetAt==='chr-ram'?'patterns in CHR RAM (no cartridge location)':'a sprite has no traced location'};
-    const rp=d.pieces[k],offsets=s.height===16?[[s.chrOffset,rp.tile],[s.chrOffset+16,rp.tile2]]:[[s.chrOffset,rp.tile]];
+    const rp=d.pieces[k];
+    // a piece the library cannot draw (its pattern bank is set elsewhere) is matched by layout only
+    if(rp.drawn===false){skipped++;continue;}
+    const offsets=s.height===16?[[s.chrOffset,rp.tile],[s.chrOffset+16,rp.tile2]]:[[s.chrOffset,rp.tile]];
     for(const [off,tile] of offsets){
       const bank=off>>12,bytes=await chrBank(sha,bank);banks.add(bank);
       if(!bytes)return {graphics:'unchecked',why:'CHR bank '+bank+' is not in the library'};
       if(!same(pixels(bytes,off&4095),d.tiles?.[tile]))return {graphics:'differ',banks:[...banks],why:'drawn from CHR bank '+bank+'; the library draws this pose '+(m.pose.context?.label?'in '+m.pose.context.label:'with other graphics')};
     }
   }
-  return {graphics:'equal',banks:[...banks]};
+  if(skipped===m.sprites.length)return {graphics:'unchecked',noDrawing:true,banks:[...banks],why:'the library cannot draw any of its pieces'};
+  return {graphics:'equal',banks:[...banks],...(skipped?{notCompared:skipped}:{})};
 }
 
 // ---------- a frame ----------
@@ -116,15 +140,21 @@ async function framePoses(record,{sourceSha256}={}){
     const equal=checked.filter(c=>c.graphics==='equal'),pick=equal.length?equal:checked.filter(c=>c.graphics==='unchecked').length?checked.filter(c=>c.graphics==='unchecked'):checked;
     const describe=c=>({poseEntry:c.m.pose.entryId,poseId:c.m.pose.id,label:c.m.pose.label,owner:c.m.pose.owner,mirrored:c.m.mirror,sprites:c.m.sprites.map(s=>s.index),pieces:c.m.pose.pieces.length,
       at:{x:c.m.sprites[0].x-(c.m.mirror?-c.m.pose.pieces[0].x-8:c.m.pose.pieces[0].x),y:c.m.sprites[0].y-c.m.pose.pieces[0].y},
-      graphics:c.graphics,banks:c.banks||[],evidence:c.graphics==='equal'?'every piece drawn in place (tile, relative position, flips'+(c.m.mirror?', mirrored':'')+') with the graphics of the library\'s drawing':c.graphics==='differ'?'same layout and tile numbers; '+c.why:'layout matches; graphics not compared: '+c.why});
+      ...(c.m.pose.mode?{mode:c.m.pose.mode}:{}),
+      graphics:c.graphics,banks:c.banks||[],evidence:(c.graphics==='equal'?'every piece drawn in place (tile, relative position, flips'+(c.m.mirror?', mirrored':'')+') with the graphics of the library\'s drawing'+(c.notCompared?' ('+c.notCompared+' pieces with no drawing in the library matched by layout only)':''):c.graphics==='differ'?'same layout and tile numbers; '+c.why:'layout matches; graphics not compared: '+c.why)+
+        (c.m.pose.mode?'; drawn as '+c.m.pose.mode.label:'')});
     if(pick.length>1){ambiguous.push({sprites:group[0].sprites.map(s=>s.index),poses:pick.map(describe)});continue;}
     const one=describe(pick[0]),drawingUnconfirmed=pick[0].m.pose.context?.confirmed===false||pick[0].m.pose.context?.basis==='default';
     if(one.graphics==='equal'){links.push({...one,state:'established',by:'layout and graphics'});one.sprites.forEach(i=>linked.add(i));}
-    else if(one.graphics==='differ'&&drawingUnconfirmed&&one.pieces>=MIN_PIECES_BY_LAYOUT){
-      // the library's own drawing of this pose uses a room it has not established, so other graphics are no evidence
-      // against it: a complete layout of several pieces establishes the pose, and this frame shows the bank it is drawn from
-      links.push({...one,state:'established',by:'layout',evidence:'every piece drawn in place (tile, relative position, flips'+(one.mirrored?', mirrored':'')+'); drawn from CHR bank '+one.banks.join(', ')+'. The library has not established the room this pose is drawn in, so its drawing is not compared; this frame shows the bank.'});
+    else if((one.graphics==='differ'||pick[0].noDrawing)&&drawingUnconfirmed&&one.pieces>=MIN_PIECES_BY_LAYOUT){
+      // the library has not established which graphics this pose is drawn with (Ninja Gaiden: the room; Punch-Out!!: a
+      // record that does not select its CHR bank), so other graphics are no evidence against it: a complete layout of
+      // several pieces establishes the pose, and this frame shows the bank it is drawn from
+      const why=pick[0].noDrawing?'The pose\'s record does not select its CHR bank, so the library cannot draw it':'The library has not established the room this pose is drawn in, so its drawing is not compared';
+      links.push({...one,state:'established',by:'layout',evidence:'every piece drawn in place (tile, relative position, flips'+(one.mirrored?', mirrored':'')+')'+(one.mode?' as '+one.mode.label:'')+'; drawn from CHR bank '+one.banks.join(', ')+'. '+why+'; this frame shows the bank.'});
       one.sprites.forEach(i=>linked.add(i));}
+    // a layout of one or two pieces with nothing to compare says nothing: it is not reported
+    else if(one.graphics==='unchecked'&&one.pieces<MIN_PIECES_BY_LAYOUT)continue;
     else candidates.push({...one,state:one.graphics==='differ'?'candidate':'layout only'});
   }
   return {...base,state:'linked',poses:poses.length,links,candidates,ambiguous,notEstablished:sprites.map(s=>s.index).filter(i=>!linked.has(i)),
@@ -148,7 +178,7 @@ async function poseFrames(poseEntryId){
     const ck=f.id+'|'+poseKey;let r=frameCache.get(ck);
     if(!r){try{r=await frameEntryPoses(f.id);}catch(_){r=null;}frameCache.set(ck,r);}
     const link=r?.links?.find(l=>l.poseEntry===poseEntryId);
-    if(link)out.push({frameEntry:f.id,label:f.label||f.id,frame:r.frame,by:link.by,mirrored:link.mirrored,sprites:link.sprites});
+    if(link)out.push({frameEntry:f.id,label:f.label||f.id,frame:r.frame,by:link.by,mirrored:link.mirrored,sprites:link.sprites,...(link.mode?{mode:link.mode.label}:{})});
   }
   return {pose:poseEntryId,frames:out,framesChecked:frames.length};
 }

@@ -61,7 +61,8 @@ How the worker behaves:
     example sprites that could not be traced to one CHR location) is listed separately from failures. A frame split
     at its status bar is not unresolved when every drawn sprite has its traced location. The worker does not link
     sprites to poses; Forge does, once frames are imported, where its library has decoded poses for the ROM
-    (Resources › Library: a frame's "Sprite → pose", a pose's "Seen in captured frames").
+    (Ninja Gaiden, Zelda II, Mike Tyson's Punch-Out!!; Resources › Library: a frame's "Sprite → pose", a pose's "Seen
+    in captured frames").
 - **No duplicates**: a ROM already queued, running or investigated with the same plan, emulator build and
   verification returns the existing job. `rerun: true` in `POST /jobs` asks for a deliberate re-investigation.
 - **Checkpoints**: `<root>/checkpoints/<key>/`, keyed by ROM SHA-256, editor SHA-256 (the emulator build), mapper,

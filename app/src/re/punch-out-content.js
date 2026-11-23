@@ -106,12 +106,20 @@
     });
 
     /* Run the original shape dispatcher with declared initial RAM. Only source-owned
-     * OAM writes count as a decoded pose; inherited/unresolved pieces remain gaps. */
-    function pose(fightIndex, selector) {
+     * OAM writes count as a decoded pose; inherited/unresolved pieces remain gaps.
+     * at: the base position to draw from (default: the fight's configured base). Coordinates are 8-bit, so a wide
+     * pose drawn near a screen edge wraps; a central base keeps every piece's relative position.
+     * at.mode: the sprite mode the routine draws in ($80 row height 8/16, $81 tile step 1/2; $82 follows the step).
+     * Default: the fight's configured mode. The game selects other modes for some poses (Mike Tyson's 8x8 poses use
+     * height 8 with tile step 2). */
+    function pose(fightIndex, selector, at = null) {
       const f = fights[fightIndex],
         record = f?.poses.find(p => p.selector === selector);
       if (!record || record.status !== 'source-record') fail(
         'Select a valid full-pose source record.');
+      if (at && !(Number.isInteger(at.x) && at.x >= 0 && at.x < 256 && Number.isInteger(at.y) && at.y >= 0 && at.y < 240)) fail('The base position must be on screen.');
+      const mode = at?.mode || {height: f.spriteMode, step: f.spriteMode / 8};
+      if (![8, 16].includes(mode.height) || ![1, 2].includes(mode.step)) fail('The sprite mode must be height 8 or 16 with tile step 1 or 2.');
       const ram = new Uint8Array(2048),
         written = new Set(),
         reads = new Set(),
@@ -150,12 +158,12 @@
       ram[3] = f.entryOffset;
       ram[0xa0] = 128;
       ram[0xa1] = selector;
-      ram[0x80] = f.spriteMode;
-      ram[0x81] = f.spriteMode / 8;
-      ram[0x82] = f.spriteMode === 16 ? 254 : 255;
+      ram[0x80] = mode.height;
+      ram[0x81] = mode.step;
+      ram[0x82] = mode.step === 2 ? 254 : 255;
       ram[0xa9] = 5;
-      ram[0xb0] = f.baseX;
-      ram[0xb1] = f.baseY;
+      ram[0xb0] = at ? at.x : f.baseX;
+      ram[0xb1] = at ? at.y : f.baseY;
       ram.fill(248, 512, 768);
       ram[0x1fc] = 0xee;
       ram[0x1fd] = 0x7f;
@@ -185,7 +193,9 @@
           y: y + 1,
           tile,
           attributes: ram[at + 2],
-          chrHalf: f.spriteMode === 16 ? tile & 1 : 0
+          chrHalf: mode.height === 16 ? tile & 1 : 0,
+          // the routine left this slot's attribute byte (palette, flips, priority) as the earlier pose wrote it
+          ...(written.has(at + 2) ? {} : {inheritsAttributes: true})
         });
       }
       if (pieces.some(p => p.chrHalf)) gaps.push(
@@ -193,10 +203,14 @@
       return {
         fight: f.index,
         selector,
+        base: {x: at ? at.x : f.baseX, y: at ? at.y : f.baseY},
+        mode: {height: mode.height, step: mode.step},
         source: record,
         bank8KiB: f.bank8KiB,
-        spriteMode: f.spriteMode,
+        spriteMode: mode.height,
         chrBank4KiB: ram[0xa9] & 31,
+        // whether this pose's own tile streams select the bank ($A9); if not, it is the bank set before it (unknown here)
+        chrBankSelected: written.has(0xa9),
         palette: f.palette.slice(16),
         pieces,
         oam: Array.from(ram.slice(512, 768)),

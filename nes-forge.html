@@ -21976,12 +21976,20 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
     });
 
     /* Run the original shape dispatcher with declared initial RAM. Only source-owned
-     * OAM writes count as a decoded pose; inherited/unresolved pieces remain gaps. */
-    function pose(fightIndex, selector) {
+     * OAM writes count as a decoded pose; inherited/unresolved pieces remain gaps.
+     * at: the base position to draw from (default: the fight's configured base). Coordinates are 8-bit, so a wide
+     * pose drawn near a screen edge wraps; a central base keeps every piece's relative position.
+     * at.mode: the sprite mode the routine draws in ($80 row height 8/16, $81 tile step 1/2; $82 follows the step).
+     * Default: the fight's configured mode. The game selects other modes for some poses (Mike Tyson's 8x8 poses use
+     * height 8 with tile step 2). */
+    function pose(fightIndex, selector, at = null) {
       const f = fights[fightIndex],
         record = f?.poses.find(p => p.selector === selector);
       if (!record || record.status !== 'source-record') fail(
         'Select a valid full-pose source record.');
+      if (at && !(Number.isInteger(at.x) && at.x >= 0 && at.x < 256 && Number.isInteger(at.y) && at.y >= 0 && at.y < 240)) fail('The base position must be on screen.');
+      const mode = at?.mode || {height: f.spriteMode, step: f.spriteMode / 8};
+      if (![8, 16].includes(mode.height) || ![1, 2].includes(mode.step)) fail('The sprite mode must be height 8 or 16 with tile step 1 or 2.');
       const ram = new Uint8Array(2048),
         written = new Set(),
         reads = new Set(),
@@ -22020,12 +22028,12 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
       ram[3] = f.entryOffset;
       ram[0xa0] = 128;
       ram[0xa1] = selector;
-      ram[0x80] = f.spriteMode;
-      ram[0x81] = f.spriteMode / 8;
-      ram[0x82] = f.spriteMode === 16 ? 254 : 255;
+      ram[0x80] = mode.height;
+      ram[0x81] = mode.step;
+      ram[0x82] = mode.step === 2 ? 254 : 255;
       ram[0xa9] = 5;
-      ram[0xb0] = f.baseX;
-      ram[0xb1] = f.baseY;
+      ram[0xb0] = at ? at.x : f.baseX;
+      ram[0xb1] = at ? at.y : f.baseY;
       ram.fill(248, 512, 768);
       ram[0x1fc] = 0xee;
       ram[0x1fd] = 0x7f;
@@ -22055,7 +22063,9 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
           y: y + 1,
           tile,
           attributes: ram[at + 2],
-          chrHalf: f.spriteMode === 16 ? tile & 1 : 0
+          chrHalf: mode.height === 16 ? tile & 1 : 0,
+          // the routine left this slot's attribute byte (palette, flips, priority) as the earlier pose wrote it
+          ...(written.has(at + 2) ? {} : {inheritsAttributes: true})
         });
       }
       if (pieces.some(p => p.chrHalf)) gaps.push(
@@ -22063,10 +22073,14 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
       return {
         fight: f.index,
         selector,
+        base: {x: at ? at.x : f.baseX, y: at ? at.y : f.baseY},
+        mode: {height: mode.height, step: mode.step},
         source: record,
         bank8KiB: f.bank8KiB,
-        spriteMode: f.spriteMode,
+        spriteMode: mode.height,
         chrBank4KiB: ram[0xa9] & 31,
+        // whether this pose's own tile streams select the bank ($A9); if not, it is the bank set before it (unknown here)
+        chrBankSelected: written.has(0xa9),
         palette: f.palette.slice(16),
         pieces,
         oam: Array.from(ram.slice(512, 768)),
@@ -31884,7 +31898,7 @@ function renderRomStatus(){
   const bad=['failed','needs-retry','needs-source','incomplete','missing'].includes(r.catalog.state);
   const d=r.drawing,parts=[r.entries+' entries',(CAT[r.catalog.state]||r.catalog.state)+(r.catalog.entries?' ('+r.catalog.entries+')':'')+(bad&&r.catalog.attempts?' · '+r.catalog.attempts+' of 3 attempts':''),
    r.frames+' verified frame'+(r.frames===1?'':'s'),r.investigations+' investigation'+(r.investigations===1?'':'s')];
-  const drawn=d?[d.decoded&&d.decoded+' in their room',d.runtime&&d.runtime+' seen at runtime',d['same-everywhere']&&d['same-everywhere']+' same in every room',d.default&&d.default+' room not established'].filter(Boolean):[];
+  const drawn=d?[d.decoded&&d.decoded+' in their room',d.fight&&d.fight+' in their fight',d.runtime&&d.runtime+' seen at runtime',d['same-everywhere']&&d['same-everywhere']+' same in every room',d.default&&d.default+' room not established'].filter(Boolean):[];
   if(drawn.length)parts.push('sprites: '+drawn.join(', '));
   for(const p of r.otherPacks||[])parts.push(p.name);
   const name=elt('strong',null,r.name);name.style.color=bad?'#ffb35a':'#e8f4fa';row.append(name,' · '+parts.join(' · ')+(bad&&r.catalog.lastError?' · last error: '+r.catalog.lastError:''));
@@ -32018,7 +32032,7 @@ function renderLibraryViewer(n,host,tools,caption){
    const chosen=$('stage').value,observed=Object.keys(entry.renditions||{}),use=chosen&&entry.renditions?.[chosen]?chosen:observed[0]||'';
    const r=await C.run('library.rendition',{id,stage:use});if(stale())return;
    if(r.ok){const rend=r.result.rendition,canvas=drawRendition(rend,4);host.append(canvas,elt('div','frx-code',drawnAs(rend.context)+' · '+rend.pieces.length+' pieces · 8×'+rend.spriteMode+
-     (chosen&&use!==chosen?' · not observed in '+chosen+(use?'; these are the colours of '+use+', where it was observed':''):'')+(!use?' · not yet observed in a stage: the game may show it in other colours':'')));
+     (chosen&&use!==chosen&&rend.context?.basis!=='fight'?' · not observed in '+chosen+(use?'; these are the colours of '+use+', where it was observed':''):'')+(!use&&rend.context?.basis!=='fight'?' · not yet observed in a stage: the game may show it in other colours':'')));
     const row=elt('div');row.style.cssText='display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0';
     for(const [mode,label] of [['reference','Use in project (reference)'],['copy','Copy into project (tiles + palette)']]){
      const b=elt('button','frx-relationship',label);b.type='button';b.onclick=async()=>{b.disabled=true;
@@ -32034,7 +32048,7 @@ function renderLibraryViewer(n,host,tools,caption){
     if(seen.ok){const line=elt('div');line.dataset.pose='frames';line.style.cssText='display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;margin:4px 0';
      if(!seen.result.frames.length)line.append(elt('span','frx-code',seen.result.framesChecked?'Not established in any of the '+seen.result.framesChecked+' captured frames of this ROM.':'No captured frames of this ROM in the library yet.'));
      else{line.append(elt('span','frx-code','Seen in '+seen.result.frames.length+' captured frame'+(seen.result.frames.length===1?'':'s')+':'));
-      for(const f of seen.result.frames.slice(0,12)){const b=elt('button','frx-relationship',f.label);b.type='button';b.title='Established by '+f.by+(f.mirrored?', mirrored':'')+' · sprites #'+f.sprites.join(', #');b.onclick=()=>choose(key('lib',f.frameEntry));line.append(b);}
+      for(const f of seen.result.frames.slice(0,12)){const b=elt('button','frx-relationship',f.label);b.type='button';b.title='Established by '+f.by+(f.mirrored?', mirrored':'')+(f.mode?', drawn as '+f.mode:'')+' · sprites #'+f.sprites.join(', #');b.onclick=()=>choose(key('lib',f.frameEntry));line.append(b);}
       if(seen.result.frames.length>12)line.append(elt('span','frx-code','… '+(seen.result.frames.length-12)+' more'));}
      host.append(line);}
    }
@@ -34989,14 +35003,34 @@ function poseContexts(project,rom){
 }
 
 // ---------- registration ----------
-async function registerCatalog(project=services.ProjectStore.capture(),{onProgress,pageSize=1000}={}){
+// ---------- catalog providers ----------
+// Ninja Gaiden and Zelda II catalogs come from the investigation's native catalog (GameRENative). Other ROMs register a
+// provider: {id, profiles:[{sha256,id,name}], catalog(bytes,name) -> {n} (the same shape: n.source, n.catalogSha256,
+// n.catalogs.native with poses, actors, graphics, ram), poseDrawings(record,bytes) -> {rendition, layouts:{key:drawing}}}.
+// Punch-Out!! (src/services/punch-out-library.js) is one.
+const providers=[];
+function registerProvider(p){if(!p?.id||!Array.isArray(p.profiles)||typeof p.catalog!=='function'||typeof p.poseDrawings!=='function')fail('a catalog provider needs id, profiles, catalog and poseDrawings');
+  if(!providers.some(x=>x.id===p.id))providers.push(p);}
+const providerOf=sha=>providers.find(p=>p.profiles.some(x=>x.sha256===sha))||null;
+// what registerCatalog reads from a project: its catalog, its cartridge and, for a provider, how its poses are drawn
+async function catalogView(project){
+  let rom=null;try{rom=services.NativeEngineProject.validate(project).bytes;}catch(_){rom=null;}
   const n=project?.investigation;
-  if(!n||n.version!==1||!n.catalogs?.native)fail('the open project has no recovered ROM catalog; import a ROM with a verified profile first');
+  if(n?.version===1&&n.catalogs?.native)return {n,rom,provider:null};
+  const sha=n?.source?.sha256,provider=sha?providerOf(sha):null;
+  if(provider){
+    const bytes=rom||SourceROMs.get(sha)?.bytes||null;if(!bytes)fail('the cartridge of '+(n.source.name||sha.slice(0,12))+' is not available');
+    return {n:(await provider.catalog(bytes,n.source.name)).n,rom:bytes,provider};
+  }
+  fail('the open project has no recovered ROM catalog; import a ROM with a verified profile first');
+}
+async function registerCatalog(project=services.ProjectStore.capture(),{onProgress,pageSize=1000}={}){
+  const view=await catalogView(project),n=view.n;
   await L.ensureMeta();
   const source=n.source,romSha=source.sha256,shelf=romSha,profile=n.catalogs.native.profile?.id||source.profile;
   const packKey='catalog:'+await sha(JSON.stringify(n.catalogSha256));
   const prior=await L.getPack(packKey);
-  let rom=null;try{rom=services.NativeEngineProject.validate(project).bytes;}catch(_){rom=null;}
+  const rom=view.rom;
   if(rom)await SourceROMs.put(rom,source.name);
   if(prior?.state==='complete'&&prior.stats?.schema===CATALOG_SCHEMA)return {packSha256:packKey,already:true,shelf,stats:prior.stats,links:await linkSameResources(romSha)};
   // an earlier registration of this catalog is upgraded in place: what was observed at runtime, the per-stage
@@ -35023,9 +35057,9 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
   if(resuming)for(let offset=0;;offset+=pageSize){const page=await L.entriesPage({pack:packKey,offset,limit:pageSize});stats.pagesRead=(stats.pagesRead||0)+1;
     for(const item of page.items)already.set(item.id,item);if(offset+pageSize>=page.total)break;}
   stats.alreadyStored=already.size;
-  const described=services.InvestigatedLibrary.describe(project),contexts=poseContexts(project,rom);
+  const described=view.provider?null:services.InvestigatedLibrary.describe(project),contexts=view.provider?new Map():poseContexts(project,rom);
   const actorLabel=id=>(n.catalogs.native.actors||[]).find(a=>a.id===id)?.label||id;
-  stats.poseContexts={decoded:0,runtime:0,'same-everywhere':0,default:0};
+  stats.poseContexts={decoded:0,runtime:0,'same-everywhere':0,default:0,...(view.provider?{fight:0}:{})};
   for(const [i,{kind,r,rid}] of records.entries()){
     const id=idOf(romSha,kind,rid),label=String(r.label||r.name||(kind+' '+rid)).slice(0,160);
     let data,fileType='json';
@@ -35051,12 +35085,22 @@ async function registerCatalog(project=services.ProjectStore.capture(),{onProgre
     else if((kind==='room'||kind==='location')&&r.group)verified.push({context:r.group,basis:'rom-table'});
     if(kind==='stage')verified.push({stage:r.label,areas:r.areas,basis:'rom-table',source:r.source});
     if(verified.length){e.placement={verified};stats.verifiedPlacements+=verified.length;}
-    if(kind==='pose'){
+    if(kind==='pose'&&view.provider){
+      // a provider draws its own poses (Punch-Out!!: each sprite mode the game uses); the default drawing is the
+      // entry's rendition, every mode's drawing is kept for matching captured frames (layoutRenditions)
+      try{const pd=view.provider.poseDrawings(r,rom),layouts={};
+        for(const [k,d] of Object.entries(pd.layouts||{})){const st=await L.storeData(JSON.stringify(d));layouts[k]={hash:st.hash,context:d.context};}
+        if(Object.keys(layouts).length)e.layoutRenditions=layouts;
+        if(pd.rendition){const st=await L.storeData(JSON.stringify(pd.rendition));e.rendition={hash:st.hash,context:pd.rendition.context};stats.renditions++;
+          const b=pd.rendition.context.basis;stats.poseContexts[b]=(stats.poseContexts[b]||0)+1;}
+        else e.renditionError='no layout of this pose keeps every piece together';}
+      catch(err){e.renditionError=String(err.message).slice(0,200);}}
+    else if(kind==='pose'){
       // drawn in a room where the pose is established to appear (see poseContexts); a runtime observation kept from an
       // earlier registration counts when the code does not establish one
       let ctx=contexts.get(r.id)||{roomId:null,basis:'default',confirmed:false,note:'the room this sprite appears in is not established'};
       const seen=verified.find(v=>v.basis==='runtime'&&v.stage);
-      if(seen&&ctx.basis!=='decoded'){const room=n.catalogs.native.scenes.find(x=>x.stage?.label===seen.stage);if(room)ctx={...ctx,roomId:room.id,basis:'runtime',confirmed:true,note:'seen on screen in '+seen.stage+' by the runtime stage survey'};}
+      if(seen&&ctx.basis!=='decoded'){const room=(n.catalogs.native.scenes||[]).find(x=>x.stage?.label===seen.stage);if(room)ctx={...ctx,roomId:room.id,basis:'runtime',confirmed:true,note:'seen on screen in '+seen.stage+' by the runtime stage survey'};}
       try{let rend=null;try{rend=rendition(project,r.id,ctx.roomId,described);}catch(err){ctx={...ctx,basis:'default',confirmed:false,note:'it could not be drawn in its room ('+String(err.message).slice(0,80)+'); '+ctx.note};}
         if(!rend&&ctx.roomId){rend=rendition(project,r.id,null,described);}
         if(rend){rend.context={...rend.context,basis:ctx.basis,confirmed:ctx.confirmed,variants:ctx.variants??null,actors:(ctx.actors||[]).map(actorLabel),note:ctx.note};
@@ -35231,6 +35275,8 @@ async function usePose(id,{mode='reference',stage=null,x=null,y=null}={}){
   const e=await L.entry(id);if(e.kind!=='pose')fail('only sprite poses can be used this way so far');
   const ref=(stage&&e.renditions?.[stage])||e.rendition;if(!ref)fail('this sprite has no stored rendition; register its ROM catalog again');
   const rend=JSON.parse(new TextDecoder().decode(await L.blobBytes(ref.hash)));
+  const undrawn=rend.pieces.filter(p=>p.drawn===false||!rend.tiles?.[p.tile]||(rend.spriteMode===16&&!rend.tiles?.[p.tile2])).length;
+  if(undrawn)fail('this sprite\'s drawing is incomplete: '+undrawn+' of its '+rend.pieces.length+' pieces have no pattern in the library ('+(rend.context?.note||'not drawn')+'). It cannot be used in a project yet.');
   const store=services.ProjectStore,expected={epoch:store.state.epoch,snapshot:store.serialize()};
   guardOff++;
   try{
@@ -35328,7 +35374,7 @@ if(typeof snapshot==='function'){
 // (event "forge:catalog-recovery", a toast for the important ones) and listed by recoveryStatus().
 const AUTO_ATTEMPTS=3,BACKOFF=[0,30000,120000],FAILURES='catalog-failures:';
 const recovery={status:new Map(),running:new Map(),failures:new Map(),nextAt:new Map(),timers:new Map()};
-const profileOf=sha=>window.GameRENative?.profiles?.find(p=>p.sha256===sha)||null;
+const profileOf=sha=>window.GameRENative?.profiles?.find(p=>p.sha256===sha)||providerOf(sha)?.profiles.find(p=>p.sha256===sha)||null;
 const STATE_TEXT={complete:'complete',completing:'completing…',updating:'updating to this version of Forge…',outdated:'recorded by an earlier version of Forge; Forge updates it when its cartridge is available','completing-elsewhere':'being completed in another Forge tab',incomplete:'incomplete (registration was interrupted)',
   'needs-source':'incomplete: waiting for its cartridge (open its ROM; a paired background worker supplies it automatically)',failed:'a completion attempt failed; Forge retries automatically',
   'needs-retry':'automatic completion stopped after 3 failed attempts; use Retry',waiting:'the last completion attempt failed; Forge tries again automatically',unsupported:'no recovered catalog exists for this ROM'};
@@ -35451,7 +35497,7 @@ async function drawingOf(pack){
   const s=pack?.stats;if(!s?.poseContexts)return null;
   const counted=Object.values(s.poseContexts).reduce((a,b)=>a+(b||0),0);if(counted>=(s.renditions||0))return s.poseContexts;
   const key=pack.packSha256+'|'+(pack.updated||0);if(drawingCache.has(key))return drawingCache.get(key);
-  const out={decoded:0,runtime:0,'same-everywhere':0,default:0};
+  const out={decoded:0,runtime:0,'same-everywhere':0,default:0,fight:0};
   for(let offset=0;;offset+=1000){const page=await L.entriesPage({pack:pack.packSha256,offset,limit:1000});
     for(const e of page.items){const b=e.kind==='pose'&&e.rendition?.context?.basis;if(b)out[b]=(out[b]||0)+1;}if(offset+1000>=page.total)break;}
   drawingCache.set(key,out);return out;
@@ -35490,7 +35536,7 @@ setTimeout(()=>{void resumeCatalogs({reason:'startup'}).catch(()=>{});},1500);
 
 services.SourceROMs=SourceROMs;
 services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation,
-  catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,recognize,recognitionText,romStatus,AUTO_ATTEMPTS});
+  catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,recognize,recognitionText,romStatus,registerProvider,AUTO_ATTEMPTS});
 if(C?.register){
   C.register({name:'library.roms',group:'library',title:'Every ROM in the library and its status',summary:'Catalog state (attempts, last error), entries, verified frames, investigations and how its poses are drawn, per ROM SHA-256.',run:()=>romStatus()});
   C.register({name:'library.recognize',group:'library',title:'What the library already holds for a ROM',summary:'By SHA-256: recovered catalog, verified frames, investigations and other packs; read from the library only.',
@@ -35509,6 +35555,141 @@ if(C?.register){
   C.register({name:'library.usePose',group:'library',title:'Use a library sprite in the active scene',summary:'mode "reference" (default) links it to the library entry; "copy" makes an independent asset. One undoable edit.',mutates:false,
     args:{id:{type:'string',required:true},mode:{type:'string',default:'reference',enum:['reference','copy']},stage:{type:'string'},x:{type:'int'},y:{type:'int'}},run:a=>usePose(a.id,a)});
 }
+})();
+/*
+ * NES FORGE MODULE: src/services/punch-out-library.js
+ * Entry: Forge.services.PunchOutLibrary (a recovered-catalog provider for LibraryCatalog)
+ * Purpose: Mike Tyson's Punch-Out!! (US, PRG 0 and PRG 1) fighter poses as library entries, so captured frames link to
+ *   them (Resources › Library: a frame's "Sprite → pose", a pose's "Seen in captured frames") and they can be used in
+ *   a project like any library sprite.
+ *   - One pose entry per full-pose record of each fight. Several selectors of a fight's pose table can name the same
+ *     record; the entry lists them all.
+ *   - Each record is drawn by running the game's own pose routine (PunchOutContent, $C890) in the three sprite modes
+ *     the game uses: row height and tile step from RAM $80/$81 (8x16, step 2; 8x8, step 2; 8x8, step 1). The game
+ *     selects the mode per pose: Mike Tyson's special poses are 8x8 in a fight configured for 8x16. A captured frame
+ *     links the record in the mode it was drawn in. The fight's configured mode is the entry's default drawing.
+ *   - A layout is kept only where every piece moves with the fighter's base position ($B0/$B1): screen coordinates are
+ *     8-bit, so a pose drawn near an edge wraps, and some tall poses pin their top rows. Each layout is drawn from the
+ *     base where the most pieces move together (searched over a grid), and is stored relative to that base.
+ *   - Drawings: each piece's pattern from the CHR bank the pose's tile stream selects ($A9), pattern table $0000, with
+ *     the fight's sprite palette. An 8x16 piece whose tile is in the upper pattern table uses a bank the game sets
+ *     elsewhere: it is not drawn (the drawing says so, and such a pose cannot be used in a project).
+ *   - The 32 CHR banks (4 KiB) as entries: the graphics reference that frame links compare drawn sprites with.
+ *   - The fights (as actors) and the RAM bytes the routine reads.
+ *   Delta poses (selectors $80-$FF) change the previous full pose and are not catalogued.
+ * Bundle order: after src/services/library-catalog.js (and src/re/punch-out-content.js).
+ */
+(()=>{
+'use strict';
+const F=window.Forge,services=F.services,LC=services.LibraryCatalog;
+if(!LC?.registerProvider||!window.PunchOutContent)return;
+const PROFILES=Object.freeze([
+  {sha256:'22ce21aa9c477d87e9cdc386b185f2166b18d438257640aa1d8e75ee9960e06e',id:'punch-out-us-prg1',name:"Mike Tyson's Punch-Out!! (U) (PRG 1)"},
+  {sha256:'0435f6d9bcfeb474a592c3a950530a99c03a6f6cacff793dc88f822bb8cc6952',id:'punch-out-us-prg0',name:"Mike Tyson's Punch-Out!! (U) (PRG 0)"}]);
+// the sprite modes the pose routine is run in ($80 row height, $81 tile step; $82 follows the step)
+const MODES=Object.freeze([{key:'8x16',height:16,step:2,label:'8×16 sprites'},{key:'8x8-step2',height:8,step:2,label:'8×8 sprites, tiles stepping by 2'},{key:'8x8',height:8,step:1,label:'8×8 sprites'}]);
+const BASES=[];for(const y of [104,136,168,200])for(const x of [96,128,160])BASES.push({x,y});
+const CHR_START=16+8*16384;
+const hex2=v=>'$'+v.toString(16).toUpperCase().padStart(2,'0'),hex4=v=>'$'+v.toString(16).toUpperCase().padStart(4,'0');
+const tick=()=>new Promise(r=>setTimeout(r,0));
+async function sha256(text){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,'0')).join('');}
+
+// the record drawn in one mode at the base where every piece moves with the base, the most pieces kept
+function layoutOf(content,fight,selector,mode){
+  let best=null;
+  for(const b of BASES){
+    let d,e;try{d=content.pose(fight,selector,{...b,mode});e=content.pose(fight,selector,{x:b.x+8,y:b.y+8,mode});}catch(_){continue;}
+    if(!d.pieces.length||d.pieces.length!==e.pieces.length)continue;
+    const by=new Map(e.pieces.map(p=>[p.slot,p]));
+    // (bit 5, behind the background, depends on the screen line the routine reaches: it is not part of the shape)
+    if(!d.pieces.every(p=>{const q=by.get(p.slot);return q&&q.tile===p.tile&&q.x===p.x+8&&q.y===p.y+8&&(q.attributes&0xdf)===(p.attributes&0xdf);}))continue;
+    if(!best||d.pieces.length>best.d.pieces.length)best={d,base:b};
+  }
+  if(!best)return null;
+  const {d,base}=best;
+  return {key:mode.key,label:mode.label,height:mode.height,step:mode.step,base,chrBank4KiB:d.chrBankSelected?d.chrBank4KiB:null,status:d.status,gaps:d.gaps,
+    // positions relative to the base; y as the game writes it to OAM (one less than the line the sprite starts on)
+    pieces:d.pieces.map(p=>({slot:p.slot,tile:p.tile,x:p.x-base.x,y:p.y-1-base.y,attributes:p.attributes,...(p.inheritsAttributes?{inheritsAttributes:true}:{})}))};
+}
+function recordLength(bytes,fileOffset){return 7+2*bytes[fileOffset+6];}
+
+async function catalog(bytes,name){
+  const input=Uint8Array.from(bytes),sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',input)),x=>x.toString(16).padStart(2,'0')).join('');
+  const profile=PROFILES.find(p=>p.sha256===sha);if(!profile)throw Error('Punch-Out library: not a supported revision');
+  const content=window.PunchOutContent.open(input),poses=[],actors=[],stats={records:0,selectors:0,layouts:{},noLayout:0};
+  for(const f of content.fights){
+    const pointer=(sel)=>{const at=f.shapeTables[0]+sel;return {fileOffset:16+f.bank8KiB*8192+at-0x8000,length:2,bank8KiB:f.bank8KiB,cpu:at};};
+    const byAddress=new Map();
+    for(const r of f.poses){if(r.status!=='source-record')continue;if(!byAddress.has(r.address))byAddress.set(r.address,[]);byAddress.get(r.address).push(r);}
+    for(const [address,list] of byAddress){
+      const first=list[0],layouts=[];
+      for(const m of MODES){const l=layoutOf(content,f.index,first.selector,m);if(l){layouts.push(l);stats.layouts[m.key]=(stats.layouts[m.key]||0)+1;}}
+      if(!layouts.length)stats.noLayout++;
+      const configured=MODES.find(m=>m.height===f.spriteMode&&m.step===f.spriteMode/8).key,primary=layouts.find(l=>l.key===configured)||layouts[0]||null;
+      const sels=list.map(r=>r.selector);
+      poses.push({id:'po:f'+f.index+':'+address.toString(16),label:f.label+' · pose '+hex2(sels[0])+(sels.length>1?' (also '+sels.slice(1).map(hex2).join(', ')+')':''),
+        owner:f.label,fight:f.index,selectors:sels,address,configuredMode:configured,
+        source:{fileOffset:first.fileOffset,length:recordLength(input,first.fileOffset),bank8KiB:f.bank8KiB,cpu:address},
+        pointerSources:sels.map(pointer),
+        pieces:primary?primary.pieces:[],layouts,
+        limits:['Drawn by the game\'s own pose routine in each sprite mode the game uses; which mode the game draws a pose in is established when a captured frame links it.',
+          'Delta poses ($80-$FF) that change this pose are not included.']});
+      stats.records++;stats.selectors+=sels.length;
+    }
+    actors.push({id:'po-fight:'+f.index,selector:f.index,label:f.label,owner:'opponent',bank8KiB:f.bank8KiB,spriteMode:f.spriteMode,base:{x:f.baseX,y:f.baseY},
+      record:{fileOffset:f.entryFileOffset,length:16,bank8KiB:f.bank8KiB,cpu:0x8000+f.entryOffset},
+      palette:{fileOffset:f.paletteFileOffset,length:32,bank8KiB:f.bank8KiB},config:{fileOffset:f.configFileOffset,length:96,bank8KiB:f.bank8KiB},
+      fullPoses:f.poses.filter(p=>p.status==='source-record').length});
+    await tick();
+  }
+  const graphics=Array.from({length:32},(_,bank)=>({id:'chr:'+bank,bank4KiB:bank,tiles:256,fileOffset:CHR_START+bank*4096,length:4096,meaning:'Physical CHR ROM patterns. Which bank a pose draws from is stated with the pose.'}));
+  const ram=[[0x80,'sprite row height (8 or 16) the pose routine draws with'],[0x81,'tile step (1 or 2) the pose routine draws with'],[0x82,'tile mask for the step'],
+    [0xA0,'pose draw request'],[0xA1,'pose selector being drawn (full poses below $80, delta poses from $80)'],[0xA9,'sprite CHR bank the pose\'s tile stream selects'],
+    [0xB0,'fighter base X'],[0xB1,'fighter base Y']].map(([address,meaning])=>({address,label:hex4(address),meaning,basis:'read by the pose routine at $C890 (decoder initial state)'}));
+  const native={format:'NESForgeNativeGameEvidence',version:1,status:'supported',source:{sha256:sha,byteLength:input.length,name},profile:{...profile},
+    scenes:[],stages:[],poses,animations:[],actors,locations:[],graphics,symbols:[],ram,
+    limits:['Full poses of the 14 fights, from the game\'s own pose routine. Delta poses, animation timing, fight behaviour and Little Mac are not catalogued.']};
+  const n={format:'NESForgeInvestigation',version:1,source:{name:String(name||profile.name).slice(0,160),sha256:sha,byteLength:input.length,profile:profile.id},
+    catalogs:{native},catalogSha256:{native:await sha256(JSON.stringify(native))}};
+  return {n,stats};
+}
+
+// the drawing of one layout: pieces, the patterns they use (top and bottom halves of 8x16 sprites), the sprite palette
+function drawing(record,layout,bytes,fight){
+  const content=window.PunchOutContent.open(bytes),f=content.fights[record.fight],bankKnown=Number.isInteger(layout.chrBank4KiB),bank=bankKnown?content.chr(layout.chrBank4KiB):null,tiles={};
+  const pal=f.palette.slice(16),palette=[0,1,2,3].map(i=>pal.slice(i*4,i*4+4));
+  let undrawn=0,inherited=0;
+  const pieces=layout.pieces.map(p=>{
+    // a piece whose attribute byte the routine does not write keeps the previous pose's: drawn with palette 0, unflipped
+    if(p.inheritsAttributes){inherited++;p={...p,attributes:0};}
+    const flipH=!!(p.attributes&64),flipV=!!(p.attributes&128),behind=!!(p.attributes&32);
+    if(layout.height===16){
+      const upper=p.tile&1,top=(upper<<8)|(p.tile&254);
+      if(upper||!bankKnown){undrawn++;return {tile:top,tile2:top+1,x:p.x,y:p.y,pal:p.attributes&3,flipH,flipV,behind,drawn:false};}
+      tiles[top]=bank[p.tile&254];tiles[top+1]=bank[(p.tile&254)+1];
+      return {tile:top,tile2:top+1,x:p.x,y:p.y,pal:p.attributes&3,flipH,flipV,behind};
+    }
+    if(!bankKnown){undrawn++;return {tile:p.tile,x:p.x,y:p.y,pal:p.attributes&3,flipH,flipV,behind,drawn:false};}
+    tiles[p.tile]=bank[p.tile];return {tile:p.tile,x:p.x,y:p.y,pal:p.attributes&3,flipH,flipV,behind};
+  });
+  const sels=record.selectors.map(hex2).join(', ');
+  const note=!bankKnown?'its fight\'s pose table selects it ('+sels+'); its record does not select a CHR bank ($A9), so the game draws it from the bank set before it: the library cannot draw it (a captured frame that links it shows the bank); '+layout.label:
+    'its fight\'s pose table selects it ('+sels+'); tiles from CHR bank '+layout.chrBank4KiB+', which its tile stream selects ($A9), pattern table $0000; the fight\'s sprite palette; drawn as '+layout.label+
+    (layout.key===record.configuredMode?', the fight\'s configured sprite mode':'')+(undrawn?'; '+undrawn+' of its '+pieces.length+' pieces use the upper pattern table, whose bank the game sets elsewhere: not drawn':'')+
+    (bankKnown&&inherited?'; '+inherited+' of its pieces keep the palette and flips of the pose before it (the routine does not write them): drawn with palette 0, unflipped':'');
+  return {format:'NESForgeLibraryPose',version:1,poseId:record.id,name:record.label,spriteMode:layout.height,originX:0,originY:0,pieces,tiles,palette,
+    context:{roomId:null,label:fight+' bout',stage:null,basis:'fight',confirmed:bankKnown,mode:layout.key,chrBank4KiB:layout.chrBank4KiB,undrawn,inherited,note}};
+}
+function poseDrawings(record,bytes){
+  const fight=record.owner,out={layouts:{}};
+  for(const l of record.layouts||[])out.layouts[l.key]=drawing(record,l,bytes,fight);
+  out.rendition=out.layouts[record.configuredMode]||Object.values(out.layouts)[0]||null;
+  return out;
+}
+
+const provider=Object.freeze({id:'punch-out',profiles:PROFILES,catalog,poseDrawings,MODES});
+LC.registerProvider(provider);
+services.PunchOutLibrary=provider;
 })();
 /*
  * NES FORGE MODULE: src/ui/library-provenance.js
@@ -36126,6 +36307,12 @@ if(C?.register){
  *   matched pose is not reported; several poses with the very same drawn sprites are reported as ambiguous.
  *   Frames recorded before sprites were traced (their sprite list is OAM at the snapshot, usually one frame ahead of
  *   the image) are not linked.
+ *   A pose record may carry several layouts (record.layouts: the same record drawn in each sprite mode the game uses,
+ *   Punch-Out!!); each is matched only against sprites of its height, with its own drawing, and a link names the mode.
+ *   Pieces the library cannot draw (record drawing marks them drawn: false) are matched by layout and not compared. A
+ *   pose whose drawing the library has not established (an unconfirmed room, or a record that does not select its own
+ *   CHR bank) is established by a complete layout of 3 or more pieces; the frame shows the bank. A layout of 1-2 pieces
+ *   with nothing to compare is not reported.
  * Bundle order: after src/services/frame-evidence.js.
  */
 (()=>{
@@ -36149,10 +36336,22 @@ async function posesOf(sha){
   for(const item of items){
     try{
       const {entry,bytes}=await L.readEntry(item.id),record=JSON.parse(new TextDecoder().decode(bytes));
-      if(!Array.isArray(record.pieces)||!record.pieces.length||!record.pieces.every(p=>Number.isInteger(p.tile)&&Number.isInteger(p.x)&&Number.isInteger(p.y)))continue;
+      if(!(Array.isArray(record.layouts)&&record.layouts.length)&&(!Array.isArray(record.pieces)||!record.pieces.length||!record.pieces.every(p=>Number.isInteger(p.tile)&&Number.isInteger(p.x)&&Number.isInteger(p.y))))continue;
       let drawing=null;
       if(entry.rendition?.hash){try{drawing=JSON.parse(new TextDecoder().decode(await L.blobBytes(entry.rendition.hash)));}catch(_){drawing=null;}}
-      poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:record.pieces.map(p=>({tile:p.tile,x:p.x,y:p.y,attributes:p.attributes|0})),drawing,context:entry.rendition?.context||null});
+      // a piece whose attribute byte the game leaves as the previous pose wrote it has no flips of its own: any match
+      const piecesOf=list=>list.map(p=>({tile:p.tile,x:p.x,y:p.y,attributes:p.inheritsAttributes?null:p.attributes|0}));
+      if(Array.isArray(record.layouts)&&record.layouts.length){
+        for(const l of record.layouts){
+          if(!Array.isArray(l.pieces)||!l.pieces.length||!l.pieces.every(p=>Number.isInteger(p.tile)&&Number.isInteger(p.x)&&Number.isInteger(p.y)))continue;
+          const ref=entry.layoutRenditions?.[l.key];let d=null;
+          if(ref?.hash){try{d=JSON.parse(new TextDecoder().decode(await L.blobBytes(ref.hash)));}catch(_){d=null;}}
+          poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:piecesOf(l.pieces),
+            height:l.height,mode:{key:l.key,label:l.label},drawing:d,context:ref?.context||entry.rendition?.context||null});
+        }
+        continue;
+      }
+      poses.push({entryId:entry.id,id:record.id??null,label:entry.label||record.label||entry.id,owner:record.owner??null,facing:record.facing??null,pieces:piecesOf(record.pieces),drawing,context:entry.rendition?.context||null});
     }catch(_){/* not a pose record this matcher reads */}
   }
   poseCache.set(sha,{key,poses});return poses;
@@ -36168,18 +36367,19 @@ async function chrBank(sha,bank){
 // every placement of a pose among the drawn sprites: piece 0 anchors it, every other piece must be drawn at its
 // offset from piece 0 with its tile and flips (all offsets and horizontal flips reversed when mirrored)
 function layoutMatches(sprites,poses){
-  const at=new Map(),keyOf=(tile,x,y,h,v)=>tile+':'+x+':'+y+':'+(h?1:0)+(v?1:0);
-  for(const s of sprites){const k=keyOf(s.tile,s.x,s.y,s.flipH,s.flipV);if(!at.has(k))at.set(k,[]);at.get(k).push(s);}
+  const at=new Map(),any=new Map(),keyOf=(tile,x,y,h,v)=>tile+':'+x+':'+y+':'+(h?1:0)+(v?1:0),anyKey=(tile,x,y)=>tile+':'+x+':'+y;
+  for(const s of sprites){const k=keyOf(s.tile,s.x,s.y,s.flipH,s.flipV);if(!at.has(k))at.set(k,[]);at.get(k).push(s);
+    const a=anyKey(s.tile,s.x,s.y);if(!any.has(a))any.set(a,[]);any.get(a).push(s);}
   const out=[];
   for(const pose of poses){
-    const p0=pose.pieces[0];
+    const p0=pose.pieces[0],fits=s=>!pose.height||s.height===pose.height;
     for(const mirror of pose.facing!=null?[false]:[false,true]){
       for(const s of sprites){
-        if(s.tile!==p0.tile||s.flipH!==(flipH(p0.attributes)!==mirror)||s.flipV!==flipV(p0.attributes))continue;
+        if(!fits(s)||s.tile!==p0.tile||p0.attributes!=null&&(s.flipH!==(flipH(p0.attributes)!==mirror)||s.flipV!==flipV(p0.attributes)))continue;
         const used=[s];let ok=true;
         for(const pk of pose.pieces.slice(1)){
-          const dx=(pk.x-p0.x)*(mirror?-1:1),dy=pk.y-p0.y,list=at.get(keyOf(pk.tile,s.x+dx,s.y+dy,flipH(pk.attributes)!==mirror,flipV(pk.attributes)))||[];
-          const t=list.find(t=>!used.includes(t));if(!t){ok=false;break;}used.push(t);
+          const dx=(pk.x-p0.x)*(mirror?-1:1),dy=pk.y-p0.y,list=(pk.attributes==null?any.get(anyKey(pk.tile,s.x+dx,s.y+dy)):at.get(keyOf(pk.tile,s.x+dx,s.y+dy,flipH(pk.attributes)!==mirror,flipV(pk.attributes))))||[];
+          const t=list.find(t=>!used.includes(t)&&fits(t));if(!t){ok=false;break;}used.push(t);
         }
         if(ok)out.push({pose,mirror,sprites:used});
       }
@@ -36191,7 +36391,7 @@ function layoutMatches(sprites,poses){
   const groups=new Map();
   for(const m of kept){const k=m.sprites.map(s=>s.index).sort((a,b)=>a-b).join(',');if(!groups.has(k))groups.set(k,[]);
     // a symmetric pose matches its sprites both ways: one match per pose (the unmirrored one first)
-    if(!groups.get(k).some(o=>o.pose===m.pose))groups.get(k).push(m);}
+    if(!groups.get(k).some(o=>o.pose.entryId===m.pose.entryId))groups.get(k).push(m);}
   return [...groups.values()];
 }
 
@@ -36200,17 +36400,22 @@ function layoutMatches(sprites,poses){
 async function compareGraphics(sha,m){
   const d=m.pose.drawing;
   if(!d?.pieces||d.pieces.length!==m.pose.pieces.length)return {graphics:'unchecked',why:'the library holds no drawing of this pose'};
-  const banks=new Set();
+  const banks=new Set();let skipped=0;
+  for(const s of m.sprites)if(Number.isInteger(s.chrOffset)&&s.chrOffsetAt==='fetch')banks.add(s.chrOffset>>12);
   for(const [k,s] of m.sprites.entries()){
     if(!Number.isInteger(s.chrOffset)||s.chrOffsetAt!=='fetch')return {graphics:'unchecked',why:s.chrOffsetAt==='chr-ram'?'patterns in CHR RAM (no cartridge location)':'a sprite has no traced location'};
-    const rp=d.pieces[k],offsets=s.height===16?[[s.chrOffset,rp.tile],[s.chrOffset+16,rp.tile2]]:[[s.chrOffset,rp.tile]];
+    const rp=d.pieces[k];
+    // a piece the library cannot draw (its pattern bank is set elsewhere) is matched by layout only
+    if(rp.drawn===false){skipped++;continue;}
+    const offsets=s.height===16?[[s.chrOffset,rp.tile],[s.chrOffset+16,rp.tile2]]:[[s.chrOffset,rp.tile]];
     for(const [off,tile] of offsets){
       const bank=off>>12,bytes=await chrBank(sha,bank);banks.add(bank);
       if(!bytes)return {graphics:'unchecked',why:'CHR bank '+bank+' is not in the library'};
       if(!same(pixels(bytes,off&4095),d.tiles?.[tile]))return {graphics:'differ',banks:[...banks],why:'drawn from CHR bank '+bank+'; the library draws this pose '+(m.pose.context?.label?'in '+m.pose.context.label:'with other graphics')};
     }
   }
-  return {graphics:'equal',banks:[...banks]};
+  if(skipped===m.sprites.length)return {graphics:'unchecked',noDrawing:true,banks:[...banks],why:'the library cannot draw any of its pieces'};
+  return {graphics:'equal',banks:[...banks],...(skipped?{notCompared:skipped}:{})};
 }
 
 // ---------- a frame ----------
@@ -36228,15 +36433,21 @@ async function framePoses(record,{sourceSha256}={}){
     const equal=checked.filter(c=>c.graphics==='equal'),pick=equal.length?equal:checked.filter(c=>c.graphics==='unchecked').length?checked.filter(c=>c.graphics==='unchecked'):checked;
     const describe=c=>({poseEntry:c.m.pose.entryId,poseId:c.m.pose.id,label:c.m.pose.label,owner:c.m.pose.owner,mirrored:c.m.mirror,sprites:c.m.sprites.map(s=>s.index),pieces:c.m.pose.pieces.length,
       at:{x:c.m.sprites[0].x-(c.m.mirror?-c.m.pose.pieces[0].x-8:c.m.pose.pieces[0].x),y:c.m.sprites[0].y-c.m.pose.pieces[0].y},
-      graphics:c.graphics,banks:c.banks||[],evidence:c.graphics==='equal'?'every piece drawn in place (tile, relative position, flips'+(c.m.mirror?', mirrored':'')+') with the graphics of the library\'s drawing':c.graphics==='differ'?'same layout and tile numbers; '+c.why:'layout matches; graphics not compared: '+c.why});
+      ...(c.m.pose.mode?{mode:c.m.pose.mode}:{}),
+      graphics:c.graphics,banks:c.banks||[],evidence:(c.graphics==='equal'?'every piece drawn in place (tile, relative position, flips'+(c.m.mirror?', mirrored':'')+') with the graphics of the library\'s drawing'+(c.notCompared?' ('+c.notCompared+' pieces with no drawing in the library matched by layout only)':''):c.graphics==='differ'?'same layout and tile numbers; '+c.why:'layout matches; graphics not compared: '+c.why)+
+        (c.m.pose.mode?'; drawn as '+c.m.pose.mode.label:'')});
     if(pick.length>1){ambiguous.push({sprites:group[0].sprites.map(s=>s.index),poses:pick.map(describe)});continue;}
     const one=describe(pick[0]),drawingUnconfirmed=pick[0].m.pose.context?.confirmed===false||pick[0].m.pose.context?.basis==='default';
     if(one.graphics==='equal'){links.push({...one,state:'established',by:'layout and graphics'});one.sprites.forEach(i=>linked.add(i));}
-    else if(one.graphics==='differ'&&drawingUnconfirmed&&one.pieces>=MIN_PIECES_BY_LAYOUT){
-      // the library's own drawing of this pose uses a room it has not established, so other graphics are no evidence
-      // against it: a complete layout of several pieces establishes the pose, and this frame shows the bank it is drawn from
-      links.push({...one,state:'established',by:'layout',evidence:'every piece drawn in place (tile, relative position, flips'+(one.mirrored?', mirrored':'')+'); drawn from CHR bank '+one.banks.join(', ')+'. The library has not established the room this pose is drawn in, so its drawing is not compared; this frame shows the bank.'});
+    else if((one.graphics==='differ'||pick[0].noDrawing)&&drawingUnconfirmed&&one.pieces>=MIN_PIECES_BY_LAYOUT){
+      // the library has not established which graphics this pose is drawn with (Ninja Gaiden: the room; Punch-Out!!: a
+      // record that does not select its CHR bank), so other graphics are no evidence against it: a complete layout of
+      // several pieces establishes the pose, and this frame shows the bank it is drawn from
+      const why=pick[0].noDrawing?'The pose\'s record does not select its CHR bank, so the library cannot draw it':'The library has not established the room this pose is drawn in, so its drawing is not compared';
+      links.push({...one,state:'established',by:'layout',evidence:'every piece drawn in place (tile, relative position, flips'+(one.mirrored?', mirrored':'')+')'+(one.mode?' as '+one.mode.label:'')+'; drawn from CHR bank '+one.banks.join(', ')+'. '+why+'; this frame shows the bank.'});
       one.sprites.forEach(i=>linked.add(i));}
+    // a layout of one or two pieces with nothing to compare says nothing: it is not reported
+    else if(one.graphics==='unchecked'&&one.pieces<MIN_PIECES_BY_LAYOUT)continue;
     else candidates.push({...one,state:one.graphics==='differ'?'candidate':'layout only'});
   }
   return {...base,state:'linked',poses:poses.length,links,candidates,ambiguous,notEstablished:sprites.map(s=>s.index).filter(i=>!linked.has(i)),
@@ -36260,7 +36471,7 @@ async function poseFrames(poseEntryId){
     const ck=f.id+'|'+poseKey;let r=frameCache.get(ck);
     if(!r){try{r=await frameEntryPoses(f.id);}catch(_){r=null;}frameCache.set(ck,r);}
     const link=r?.links?.find(l=>l.poseEntry===poseEntryId);
-    if(link)out.push({frameEntry:f.id,label:f.label||f.id,frame:r.frame,by:link.by,mirrored:link.mirrored,sprites:link.sprites});
+    if(link)out.push({frameEntry:f.id,label:f.label||f.id,frame:r.frame,by:link.by,mirrored:link.mirrored,sprites:link.sprites,...(link.mode?{mode:link.mode.label}:{})});
   }
   return {pose:poseEntryId,frames:out,framesChecked:frames.length};
 }

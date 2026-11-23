@@ -189,7 +189,7 @@ Acceptance (`QA/agent-lab-background.cjs`, 11/11):
 | CNROM (mapper 3) | verified on a cartridge Forge builds itself (§13): checkpoint == cold boot, frames rebuild at 0 px, the world's CHR bank; no commercial CNROM cartridge in the test set |
 | Mappers the emulator does not run | the job fails with that reason; nothing is claimed |
 | Reaching places in a game | game knowledge in a plan: Ninja Gaiden's restart plan only; other games get the generic first look |
-| Sprite → pose/actor | established in Forge where the library has decoded poses for the ROM (§16): every piece drawn in place, with the library's graphics or a complete layout; checked against Ninja Gaiden's own pose variables. The worker itself does not link. |
+| Sprite → pose/actor | established in Forge where the library has decoded poses for the ROM (§16, §17): every piece drawn in place, with the library's graphics or a complete layout; checked against Ninja Gaiden's and Punch-Out!!'s own pose variables. The worker itself does not link. |
 
 ## 9. Remaining issues
 
@@ -424,7 +424,7 @@ repository.
 A captured frame now points to the library's decoded poses it draws (`Forge.services.PoseLinks`, command
 `library.framePoses`), and a pose lists the captured frames that show it (`library.poseFrames`). This is generic: any
 ROM whose catalog has pose records (pieces with tile, relative x/y and attributes) is matched the same way. Today that
-is Ninja Gaiden (202 poses) and Zelda II (30).
+is Ninja Gaiden (202 poses), Zelda II (30) and, since §17, Mike Tyson's Punch-Out!! (499 records per revision).
 
 - **Layout.** Every piece of a pose must be drawn: its tile, its position relative to the other pieces, and its flips.
   The whole pose may be mirrored when it has no decoded facing. A smaller pose whose pieces lie inside a larger matched
@@ -456,8 +456,91 @@ is Ninja Gaiden (202 poses) and Zelda II (30).
   from there, and the pose lists the frames that show it.
 
 **Limits.**
-- Punch-Out!!'s fighter poses come from its own pose decoder and are not library pose entries, so Punch-Out frames are
-  not linked yet.
+- ~~Punch-Out!!'s fighter poses are not library pose entries.~~ They are now (§17).
 - Zelda II's matching is the same code, but it has not been checked against the game's variables.
 - A link names the pose, not the actor slot. The game's actor tables are used only by the test.
+
+## 17. Punch-Out!! poses in the library (2026-11-23)
+
+Mike Tyson's Punch-Out!! (US PRG 0 and PRG 1) now has a recovered catalog in the library, so its frames link to the
+fighters' poses like Ninja Gaiden's (§16). Ninja Gaiden's and Zelda II's catalogs come from the investigation's native
+catalog. Punch-Out's comes from a **catalog provider** (`src/services/punch-out-library.js`), registered with
+`LibraryCatalog.registerProvider`. It runs through the same registration, so the same machinery applies: automatic
+completion, resumption, recognition, the status chip and Agent Lab's "add to the library".
+
+**What is registered (per revision):**
+- **499 pose entries**, one per full-pose record of the 14 fights. Several selectors of a fight's pose table can name
+  one record: Mike Tyson's $08, $2E, $38, $4A and $52 are one record, and its entry lists all five. Without this,
+  those would be five identical poses and could only ever be "ambiguous".
+- **The 14 fights** (actors), **the 32 CHR banks** (4 KiB), and the RAM bytes the pose routine reads ($80/$81 sprite
+  mode, $A1 pose selector, $A9 sprite bank, $B0/$B1 base position).
+
+**How each pose is drawn.** Each record is drawn by running the game's own pose routine ($C890, `PunchOutContent`).
+Four things found at runtime shaped this:
+
+1. **Sprite mode per pose.** The routine's row height and tile step come from RAM $80/$81, and the game sets them per
+   pose, not per fight. Mike Tyson's fight is configured for 8×16, but its poses 22, 58, 60, 70 and 72 are drawn as
+   8×8 sprites with a tile step of 2. Glass Joe's are 8×8 with a step of 1. Each record is therefore drawn in all three
+   modes, and each drawing is kept as a layout (`record.layouts`, drawings in `entry.layoutRenditions`). A frame is
+   matched against the layouts of its own sprite height, and the link names the mode. The entry's default drawing uses
+   the fight's configured mode.
+2. **A base where the pose holds together.** Screen coordinates are 8-bit. The fight's configured base (Tyson: x = 220)
+   makes wide poses wrap past the edge, and tall poses pin their top rows near the top of the screen. Each layout is
+   therefore drawn at the base, from a grid, where the most pieces move together with the base. It is stored relative
+   to that base. Every record has at least one such layout. In the 8×16 mode, 468 of 499 records do.
+3. **Inherited attribute bytes.** 11 of the 543 full poses (62 pieces) never write some pieces' attribute bytes; the game
+   keeps whatever the previous pose left there. The decoder now flags these pieces (`inheritsAttributes`). They are
+   matched with any flips and drawn with palette 0, unflipped. Before this, the decoder reported $F8 (flipped both
+   ways) for them.
+4. **Records that select no CHR bank.** 59 of 499 records never set $A9. The decoder used to report its own starting
+   value as their bank; it now flags this (`chrBankSelected`). The library does not draw these poses. A captured frame
+   links them by a complete layout of 3 or more pieces (as with Ninja Gaiden's unconfirmed rooms, §16), and the frame
+   shows the bank.
+
+**Drawings.** Each drawn piece's pattern is read from the CHR bank the pose's tile stream selects ($A9), pattern table
+$0000, with the fight's sprite palette. An 8×16 piece in the upper pattern table uses a bank the game sets elsewhere,
+so it is not drawn. A pose whose drawing is incomplete cannot be used in a project; Forge says why and changes nothing.
+
+**Matching changes (generic, in `PoseLinks`):**
+- A record's layouts are matched only against sprites of their height.
+- One match per entry and sprite set.
+- Pieces the library cannot draw are matched by layout only.
+- A layout match of 1-2 pieces with nothing to compare is not reported. Without this, a 2-piece Soda Popinski pose
+  appeared as a "candidate" in 80 of Mike Tyson's frames.
+
+**Checked against the game itself (`QA/punch-out-pose-links.cjs`, owner-side).** Each bout ran 1,800 frames, with a
+frame evidence record every 6th frame. The game's pose selector is RAM $A1 (full poses below $80, delta poses from
+$80).
+
+| | Mike Tyson (PRG 1) | Mike Tyson (PRG 0) | Glass Joe (PRG 1) |
+|---|---|---|---|
+| Links | 144: 133 by layout and graphics, 11 by layout (pose 60, which selects no bank) | 144 (same) | 158, all by layout and graphics |
+| Sprite modes linked | 8×16: 104; 8×8 step 2: 40 | same | 8×8: 158 |
+| Links in frames without a delta pose: agree with $A1 / contradict it | 102 / **0** | 102 / **0** | 101 / **0** |
+| Links while a delta pose was active (not checked against $A1) | 42 | 42 | 57 |
+| Coverage: the game's current pose drawn in place / linked | 102 / 102 | 102 / 102 | 101 / 101 |
+| Candidates, ambiguous, links to another fight | 0, 0, 0 | 0, 0, 0 | 0, 0, 0 |
+
+- **Coverage was checked independently.** The test decodes the game's current full pose with the game's routine, at
+  the runtime base ($B0/$B1) and sprite mode ($80/$81), and finds every piece at its screen position.
+- **Links while a delta pose is active.** A delta changes the previous full pose. When the result equals another full
+  pose exactly, Forge links that pose; for example, pose 8 plus delta $C4 draws pose 6. $A1 then names the delta, not
+  a full pose, so these links are reported separately.
+- **The catalog.** Both revisions were registered through the automatic completion path, and a second completion
+  found them complete. 1,042 locations, 0 inconsistent. Every drawn piece (51,242 per revision) equals the
+  cartridge's bytes, which the test reads itself, and every palette equals the fight's palette bytes.
+- **Negative cases:**
+  - one sprite moved by a pixel breaks the link;
+  - a sprite pointed at another CHR bank leaves a candidate.
+- **The library path.** Frames registered in the library give the same links. The frame view lists them, a pose opens
+  from there and lists the frames that show it, a complete drawing can be used in a project, and an incomplete one is
+  refused.
+
+**Limits.**
+- Delta poses are not catalogued, so frames showing a delta result that equals no full pose stay unlinked.
+- Which sprite mode the game draws a pose in is known only once a frame links it. The default drawing is the fight's
+  configured mode, which is wrong for some poses (Tyson's 8×8 poses).
+- Only the Mike Tyson and Glass Joe bouts were played. The other twelve fights use the same code, but their links have
+  not been checked against the game.
+- Registration draws 499 records in three modes and takes about 20 s in the browser, yielding between fights.
 
