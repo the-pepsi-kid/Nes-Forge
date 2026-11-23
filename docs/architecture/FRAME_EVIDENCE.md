@@ -457,7 +457,7 @@ is Ninja Gaiden (202 poses), Zelda II (30) and, since §17, Mike Tyson's Punch-O
 
 **Limits.**
 - ~~Punch-Out!!'s fighter poses are not library pose entries.~~ They are now (§17).
-- Zelda II's matching is the same code, but it has not been checked against the game's variables.
+- ~~Zelda II's matching is the same code, but it has not been checked against the game's variables.~~ Checked since §22.
 - A link names the pose, not the actor slot. The game's actor tables are used only by the test.
 
 ## 17. Punch-Out!! poses in the library (2026-11-23)
@@ -720,3 +720,47 @@ Until now the Agent Lab worker had a Punch-Out plan for PRG 1 only, so a PRG 0 c
 - **Cost.** The three cold-boot-verified jobs (generic, PRG 1, PRG 0) take about 19 minutes on this machine, against 9
   for the first two; `mmc2-sync`'s time limit in `QA/verify.py` is raised from 40 to 60 minutes. Its heartbeat every 30 s
   still keeps the 300 s silence stop meaningful.
+
+## 22. Zelda II's links checked against the game (2026-11-23)
+
+Zelda II's 30 library poses are Link's: 15 pose selectors × 2 facings, each the output of the game's display code run
+with RAM $80 = pose and $9F = facing (§16). Their links had not been checked against the game. `QA/zelda2-pose-links.cjs`
+(owner-side) now does that.
+
+**The game's answer.** Variables alone are not enough. When Link dies, the game resets $80 and $9F while his last pose
+is still on screen. So the test asks the display code itself:
+- Each object is drawn at $EC02 (`LDX $11`, then the object's pose $80,X).
+- The routine at $EBF0 falls into it after its own "skip" test (`LDA $048D / BNE` to an RTS). Five other callers jump
+  straight to it; the death sequence is one of them.
+- Each time object 0 (Link) is drawn there, the test records $80 and $9F. The hook is test-only, on the opcode fetch at
+  $EC02, and does not change the game.
+- A frame's image was drawn within its last three frames. When the game drew Link in none of them (a transition), the
+  last pose it drew is what is on screen.
+
+**The route.** From a fresh save: title, file select, a name registered, slot 1. Then three phases, a frame captured
+every 6th frame (every 12th on the overworld):
+
+| Phase | Frames | Links | Agree / **contradict** |
+|---|---|---|---|
+| A. North Palace: walking, crouching, attacks, jumps | 113 | 113 | 113 / **0** |
+| B. Out of the palace and across the overworld until an encounter | 144 | 31 (still in the palace) | 31 / **0** |
+| C. A forest battle: two Deelers, hits, blinking, death and restart | 235 | 199 | 199 / **0** |
+
+- **Coverage.** Whenever a pose the game drew is drawn in place (the test's own layout search), Forge links it: 343 of
+  343.
+- **Frames without a link.** The 36 frames in play without a link show none of the drawn poses in place. In those,
+  Link is blinking after a hit, or the screen is in a transition.
+- **Every link established by layout and graphics.** 18 poses (selectors 0–7 and 10, both facings). Every link's
+  sprites come from CHR bank 2.
+- **No noise.** No candidates and no ambiguous matches. On the overworld (101 frames), no link.
+- **Negative cases.** A sprite moved by a pixel breaks the link. A sprite pointed at another CHR bank leaves a
+  candidate.
+- **The library.** Registered frames give the same links through `library.framePoses`, and the frame view lists Link's
+  pose.
+
+**One wording fix.** The inspector called every runtime capture "runtime capture (Agent Lab investigation)", including
+frames captured in Forge's own emulator. It now names an Agent Lab investigation only when the frame was imported from
+one, with its job id, as the library's provenance card already did. The suite checks it.
+
+**Not covered.** Poses 8, 9 and 11–14 did not occur on this route. 12–14 hold an item above Link's head. The library's
+poses are Link's only: enemies are not catalogued, so their sprites stay unlinked.
