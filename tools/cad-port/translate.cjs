@@ -135,8 +135,10 @@ function translateConfig(game, file, text, includeText) {
   const gap = (k, detail) => d.gaps.push(detail ? k + ':' + detail : k);
   if (/getDumpName|dumpName|Globals\.dumpdata|showDumpFileField\(\)\s*\{\s*return\s+true/.test(own + inc)) gap('dump');
   if (/true/.test(r.isUseSegaGraphics || '')) gap('segaWords');
+  // a constant may be written in terms of other zero-argument members (e.g. 0x54C0 + getBigBlocksCount()*4)
+  const value = (expr, depth = 0) => { if (expr == null || depth > 3) return null; const e = String(expr).replace(/\b(\w+)\(\)/g, (m, n) => { const v = r[n] !== undefined ? value(r[n], depth + 1) : null; return v === null ? m : '(' + v + ')'; }); return evalInt(e); };
   // blocks
-  const bf = squash(r.getBlocksFunc || ''), bo = r.getBlocksOffset ? offsetRec(r.getBlocksOffset) : null, bc = r.getBlocksCount ? evalInt(r.getBlocksCount) : r.getBlocksCountFunc ? null : 256 /* CadEditor's default */, pa = r.getPalBytesAddr ? evalInt(r.getPalBytesAddr) : null;
+  const bf = squash(r.getBlocksFunc || ''), bo = r.getBlocksOffset ? offsetRec(r.getBlocksOffset) : null, bc = r.getBlocksCount ? value(r.getBlocksCount) : r.getBlocksCountFunc ? null : 256 /* CadEditor's default */, pa = r.getPalBytesAddr ? value(r.getPalBytesAddr) : null;
   let fam = BLOCKS[bf] || null; const viaHelper = !fam && bf ? (() => { const name = bf.split('.').pop(); return all[name] ? helperBlocks(all[name].body, all) : null; })() : null;
   if (viaHelper) fam = {...viaHelper, helper: bf};
   if (fam) {
@@ -146,7 +148,7 @@ function translateConfig(game, file, text, includeText) {
     else d.blocks = {...f, ...(computed ? {} : {offset: bo.begin + offsetAdjust}), count: bc, ...(needsPal ? {paletteOffset: pa} : {})};
   } else if (bf) gap('blocksCustom', bf);
   // big blocks
-  const gf = squash(r.getBigBlocksFunc || ''), go = r.getBigBlocksOffset ? offsetRec(r.getBigBlocksOffset) : null, gc = r.getBigBlocksCount ? evalInt(r.getBigBlocksCount) : r.getBigBlocksCountFunc || /getBigBlocksCountHierarchy/.test(own + inc) ? null : 256 /* CadEditor's default */;
+  const gf = squash(r.getBigBlocksFunc || ''), go = r.getBigBlocksOffset ? offsetRec(r.getBigBlocksOffset) : null, gc = r.getBigBlocksCount ? value(r.getBigBlocksCount) : r.getBigBlocksCountFunc || /getBigBlocksCountHierarchy/.test(own + inc) ? null : 256 /* CadEditor's default */;
   const bigOn = !/false/.test(r.isBigBlockEditorEnabled || 'true');
   let big = BIG[gf] || null; if (!big && gf) { const name = gf.split('.').pop(); if (all[name]) { const h = helperBig(all[name].body, all); if (h) big = {...h, helper: gf}; } }
   if (big && bigOn) {
