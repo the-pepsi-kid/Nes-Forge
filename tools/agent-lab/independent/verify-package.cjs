@@ -33,7 +33,7 @@ function verifyPackage(input, {cartridge = null, fceux = null, log = () => {}} =
     const receipt = V.sealIndependent({format: V.FORMATS.independent, version: V.version, engine: {name: 'FCEUX', version: 'unavailable', reason: session.reason}, forgeEngine: pkg.manifest.engine, subject, jobs: [], comparisons: [], predictions: [], verdict: {result: 'blocked', reason: session.reason}, discrepancies: [], limitations, independent: true});
     return {receipt, blocked: true};
   }
-  const jobs = [], comparisons = [], predictions = [], t0 = Date.now();
+  const jobs = [], comparisons = [], predictions = [], jobTimes = [], t0 = Date.now(); // run times stay outside the sealed body
   const forgeJobs = pkg.verification.jobs;
   const independentNorm = new Map();
   try {
@@ -46,7 +46,8 @@ function verifyPackage(input, {cartridge = null, fceux = null, log = () => {}} =
       if (!r.ok) { jobs.push({id: job.id, kind: job.kind, cartridgeSha256: variant.sha256, mutations: job.mutations, result: {stopReason: r.reason}, captures: []}); continue; }
       const caps = r.captures.map(c => { const n = V.normalize(c, {engine: 'fceux', mirroring, colourClass: forgeColourClass(pkg)}); independentNorm.set(job.id + ':' + c.label, n); return {label: c.label, nmi: c.nmi, frame: c.frame, latches: c.latches, digests: V.digestAll(n),
         payloads: Object.fromEntries(['cpu', 'ram', 'nametables', 'attributes', 'palette'].filter(ch => n.channels[ch]).map(ch => [ch, b64(n.channels[ch])]))}; });
-      jobs.push({id: job.id, kind: job.kind, cartridgeSha256: variant.sha256, mutations: job.mutations, result: {frames: r.frames, nmis: r.nmis, latches: r.latches, multiLatchFrames: r.multiLatchFrames, missing: r.missing ? job.checkpoints.filter(cp => !r.captures.some(c => c.label === cp.label)).map(cp => cp.label) : [], ms: r.ms}, captures: caps});
+      jobs.push({id: job.id, kind: job.kind, cartridgeSha256: variant.sha256, mutations: job.mutations, result: {frames: r.frames, nmis: r.nmis, latches: r.latches, multiLatchFrames: r.multiLatchFrames, missing: r.missing ? job.checkpoints.filter(cp => !r.captures.some(c => c.label === cp.label)).map(cp => cp.label) : []}, captures: caps});
+      jobTimes.push({id: job.id, ms: r.ms});
       // compare with NES Forge's captures of the same job
       for (const fc of fj.forge.captures) {
         const ic = caps.find(c => c.label === fc.label);
@@ -74,7 +75,7 @@ function verifyPackage(input, {cartridge = null, fceux = null, log = () => {}} =
   } finally { if (!fceux) session.close(); }
   const verdict = V.verdictOf({comparisons, predictions, hasCandidate: !!pkg.candidate});
   const discrepancies = comparisons.filter(c => !c.agree).map(c => ({job: c.job, label: c.label, discrepancies: c.discrepancies}));
-  const receipt = V.sealIndependent({format: V.FORMATS.independent, version: V.version, engine: {...session.identity, lua: jobs.find(j => j.captures.length) ? 'Lua 5.1' : null}, forgeEngine: pkg.manifest.engine, subject, jobs, comparisons, predictions, verdict, discrepancies, limitations, independent: true, timing: {ms: Date.now() - t0}});
+  const receipt = V.sealIndependent({format: V.FORMATS.independent, version: V.version, engine: {...session.identity, lua: jobs.find(j => j.captures.length) ? 'Lua 5.1' : null}, forgeEngine: pkg.manifest.engine, subject, jobs, comparisons, predictions, verdict, discrepancies, limitations, independent: true, timing: {ms: Date.now() - t0, jobs: jobTimes}});
   return {receipt};
 }
 // A private package's claims carry cell IDs only: tiles and attribute bits are re-derived here from the frozen definition

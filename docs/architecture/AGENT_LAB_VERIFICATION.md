@@ -63,8 +63,8 @@ A job is what both engines run, written so that neither engine's frame numbering
   frame F maps to the last NMI entry before the end of frame F.
 
 The two engines number frames differently: FCEUX's frame starts at vertical blank, Forge's at line 0, and power-on
-differs. In the acceptance fixtures FCEUX reports frame numbers three higher at every checkpoint. Synchronizing on the
-program's own events removes this without hiding anything.
+differs. In the acceptance run's example receipt (fixture seed 11), FCEUX's frame numbers are three higher at all 25
+checkpoints. Synchronizing on the program's own events removes this without hiding anything.
 
 ## What is captured and compared
 
@@ -122,8 +122,8 @@ re-sealed.
 
 ## Known differences and limitations
 
-- **No semantic difference observed.** None were found on the synthetic fixtures in the acceptance run. The only
-  differences were interrupt-frame stack bytes, classified as timing.
+- **No semantic difference observed.** None were found on the 22 synthetic fixtures in the acceptance run: the engines
+  agreed at 531 of 531 checkpoints. At 296 of them the interrupt-frame stack bytes differed, classified as timing.
 - **Narrow scope.** NROM, unscrolled screens, one latch per frame, programs whose NMI handler entry is a meaningful
   checkpoint. Bank switching, scrolling, sprites (OAM) and audio are not covered.
 - **Representation.** FCEUX's picture is compared as colour indices, and NES Forge's as the indices its RGB output maps

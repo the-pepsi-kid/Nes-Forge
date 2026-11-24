@@ -1,0 +1,2090 @@
+{
+ "format": "NESForgeExperimentAcceptanceSummary",
+ "version": 1,
+ "suite": "al-exp-02",
+ "note": "From the AL-EXP-02 acceptance suite (QA/al-exp-02.cjs) on the editor build named below: the withheld fixtures' first run. Synthetic fixtures only; public-safe.",
+ "editorSha256": "61a34b8fa3993f4f60179ecd4f410a8f054a5b20b967e729fa8d80391b4fbac1",
+ "checks": [
+  {
+   "name": "Fixtures: all 22 AL-EXP-02 fixtures (11 development, 11 withheld; 9 scenarios) and every AL-EXP-01 fixture regenerate byte for byte from their seeds",
+   "status": "pass"
+  },
+  {
+   "name": "Fixtures in the independent emulator: every fixture draws its four truth screens in FCEUX; tripping the guard's checksum draws the same screen from the backup copy",
+   "status": "pass"
+  },
+  {
+   "name": "Separation: the generator and oracle import nothing from the editor; discovery, verification, lifecycle, package and promotion code names no fixture answers and reads no files; the build carries no generator, oracle or truth; no AL-EXP-02 cartridge carries its seed, scenario or generator name",
+   "status": "pass"
+  },
+  {
+   "name": "History: the 22 seeds (11 withheld, drawn from /dev/urandom) were committed before the AL-EXP-02 generator and every discovery change",
+   "status": "pass"
+  },
+  {
+   "name": "Contract: v2 candidate definitions (revision, decoder, assumptions, unsupported cases, record numbering) seal and verify, v1 stays readable; no definition can be marked verified or independently verified; a changed definition is a new revision that starts untested and names the one it replaces",
+   "status": "pass"
+  },
+  {
+   "name": "Lifecycle: every state and side state has a documented evidence requirement; with no evidence the state is uninvestigated; a hypothesis that explains 100% of the screens but was never tested stays a hypothesis (no score promotes anything)",
+   "status": "pass"
+  },
+  {
+   "name": "Promotion contract: destinations listed with what each can take; an unverified candidate is not eligible and its preview is empty; the module has no function that writes, promotes, registers or commits anything",
+   "status": "pass"
+  },
+  {
+   "name": "Independent receipts: NES Forge cannot be its own independent verifier; a receipt must say independent: true and name its engine and version",
+   "status": "pass"
+  },
+  {
+   "name": "Live editor set up before any experiment: an authored cartridge running, a frame in the library, the default project",
+   "status": "pass"
+  },
+  {
+   "name": "Development fixtures (11): each reaches its expected result (candidate, ambiguous, insufficient evidence or inconclusive) as judged by the independent oracle; every package validates; FCEUX agrees at every checkpoint and every prediction holds on it, as NES Forge re-computes from the receipt's raw captures; the lifecycle matches (only unambiguous candidates become promotion-eligible)",
+   "status": "pass"
+  },
+  {
+   "name": "Withheld fixtures (11, never run while the AL-EXP-02 code was built): the same, judged by the same oracle",
+   "status": "pass"
+  },
+  {
+   "name": "Circular verification: scrambling everything after the marker's gate prefix, renaming every capture label, or moving the table by 64 bytes changes nothing but the answer's offset (it follows the table): discovery uses no fixture metadata, labels or fixed offsets",
+   "status": "pass"
+  },
+  {
+   "name": "Disagreement stays visible: a receipt whose raw captures disagree with NES Forge in one nametable byte, re-sealed and still claiming \"verified\", is re-computed by the editor as failed and flagged as not matching its claim; an edited receipt is refused by its seal; a receipt about another definition is refused",
+   "status": "pass"
+  },
+  {
+   "name": "A wrong definition (the true table shifted by one record) fails independent verification: FCEUX's withheld screen contradicts its claims, the verdict is \"failed\" and the lifecycle says verification failed",
+   "status": "pass"
+  },
+  {
+   "name": "No independent emulator: the harness writes a sealed receipt that says \"blocked\" (nothing verified); attached, the lifecycle says verification blocked",
+   "status": "pass"
+  },
+  {
+   "name": "Packages: the inspector validates an exported package outside the editor; a private package embeds no cartridge, payload or capture bytes, no mutation values, no claimed tiles or predicted values (mutations kept as offset and XOR mask), and still validates; verified against a locally supplied cartridge with the recorded SHA-256 it passes on digests alone, and the wrong cartridge is refused",
+   "status": "pass"
+  },
+  {
+   "name": "The metadata-only export stays available as the lightweight alternative (hashes, offsets, counts, outcomes; no payload bytes)",
+   "status": "pass"
+  },
+  {
+   "name": "Reproduction: every trial and every verification job of an exported package, re-run in the sandbox from its recorded inputs and mutations, gives captures identical to the recorded ones (the jobs run in job mode here, reproducing the snapshots taken during the original trials)",
+   "status": "pass"
+  },
+  {
+   "name": "Controls: a positive control (a drawn record byte) changes the screen; a palette-only change changes only the palette; a same-value write changes nothing; the original cartridge after every variant gives the original result (restoration); an exact-copy decoy the complete trace shows was never read changes nothing (irrelevant for this input); a byte the program does read, from a table it reads every frame for another purpose, changes nothing observed (no observed effect, which is not irrelevance); tripping the guard changes the program's path while the screen stays the same (confounded); a program stuck in a loop times out; rendering never enabled is \"target not reached\"",
+   "status": "pass"
+  },
+  {
+   "name": "Trace truncation: a trace that reaches its event cap is marked truncated and incomplete, and the receipt says absence of an event is not evidence",
+   "status": "pass"
+  },
+  {
+   "name": "Invalid or unsupported cartridges: a malformed header is refused (not repaired) and a cartridge without the synthetic-fixture marker is refused before anything runs",
+   "status": "pass"
+  },
+  {
+   "name": "Cancellation: a discovery cancelled after 4 s stops within moments, claims nothing, and leaves no sandbox behind",
+   "status": "pass"
+  },
+  {
+   "name": "Promotion preview: an independently verified candidate is eligible for the Metatiles destination; its preview lists every record with its tiles, palette, source offsets and aliases, the source hash, CPU address, decoder version and unsupported cases, and writes nothing; the CHR destination is refused with its reason",
+   "status": "pass"
+  },
+  {
+   "name": "Panel: shows experiment status, lifecycle state, both engines' identities, the hypotheses tested, controls, withheld-screen results, the cross-emulator comparison and limitations, with controls to run, cancel, export metadata and packages, attach receipts, reproduce and inspect; no cartridge picker",
+   "status": "pass"
+  },
+  {
+   "name": "The live project, the editor's emulator state and cartridge, the resource library and the browser databases are exactly as before every experiment; no sandbox is left open",
+   "status": "pass"
+  },
+  {
+   "name": "Offline: no network request left file:// during the whole run",
+   "status": "pass"
+  },
+  {
+   "name": "No uncaught page errors",
+   "status": "pass"
+  }
+ ],
+ "metrics": {
+  "fixtures": 22,
+  "errors": 0,
+  "outcomesCorrect": 22,
+  "byExpectation": {
+   "candidate": {
+    "expected": 16,
+    "reached": 16
+   },
+   "ambiguous": {
+    "expected": 2,
+    "reached": 2
+   },
+   "insufficient-evidence": {
+    "expected": 2,
+    "reached": 2
+   },
+   "inconclusive": {
+    "expected": 2,
+    "reached": 2
+   }
+  },
+  "tableLocations": {
+   "correct": 18,
+   "incorrect": 0
+  },
+  "recordLayouts": {
+   "correct": 18,
+   "incorrect": 0
+  },
+  "falsePositives": 0,
+  "falseNegatives": 0,
+  "decoys": {
+   "ranked": 55,
+   "rejected": 42,
+   "unresolved": 13,
+   "accepted": 0
+  },
+  "ambiguity": {
+   "resultLevelExpected": 2,
+   "resultLevelDetected": 2,
+   "cellsAmbiguous": 198,
+   "cellsAmbiguityCorrect": 198
+  },
+  "withheld": {
+   "cells": 4320,
+   "cellsWithId": 4318,
+   "singleIdCells": 4120,
+   "exactIdentityCorrect": 3683,
+   "exactIdentityClaimedFixtures": 16,
+   "visualCorrect": 4318,
+   "paletteStated": 4120,
+   "paletteCorrect": 4120,
+   "attributeBitsStated": 8636,
+   "attributeBitsCorrect": 8636,
+   "unknownMissed": 0
+  },
+  "crossEmulator": {
+   "fixtures": 22,
+   "checkpoints": 531,
+   "agree": 531,
+   "timingOnly": 296,
+   "predictions": 426,
+   "hold": 426
+  },
+  "runtime": {
+   "discoverySeconds": [
+    27.9,
+    31.1,
+    28.1,
+    30.9,
+    31.2,
+    28.4,
+    30.1,
+    26.5,
+    6.5,
+    28.5,
+    19.6,
+    27.4,
+    27.5,
+    24.1,
+    27.6,
+    25.8,
+    25,
+    28.7,
+    22.9,
+    6.3,
+    23.6,
+    19.2
+   ],
+   "verifySeconds": [
+    3.5,
+    4.9,
+    4.1,
+    4.3,
+    4.5,
+    4,
+    4.6,
+    3.5,
+    0.9,
+    3.8,
+    3.6,
+    4.2,
+    4.2,
+    3.4,
+    4.5,
+    4.1,
+    4.2,
+    4,
+    3,
+    0.8,
+    3.7,
+    3.5
+   ],
+   "sandboxRuns": [
+    17,
+    19,
+    18,
+    18,
+    18,
+    17,
+    18,
+    16,
+    4,
+    18,
+    13,
+    19,
+    19,
+    16,
+    19,
+    17,
+    17,
+    18,
+    15,
+    4,
+    16,
+    13
+   ],
+   "packageKB": [
+    969,
+    1059,
+    1023,
+    1021,
+    1020,
+    969,
+    1022,
+    933,
+    480,
+    1015,
+    746,
+    1060,
+    1058,
+    932,
+    1059,
+    983,
+    970,
+    1005,
+    897,
+    480,
+    943,
+    745
+   ]
+  },
+  "traceComplete": {
+   "complete": 22,
+   "of": 22
+  }
+ },
+ "independentEngine": {
+  "name": "FCEUX",
+  "version": "2.6.5...",
+  "packageVersion": "2.6.5+dfsg1-2build3",
+  "source": "https://github.com/TASVideos/fceux.git",
+  "commit": "ea6ed69b874e3ae94072f1b4f14b9a8f0fdd774b",
+  "qt": "5.15.12",
+  "sdl": "2.30.0",
+  "license": "GPL-2.0-or-later",
+  "configuration": {
+   "SDL.RamInitMethod": "2",
+   "SDL.Sound": "0",
+   "display": "Xvfb 640x480x24",
+   "video": "old PPU core (default), NTSC",
+   "lua": "Lua 5.1 (built in)"
+  }
+ },
+ "fixtures": [
+  {
+   "seed": 11,
+   "scenario": "standard",
+   "role": "development",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 969,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 25,
+    "agree": 25,
+    "timingOnly": 8,
+    "predictions": 22,
+    "hold": 22
+   },
+   "seconds": 27.9,
+   "verifySeconds": 3.5,
+   "sandboxRuns": 17,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 15291,
+     "expectedBase": 15291
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 0,
+     "ambiguityCorrect": 0,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 240,
+      "identityCorrect": 240,
+      "visualCorrect": 240,
+      "ambiguous": 0,
+      "ambiguityCorrect": 0,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 240,
+      "paletteCorrect": 240,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 25,
+     "agree": 25,
+     "timingOnly": 0,
+     "predictions": 22,
+     "hold": 22
+    },
+    "hypotheses": {
+     "ranked": 3,
+     "trueRank": 1,
+     "decoysRanked": 2,
+     "decoysRejected": 2,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 12,
+   "scenario": "standard",
+   "role": "development",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 1059,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 31,
+    "agree": 31,
+    "timingOnly": 10,
+    "predictions": 25,
+    "hold": 25
+   },
+   "seconds": 31.1,
+   "verifySeconds": 4.9,
+   "sandboxRuns": 19,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 1123,
+     "expectedBase": 1123
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 16,
+     "ambiguityCorrect": 16,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 224,
+      "identityCorrect": 224,
+      "visualCorrect": 240,
+      "ambiguous": 16,
+      "ambiguityCorrect": 16,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 224,
+      "paletteCorrect": 224,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 31,
+     "agree": 31,
+     "timingOnly": 0,
+     "predictions": 25,
+     "hold": 25
+    },
+    "hypotheses": {
+     "ranked": 7,
+     "trueRank": 1,
+     "decoysRanked": 5,
+     "decoysRejected": 3,
+     "decoysUnresolved": 2,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 13,
+   "scenario": "standard",
+   "role": "development",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 1023,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 28,
+    "agree": 28,
+    "timingOnly": 18,
+    "predictions": 22,
+    "hold": 22
+   },
+   "seconds": 28.1,
+   "verifySeconds": 4.1,
+   "sandboxRuns": 18,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 7412,
+     "expectedBase": 7412
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 22,
+     "ambiguityCorrect": 22,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 218,
+      "identityCorrect": 218,
+      "visualCorrect": 240,
+      "ambiguous": 22,
+      "ambiguityCorrect": 22,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 218,
+      "paletteCorrect": 218,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 28,
+     "agree": 28,
+     "timingOnly": 0,
+     "predictions": 22,
+     "hold": 22
+    },
+    "hypotheses": {
+     "ranked": 4,
+     "trueRank": 1,
+     "decoysRanked": 2,
+     "decoysRejected": 2,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 21,
+   "scenario": "perfect-decoy",
+   "role": "development",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 1021,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 28,
+    "agree": 28,
+    "timingOnly": 27,
+    "predictions": 22,
+    "hold": 22
+   },
+   "seconds": 30.9,
+   "verifySeconds": 4.3,
+   "sandboxRuns": 18,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 2033,
+     "expectedBase": 2033
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 0,
+     "ambiguityCorrect": 0,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 240,
+      "identityCorrect": 240,
+      "visualCorrect": 240,
+      "ambiguous": 0,
+      "ambiguityCorrect": 0,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 240,
+      "paletteCorrect": 240,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 28,
+     "agree": 28,
+     "timingOnly": 0,
+     "predictions": 22,
+     "hold": 22
+    },
+    "hypotheses": {
+     "ranked": 4,
+     "trueRank": 1,
+     "decoysRanked": 2,
+     "decoysRejected": 2,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 22,
+   "scenario": "read-unrelated",
+   "role": "development",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 1020,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 28,
+    "agree": 28,
+    "timingOnly": 9,
+    "predictions": 25,
+    "hold": 25
+   },
+   "seconds": 31.2,
+   "verifySeconds": 4.5,
+   "sandboxRuns": 18,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 3982,
+     "expectedBase": 3982
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 0,
+     "ambiguityCorrect": 0,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 240,
+      "identityCorrect": 240,
+      "visualCorrect": 240,
+      "ambiguous": 0,
+      "ambiguityCorrect": 0,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 240,
+      "paletteCorrect": 240,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 28,
+     "agree": 28,
+     "timingOnly": 0,
+     "predictions": 25,
+     "hold": 25
+    },
+    "hypotheses": {
+     "ranked": 4,
+     "trueRank": 1,
+     "decoysRanked": 3,
+     "decoysRejected": 3,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 23,
+   "scenario": "palette-aliases",
+   "role": "development",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 969,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 25,
+    "agree": 25,
+    "timingOnly": 16,
+    "predictions": 22,
+    "hold": 22
+   },
+   "seconds": 28.4,
+   "verifySeconds": 4,
+   "sandboxRuns": 17,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 15080,
+     "expectedBase": 15080
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 0,
+     "ambiguityCorrect": 0,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 240,
+      "identityCorrect": 240,
+      "visualCorrect": 240,
+      "ambiguous": 0,
+      "ambiguityCorrect": 0,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 240,
+      "paletteCorrect": 240,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 25,
+     "agree": 25,
+     "timingOnly": 0,
+     "predictions": 22,
+     "hold": 22
+    },
+    "hypotheses": {
+     "ranked": 3,
+     "trueRank": 1,
+     "decoysRanked": 2,
+     "decoysRejected": 2,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 24,
+   "scenario": "identical-aliases",
+   "role": "development",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 1022,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 28,
+    "agree": 28,
+    "timingOnly": 9,
+    "predictions": 22,
+    "hold": 22
+   },
+   "seconds": 30.1,
+   "verifySeconds": 4.6,
+   "sandboxRuns": 18,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 1513,
+     "expectedBase": 1513
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 48,
+     "ambiguityCorrect": 48,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 192,
+      "identityCorrect": 192,
+      "visualCorrect": 240,
+      "ambiguous": 48,
+      "ambiguityCorrect": 48,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 192,
+      "paletteCorrect": 192,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 28,
+     "agree": 28,
+     "timingOnly": 0,
+     "predictions": 22,
+     "hold": 22
+    },
+    "hypotheses": {
+     "ranked": 4,
+     "trueRank": 1,
+     "decoysRanked": 2,
+     "decoysRejected": 2,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 25,
+   "scenario": "unobserved-records",
+   "role": "development",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 933,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 22,
+    "agree": 22,
+    "timingOnly": 21,
+    "predictions": 19,
+    "hold": 19
+   },
+   "seconds": 26.5,
+   "verifySeconds": 3.5,
+   "sandboxRuns": 16,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 7398,
+     "expectedBase": 7398
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 0,
+     "ambiguityCorrect": 0,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 240,
+      "identityCorrect": 240,
+      "visualCorrect": 240,
+      "ambiguous": 0,
+      "ambiguityCorrect": 0,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 240,
+      "paletteCorrect": 240,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 22,
+     "agree": 22,
+     "timingOnly": 0,
+     "predictions": 19,
+     "hold": 19
+    },
+    "hypotheses": {
+     "ranked": 2,
+     "trueRank": 1,
+     "decoysRanked": 1,
+     "decoysRejected": 1,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 26,
+   "scenario": "insufficient-observations",
+   "role": "development",
+   "expect": "insufficient-evidence",
+   "classification": "insufficient-evidence",
+   "oracle": true,
+   "lifecycle": {
+    "state": "observed",
+    "side": "inconclusive"
+   },
+   "packageValid": true,
+   "packageKB": 480,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "reproduced",
+    "editorRecheck": "reproduced",
+    "matchesReceipt": true,
+    "checkpoints": 3,
+    "agree": 3,
+    "timingOnly": 3,
+    "predictions": 0,
+    "hold": 0
+   },
+   "seconds": 6.5,
+   "verifySeconds": 0.9,
+   "sandboxRuns": 4,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "insufficient-evidence",
+    "outcomeCorrect": true,
+    "definition": null,
+    "tableLocation": "none",
+    "recordLayout": "none",
+    "falsePositive": false,
+    "falseNegative": false,
+    "independent": {
+     "verdict": "reproduced",
+     "checkpoints": 3,
+     "agree": 3,
+     "timingOnly": 0,
+     "predictions": 0,
+     "hold": 0
+    },
+    "hypotheses": {
+     "ranked": 0,
+     "trueRank": null,
+     "decoysRanked": 0,
+     "decoysRejected": 0,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 27,
+   "scenario": "indirect-numbering",
+   "role": "development",
+   "expect": "ambiguous",
+   "classification": "ambiguous",
+   "oracle": true,
+   "lifecycle": {
+    "state": "same-engine-repeatable",
+    "side": "ambiguous"
+   },
+   "packageValid": true,
+   "packageKB": 1015,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 28,
+    "agree": 28,
+    "timingOnly": 27,
+    "predictions": 22,
+    "hold": 22
+   },
+   "seconds": 28.5,
+   "verifySeconds": 3.8,
+   "sandboxRuns": 18,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "ambiguous",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "relative",
+     "physicalBase": 5229,
+     "expectedBase": 5229
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 99.2,
+     "exactIdentityPct": "not claimed (relative numbering)",
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 476,
+     "attributeBitsCorrect": 476,
+     "attributePct": 100,
+     "ambiguous": 11,
+     "ambiguityCorrect": 11,
+     "unknown": 2,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 238,
+      "single": 227,
+      "identityCorrect": 0,
+      "visualCorrect": 238,
+      "ambiguous": 11,
+      "ambiguityCorrect": 11,
+      "unknown": 2,
+      "unknownAllowed": 2,
+      "unknownMissed": 0,
+      "paletteStated": 227,
+      "paletteCorrect": 227,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 28,
+     "agree": 28,
+     "timingOnly": 0,
+     "predictions": 22,
+     "hold": 22
+    },
+    "hypotheses": {
+     "ranked": 4,
+     "trueRank": 1,
+     "decoysRanked": 2,
+     "decoysRejected": 2,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 28,
+   "scenario": "confounded-guard",
+   "role": "development",
+   "expect": "inconclusive",
+   "classification": "inconclusive",
+   "oracle": true,
+   "lifecycle": {
+    "state": "hypothesis",
+    "side": "inconclusive"
+   },
+   "packageValid": true,
+   "packageKB": 746,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "reproduced",
+    "editorRecheck": "reproduced",
+    "matchesReceipt": true,
+    "checkpoints": 24,
+    "agree": 24,
+    "timingOnly": 18,
+    "predictions": 15,
+    "hold": 15
+   },
+   "seconds": 19.6,
+   "verifySeconds": 3.6,
+   "sandboxRuns": 13,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "inconclusive",
+    "outcomeCorrect": true,
+    "definition": null,
+    "tableLocation": "none",
+    "recordLayout": "none",
+    "falsePositive": false,
+    "falseNegative": false,
+    "independent": {
+     "verdict": "reproduced",
+     "checkpoints": 24,
+     "agree": 24,
+     "timingOnly": 0,
+     "predictions": 15,
+     "hold": 15
+    },
+    "hypotheses": {
+     "ranked": 8,
+     "trueRank": 1,
+     "decoysRanked": 6,
+     "decoysRejected": 3,
+     "decoysUnresolved": 3,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 440820084,
+   "scenario": "standard",
+   "role": "withheld",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 1060,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 31,
+    "agree": 31,
+    "timingOnly": 11,
+    "predictions": 25,
+    "hold": 25
+   },
+   "seconds": 27.4,
+   "verifySeconds": 4.2,
+   "sandboxRuns": 19,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 14176,
+     "expectedBase": 14176
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 29,
+     "ambiguityCorrect": 29,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 211,
+      "identityCorrect": 211,
+      "visualCorrect": 240,
+      "ambiguous": 29,
+      "ambiguityCorrect": 29,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 211,
+      "paletteCorrect": 211,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 31,
+     "agree": 31,
+     "timingOnly": 0,
+     "predictions": 25,
+     "hold": 25
+    },
+    "hypotheses": {
+     "ranked": 7,
+     "trueRank": 1,
+     "decoysRanked": 5,
+     "decoysRejected": 3,
+     "decoysUnresolved": 2,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 21216121,
+   "scenario": "standard",
+   "role": "withheld",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 1058,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 31,
+    "agree": 31,
+    "timingOnly": 21,
+    "predictions": 25,
+    "hold": 25
+   },
+   "seconds": 27.5,
+   "verifySeconds": 4.2,
+   "sandboxRuns": 19,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 10186,
+     "expectedBase": 10186
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 3,
+     "ambiguityCorrect": 3,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 237,
+      "identityCorrect": 237,
+      "visualCorrect": 240,
+      "ambiguous": 3,
+      "ambiguityCorrect": 3,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 237,
+      "paletteCorrect": 237,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 31,
+     "agree": 31,
+     "timingOnly": 0,
+     "predictions": 25,
+     "hold": 25
+    },
+    "hypotheses": {
+     "ranked": 6,
+     "trueRank": 1,
+     "decoysRanked": 4,
+     "decoysRejected": 3,
+     "decoysUnresolved": 1,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 1575068011,
+   "scenario": "standard",
+   "role": "withheld",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 932,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 22,
+    "agree": 22,
+    "timingOnly": 14,
+    "predictions": 19,
+    "hold": 19
+   },
+   "seconds": 24.1,
+   "verifySeconds": 3.4,
+   "sandboxRuns": 16,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 14655,
+     "expectedBase": 14655
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 0,
+     "ambiguityCorrect": 0,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 240,
+      "identityCorrect": 240,
+      "visualCorrect": 240,
+      "ambiguous": 0,
+      "ambiguityCorrect": 0,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 240,
+      "paletteCorrect": 240,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 22,
+     "agree": 22,
+     "timingOnly": 0,
+     "predictions": 19,
+     "hold": 19
+    },
+    "hypotheses": {
+     "ranked": 2,
+     "trueRank": 1,
+     "decoysRanked": 1,
+     "decoysRejected": 1,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 1534667312,
+   "scenario": "perfect-decoy",
+   "role": "withheld",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 1059,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 31,
+    "agree": 31,
+    "timingOnly": 20,
+    "predictions": 25,
+    "hold": 25
+   },
+   "seconds": 27.6,
+   "verifySeconds": 4.5,
+   "sandboxRuns": 19,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 3635,
+     "expectedBase": 3635
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 11,
+     "ambiguityCorrect": 11,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 229,
+      "identityCorrect": 229,
+      "visualCorrect": 240,
+      "ambiguous": 11,
+      "ambiguityCorrect": 11,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 229,
+      "paletteCorrect": 229,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 31,
+     "agree": 31,
+     "timingOnly": 0,
+     "predictions": 25,
+     "hold": 25
+    },
+    "hypotheses": {
+     "ranked": 7,
+     "trueRank": 1,
+     "decoysRanked": 5,
+     "decoysRejected": 3,
+     "decoysUnresolved": 2,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 1028256674,
+   "scenario": "read-unrelated",
+   "role": "withheld",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 983,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 25,
+    "agree": 25,
+    "timingOnly": 8,
+    "predictions": 22,
+    "hold": 22
+   },
+   "seconds": 25.8,
+   "verifySeconds": 4.1,
+   "sandboxRuns": 17,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 15423,
+     "expectedBase": 15423
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 0,
+     "ambiguityCorrect": 0,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 240,
+      "identityCorrect": 240,
+      "visualCorrect": 240,
+      "ambiguous": 0,
+      "ambiguityCorrect": 0,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 240,
+      "paletteCorrect": 240,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 25,
+     "agree": 25,
+     "timingOnly": 0,
+     "predictions": 22,
+     "hold": 22
+    },
+    "hypotheses": {
+     "ranked": 3,
+     "trueRank": 1,
+     "decoysRanked": 2,
+     "decoysRejected": 2,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 1042658210,
+   "scenario": "palette-aliases",
+   "role": "withheld",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 970,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 25,
+    "agree": 25,
+    "timingOnly": 9,
+    "predictions": 22,
+    "hold": 22
+   },
+   "seconds": 25,
+   "verifySeconds": 4.2,
+   "sandboxRuns": 17,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 2971,
+     "expectedBase": 2971
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 0,
+     "ambiguityCorrect": 0,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 240,
+      "identityCorrect": 240,
+      "visualCorrect": 240,
+      "ambiguous": 0,
+      "ambiguityCorrect": 0,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 240,
+      "paletteCorrect": 240,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 25,
+     "agree": 25,
+     "timingOnly": 0,
+     "predictions": 22,
+     "hold": 22
+    },
+    "hypotheses": {
+     "ranked": 3,
+     "trueRank": 1,
+     "decoysRanked": 2,
+     "decoysRejected": 2,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 1225071621,
+   "scenario": "identical-aliases",
+   "role": "withheld",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 1005,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 28,
+    "agree": 28,
+    "timingOnly": 0,
+    "predictions": 25,
+    "hold": 25
+   },
+   "seconds": 28.7,
+   "verifySeconds": 4,
+   "sandboxRuns": 18,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 14422,
+     "expectedBase": 14422
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 28,
+     "ambiguityCorrect": 28,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 212,
+      "identityCorrect": 212,
+      "visualCorrect": 240,
+      "ambiguous": 28,
+      "ambiguityCorrect": 28,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 212,
+      "paletteCorrect": 212,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 28,
+     "agree": 28,
+     "timingOnly": 0,
+     "predictions": 25,
+     "hold": 25
+    },
+    "hypotheses": {
+     "ranked": 4,
+     "trueRank": 1,
+     "decoysRanked": 3,
+     "decoysRejected": 3,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 1677948386,
+   "scenario": "unobserved-records",
+   "role": "withheld",
+   "expect": "candidate",
+   "classification": "candidate",
+   "oracle": true,
+   "lifecycle": {
+    "state": "promotion-eligible",
+    "side": null
+   },
+   "packageValid": true,
+   "packageKB": 897,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 19,
+    "agree": 19,
+    "timingOnly": 19,
+    "predictions": 16,
+    "hold": 16
+   },
+   "seconds": 22.9,
+   "verifySeconds": 3,
+   "sandboxRuns": 15,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "candidate",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "operand-evidence",
+     "physicalBase": 5655,
+     "expectedBase": 5655
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": 100,
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 0,
+     "ambiguityCorrect": 0,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 240,
+      "identityCorrect": 240,
+      "visualCorrect": 240,
+      "ambiguous": 0,
+      "ambiguityCorrect": 0,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 240,
+      "paletteCorrect": 240,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 19,
+     "agree": 19,
+     "timingOnly": 0,
+     "predictions": 16,
+     "hold": 16
+    },
+    "hypotheses": {
+     "ranked": 1,
+     "trueRank": 1,
+     "decoysRanked": 0,
+     "decoysRejected": 0,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 1455155350,
+   "scenario": "insufficient-observations",
+   "role": "withheld",
+   "expect": "insufficient-evidence",
+   "classification": "insufficient-evidence",
+   "oracle": true,
+   "lifecycle": {
+    "state": "observed",
+    "side": "inconclusive"
+   },
+   "packageValid": true,
+   "packageKB": 480,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "reproduced",
+    "editorRecheck": "reproduced",
+    "matchesReceipt": true,
+    "checkpoints": 3,
+    "agree": 3,
+    "timingOnly": 1,
+    "predictions": 0,
+    "hold": 0
+   },
+   "seconds": 6.3,
+   "verifySeconds": 0.8,
+   "sandboxRuns": 4,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "insufficient-evidence",
+    "outcomeCorrect": true,
+    "definition": null,
+    "tableLocation": "none",
+    "recordLayout": "none",
+    "falsePositive": false,
+    "falseNegative": false,
+    "independent": {
+     "verdict": "reproduced",
+     "checkpoints": 3,
+     "agree": 3,
+     "timingOnly": 0,
+     "predictions": 0,
+     "hold": 0
+    },
+    "hypotheses": {
+     "ranked": 0,
+     "trueRank": null,
+     "decoysRanked": 0,
+     "decoysRejected": 0,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 169579732,
+   "scenario": "indirect-numbering",
+   "role": "withheld",
+   "expect": "ambiguous",
+   "classification": "ambiguous",
+   "oracle": true,
+   "lifecycle": {
+    "state": "same-engine-repeatable",
+    "side": "ambiguous"
+   },
+   "packageValid": true,
+   "packageKB": 943,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "verified",
+    "editorRecheck": "verified",
+    "matchesReceipt": true,
+    "checkpoints": 22,
+    "agree": 22,
+    "timingOnly": 7,
+    "predictions": 16,
+    "hold": 16
+   },
+   "seconds": 23.6,
+   "verifySeconds": 3.7,
+   "sandboxRuns": 16,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "ambiguous",
+    "outcomeCorrect": true,
+    "definition": {
+     "numbering": "relative",
+     "physicalBase": 2112,
+     "expectedBase": 2112
+    },
+    "tableLocation": "correct",
+    "recordLayout": "correct",
+    "falsePositive": false,
+    "falseNegative": false,
+    "withheld": {
+     "coveragePct": 100,
+     "exactIdentityPct": "not claimed (relative numbering)",
+     "visualEquivalencePct": 100,
+     "palettePct": 100,
+     "attributeBitsStated": 480,
+     "attributeBitsCorrect": 480,
+     "attributePct": 100,
+     "ambiguous": 30,
+     "ambiguityCorrect": 30,
+     "unknown": 0,
+     "unknownMissed": 0,
+     "tally": {
+      "cells": 240,
+      "withId": 240,
+      "single": 210,
+      "identityCorrect": 0,
+      "visualCorrect": 240,
+      "ambiguous": 30,
+      "ambiguityCorrect": 30,
+      "unknown": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "paletteStated": 210,
+      "paletteCorrect": 210,
+      "wrong": []
+     }
+    },
+    "independent": {
+     "verdict": "verified",
+     "checkpoints": 22,
+     "agree": 22,
+     "timingOnly": 0,
+     "predictions": 16,
+     "hold": 16
+    },
+    "hypotheses": {
+     "ranked": 2,
+     "trueRank": 1,
+     "decoysRanked": 0,
+     "decoysRejected": 0,
+     "decoysUnresolved": 0,
+     "decoysAccepted": 0
+    }
+   }
+  },
+  {
+   "seed": 1929179058,
+   "scenario": "confounded-guard",
+   "role": "withheld",
+   "expect": "inconclusive",
+   "classification": "inconclusive",
+   "oracle": true,
+   "lifecycle": {
+    "state": "hypothesis",
+    "side": "inconclusive"
+   },
+   "packageValid": true,
+   "packageKB": 745,
+   "completeness": "partial",
+   "independent": {
+    "verdict": "reproduced",
+    "editorRecheck": "reproduced",
+    "matchesReceipt": true,
+    "checkpoints": 24,
+    "agree": 24,
+    "timingOnly": 20,
+    "predictions": 15,
+    "hold": 15
+   },
+   "seconds": 19.2,
+   "verifySeconds": 3.5,
+   "sandboxRuns": 13,
+   "traceComplete": true,
+   "frozenBeforeHoldout": true,
+   "metrics": {
+    "classification": "inconclusive",
+    "outcomeCorrect": true,
+    "definition": null,
+    "tableLocation": "none",
+    "recordLayout": "none",
+    "falsePositive": false,
+    "falseNegative": false,
+    "independent": {
+     "verdict": "reproduced",
+     "checkpoints": 24,
+     "agree": 24,
+     "timingOnly": 0,
+     "predictions": 15,
+     "hold": 15
+    },
+    "hypotheses": {
+     "ranked": 8,
+     "trueRank": 1,
+     "decoysRanked": 6,
+     "decoysRejected": 3,
+     "decoysUnresolved": 3,
+     "decoysAccepted": 0
+    }
+   }
+  }
+ ]
+}
