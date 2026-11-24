@@ -61,7 +61,8 @@ async function run(planInput,baseBytes,{store=Evidence.createStore(),session=nul
         if(mutations.length){variant=contract.buildVariant(base,baseSha,mutations);}
         const request={steps:plan.input.steps,captures:plan.captures,channels:plan.observe.channels,payloads:plan.observe.payloads,
           trace:trial.trace&&plan.observe.trace?{...plan.observe.trace,watchRam:plan.observe.watchRam}:null,frameDigests:plan.observe.frameDigests,
-          budgets:{frames:plan.budgets.framesPerTrial,wallMs:plan.budgets.wallMsPerTrial},hangFrames:60,chunkMs:16,save:trial.saveCheckpoints?plan.checkpoints:[]};
+          budgets:{frames:plan.budgets.framesPerTrial,wallMs:plan.budgets.wallMsPerTrial},hangFrames:60,chunkMs:16,save:trial.saveCheckpoints?plan.checkpoints:[],
+          syncCaptures:trial.fromCheckpoint?null:{captures:plan.captures,channels:['cpu','ram','nametables','palette','chr','pixels',...(trial.trace&&plan.observe.trace?['reads']:[])]}};
         if(trial.fromCheckpoint)request.restore={label:trial.fromCheckpoint,romSha:variant?variant.sha256:baseSha};
         else{request.rom=variant?variant.bytes:base;request.romSha=variant?variant.sha256:baseSha;}
         if(signal?.aborted||own.closed())result={captures:[],frameDigests:[],trace:null,framesRun:0,startFrame:0,outcome:'cancelled',stopReason:own.closed()?'the sandbox was closed before the trial started':'cancelled before the trial started'};

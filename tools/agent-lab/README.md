@@ -124,6 +124,40 @@ checked by an independent oracle. Experiments run in a sandboxed second copy of 
 editor's emulator. This slice does not extend the worker (BL08) and runs no commercial-ROM experiment. See
 [AGENT_LAB_EXPERIMENTS.md](../../docs/architecture/AGENT_LAB_EXPERIMENTS.md).
 
+## Independent verification and evidence packages (AL-EXP-02)
+
+The panel (CODE → RE / DISASM → analysis workspace → **Experimental discovery**) now takes a result all the way to
+independent verification:
+
+1. **Run demonstration** discovers the table in the embedded synthetic cartridge. The result is a candidate, ambiguous,
+   insufficient evidence or inconclusive, never forced.
+2. **Inspect definition / hypotheses / discrepancies** shows the frozen definition, every hypothesis tested and why it
+   was supported, falsified or confounded, and any disagreement between engines.
+3. **Export evidence package** writes a reproducible `*.forge-experiment.json`: cartridge, inputs, plans, receipts,
+   captures, hypotheses, controls, candidate, reconstruction, verification jobs and lifecycle. **Export metadata** stays
+   the lightweight alternative.
+4. **Reproduce from recorded inputs** re-runs every trial and job and compares each capture with the recorded one.
+5. Outside the editor, the development harness runs the same jobs in FCEUX:
+
+```bash
+node tools/agent-lab/independent/verify-package.cjs package.forge-experiment.json --out receipt.json
+```
+
+6. **Attach verification receipt…** re-checks that receipt in the editor (seal, subject, then every comparison and
+   prediction recomputed from its raw captures). The lifecycle moves to *independently verified* only if NES Forge's
+   own recomputation agrees.
+
+The editor works without FCEUX. It says independent verification was not performed and never presents it as done.
+
+```bash
+node tools/agent-lab/inspect-package.cjs package.forge-experiment.json
+```
+
+Needs FCEUX 2.6 and Xvfb on Linux (`apt-get install fceux xvfb`). Details:
+- [verification](../../docs/architecture/AGENT_LAB_VERIFICATION.md);
+- [package format](../../docs/architecture/EXPERIMENT_PACKAGE_FORMAT.md);
+- [lifecycle and promotion](../../docs/architecture/DISCOVERY_LIFECYCLE.md).
+
 ## Reproducible check and present limitations
 
 `python -m unittest discover -s tools/agent-lab/tests -v` runs seven synthetic/unit checks, including a forgery of an extracted-bank hash and a simulated loopback model. An additional local test against a user-provided Ninja Gaiden ROM (SHA-256 prefix `07d9e57e3518`) returned **48 scene/context entries, 202 poses, 83 scripts**, via `GameRENative.inspect`. This does **not** establish room pixel parity, enemy AI, scene writeback, or complete audio conversion. The public HTML's separate sanitized build still requires an end-to-end real-ROM rerun before release claims.

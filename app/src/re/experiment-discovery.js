@@ -85,8 +85,9 @@ async function discover({rom,training,holdout,interventions=Finder.LIMITS.interv
     timings.proposeMs=Math.round(performance.now()-tp);
     report.stages.propose={distinctTuples:proposal.distinctTuples,searched:proposal.searched,ranked:proposal.candidates.map(summary),staticRanking:proposal.staticRanking.slice(0,8),skipped:proposal.skipped};
     report.hypotheses.ranked=report.stages.propose.ranked;
-    if(proposal.distinctTuples<Finder.LIMITS.minMatched)return finish('insufficient-evidence','the training screens show '+proposal.distinctTuples+' distinct 2x2 record(s); at least '+Finder.LIMITS.minMatched+' are needed to fix a table\'s geometry (stride, order and record numbering cannot be told apart with fewer)');
-    if(!proposal.candidates.length)return finish('insufficient-evidence','no table in the cartridge explains at least '+Finder.LIMITS.minMatched+' of the observed records');
+    const prepare=async extra=>{if(prepareVerification&&!signal?.aborted){stage('verification',{message:'Running the engine-neutral verification jobs in this engine'});report.verification=await verificationJobs({session,rom,romSha,layout,r1,training,holdout,signal,...extra});}};
+    if(proposal.distinctTuples<Finder.LIMITS.minMatched){await prepare({});return finish('insufficient-evidence','the training screens show '+proposal.distinctTuples+' distinct 2x2 record(s); at least '+Finder.LIMITS.minMatched+' are needed to fix a table\'s geometry (stride, order and record numbering cannot be told apart with fewer)');}
+    if(!proposal.candidates.length){await prepare({});return finish('insufficient-evidence','no table in the cartridge explains at least '+Finder.LIMITS.minMatched+' of the observed records');}
     // 3. test the leading candidates
     stage('test',{message:'Testing the leading candidates with predicted interventions'});
     const tested=proposal.candidates.slice(0,interventions),tests=[];
@@ -109,13 +110,13 @@ async function discover({rom,training,holdout,interventions=Finder.LIMITS.interv
       controlOf('baseline-after-variants','after every variant, the original cartridge gives the original result again (restoration)')].filter(Boolean);
     report.stages.test={interventions:judged.map(t=>({trial:t.trial,kind:t.kind,candidate:t.candidate,quadrant:t.quadrant,mutation:t.mutation,predictedChanges:t.predict.length,outcome:t.outcome,result:t.judgement.result,reason:t.judgement.reason||null,interpretation:t.interpretation,receiptHash:t.receiptHash})),controls};
     for(const t of judged){const i=t.interpretation;if(i.classification==='confounded')report.hypotheses.confounded.push({id:t.candidate,reason:i.reason});else if(i.classification.startsWith('falsified'))report.hypotheses.falsified.push({id:t.candidate,classification:i.classification,reason:i.reason});}
-    if(controls.some(c=>!c.passed))return finish('inconclusive','a control did not behave as expected, so the observations cannot be trusted ('+controls.filter(c=>!c.passed).map(c=>c.trial+': '+c.outcome+', path '+c.path).join('; ')+')');
+    if(controls.some(c=>!c.passed)){await prepare({r2,judged,controls});return finish('inconclusive','a control did not behave as expected, so the observations cannot be trusted ('+controls.filter(c=>!c.passed).map(c=>c.trial+': '+c.outcome+', path '+c.path).join('; ')+')');}
     const supportedTests=judged.filter(t=>t.interpretation.classification==='supported'),supported=supportedTests.map(t=>tested.find(w=>w.id===t.candidate));
     report.hypotheses.supported=supported.map(w=>w.id);
-    if(!supported.length){const conf=judged.filter(t=>t.interpretation.classification==='confounded');
+    if(!supported.length){const conf=judged.filter(t=>t.interpretation.classification==='confounded');await prepare({r2,judged,controls});
       return finish('inconclusive',conf.length?'no hypothesis was supported: the intervention on '+conf.map(t=>t.candidate).join(', ')+' changed the program\'s execution (confounded), so the plausible candidates cannot be told apart by this experiment':'every tested hypothesis was falsified',{unresolved:conf.map(t=>t.candidate)});}
     const distinct=supported.filter((w,i)=>supported.findIndex(x=>sameTable(x,w))===i);
-    if(distinct.length>1)return finish('ambiguous','several hypotheses survived their interventions and describe different tables: '+distinct.map(w=>w.id).join(', '),{unresolved:distinct.map(w=>w.id)});
+    if(distinct.length>1){await prepare({r2,judged,controls});return finish('ambiguous','several hypotheses survived their interventions and describe different tables: '+distinct.map(w=>w.id).join(', '),{unresolved:distinct.map(w=>w.id)});}
     const w=supported[0],first0=supportedTests[0];
     // the survivor again: a second record and quadrant (a positive control at another position) and the first change repeated
     const second=Finder.planTileIntervention(w,rom,layout,{skipKeys:[first0.key],quadrant:'BR'});
@@ -178,21 +179,25 @@ async function verificationJobs({session,rom,romSha,layout,r1,r2,rc,ra,r3,judged
   const specs=[],add=(id,kind,result,mutations,captures,expectation,extra={})=>{if(result?.sync)specs.push({id,kind,result,mutations,captures,expectation,...extra});};
   const resultOf=(run,trial)=>run?.results.find(x=>x.trial.id===trial)?.result;
   add('training-baseline','baseline',r1.reference.result,[],training.captures,{kind:'reference'},{trace:true,chr:true});
-  add('holdout-baseline','holdout',r3.reference.result,[],holdout.captures,{kind:'claims',claims});
-  for(const t of judged){const c=t.interpretation.classification;
+  if(r3?.reference)add('holdout-baseline','holdout',r3.reference.result,[],holdout.captures,claims?{kind:'claims',claims}:{kind:'compare-only',reason:'no frozen definition, so no claims about the withheld screen'});
+  for(const t of judged||[]){const c=t.interpretation.classification;
     add(t.trial,'intervention',resultOf(r2,t.trial),[t.mutation],training.captures,c==='supported'?{kind:'prediction',predict:t.predict,candidate:t.candidate}:c==='falsified-not-read'||c==='falsified-no-observed-effect'?{kind:'no-effect',candidate:t.candidate,reason:c}:{kind:'compare-only',candidate:t.candidate,reason:c});}
   if(second&&secondJ?.interpretation.classification==='supported')add('tile-second-position','intervention',resultOf(rc,'tile-second-position'),[second.mutation],training.captures,{kind:'prediction',predict:second.predict,candidate:second.candidate});
   if(attrJudged&&attrJudged.interpretation.classification==='supported')add('attribute-0','intervention',resultOf(ra,'attribute-0'),[attrJudged.mutation],training.captures,{kind:'prediction',predict:attrJudged.predict,candidate:attrJudged.candidate});
-  for(const c of controls)if(c.mutation)add(c.trial,'control',resultOf(r2,c.trial),[{offset:c.mutation.offset,expected:c.mutation.expected,value:c.mutation.value}],training.captures,{kind:'no-effect',reason:c.expectation});
+  for(const c of controls||[])if(c.mutation)add(c.trial,'control',resultOf(r2,c.trial),[{offset:c.mutation.offset,expected:c.mutation.expected,value:c.mutation.value}],training.captures,{kind:'no-effect',reason:c.expectation});
   const jobs=[];let colourClass=null;
   for(const s of specs){
     if(signal?.aborted)break;
     const job=V.deriveJob({id:s.id,kind:s.kind,cartridgeSha256:romSha,mutations:s.mutations,sync:s.result.sync,captures:s.captures,trace:!!s.trace,chr:!!s.chr,pixels:true});
     const variant=s.mutations.length?contract.buildVariant(rom,romSha,contract.validateMutations(rom,layout,s.mutations)):{bytes:rom,sha256:romSha};
-    const out=await session.run({job,rom:variant.bytes,romSha:variant.sha256,budgets:{wallMs:60000}},{signal});
+    // the snapshots the frame-mode run took at the same NMI entries are this job's captures in this engine (the
+    // inputs latched are identical by construction); a job whose checkpoints they do not cover is run on its own
+    const pre=s.result.syncCaptures||[],covered=job.checkpoints.length&&job.checkpoints.every(cp=>pre.some(x=>x.label===cp.label&&x.nmi===cp.nmi));
+    const out=covered?{job:{captures:job.checkpoints.map(cp=>pre.find(x=>x.label===cp.label)),frames:null,nmis:s.result.sync.nmiFrames.length,latches:s.result.sync.latches.length,multiLatchFrames:s.result.sync.multiLatchFrames,missing:[],source:'snapshots taken during the frame-mode run'}}
+      :await session.run({job,rom:variant.bytes,romSha:variant.sha256,budgets:{wallMs:60000}},{signal});
     for(const c of out.job?.captures||[])if(c.colourClass&&!colourClass)colourClass=Array.from(c.colourClass);
     const captures=(out.job?.captures||[]).map(c=>{const n=V.normalize(c,{engine:'forge',mirroring:layout.mirroring,colourClass:c.colourClass});return {label:c.label,nmi:c.nmi,frame:c.frame,latches:c.latches,line:c.line,digests:V.digestAll(n),normalized:n};});
-    jobs.push({job:{...job,variantSha256:variant.sha256},expectation:s.expectation,forge:{captures,frames:out.job?.frames??null,nmis:out.job?.nmis??null,latches:out.job?.latches??null,multiLatchFrames:out.job?.multiLatchFrames??null,missing:out.job?.missing??null,stopReason:out.job?.stopReason||out.stopReason||null}});
+    jobs.push({job:{...job,variantSha256:variant.sha256},expectation:s.expectation,forge:{source:out.job?.source||'a job-mode run in this engine',captures,frames:out.job?.frames??null,nmis:out.job?.nmis??null,latches:out.job?.latches??null,multiLatchFrames:out.job?.multiLatchFrames??null,missing:out.job?.missing??null,stopReason:out.job?.stopReason||out.stopReason||null}});
   }
   // the same predictions judged on this engine's job captures (same-engine; the independent receipt repeats them on another engine)
   const byId=id=>jobs.find(j=>j.job.id===id),base=byId('training-baseline'),checks=[];

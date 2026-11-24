@@ -1,7 +1,21 @@
 # Experimental discovery foundation (AL-EXP-01, slice 1)
 
 Status: implemented for the approved slice 1 scope (BL01–BL06 on synthetic NROM fixtures). Acceptance: `QA/al-exp-01.cjs`,
-part of the full regression. Not in this slice: banked or CHR-RAM fixtures, the worker experiment job kind (BL08), any
+part of the full regression. **AL-EXP-02** adds independent verification in FCEUX, reproducible evidence packages, the
+discovery lifecycle, randomized adversarial fixtures and the promotion contract:
+- [AGENT_LAB_VERIFICATION.md](AGENT_LAB_VERIFICATION.md);
+- [EXPERIMENT_PACKAGE_FORMAT.md](EXPERIMENT_PACKAGE_FORMAT.md);
+- [DISCOVERY_LIFECYCLE.md](DISCOVERY_LIFECYCLE.md);
+- acceptance: `QA/al-exp-02.cjs`.
+
+What AL-EXP-02 changed here:
+- **Classified results.** Discovery's result is one of candidate, ambiguous, insufficient evidence or inconclusive.
+- **Interpreted interventions.** Each intervention records whether the byte was read and whether the program's path
+  changed.
+- **Confirmation.** The survivor is tested again at a second record position and repeated, and a restoration baseline
+  runs after the variants.
+- **Base evidence.** Record 0 is inferred only from reads of the candidate's own record bytes.
+- **Definitions.** Definitions are v2: revision, decoder, assumptions, unsupported cases and record numbering. Not in this slice: banked or CHR-RAM fixtures, the worker experiment job kind (BL08), any
 commercial-ROM experiment, pointer, collision and compression discovery (BL07, BL10, BL11), a second emulator (BL12).
 Those need separate approval.
 

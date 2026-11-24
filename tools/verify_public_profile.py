@@ -103,10 +103,29 @@ def fixtures():
             assert file in allowed, 'Unidentified cartridge '+str(file.relative_to(ROOT))
 
 
+def evidence_packages():
+    # AL-EXP-02 evidence packages in the tree: synthetic only, and their embedded cartridge must be a pinned fixture
+    pinned = set()
+    for suite in SYNTHETIC_SUITES:
+        pinned |= {row['sha256'] for row in json.loads((suite/'seeds.json').read_text())['fixtures']}
+    for folder in ['app', 'QA', 'tools', 'docs', 'Examples']:
+        for file in (ROOT/folder).rglob('*.forge-experiment.json'):
+            if 'node_modules' in file.parts:
+                continue
+            package = json.loads(file.read_text())
+            name = str(file.relative_to(ROOT))
+            assert package.get('manifest', {}).get('privacy') == 'synthetic', name
+            cart = package['cartridge']
+            if cart.get('availability') == 'embedded':
+                data = base64.b64decode(cart['base64'])
+                assert hashlib.sha256(data).hexdigest() == cart['sha256'] and cart['sha256'] in pinned and synthetic_cartridge(data), name
+
+
 check('Both launch entries reproduce all manifest source parts', sources)
 check('Private compressed capture catalogs are excluded', payloads)
 check('Distributed editable projects contain no preserved ROM field', examples)
 check('Only the four identified authored cartridges and the pinned synthetic AL-EXP-01/02 fixtures are shipped', fixtures)
+check('Committed evidence packages are synthetic and embed only pinned synthetic fixtures', evidence_packages)
 report = {'editorSha256': digest, 'checks': checks, 'total': len(checks),
           'passed': all(row['passed'] for row in checks)}
 if args.output:

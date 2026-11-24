@@ -30,7 +30,7 @@ function packageOf({privacy='synthetic'}={}){if(!last||!lastStore)fail('no exper
 // The receipt from an independent emulator: its seal checked, its subject matched, its comparisons and predictions
 // recomputed here from its raw captures. The verdict used is NES Forge's recomputation.
 function attach(receipt){
-  if(!last?.verification?.jobs?.length)fail('run the demonstration first: there are no verification jobs to compare with');
+  if(!last)fail('run the demonstration first');if(!last.verification?.jobs?.length)fail('this result has no verification jobs to compare with');
   const seal=V.verifyIndependent(receipt);if(!seal.ok)fail('the receipt is refused: '+seal.problems.join('; '));
   if(receipt.subject.cartridgeSha256!==last.source.sha256)fail('the receipt is about another cartridge');
   if(last.definition&&receipt.subject.definitionHash!==last.definition.definitionHash)fail('the receipt is about another definition ('+String(receipt.subject.definitionHash).slice(0,12)+'…)');
@@ -132,7 +132,8 @@ function render(report){
     p('Not compared: '+Object.entries(V.NOT_COMPARED).map(([k,v])=>k+' ('+v+')').join('; ')+'.');}
   p('Limitations: NROM only, unscrolled screens, 2x2 metatiles; same-engine results show determinism, not correctness; nothing is promoted or written to the library in this phase.');
 }
-function plain(report){return JSON.parse(JSON.stringify(report,(k,v)=>v instanceof Uint8Array?Array.from(v):v));}
+// command results are JSON: captured bytes stay in the editor (export a package for them) and are reported by length
+function plain(report){return JSON.parse(JSON.stringify(report,(k,v)=>v instanceof Uint8Array?{bytes:v.length}:v));}
 
 // ---------- commands ----------
 if(C?.register){
@@ -150,7 +151,7 @@ if(C?.register){
   R({name:'experiment.exportPackage',title:'Export the last experiment as a reproducible evidence package',args:{privacy:{type:'string'}},summary:'NESForgeExperimentPackage v1: cartridge (synthetic only), inputs, plans, receipts, payloads, hypotheses, controls, candidate, reconstruction, verification jobs, lifecycle. privacy "private" keeps every cartridge-derived byte out.',run:a=>packageOf({privacy:a.privacy||'synthetic'})});
   R({name:'experiment.inspectPackage',title:'Inspect an evidence package',args:{package:{type:'object',required:true}},summary:'Validates hashes, receipts, payloads and the cartridge; summarizes completeness. Nothing runs.',run:a=>Pkg.inspect(a.package)});
   R({name:'experiment.replayPackage',title:'Reproduce a package from its recorded inputs',args:{package:{type:'object',required:true},bytes:{type:'bytes'}},summary:'Re-runs every plan and verification job in the sandbox and compares each capture with the recorded one. A referenced cartridge must be supplied (its SHA-256 is checked).',run:a=>replay(a.package,a.bytes||null)});
-  R({name:'experiment.attachVerification',title:'Attach an independent emulator\'s verification receipt',args:{receipt:{type:'object',required:true}},summary:'Checks the seal and subject, recomputes every comparison and prediction from the receipt\'s raw captures, and reassesses the lifecycle. The library is not touched.',run:a=>attach(a.receipt)});
+  R({name:'experiment.attachVerification',title:'Attach an independent emulator\'s verification receipt',args:{receipt:{type:'object',required:true}},summary:'Checks the seal and subject, recomputes every comparison and prediction from the receipt\'s raw captures, and reassesses the lifecycle. The library is not touched.',run:a=>{const r=attach(a.receipt);render(last);return r;}});
   R({name:'experiment.lifecycle',title:'Lifecycle assessment of the last experiment',summary:'The state the evidence supports, its side state, and what the next state requires.',run:()=>assessment()});
   R({name:'experiment.reviseDefinition',title:'Make a new revision of the frozen definition (for review)',args:{changes:{type:'object',required:true},reason:{type:'string',required:true}},summary:'A revision starts untested and names the one it replaces; nothing carries over.',run:a=>{if(!last?.definition)fail('no frozen definition');const rev=contract.reviseCandidate(last.definition,a.changes,a.reason);
     return {definition:rev,lifecycle:Life.assess({discovery:{...last,definition:rev,stages:{...last.stages,freeze:{...last.stages.freeze,definitionHash:rev.definitionHash}}},independent:null,priorEvaluations:last.holdout?[{definitionHash:last.definition.definitionHash,inputHash:last.holdout.inputHash}]:[]})};}});

@@ -15,7 +15,9 @@ const VERSION=1,FORMAT='NESForgeExperimentPackage';
 const LARGE=96*1024; // a payload above this is referenced (its SHA-256 kept) rather than embedded, and says so
 function fail(message){throw Error('Experiment package: '+message);}
 const b64=Evidence.b64,unb64=Evidence.unb64;
-const plain=v=>JSON.parse(JSON.stringify(v,(k,x)=>x instanceof Uint8Array?Array.from(x):x));
+// Canonical JSON holds integers only: a fraction is stored as an integer per mille under the field name + "Permille".
+function perMille(v){if(Array.isArray(v))return v.map(perMille);if(v&&typeof v==='object'){const out={};for(const [k,x] of Object.entries(v)){if(typeof x==='number'&&!Number.isSafeInteger(x)){if(Number.isFinite(x))out[k+'Permille']=Math.round(x*1000);}else out[k]=perMille(x);}return out;}return v;}
+const plain=v=>perMille(JSON.parse(JSON.stringify(v,(k,x)=>x instanceof Uint8Array?Array.from(x):x)));
 
 // report: the discovery report (in memory); store: its evidence store; rom: the cartridge bytes.
 function build({report,store,rom,privacy='synthetic',generation=null,independent=[],assessment=null,embedLarge=false}){

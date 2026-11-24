@@ -22,6 +22,8 @@ License 2.0 grant for original NES Forge contributions.
 | `QA/package.json` | `jsdom` 26.1.0 and `jsnes` 2.0.0 declared as QA-time dependencies | Review the respective package licenses and transitive dependency notices for any distribution bundling them |
 | `app/src/re/metatile-finder.js`, `experiment-*.js`, `bus-observer.js` (AL-EXP-01) | Method lineage only: CadEditor/AutoCorruptor (MIT, © 2018 spiiin) and NesBlockFinder, as cited by External Recovery Intelligence Audit 02. Independent implementations; no upstream code copied or translated; NesBlockFinder (no license found) was not used as a source | Keep the method credit; re-review before copying any upstream code |
 | `QA/fixtures/al-exp-01/` | Original synthetic cartridges generated from seeds by the repository's own generator; Apache-2.0 | None; `verify_public_profile.py` pins them by SHA-256 |
+| `QA/fixtures/al-exp-02/` | Original synthetic cartridges generated from (seed, scenario) by the repository's own generator; Apache-2.0 | None; `verify_public_profile.py` pins them by SHA-256 |
+| `tools/agent-lab/independent/` (AL-EXP-02) | Runs FCEUX 2.6.5 (GPL-2.0-or-later, https://github.com/TASVideos/fceux) and Xvfb as separate external programs for development and acceptance testing. Nothing of FCEUX is copied, linked or distributed; the Lua capture script is original | Keep FCEUX outside every distributed build; record its version and commit in each receipt (done) |
 
 ## Boundary: code versus games
 

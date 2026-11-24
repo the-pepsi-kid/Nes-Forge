@@ -69,7 +69,7 @@ function verifyPackage(pkg, {cartridge = null, fceux = null, log = () => {}} = {
       }
     }
   } finally { if (!fceux) session.close(); }
-  const verdict = V.verdictOf({comparisons, predictions});
+  const verdict = V.verdictOf({comparisons, predictions, hasCandidate: !!pkg.candidate});
   const discrepancies = comparisons.filter(c => !c.agree).map(c => ({job: c.job, label: c.label, discrepancies: c.discrepancies}));
   const receipt = V.sealIndependent({format: V.FORMATS.independent, version: V.version, engine: {...session.identity, lua: jobs.find(j => j.captures.length) ? 'Lua 5.1' : null}, forgeEngine: pkg.manifest.engine, subject, jobs, comparisons, predictions, verdict, discrepancies, limitations, independent: true, timing: {ms: Date.now() - t0}});
   return {receipt};
@@ -87,7 +87,7 @@ if (require.main === module) {
     const {receipt, blocked} = verifyPackage(pkg, {cartridge, log: m => process.stderr.write(m + '\n')});
     fs.writeFileSync(out, JSON.stringify(receipt, null, 1) + '\n');
     console.log(JSON.stringify({verdict: receipt.verdict, engine: receipt.engine.name + ' ' + receipt.engine.version, jobs: receipt.jobs.length, checkpoints: receipt.comparisons.length, predictions: receipt.predictions.length, discrepancies: receipt.discrepancies.length, receiptHash: receipt.receiptHash}));
-    process.exit(blocked ? 3 : receipt.verdict.result === 'verified' ? 0 : 1);
+    process.exit(blocked ? 3 : ['verified', 'reproduced'].includes(receipt.verdict.result) ? 0 : 1);
   } catch (error) { console.error(error.message); process.exit(error.code === 2 ? 2 : 1); }
 }
 module.exports = {verifyPackage, decode};

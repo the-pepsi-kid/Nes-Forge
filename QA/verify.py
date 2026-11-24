@@ -48,10 +48,11 @@ args = parser.parse_args()
 #   pose-links         Ninja Gaiden, 22 areas x 3 moments: drawn sprites linked to library poses, checked against RAM
 #   punch-out-pose-links  Punch-Out!! both revisions' catalogs, then all 14 fights (15 bouts) linked, every link checked against the game's replayed pose routine
 #   zelda2-pose-links  Zelda II from a fresh save: palace, overworld, a forest battle; Link's links checked against the poses the game drew
-#   al-exp-01          ~7 min, no cartridges needed: experimental discovery on 12 original synthetic fixtures (5 withheld) in the isolated sandbox, Audit 02 A01-A18 portions
+#   al-exp-01          ~10 min, no cartridges needed: experimental discovery on 12 original synthetic fixtures (5 withheld) in the isolated sandbox, Audit 02 A01-A18 portions
+#   al-exp-02          ~30 min, no cartridges needed: 22 randomized adversarial synthetic fixtures (11 withheld), independent verification in FCEUX (reported blocked if FCEUX/Xvfb are missing), packages, lifecycle
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420
-TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 3600, 'pose-links': 900, 'punch-out-pose-links': 2400, 'zelda2-pose-links': 900, 'al-exp-01': 1500}
+TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 3600, 'pose-links': 900, 'punch-out-pose-links': 2400, 'zelda2-pose-links': 900, 'al-exp-01': 1800, 'al-exp-02': 3000}
 for item in args.timeout:
     suite, _, seconds = item.partition('=')
     if not suite or not seconds.isdigit():
@@ -272,6 +273,9 @@ if args.browser:
     # repository inputs only (original synthetic fixtures); its panel screenshot shows no cartridge graphics
     receipt=output/'al-exp-01.json'
     record(run('al-exp-01',['node',QA/'al-exp-01.cjs',EDITOR,receipt,str(output/'al-exp-01-shots')],receipt))
+    # repository inputs only (original synthetic fixtures); FCEUX is an external test tool, checks needing it report blocked when absent
+    receipt=output/'al-exp-02.json'
+    record(run('al-exp-02',['node',QA/'al-exp-02.cjs',EDITOR,receipt,str(output/'al-exp-02-artifacts')],receipt))
     receipt=output/'library-persistence.json'
     lib_args=['node',QA/'library-persistence.cjs',EDITOR,receipt]+([str(args.extractions.resolve())] if args.extractions else [])
     record(run('library-persistence',lib_args,receipt))

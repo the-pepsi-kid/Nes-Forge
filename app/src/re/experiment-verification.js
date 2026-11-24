@@ -17,7 +17,7 @@ const VERSION=1;
 const FORMATS=Object.freeze({job:'NESForgeVerificationJob',independent:'NESForgeIndependentVerification'});
 const CHANNELS=Object.freeze(['cpu','ram','nametables','attributes','palette','chr','pixels','reads']);
 const NOT_COMPARED=Object.freeze({oam:'FCEUX 2.6 exposes no OAM read to Lua; the fixtures draw no sprites',apu:'audio is outside this verification'});
-const VERDICTS=Object.freeze(['verified','failed','blocked','not-applicable']);
+const VERDICTS=Object.freeze(['verified','reproduced','failed','blocked','not-applicable']);
 function fail(message){throw Error('Verification: '+message);}
 const bytesOf=v=>v instanceof Uint8Array?v:v&&v.type==='Buffer'?Uint8Array.from(v.data):Array.isArray(v)?Uint8Array.from(v):null;
 
@@ -120,13 +120,16 @@ function verifyIndependent(r){const problems=[];try{const body={};for(const k of
   for(const k of Object.keys(r))if(!RECEIPT_FIELDS.includes(k)&&k!=='receiptHash'&&k!=='timing')problems.push('unrecognised field '+k);
   if(contract.hashOf(body)!==r.receiptHash)problems.push('the receipt does not match its hash');}catch(e){problems.push(e.message);}return {ok:!problems.length,problems};}
 
-// The verdict from comparisons and predictions. "verified" needs agreement on every compared channel at every
-// checkpoint (timing-classified stack bytes reported, not hidden) and every prediction holding on the independent engine.
-function verdictOf({comparisons,predictions,blocked=null}){
+// The verdict from comparisons and predictions. "verified" needs a frozen candidate, agreement on every compared channel
+// at every checkpoint (timing-classified stack bytes reported, not hidden) and every prediction holding on the
+// independent engine. Without a candidate the best result is "reproduced": the observations and negative results
+// recur on another engine, and nothing is claimed.
+function verdictOf({comparisons,predictions,blocked=null,hasCandidate=true}){
   if(blocked)return {result:'blocked',reason:blocked};
   const disagreements=comparisons.filter(c=>!c.agree),failed=predictions.filter(p=>!p.holds);
   if(!predictions.length&&!comparisons.length)return {result:'not-applicable',reason:'nothing to verify'};
   if(disagreements.length||failed.length)return {result:'failed',reason:[disagreements.length?disagreements.length+' checkpoint(s) where the engines disagree':'',failed.length?failed.length+' prediction(s) that do not hold on the independent engine':''].filter(Boolean).join('; ')};
+  if(!hasCandidate)return {result:'reproduced',reason:'no candidate to verify; the engines agree on every compared channel at '+comparisons.length+' checkpoint(s), and '+predictions.length+' negative prediction(s) hold on the independent engine'};
   return {result:'verified',reason:'the engines agree on every compared channel at '+comparisons.length+' checkpoint(s), and '+predictions.length+' prediction(s) hold on the independent engine'};
 }
 
@@ -159,7 +162,7 @@ function recheck({receipt,forgeJobs}){
       try{const r=e.kind==='prediction'?checkPrediction(b,c,e.predict.filter(p=>p.label===c.label)):checkNoEffect(b,c);predictions.push({job:fj.job.id,label:c.label,kind:e.kind,engine:'independent',...r});}catch(err){predictions.push({job:fj.job.id,label:c.label,kind:e.kind,holds:false,error:err.message});}}
     if(e.kind==='claims'&&icaps[0]){try{predictions.push({job:fj.job.id,label:icaps[0].label,kind:'claims',engine:'independent',...checkClaims(icaps[0],e.claims)});}catch(err){predictions.push({job:fj.job.id,kind:'claims',holds:false,error:err.message});}}
   }
-  const verdict=verdictOf({comparisons,predictions});
+  const verdict=verdictOf({comparisons,predictions,hasCandidate:!!receipt.subject?.definitionHash});
   const matchesReceipt=verdict.result===receipt.verdict?.result;
   return {comparisons,predictions,verdict,notes,matchesReceipt,receiptVerdict:receipt.verdict};
 }

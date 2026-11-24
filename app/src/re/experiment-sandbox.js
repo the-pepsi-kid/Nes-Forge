@@ -171,7 +171,9 @@ async function runTrial(runId,request,report){
       romSha=sha;
     }
     const layout=contract.romLayout(emu.lastBuiltRom);
-    sync=installSync({nmiTarget:nmiTargetOf(emu.lastBuiltRom)});const pathDigests=[];
+    // NMI-synchronized snapshots during this run: at the NMI-handler entry inside the frame that ends at a capture frame
+    const syncAt=new Map((request.syncCaptures?.captures||[]).map(c=>[c.frame-1,c.label])),syncChannels=request.syncCaptures?.channels||[];result.syncCaptures=[];
+    sync=installSync({nmiTarget:nmiTargetOf(emu.lastBuiltRom),onNmi:()=>{const label=syncAt.get(emu.frameCount);if(label!==undefined&&!result.syncCaptures.some(x=>x.label===label))result.syncCaptures.push(syncCapture(sync,label,syncChannels,observer));}});const pathDigests=[];
     if(request.trace)observer=services.BusObserver.install({prgStart:layout.prgStart,prgBytes:layout.prgBytes,prgReads:request.trace.prgReads,ppuWrites:request.trace.ppuWrites,watchRam:request.trace.watchRam||[],maxEvents:request.trace.maxEvents});
     const captureAt=new Map(request.captures.map(c=>[c.frame,c])),saveAt=new Map((request.save||[]).map(c=>[c.frame,c])),channels=request.channels,payloads=new Set(request.payloads||[]);
     let chunkStart=performance.now(),stuck=0;
