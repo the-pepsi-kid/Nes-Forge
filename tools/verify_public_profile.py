@@ -36,11 +36,12 @@ def sources():
 
 
 SYNTHETIC = ROOT/'QA/fixtures/al-exp-01'
+SYNTHETIC_SUITES = [ROOT/'QA/fixtures/al-exp-01', ROOT/'QA/fixtures/al-exp-02']
 MARKER = b'NESFORGE-SYNTHETIC/1 '
 
 
 def synthetic_cartridge(data):
-    # an AL-EXP-01 fixture: iNES NROM-128, 16 KiB PRG + 8 KiB CHR, the marker at the start of the last 256 PRG bytes
+    # an AL-EXP-01/02 fixture: iNES NROM-128, 16 KiB PRG + 8 KiB CHR, the marker at the start of the last 256 PRG bytes
     prg_start = 16 + (512 if data[6] & 4 else 0)
     return data[:4] == b'NES\x1a' and data[4] == 1 and data[5] == 1 and data[prg_start+0x3f00:prg_start+0x3f00+len(MARKER)] == MARKER
 
@@ -84,15 +85,17 @@ def fixtures():
     assert found == set(expected), 'Unexpected authored cartridge fixture'
     for name, sha in expected.items():
         assert hashlib.sha256((ROOT/'QA/r'/name).read_bytes()).hexdigest() == sha, name
-    # AL-EXP-01 synthetic fixtures: exactly the pinned set, each regenerable and marked as synthetic
-    seeds = {row['file']: row['sha256'] for row in json.loads((SYNTHETIC/'seeds.json').read_text())['fixtures']}
-    roms = {file.name for file in (SYNTHETIC/'roms').iterdir() if file.is_file()}
-    assert roms == set(seeds), 'Unexpected synthetic fixture'
-    for name, sha in seeds.items():
-        data = (SYNTHETIC/'roms'/name).read_bytes()
-        assert hashlib.sha256(data).hexdigest() == sha and synthetic_cartridge(data), name
+    # AL-EXP-01 and AL-EXP-02 synthetic fixtures: exactly the pinned sets, each regenerable and marked as synthetic
+    allowed = {ROOT/'QA/r'/name for name in expected}
+    for suite in SYNTHETIC_SUITES:
+        seeds = {row['file']: row['sha256'] for row in json.loads((suite/'seeds.json').read_text())['fixtures']}
+        roms = {file.name for file in (suite/'roms').iterdir() if file.is_file()}
+        assert roms == set(seeds), 'Unexpected synthetic fixture in '+str(suite.relative_to(ROOT))
+        for name, sha in seeds.items():
+            data = (suite/'roms'/name).read_bytes()
+            assert hashlib.sha256(data).hexdigest() == sha and synthetic_cartridge(data), name
+        allowed |= {suite/'roms'/name for name in seeds}
     # no cartridge anywhere else in the source tree
-    allowed = {ROOT/'QA/r'/name for name in expected} | {SYNTHETIC/'roms'/name for name in seeds}
     for folder in ['app', 'QA', 'tools', 'docs', 'Examples']:
         for file in (ROOT/folder).rglob('*.nes'):
             if 'node_modules' in file.parts:
@@ -103,7 +106,7 @@ def fixtures():
 check('Both launch entries reproduce all manifest source parts', sources)
 check('Private compressed capture catalogs are excluded', payloads)
 check('Distributed editable projects contain no preserved ROM field', examples)
-check('Only the four identified authored cartridges and the pinned synthetic AL-EXP-01 fixtures are shipped', fixtures)
+check('Only the four identified authored cartridges and the pinned synthetic AL-EXP-01/02 fixtures are shipped', fixtures)
 report = {'editorSha256': digest, 'checks': checks, 'total': len(checks),
           'passed': all(row['passed'] for row in checks)}
 if args.output:
