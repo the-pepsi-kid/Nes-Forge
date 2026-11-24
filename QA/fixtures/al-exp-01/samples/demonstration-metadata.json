@@ -1,0 +1,2518 @@
+{
+ "format": "NESForgeExperimentEvidence",
+ "version": 1,
+ "kind": "metadata",
+ "privacy": "synthetic",
+ "receipts": [
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "69a497f3701f1586ccc53b174a9073ad4598a8984644fc49023c64a5fc935dd6",
+   "planId": "observe",
+   "trialId": "baseline-cold-1",
+   "kind": "baseline",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": null,
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": {
+    "mode": "saved",
+    "saved": [
+     {
+      "label": "after-boot",
+      "frame": 30
+     }
+    ]
+   },
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": null,
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "0cac57f261c556942712bfb6b875309e26ad77d33dd81a8c3d958b7be73f91a6"
+     },
+     "payloads": {
+      "nametables": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "3de61731c01c419830ae74c13dd2ac8114858e44cb2cd7b01d3d07c69655f0eb"
+     },
+     "payloads": {
+      "nametables": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "999e5dced1bf0523c487dafde72d8f49eeced5d66f70c7a36cad165d5a79c206"
+     },
+     "payloads": {
+      "nametables": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": {
+    "dropped": 0,
+    "truncated": false,
+    "complete": true,
+    "maxEvents": 100000,
+    "counts": {
+     "opcode": 1780821,
+     "operand": 1784680,
+     "data": 5805,
+     "vector": 350,
+     "other": 0
+    },
+    "eventsRef": "sha256:a0cfb1b4f1926669e65a0f74e29743971268ff60116a031dc05b0a99c0d61a13",
+    "rolesRef": "sha256:35e645ffabdfab78fc20cd3df7b5c02b76809683eae3ef0df080ec9668efde3f"
+   },
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 4,
+    "eventsPerTrial": 100000,
+    "traceEvents": 100000
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": null
+   },
+   "receiptHash": "90e925d8a29119f25d4698915f595775995b10f7919b1f44d5cde4d7a78dedfb"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "69a497f3701f1586ccc53b174a9073ad4598a8984644fc49023c64a5fc935dd6",
+   "planId": "observe",
+   "trialId": "baseline-restored-1",
+   "kind": "baseline",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": null,
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": {
+    "mode": "restored",
+    "label": "after-boot",
+    "frame": 30,
+    "stateDigest": "5f3e58092b156ccb12e10121e8332f78d8af997842f14968be2643b1b598b910"
+   },
+   "framesRun": 150,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": {
+    "cpu": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "ram": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "nametables": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "palette": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "oam": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "chr": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "pixels": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    }
+   },
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "0cac57f261c556942712bfb6b875309e26ad77d33dd81a8c3d958b7be73f91a6"
+     },
+     "payloads": {
+      "nametables": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "3de61731c01c419830ae74c13dd2ac8114858e44cb2cd7b01d3d07c69655f0eb"
+     },
+     "payloads": {
+      "nametables": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "999e5dced1bf0523c487dafde72d8f49eeced5d66f70c7a36cad165d5a79c206"
+     },
+     "payloads": {
+      "nametables": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": {
+    "dropped": 0,
+    "truncated": false,
+    "complete": true,
+    "maxEvents": 100000,
+    "counts": {
+     "opcode": 1486663,
+     "operand": 1483545,
+     "data": 3848,
+     "vector": 296,
+     "other": 0
+    },
+    "eventsRef": "sha256:99e8eb8551d7b79e2ef032ae7e0bb3c44f2aa310b49a8958fd381b3e157ad9e4",
+    "rolesRef": "sha256:c4417fabd2ba28fd7651d31f7263fce2ca0d66b4f7e6f759eee5686e02e438b0"
+   },
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 4,
+    "eventsPerTrial": 100000,
+    "traceEvents": 100000
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "same-engine repeatability",
+    "independent": false,
+    "note": "a repeat on the same engine: it shows determinism, not correctness"
+   },
+   "evidence": {
+    "reference": "baseline-cold-1"
+   },
+   "receiptHash": "f70a5772154b159aca550f6923db6b96822668723a4855a56063abb839a670a1"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "69a497f3701f1586ccc53b174a9073ad4598a8984644fc49023c64a5fc935dd6",
+   "planId": "observe",
+   "trialId": "baseline-restored-2",
+   "kind": "baseline",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": null,
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": {
+    "mode": "restored",
+    "label": "after-boot",
+    "frame": 30,
+    "stateDigest": "5f3e58092b156ccb12e10121e8332f78d8af997842f14968be2643b1b598b910"
+   },
+   "framesRun": 150,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": {
+    "cpu": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "ram": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "nametables": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "palette": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "oam": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "chr": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "pixels": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    }
+   },
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "0cac57f261c556942712bfb6b875309e26ad77d33dd81a8c3d958b7be73f91a6"
+     },
+     "payloads": {
+      "nametables": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "3de61731c01c419830ae74c13dd2ac8114858e44cb2cd7b01d3d07c69655f0eb"
+     },
+     "payloads": {
+      "nametables": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "999e5dced1bf0523c487dafde72d8f49eeced5d66f70c7a36cad165d5a79c206"
+     },
+     "payloads": {
+      "nametables": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 4,
+    "eventsPerTrial": 100000,
+    "traceEvents": 100000
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "same-engine repeatability",
+    "independent": false,
+    "note": "a repeat on the same engine: it shows determinism, not correctness"
+   },
+   "evidence": {
+    "reference": "baseline-cold-1"
+   },
+   "receiptHash": "ea9444099bc9904c6bfcb155d29aa49a290a9c2264600d90504af983fce87283"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "69a497f3701f1586ccc53b174a9073ad4598a8984644fc49023c64a5fc935dd6",
+   "planId": "observe",
+   "trialId": "baseline-cold-2",
+   "kind": "baseline",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": null,
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": null,
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": {
+    "cpu": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "ram": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "nametables": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "palette": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "oam": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "chr": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "pixels": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    }
+   },
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "0cac57f261c556942712bfb6b875309e26ad77d33dd81a8c3d958b7be73f91a6"
+     },
+     "payloads": {
+      "nametables": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "3de61731c01c419830ae74c13dd2ac8114858e44cb2cd7b01d3d07c69655f0eb"
+     },
+     "payloads": {
+      "nametables": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "999e5dced1bf0523c487dafde72d8f49eeced5d66f70c7a36cad165d5a79c206"
+     },
+     "payloads": {
+      "nametables": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": {
+    "dropped": 0,
+    "truncated": false,
+    "complete": true,
+    "maxEvents": 100000,
+    "counts": {
+     "opcode": 1780821,
+     "operand": 1784680,
+     "data": 5805,
+     "vector": 350,
+     "other": 0
+    },
+    "eventsRef": "sha256:a0cfb1b4f1926669e65a0f74e29743971268ff60116a031dc05b0a99c0d61a13",
+    "rolesRef": "sha256:35e645ffabdfab78fc20cd3df7b5c02b76809683eae3ef0df080ec9668efde3f"
+   },
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 4,
+    "eventsPerTrial": 100000,
+    "traceEvents": 100000
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "same-engine repeatability",
+    "independent": false,
+    "note": "a repeat on the same engine: it shows determinism, not correctness"
+   },
+   "evidence": {
+    "reference": "baseline-cold-1"
+   },
+   "receiptHash": "2d275767a4101c1e0e2a98e113ccbbbd8315567ab297c496f6d9f18cb6307803"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "0c513741f2ffef49dc25599563e3eccb2ca67e5df7c461436b2eef34f765b83e",
+   "planId": "interventions",
+   "trialId": "baseline",
+   "kind": "baseline",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": null,
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": null,
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": null,
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "0cac57f261c556942712bfb6b875309e26ad77d33dd81a8c3d958b7be73f91a6"
+     },
+     "payloads": {
+      "nametables": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "3de61731c01c419830ae74c13dd2ac8114858e44cb2cd7b01d3d07c69655f0eb"
+     },
+     "payloads": {
+      "nametables": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "999e5dced1bf0523c487dafde72d8f49eeced5d66f70c7a36cad165d5a79c206"
+     },
+     "payloads": {
+      "nametables": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 8,
+    "eventsPerTrial": 0,
+    "traceEvents": 0
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": null
+   },
+   "receiptHash": "2ddb88870526b949a06b04a5124f9454304e89baeec562a30932075c814cec97"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "0c513741f2ffef49dc25599563e3eccb2ca67e5df7c461436b2eef34f765b83e",
+   "planId": "interventions",
+   "trialId": "tile-0",
+   "kind": "variant",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": {
+    "sha256": "603b8d3de0f98da825239243659ff2f4d6f8e97fc50be0ebd64527c66643b67c",
+    "variantId": "7e126f9cc43b657e0b28900daae36311ebbf0c07c4243cd0d86cd0d95205024b",
+    "mutations": [
+     {
+      "offset": 7859,
+      "expected": 244,
+      "value": 245,
+      "region": "prg"
+     }
+    ]
+   },
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": null,
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "effect_observed",
+   "channels": {
+    "cpu": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "ram": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "nametables": {
+     "equalToBaseline": false,
+     "differingCaptures": 3
+    },
+    "palette": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "oam": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "chr": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "pixels": {
+     "equalToBaseline": false,
+     "differingCaptures": 3
+    }
+   },
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "ba7f5a3a879faab26a43cea62db062b649e66539f5374c85e7942fee6f090028",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "8059e1ddd3716468ad3898654625dfe2182e26681c78f6df5c1a58817e392c8e"
+     },
+     "payloads": {
+      "nametables": "sha256:ba7f5a3a879faab26a43cea62db062b649e66539f5374c85e7942fee6f090028",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "05a49f50e7b30844b659f6e321c7ef86323f074a107c4bd8b6f663f899561164",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "efb1dd60b0230cdc016ad868535288b8541cb7f472488493d1b30ed00b9d56f7"
+     },
+     "payloads": {
+      "nametables": "sha256:05a49f50e7b30844b659f6e321c7ef86323f074a107c4bd8b6f663f899561164",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "e898b5b17a97e00858b1e711923b02292ec1594892bf7e3bb8c19725d643d6da",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "7312182bd50bac32a3a8890ae96850d39a8bae86b9933b2f8648711e4930cf8b"
+     },
+     "payloads": {
+      "nametables": "sha256:e898b5b17a97e00858b1e711923b02292ec1594892bf7e3bb8c19725d643d6da",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": {
+    "frame": 2,
+    "event": null
+   },
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 8,
+    "eventsPerTrial": 0,
+    "traceEvents": 0
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": "baseline"
+   },
+   "receiptHash": "e47f77e68aad2f0f66a57f18ac38ce532223de2b7f6b47fd6eb3dba4dddbb729"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "0c513741f2ffef49dc25599563e3eccb2ca67e5df7c461436b2eef34f765b83e",
+   "planId": "interventions",
+   "trialId": "tile-1",
+   "kind": "variant",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": {
+    "sha256": "577ae395d704e7c3be84e0ec04555a3f3b28133ac691d1618fc81003501aa745",
+    "variantId": "c5eb947506edf0870122fb5fe7917abbdeb5bd3227b7f7da4d66f8ad49978b1a",
+    "mutations": [
+     {
+      "offset": 7183,
+      "expected": 244,
+      "value": 245,
+      "region": "prg"
+     }
+    ]
+   },
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": null,
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": {
+    "cpu": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "ram": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "nametables": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "palette": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "oam": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "chr": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "pixels": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    }
+   },
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "0cac57f261c556942712bfb6b875309e26ad77d33dd81a8c3d958b7be73f91a6"
+     },
+     "payloads": {
+      "nametables": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "3de61731c01c419830ae74c13dd2ac8114858e44cb2cd7b01d3d07c69655f0eb"
+     },
+     "payloads": {
+      "nametables": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "999e5dced1bf0523c487dafde72d8f49eeced5d66f70c7a36cad165d5a79c206"
+     },
+     "payloads": {
+      "nametables": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 8,
+    "eventsPerTrial": 0,
+    "traceEvents": 0
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": "baseline"
+   },
+   "receiptHash": "f6ee79fa2d57692a48eeb8a29405d93b68bd3936fcfabce777e6c7d93fee8eb1"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "0c513741f2ffef49dc25599563e3eccb2ca67e5df7c461436b2eef34f765b83e",
+   "planId": "interventions",
+   "trialId": "tile-2",
+   "kind": "variant",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": {
+    "sha256": "3d9b8c6c1323c43afb42bbda0054f552625399379c913b29429b805465e35564",
+    "variantId": "1143379b678f7a4a15b2f697a6f44502a72304160b519db87c071814a6008d02",
+    "mutations": [
+     {
+      "offset": 7909,
+      "expected": 99,
+      "value": 98,
+      "region": "prg"
+     }
+    ]
+   },
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": null,
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "effect_observed",
+   "channels": {
+    "cpu": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "ram": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "nametables": {
+     "equalToBaseline": false,
+     "differingCaptures": 3
+    },
+    "palette": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "oam": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "chr": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "pixels": {
+     "equalToBaseline": false,
+     "differingCaptures": 3
+    }
+   },
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "830c08ca6171cdba610b1b950e64590f3275d402dd1432b12fc094f177bd4b1e",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "4bd58ba45bc0a0b9a7815f8030f73eeef3057c1f4930cbf4a7ecd84e5746e6b7"
+     },
+     "payloads": {
+      "nametables": "sha256:830c08ca6171cdba610b1b950e64590f3275d402dd1432b12fc094f177bd4b1e",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "e767ca6968014ec9f5ae487f1ee5529e0a5c1b99ab2093a03bb7b269d5ce35f6",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "a848cb6211c31de7ba9465313fd5125c92568613cda01676a1a65a922e2caa70"
+     },
+     "payloads": {
+      "nametables": "sha256:e767ca6968014ec9f5ae487f1ee5529e0a5c1b99ab2093a03bb7b269d5ce35f6",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "e9de02998d897a36cbe1a1ad1f6073f3d84c5ef603fb8fd78f95af950cccb9b3",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "6b19aab27746d1547cbfe7428b4b28faa6252a8724de3661e4fec7d08105a357"
+     },
+     "payloads": {
+      "nametables": "sha256:e9de02998d897a36cbe1a1ad1f6073f3d84c5ef603fb8fd78f95af950cccb9b3",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": {
+    "frame": 3,
+    "event": null
+   },
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 8,
+    "eventsPerTrial": 0,
+    "traceEvents": 0
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": "baseline"
+   },
+   "receiptHash": "4f637e5a21ee85470728f7305aab24ebe7072e77fc4ad3494aa95610ab0341e2"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "0c513741f2ffef49dc25599563e3eccb2ca67e5df7c461436b2eef34f765b83e",
+   "planId": "interventions",
+   "trialId": "tile-3",
+   "kind": "variant",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": {
+    "sha256": "80fe9f404411db09dab3179ef6fa65101928031a4198aa32a29616888dcc4cc8",
+    "variantId": "0f52cb4efa70028438c0f32d01d55c2c6b7c6ac34f18894685f88a0565892857",
+    "mutations": [
+     {
+      "offset": 4711,
+      "expected": 239,
+      "value": 238,
+      "region": "prg"
+     }
+    ]
+   },
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": null,
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": {
+    "cpu": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "ram": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "nametables": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "palette": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "oam": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "chr": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "pixels": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    }
+   },
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "0cac57f261c556942712bfb6b875309e26ad77d33dd81a8c3d958b7be73f91a6"
+     },
+     "payloads": {
+      "nametables": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "3de61731c01c419830ae74c13dd2ac8114858e44cb2cd7b01d3d07c69655f0eb"
+     },
+     "payloads": {
+      "nametables": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "999e5dced1bf0523c487dafde72d8f49eeced5d66f70c7a36cad165d5a79c206"
+     },
+     "payloads": {
+      "nametables": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 8,
+    "eventsPerTrial": 0,
+    "traceEvents": 0
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": "baseline"
+   },
+   "receiptHash": "fe81d9d89d9c0192aa33654f881ba70fbb25a4f582dea2ba1563318d45971f74"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "0c513741f2ffef49dc25599563e3eccb2ca67e5df7c461436b2eef34f765b83e",
+   "planId": "interventions",
+   "trialId": "tile-4",
+   "kind": "variant",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": {
+    "sha256": "d843a0c39be5240bd8549c2690dfcc8aea6b66540c202bd6107e53c99b0179f7",
+    "variantId": "25a987c255d39b03a4f0b890fc766fe2c3e5bd6535ead9d6f6791d5e12445ade",
+    "mutations": [
+     {
+      "offset": 7225,
+      "expected": 130,
+      "value": 131,
+      "region": "prg"
+     }
+    ]
+   },
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": null,
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": {
+    "cpu": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "ram": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "nametables": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "palette": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "oam": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "chr": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "pixels": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    }
+   },
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "0cac57f261c556942712bfb6b875309e26ad77d33dd81a8c3d958b7be73f91a6"
+     },
+     "payloads": {
+      "nametables": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "3de61731c01c419830ae74c13dd2ac8114858e44cb2cd7b01d3d07c69655f0eb"
+     },
+     "payloads": {
+      "nametables": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "999e5dced1bf0523c487dafde72d8f49eeced5d66f70c7a36cad165d5a79c206"
+     },
+     "payloads": {
+      "nametables": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 8,
+    "eventsPerTrial": 0,
+    "traceEvents": 0
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": "baseline"
+   },
+   "receiptHash": "6365e112e6dd703ac0125b6c90fc680b4fd7a18b8bc9163217303b342830caac"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "0c513741f2ffef49dc25599563e3eccb2ca67e5df7c461436b2eef34f765b83e",
+   "planId": "interventions",
+   "trialId": "control-same-value",
+   "kind": "control-same-value",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "variantId": "25025747a03be33981c6fa4f1c6dd466db0cc9dbc1591bd66eb55857db15db7a",
+    "mutations": [
+     {
+      "offset": 7859,
+      "expected": 244,
+      "value": 244,
+      "region": "prg"
+     }
+    ]
+   },
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": null,
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": {
+    "cpu": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "ram": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "nametables": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "palette": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "oam": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "chr": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "pixels": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    }
+   },
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "0cac57f261c556942712bfb6b875309e26ad77d33dd81a8c3d958b7be73f91a6"
+     },
+     "payloads": {
+      "nametables": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "3de61731c01c419830ae74c13dd2ac8114858e44cb2cd7b01d3d07c69655f0eb"
+     },
+     "payloads": {
+      "nametables": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "999e5dced1bf0523c487dafde72d8f49eeced5d66f70c7a36cad165d5a79c206"
+     },
+     "payloads": {
+      "nametables": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 8,
+    "eventsPerTrial": 0,
+    "traceEvents": 0
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": "baseline"
+   },
+   "receiptHash": "e5d311da8deac63204e4c6d23450910fc59d68277ba33eeb53d52f99c5c97d8b"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "0c513741f2ffef49dc25599563e3eccb2ca67e5df7c461436b2eef34f765b83e",
+   "planId": "interventions",
+   "trialId": "control-unrelated",
+   "kind": "control-unrelated",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": {
+    "sha256": "14a251cd44b46453c6b14c06b6a4b68a669442767e0a3dd5d68899a48cfd6b17",
+    "variantId": "949d77831f3d3fe779c0bb9dce12f221e70c8046f8377c537179a0061483d8a6",
+    "mutations": [
+     {
+      "offset": 8208,
+      "expected": 201,
+      "value": 54,
+      "region": "prg"
+     }
+    ]
+   },
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": null,
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": {
+    "cpu": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "ram": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "nametables": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "palette": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "oam": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "chr": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "pixels": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    }
+   },
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "0cac57f261c556942712bfb6b875309e26ad77d33dd81a8c3d958b7be73f91a6"
+     },
+     "payloads": {
+      "nametables": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "3de61731c01c419830ae74c13dd2ac8114858e44cb2cd7b01d3d07c69655f0eb"
+     },
+     "payloads": {
+      "nametables": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "999e5dced1bf0523c487dafde72d8f49eeced5d66f70c7a36cad165d5a79c206"
+     },
+     "payloads": {
+      "nametables": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 8,
+    "eventsPerTrial": 0,
+    "traceEvents": 0
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": "baseline"
+   },
+   "receiptHash": "d4f7eb4825ea3833129bce55f8ba10e43c3518b42ce038ab031c3e7a69aa1bf5"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "90ef95089b5139b05b3acf5be6228d21fceaf10fcfbbf23aadfa34109e9b8303",
+   "planId": "attribute-intervention",
+   "trialId": "baseline",
+   "kind": "baseline",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": null,
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": null,
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": null,
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "0cac57f261c556942712bfb6b875309e26ad77d33dd81a8c3d958b7be73f91a6"
+     },
+     "payloads": {
+      "nametables": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "3de61731c01c419830ae74c13dd2ac8114858e44cb2cd7b01d3d07c69655f0eb"
+     },
+     "payloads": {
+      "nametables": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "999e5dced1bf0523c487dafde72d8f49eeced5d66f70c7a36cad165d5a79c206"
+     },
+     "payloads": {
+      "nametables": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 2,
+    "eventsPerTrial": 0,
+    "traceEvents": 0
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": null
+   },
+   "receiptHash": "e4e972aa1f081f249b8f66d45ebe1aa805f50856bdad23b5eb8fc0f78bf5186c"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "90ef95089b5139b05b3acf5be6228d21fceaf10fcfbbf23aadfa34109e9b8303",
+   "planId": "attribute-intervention",
+   "trialId": "attribute-0",
+   "kind": "variant",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": {
+    "sha256": "c268cf6c9a8858550f53596daaff4d43a4e6093ae8cbbeb84340c57b9a9b929f",
+    "variantId": "261f0e2d21ac5cab63e3a9f67d264df1ac49c8c3e9ca4d8cb88953427f45773e",
+    "mutations": [
+     {
+      "offset": 10964,
+      "expected": 175,
+      "value": 172,
+      "region": "prg"
+     }
+    ]
+   },
+   "inputHash": "b2d6df2a63979f99a84f8f4ac0ddd0b427c596bdb03904bc1218a3e593eb1517",
+   "checkpoint": null,
+   "framesRun": 180,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "effect_observed",
+   "channels": {
+    "cpu": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "ram": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "nametables": {
+     "equalToBaseline": false,
+     "differingCaptures": 3
+    },
+    "palette": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "oam": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "chr": {
+     "equalToBaseline": true,
+     "differingCaptures": 0
+    },
+    "pixels": {
+     "equalToBaseline": false,
+     "differingCaptures": 3
+    }
+   },
+   "captures": [
+    {
+     "label": "scene-0",
+     "frame": 60,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "f50ecca1dd74ae484b689cc59733b07ba133b71bfab106a3b062543b5982b741",
+      "nametables": "b8a7c546de1f4b7f1d694cad9c7b14b800e350b7b7a3dae773634ddf49d31748",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "60670c6f63a399c5f3ef0b858646dff4ba05080913607912b0ffbfe94bf572c1"
+     },
+     "payloads": {
+      "nametables": "sha256:b8a7c546de1f4b7f1d694cad9c7b14b800e350b7b7a3dae773634ddf49d31748",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-1",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "799a47a4720add6b9e50056bd2d692147b8f9dc84256253f16aa6aadba6051e2",
+      "nametables": "972b5276b5ae6ae1862dc04f30cc42409da4592b618233c42e319106149a08e7",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "39588d0b8a2abeedb020426fa5e08768c4f44877bbfd63d2209830e0c2aa7e37"
+     },
+     "payloads": {
+      "nametables": "sha256:972b5276b5ae6ae1862dc04f30cc42409da4592b618233c42e319106149a08e7",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    },
+    {
+     "label": "scene-2",
+     "frame": 180,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "ad105fd99e2e6827acc118e6b00e80d434c245641fbffcabff1f9bdff87b9019",
+      "ram": "32021d796ae8ff0207fa24231e6b155f4c90f4d77b70efa5ff83a82518e88b02",
+      "nametables": "2f65955e8a22dd8a04143701fa65ffa7a8f56caf36c8cb69ff9ddbc66442675a",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "8821f30461a58226c46d63c24c90613cf6adb6bca5fd84a6a925b86d70c0668a"
+     },
+     "payloads": {
+      "nametables": "sha256:2f65955e8a22dd8a04143701fa65ffa7a8f56caf36c8cb69ff9ddbc66442675a",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": {
+    "frame": 3,
+    "event": null
+   },
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 180,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 2,
+    "eventsPerTrial": 0,
+    "traceEvents": 0
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": "baseline"
+   },
+   "receiptHash": "ebc0dbfd9d63350e2817fff7b7795788e59d17034b9c785b83ac3e3d6520b0c0"
+  },
+  {
+   "format": "NESForgeExperimentReceipt",
+   "version": 1,
+   "planHash": "b31b1f6b208739c5e8d737b7e1afb4b7091aacb105e70b06ccb70641d1e4df3a",
+   "planId": "holdout",
+   "trialId": "baseline",
+   "kind": "baseline",
+   "engine": {
+    "documentSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+    "engine": "NES Forge emulator (same build as the editor), run in the experiment sandbox"
+   },
+   "base": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "variant": null,
+   "inputHash": "546b29164a9f48eea91e7528d5d24dbf1106bdcf438e9089065a9341d1dca42f",
+   "checkpoint": null,
+   "framesRun": 120,
+   "stopReason": null,
+   "targetReached": true,
+   "outcome": "no_effect_observed",
+   "channels": null,
+   "captures": [
+    {
+     "label": "holdout",
+     "frame": 120,
+     "backgroundEnabled": true,
+     "digests": {
+      "cpu": "d1b074440e8450ac8349a816b86c36953fd4fbd9145f875552a7f5663f66d455",
+      "ram": "d9eba7f2fb28c755b09ab2dee876d6e0f19320b2c9f13fec3b4802b05d997209",
+      "nametables": "f78ac43ba6d28a8a08dde06a561716edf7faa010fee91ffb3cacb174b1299117",
+      "palette": "0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+      "oam": "3d6876a0146de8576eb2395a858de1213d1b92c65b779df3a331cfd5a4584546",
+      "chr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pixels": "50b040e91b89332f27b656bfecf90b597972ef88f1d90a3efab348bc615c52a3"
+     },
+     "payloads": {
+      "nametables": "sha256:f78ac43ba6d28a8a08dde06a561716edf7faa010fee91ffb3cacb174b1299117",
+      "palette": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63"
+     }
+    }
+   ],
+   "firstDivergence": null,
+   "trace": null,
+   "limits": {
+    "framesPerTrial": 120,
+    "wallMsPerTrial": 60000,
+    "maxTrials": 1,
+    "eventsPerTrial": 0,
+    "traceEvents": 0
+   },
+   "limitations": [],
+   "verification": {
+    "kind": "none",
+    "independent": false,
+    "note": "one run on the experiment engine"
+   },
+   "evidence": {
+    "reference": null
+   },
+   "receiptHash": "e6beffccce5e0cb9dac62e4dbbbd3a07dc8d173b6e47ecb8482b6ce2422c0ff2"
+  }
+ ],
+ "edges": [
+  {
+   "trial": "baseline-cold-1",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:4841f032f29f4eb2e2cbc1ac981e4d6f0ac17aea0d41dcd28156a6bf7d36f8bb",
+   "kind": "no_effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "baseline-cold-1",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:6860cf9184e6f3d74159c3164022a162fdbed3e46dd6b0d64c13df5b6b4c0425",
+   "kind": "no_effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "baseline-cold-1",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:0c771481d6b205546fb1c20747c696e2e0df1af5f14c511d07d575c0300f8ac0",
+   "kind": "no_effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "baseline-restored-1",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:4841f032f29f4eb2e2cbc1ac981e4d6f0ac17aea0d41dcd28156a6bf7d36f8bb",
+   "kind": "no_effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "baseline-restored-1",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:6860cf9184e6f3d74159c3164022a162fdbed3e46dd6b0d64c13df5b6b4c0425",
+   "kind": "no_effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "baseline-restored-1",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:0c771481d6b205546fb1c20747c696e2e0df1af5f14c511d07d575c0300f8ac0",
+   "kind": "no_effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "baseline-restored-2",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:4841f032f29f4eb2e2cbc1ac981e4d6f0ac17aea0d41dcd28156a6bf7d36f8bb",
+   "kind": "no_effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "baseline-restored-2",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:6860cf9184e6f3d74159c3164022a162fdbed3e46dd6b0d64c13df5b6b4c0425",
+   "kind": "no_effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "baseline-restored-2",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:0c771481d6b205546fb1c20747c696e2e0df1af5f14c511d07d575c0300f8ac0",
+   "kind": "no_effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "baseline-cold-2",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:4841f032f29f4eb2e2cbc1ac981e4d6f0ac17aea0d41dcd28156a6bf7d36f8bb",
+   "kind": "no_effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "baseline-cold-2",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:6860cf9184e6f3d74159c3164022a162fdbed3e46dd6b0d64c13df5b6b4c0425",
+   "kind": "no_effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "baseline-cold-2",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:0c771481d6b205546fb1c20747c696e2e0df1af5f14c511d07d575c0300f8ac0",
+   "kind": "no_effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "baseline",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:4841f032f29f4eb2e2cbc1ac981e4d6f0ac17aea0d41dcd28156a6bf7d36f8bb",
+   "kind": "no_effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "baseline",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:6860cf9184e6f3d74159c3164022a162fdbed3e46dd6b0d64c13df5b6b4c0425",
+   "kind": "no_effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "baseline",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:0c771481d6b205546fb1c20747c696e2e0df1af5f14c511d07d575c0300f8ac0",
+   "kind": "no_effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "tile-0",
+   "from": "variant:7e126f9cc43b657e0b28900daae36311ebbf0c07c4243cd0d86cd0d95205024b",
+   "to": "capture:c738d667a6418afc5c634d91ee90e1369272a8aa2d252c99120823008621050b",
+   "kind": "effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "tile-0",
+   "from": "variant:7e126f9cc43b657e0b28900daae36311ebbf0c07c4243cd0d86cd0d95205024b",
+   "to": "capture:18baee1b2e522779c421067efa9fbe5fcef63c9553f9d39aa7b8c6384492f865",
+   "kind": "effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "tile-0",
+   "from": "variant:7e126f9cc43b657e0b28900daae36311ebbf0c07c4243cd0d86cd0d95205024b",
+   "to": "capture:9a731efd3ba693aa637ebcb71a6cbf407a3f11dd9b5ed99f2fe69aa8e9696249",
+   "kind": "effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "tile-1",
+   "from": "variant:c5eb947506edf0870122fb5fe7917abbdeb5bd3227b7f7da4d66f8ad49978b1a",
+   "to": "capture:4841f032f29f4eb2e2cbc1ac981e4d6f0ac17aea0d41dcd28156a6bf7d36f8bb",
+   "kind": "no_effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "tile-1",
+   "from": "variant:c5eb947506edf0870122fb5fe7917abbdeb5bd3227b7f7da4d66f8ad49978b1a",
+   "to": "capture:6860cf9184e6f3d74159c3164022a162fdbed3e46dd6b0d64c13df5b6b4c0425",
+   "kind": "no_effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "tile-1",
+   "from": "variant:c5eb947506edf0870122fb5fe7917abbdeb5bd3227b7f7da4d66f8ad49978b1a",
+   "to": "capture:0c771481d6b205546fb1c20747c696e2e0df1af5f14c511d07d575c0300f8ac0",
+   "kind": "no_effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "tile-2",
+   "from": "variant:1143379b678f7a4a15b2f697a6f44502a72304160b519db87c071814a6008d02",
+   "to": "capture:bf38a55ac29bb19132ddb5b8a4bdf017d15767bc3bfd41e4e609d0a83f27251c",
+   "kind": "effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "tile-2",
+   "from": "variant:1143379b678f7a4a15b2f697a6f44502a72304160b519db87c071814a6008d02",
+   "to": "capture:c85f7e9eef1f15ec644eac0ab88e8480ceb674a43a146ae2b9dcc6d235d8a072",
+   "kind": "effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "tile-2",
+   "from": "variant:1143379b678f7a4a15b2f697a6f44502a72304160b519db87c071814a6008d02",
+   "to": "capture:d943b1e2e4cb9987fcf4cdd53ee1be0daf789c456196c9460280bb3ddb22d440",
+   "kind": "effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "tile-3",
+   "from": "variant:0f52cb4efa70028438c0f32d01d55c2c6b7c6ac34f18894685f88a0565892857",
+   "to": "capture:4841f032f29f4eb2e2cbc1ac981e4d6f0ac17aea0d41dcd28156a6bf7d36f8bb",
+   "kind": "no_effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "tile-3",
+   "from": "variant:0f52cb4efa70028438c0f32d01d55c2c6b7c6ac34f18894685f88a0565892857",
+   "to": "capture:6860cf9184e6f3d74159c3164022a162fdbed3e46dd6b0d64c13df5b6b4c0425",
+   "kind": "no_effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "tile-3",
+   "from": "variant:0f52cb4efa70028438c0f32d01d55c2c6b7c6ac34f18894685f88a0565892857",
+   "to": "capture:0c771481d6b205546fb1c20747c696e2e0df1af5f14c511d07d575c0300f8ac0",
+   "kind": "no_effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "tile-4",
+   "from": "variant:25a987c255d39b03a4f0b890fc766fe2c3e5bd6535ead9d6f6791d5e12445ade",
+   "to": "capture:4841f032f29f4eb2e2cbc1ac981e4d6f0ac17aea0d41dcd28156a6bf7d36f8bb",
+   "kind": "no_effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "tile-4",
+   "from": "variant:25a987c255d39b03a4f0b890fc766fe2c3e5bd6535ead9d6f6791d5e12445ade",
+   "to": "capture:6860cf9184e6f3d74159c3164022a162fdbed3e46dd6b0d64c13df5b6b4c0425",
+   "kind": "no_effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "tile-4",
+   "from": "variant:25a987c255d39b03a4f0b890fc766fe2c3e5bd6535ead9d6f6791d5e12445ade",
+   "to": "capture:0c771481d6b205546fb1c20747c696e2e0df1af5f14c511d07d575c0300f8ac0",
+   "kind": "no_effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "control-same-value",
+   "from": "variant:25025747a03be33981c6fa4f1c6dd466db0cc9dbc1591bd66eb55857db15db7a",
+   "to": "capture:4841f032f29f4eb2e2cbc1ac981e4d6f0ac17aea0d41dcd28156a6bf7d36f8bb",
+   "kind": "no_effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "control-same-value",
+   "from": "variant:25025747a03be33981c6fa4f1c6dd466db0cc9dbc1591bd66eb55857db15db7a",
+   "to": "capture:6860cf9184e6f3d74159c3164022a162fdbed3e46dd6b0d64c13df5b6b4c0425",
+   "kind": "no_effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "control-same-value",
+   "from": "variant:25025747a03be33981c6fa4f1c6dd466db0cc9dbc1591bd66eb55857db15db7a",
+   "to": "capture:0c771481d6b205546fb1c20747c696e2e0df1af5f14c511d07d575c0300f8ac0",
+   "kind": "no_effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "control-unrelated",
+   "from": "variant:949d77831f3d3fe779c0bb9dce12f221e70c8046f8377c537179a0061483d8a6",
+   "to": "capture:4841f032f29f4eb2e2cbc1ac981e4d6f0ac17aea0d41dcd28156a6bf7d36f8bb",
+   "kind": "no_effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "control-unrelated",
+   "from": "variant:949d77831f3d3fe779c0bb9dce12f221e70c8046f8377c537179a0061483d8a6",
+   "to": "capture:6860cf9184e6f3d74159c3164022a162fdbed3e46dd6b0d64c13df5b6b4c0425",
+   "kind": "no_effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "control-unrelated",
+   "from": "variant:949d77831f3d3fe779c0bb9dce12f221e70c8046f8377c537179a0061483d8a6",
+   "to": "capture:0c771481d6b205546fb1c20747c696e2e0df1af5f14c511d07d575c0300f8ac0",
+   "kind": "no_effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "attribute-0",
+   "from": "variant:261f0e2d21ac5cab63e3a9f67d264df1ac49c8c3e9ca4d8cb88953427f45773e",
+   "to": "capture:9eb65e67e49f524d1532fe6c47308663b4612a74c7243f932fa08888e75897a9",
+   "kind": "effect_observed",
+   "capture": "scene-0"
+  },
+  {
+   "trial": "attribute-0",
+   "from": "variant:261f0e2d21ac5cab63e3a9f67d264df1ac49c8c3e9ca4d8cb88953427f45773e",
+   "to": "capture:f8ace09d4a4bf136de8a786cf97bba643cc6c09bdae6b9abbbf1750aaf87b212",
+   "kind": "effect_observed",
+   "capture": "scene-1"
+  },
+  {
+   "trial": "attribute-0",
+   "from": "variant:261f0e2d21ac5cab63e3a9f67d264df1ac49c8c3e9ca4d8cb88953427f45773e",
+   "to": "capture:20974757d363d14caa317f193ffd62e6400a29ef727ca7bd7243e696c30a5bc9",
+   "kind": "effect_observed",
+   "capture": "scene-2"
+  },
+  {
+   "trial": "baseline",
+   "from": "base:faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+   "to": "capture:339bee1d31232c0f6994ea41696a4d128357272ba30667f414b08d18941b01e9",
+   "kind": "no_effect_observed",
+   "capture": "holdout"
+  }
+ ],
+ "candidates": [
+  {
+   "format": "NESForgeCandidateDefinition",
+   "version": 1,
+   "kind": "metatile-table-2x2",
+   "status": "candidate",
+   "hypothesis": "supported",
+   "source": {
+    "sha256": "faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893",
+    "byteLength": 24592
+   },
+   "table": {
+    "layout": "interleaved",
+    "order": "row",
+    "physicalBase": 7843,
+    "cpuBase": 40595,
+    "recordStep": 4,
+    "fieldStep": 1,
+    "grid": {
+     "x": 0,
+     "y": 0
+    },
+    "baseEvidence": {
+     "method": "operand of the indexed instructions that read the table",
+     "votes": 2880,
+     "instructions": [
+      {
+       "cpuPc": 49431,
+       "pcPhysical": 295,
+       "opcode": 189,
+       "operand": 40595,
+       "field": 0
+      },
+      {
+       "cpuPc": 49437,
+       "pcPhysical": 301,
+       "opcode": 189,
+       "operand": 40596,
+       "field": 1
+      },
+      {
+       "cpuPc": 49455,
+       "pcPhysical": 319,
+       "opcode": 189,
+       "operand": 40597,
+       "field": 2
+      },
+      {
+       "cpuPc": 49461,
+       "pcPhysical": 325,
+       "opcode": 189,
+       "operand": 40598,
+       "field": 3
+      }
+     ]
+    }
+   },
+   "attributes": {
+    "physicalBase": 10960,
+    "decode": "low2",
+    "evidence": "operand of the indexed instruction that reads it",
+    "instructions": [
+     {
+      "pcPhysical": 495,
+      "cpuPc": 49631,
+      "opcode": 189,
+      "operand": 60096
+     }
+    ]
+   },
+   "extent": {
+    "knownIds": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     28,
+     29,
+     30,
+     31,
+     32,
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48,
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     56,
+     57,
+     58
+    ],
+    "lowest": 0,
+    "highest": 58,
+    "claim": "records 0 through the highest observed ID are one table; records past it are not claimed"
+   },
+   "aliases": [
+    {
+     "ids": [
+      7,
+      56
+     ],
+     "resolvedBy": "none (identical record and palette)",
+     "observedPalettes": [
+      1
+     ]
+    },
+    {
+     "ids": [
+      21,
+      38
+     ],
+     "resolvedBy": "none (identical record and palette)",
+     "observedPalettes": [
+      1
+     ]
+    },
+    {
+     "ids": [
+      44,
+      50
+     ],
+     "resolvedBy": "attribute palette",
+     "observedPalettes": [
+      2,
+      3
+     ]
+    }
+   ],
+   "evidence": {
+    "plans": [
+     "69a497f3701f1586ccc53b174a9073ad4598a8984644fc49023c64a5fc935dd6",
+     "0c513741f2ffef49dc25599563e3eccb2ca67e5df7c461436b2eef34f765b83e",
+     "90ef95089b5139b05b3acf5be6228d21fceaf10fcfbbf23aadfa34109e9b8303"
+    ],
+    "interventions": [
+     {
+      "kind": "tile",
+      "candidate": "interleaved/row/grid-00@prg+1e93",
+      "mutation": {
+       "offset": 7859,
+       "expected": 244,
+       "value": 245
+      },
+      "result": "supported",
+      "receipt": "e47f77e68aad2f0f66a57f18ac38ce532223de2b7f6b47fd6eb3dba4dddbb729"
+     },
+     {
+      "kind": "attribute",
+      "candidate": "interleaved/row/grid-00@prg+1e93",
+      "mutation": {
+       "offset": 10964,
+       "expected": 175,
+       "value": 172
+      },
+      "result": "supported",
+      "receipt": "ebc0dbfd9d63350e2817fff7b7795788e59d17034b9c785b83ac3e3d6520b0c0"
+     }
+    ]
+   },
+   "verification": {
+    "repeatability": "passed: two cold and two restored runs identical (same engine)",
+    "interventions": "2 supported, 0 not",
+    "independent": "not performed"
+   },
+   "limitations": [
+    "NROM, unscrolled screens and 2x2 metatiles only (slice 1)",
+    "a same-engine result: repeatability and interventions in the same emulator are not independent verification",
+    "record meanings beyond their four tiles and palette are not inferred"
+   ],
+   "definitionHash": "38eb680675be9b014c742d8e03cd3f2b215d8a84fdefecc30a64d62127eaa7e3"
+  }
+ ],
+ "payloads": [
+  {
+   "id": "sha256:80f1e5219725e37766ff8a153738111a37228c712c104063da9d47d2a78c5430",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:0218b5cc93293e0cc375d91700f7a2be3dc6ee59cc5782f0358dc67d85cbcd63",
+   "kind": "palette",
+   "byteLength": 32
+  },
+  {
+   "id": "sha256:0af752a8ba2a11589e592d6542cd78e10395853ff7f7186a6e13034ecc7e8d7f",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:c968bfb1bc2ea8f97879cda1b2154c8bab448e7d1dacd7ff4ec1426c16348c4b",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:a0cfb1b4f1926669e65a0f74e29743971268ff60116a031dc05b0a99c0d61a13",
+   "kind": "trace-events",
+   "byteLength": 286943
+  },
+  {
+   "id": "sha256:35e645ffabdfab78fc20cd3df7b5c02b76809683eae3ef0df080ec9668efde3f",
+   "kind": "access-roles",
+   "byteLength": 16384
+  },
+  {
+   "id": "sha256:99e8eb8551d7b79e2ef032ae7e0bb3c44f2aa310b49a8958fd381b3e157ad9e4",
+   "kind": "trace-events",
+   "byteLength": 194822
+  },
+  {
+   "id": "sha256:c4417fabd2ba28fd7651d31f7263fce2ca0d66b4f7e6f759eee5686e02e438b0",
+   "kind": "access-roles",
+   "byteLength": 16384
+  },
+  {
+   "id": "sha256:ba7f5a3a879faab26a43cea62db062b649e66539f5374c85e7942fee6f090028",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:05a49f50e7b30844b659f6e321c7ef86323f074a107c4bd8b6f663f899561164",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:e898b5b17a97e00858b1e711923b02292ec1594892bf7e3bb8c19725d643d6da",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:830c08ca6171cdba610b1b950e64590f3275d402dd1432b12fc094f177bd4b1e",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:e767ca6968014ec9f5ae487f1ee5529e0a5c1b99ab2093a03bb7b269d5ce35f6",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:e9de02998d897a36cbe1a1ad1f6073f3d84c5ef603fb8fd78f95af950cccb9b3",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:b8a7c546de1f4b7f1d694cad9c7b14b800e350b7b7a3dae773634ddf49d31748",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:972b5276b5ae6ae1862dc04f30cc42409da4592b618233c42e319106149a08e7",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:2f65955e8a22dd8a04143701fa65ffa7a8f56caf36c8cb69ff9ddbc66442675a",
+   "kind": "nametables",
+   "byteLength": 4096
+  },
+  {
+   "id": "sha256:f78ac43ba6d28a8a08dde06a561716edf7faa010fee91ffb3cacb174b1299117",
+   "kind": "nametables",
+   "byteLength": 4096
+  }
+ ],
+ "note": "Metadata only: no cartridge, screen or pixel bytes, no file names or paths. Candidates are not verified resources."
+}

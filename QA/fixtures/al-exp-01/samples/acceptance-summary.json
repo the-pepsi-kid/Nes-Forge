@@ -1,0 +1,2645 @@
+{
+ "format": "NESForgeExperimentAcceptanceSummary",
+ "version": 1,
+ "note": "From the AL-EXP-01 acceptance suite (QA/al-exp-01.cjs) on the editor build named below. Synthetic fixtures only; public-safe.",
+ "editorSha256": "1f84c4c758541c8d62b0e805653436f9d078bb263abb6c2e274c35b55966efec",
+ "checks": [
+  {
+   "name": "Fixtures: every committed synthetic cartridge, truth file and the panel's embedded cartridge regenerate byte for byte from their seeds",
+   "passed": true
+  },
+  {
+   "name": "Separation: the generator and oracle import nothing from the editor; the discovery code reads no files and names no fixture answers; the build carries no truth or oracle code",
+   "passed": true
+  },
+  {
+   "name": "BL01 contract: canonical JSON (sorted keys, integers only) and SHA-256; a valid plan has one hash whatever its key order; 18 invalid or adversarial plans are refused with explicit reasons",
+   "passed": true
+  },
+  {
+   "name": "Malformed iNES headers (NES 2.0, truncated, trailing data, dirty header tail) are refused and the bytes are left as they were (not repaired)",
+   "passed": true
+  },
+  {
+   "name": "A01 (unit): header, trainer, vector, out-of-range, duplicate, wrong-expected and plan-protected mutations are refused; a valid PRG+CHR variant is a new array whose SHA-256 equals an independently patched copy; the base is unchanged",
+   "passed": true
+  },
+  {
+   "name": "A16 (records): a sealed receipt verifies; a changed base hash, variant list, producer or extra field is refused; no receipt can claim independence; a candidate cannot be marked verified or reviewed, or claim independent verification, and a tampered one is refused",
+   "passed": true
+  },
+  {
+   "name": "A10/A16 (store): one payload per exact content, one causal edge per trial; importing twice adds nothing; an altered payload or forged receipt is refused; the private-class metadata export has no payload bytes, cartridge byte values, file names or paths",
+   "passed": true
+  },
+  {
+   "name": "A08 (pure finder, no trace): on the generator's own screens, the true table is among the top five candidates for every development seed (decoys can tie without a trace)",
+   "passed": true
+  },
+  {
+   "name": "Live editor set up before any experiment: an authored cartridge running, a frame in the library, the default project",
+   "passed": true
+  },
+  {
+   "name": "Isolation: the sandbox is a byte-identical copy of this build (its document SHA-256 equals the file's), in an opaque origin that cannot reach the editor's storage or document",
+   "passed": true
+  },
+  {
+   "name": "A01: in the sandbox runner only the valid scoped variant runs (its SHA-256 equals an independently patched copy); header, vector, past-the-end, duplicate, wrong-expected and trainer mutations end as invalid; the base is unchanged after every trial and the fixture files are untouched",
+   "passed": true
+  },
+  {
+   "name": "A02: two cold runs and two runs restored from an in-sandbox checkpoint give identical state, frames and ordered bus events; the same-value control has no effect; a checkpoint is not restored once another load replaced its machine",
+   "passed": true
+  },
+  {
+   "name": "A02: a variant cannot start from the base cartridge's checkpoint (incompatible state refused)",
+   "passed": true
+  },
+  {
+   "name": "A04 (NROM): every opcode-fetch byte is an instruction start and every operand byte lies inside an instruction (checked against the generator's own listing); the one dual-use byte is both; drawn table bytes are data reads made through the $8000 mirror of the single 16 KiB PRG while code runs at $C000; NMI vector bytes are vector reads; the never-taken IRQ vector, the decoys and other untouched bytes stay unknown",
+   "passed": true
+  },
+  {
+   "name": "A07 (NROM): PPU writes are logged in order with their mapped addresses (the first screen's 960 nametable writes equal the generator's nametable; attribute writes made through the cartridge's mirror land at $23C0\u2013$23FF; the $3F10 write lands on palette 0); watched RAM writes carry the writing instruction",
+   "passed": true
+  },
+  {
+   "name": "A07: at the event cap the trace is marked truncated and incomplete, and the receipt says absence is not evidence; observing is passive (a traced run and an untraced run give identical state)",
+   "passed": true
+  },
+  {
+   "name": "A05: a RAM-only change with unchanged pixels and a palette change with an unchanged nametable are both detected per channel; a change that only shows in the third screen diverges after frame 120 and leaves the first two captures equal; a cartridge that never enables rendering is \"target not reached\", not \"no effect\"",
+   "passed": true
+  },
+  {
+   "name": "A03: a data mutation shows its effect; a code mutation that traps the CPU in a loop is capped and classified as a timeout (stuck program); an engine exception in the sandbox is a crash; a cancelled trial stops at the next chunk; the following baseline is identical to the earlier one",
+   "passed": true
+  },
+  {
+   "name": "A03: removing the sandbox mid-trial ends the trial as cancelled within a moment, leaves no sandbox frame behind and leaves the base unchanged",
+   "passed": true
+  },
+  {
+   "name": "A10: two different interventions with identical screens share one stored payload per screen but keep their own causal edges; the palette variant shares the nametable payload yet is a distinct observation; re-importing the private export adds nothing",
+   "passed": true
+  },
+  {
+   "name": "A08/A09 development seeds (7): blind discovery finds each table (rank \u2264 5 before testing, the tested survivor is the true table, every tested decoy falsified, controls without effect); the frozen definition reconstructs the withheld screen with no wrong block ID and every stated attribute bit right, judged by the independent oracle",
+   "passed": true
+  },
+  {
+   "name": "A08/A09 withheld seeds (5: one acceptance seed and four generalization seeds, never run while the discovery code was built): the same, judged by the same oracle",
+   "passed": true
+  },
+  {
+   "name": "A15: a deliberately broken definition (table shifted by one record) reconstructs identically every time on the same engine, yet the independent oracle rejects it; the true definition passes. Repeatability is reported as repeatability only",
+   "passed": true
+  },
+  {
+   "name": "A16 (intake): a candidate definition offered to the library's pack registration, library import or investigation import is refused, the library is unchanged, and no experiment command can promote or register anything",
+   "passed": true
+  },
+  {
+   "name": "Panel: only the synthetic demonstration is offered (no cartridge picker); it runs to a candidate, tested first-ranked table, and says that independent verification is not performed in the editor; its metadata export holds no payload bytes or paths",
+   "passed": true
+  },
+  {
+   "name": "The live project, the editor's emulator state and cartridge, the resource library and the browser databases are exactly as before every experiment; no sandbox is left open",
+   "passed": true
+  },
+  {
+   "name": "Offline: no network request left file:// during the whole run",
+   "passed": true
+  },
+  {
+   "name": "No uncaught page errors",
+   "passed": true
+  }
+ ],
+ "acceptance": {
+  "A01": {
+   "status": "PASS",
+   "note": "header, trainer, PRG/CHR bounds, vector, plan-protected, duplicate and wrong-expected mutations; the base SHA-256 is re-checked after every trial (success, rejection, timeout, soft and hard cancel); the crash case is an engine exception inside the sandbox, which never holds the base"
+  },
+  "A02": {
+   "status": "PASS",
+   "note": "cold \u00d72 and checkpoint-restored \u00d72 identical incl. ordered bus events; same-value control; incompatible checkpoint refused"
+  },
+  "A03": {
+   "status": "PASS",
+   "note": "data effect, stuck-CPU timeout, sandbox crash, soft and hard cancellation, unaffected follow-up baseline"
+  },
+  "A04": {
+   "status": "PARTIAL",
+   "note": "NROM portion: opcode/operand/data/dual-use/vector/unvisited roles and the $8000/$C000 mirror. Banked fixtures (identical CPU addresses resolving differently): DEFERRED to slice 2"
+  },
+  "A05": {
+   "status": "PASS",
+   "note": "RAM-only and palette-only differences, delayed first divergence, target not reached kept apart from no effect"
+  },
+  "A06": {
+   "status": "PARTIAL",
+   "note": "bounded: in-sandbox checkpoints refuse another cartridge or a replaced machine. Corrupted exported checkpoints and worker interruption/restart: DEFERRED (no checkpoint leaves the sandbox in this slice; worker job kind is BL08)"
+  },
+  "A07": {
+   "status": "PARTIAL",
+   "note": "NROM portion: mirrored nametable and palette writes, watched RAM, passive observation, cap and truncation. CHR-RAM and bank-switch events: DEFERRED (NROM CHR-ROM fixture)"
+  },
+  "A08": {
+   "status": "PARTIAL",
+   "note": "2x2 interleaved and split-array tables in both quadrant orders, decoys and aliases, 12 seeds incl. 5 withheld. 4x4, other strides beyond split arrays: DEFERRED"
+  },
+  "A09": {
+   "status": "PARTIAL",
+   "note": "held-out screen reconstructed exactly (IDs and attribute bits), unknown and ambiguous kept explicit. Partial scroll and dynamic CHR: DEFERRED"
+  },
+  "A10": {
+   "status": "PASS",
+   "note": "payload deduplication with separate causal edges, palette distinction, idempotent import, tampered payload and receipt refused"
+  },
+  "A11": {
+   "status": "DEFERRED",
+   "note": "pointer tables (BL07): later scope"
+  },
+  "A12": {
+   "status": "DEFERRED",
+   "note": "collision and object fields (BL10): later scope"
+  },
+  "A13": {
+   "status": "DEFERRED",
+   "note": "compression grammars (BL11): later scope"
+  },
+  "A14": {
+   "status": "PASS",
+   "note": "valid/invalid/adversarial plans, unsupported kinds, budget limits; trials run in declared order; explicit states"
+  },
+  "A15": {
+   "status": "PARTIAL",
+   "note": "independent oracle (generator data, no shared code) rejects a broken definition that repeats perfectly on the same engine. Second emulator: DEFERRED (BL12)"
+  },
+  "A16": {
+   "status": "PASS",
+   "note": "tampered receipts/candidates refused; candidates cannot be marked verified; library intake refuses them; metadata export without bytes or paths; no promotion path exists"
+  },
+  "A17": {
+   "status": "DEFERRED",
+   "note": "worker experiment endpoints (BL08): later scope. The existing worker security suite (agent-lab-worker) still runs in the full regression"
+  },
+  "A18": {
+   "status": "PARTIAL",
+   "note": "standalone from file:// without the worker, no network, editor state unchanged, timer lateness measured; the full regression is a separate receipt. Worker-paired portion: DEFERRED"
+  }
+ },
+ "seeds": [
+  {
+   "seed": 1,
+   "role": "development",
+   "layout": "split/row",
+   "records": 51,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 1,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 203,
+    "correctAmbiguity": 37,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 174,
+     "interior": 18,
+     "resolved": 11,
+     "ambiguous": 37,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 174,
+    "interior": 18,
+    "resolved": 11,
+    "ambiguous": 37,
+    "extended": 0,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 387,
+   "bootMs": 661,
+   "seconds": 19.6,
+   "sandboxRuns": 14,
+   "definition": "161e42cc37f2c7ce489d09fc816ed585ebb3da01e19a37bc33f752c261af9278"
+  },
+  {
+   "seed": 2,
+   "role": "development",
+   "layout": "interleaved/column",
+   "records": 54,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 3,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 224,
+    "correctAmbiguity": 16,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 200,
+     "interior": 18,
+     "resolved": 6,
+     "ambiguous": 16,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 200,
+    "interior": 18,
+    "resolved": 6,
+    "ambiguous": 16,
+    "extended": 0,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 400,
+   "bootMs": 696,
+   "seconds": 21.3,
+   "sandboxRuns": 15,
+   "definition": "55305f4391fea7faab80d1405856797e44f6c65bc41074cba06341885524448d"
+  },
+  {
+   "seed": 3,
+   "role": "development",
+   "layout": "split/column",
+   "records": 54,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 2,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 222,
+    "correctAmbiguity": 18,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 191,
+     "interior": 20,
+     "resolved": 11,
+     "ambiguous": 18,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 191,
+    "interior": 20,
+    "resolved": 11,
+    "ambiguous": 18,
+    "extended": 0,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 405,
+   "bootMs": 623,
+   "seconds": 18.9,
+   "sandboxRuns": 14,
+   "definition": "f7b1d546ce17c00d01b1d9364cc8779dc9bbfe0e4383eecf1096ea9ce56a9a7c"
+  },
+  {
+   "seed": 4,
+   "role": "development",
+   "layout": "interleaved/row",
+   "records": 59,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 2,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 222,
+    "correctAmbiguity": 18,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 176,
+     "interior": 32,
+     "resolved": 14,
+     "ambiguous": 18,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 176,
+    "interior": 32,
+    "resolved": 14,
+    "ambiguous": 18,
+    "extended": 0,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 376,
+   "bootMs": 723,
+   "seconds": 20,
+   "sandboxRuns": 15,
+   "definition": "38eb680675be9b014c742d8e03cd3f2b215d8a84fdefecc30a64d62127eaa7e3"
+  },
+  {
+   "seed": 5,
+   "role": "development",
+   "layout": "split/row",
+   "records": 53,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 2,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 222,
+    "correctAmbiguity": 18,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 189,
+     "interior": 19,
+     "resolved": 14,
+     "ambiguous": 18,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 189,
+    "interior": 19,
+    "resolved": 14,
+    "ambiguous": 18,
+    "extended": 0,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 348,
+   "bootMs": 599,
+   "seconds": 17.6,
+   "sandboxRuns": 13,
+   "definition": "8795cb2e955097ebeedc8efdb5e29dd145151f1ac95a0924180b356d54971ab9"
+  },
+  {
+   "seed": 6,
+   "role": "development",
+   "layout": "interleaved/column",
+   "records": 49,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 2,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 207,
+    "correctAmbiguity": 33,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 182,
+     "interior": 7,
+     "resolved": 9,
+     "ambiguous": 33,
+     "extended": 9,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 182,
+    "interior": 7,
+    "resolved": 9,
+    "ambiguous": 33,
+    "extended": 9,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 353,
+   "bootMs": 613,
+   "seconds": 20.9,
+   "sandboxRuns": 15,
+   "definition": "e260d595b8fba7819b7e3db99a578092134d27d7732241e618ae910b9dc82c3b"
+  },
+  {
+   "seed": 7,
+   "role": "development (trainer)",
+   "layout": "split/column",
+   "records": 36,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 1,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 211,
+    "correctAmbiguity": 29,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 182,
+     "interior": 14,
+     "resolved": 15,
+     "ambiguous": 29,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 182,
+    "interior": 14,
+    "resolved": 15,
+    "ambiguous": 29,
+    "extended": 0,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 316,
+   "bootMs": 670,
+   "seconds": 18.5,
+   "sandboxRuns": 14,
+   "definition": "4a4ff0face746cddde679596a8a86ef582ab59eac09cc089012c75a3d3f49cec"
+  },
+  {
+   "seed": 5902787,
+   "role": "acceptance (withheld)",
+   "layout": "split/column",
+   "records": 46,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 1,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 215,
+    "correctAmbiguity": 25,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 183,
+     "interior": 21,
+     "resolved": 11,
+     "ambiguous": 25,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 183,
+    "interior": 21,
+    "resolved": 11,
+    "ambiguous": 25,
+    "extended": 0,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 336,
+   "bootMs": 588,
+   "seconds": 16.6,
+   "sandboxRuns": 13,
+   "definition": "e97e098ec4d4e93260efbff29e45502aeb519ac8f6ebe2a006058b0e03a1abe3"
+  },
+  {
+   "seed": 101,
+   "role": "generalization (withheld)",
+   "layout": "split/row",
+   "records": 39,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 2,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 207,
+    "correctAmbiguity": 33,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 170,
+     "interior": 25,
+     "resolved": 12,
+     "ambiguous": 33,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 170,
+    "interior": 25,
+    "resolved": 12,
+    "ambiguous": 33,
+    "extended": 0,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 313,
+   "bootMs": 553,
+   "seconds": 17,
+   "sandboxRuns": 13,
+   "definition": "6cfc42e2e4c63a2fe2f9085f59006cc93aeb143508033dbf6d2363b11b664318"
+  },
+  {
+   "seed": 202,
+   "role": "generalization (withheld)",
+   "layout": "interleaved/column",
+   "records": 39,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 1,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 213,
+    "correctAmbiguity": 27,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 181,
+     "interior": 17,
+     "resolved": 15,
+     "ambiguous": 27,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 181,
+    "interior": 17,
+    "resolved": 15,
+    "ambiguous": 27,
+    "extended": 0,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 348,
+   "bootMs": 618,
+   "seconds": 20.7,
+   "sandboxRuns": 15,
+   "definition": "fd8d351c37ca4d7668a07c5305ae4af50f423d0e4353533007f1254495f6cbe8"
+  },
+  {
+   "seed": 303,
+   "role": "generalization (withheld)",
+   "layout": "split/column",
+   "records": 59,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 2,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 222,
+    "correctAmbiguity": 18,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 199,
+     "interior": 11,
+     "resolved": 12,
+     "ambiguous": 18,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 199,
+    "interior": 11,
+    "resolved": 12,
+    "ambiguous": 18,
+    "extended": 0,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 341,
+   "bootMs": 602,
+   "seconds": 17.4,
+   "sandboxRuns": 13,
+   "definition": "350efd3a10d9380d0fba04985e53bff7de32542d5e32e37f88db1108c38bccf5"
+  },
+  {
+   "seed": 404,
+   "role": "generalization (withheld)",
+   "layout": "interleaved/row",
+   "records": 44,
+   "oracle": true,
+   "failed": [],
+   "trueRank": 1,
+   "trueStaticRank": 2,
+   "frozenRank": 1,
+   "decoysFalsified": true,
+   "controls": [
+    "no_effect_observed",
+    "no_effect_observed"
+   ],
+   "repeatability": "passed",
+   "cells": {
+    "correct": 214,
+    "correctAmbiguity": 26,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 183,
+     "interior": 23,
+     "resolved": 8,
+     "ambiguous": 26,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "statuses": {
+    "observed": 183,
+    "interior": 23,
+    "resolved": 8,
+    "ambiguous": 26,
+    "extended": 0,
+    "unknown": 0
+   },
+   "frozenBeforeHoldout": true,
+   "unknownWithoutId": true,
+   "baseUnchanged": true,
+   "proposeMs": 383,
+   "bootMs": 609,
+   "seconds": 21.3,
+   "sandboxRuns": 15,
+   "definition": "cc8bc61a46289f90b9ecaf7978d054ac3e64035bc706ab35890fef10626f10b8"
+  }
+ ],
+ "evaluations": [
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 1,
+   "definitionHash": "161e42cc37f2c7ce489d09fc816ed585ebb3da01e19a37bc33f752c261af9278",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 2628,
+      "expected": 2628
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "split/row",
+      "expected": "split/row"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       1,
+       51
+      ],
+      "expected": [
+       1,
+       51
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       10057,
+       "high2"
+      ],
+      "expected": [
+       10057,
+       "high"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 51,
+      "tableSize": 51,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "0,25",
+       "13,33",
+       "9,15"
+      ],
+      "expected": [
+       "0,25",
+       "13,33",
+       "9,15"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 203,
+      "correctAmbiguity": 37,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 174,
+       "interior": 18,
+       "resolved": 11,
+       "ambiguous": 37,
+       "extended": 0,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 203,
+    "correctAmbiguity": 37,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 174,
+     "interior": 18,
+     "resolved": 11,
+     "ambiguous": 37,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  },
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 2,
+   "definitionHash": "55305f4391fea7faab80d1405856797e44f6c65bc41074cba06341885524448d",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 13405,
+      "expected": 13405
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "interleaved/column",
+      "expected": "interleaved/column"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       4,
+       1
+      ],
+      "expected": [
+       4,
+       1
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       7318,
+       "low2"
+      ],
+      "expected": [
+       7318,
+       "low"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 54,
+      "tableSize": 54,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "10,40",
+       "24,30",
+       "7,35"
+      ],
+      "expected": [
+       "10,40",
+       "24,30",
+       "7,35"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 224,
+      "correctAmbiguity": 16,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 200,
+       "interior": 18,
+       "resolved": 6,
+       "ambiguous": 16,
+       "extended": 0,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 224,
+    "correctAmbiguity": 16,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 200,
+     "interior": 18,
+     "resolved": 6,
+     "ambiguous": 16,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  },
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 3,
+   "definitionHash": "f7b1d546ce17c00d01b1d9364cc8779dc9bbfe0e4383eecf1096ea9ce56a9a7c",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 10741,
+      "expected": 10741
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "split/column",
+      "expected": "split/column"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       1,
+       54
+      ],
+      "expected": [
+       1,
+       54
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       1847,
+       "low2"
+      ],
+      "expected": [
+       1847,
+       "low"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 54,
+      "tableSize": 54,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "12,22",
+       "17,41",
+       "6,51"
+      ],
+      "expected": [
+       "12,22",
+       "17,41",
+       "6,51"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 222,
+      "correctAmbiguity": 18,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 191,
+       "interior": 20,
+       "resolved": 11,
+       "ambiguous": 18,
+       "extended": 0,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 222,
+    "correctAmbiguity": 18,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 191,
+     "interior": 20,
+     "resolved": 11,
+     "ambiguous": 18,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  },
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 4,
+   "definitionHash": "38eb680675be9b014c742d8e03cd3f2b215d8a84fdefecc30a64d62127eaa7e3",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 7843,
+      "expected": 7843
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "interleaved/row",
+      "expected": "interleaved/row"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       4,
+       1
+      ],
+      "expected": [
+       4,
+       1
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       10960,
+       "low2"
+      ],
+      "expected": [
+       10960,
+       "low"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 59,
+      "tableSize": 59,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "21,38",
+       "44,50",
+       "7,56"
+      ],
+      "expected": [
+       "21,38",
+       "44,50",
+       "7,56"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 222,
+      "correctAmbiguity": 18,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 176,
+       "interior": 32,
+       "resolved": 14,
+       "ambiguous": 18,
+       "extended": 0,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 222,
+    "correctAmbiguity": 18,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 176,
+     "interior": 32,
+     "resolved": 14,
+     "ambiguous": 18,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  },
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 5,
+   "definitionHash": "8795cb2e955097ebeedc8efdb5e29dd145151f1ac95a0924180b356d54971ab9",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 8805,
+      "expected": 8805
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "split/row",
+      "expected": "split/row"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       1,
+       66
+      ],
+      "expected": [
+       1,
+       66
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       953,
+       "low2"
+      ],
+      "expected": [
+       953,
+       "low"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 53,
+      "tableSize": 53,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "27,43",
+       "3,29",
+       "36,42"
+      ],
+      "expected": [
+       "27,43",
+       "3,29",
+       "36,42"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 222,
+      "correctAmbiguity": 18,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 189,
+       "interior": 19,
+       "resolved": 14,
+       "ambiguous": 18,
+       "extended": 0,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 222,
+    "correctAmbiguity": 18,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 189,
+     "interior": 19,
+     "resolved": 14,
+     "ambiguous": 18,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  },
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 6,
+   "definitionHash": "e260d595b8fba7819b7e3db99a578092134d27d7732241e618ae910b9dc82c3b",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 2235,
+      "expected": 2235
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "interleaved/column",
+      "expected": "interleaved/column"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       4,
+       1
+      ],
+      "expected": [
+       4,
+       1
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       5112,
+       "low2"
+      ],
+      "expected": [
+       5112,
+       "low"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 47,
+      "tableSize": 49,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "13,19",
+       "39,41",
+       "7,10"
+      ],
+      "expected": [
+       "13,19",
+       "39,41",
+       "7,10"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 207,
+      "correctAmbiguity": 33,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 182,
+       "interior": 7,
+       "resolved": 9,
+       "ambiguous": 33,
+       "extended": 9,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 207,
+    "correctAmbiguity": 33,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 182,
+     "interior": 7,
+     "resolved": 9,
+     "ambiguous": 33,
+     "extended": 9,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  },
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 7,
+   "definitionHash": "4a4ff0face746cddde679596a8a86ef582ab59eac09cc089012c75a3d3f49cec",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 5975,
+      "expected": 5975
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "split/column",
+      "expected": "split/column"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       1,
+       37
+      ],
+      "expected": [
+       1,
+       37
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       7109,
+       "high2"
+      ],
+      "expected": [
+       7109,
+       "high"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 36,
+      "tableSize": 36,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "0,13",
+       "11,28",
+       "24,25"
+      ],
+      "expected": [
+       "0,13",
+       "11,28",
+       "24,25"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 211,
+      "correctAmbiguity": 29,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 182,
+       "interior": 14,
+       "resolved": 15,
+       "ambiguous": 29,
+       "extended": 0,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 211,
+    "correctAmbiguity": 29,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 182,
+     "interior": 14,
+     "resolved": 15,
+     "ambiguous": 29,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  },
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 5902787,
+   "definitionHash": "e97e098ec4d4e93260efbff29e45502aeb519ac8f6ebe2a006058b0e03a1abe3",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 14264,
+      "expected": 14264
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "split/column",
+      "expected": "split/column"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       1,
+       53
+      ],
+      "expected": [
+       1,
+       53
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       14660,
+       "low2"
+      ],
+      "expected": [
+       14660,
+       "low"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 46,
+      "tableSize": 46,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "11,17",
+       "15,36",
+       "22,24"
+      ],
+      "expected": [
+       "11,17",
+       "15,36",
+       "22,24"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 215,
+      "correctAmbiguity": 25,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 183,
+       "interior": 21,
+       "resolved": 11,
+       "ambiguous": 25,
+       "extended": 0,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 215,
+    "correctAmbiguity": 25,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 183,
+     "interior": 21,
+     "resolved": 11,
+     "ambiguous": 25,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  },
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 101,
+   "definitionHash": "6cfc42e2e4c63a2fe2f9085f59006cc93aeb143508033dbf6d2363b11b664318",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 13394,
+      "expected": 13394
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "split/row",
+      "expected": "split/row"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       1,
+       52
+      ],
+      "expected": [
+       1,
+       52
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       8690,
+       "high2"
+      ],
+      "expected": [
+       8690,
+       "high"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 39,
+      "tableSize": 39,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "16,23",
+       "17,21",
+       "9,24"
+      ],
+      "expected": [
+       "16,23",
+       "17,21",
+       "9,24"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 207,
+      "correctAmbiguity": 33,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 170,
+       "interior": 25,
+       "resolved": 12,
+       "ambiguous": 33,
+       "extended": 0,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 207,
+    "correctAmbiguity": 33,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 170,
+     "interior": 25,
+     "resolved": 12,
+     "ambiguous": 33,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  },
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 202,
+   "definitionHash": "fd8d351c37ca4d7668a07c5305ae4af50f423d0e4353533007f1254495f6cbe8",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 12888,
+      "expected": 12888
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "interleaved/column",
+      "expected": "interleaved/column"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       4,
+       1
+      ],
+      "expected": [
+       4,
+       1
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       4304,
+       "high2"
+      ],
+      "expected": [
+       4304,
+       "high"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 39,
+      "tableSize": 39,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "16,22",
+       "26,27",
+       "31,32"
+      ],
+      "expected": [
+       "16,22",
+       "26,27",
+       "31,32"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 213,
+      "correctAmbiguity": 27,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 181,
+       "interior": 17,
+       "resolved": 15,
+       "ambiguous": 27,
+       "extended": 0,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 213,
+    "correctAmbiguity": 27,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 181,
+     "interior": 17,
+     "resolved": 15,
+     "ambiguous": 27,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  },
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 303,
+   "definitionHash": "350efd3a10d9380d0fba04985e53bff7de32542d5e32e37f88db1108c38bccf5",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 15058,
+      "expected": 15058
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "split/column",
+      "expected": "split/column"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       1,
+       72
+      ],
+      "expected": [
+       1,
+       72
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       6461,
+       "low2"
+      ],
+      "expected": [
+       6461,
+       "low"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 59,
+      "tableSize": 59,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "4,43",
+       "40,55",
+       "5,37"
+      ],
+      "expected": [
+       "4,43",
+       "40,55",
+       "5,37"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 222,
+      "correctAmbiguity": 18,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 199,
+       "interior": 11,
+       "resolved": 12,
+       "ambiguous": 18,
+       "extended": 0,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 222,
+    "correctAmbiguity": 18,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 199,
+     "interior": 11,
+     "resolved": 12,
+     "ambiguous": 18,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  },
+  {
+   "format": "NESForgeExperimentEvaluation",
+   "version": 1,
+   "oracle": "generator truth (al-exp-01 fixture), independent of the discovery code and of the emulator",
+   "seed": 404,
+   "definitionHash": "cc8bc61a46289f90b9ecaf7978d054ac3e64035bc706ab35890fef10626f10b8",
+   "checks": [
+    {
+     "name": "source is the fixture",
+     "passed": true
+    },
+    {
+     "name": "table location (physical offset of record 0)",
+     "passed": true,
+     "detail": {
+      "found": 15611,
+      "expected": 15611
+     }
+    },
+    {
+     "name": "layout and quadrant order",
+     "passed": true,
+     "detail": {
+      "found": "interleaved/row",
+      "expected": "interleaved/row"
+     }
+    },
+    {
+     "name": "record and field steps",
+     "passed": true,
+     "detail": {
+      "found": [
+       4,
+       1
+      ],
+      "expected": [
+       4,
+       1
+      ]
+     }
+    },
+    {
+     "name": "grid alignment",
+     "passed": true
+    },
+    {
+     "name": "palette array location and decoding",
+     "passed": true,
+     "detail": {
+      "found": [
+       14468,
+       "high2"
+      ],
+      "expected": [
+       14468,
+       "high"
+      ]
+     }
+    },
+    {
+     "name": "every claimed record equals the generator's record",
+     "passed": true,
+     "detail": {
+      "claimed": 44,
+      "tableSize": 44,
+      "wrong": 0
+     }
+    },
+    {
+     "name": "alias groups kept (none merged or lost)",
+     "passed": true,
+     "detail": {
+      "found": [
+       "24,42",
+       "3,18",
+       "8,38"
+      ],
+      "expected": [
+       "24,42",
+       "3,18",
+       "8,38"
+      ]
+     }
+    },
+    {
+     "name": "withheld screen: no wrong block ID, no unknown inside the claimed table",
+     "passed": true,
+     "detail": {
+      "correct": 214,
+      "correctAmbiguity": 26,
+      "wrong": 0,
+      "unknownAllowed": 0,
+      "unknownMissed": 0,
+      "total": 240,
+      "statuses": {
+       "observed": 183,
+       "interior": 23,
+       "resolved": 8,
+       "ambiguous": 26,
+       "extended": 0,
+       "unknown": 0
+      },
+      "examples": []
+     }
+    },
+    {
+     "name": "withheld screen: every stated attribute bit equals the generator's",
+     "passed": true,
+     "detail": {
+      "bitsStated": 480,
+      "bitsWrong": 0,
+      "bytesExact": 56,
+      "bytes": 64
+     }
+    }
+   ],
+   "cells": {
+    "correct": 214,
+    "correctAmbiguity": 26,
+    "wrong": 0,
+    "unknownAllowed": 0,
+    "unknownMissed": 0,
+    "total": 240,
+    "statuses": {
+     "observed": 183,
+     "interior": 23,
+     "resolved": 8,
+     "ambiguous": 26,
+     "extended": 0,
+     "unknown": 0
+    },
+    "examples": []
+   },
+   "attributes": {
+    "bitsStated": 480,
+    "bitsWrong": 0,
+    "bytesExact": 56,
+    "bytes": 64
+   },
+   "passed": true
+  }
+ ],
+ "measurements": {
+  "sandbox": {
+   "bootMs": 878,
+   "editorTimerLatenessDuringBootMs": 581,
+   "rssKiB": {
+    "before": {
+     "totalKiB": 492140,
+     "byType": {
+      "browser": 99908,
+      "renderer": 239196,
+      "GPU": 89396,
+      "network.mojom.NetworkService": 63640
+     },
+     "processes": 4
+    },
+    "withSandbox": {
+     "totalKiB": 522692,
+     "byType": {
+      "browser": 104700,
+      "renderer": 264872,
+      "GPU": 89412,
+      "network.mojom.NetworkService": 63708
+     },
+     "processes": 4
+    },
+    "delta": 30552,
+    "afterClose": {
+     "totalKiB": 578932,
+     "byType": {
+      "browser": 101340,
+      "renderer": 329260,
+      "GPU": 84512,
+      "network.mojom.NetworkService": 63820
+     },
+     "processes": 4
+    }
+   },
+   "jsHeapBytes": {
+    "editorAlone": 6808084,
+    "withSandbox": 11131996,
+    "sandbox": 4323912,
+    "note": "the renderer's V8 heap after a forced collection, with and without the sandbox open",
+    "afterClose": 7325072
+   },
+   "processModel": "same renderer process as the editor",
+   "targets": [
+    "page"
+   ]
+  },
+  "cancellation": {
+   "softLatencyMs": 30,
+   "softFramesRun": 47,
+   "hardCloseToResultMs": 34
+  },
+  "editorTimerLatenessDuringRunnerTests": {
+   "samples": 723,
+   "maxMs": 659,
+   "p95Ms": 22,
+   "over100ms": 4
+  },
+  "msPerFrame": {
+   "editorEmulator": 6.42,
+   "sandboxUntraced": 6.55,
+   "sandboxTraced": 7.53,
+   "note": "sandbox figures include per-frame digests, chunked yielding and capture"
+  },
+  "editorTimerLatenessDuringDiscovery": {
+   "samples": 4399,
+   "maxMs": 470,
+   "p95Ms": 20,
+   "over100ms": 20,
+   "note": "a 50 ms timer in the editor while discovery ran (each discovery starts one sandbox, whose boot shares the editor's thread in this Chromium)"
+  },
+  "withSandboxedIframeIsolation": {
+   "bootMs": 916,
+   "latenessDuringBootMs": 116,
+   "latenessDuringRunMaxMs": 625,
+   "outcome": "no_effect_observed",
+   "identical": true,
+   "processModel": "same renderer process",
+   "note": "Chromium flag --enable-features=IsolateSandboxedIframes; informational, not a pass/fail check"
+  }
+ }
+}
