@@ -92,7 +92,7 @@ test('Pairing: single-use code, limited attempts, signed requests with time wind
   assert.match(client.id, /^c-[0-9a-f]{12}$/); assert.equal(Buffer.from(client.secret, 'base64').length, 32);
   assert.throws(() => sec.pair(code, 'again', 'null'), /no valid pairing code/, 'a code works once');
   const secret = Buffer.from(client.secret, 'base64'), t = Date.now(), body = JSON.stringify({rom: 'AAAA'});
-  const signed = (method, p, b, time = t, nonce = 'n0nce-' + Math.random().toString(36).slice(2, 14)) => ({method, headers: {host: '127.0.0.1:8787', origin: 'null', 'x-forge-client': client.id, 'x-forge-time': String(time), 'x-forge-nonce': nonce, 'x-forge-signature': W.signature(secret, method, p, time, nonce, b)}});
+  const signed = (method, p, b, time = t, nonce = 'n0nce-' + require('node:crypto').randomBytes(8).toString('hex')) => ({method, headers: {host: '127.0.0.1:8787', origin: 'null', 'x-forge-client': client.id, 'x-forge-time': String(time), 'x-forge-nonce': nonce, 'x-forge-signature': W.signature(secret, method, p, time, nonce, b)}});
   const ok = signed('POST', '/jobs', body); assert.equal(sec.authorize(ok, '/jobs', body).who, 'client');
   assert.equal(sec.authorize(ok, '/jobs', body).error, 'replayed request');
   assert.equal(sec.authorize(signed('POST', '/jobs', body), '/jobs', body + ' ').error, 'invalid signature', 'a changed body breaks the signature');
