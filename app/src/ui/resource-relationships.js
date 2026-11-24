@@ -673,7 +673,9 @@ async function renderFrameDetails(entry,host){
   const line=(cls,parts)=>{const row=elt('div');row.className=cls;row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';row.append(...parts);list.append(row);return row;};
   const poseButton=(id,label)=>{const b=button(label,()=>choose(key('lib',id)),'Open this pose in the library');if(!inLibrary(id)){b.disabled=true;b.title='Unavailable: this pose is not among the library entries shown';}return b;};
   const sprites=ids=>'sprites #'+ids.join(', #');
-  for(const l of pl.links){const row=line('frx-pose-link',[poseButton(l.poseEntry,l.label),elt('span','frx-code',sprites(l.sprites)+(l.mirrored?' · mirrored':'')+' · established by '+l.by+': '+l.evidence)]);row.dataset.pose=l.poseEntry;}
+  // a full pose changed by delta poses (the game's pose routine, recorded and replayed) names the deltas with the pose
+  const deltasOf=l=>l.deltas?.length?' · then '+l.deltas.length+' delta pose'+(l.deltas.length>1?'s':''):'';
+  for(const l of pl.links){const row=line('frx-pose-link',[poseButton(l.poseEntry,l.label+deltasOf(l)),elt('span','frx-code',sprites(l.sprites)+(l.mirrored?' · mirrored':'')+' · established by '+(l.by==='pose routine'?'the game\'s pose routine':l.by)+': '+l.evidence)]);row.dataset.pose=l.poseEntry;if(l.deltas)row.dataset.deltas=String(l.deltas.length);}
   for(const c of pl.candidates)line('frx-pose-candidate',[poseButton(c.poseEntry,c.label),elt('span','frx-code',sprites(c.sprites)+' · '+c.state+', not established: '+c.evidence)]);
   for(const a of pl.ambiguous)line('frx-pose-ambiguous',[elt('span','frx-code',sprites(a.sprites)+' · ambiguous, not established: drawn exactly as '+a.poses.map(p=>p.label).join(' and '))]);
   line('frx-pose-rest',[elt('span','frx-code',pl.notEstablished.length?'Not established: '+pl.notEstablished.length+' of '+pl.sprites+' drawn sprite'+(pl.sprites===1?'':'s')+' belong to no established pose.':'Every drawn sprite belongs to an established pose.')]);
@@ -750,7 +752,8 @@ function renderLibraryViewer(n,host,tools,caption){
     if(seen.ok){const line=elt('div');line.dataset.pose='frames';line.style.cssText='display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;margin:4px 0';
      if(!seen.result.frames.length)line.append(elt('span','frx-code',seen.result.framesChecked?'Not established in any of the '+seen.result.framesChecked+' captured frames of this ROM.':'No captured frames of this ROM in the library yet.'));
      else{line.append(elt('span','frx-code','Seen in '+seen.result.frames.length+' captured frame'+(seen.result.frames.length===1?'':'s')+':'));
-      for(const f of seen.result.frames.slice(0,12)){const b=elt('button','frx-relationship',f.label);b.type='button';b.title='Established by '+f.by+(f.mirrored?', mirrored':'')+(f.mode?', drawn as '+f.mode:'')+' · sprites #'+f.sprites.join(', #');b.onclick=()=>choose(key('lib',f.frameEntry));line.append(b);}
+      for(const f of seen.result.frames.slice(0,12)){const d=f.deltas?.length||0,b=elt('button','frx-relationship',f.label+(d?' (then '+d+' delta pose'+(d>1?'s':'')+')':''));b.type='button';
+        b.title='Established by '+(f.by==='pose routine'?'the game\'s pose routine: this pose, then delta poses '+f.deltas.map(v=>'$'+v.toString(16).toUpperCase().padStart(2,'0')).join(', ')+' the game applied':f.by)+(f.mirrored?', mirrored':'')+(f.mode?', drawn as '+f.mode:'')+' · sprites #'+f.sprites.join(', #');b.onclick=()=>choose(key('lib',f.frameEntry));line.append(b);}
       if(seen.result.frames.length>12)line.append(elt('span','frx-code','… '+(seen.result.frames.length-12)+' more'));}
      host.append(line);}
    }

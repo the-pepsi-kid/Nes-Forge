@@ -813,4 +813,71 @@ catalog of "full pose + one delta" would cover only part of what is drawn (in th
 results), with about 6,000 combinations per revision that the game mostly never draws. The exact way is to record
 the applications while the emulator runs, only for a ROM whose provider declares its pose routine, and keep them in
 the frame record, so the provider can replay them and link "pose P, then deltas D1…Dn, as the game applied them".
-That adds a check to the emulator's inner loop while such a cartridge runs, so it is left for a decision.
+That adds a check to the emulator's inner loop while such a cartridge runs, so it is left for a decision. ~~Left for a
+decision.~~ Decided and built: §24.
+
+## 24. Delta results linked: the game's pose routine recorded while it runs (2026-11-24)
+
+A Punch-Out frame drawn as a full pose changed by delta poses (§23: about 40% of the drawings) now links that full
+pose, the link naming the deltas the game applied.
+
+**Recorded while the game runs.**
+- **Who declares it.** A library provider can declare its game's pose routine: the instruction to watch, a condition
+  byte, the RAM bytes to record, and which values start a new drawing. Punch-Out's provider declares:
+  - $C890 (`LDA $A0 / BEQ`: with the draw request $A0 clear the routine draws nothing);
+  - the fight ($02/$03), the selector ($A1), the base ($B0/$B1) and the sprite mode ($80/$81);
+  - a full pose (selector below $80) starts a new drawing.
+- **When it is on.** When a cartridge is loaded, the emulator asks the providers, synchronously, whether it runs such a
+  routine. Punch-Out's provider answers from the cartridge itself: an MMC2 cartridge with 128 KiB of PRG whose fixed
+  bank holds the routine's first bytes at $C890. In the corpus that is exactly the two Punch-Out revisions.
+- **What it records.** Before each instruction the frame loop compares the program counter with the watched address
+  (-1, never equal, for every other cartridge). When the routine starts with its condition met, the frame number and
+  the declared bytes are kept. The list keeps the current drawing and the last three frames, bounded at 2,048 entries.
+- **Checkpoints and resets.** The state is plain data on the emulator, so checkpoints and frame history save and
+  restore it with the machine: a restored run records what a cold run records. A reset clears it.
+- **Cost.** None measurable. Punch-Out ran at 24.3–26.4 ms per frame against 24.5–26.1 before, and Super Mario Bros. 3
+  at 46.2–46.4 against 46.4–49.5 (Node harness, alternating runs).
+
+**Kept with every captured frame.** A frame record from such a cartridge gets a `poseRoutine` section:
+- **The applications** a drawing on this frame can come from: since the last full pose before the frame's last three
+  frames.
+- **The drawing they left,** replayed with the game's routine from the loaded cartridge (`PunchOutContent.replay`,
+  which runs the routine to its end at $D857). The most recent replay, up to the end of this frame or of one of the
+  two before it, whose every piece is drawn in place.
+- **Digests.** The section is digested with the record's other sections (only where present: other games' records
+  keep their digests). An Agent Lab import therefore validates it, and cold-boot verification compares it.
+
+**Linked.** `PoseLinks` links a frame whose recorded drawing is a full pose followed by deltas, with every piece drawn in
+place (checked again), to that full pose's library entry:
+- **How it is described.** By "pose routine", naming the deltas: "Mike Tyson · pose $02 · then 2 delta poses …
+  established by the game's pose routine".
+- **No double links.** When a full pose already accounts for exactly those sprites (the deltas left a full pose's
+  drawing), nothing is added. A smaller pose matched inside the result is part of it, by the usual rule.
+- **Where it shows.** The pose's "Seen in captured frames" lists the frame with its deltas.
+- **Not an observed drawing.** Recording observations skips such links: the result is not the pose's own drawing.
+
+**Checked against the game (`QA/punch-out-pose-links.cjs`).** The test keeps its own hook and its own replay (§23). Forge's
+delta links must equal them: the same full pose, the same deltas in the same order, the same sprites. Every delta
+result the test reproduces must be linked so.
+
+**Results (15 bouts, 3,150 frames).**
+
+| | |
+|---|---|
+| Links | **2,771** (1,658 before): 1,658 full poses and **1,113 delta links** |
+| Agreeing with the test's replay of what the game applied | **2,771 of 2,771**, 0 contradictions |
+| Delta results linked | **1,113 of 1,113**: every one with the same full pose, deltas and sprites as the test's replay |
+| Full-pose drawings linked | 1,658 of 1,658 (unchanged) |
+| Frames not reproduced | 379, as before: before the first full pose, introductions, no fighter drawn |
+
+The negative cases: a delta link is gone when the record carries no recorded applications (an older record), or when
+one sprite of the result is moved by a pixel. In the library, the registered frame gives the same links through
+`library.framePoses`, the frame view names the deltas, the full pose lists the frame "then 2 delta poses", and its
+observed frames do not include it.
+
+**Limits.**
+- **Older frames.** Frames captured before this change have no recorded applications: their delta results stay
+  unlinked.
+- **The base pose's entry.** A delta link points to the full pose's entry. The library has no entry for the result
+  itself, and it cannot be used in a project as a drawing.
+- **Punch-Out only.** No other provider declares a pose routine yet.

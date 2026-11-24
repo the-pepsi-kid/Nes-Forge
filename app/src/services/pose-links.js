@@ -20,6 +20,11 @@
  *   pose whose drawing the library has not established (an unconfirmed room, or a record that does not select its own
  *   CHR bank) is established by a complete layout of 3 or more pieces; the frame shows the bank. A layout of 1-2 pieces
  *   with nothing to compare is not reported.
+ *   A frame can also be drawn as the game's pose routine left it: a full pose changed by delta poses (Punch-Out!!). Where
+ *   the frame carries what the routine applied (recorded while the game ran, replayed when the frame was captured:
+ *   record.poseRoutine.drawing), and every piece of that result is drawn in place, the frame links that full pose, the
+ *   link naming the deltas (by "pose routine"). Such a link does not give the pose an observed drawing: the result is
+ *   not the pose's own drawing.
  * Bundle order: after src/services/frame-evidence.js.
  */
 (()=>{
@@ -162,8 +167,30 @@ async function framePoses(record,{sourceSha256}={}){
     else if(one.graphics==='unchecked'&&one.pieces<MIN_PIECES_BY_LAYOUT)continue;
     else candidates.push({...one,state:one.graphics==='differ'?'candidate':'layout only'});
   }
+  const routine=routineLink(record.poseRoutine?.drawing,sprites,poses);
+  if(routine&&!links.some(l=>l.sprites.length===routine.sprites.length&&l.sprites.every(i=>routine.sprites.includes(i)))){
+    // the result is one drawing: poses matched inside it are part of it (a smaller pose inside a larger match is not
+    // reported); a full pose drawn with exactly these sprites already accounts for them
+    const inside=list=>list.filter(x=>!x.sprites.every(i=>routine.sprites.includes(i)));
+    for(const l of links)if(l.sprites.every(i=>routine.sprites.includes(i)))l.sprites.forEach(i=>linked.delete(i));
+    links.splice(0,links.length,...inside(links));candidates.splice(0,candidates.length,...inside(candidates));ambiguous.splice(0,ambiguous.length,...inside(ambiguous));
+    links.push(routine);routine.sprites.forEach(i=>linked.add(i));
+  }
   return {...base,state:'linked',poses:poses.length,links,candidates,ambiguous,notEstablished:sprites.map(s=>s.index).filter(i=>!linked.has(i)),
     note:links.length?links.length+' pose'+(links.length===1?'':'s')+' established':'no pose established'};
+}
+// the link for a frame drawn as the game's pose routine left it (a full pose, then deltas), when the library holds that
+// full pose and every piece of the replayed result is drawn in place (tile and screen position; checked here again)
+function routineLink(d,sprites,poses){
+  if(d?.state!=='drawn'||!Array.isArray(d.deltas)||!d.deltas.length||!Array.isArray(d.pieces)||d.pieces.length<MIN_PIECES_BY_LAYOUT)return null;
+  const used=new Set(),idx=d.pieces.map(q=>{const s=sprites.find(t=>!used.has(t.index)&&t.x===q.x&&t.y===q.y-1&&t.tile===q.tile);if(s)used.add(s.index);return s?s.index:null;});
+  if(idx.some(i=>i===null))return null;
+  const base=poses.find(p=>p.id===d.base?.poseId&&p.mode?.key===d.modeKey)||poses.find(p=>p.id===d.base?.poseId);if(!base)return null;
+  const n=d.deltas.length,list=d.deltas.map(v=>'$'+v.toString(16).toUpperCase().padStart(2,'0')).join(', ');
+  const banks=[...new Set(idx.map(i=>sprites.find(s=>s.index===i)?.chrOffset).filter(Number.isInteger).map(o=>o>>12))].sort((a,b)=>a-b);
+  return {poseEntry:base.entryId,poseId:base.id,label:base.label,owner:base.owner,mirrored:false,sprites:idx,pieces:idx.length,at:d.at||null,...(base.mode?{mode:base.mode}:{}),
+    deltas:d.deltas.slice(),graphics:'not compared',banks,state:'established',by:'pose routine',
+    evidence:'drawn as the game\'s pose routine left it: this pose, then '+n+' delta pose'+(n>1?'s':'')+' ('+list+') applied by the game before the frame, recorded while it ran and replayed with the game\'s routine when the frame was captured; every piece of the result is drawn in place (tile and screen position)'+(base.mode?'; drawn as '+base.mode.label:'')+'. The result is not the pose\'s own drawing.'};
 }
 async function frameEntryPoses(id){
   const L=services.ResourceLibrary,{entry,bytes}=await L.readEntry(id);
@@ -183,7 +210,7 @@ async function poseFrames(poseEntryId){
     const ck=f.id+'|'+poseKey;let r=frameCache.get(ck);
     if(!r){try{r=await frameEntryPoses(f.id);}catch(_){r=null;}frameCache.set(ck,r);}
     const link=r?.links?.find(l=>l.poseEntry===poseEntryId);
-    if(link)out.push({frameEntry:f.id,label:f.label||f.id,frame:r.frame,by:link.by,mirrored:link.mirrored,sprites:link.sprites,...(link.mode?{mode:link.mode.label}:{})});
+    if(link)out.push({frameEntry:f.id,label:f.label||f.id,frame:r.frame,by:link.by,mirrored:link.mirrored,sprites:link.sprites,...(link.mode?{mode:link.mode.label}:{}),...(link.deltas?{deltas:link.deltas}:{})});
   }
   return {pose:poseEntryId,frames:out,framesChecked:frames.length};
 }
@@ -249,6 +276,8 @@ async function recordObservations(sha){
       let record=null;
       for(const l of r.links){
         stats.links++;
+        // a full pose changed by deltas: the frame does not show the pose's own drawing
+        if(l.by==='pose routine'){stats.routineLinks=(stats.routineLinks||0)+1;continue;}
         const e=await L.entry(l.poseEntry).catch(()=>null);if(!e)continue;
         if(!e.layoutRenditions){stats.notLayoutPoses++;continue;}
         stats.poses.add(e.id);

@@ -15,10 +15,13 @@
 //    the game runs its pose routine ($C890 entered with $A0 set), the test records the selector ($A1: a full pose below
 //    $80, a delta from $80, applied to the pose already drawn), the base ($B0/$B1) and the sprite mode ($80/$81). For
 //    each frame it replays the applications since the last full pose with the game's routine (here in Node, from the
-//    cartridge) and finds the result drawn in place (every piece at its screen position). A delta result that equals
-//    no full pose is not in the library and is counted; a link in it must be a full pose drawn whole within it.
+//    cartridge) and finds the result drawn in place (every piece at its screen position). Forge records the same
+//    applications itself while the game runs and links a delta result that equals no full pose to its full pose, the
+//    link naming the deltas ("pose routine"): such a link agrees when its full pose, its deltas and its sprites are the
+//    test's replay; every delta result the test reproduces must be linked so.
 // 4. Negative cases: one sprite moved by a pixel breaks the link; a sprite pointed at another CHR bank leaves a
-//    candidate, not a link.
+//    candidate, not a link; a delta link: gone when the record carries no recorded applications, or when one sprite of
+//    the result is moved by a pixel.
 // 5. In the library and on screen: frames registered as library entries give the same links through
 //    library.framePoses; Resources > Library's frame view lists them; a pose opens from there and lists the frames that
 //    show it; a pose with a complete drawing can be used in a project, one with an incomplete drawing is refused.
@@ -27,6 +30,10 @@
 //    than its default drawing, or with no CHR bank of its own, gets a drawing as observed whose every pattern row equals
 //    the cartridge bytes at the location its sprite was drawn from, with the frame's palette and flips; a complete
 //    drawing in the same mode is kept; recording again changes nothing; it survives a reload.
+// 7. A delta link in the library and on screen: a registered frame drawn as a full pose changed by deltas gives the
+//    same links through library.framePoses; the frame view names the deltas and "the game's pose routine"; the full
+//    pose lists the frame ("then N delta poses"); recording observations skips it (the result is not the pose's own
+//    drawing).
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const {chromium} = require('playwright');
 const [editorArg, output, cartDir, shots] = process.argv.slice(2);
@@ -74,10 +81,11 @@ async function bout(page, cart, route) {
       hist.push({f: emu.frameCount, a1: emu.ram[0xA1], b0: emu.ram[0xB0], b1: emu.ram[0xB1], m80: emu.ram[0x80], m81: emu.ram[0x81]});
       if (n % 6) continue;
       const record = await FE.capture({label: route.tag + ' +' + n, links: false}), r = await PL.framePoses(record);
-      const links = r.links.map(l => ({entry: l.poseEntry, poseId: l.poseId, by: l.by, mode: l.mode?.key || null, sprites: l.sprites, graphics: l.graphics, flipsToggled: !!l.flipsToggled}));
+      const links = r.links.map(l => ({entry: l.poseEntry, poseId: l.poseId, by: l.by, mode: l.mode?.key || null, sprites: l.sprites, graphics: l.graphics, flipsToggled: !!l.flipsToggled, deltas: l.deltas || null}));
       // a record of each sprite mode linked, for the library and negative checks
       for (const l of links) if (l.by === 'layout and graphics' && !keep[l.mode]) keep[l.mode] = {record, link: l};
       for (const l of links) if (l.by === 'layout' && !keep.nobank) keep.nobank = {record, link: l};
+      for (const l of links) if (l.by === 'pose routine' && l.deltas?.length >= 2 && !keep.routine) keep.routine = {record, link: l};
       frames.push({frame: record.frame, state: r.state, sprites: record.sprites.filter(s => s.visible).map(s => ({index: s.index, tile: s.tile, x: s.x, y: s.y, height: s.height, flipH: s.flipH, flipV: s.flipV})),
         links, candidates: r.candidates.map(c => ({poseId: c.poseId, state: c.state, mode: c.mode?.key || null, pieces: c.pieces})), ambiguous: r.ambiguous.length});
     }
@@ -116,7 +124,8 @@ function judge(run, content, fight, bytes) {
     const mine = uses.find(u => u.fight === fight); return {fights: uses.map(u => u.fight), selectors: mine ? mine.selectors : []}; };
   const out = {frames: run.frames.length, links: 0, byLayoutAndGraphics: 0, byLayout: 0, modes: {}, agree: 0, contradictions: [], wrongFight: [], duringDelta: 0,
     candidates: run.frames.reduce((n, f) => n + f.candidates.length, 0), ambiguous: run.frames.reduce((n, f) => n + f.ambiguous, 0), drawnInPlace: 0, covered: 0, missed: [],
-    game: {applications: run.apps.length, deltaApplications: run.apps.filter(a => a.a1 >= 128).length, reproduced: 0, fullPose: 0, deltaResult: 0, deltaResultLinked: [], notReproduced: 0, linksNotJudged: 0, replayErrors: 0, chains: {}}};
+    game: {applications: run.apps.length, deltaApplications: run.apps.filter(a => a.a1 >= 128).length, reproduced: 0, fullPose: 0, deltaResult: 0, deltaResultLinked: [], notReproduced: 0, linksNotJudged: 0, replayErrors: 0, chains: {},
+      routineLinks: 0, routineAgree: 0, deltaCovered: 0, deltaMissed: []}};
   // the fight's full poses by layout (relative positions and tiles), per sprite mode: which selectors a drawing equals
   const f = content.fights[fight], layouts = {};
   const fullOf = (mode, pieces) => { const k = mode.height + '/' + mode.step;
@@ -132,9 +141,10 @@ function judge(run, content, fight, bytes) {
     for (const lag of [-1, 0, 1, 2]) {
       const upTo = run.apps.filter(a => a.f < fr.frame - lag), start = upTo.map(a => a.a1 < 128).lastIndexOf(true); if (start < 0) continue;
       const chain = upTo.slice(start); let pieces; try { pieces = replay(bytes, f, chain); } catch (e) { out.game.replayErrors++; continue; }
-      if (pieces.length >= 3 && pieces.every(q => fr.sprites.some(s => s.x === q.x && s.y === q.y - 1 && s.tile === q.tile))) {
+      const used = new Set(), at = pieces.map(q => { const sp = fr.sprites.find(s => !used.has(s.index) && s.x === q.x && s.y === q.y - 1 && s.tile === q.tile); if (sp) used.add(sp.index); return sp ? sp.index : null; });
+      if (pieces.length >= 3 && at.every(i => i !== null)) {
         const last = chain[0], mode = {height: last.m80 === 16 ? 16 : 8, step: last.m81 === 2 ? 2 : 1};
-        drawn = {pieces, chain: chain.map(a => a.a1), equals: fullOf(mode, pieces)}; break; }
+        drawn = {pieces, sprites: at, chain: chain.map(a => a.a1), equals: fullOf(mode, pieces)}; break; }
     }
     if (drawn) { out.game.reproduced++; const k = drawn.chain.length === 1 ? 'full pose' : 'full pose + ' + (drawn.chain.length - 1) + ' delta(s)'; out.game.chains[k] = (out.game.chains[k] || 0) + 1;
       if (drawn.equals.length) out.game.fullPose++; else out.game.deltaResult++; }
@@ -145,12 +155,27 @@ function judge(run, content, fight, bytes) {
       if (l.flipsToggled) out.flipped = (out.flipped || 0) + 1;
       if (delta) out.duringDelta++;
       if (!drawn) { out.game.linksNotJudged++; continue; }
+      // Forge's delta link (its own recording, replayed at capture): the full pose, the deltas and the sprites are the
+      // test's replay of what the game applied
+      if (l.by === 'pose routine') {
+        out.game.routineLinks++;
+        const same = !drawn.equals.length && r.selectors.includes(drawn.chain[0]) && JSON.stringify(l.deltas) === JSON.stringify(drawn.chain.slice(1)) &&
+          l.sprites.length === drawn.sprites.length && l.sprites.every(i => drawn.sprites.includes(i));
+        if (same) { out.agree++; out.game.routineAgree++; }
+        else out.contradictions.push({frame: fr.frame, pose: l.poseId, by: l.by, deltas: l.deltas, game: drawn.chain.map(v => v.toString(16)).join('>'), equals: drawn.equals});
+        continue;
+      }
       // agreement: the drawing is this pose; or the drawing is a delta result and every linked sprite is part of it (a
       // full pose drawn whole within what the game drew)
       const within = l.sprites.every(i => { const sp = fr.sprites.find(t => t.index === i); return sp && drawn.pieces.some(q => q.x === sp.x && q.y - 1 === sp.y && q.tile === sp.tile); });
       if (r.selectors.some(s => drawn.equals.includes(s))) out.agree++;
       else if (!drawn.equals.length && within) { out.agree++; out.game.deltaResultLinked.push({frame: fr.frame, pose: l.poseId}); }
       else out.contradictions.push({frame: fr.frame, pose: l.poseId, selectors: r.selectors, game: drawn.chain.map(v => v.toString(16)).join('>'), equals: drawn.equals, within});
+    }
+    // coverage of delta results: Forge links the full pose with the deltas the game applied
+    if (drawn && !drawn.equals.length) {
+      if (fr.links.some(l => l.by === 'pose routine' && JSON.stringify(l.deltas) === JSON.stringify(drawn.chain.slice(1)) && (recordOf(l.poseId)?.selectors || []).includes(drawn.chain[0]))) out.game.deltaCovered++;
+      else out.game.deltaMissed.push({frame: fr.frame, chain: drawn.chain.map(v => v.toString(16)).join('>'), links: fr.links.map(l => l.poseId + ':' + l.by)});
     }
     // coverage: the game's drawing is one of the fight's full poses, drawn in place; Forge links it
     if (!drawn || !drawn.equals.length) continue;
@@ -262,16 +287,16 @@ function judge(run, content, fight, bytes) {
       const t = Date.now(), run = await bout(page, play.cart, play.route), cartBytes = new Uint8Array(fs.readFileSync(play.cart.file)), content = PunchOutContent.open(cartBytes);
       report.bouts[play.label] = {...judge(run, content, play.fight, cartBytes), seconds: Math.round((Date.now() - t) / 1000)};
       // a line per bout: the bouts take minutes in all, and the runner stops a suite that prints nothing for 5 minutes
-      { const b = report.bouts[play.label]; console.log('  bout done: ' + play.label + ' · ' + b.links + ' links, ' + b.agree + ' agree with the game\'s drawing, ' + b.contradictions.length + ' contradict, coverage ' + b.covered + '/' + b.drawnInPlace + ', delta results ' + b.game.deltaResult + ' · ' + b.seconds + ' s'); }
+      { const b = report.bouts[play.label]; console.log('  bout done: ' + play.label + ' · ' + b.links + ' links (' + b.game.routineLinks + ' delta links), ' + b.agree + ' agree with the game\'s drawing, ' + b.contradictions.length + ' contradict, coverage ' + b.covered + '/' + b.drawnInPlace + ', delta results linked ' + b.game.deltaCovered + '/' + b.game.deltaResult + ' · ' + b.seconds + ' s'); }
       for (const [mode, k] of Object.entries(run.keep)) kept.push({bout: play.label, mode, ...k});
     }
     const B = Object.values(report.bouts);
-    check('In every bout, every link agrees with the drawing the game made (its pose routine\'s applications, full poses and deltas, replayed): the linked pose is that drawing, or a full pose drawn whole within a delta result; none contradicts it; every link is to the fight being played',
-      B.length >= 14 && new Set(plays.map(p => p.fight)).size === 14 && B.every(b => b.links > 20 && b.agree >= b.links - b.game.linksNotJudged && b.game.linksNotJudged <= 0.05 * b.links && !b.contradictions.length && !b.wrongFight.length && b.ambiguous === 0 && b.game.replayErrors === 0) &&
+    check('In every bout, every link agrees with the drawing the game made (its pose routine\'s applications, full poses and deltas, replayed by this test): the linked pose is that drawing, a full pose drawn whole within a delta result, or (a delta link) that drawing\'s full pose with its deltas and sprites; none contradicts it; every link is to the fight being played',
+      B.length >= 14 && new Set(plays.map(p => p.fight)).size === 14 && B.every(b => b.links > 20 && b.game.routineAgree === b.game.routineLinks && b.agree >= b.links - b.game.linksNotJudged && b.game.linksNotJudged <= 0.05 * b.links && !b.contradictions.length && !b.wrongFight.length && b.ambiguous === 0 && b.game.replayErrors === 0) &&
         report.bouts['Mike Tyson (PRG 1)'].modes['8x8-step2'] > 0 && report.bouts['Mike Tyson (PRG 1)'].modes['8x16'] > 0,
-      Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {links: b.links, agree: b.agree, notJudged: b.game.linksNotJudged, flipped: b.flipped || 0, contradictions: b.contradictions.slice(0, 3), wrongFight: b.wrongFight.slice(0, 3), modes: b.modes, ambiguous: b.ambiguous, replayErrors: b.game.replayErrors}])));
-    check('Coverage: whenever the game\'s drawing (replayed) is one of the fight\'s full poses and is drawn in place, Forge links it; delta results that equal no full pose are counted, not linked',
-      B.every(b => b.drawnInPlace > 10 && b.missed.length === 0), Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {drawnInPlace: b.drawnInPlace, covered: b.covered, missed: b.missed.slice(0, 3), game: {...b.game, deltaResultLinked: b.game.deltaResultLinked.length}}])));
+      Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {links: b.links, routineLinks: b.game.routineLinks, agree: b.agree, notJudged: b.game.linksNotJudged, flipped: b.flipped || 0, contradictions: b.contradictions.slice(0, 3), wrongFight: b.wrongFight.slice(0, 3), modes: b.modes, ambiguous: b.ambiguous, replayErrors: b.game.replayErrors}])));
+    check('Coverage: whenever the game\'s drawing (replayed) is drawn in place, Forge links it: a full pose as that pose; a delta result that equals no full pose as its full pose with the deltas the game applied',
+      B.every(b => b.drawnInPlace > 10 && b.missed.length === 0 && b.game.deltaMissed.length === 0 && b.game.deltaCovered === b.game.deltaResult) && B.reduce((n, b) => n + b.game.deltaCovered, 0) > 500, Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {drawnInPlace: b.drawnInPlace, covered: b.covered, missed: b.missed.slice(0, 3), game: {...b.game, deltaResultLinked: b.game.deltaResultLinked.length, deltaMissed: b.game.deltaMissed.slice(0, 3)}}])));
     // ---------- 4. negative cases ----------
     const sample = kept.find(k => k.mode === '8x16' && k.link.by === 'layout and graphics') || kept[0];
     const neg = await page.evaluate(async ({record, link}) => {
@@ -282,9 +307,16 @@ function judge(run, content, fight, bytes) {
       return {moved: a.links.some(l => l.poseEntry === link.entry && l.sprites.join() === link.sprites.join()),
         otherBank: {established: b.links.some(l => l.poseEntry === link.entry), candidate: b.candidates.some(l => l.poseEntry === link.entry && l.graphics === 'differ')}};
     }, {record: sample.record, link: sample.link});
-    report.negative = {bout: sample.bout, pose: sample.link.poseId, ...neg};
-    check('Negative cases: one sprite moved by a pixel breaks the link; a sprite pointed at another CHR bank leaves a candidate, not a link',
-      neg.moved === false && neg.otherBank.established === false && neg.otherBank.candidate === true, report.negative);
+    const routineKept = kept.find(k => k.mode === 'routine');
+    const negRoutine = routineKept ? await page.evaluate(async ({record, link}) => {
+      const PL = Forge.services.PoseLinks, copy = () => JSON.parse(JSON.stringify(record)), has = r => r.links.some(l => l.by === 'pose routine' && l.poseEntry === link.entry);
+      const older = copy(); delete older.poseRoutine;
+      const moved = copy(); moved.sprites.find(s => s.visible && s.index === link.sprites[2]).x += 1;
+      return {original: has(await PL.framePoses(record)), withoutApplications: has(await PL.framePoses(older)), moved: has(await PL.framePoses(moved))};
+    }, {record: routineKept.record, link: routineKept.link}) : null;
+    report.negative = {bout: sample.bout, pose: sample.link.poseId, ...neg, routine: negRoutine && {bout: routineKept.bout, pose: routineKept.link.poseId, deltas: routineKept.link.deltas, ...negRoutine}};
+    check('Negative cases: one sprite moved by a pixel breaks the link; a sprite pointed at another CHR bank leaves a candidate, not a link; a delta link is gone without the recorded applications, or with one sprite of the result moved by a pixel',
+      neg.moved === false && neg.otherBank.established === false && neg.otherBank.candidate === true && negRoutine?.original === true && negRoutine.withoutApplications === false && negRoutine.moved === false, report.negative);
     // ---------- 5. in the library and on screen ----------
     const chosen = ['8x16', '8x8-step2', '8x8'].map(m => kept.find(k => k.mode === m)).filter(Boolean);
     const lib = await page.evaluate(async items => {
@@ -366,6 +398,30 @@ function judge(run, content, fight, bytes) {
         res.eight.basis === 'runtime' && res.eight.drawnMode === '8x8-step2' && res.eight.decodedMode === '8x16' && res.eight.complete && !res.eight.problems.length &&
         res.sixteen.recorded >= 1 && res.sixteen.basis === 'fight' && (!res.joe || res.joe.basis === 'fight' && res.joe.recorded >= 1) &&
         obs.again.observations === 0 && obs.again.drawingsUpdated === 0 && after?.rendition?.context?.basis === 'runtime' && /seen on screen in/.test(viewText) && !/in a stage/.test(viewText) && usable?.ok === true, report.observations);
+    // ---------- 7. a delta link in the library and on screen ----------
+    let routineLib = null;
+    if (routineKept) {
+      routineLib = await page.evaluate(async ({record, link, sha256}) => {
+        const S = Forge.services, id = (await S.FrameEvidence.registerFrame(record)).id, viaLibrary = await Forge.commands.run('library.framePoses', {id}), direct = await S.PoseLinks.framePoses(record);
+        const obsRun = await Forge.commands.run('library.recordObservedPoses', {sha256}), e = await S.ResourceLibrary.entry(link.entry);
+        return {id, label: record.label, same: JSON.stringify(viaLibrary.result.links.map(l => [l.poseEntry, l.sprites, l.deltas || null])) === JSON.stringify(direct.links.map(l => [l.poseEntry, l.sprites, l.deltas || null])),
+          routine: viaLibrary.result.links.find(l => l.by === 'pose routine') || null, routineLinksSkipped: obsRun.ok ? obsRun.result.routineLinks || 0 : null, alreadyGoneThrough: obsRun.ok ? obsRun.result.framesSkipped || 0 : null, observedHasFrame: (e.observed?.frames || []).some(f => f.frameEntry === id)};
+      }, {record: routineKept.record, link: routineKept.link, sha256: PRG1});
+      await page.evaluate(() => Forge.services.ResourceRelationshipPreview.open());
+      await page.waitForSelector('#frx-lib'); await page.click('#frx-lib'); await page.fill('#frx-search', routineLib.label); await page.waitForTimeout(500);
+      await page.evaluate(label => [...document.querySelectorAll('#frx-items .frx-item')].find(b => /Library · frame/.test(b.textContent) && b.textContent.includes(label)).click(), routineLib.label);
+      await page.waitForSelector('[data-frame="pose-links"] .frx-pose-link[data-deltas]', {timeout: 60000}).catch(() => null);
+      routineLib.view = await page.evaluate(() => { const r = document.querySelector('[data-frame="pose-links"] .frx-pose-link[data-deltas]'); return r ? {deltas: r.dataset.deltas, button: r.querySelector('button')?.textContent, text: r.textContent.slice(0, 500)} : null; });
+      if (shots && routineLib.view) { await page.$eval('[data-frame="pose-links"]', el => el.scrollIntoView({block: 'center'})); await page.screenshot({path: path.join(shots, 'P6_punch_out_delta_link.png')}); }
+      if (routineLib.view) { await page.click('[data-frame="pose-links"] .frx-pose-link[data-deltas] button');
+        await page.waitForSelector('[data-pose="frames"]', {timeout: 60000}); await page.waitForTimeout(800);
+        routineLib.seen = await page.$eval('[data-pose="frames"]', el => [...el.querySelectorAll('button')].map(b => b.textContent)); }
+    }
+    report.routineLibrary = routineLib;
+    check('A delta link in the library and on screen: the registered frame gives the same links through library.framePoses; the frame view names the deltas and the game\'s pose routine; the full pose lists the frame with its deltas; recording observations skips it',
+      !!routineLib && routineLib.same && routineLib.routine?.deltas?.length >= 2 && routineLib.view && /then \d+ delta poses?/.test(routineLib.view.button || '') && /established by the game's pose routine/.test(routineLib.view.text) &&
+        // registering the frame also schedules the automatic pass, which may go through it first: either pass skipped it
+        (routineLib.seen || []).some(t => t.includes(routineLib.label) && /then \d+ delta poses?/.test(t)) && (routineLib.routineLinksSkipped >= 1 || routineLib.alreadyGoneThrough >= 1) && routineLib.observedHasFrame === false, report.routineLibrary);
     check('No uncaught page errors', errors.length === 0, errors.slice(0, 3));
   } catch (e) { check('run', false, String(e.stack || e.message).slice(0, 900)); }
   await browser.close();

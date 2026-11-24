@@ -205,6 +205,10 @@ const providers=[];
 function registerProvider(p){if(!p?.id||!Array.isArray(p.profiles)||typeof p.catalog!=='function'||typeof p.poseDrawings!=='function')fail('a catalog provider needs id, profiles, catalog and poseDrawings');
   if(!providers.some(x=>x.id===p.id))providers.push(p);}
 const providerOf=sha=>providers.find(p=>p.profiles.some(x=>x.sha256===sha))||null;
+// a provider's pose routine for a cartridge (synchronous: the emulator asks when it loads one, and records each
+// application of the routine while the cartridge runs); the provider replays what was recorded for a captured frame
+function poseRoutineFor(bytes){for(const p of providers){try{if(p.poseRoutine?.recognizes?.(bytes))return {provider:p.id,watch:p.poseRoutine.watch};}catch(_){}}return null;}
+function replayPoseRoutine(providerId,bytes,applications,frame,sprites){const p=providers.find(x=>x.id===providerId);if(!p?.poseRoutine?.replay)fail('no provider replays the pose routine '+providerId);return p.poseRoutine.replay(bytes,applications,frame,sprites);}
 // what registerCatalog reads from a project: its catalog, its cartridge and, for a provider, how its poses are drawn
 async function catalogView(project){
   let rom=null;try{rom=services.NativeEngineProject.validate(project).bytes;}catch(_){rom=null;}
@@ -741,7 +745,7 @@ setTimeout(()=>{
 setTimeout(()=>{void resumeCatalogs({reason:'startup'}).catch(()=>{});},1500);
 
 services.SourceROMs=SourceROMs;
-services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation,
+services.LibraryCatalog=Object.freeze({poseRoutineFor,replayPoseRoutine,registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation,
   catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,recognize,recognitionText,romStatus,registerProvider,AUTO_ATTEMPTS});
 if(C?.register){
   C.register({name:'library.roms',group:'library',title:'Every ROM in the library and its status',summary:'Catalog state (attempts, last error), entries, verified frames, investigations and how its poses are drawn, per ROM SHA-256.',run:()=>romStatus()});

@@ -216,7 +216,7 @@ check('A bout frame is captured as an editable Scene (the emulator\'s Capture), 
   assert.equal(after.meta.mapper, 9);
   assert.equal(after.meta.validation.backgroundDifferentPixels, 0); assert.equal(after.meta.validation.compositeDifferentPixels, 0);
 });
-check('Agent Lab: background jobs on Punch-Out!! (generic first look, and each revision\'s plan to all 14 fights, each fighting frame showing its fighter), verified by cold boots: every frame synchronization-checked, with its scene, none with unverified sprite locations', async () => {
+check('Agent Lab: background jobs on Punch-Out!! (generic first look, and each revision\'s plan to all 14 fights, each fighting frame showing its fighter), verified by cold boots: every frame synchronization-checked, with its scene, none with unverified sprite locations, every record carrying the pose routine\'s recorded applications (digested)', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-mmc2-lab-')), worker = path.join(root, 'tools/agent-lab/capture_worker.cjs');
   try {
     const cli = (...args) => { const r = spawnSync(process.execPath, [worker, ...args, '--root', dir], {encoding: 'utf8', timeout: 900000, env: process.env});
@@ -240,7 +240,9 @@ check('Agent Lab: background jobs on Punch-Out!! (generic first look, and each r
     const frames = full.flatMap(j => j.results.map(r => {
       const rec = JSON.parse(fs.readFileSync(path.join(dir, 'jobs', j.id, r.file), 'utf8'));   // the record, with its provenance
       return {plan: j.plan.name, revision: revision[j.rom.sha256], label: r.label, synchronization: r.synchronization, scene: r.scene, split: r.split, mapper: rec.rom?.mapper, spritePatternsAt: rec.spritePatternsAt,
-        banks: (rec.synchronization?.backgroundTileSources || []).map(s => s.chrOffset >> 12), fighter: /fighting/.test(r.label) ? fighterShown(rec, content[j.rom.sha256]) : null};
+        banks: (rec.synchronization?.backgroundTileSources || []).map(s => s.chrOffset >> 12), fighter: /fighting/.test(r.label) ? fighterShown(rec, content[j.rom.sha256]) : null,
+        // what the game's pose routine applied, recorded while the worker ran the game and digested with the record
+        poseRoutine: rec.poseRoutine ? {digested: 'poseRoutine' in (rec.digests || {}), drawing: rec.poseRoutine.drawing?.state || null, applications: rec.poseRoutine.applications.length} : null};
     }));
     report.agentLab = {ms, jobs: jobs.map(j => ({plan: j.plan.name, source: j.plan.source, revision: revision[j.rom.sha256], state: j.state, frames: j.frames, synchronized: j.synchronized, unresolved: j.unresolved})), frames,
       verify: full.map(j => j.verify), boots: full.map(j => j.runs.reduce((n, r) => n + (r.boots || 0), 0))};
@@ -264,6 +266,10 @@ check('Agent Lab: background jobs on Punch-Out!! (generic first look, and each r
     assert.ok(frames.every(f => f.synchronization === 'matched' && f.scene && !f.split && f.mapper === 9 && f.spritePatternsAt === 'fetch'), JSON.stringify(frames.find(f => f.synchronization !== 'matched' || !f.scene || f.split)));
     assert.ok(jobs.every(j => !j.unresolved.some(u => /not synchronization-checked|sprite pattern locations are unverified/.test(u))), JSON.stringify(jobs.map(j => j.unresolved)));
     assert.ok(frames.some(f => /fighting/.test(f.label) && new Set(f.banks).size > 1), 'the bout frame draws from several banks');
+    // every record carries the pose routine's recorded applications, digested (so cold-boot verification compared them);
+    // each fighting frame's drawing is replayed and drawn in place
+    report.agentLab.poseRoutine = frames.map(f => ({revision: f.revision, label: f.label, ...f.poseRoutine}));
+    assert.ok(frames.every(f => f.poseRoutine?.digested) && frames.filter(f => /fighting/.test(f.label)).every(f => f.poseRoutine.drawing === 'drawn' && f.poseRoutine.applications >= 1), JSON.stringify(report.agentLab.poseRoutine.filter(p => !p.digested || /fighting/.test(p.label) && p.drawing !== 'drawn')));
     // PRG 1's header carries "MJR" in bytes 13-15 with byte 7 zero: a resolved note, the mapper unaffected; PRG 0's
     // header is clean, so it has no header item. Each file is a dump Forge recognizes; nothing about a header is left
     // unresolved

@@ -26,6 +26,20 @@
       throw Error('Punch-Out content: ' + m);
     },
     hex = n => '$' + n.toString(16).toUpperCase().padStart(4, '0');
+  // the first bytes of the game's pose routine at $C890 (bank 14, fixed at $C000): LDA $A0 / BEQ / TAX / LDA #$50 / ...
+  const ANCHOR = [0xa5, 0xa0, 0xf0, 0xfb, 0xaa, 0xa9, 0x50, 0x85, 0xe7, 0xa4, 0x03];
+  // the routine's last instruction (an RTS at $D857): delta poses run its unrolled tail past $D800
+  const ROUTINE_END = 0xd857;
+
+  /* Whether a cartridge runs this pose routine at $C890: an MMC2 cartridge with 128 KiB of PRG ROM whose fixed bank 14
+   * holds the routine's first bytes. Synchronous and cheap (the emulator asks it when a cartridge is loaded). */
+  function hasPoseRoutine(input) {
+    if (!(input instanceof Uint8Array) || input.length < 16 + 131072 || input[0] !== 0x4e || input[1] !== 0x45 ||
+      input[2] !== 0x53 || input[3] !== 0x1a || input[4] !== 8 || ((input[6] >> 4) | (input[7] & 240)) !== 9 ||
+      input[6] & 4) return false;
+    const at = 16 + 14 * 8192 + 0x0890;
+    return ANCHOR.every((v, i) => input[at + i] === v);
+  }
 
   function open(input) {
     if (!(input instanceof Uint8Array) || input.length !== 262160 || input[4] !== 8 || input[
@@ -40,8 +54,7 @@
       b = (bank, a) => bytes[offset(bank, a)],
       word = (bank, a) => b(bank, a) | (b(bank, a + 1) << 8);
     // This entry must retain its original native shape dispatcher.
-    const anchor = [0xa5, 0xa0, 0xf0, 0xfb, 0xaa, 0xa9, 0x50, 0x85, 0xe7, 0xa4, 0x03];
-    if (!anchor.every((v, i) => b(14, 0x8890 + i) === v)) fail('Native shape reader differs.');
+    if (!ANCHOR.every((v, i) => b(14, 0x8890 + i) === v)) fail('Native shape reader differs.');
     const fights = names.map((label, index) => {
       const bank = b(13, 0x80d1 + index * 2),
         entryOffset = b(13, 0x80d2 + index * 2),
@@ -221,6 +234,70 @@
       };
     }
 
+    /* Replay what the game applied: the applications of the pose routine ($C890) that Forge recorded while the game ran
+     * (each: the fight's bank $02 and entry $03, the selector $A1, the base $B0/$B1, the sprite mode $80/$81), in order,
+     * on one RAM. The first is a full pose (selector below $80), drawn on an empty sprite page; each delta (from $80)
+     * changes the sprite page the earlier ones left, as in the game: tiles, attributes and positions. Minimal state
+     * otherwise, as in pose(); the routine may run to its end at $D857. Returns the pieces the result draws. */
+    function replay(applications) {
+      if (!Array.isArray(applications) || !applications.length || applications.length > 4096) fail('Give the applications to replay.');
+      const first = applications[0],
+        f = fights.find(x => x.bank8KiB === first.bank && x.entryOffset === first.entry);
+      if (!f) fail('The applications name no fight of this cartridge.');
+      if (!(first.selector < 128)) fail('A replay starts with a full pose.');
+      if (applications.some(a => a.bank !== first.bank || a.entry !== first.entry)) fail('The applications name more than one fight.');
+      const ram = new Uint8Array(2048);
+      ram[0xa9] = 5;
+      ram.fill(248, 512, 768);
+      let steps = 0;
+      for (const a of applications) {
+        if (![a.selector, a.x, a.y].every(v => Number.isInteger(v) && v >= 0 && v < 256)) fail('An application is incomplete.');
+        if (a.selector < 128 && !f.poses.some(p => p.selector === a.selector && p.status === 'source-record')) fail('A full pose selector names no record.');
+        const height = a.height === 16 ? 16 : 8,
+          step = a.step === 2 ? 2 : 1,
+          state = {A: 0, X: 0, Y: 0, SP: 0xfb, PC: 0xc890, C: 0, Z: 0, I: 1, D: 0, V: 0, N: 0, cycles: 0, opsMissed: 0};
+        const read = addr => {
+          addr &= 65535;
+          if (addr < 0x2000) return ram[addr & 2047];
+          if (addr >= 0x8000) return bytes[addr < 0xa000 ? offset(f.bank8KiB, addr) : 16 + 131072 - 24576 + addr - 0xa000];
+          fail('Replay requires runtime bus ' + hex(addr));
+        };
+        const write = (addr, v) => {
+          addr &= 65535;
+          if (addr >= 0x2000) fail('Replay tried to access runtime bus ' + hex(addr));
+          ram[addr & 2047] = v & 255;
+        };
+        ram[3] = f.entryOffset;
+        ram[0x80] = height;
+        ram[0x81] = step;
+        ram[0x82] = step === 2 ? 254 : 255;
+        ram[0xb0] = a.x;
+        ram[0xb1] = a.y;
+        ram[0xa0] = 128;
+        ram[0xa1] = a.selector;
+        ram[0x1fc] = 0xee;
+        ram[0x1fd] = 0x7f;
+        const core = cpu.create(state, read, write);
+        let n = 0;
+        while (state.PC !== 0x7fef) {
+          if (++n > 50000 || state.PC < 0xc88b || state.PC > ROUTINE_END) fail('Replay leaves the bounded native shape reader.');
+          core.step();
+          state.PC &= 65535;
+          if (state.opsMissed) fail('Unsupported native instruction.');
+        }
+        if (state.SP !== 0xfd) fail('Native pose stack is unbalanced.');
+        steps += n;
+      }
+      const pieces = [];
+      for (let slot = 3; slot < 64; slot++) {
+        const at = 512 + slot * 4;
+        if (ram[at] >= 239) continue;
+        pieces.push({slot, x: ram[at + 3], y: ram[at] + 1, tile: ram[at + 1], attributes: ram[at + 2]});
+      }
+      return {fight: f.index, base: {selector: first.selector, address: f.poses.find(p => p.selector === first.selector).address},
+        deltas: applications.slice(1).map(a => a.selector), mode: {height: first.height === 16 ? 16 : 8, step: first.step === 2 ? 2 : 1}, pieces, instructions: steps};
+    }
+
     function chr(bank) {
       if (!Number.isInteger(bank) || bank < 0 || bank >= 32) fail('CHR bank must be 0–31.');
       const start = 131088 + bank * 4096;
@@ -236,6 +313,7 @@
     return Object.freeze({
       fights,
       pose,
+      replay,
       chr,
       physicalChrBanks: 32,
       physicalChrTiles: 8192,
@@ -247,6 +325,8 @@
   }
   return Object.freeze({
     version: 1,
-    open
+    open,
+    hasPoseRoutine,
+    poseRoutine: Object.freeze({pc: 0xc890, end: ROUTINE_END})
   });
 });

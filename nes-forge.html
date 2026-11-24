@@ -4066,6 +4066,8 @@ return Object.freeze({create,version:1});
 });
 const emu={
   loaded:false, running:false, frameCount:0, cyclesPerFrame:29780,
+  // a library provider's pose routine, recorded while its cartridge runs (emuPoseWatchHit); -1: nothing watched
+  _poseWatchPC:-1, poseWatch:null,
   // ROM data
   prgRom:null, chrRom:null, chrRam:new Uint8Array(8192), hasChrRam:false,
   prgSize:0, prgMask:0, mapper:0,
@@ -4316,11 +4318,29 @@ function cpuStep(){
   apuClock(elapsed);emu.PC&=65535;
 }
 const emuCPUCore=Forge6502Core.create(emu,a=>cpuRead(a),(a,v)=>cpuWrite(a,v));
+// A library provider's pose routine, recorded while its cartridge runs (LibraryCatalog.poseRoutineFor, set when the
+// cartridge is loaded): whenever the CPU is about to run the routine's first instruction with its condition byte set,
+// the frame number and the declared RAM bytes are kept. A full pose (the restart field below its value) starts a new
+// drawing, so applications before the last full pose older than three frames are dropped. Plain data on emu: checkpoints
+// and frame history keep it with the machine state, so a restored run records what a cold run records.
+function emuPoseWatchHit(){
+  const w=emu.poseWatch;if(!w||(w.when>=0&&!emu.ram[w.when&2047]))return;
+  const a=[emu.frameCount];for(const addr of w.fields)a.push(emu.ram[addr&2047]);
+  const apps=w.apps,r=w.restart+1;
+  if(a[r]<w.below){let k=-1;for(let i=apps.length-1;i>=0;i--)if(apps[i][r]<w.below&&apps[i][0]<emu.frameCount-3){k=i;break;}if(k>0)apps.splice(0,k);}
+  apps.push(a);if(apps.length>w.max){apps.splice(0,apps.length-w.max);w.dropped++;}
+}
+function emuPoseWatchConfigure(rom){
+  let spec=null;try{spec=window.Forge?.services?.LibraryCatalog?.poseRoutineFor?.(rom)||null;}catch(_){spec=null;}
+  const v=spec?.watch,restart=v?v.fields.findIndex(f=>f[0]===v.restart.field):-1;
+  emu.poseWatch=v&&restart>=0?{provider:spec.provider,pc:v.pc,when:Number.isInteger(v.when)?v.when:-1,names:v.fields.map(f=>f[0]),fields:v.fields.map(f=>f[1]),restart,below:v.restart.below,max:v.max||2048,dropped:0,apps:[]}:null;
+  emu._poseWatchPC=emu.poseWatch?emu.poseWatch.pc:-1;
+}
 function cpuStepRaw(){return emuCPUCore.step();}
 
 // ── Frame runner ──
 function emuRunFrame(){if(!emu.loaded)return;const deadline=performance.now()+200;const start=emu._nextFrameCycle??emu.cycles;if(!Number.isFinite(start)||!Number.isFinite(emu.cycles))throw Error("Invalid CPU clock");emu.ppuStatus&=0x1F;emu.spr0Line=-1;emu.tAddrPre=emu.tAddr;emu.fineXPre=emu.fineX;emu.chrBank0Pre=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1;const scrollY=((emu.tAddr>>5)&31)*8+((emu.tAddr>>12)&7),ntY=(emu.tAddr>>11)&1;emu._rasterYBase=scrollY;emu._rasterNTY=ntY;
-  const stepTo=target=>{let steps=0;while(emu.cycles<target){if((emu.irqPending||apuCore.irq)&&!emu.I){cpuPush(emu.PC>>8);cpuPush(emu.PC&255);cpuPush(cpuGetP()&~16);emu.I=1;emu.PC=cpuRead16(0xFFFE);emu.cycles+=7;apuClock(7);}cpuStep();emu.PC&=65535;if(++steps>20000)throw new Error('CPU did not advance safely');}};
+  const stepTo=target=>{let steps=0;while(emu.cycles<target){if((emu.irqPending||apuCore.irq)&&!emu.I){cpuPush(emu.PC>>8);cpuPush(emu.PC&255);cpuPush(cpuGetP()&~16);emu.I=1;emu.PC=cpuRead16(0xFFFE);emu.cycles+=7;apuClock(7);}if(emu.PC===emu._poseWatchPC)emuPoseWatchHit();cpuStep();emu.PC&=65535;if(++steps>20000)throw new Error('CPU did not advance safely');}};
   try{for(let line=0;line<262;line++){if((line&15)===0&&performance.now()>deadline)throw Error("Frame exceeded 200 ms safety budget; paused to protect the page");const lineStart=start+line*341/3;emu._ppuFrameLine=line;if(line<240){if(line===0)emu._chrLines=[[0,emu.chrBank0,emu.chrBank1]];else{const l=emu._chrLines[emu._chrLines.length-1];if(l[1]!==emu.chrBank0||l[2]!==emu.chrBank1)emu._chrLines.push([line,emu.chrBank0,emu.chrBank1]);}const hit=renderEmuLine(line,emu._rasterYBase,emu._rasterNTY);if(hit>=0&&!(emu.ppuStatus&64)){stepTo(lineStart+hit/3);emu.ppuStatus|=64;emu.spr0Line=line;}stepTo(start+(line+1)*341/3);if(emu.mapper===4)mmc3ScanlineTick();}else {if(line===241){emu.ppuStatus|=128;if(emu.ppuCtrl&128)cpuNmi();}stepTo(start+(line+1)*341/3);}}
   }finally{emu._ppuFrameLine=-1;}emu._nextFrameCycle=start+262*341/3;emu.tAddrPost=emu.tAddr;emu.fineXPost=emu.fineX;emu.chrBank0Post=emu.chrBank0;emu.chrBank1Post=emu.chrBank1;emu.frameCount++;
   // Read-only ROM-frame evidence hook. No native engine or emulator state changes.
@@ -4329,7 +4349,7 @@ function emuRunFrame(){if(!emu.loaded)return;const deadline=performance.now()+20
 }
 
 // ── Reset ──
-function emuDoReset(){emu._ppuFrameLine=-1;emu.A=emu.X=emu.Y=0;emu.SP=0xFD;emu.C=emu.Z=emu.D=emu.V=emu.N=0;emu.I=1;emu.cycles=0;emu.frameCount=0;emu._nextFrameCycle=0;emu.ram.fill(0);emu.vram.fill(0);emu.palRam.fill(0);emu.oamMem.fill(255);if(emu.hasChrRam)emu.chrRam.fill(0);emu.mirroring=emu.initialMirror??1;emu.prgBank0=0;emu.prgBank1=Math.max(0,emu.prgSize-16384);emu.chrBank0=0;emu.chrBank1=4096;emu.chrPages=Array.from({length:8},(_,i)=>i*1024);if(emu.mapper===1){emu.mmc1Shift=0x10;emu.mmc1Ctrl=0x0C;emu.mmc1Chr0=emu.mmc1Chr1=emu.mmc1Prg=0;mmc1UpdateBanks();}if(emu.mapper===4){emu.mmc3Banks.fill(0);emu.mmc3BankSel=emu.mmc3PrgMode=emu.mmc3ChrMode=emu.mmc3IrqLatch=emu.mmc3IrqCounter=0;emu.mmc3IrqEnabled=emu.mmc3IrqReload=false;mmc3UpdateBanks();}if([7,11,66].includes(emu.mapper)){emu.prgBank1=16384%emu.prgSize;if(emu.mapper===7)emu.mirroring=2;}emu.irqPending=false;emu.apuRegs.fill(0);emu.apuStatus=emu.apuFrameCounter=0;emu.ppuCtrl=emu.ppuMask=emu.oamAddr=0;emu.ppuStatus=0;emu.vAddr=emu.tAddr=emu.ppuBuf=emu.fineX=0;emu.wLatch=false;emu.joyShift=emu.joyState=0;emu.joyStrobe=false;emu.spr0Line=-1;emu.tAddrPre=emu.tAddrPost=emu.fineXPre=emu.fineXPost=0;emu.chrBank0Pre=emu.chrBank0Post=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1Post=emu.chrBank1;emu.PC=cpuRead16(0xFFFC);apuSilence();apuReset();emu.opsMissed=0;emuPerf.fps=emuPerf.frameMs=emuPerf.maxFrameMs=emuPerf.dropped=emuPerf.backlogMs=emuPerf.budgetYields=0;if(emu.frameBuffer)emu.frameBuffer.fill(0);if(emu.bgFrameBuffer)emu.bgFrameBuffer.fill(0);}
+function emuDoReset(){emu._ppuFrameLine=-1;if(emu.poseWatch){emu.poseWatch.apps=[];emu.poseWatch.dropped=0;}emu.A=emu.X=emu.Y=0;emu.SP=0xFD;emu.C=emu.Z=emu.D=emu.V=emu.N=0;emu.I=1;emu.cycles=0;emu.frameCount=0;emu._nextFrameCycle=0;emu.ram.fill(0);emu.vram.fill(0);emu.palRam.fill(0);emu.oamMem.fill(255);if(emu.hasChrRam)emu.chrRam.fill(0);emu.mirroring=emu.initialMirror??1;emu.prgBank0=0;emu.prgBank1=Math.max(0,emu.prgSize-16384);emu.chrBank0=0;emu.chrBank1=4096;emu.chrPages=Array.from({length:8},(_,i)=>i*1024);if(emu.mapper===1){emu.mmc1Shift=0x10;emu.mmc1Ctrl=0x0C;emu.mmc1Chr0=emu.mmc1Chr1=emu.mmc1Prg=0;mmc1UpdateBanks();}if(emu.mapper===4){emu.mmc3Banks.fill(0);emu.mmc3BankSel=emu.mmc3PrgMode=emu.mmc3ChrMode=emu.mmc3IrqLatch=emu.mmc3IrqCounter=0;emu.mmc3IrqEnabled=emu.mmc3IrqReload=false;mmc3UpdateBanks();}if([7,11,66].includes(emu.mapper)){emu.prgBank1=16384%emu.prgSize;if(emu.mapper===7)emu.mirroring=2;}emu.irqPending=false;emu.apuRegs.fill(0);emu.apuStatus=emu.apuFrameCounter=0;emu.ppuCtrl=emu.ppuMask=emu.oamAddr=0;emu.ppuStatus=0;emu.vAddr=emu.tAddr=emu.ppuBuf=emu.fineX=0;emu.wLatch=false;emu.joyShift=emu.joyState=0;emu.joyStrobe=false;emu.spr0Line=-1;emu.tAddrPre=emu.tAddrPost=emu.fineXPre=emu.fineXPost=0;emu.chrBank0Pre=emu.chrBank0Post=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1Post=emu.chrBank1;emu.PC=cpuRead16(0xFFFC);apuSilence();apuReset();emu.opsMissed=0;emuPerf.fps=emuPerf.frameMs=emuPerf.maxFrameMs=emuPerf.dropped=emuPerf.backlogMs=emuPerf.budgetYields=0;if(emu.frameBuffer)emu.frameBuffer.fill(0);if(emu.bgFrameBuffer)emu.bgFrameBuffer.fill(0);}
 
 // ── Load ROM into emulator ──
 async function emuLoadRom(e){
@@ -4492,6 +4512,7 @@ function emuTrace(){
       ' SP=$'+emu.SP.toString(16).toUpperCase().padStart(2,'0')+
       ' P='+cpuGetP().toString(2).padStart(8,'0');
     emuLog(before);
+    if(emu.PC===emu._poseWatchPC)emuPoseWatchHit();
     cpuStep();
   }
   emuLog('── After trace: PC=$'+emu.PC.toString(16).toUpperCase().padStart(4,'0')+
@@ -4759,7 +4780,7 @@ function colorDreamsWrite(a,v){
 function emuLoadRomData(bytes,name='ROM',initFrames=30){try{const rom=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);const h=parseRomHeader(rom);if(!Number.isInteger(initFrames)||initFrames<0||initFrames>120)throw Error('Initialization frame budget must be 0–120');emuPause();clearEmuKeys();const candidate=window.Forge?.services?.WorldCompiler?.lastBuild;
   const matchingBuild=!!(name==='Current project build' && candidate?.rom?.length===rom.length && candidate?.spec?.flyingEnemy && candidate.rom.every((value,index)=>value===rom[index]));
   emu._dgAiDebugBuild=matchingBuild?{symbols:{...candidate.symbols},spec:JSON.parse(JSON.stringify(candidate.spec)),romByteLength:rom.length}:null;
-  emu._dgAiDebugSymbols=emu._dgAiDebugBuild?.symbols||null;emu.prgSize=h.prgSize;emu.prgRom=rom.slice(h.headerSize,h.headerSize+h.prgSize);emu.chrRom=h.chrSize?rom.slice(h.headerSize+h.prgSize,h.headerSize+h.prgSize+h.chrSize):null;emu.hasChrRam=!h.chrSize;emu.mapper=h.mapper;emu.initialMirror=h.mirror;emu.mirroring=h.mirror;emu.vram=new Uint8Array(4096);emu.chrRam=new Uint8Array(8192);emu.sram=new Uint8Array(8192);if(h.trainer)emu.sram.set(rom.slice(16,528),0x1000);emu.loaded=true;emu.lastBuiltRom=new Uint8Array(rom);emu.romName=name;emu.frameBuffer=new Uint8ClampedArray(256*240*4);emu.bgFrameBuffer=new Uint8ClampedArray(256*240*4);emu.frameBuffer.fill(0);emu.bgFrameBuffer.fill(0);emuDoReset();for(let i=0;i<initFrames;i++)emuRunFrame();['emuRunBtn','emuStepBtn','emuResetBtn','emuCapBtn','emuCapFrameBtn','emuCapHybridBtn','emuTraceBtn'].forEach(id=>document.getElementById(id).disabled=false);disasm_output='';disasm_asmText='';document.getElementById('disasmCode').textContent='Open this tab or click Disassemble PRG to inspect the loaded ROM.';document.getElementById('emuLog').textContent='Loaded '+name+'\nMapper '+h.mapper+' • '+h.prgSize/1024+' KB PRG • '+h.chrSize/1024+' KB CHR\nPaused at frame '+emu.frameCount+'. Z=A, X=B, Shift=Select, Enter=Start.\nCPU-clocked audio; experimental scanline video. Raster/IRQ/DMC bus timing remains approximate.';renderEmu();updateEmuSidebar();emuUpdatePerformance(true);const status=document.getElementById('issueStatus');if(status){status.textContent='Loaded '+name+' — press Run to play';status.style.color='var(--acc)';status.title='';}return true;}catch(e){emuPause();reportError(e);return false;}}
+  emu._dgAiDebugSymbols=emu._dgAiDebugBuild?.symbols||null;emu.prgSize=h.prgSize;emu.prgRom=rom.slice(h.headerSize,h.headerSize+h.prgSize);emu.chrRom=h.chrSize?rom.slice(h.headerSize+h.prgSize,h.headerSize+h.prgSize+h.chrSize):null;emu.hasChrRam=!h.chrSize;emu.mapper=h.mapper;emu.initialMirror=h.mirror;emu.mirroring=h.mirror;emu.vram=new Uint8Array(4096);emu.chrRam=new Uint8Array(8192);emu.sram=new Uint8Array(8192);if(h.trainer)emu.sram.set(rom.slice(16,528),0x1000);emu.loaded=true;emu.lastBuiltRom=new Uint8Array(rom);emu.romName=name;emu.frameBuffer=new Uint8ClampedArray(256*240*4);emu.bgFrameBuffer=new Uint8ClampedArray(256*240*4);emu.frameBuffer.fill(0);emu.bgFrameBuffer.fill(0);emuPoseWatchConfigure(emu.lastBuiltRom);emuDoReset();for(let i=0;i<initFrames;i++)emuRunFrame();['emuRunBtn','emuStepBtn','emuResetBtn','emuCapBtn','emuCapFrameBtn','emuCapHybridBtn','emuTraceBtn'].forEach(id=>document.getElementById(id).disabled=false);disasm_output='';disasm_asmText='';document.getElementById('disasmCode').textContent='Open this tab or click Disassemble PRG to inspect the loaded ROM.';document.getElementById('emuLog').textContent='Loaded '+name+'\nMapper '+h.mapper+' • '+h.prgSize/1024+' KB PRG • '+h.chrSize/1024+' KB CHR\nPaused at frame '+emu.frameCount+'. Z=A, X=B, Shift=Select, Enter=Start.\nCPU-clocked audio; experimental scanline video. Raster/IRQ/DMC bus timing remains approximate.';renderEmu();updateEmuSidebar();emuUpdatePerformance(true);const status=document.getElementById('issueStatus');if(status){status.textContent='Loaded '+name+' — press Run to play';status.style.color='var(--acc)';status.title='';}return true;}catch(e){emuPause();reportError(e);return false;}}
 
 // Capture emulator PPU state into tile editor
 function emuCaptureMeta(mode){
@@ -21896,6 +21917,20 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
       throw Error('Punch-Out content: ' + m);
     },
     hex = n => '$' + n.toString(16).toUpperCase().padStart(4, '0');
+  // the first bytes of the game's pose routine at $C890 (bank 14, fixed at $C000): LDA $A0 / BEQ / TAX / LDA #$50 / ...
+  const ANCHOR = [0xa5, 0xa0, 0xf0, 0xfb, 0xaa, 0xa9, 0x50, 0x85, 0xe7, 0xa4, 0x03];
+  // the routine's last instruction (an RTS at $D857): delta poses run its unrolled tail past $D800
+  const ROUTINE_END = 0xd857;
+
+  /* Whether a cartridge runs this pose routine at $C890: an MMC2 cartridge with 128 KiB of PRG ROM whose fixed bank 14
+   * holds the routine's first bytes. Synchronous and cheap (the emulator asks it when a cartridge is loaded). */
+  function hasPoseRoutine(input) {
+    if (!(input instanceof Uint8Array) || input.length < 16 + 131072 || input[0] !== 0x4e || input[1] !== 0x45 ||
+      input[2] !== 0x53 || input[3] !== 0x1a || input[4] !== 8 || ((input[6] >> 4) | (input[7] & 240)) !== 9 ||
+      input[6] & 4) return false;
+    const at = 16 + 14 * 8192 + 0x0890;
+    return ANCHOR.every((v, i) => input[at + i] === v);
+  }
 
   function open(input) {
     if (!(input instanceof Uint8Array) || input.length !== 262160 || input[4] !== 8 || input[
@@ -21910,8 +21945,7 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
       b = (bank, a) => bytes[offset(bank, a)],
       word = (bank, a) => b(bank, a) | (b(bank, a + 1) << 8);
     // This entry must retain its original native shape dispatcher.
-    const anchor = [0xa5, 0xa0, 0xf0, 0xfb, 0xaa, 0xa9, 0x50, 0x85, 0xe7, 0xa4, 0x03];
-    if (!anchor.every((v, i) => b(14, 0x8890 + i) === v)) fail('Native shape reader differs.');
+    if (!ANCHOR.every((v, i) => b(14, 0x8890 + i) === v)) fail('Native shape reader differs.');
     const fights = names.map((label, index) => {
       const bank = b(13, 0x80d1 + index * 2),
         entryOffset = b(13, 0x80d2 + index * 2),
@@ -22091,6 +22125,70 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
       };
     }
 
+    /* Replay what the game applied: the applications of the pose routine ($C890) that Forge recorded while the game ran
+     * (each: the fight's bank $02 and entry $03, the selector $A1, the base $B0/$B1, the sprite mode $80/$81), in order,
+     * on one RAM. The first is a full pose (selector below $80), drawn on an empty sprite page; each delta (from $80)
+     * changes the sprite page the earlier ones left, as in the game: tiles, attributes and positions. Minimal state
+     * otherwise, as in pose(); the routine may run to its end at $D857. Returns the pieces the result draws. */
+    function replay(applications) {
+      if (!Array.isArray(applications) || !applications.length || applications.length > 4096) fail('Give the applications to replay.');
+      const first = applications[0],
+        f = fights.find(x => x.bank8KiB === first.bank && x.entryOffset === first.entry);
+      if (!f) fail('The applications name no fight of this cartridge.');
+      if (!(first.selector < 128)) fail('A replay starts with a full pose.');
+      if (applications.some(a => a.bank !== first.bank || a.entry !== first.entry)) fail('The applications name more than one fight.');
+      const ram = new Uint8Array(2048);
+      ram[0xa9] = 5;
+      ram.fill(248, 512, 768);
+      let steps = 0;
+      for (const a of applications) {
+        if (![a.selector, a.x, a.y].every(v => Number.isInteger(v) && v >= 0 && v < 256)) fail('An application is incomplete.');
+        if (a.selector < 128 && !f.poses.some(p => p.selector === a.selector && p.status === 'source-record')) fail('A full pose selector names no record.');
+        const height = a.height === 16 ? 16 : 8,
+          step = a.step === 2 ? 2 : 1,
+          state = {A: 0, X: 0, Y: 0, SP: 0xfb, PC: 0xc890, C: 0, Z: 0, I: 1, D: 0, V: 0, N: 0, cycles: 0, opsMissed: 0};
+        const read = addr => {
+          addr &= 65535;
+          if (addr < 0x2000) return ram[addr & 2047];
+          if (addr >= 0x8000) return bytes[addr < 0xa000 ? offset(f.bank8KiB, addr) : 16 + 131072 - 24576 + addr - 0xa000];
+          fail('Replay requires runtime bus ' + hex(addr));
+        };
+        const write = (addr, v) => {
+          addr &= 65535;
+          if (addr >= 0x2000) fail('Replay tried to access runtime bus ' + hex(addr));
+          ram[addr & 2047] = v & 255;
+        };
+        ram[3] = f.entryOffset;
+        ram[0x80] = height;
+        ram[0x81] = step;
+        ram[0x82] = step === 2 ? 254 : 255;
+        ram[0xb0] = a.x;
+        ram[0xb1] = a.y;
+        ram[0xa0] = 128;
+        ram[0xa1] = a.selector;
+        ram[0x1fc] = 0xee;
+        ram[0x1fd] = 0x7f;
+        const core = cpu.create(state, read, write);
+        let n = 0;
+        while (state.PC !== 0x7fef) {
+          if (++n > 50000 || state.PC < 0xc88b || state.PC > ROUTINE_END) fail('Replay leaves the bounded native shape reader.');
+          core.step();
+          state.PC &= 65535;
+          if (state.opsMissed) fail('Unsupported native instruction.');
+        }
+        if (state.SP !== 0xfd) fail('Native pose stack is unbalanced.');
+        steps += n;
+      }
+      const pieces = [];
+      for (let slot = 3; slot < 64; slot++) {
+        const at = 512 + slot * 4;
+        if (ram[at] >= 239) continue;
+        pieces.push({slot, x: ram[at + 3], y: ram[at] + 1, tile: ram[at + 1], attributes: ram[at + 2]});
+      }
+      return {fight: f.index, base: {selector: first.selector, address: f.poses.find(p => p.selector === first.selector).address},
+        deltas: applications.slice(1).map(a => a.selector), mode: {height: first.height === 16 ? 16 : 8, step: first.step === 2 ? 2 : 1}, pieces, instructions: steps};
+    }
+
     function chr(bank) {
       if (!Number.isInteger(bank) || bank < 0 || bank >= 32) fail('CHR bank must be 0–31.');
       const start = 131088 + bank * 4096;
@@ -22106,6 +22204,7 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
     return Object.freeze({
       fights,
       pose,
+      replay,
       chr,
       physicalChrBanks: 32,
       physicalChrTiles: 8192,
@@ -22117,7 +22216,9 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
   }
   return Object.freeze({
     version: 1,
-    open
+    open,
+    hasPoseRoutine,
+    poseRoutine: Object.freeze({pc: 0xc890, end: ROUTINE_END})
   });
 });
 /*
@@ -31974,7 +32075,9 @@ async function renderFrameDetails(entry,host){
   const line=(cls,parts)=>{const row=elt('div');row.className=cls;row.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0';row.append(...parts);list.append(row);return row;};
   const poseButton=(id,label)=>{const b=button(label,()=>choose(key('lib',id)),'Open this pose in the library');if(!inLibrary(id)){b.disabled=true;b.title='Unavailable: this pose is not among the library entries shown';}return b;};
   const sprites=ids=>'sprites #'+ids.join(', #');
-  for(const l of pl.links){const row=line('frx-pose-link',[poseButton(l.poseEntry,l.label),elt('span','frx-code',sprites(l.sprites)+(l.mirrored?' · mirrored':'')+' · established by '+l.by+': '+l.evidence)]);row.dataset.pose=l.poseEntry;}
+  // a full pose changed by delta poses (the game's pose routine, recorded and replayed) names the deltas with the pose
+  const deltasOf=l=>l.deltas?.length?' · then '+l.deltas.length+' delta pose'+(l.deltas.length>1?'s':''):'';
+  for(const l of pl.links){const row=line('frx-pose-link',[poseButton(l.poseEntry,l.label+deltasOf(l)),elt('span','frx-code',sprites(l.sprites)+(l.mirrored?' · mirrored':'')+' · established by '+(l.by==='pose routine'?'the game\'s pose routine':l.by)+': '+l.evidence)]);row.dataset.pose=l.poseEntry;if(l.deltas)row.dataset.deltas=String(l.deltas.length);}
   for(const c of pl.candidates)line('frx-pose-candidate',[poseButton(c.poseEntry,c.label),elt('span','frx-code',sprites(c.sprites)+' · '+c.state+', not established: '+c.evidence)]);
   for(const a of pl.ambiguous)line('frx-pose-ambiguous',[elt('span','frx-code',sprites(a.sprites)+' · ambiguous, not established: drawn exactly as '+a.poses.map(p=>p.label).join(' and '))]);
   line('frx-pose-rest',[elt('span','frx-code',pl.notEstablished.length?'Not established: '+pl.notEstablished.length+' of '+pl.sprites+' drawn sprite'+(pl.sprites===1?'':'s')+' belong to no established pose.':'Every drawn sprite belongs to an established pose.')]);
@@ -32051,7 +32154,8 @@ function renderLibraryViewer(n,host,tools,caption){
     if(seen.ok){const line=elt('div');line.dataset.pose='frames';line.style.cssText='display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;margin:4px 0';
      if(!seen.result.frames.length)line.append(elt('span','frx-code',seen.result.framesChecked?'Not established in any of the '+seen.result.framesChecked+' captured frames of this ROM.':'No captured frames of this ROM in the library yet.'));
      else{line.append(elt('span','frx-code','Seen in '+seen.result.frames.length+' captured frame'+(seen.result.frames.length===1?'':'s')+':'));
-      for(const f of seen.result.frames.slice(0,12)){const b=elt('button','frx-relationship',f.label);b.type='button';b.title='Established by '+f.by+(f.mirrored?', mirrored':'')+(f.mode?', drawn as '+f.mode:'')+' · sprites #'+f.sprites.join(', #');b.onclick=()=>choose(key('lib',f.frameEntry));line.append(b);}
+      for(const f of seen.result.frames.slice(0,12)){const d=f.deltas?.length||0,b=elt('button','frx-relationship',f.label+(d?' (then '+d+' delta pose'+(d>1?'s':'')+')':''));b.type='button';
+        b.title='Established by '+(f.by==='pose routine'?'the game\'s pose routine: this pose, then delta poses '+f.deltas.map(v=>'$'+v.toString(16).toUpperCase().padStart(2,'0')).join(', ')+' the game applied':f.by)+(f.mirrored?', mirrored':'')+(f.mode?', drawn as '+f.mode:'')+' · sprites #'+f.sprites.join(', #');b.onclick=()=>choose(key('lib',f.frameEntry));line.append(b);}
       if(seen.result.frames.length>12)line.append(elt('span','frx-code','… '+(seen.result.frames.length-12)+' more'));}
      host.append(line);}
    }
@@ -35015,6 +35119,10 @@ const providers=[];
 function registerProvider(p){if(!p?.id||!Array.isArray(p.profiles)||typeof p.catalog!=='function'||typeof p.poseDrawings!=='function')fail('a catalog provider needs id, profiles, catalog and poseDrawings');
   if(!providers.some(x=>x.id===p.id))providers.push(p);}
 const providerOf=sha=>providers.find(p=>p.profiles.some(x=>x.sha256===sha))||null;
+// a provider's pose routine for a cartridge (synchronous: the emulator asks when it loads one, and records each
+// application of the routine while the cartridge runs); the provider replays what was recorded for a captured frame
+function poseRoutineFor(bytes){for(const p of providers){try{if(p.poseRoutine?.recognizes?.(bytes))return {provider:p.id,watch:p.poseRoutine.watch};}catch(_){}}return null;}
+function replayPoseRoutine(providerId,bytes,applications,frame,sprites){const p=providers.find(x=>x.id===providerId);if(!p?.poseRoutine?.replay)fail('no provider replays the pose routine '+providerId);return p.poseRoutine.replay(bytes,applications,frame,sprites);}
 // what registerCatalog reads from a project: its catalog, its cartridge and, for a provider, how its poses are drawn
 async function catalogView(project){
   let rom=null;try{rom=services.NativeEngineProject.validate(project).bytes;}catch(_){rom=null;}
@@ -35551,7 +35659,7 @@ setTimeout(()=>{
 setTimeout(()=>{void resumeCatalogs({reason:'startup'}).catch(()=>{});},1500);
 
 services.SourceROMs=SourceROMs;
-services.LibraryCatalog=Object.freeze({registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation,
+services.LibraryCatalog=Object.freeze({poseRoutineFor,replayPoseRoutine,registerCatalog,surveyStages,usePose,rendition,linkSameResources,romLayout,decodedEvidence,typedLocation,
   catalogState,completeCatalog,resumeCatalogs,recoveryStatus,projectChanged,recognize,recognitionText,romStatus,registerProvider,AUTO_ATTEMPTS});
 if(C?.register){
   C.register({name:'library.roms',group:'library',title:'Every ROM in the library and its status',summary:'Catalog state (attempts, last error), entries, verified frames, investigations and how its poses are drawn, per ROM SHA-256.',run:()=>romStatus()});
@@ -35592,7 +35700,10 @@ if(C?.register){
  *     elsewhere: it is not drawn (the drawing says so, and such a pose cannot be used in a project).
  *   - The 32 CHR banks (4 KiB) as entries: the graphics reference that frame links compare drawn sprites with.
  *   - The fights (as actors) and the RAM bytes the routine reads.
- *   Delta poses (selectors $80-$FF) change the previous full pose and are not catalogued.
+ *   Delta poses (selectors $80-$FF) change the previous full pose and are not catalogued. The provider also declares
+ *   the game's pose routine ($C890): while a cartridge with it runs, Forge records each application and keeps them with
+ *   every captured frame; replay() reproduces the drawing they left, which links a frame drawn as a full pose changed by
+ *   deltas to that full pose (PoseLinks).
  * Bundle order: after src/services/library-catalog.js (and src/re/punch-out-content.js).
  */
 (()=>{
@@ -35719,9 +35830,42 @@ function poseDrawings(record,bytes){
   return out;
 }
 
+// ---------- the game's pose routine, recorded while the game runs ----------
+// Each application: the routine entered at $C890 with the draw request $A0 set (its first instructions are LDA $A0 /
+// BEQ: with $A0 clear it draws nothing). Recorded: the fight ($02 bank, $03 entry), the selector $A1 (a full pose below
+// $80, a delta from $80), the base $B0/$B1 and the sprite mode $80/$81. A full pose starts a new drawing.
+const contents=new WeakMap();
+const contentOf=bytes=>{let c=contents.get(bytes);if(!c){c=window.PunchOutContent.open(bytes);contents.set(bytes,c);}return c;};
+// the entry of a fight's full-pose selector: one entry per physical record, named after the first fight that uses it
+function poseIdOf(content,fightIndex,selector){
+  const f=content.fights[fightIndex],r=f?.poses.find(p=>p.selector===selector&&p.status==='source-record');if(!r)return null;
+  const first=content.fights.find(g=>g.bank8KiB===f.bank8KiB&&g.poses.some(p=>p.status==='source-record'&&p.address===r.address));
+  return 'po:f'+first.index+':'+r.address.toString(16);
+}
+// the drawing a captured frame shows: the applications since the last full pose, up to the end of the frame or of one of
+// the two before it (the image shows the sprite page copied at the start of the frame), replayed with the game's
+// routine; the most recent one whose every piece is drawn in place (tile and screen position; the game may flip a pose
+// after the routine, so flips are not compared)
+function replayDrawing(bytes,applications,frame,sprites){
+  const content=contentOf(bytes),full=a=>a.selector<0x80;
+  for(const lag of [0,1,2]){
+    const upTo=applications.filter(a=>a.frame<frame-lag),start=upTo.map(full).lastIndexOf(true);if(start<0)continue;
+    const chain=upTo.slice(start),r=content.replay(chain),used=new Set();
+    const matched=r.pieces.map(q=>{const s=sprites.find(t=>!used.has(t.index)&&t.x===q.x&&t.y===q.y-1&&t.tile===q.tile);if(s)used.add(s.index);return s?s.index:null;});
+    if(r.pieces.length>=3&&matched.every(i=>i!==null))
+      return {state:'drawn',lag,fight:r.fight,fightLabel:content.fights[r.fight].label,base:{selector:r.base.selector,address:r.base.address,poseId:poseIdOf(content,r.fight,r.base.selector)},
+        deltas:r.deltas,mode:r.mode,modeKey:MODES.find(m=>m.height===r.mode.height&&m.step===r.mode.step)?.key||null,at:{x:chain[chain.length-1].x,y:chain[chain.length-1].y},applications:chain.length,pieces:r.pieces.map(q=>({x:q.x,y:q.y,tile:q.tile,attributes:q.attributes})),sprites:matched};
+  }
+  return {state:'not drawn in place',note:'No replay of the recorded applications (this frame or the two before it) is drawn in place: the fighter is not drawn as its pose routine left it.'};
+}
+const poseRoutine=Object.freeze({
+  watch:Object.freeze({pc:0xC890,when:0xA0,fields:Object.freeze([['bank',0x02],['entry',0x03],['selector',0xA1],['x',0xB0],['y',0xB1],['height',0x80],['step',0x81]]),restart:Object.freeze({field:'selector',below:0x80}),max:2048}),
+  recognizes:bytes=>window.PunchOutContent.hasPoseRoutine(bytes),
+  replay:replayDrawing});
+
 // 2: one entry per physical record (shared by a fight and its rematch); records say they are not mirrored as a whole
 //    and may be flipped horizontally after the pose routine
-const provider=Object.freeze({id:'punch-out',version:2,profiles:PROFILES,catalog,poseDrawings,MODES});
+const provider=Object.freeze({id:'punch-out',version:2,profiles:PROFILES,catalog,poseDrawings,MODES,poseRoutine,poseIdOf});
 LC.registerProvider(provider);
 services.PunchOutLibrary=provider;
 })();
@@ -36086,6 +36230,22 @@ function rasterCheck(){
       frame:scene.captureMeta.frame,backgroundTileSources:[...regions].map(([k,n])=>({source:k.split(':')[0],chrOffset:Number(k.split(':')[1])<<10,tiles:n})).sort((x,y)=>x.chrOffset-y.chrOffset)};}
   catch(e){return {state:'not matched',reason:String(e.message).slice(0,240)};}
 }
+// what a library provider's pose routine applied while the cartridge ran (the emulator records each application, set up
+// when the cartridge was loaded): the applications a drawing on this frame can come from (since the last full pose
+// before the frame's last three, the image showing the sprite page copied at the start of a frame), and the drawing
+// they left, replayed with the game's routine from the loaded cartridge (LibraryCatalog.replayPoseRoutine)
+function poseRoutineSection(record,file){
+  const w=emu.poseWatch;if(!w||!file)return null;
+  const F=record.frame,r=w.restart+1,full=a=>a[r]<w.below,apps=w.apps;
+  let start=-1;for(let i=apps.length-1;i>=0;i--)if(full(apps[i])&&apps[i][0]<F-2){start=i;break;}
+  if(start<0)start=apps.findIndex(a=>full(a)&&a[0]<F);
+  const applications=start<0?[]:apps.slice(start).filter(a=>a[0]<F).map(a=>Object.fromEntries([['frame',a[0]],...w.names.map((n,i)=>[n,a[i+1]])]));
+  const out={provider:w.provider,routine:w.pc,condition:w.when,fields:Object.fromEntries(w.names.map((n,i)=>[n,w.fields[i]])),complete:start>=0,applications,drawing:null};
+  if(start<0){out.drawing={state:'no full pose recorded',note:'The routine has not drawn a full pose since the cartridge was loaded or reset.'};return out;}
+  try{out.drawing=services.LibraryCatalog.replayPoseRoutine(w.provider,file,applications,F,record.sprites.filter(s=>s.visible));}
+  catch(e){out.drawing={state:'not replayed',note:String(e?.message||e).slice(0,240)};}
+  return out;
+}
 async function capture({label='frame',checkpoint=null,links=true,pixels=false,scene=false}={}){
   if(!emu.loaded)fail('no ROM is loaded in the emulator');
   const file=emu.lastBuiltRom instanceof Uint8Array?emu.lastBuiltRom:null,layout=layoutOf(file);
@@ -36114,7 +36274,10 @@ async function capture({label='frame',checkpoint=null,links=true,pixels=false,sc
   // where the CPU is: the instruction address in the cartridge (through the PRG window that holds it)
   const win=record.banks.prg.find(w=>cpuState.PC>=w.cpu&&cpuState.PC<=w.cpuEnd);
   record.cpu.pcLocation=win&&win.located==='unique'?{fileOffset:win.fileOffsets[0]+(cpuState.PC-win.cpu),prgBank8KiB:win.prgBank8KiB[0],cpu:cpuState.PC}:{state:win?win.located:'PC below $8000 (RAM)'};
-  const sections={cpu:record.cpu,memory:record.memory,apu:record.apu,ppu:record.ppu,nametables:record.nametables,palette:record.palette,oam:record.oam,mapper:record.mapper,banks:record.banks,rendered:record.rendered};
+  const routine=poseRoutineSection(record,file);if(routine)record.poseRoutine=routine;
+  const sections={cpu:record.cpu,memory:record.memory,apu:record.apu,ppu:record.ppu,nametables:record.nametables,palette:record.palette,oam:record.oam,mapper:record.mapper,banks:record.banks,rendered:record.rendered,
+    // only where a pose routine was recorded: other records keep their digests
+    ...(routine?{poseRoutine:routine}:{})};
   record.digests={};for(const [k,v] of Object.entries(sections))record.digests[k]=await sha256(JSON.stringify(v));
   record.digests.all=await sha256(JSON.stringify(record.digests));
   if(links)record.links=await libraryLinks(record);
@@ -36353,6 +36516,11 @@ if(C?.register){
  *   pose whose drawing the library has not established (an unconfirmed room, or a record that does not select its own
  *   CHR bank) is established by a complete layout of 3 or more pieces; the frame shows the bank. A layout of 1-2 pieces
  *   with nothing to compare is not reported.
+ *   A frame can also be drawn as the game's pose routine left it: a full pose changed by delta poses (Punch-Out!!). Where
+ *   the frame carries what the routine applied (recorded while the game ran, replayed when the frame was captured:
+ *   record.poseRoutine.drawing), and every piece of that result is drawn in place, the frame links that full pose, the
+ *   link naming the deltas (by "pose routine"). Such a link does not give the pose an observed drawing: the result is
+ *   not the pose's own drawing.
  * Bundle order: after src/services/frame-evidence.js.
  */
 (()=>{
@@ -36495,8 +36663,30 @@ async function framePoses(record,{sourceSha256}={}){
     else if(one.graphics==='unchecked'&&one.pieces<MIN_PIECES_BY_LAYOUT)continue;
     else candidates.push({...one,state:one.graphics==='differ'?'candidate':'layout only'});
   }
+  const routine=routineLink(record.poseRoutine?.drawing,sprites,poses);
+  if(routine&&!links.some(l=>l.sprites.length===routine.sprites.length&&l.sprites.every(i=>routine.sprites.includes(i)))){
+    // the result is one drawing: poses matched inside it are part of it (a smaller pose inside a larger match is not
+    // reported); a full pose drawn with exactly these sprites already accounts for them
+    const inside=list=>list.filter(x=>!x.sprites.every(i=>routine.sprites.includes(i)));
+    for(const l of links)if(l.sprites.every(i=>routine.sprites.includes(i)))l.sprites.forEach(i=>linked.delete(i));
+    links.splice(0,links.length,...inside(links));candidates.splice(0,candidates.length,...inside(candidates));ambiguous.splice(0,ambiguous.length,...inside(ambiguous));
+    links.push(routine);routine.sprites.forEach(i=>linked.add(i));
+  }
   return {...base,state:'linked',poses:poses.length,links,candidates,ambiguous,notEstablished:sprites.map(s=>s.index).filter(i=>!linked.has(i)),
     note:links.length?links.length+' pose'+(links.length===1?'':'s')+' established':'no pose established'};
+}
+// the link for a frame drawn as the game's pose routine left it (a full pose, then deltas), when the library holds that
+// full pose and every piece of the replayed result is drawn in place (tile and screen position; checked here again)
+function routineLink(d,sprites,poses){
+  if(d?.state!=='drawn'||!Array.isArray(d.deltas)||!d.deltas.length||!Array.isArray(d.pieces)||d.pieces.length<MIN_PIECES_BY_LAYOUT)return null;
+  const used=new Set(),idx=d.pieces.map(q=>{const s=sprites.find(t=>!used.has(t.index)&&t.x===q.x&&t.y===q.y-1&&t.tile===q.tile);if(s)used.add(s.index);return s?s.index:null;});
+  if(idx.some(i=>i===null))return null;
+  const base=poses.find(p=>p.id===d.base?.poseId&&p.mode?.key===d.modeKey)||poses.find(p=>p.id===d.base?.poseId);if(!base)return null;
+  const n=d.deltas.length,list=d.deltas.map(v=>'$'+v.toString(16).toUpperCase().padStart(2,'0')).join(', ');
+  const banks=[...new Set(idx.map(i=>sprites.find(s=>s.index===i)?.chrOffset).filter(Number.isInteger).map(o=>o>>12))].sort((a,b)=>a-b);
+  return {poseEntry:base.entryId,poseId:base.id,label:base.label,owner:base.owner,mirrored:false,sprites:idx,pieces:idx.length,at:d.at||null,...(base.mode?{mode:base.mode}:{}),
+    deltas:d.deltas.slice(),graphics:'not compared',banks,state:'established',by:'pose routine',
+    evidence:'drawn as the game\'s pose routine left it: this pose, then '+n+' delta pose'+(n>1?'s':'')+' ('+list+') applied by the game before the frame, recorded while it ran and replayed with the game\'s routine when the frame was captured; every piece of the result is drawn in place (tile and screen position)'+(base.mode?'; drawn as '+base.mode.label:'')+'. The result is not the pose\'s own drawing.'};
 }
 async function frameEntryPoses(id){
   const L=services.ResourceLibrary,{entry,bytes}=await L.readEntry(id);
@@ -36516,7 +36706,7 @@ async function poseFrames(poseEntryId){
     const ck=f.id+'|'+poseKey;let r=frameCache.get(ck);
     if(!r){try{r=await frameEntryPoses(f.id);}catch(_){r=null;}frameCache.set(ck,r);}
     const link=r?.links?.find(l=>l.poseEntry===poseEntryId);
-    if(link)out.push({frameEntry:f.id,label:f.label||f.id,frame:r.frame,by:link.by,mirrored:link.mirrored,sprites:link.sprites,...(link.mode?{mode:link.mode.label}:{})});
+    if(link)out.push({frameEntry:f.id,label:f.label||f.id,frame:r.frame,by:link.by,mirrored:link.mirrored,sprites:link.sprites,...(link.mode?{mode:link.mode.label}:{}),...(link.deltas?{deltas:link.deltas}:{})});
   }
   return {pose:poseEntryId,frames:out,framesChecked:frames.length};
 }
@@ -36582,6 +36772,8 @@ async function recordObservations(sha){
       let record=null;
       for(const l of r.links){
         stats.links++;
+        // a full pose changed by deltas: the frame does not show the pose's own drawing
+        if(l.by==='pose routine'){stats.routineLinks=(stats.routineLinks||0)+1;continue;}
         const e=await L.entry(l.poseEntry).catch(()=>null);if(!e)continue;
         if(!e.layoutRenditions){stats.notLayoutPoses++;continue;}
         stats.poses.add(e.id);

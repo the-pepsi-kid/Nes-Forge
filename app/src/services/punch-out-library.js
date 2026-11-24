@@ -18,7 +18,10 @@
  *     elsewhere: it is not drawn (the drawing says so, and such a pose cannot be used in a project).
  *   - The 32 CHR banks (4 KiB) as entries: the graphics reference that frame links compare drawn sprites with.
  *   - The fights (as actors) and the RAM bytes the routine reads.
- *   Delta poses (selectors $80-$FF) change the previous full pose and are not catalogued.
+ *   Delta poses (selectors $80-$FF) change the previous full pose and are not catalogued. The provider also declares
+ *   the game's pose routine ($C890): while a cartridge with it runs, Forge records each application and keeps them with
+ *   every captured frame; replay() reproduces the drawing they left, which links a frame drawn as a full pose changed by
+ *   deltas to that full pose (PoseLinks).
  * Bundle order: after src/services/library-catalog.js (and src/re/punch-out-content.js).
  */
 (()=>{
@@ -145,9 +148,42 @@ function poseDrawings(record,bytes){
   return out;
 }
 
+// ---------- the game's pose routine, recorded while the game runs ----------
+// Each application: the routine entered at $C890 with the draw request $A0 set (its first instructions are LDA $A0 /
+// BEQ: with $A0 clear it draws nothing). Recorded: the fight ($02 bank, $03 entry), the selector $A1 (a full pose below
+// $80, a delta from $80), the base $B0/$B1 and the sprite mode $80/$81. A full pose starts a new drawing.
+const contents=new WeakMap();
+const contentOf=bytes=>{let c=contents.get(bytes);if(!c){c=window.PunchOutContent.open(bytes);contents.set(bytes,c);}return c;};
+// the entry of a fight's full-pose selector: one entry per physical record, named after the first fight that uses it
+function poseIdOf(content,fightIndex,selector){
+  const f=content.fights[fightIndex],r=f?.poses.find(p=>p.selector===selector&&p.status==='source-record');if(!r)return null;
+  const first=content.fights.find(g=>g.bank8KiB===f.bank8KiB&&g.poses.some(p=>p.status==='source-record'&&p.address===r.address));
+  return 'po:f'+first.index+':'+r.address.toString(16);
+}
+// the drawing a captured frame shows: the applications since the last full pose, up to the end of the frame or of one of
+// the two before it (the image shows the sprite page copied at the start of the frame), replayed with the game's
+// routine; the most recent one whose every piece is drawn in place (tile and screen position; the game may flip a pose
+// after the routine, so flips are not compared)
+function replayDrawing(bytes,applications,frame,sprites){
+  const content=contentOf(bytes),full=a=>a.selector<0x80;
+  for(const lag of [0,1,2]){
+    const upTo=applications.filter(a=>a.frame<frame-lag),start=upTo.map(full).lastIndexOf(true);if(start<0)continue;
+    const chain=upTo.slice(start),r=content.replay(chain),used=new Set();
+    const matched=r.pieces.map(q=>{const s=sprites.find(t=>!used.has(t.index)&&t.x===q.x&&t.y===q.y-1&&t.tile===q.tile);if(s)used.add(s.index);return s?s.index:null;});
+    if(r.pieces.length>=3&&matched.every(i=>i!==null))
+      return {state:'drawn',lag,fight:r.fight,fightLabel:content.fights[r.fight].label,base:{selector:r.base.selector,address:r.base.address,poseId:poseIdOf(content,r.fight,r.base.selector)},
+        deltas:r.deltas,mode:r.mode,modeKey:MODES.find(m=>m.height===r.mode.height&&m.step===r.mode.step)?.key||null,at:{x:chain[chain.length-1].x,y:chain[chain.length-1].y},applications:chain.length,pieces:r.pieces.map(q=>({x:q.x,y:q.y,tile:q.tile,attributes:q.attributes})),sprites:matched};
+  }
+  return {state:'not drawn in place',note:'No replay of the recorded applications (this frame or the two before it) is drawn in place: the fighter is not drawn as its pose routine left it.'};
+}
+const poseRoutine=Object.freeze({
+  watch:Object.freeze({pc:0xC890,when:0xA0,fields:Object.freeze([['bank',0x02],['entry',0x03],['selector',0xA1],['x',0xB0],['y',0xB1],['height',0x80],['step',0x81]]),restart:Object.freeze({field:'selector',below:0x80}),max:2048}),
+  recognizes:bytes=>window.PunchOutContent.hasPoseRoutine(bytes),
+  replay:replayDrawing});
+
 // 2: one entry per physical record (shared by a fight and its rematch); records say they are not mirrored as a whole
 //    and may be flipped horizontally after the pose routine
-const provider=Object.freeze({id:'punch-out',version:2,profiles:PROFILES,catalog,poseDrawings,MODES});
+const provider=Object.freeze({id:'punch-out',version:2,profiles:PROFILES,catalog,poseDrawings,MODES,poseRoutine,poseIdOf});
 LC.registerProvider(provider);
 services.PunchOutLibrary=provider;
 })();

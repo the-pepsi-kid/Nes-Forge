@@ -110,6 +110,22 @@ function rasterCheck(){
       frame:scene.captureMeta.frame,backgroundTileSources:[...regions].map(([k,n])=>({source:k.split(':')[0],chrOffset:Number(k.split(':')[1])<<10,tiles:n})).sort((x,y)=>x.chrOffset-y.chrOffset)};}
   catch(e){return {state:'not matched',reason:String(e.message).slice(0,240)};}
 }
+// what a library provider's pose routine applied while the cartridge ran (the emulator records each application, set up
+// when the cartridge was loaded): the applications a drawing on this frame can come from (since the last full pose
+// before the frame's last three, the image showing the sprite page copied at the start of a frame), and the drawing
+// they left, replayed with the game's routine from the loaded cartridge (LibraryCatalog.replayPoseRoutine)
+function poseRoutineSection(record,file){
+  const w=emu.poseWatch;if(!w||!file)return null;
+  const F=record.frame,r=w.restart+1,full=a=>a[r]<w.below,apps=w.apps;
+  let start=-1;for(let i=apps.length-1;i>=0;i--)if(full(apps[i])&&apps[i][0]<F-2){start=i;break;}
+  if(start<0)start=apps.findIndex(a=>full(a)&&a[0]<F);
+  const applications=start<0?[]:apps.slice(start).filter(a=>a[0]<F).map(a=>Object.fromEntries([['frame',a[0]],...w.names.map((n,i)=>[n,a[i+1]])]));
+  const out={provider:w.provider,routine:w.pc,condition:w.when,fields:Object.fromEntries(w.names.map((n,i)=>[n,w.fields[i]])),complete:start>=0,applications,drawing:null};
+  if(start<0){out.drawing={state:'no full pose recorded',note:'The routine has not drawn a full pose since the cartridge was loaded or reset.'};return out;}
+  try{out.drawing=services.LibraryCatalog.replayPoseRoutine(w.provider,file,applications,F,record.sprites.filter(s=>s.visible));}
+  catch(e){out.drawing={state:'not replayed',note:String(e?.message||e).slice(0,240)};}
+  return out;
+}
 async function capture({label='frame',checkpoint=null,links=true,pixels=false,scene=false}={}){
   if(!emu.loaded)fail('no ROM is loaded in the emulator');
   const file=emu.lastBuiltRom instanceof Uint8Array?emu.lastBuiltRom:null,layout=layoutOf(file);
@@ -138,7 +154,10 @@ async function capture({label='frame',checkpoint=null,links=true,pixels=false,sc
   // where the CPU is: the instruction address in the cartridge (through the PRG window that holds it)
   const win=record.banks.prg.find(w=>cpuState.PC>=w.cpu&&cpuState.PC<=w.cpuEnd);
   record.cpu.pcLocation=win&&win.located==='unique'?{fileOffset:win.fileOffsets[0]+(cpuState.PC-win.cpu),prgBank8KiB:win.prgBank8KiB[0],cpu:cpuState.PC}:{state:win?win.located:'PC below $8000 (RAM)'};
-  const sections={cpu:record.cpu,memory:record.memory,apu:record.apu,ppu:record.ppu,nametables:record.nametables,palette:record.palette,oam:record.oam,mapper:record.mapper,banks:record.banks,rendered:record.rendered};
+  const routine=poseRoutineSection(record,file);if(routine)record.poseRoutine=routine;
+  const sections={cpu:record.cpu,memory:record.memory,apu:record.apu,ppu:record.ppu,nametables:record.nametables,palette:record.palette,oam:record.oam,mapper:record.mapper,banks:record.banks,rendered:record.rendered,
+    // only where a pose routine was recorded: other records keep their digests
+    ...(routine?{poseRoutine:routine}:{})};
   record.digests={};for(const [k,v] of Object.entries(sections))record.digests[k]=await sha256(JSON.stringify(v));
   record.digests.all=await sha256(JSON.stringify(record.digests));
   if(links)record.links=await libraryLinks(record);

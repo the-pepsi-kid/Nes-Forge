@@ -1,5 +1,7 @@
 const emu={
   loaded:false, running:false, frameCount:0, cyclesPerFrame:29780,
+  // a library provider's pose routine, recorded while its cartridge runs (emuPoseWatchHit); -1: nothing watched
+  _poseWatchPC:-1, poseWatch:null,
   // ROM data
   prgRom:null, chrRom:null, chrRam:new Uint8Array(8192), hasChrRam:false,
   prgSize:0, prgMask:0, mapper:0,
@@ -250,11 +252,29 @@ function cpuStep(){
   apuClock(elapsed);emu.PC&=65535;
 }
 const emuCPUCore=Forge6502Core.create(emu,a=>cpuRead(a),(a,v)=>cpuWrite(a,v));
+// A library provider's pose routine, recorded while its cartridge runs (LibraryCatalog.poseRoutineFor, set when the
+// cartridge is loaded): whenever the CPU is about to run the routine's first instruction with its condition byte set,
+// the frame number and the declared RAM bytes are kept. A full pose (the restart field below its value) starts a new
+// drawing, so applications before the last full pose older than three frames are dropped. Plain data on emu: checkpoints
+// and frame history keep it with the machine state, so a restored run records what a cold run records.
+function emuPoseWatchHit(){
+  const w=emu.poseWatch;if(!w||(w.when>=0&&!emu.ram[w.when&2047]))return;
+  const a=[emu.frameCount];for(const addr of w.fields)a.push(emu.ram[addr&2047]);
+  const apps=w.apps,r=w.restart+1;
+  if(a[r]<w.below){let k=-1;for(let i=apps.length-1;i>=0;i--)if(apps[i][r]<w.below&&apps[i][0]<emu.frameCount-3){k=i;break;}if(k>0)apps.splice(0,k);}
+  apps.push(a);if(apps.length>w.max){apps.splice(0,apps.length-w.max);w.dropped++;}
+}
+function emuPoseWatchConfigure(rom){
+  let spec=null;try{spec=window.Forge?.services?.LibraryCatalog?.poseRoutineFor?.(rom)||null;}catch(_){spec=null;}
+  const v=spec?.watch,restart=v?v.fields.findIndex(f=>f[0]===v.restart.field):-1;
+  emu.poseWatch=v&&restart>=0?{provider:spec.provider,pc:v.pc,when:Number.isInteger(v.when)?v.when:-1,names:v.fields.map(f=>f[0]),fields:v.fields.map(f=>f[1]),restart,below:v.restart.below,max:v.max||2048,dropped:0,apps:[]}:null;
+  emu._poseWatchPC=emu.poseWatch?emu.poseWatch.pc:-1;
+}
 function cpuStepRaw(){return emuCPUCore.step();}
 
 // ── Frame runner ──
 function emuRunFrame(){if(!emu.loaded)return;const deadline=performance.now()+200;const start=emu._nextFrameCycle??emu.cycles;if(!Number.isFinite(start)||!Number.isFinite(emu.cycles))throw Error("Invalid CPU clock");emu.ppuStatus&=0x1F;emu.spr0Line=-1;emu.tAddrPre=emu.tAddr;emu.fineXPre=emu.fineX;emu.chrBank0Pre=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1;const scrollY=((emu.tAddr>>5)&31)*8+((emu.tAddr>>12)&7),ntY=(emu.tAddr>>11)&1;emu._rasterYBase=scrollY;emu._rasterNTY=ntY;
-  const stepTo=target=>{let steps=0;while(emu.cycles<target){if((emu.irqPending||apuCore.irq)&&!emu.I){cpuPush(emu.PC>>8);cpuPush(emu.PC&255);cpuPush(cpuGetP()&~16);emu.I=1;emu.PC=cpuRead16(0xFFFE);emu.cycles+=7;apuClock(7);}cpuStep();emu.PC&=65535;if(++steps>20000)throw new Error('CPU did not advance safely');}};
+  const stepTo=target=>{let steps=0;while(emu.cycles<target){if((emu.irqPending||apuCore.irq)&&!emu.I){cpuPush(emu.PC>>8);cpuPush(emu.PC&255);cpuPush(cpuGetP()&~16);emu.I=1;emu.PC=cpuRead16(0xFFFE);emu.cycles+=7;apuClock(7);}if(emu.PC===emu._poseWatchPC)emuPoseWatchHit();cpuStep();emu.PC&=65535;if(++steps>20000)throw new Error('CPU did not advance safely');}};
   try{for(let line=0;line<262;line++){if((line&15)===0&&performance.now()>deadline)throw Error("Frame exceeded 200 ms safety budget; paused to protect the page");const lineStart=start+line*341/3;emu._ppuFrameLine=line;if(line<240){if(line===0)emu._chrLines=[[0,emu.chrBank0,emu.chrBank1]];else{const l=emu._chrLines[emu._chrLines.length-1];if(l[1]!==emu.chrBank0||l[2]!==emu.chrBank1)emu._chrLines.push([line,emu.chrBank0,emu.chrBank1]);}const hit=renderEmuLine(line,emu._rasterYBase,emu._rasterNTY);if(hit>=0&&!(emu.ppuStatus&64)){stepTo(lineStart+hit/3);emu.ppuStatus|=64;emu.spr0Line=line;}stepTo(start+(line+1)*341/3);if(emu.mapper===4)mmc3ScanlineTick();}else {if(line===241){emu.ppuStatus|=128;if(emu.ppuCtrl&128)cpuNmi();}stepTo(start+(line+1)*341/3);}}
   }finally{emu._ppuFrameLine=-1;}emu._nextFrameCycle=start+262*341/3;emu.tAddrPost=emu.tAddr;emu.fineXPost=emu.fineX;emu.chrBank0Post=emu.chrBank0;emu.chrBank1Post=emu.chrBank1;emu.frameCount++;
   // Read-only ROM-frame evidence hook. No native engine or emulator state changes.
@@ -263,7 +283,7 @@ function emuRunFrame(){if(!emu.loaded)return;const deadline=performance.now()+20
 }
 
 // ── Reset ──
-function emuDoReset(){emu._ppuFrameLine=-1;emu.A=emu.X=emu.Y=0;emu.SP=0xFD;emu.C=emu.Z=emu.D=emu.V=emu.N=0;emu.I=1;emu.cycles=0;emu.frameCount=0;emu._nextFrameCycle=0;emu.ram.fill(0);emu.vram.fill(0);emu.palRam.fill(0);emu.oamMem.fill(255);if(emu.hasChrRam)emu.chrRam.fill(0);emu.mirroring=emu.initialMirror??1;emu.prgBank0=0;emu.prgBank1=Math.max(0,emu.prgSize-16384);emu.chrBank0=0;emu.chrBank1=4096;emu.chrPages=Array.from({length:8},(_,i)=>i*1024);if(emu.mapper===1){emu.mmc1Shift=0x10;emu.mmc1Ctrl=0x0C;emu.mmc1Chr0=emu.mmc1Chr1=emu.mmc1Prg=0;mmc1UpdateBanks();}if(emu.mapper===4){emu.mmc3Banks.fill(0);emu.mmc3BankSel=emu.mmc3PrgMode=emu.mmc3ChrMode=emu.mmc3IrqLatch=emu.mmc3IrqCounter=0;emu.mmc3IrqEnabled=emu.mmc3IrqReload=false;mmc3UpdateBanks();}if([7,11,66].includes(emu.mapper)){emu.prgBank1=16384%emu.prgSize;if(emu.mapper===7)emu.mirroring=2;}emu.irqPending=false;emu.apuRegs.fill(0);emu.apuStatus=emu.apuFrameCounter=0;emu.ppuCtrl=emu.ppuMask=emu.oamAddr=0;emu.ppuStatus=0;emu.vAddr=emu.tAddr=emu.ppuBuf=emu.fineX=0;emu.wLatch=false;emu.joyShift=emu.joyState=0;emu.joyStrobe=false;emu.spr0Line=-1;emu.tAddrPre=emu.tAddrPost=emu.fineXPre=emu.fineXPost=0;emu.chrBank0Pre=emu.chrBank0Post=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1Post=emu.chrBank1;emu.PC=cpuRead16(0xFFFC);apuSilence();apuReset();emu.opsMissed=0;emuPerf.fps=emuPerf.frameMs=emuPerf.maxFrameMs=emuPerf.dropped=emuPerf.backlogMs=emuPerf.budgetYields=0;if(emu.frameBuffer)emu.frameBuffer.fill(0);if(emu.bgFrameBuffer)emu.bgFrameBuffer.fill(0);}
+function emuDoReset(){emu._ppuFrameLine=-1;if(emu.poseWatch){emu.poseWatch.apps=[];emu.poseWatch.dropped=0;}emu.A=emu.X=emu.Y=0;emu.SP=0xFD;emu.C=emu.Z=emu.D=emu.V=emu.N=0;emu.I=1;emu.cycles=0;emu.frameCount=0;emu._nextFrameCycle=0;emu.ram.fill(0);emu.vram.fill(0);emu.palRam.fill(0);emu.oamMem.fill(255);if(emu.hasChrRam)emu.chrRam.fill(0);emu.mirroring=emu.initialMirror??1;emu.prgBank0=0;emu.prgBank1=Math.max(0,emu.prgSize-16384);emu.chrBank0=0;emu.chrBank1=4096;emu.chrPages=Array.from({length:8},(_,i)=>i*1024);if(emu.mapper===1){emu.mmc1Shift=0x10;emu.mmc1Ctrl=0x0C;emu.mmc1Chr0=emu.mmc1Chr1=emu.mmc1Prg=0;mmc1UpdateBanks();}if(emu.mapper===4){emu.mmc3Banks.fill(0);emu.mmc3BankSel=emu.mmc3PrgMode=emu.mmc3ChrMode=emu.mmc3IrqLatch=emu.mmc3IrqCounter=0;emu.mmc3IrqEnabled=emu.mmc3IrqReload=false;mmc3UpdateBanks();}if([7,11,66].includes(emu.mapper)){emu.prgBank1=16384%emu.prgSize;if(emu.mapper===7)emu.mirroring=2;}emu.irqPending=false;emu.apuRegs.fill(0);emu.apuStatus=emu.apuFrameCounter=0;emu.ppuCtrl=emu.ppuMask=emu.oamAddr=0;emu.ppuStatus=0;emu.vAddr=emu.tAddr=emu.ppuBuf=emu.fineX=0;emu.wLatch=false;emu.joyShift=emu.joyState=0;emu.joyStrobe=false;emu.spr0Line=-1;emu.tAddrPre=emu.tAddrPost=emu.fineXPre=emu.fineXPost=0;emu.chrBank0Pre=emu.chrBank0Post=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1Post=emu.chrBank1;emu.PC=cpuRead16(0xFFFC);apuSilence();apuReset();emu.opsMissed=0;emuPerf.fps=emuPerf.frameMs=emuPerf.maxFrameMs=emuPerf.dropped=emuPerf.backlogMs=emuPerf.budgetYields=0;if(emu.frameBuffer)emu.frameBuffer.fill(0);if(emu.bgFrameBuffer)emu.bgFrameBuffer.fill(0);}
 
 // ── Load ROM into emulator ──
 async function emuLoadRom(e){
@@ -426,6 +446,7 @@ function emuTrace(){
       ' SP=$'+emu.SP.toString(16).toUpperCase().padStart(2,'0')+
       ' P='+cpuGetP().toString(2).padStart(8,'0');
     emuLog(before);
+    if(emu.PC===emu._poseWatchPC)emuPoseWatchHit();
     cpuStep();
   }
   emuLog('── After trace: PC=$'+emu.PC.toString(16).toUpperCase().padStart(4,'0')+
@@ -693,7 +714,7 @@ function colorDreamsWrite(a,v){
 function emuLoadRomData(bytes,name='ROM',initFrames=30){try{const rom=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);const h=parseRomHeader(rom);if(!Number.isInteger(initFrames)||initFrames<0||initFrames>120)throw Error('Initialization frame budget must be 0–120');emuPause();clearEmuKeys();const candidate=window.Forge?.services?.WorldCompiler?.lastBuild;
   const matchingBuild=!!(name==='Current project build' && candidate?.rom?.length===rom.length && candidate?.spec?.flyingEnemy && candidate.rom.every((value,index)=>value===rom[index]));
   emu._dgAiDebugBuild=matchingBuild?{symbols:{...candidate.symbols},spec:JSON.parse(JSON.stringify(candidate.spec)),romByteLength:rom.length}:null;
-  emu._dgAiDebugSymbols=emu._dgAiDebugBuild?.symbols||null;emu.prgSize=h.prgSize;emu.prgRom=rom.slice(h.headerSize,h.headerSize+h.prgSize);emu.chrRom=h.chrSize?rom.slice(h.headerSize+h.prgSize,h.headerSize+h.prgSize+h.chrSize):null;emu.hasChrRam=!h.chrSize;emu.mapper=h.mapper;emu.initialMirror=h.mirror;emu.mirroring=h.mirror;emu.vram=new Uint8Array(4096);emu.chrRam=new Uint8Array(8192);emu.sram=new Uint8Array(8192);if(h.trainer)emu.sram.set(rom.slice(16,528),0x1000);emu.loaded=true;emu.lastBuiltRom=new Uint8Array(rom);emu.romName=name;emu.frameBuffer=new Uint8ClampedArray(256*240*4);emu.bgFrameBuffer=new Uint8ClampedArray(256*240*4);emu.frameBuffer.fill(0);emu.bgFrameBuffer.fill(0);emuDoReset();for(let i=0;i<initFrames;i++)emuRunFrame();['emuRunBtn','emuStepBtn','emuResetBtn','emuCapBtn','emuCapFrameBtn','emuCapHybridBtn','emuTraceBtn'].forEach(id=>document.getElementById(id).disabled=false);disasm_output='';disasm_asmText='';document.getElementById('disasmCode').textContent='Open this tab or click Disassemble PRG to inspect the loaded ROM.';document.getElementById('emuLog').textContent='Loaded '+name+'\nMapper '+h.mapper+' • '+h.prgSize/1024+' KB PRG • '+h.chrSize/1024+' KB CHR\nPaused at frame '+emu.frameCount+'. Z=A, X=B, Shift=Select, Enter=Start.\nCPU-clocked audio; experimental scanline video. Raster/IRQ/DMC bus timing remains approximate.';renderEmu();updateEmuSidebar();emuUpdatePerformance(true);const status=document.getElementById('issueStatus');if(status){status.textContent='Loaded '+name+' — press Run to play';status.style.color='var(--acc)';status.title='';}return true;}catch(e){emuPause();reportError(e);return false;}}
+  emu._dgAiDebugSymbols=emu._dgAiDebugBuild?.symbols||null;emu.prgSize=h.prgSize;emu.prgRom=rom.slice(h.headerSize,h.headerSize+h.prgSize);emu.chrRom=h.chrSize?rom.slice(h.headerSize+h.prgSize,h.headerSize+h.prgSize+h.chrSize):null;emu.hasChrRam=!h.chrSize;emu.mapper=h.mapper;emu.initialMirror=h.mirror;emu.mirroring=h.mirror;emu.vram=new Uint8Array(4096);emu.chrRam=new Uint8Array(8192);emu.sram=new Uint8Array(8192);if(h.trainer)emu.sram.set(rom.slice(16,528),0x1000);emu.loaded=true;emu.lastBuiltRom=new Uint8Array(rom);emu.romName=name;emu.frameBuffer=new Uint8ClampedArray(256*240*4);emu.bgFrameBuffer=new Uint8ClampedArray(256*240*4);emu.frameBuffer.fill(0);emu.bgFrameBuffer.fill(0);emuPoseWatchConfigure(emu.lastBuiltRom);emuDoReset();for(let i=0;i<initFrames;i++)emuRunFrame();['emuRunBtn','emuStepBtn','emuResetBtn','emuCapBtn','emuCapFrameBtn','emuCapHybridBtn','emuTraceBtn'].forEach(id=>document.getElementById(id).disabled=false);disasm_output='';disasm_asmText='';document.getElementById('disasmCode').textContent='Open this tab or click Disassemble PRG to inspect the loaded ROM.';document.getElementById('emuLog').textContent='Loaded '+name+'\nMapper '+h.mapper+' • '+h.prgSize/1024+' KB PRG • '+h.chrSize/1024+' KB CHR\nPaused at frame '+emu.frameCount+'. Z=A, X=B, Shift=Select, Enter=Start.\nCPU-clocked audio; experimental scanline video. Raster/IRQ/DMC bus timing remains approximate.';renderEmu();updateEmuSidebar();emuUpdatePerformance(true);const status=document.getElementById('issueStatus');if(status){status.textContent='Loaded '+name+' — press Run to play';status.style.color='var(--acc)';status.title='';}return true;}catch(e){emuPause();reportError(e);return false;}}
 
 // Capture emulator PPU state into tile editor
 function emuCaptureMeta(mode){
