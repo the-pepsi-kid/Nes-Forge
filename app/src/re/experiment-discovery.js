@@ -72,10 +72,11 @@ async function discover({rom,training,holdout,interventions=Finder.LIMITS.interv
       {id:'baseline-restored-1',kind:'baseline',mutations:[],fromCheckpoint:'after-boot',trace:true},
       {id:'baseline-restored-2',kind:'baseline',mutations:[],fromCheckpoint:'after-boot',trace:false},
       {id:'baseline-cold-2',kind:'baseline',mutations:[],trace:true}],{trace:true,checkpoints:[{label:'after-boot',frame:ck}]}),'observe');
+    if(signal?.aborted)return {...finish('inconclusive','cancelled: nothing is claimed'),cancelled:true};
     report.stages.observe={repeatability:r1.repeatability,trace:r1.reference?{events:r1.reference.result.trace.events.length,truncated:r1.reference.result.trace.truncated,complete:!r1.reference.result.trace.truncated,counts:r1.reference.result.trace.counts}:null};
     if(!r1.reference)return finish('inconclusive','the training input did not reach its target: '+(r1.receipts[0].stopReason||r1.receipts[0].outcome));
     if(r1.repeatability!=='passed')return finish('inconclusive','the baselines did not repeat ('+r1.repeatability+'): the engine is not deterministic for this input');
-    if(signal?.aborted)return {...finish('inconclusive','cancelled'),cancelled:true};
+    if(signal?.aborted)return {...finish('inconclusive','cancelled: nothing is claimed'),cancelled:true};
     const ref=r1.reference.result,roles=ref.trace.roles,traceComplete=!ref.trace.truncated;
     // 2. propose
     stage('propose',{message:'Searching the cartridge for tables that explain the screens'});
@@ -101,6 +102,7 @@ async function discover({rom,training,holdout,interventions=Finder.LIMITS.interv
       ...(unrelated>=0?[{id:'control-unrelated',kind:'control-unrelated',mutations:[{offset:unrelated,expected:rom[unrelated],value:rom[unrelated]^0xff}]}]:[]),
       {id:'baseline-after-variants',kind:'baseline',mutations:[]}];
     const r2=await runPlan(plan('interventions',rom,session.identity,training.steps,training.captures,trials),'test');
+    if(signal?.aborted)return {...finish('inconclusive','cancelled: nothing is claimed'),cancelled:true};
     if(!r2.reference)return finish('inconclusive','the intervention baseline did not reach its target');
     const refSync=r2.reference.result.sync;
     const judged=tests.map(t=>{const x=interpret(t,r2,refSync,roles,traceComplete,layout);return {...t,judgement:x.judgement,interpretation:x.interpretation,receiptHash:x.receipt.receiptHash,outcome:x.receipt.outcome};});
@@ -146,7 +148,7 @@ async function discover({rom,training,holdout,interventions=Finder.LIMITS.interv
     store.addCandidate(definition);
     report.stages.freeze={definitionHash:definition.definitionHash,candidate:w.id,rank:w.rank,revision:definition.revision?.number??1,numbering:definition.table.numbering||'operand-evidence',frozenBeforeHoldout:true};
     report.definition=definition;
-    if(signal?.aborted)return {...finish('inconclusive','cancelled'),cancelled:true};
+    if(signal?.aborted)return {...finish('inconclusive','cancelled: nothing is claimed'),cancelled:true};
     // 5. withheld input, after the freeze
     stage('holdout',{message:'Running the withheld input and reconstructing it from the frozen definition'});
     const r3=await runPlan(plan('holdout',rom,session.identity,holdout.steps,holdout.captures,[{id:'baseline',kind:'baseline',mutations:[]}]),'holdout');
@@ -196,7 +198,8 @@ async function verificationJobs({session,rom,romSha,layout,r1,r2,rc,ra,r3,judged
     const out=covered?{job:{captures:job.checkpoints.map(cp=>pre.find(x=>x.label===cp.label)),frames:null,nmis:s.result.sync.nmiFrames.length,latches:s.result.sync.latches.length,multiLatchFrames:s.result.sync.multiLatchFrames,missing:[],source:'snapshots taken during the frame-mode run'}}
       :await session.run({job,rom:variant.bytes,romSha:variant.sha256,budgets:{wallMs:60000}},{signal});
     for(const c of out.job?.captures||[])if(c.colourClass&&!colourClass)colourClass=Array.from(c.colourClass);
-    const captures=(out.job?.captures||[]).map(c=>{const n=V.normalize(c,{engine:'forge',mirroring:layout.mirroring,colourClass:c.colourClass});return {label:c.label,nmi:c.nmi,frame:c.frame,latches:c.latches,line:c.line,digests:V.digestAll(n),normalized:n};});
+    const keep=new Set(job.channels.flatMap(ch=>ch==='nametables'?['nametables','attributes']:[ch])); // exactly the job's channels, whether snapshot or job run
+    const captures=(out.job?.captures||[]).map(c=>{const n=V.normalize(c,{engine:'forge',mirroring:layout.mirroring,colourClass:c.colourClass});for(const ch of Object.keys(n.channels))if(!keep.has(ch))delete n.channels[ch];return {label:c.label,nmi:c.nmi,frame:c.frame,latches:c.latches,line:c.line,digests:V.digestAll(n),normalized:n};});
     jobs.push({job:{...job,variantSha256:variant.sha256},expectation:s.expectation,forge:{source:out.job?.source||'a job-mode run in this engine',captures,frames:out.job?.frames??null,nmis:out.job?.nmis??null,latches:out.job?.latches??null,multiLatchFrames:out.job?.multiLatchFrames??null,missing:out.job?.missing??null,stopReason:out.job?.stopReason||out.stopReason||null}});
   }
   // the same predictions judged on this engine's job captures (same-engine; the independent receipt repeats them on another engine)

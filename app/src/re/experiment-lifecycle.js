@@ -12,7 +12,7 @@ const STATES=Object.freeze(['uninvestigated','observed','hypothesis','experiment
 const SIDE=Object.freeze(['falsified','ambiguous','inconclusive','verification-blocked','verification-failed']);
 // The documented evidence requirement of each state (shown in the panel and in packages).
 const REQUIREMENTS=Object.freeze({
-  'uninvestigated':'Nothing has run.',
+  'uninvestigated':'Nothing has run yet: no plan, receipt or capture exists for this cartridge.',
   'observed':'A baseline run of the training input reached its target (background enabled at every capture) and produced sealed receipts.',
   'hypothesis':'At least one ranked candidate table explains at least three distinct observed records; geometry is not yet tested.',
   'experimentally-supported':'A frozen candidate whose single-byte interventions changed exactly the predicted cells to the predicted values at two record positions (when the table has a second record that appears once), without changing the program\'s path; same-value, unrelated-byte and restoration controls showed no effect; every other tested hypothesis was falsified; record 0 established by instruction operands.',

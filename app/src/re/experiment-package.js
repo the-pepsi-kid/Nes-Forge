@@ -37,7 +37,13 @@ function build({report,store,rom,privacy='synthetic',generation=null,independent
     availability:synthetic?'embedded':'reference',...(synthetic?{base64:b64(rom)}:{note:'not included: supply the cartridge locally; it must have this SHA-256'}),...(generation?{generation}:{})};
   if(synthetic)embedded.push('cartridge');else referenced.push({id:'cartridge',reason:'a private cartridge is never included; verification uses a locally supplied file with this SHA-256'});
   // verification jobs: this engine's captures, normalized; small channels embedded, large ones by SHA-256
-  const jobs=(report.verification?.jobs||[]).map(j=>({job:plain(j.job),expectation:plain(j.expectation),forge:{...plain({...j.forge,captures:undefined}),captures:j.forge.captures.map(c=>{
+  // a private package keeps no cartridge-derived values: a mutation becomes its offset and an XOR mask (the original byte
+  // comes from the locally supplied cartridge), predictions keep positions, claims keep cell IDs (tiles and attribute
+  // bits are re-derived from the definition and the local cartridge)
+  const privateJob=j=>synthetic?j:{...j,mutations:(j.mutations||[]).map(m=>({offset:m.offset,xor:m.value^m.expected}))};
+  const privateExpectation=e=>{if(synthetic)return e;const out={...e};if(out.predict)out.predict=out.predict.map(p=>({label:p.label,index:p.index}));
+    if(out.claims)out.claims={...out.claims,cells:out.claims.cells.map(c=>({cell:c.cell,status:c.status,ids:c.ids,index:c.index})),attributes:out.claims.attributes.map(a=>({index:a.index,knownMask:a.knownMask}))};return out;};
+  const jobs=(report.verification?.jobs||[]).map(j=>({job:privateJob(plain(j.job)),expectation:privateExpectation(plain(j.expectation)),forge:{...plain({...j.forge,captures:undefined}),captures:j.forge.captures.map(c=>{
     const channels={};for(const [ch,bytes] of Object.entries(c.normalized.channels)){const id='sha256:'+c.digests[ch];const big=ch==='pixels'||ch==='chr'||ch==='reads';
       channels[ch]=synthetic&&(!big||j.job.id==='training-baseline'||j.job.id==='holdout-baseline'||embedLarge)?{sha256:c.digests[ch],availability:'embedded',base64:b64(bytes)}:{sha256:c.digests[ch],availability:'referenced',reason:synthetic?'regenerable by running the job':'derived from a private cartridge'};
       if(channels[ch].availability==='embedded')embedded.push(id);else referenced.push({id,reason:channels[ch].reason});}
@@ -55,7 +61,8 @@ function build({report,store,rom,privacy='synthetic',generation=null,independent
     observe:plain(report.stages.observe||null),propose:plain(report.stages.propose?{distinctTuples:report.stages.propose.distinctTuples,searched:report.stages.propose.searched,ranked:report.stages.propose.ranked}:null),
     candidate:report.definition?plain(report.definition):null,revisions:report.definition?[{revision:report.definition.revision?.number??1,definitionHash:report.definition.definitionHash,previous:report.definition.revision?.previous??null}]:[],
     result:plain(report.result),
-    reconstruction:report.holdout?{label:report.holdout.label,definitionHash:report.holdout.definitionHash,inputHash:report.holdout.inputHash,counts:report.holdout.reconstruction.counts,cells:report.holdout.reconstruction.cells,attributes:report.holdout.reconstruction.attributes,claims:report.holdout.claims,selfCheck:report.holdout.selfCheck}:null,
+    reconstruction:report.holdout?{label:report.holdout.label,definitionHash:report.holdout.definitionHash,inputHash:report.holdout.inputHash,counts:report.holdout.reconstruction.counts,cells:report.holdout.reconstruction.cells,
+      attributes:synthetic?report.holdout.reconstruction.attributes:report.holdout.reconstruction.attributes.map(a=>({index:a.index,knownMask:a.knownMask})),claims:privateExpectation({claims:report.holdout.claims}).claims,selfCheck:report.holdout.selfCheck}:null,
     verification:{mirroring:report.verification?.mirroring||layout.mirroring,colourClass:report.verification?.colourClass||null,jobs,sameEngineChecks:plain(report.verification?.sameEngineChecks||[]),independent:plain(independent),
       note:'Jobs are engine-neutral: from power-on, the joypad latches the listed masks at successive $4016 strobes; checkpoints are NMI-handler entries. Run them in an independent emulator with tools/agent-lab/independent/verify-package.cjs.'},
     lifecycle:plain(assessment),
@@ -63,6 +70,13 @@ function build({report,store,rom,privacy='synthetic',generation=null,independent
   return {...body,packageHash:contract.hashOf(body)};
 }
 
+// A stored plan is the validated (normalized) form; replaying it needs the input form the contract accepts.
+function planInput(n){
+  const trials=n.trials.map(t=>({id:t.id,kind:t.kind,mutations:t.mutations.map(m=>({offset:m.offset,expected:m.expected,value:m.value})),...(t.fromCheckpoint?{fromCheckpoint:t.fromCheckpoint}:{}),...(t.saveCheckpoints?{saveCheckpoints:true}:{}),trace:!!t.trace&&!!n.observe.trace}));
+  return {format:n.format,version:n.version,id:n.id,privacy:n.privacy,source:n.source,...(n.engine?{engine:n.engine}:{}),input:n.input,captures:n.captures,...(n.checkpoints?.length?{checkpoints:n.checkpoints}:{}),...(n.target?{target:n.target}:{}),
+    observe:{channels:n.observe.channels,payloads:n.observe.payloads,...(n.observe.trace?{trace:n.observe.trace}:{}),watchRam:n.observe.watchRam,frameDigests:n.observe.frameDigests},budgets:n.budgets,...(n.protect?.length?{protect:n.protect}:{}),trials,
+    ...(n.description?{description:n.description}:{}),...(n.seed!==undefined?{seed:n.seed}:{})};
+}
 // Checks everything that can be checked without running anything.
 function validate(pkg){
   const problems=[],add=m=>problems.push(m);
@@ -98,5 +112,5 @@ function inspect(pkg){
     reconstruction:pkg.reconstruction?pkg.reconstruction.counts:null,jobs:(pkg.verification?.jobs||[]).map(j=>j.job.id+' ('+j.expectation.kind+', '+j.forge.captures.length+' checkpoints)'),
     independent:(pkg.verification?.independent||[]).map(x=>({engine:x.engine?.name+' '+x.engine?.version,verdict:x.verdict?.result})),lifecycle:pkg.lifecycle?{state:pkg.lifecycle.state,side:pkg.lifecycle.side}:null};
 }
-return Object.freeze({version:VERSION,FORMAT,build,validate,cartridgeBytes,capturesOf,inspect});
+return Object.freeze({version:VERSION,FORMAT,build,validate,cartridgeBytes,capturesOf,inspect,planInput});
 });

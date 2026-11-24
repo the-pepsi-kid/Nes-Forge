@@ -23,6 +23,7 @@ const report = {suite: 'al-exp-02', editorSha256: sha(fs.readFileSync(editor)), 
 const check = (name, passed, detail) => { report.checks.push({name, passed: !!passed, status: passed ? 'pass' : 'fail', detail}); console.log((passed ? 'PASS ' : 'FAIL ') + name + (passed ? '' : ' ' + JSON.stringify(detail).slice(0, 1500))); };
 const blocked = (name, reason) => { report.checks.push({name, passed: null, status: 'blocked', detail: reason}); console.log('BLOCKED ' + name + ' — ' + reason); };
 const throws = fn => { try { fn(); return null; } catch (e) { return e.message; } };
+const msg = e => String(e?.message ?? e ?? '');
 if (artifacts) fs.mkdirSync(artifacts, {recursive: true});
 const seedsDoc = gen.committed(), development = seedsDoc.fixtures.filter(f => f.role === 'development');
 const withheld = process.env.AL_EXP_02_SEEDS === 'development' ? [] : seedsDoc.fixtures.filter(f => f.role === 'withheld');
@@ -193,8 +194,8 @@ const sameInputs = truth => ['training', 'holdout'].every(k => JSON.stringify(de
     const otherDef = JSON.parse(JSON.stringify(receipt11)); delete otherDef.receiptHash; delete otherDef.timing; otherDef.subject.definitionHash = 'b'.repeat(64);
     const oa = await run('experiment.attachVerification', {receipt: V.sealIndependent(otherDef)});
     check('Disagreement stays visible: a receipt whose raw captures disagree with NES Forge in one nametable byte, re-sealed and still claiming "verified", is re-computed by the editor as failed and flagged as not matching its claim; an edited receipt is refused by its seal; a receipt about another definition is refused',
-      fa.ok && fa.result.verdict.result === 'failed' && fa.result.matchesReceipt === false && fa.result.lifecycle.side === 'verification-failed' && !ta.ok && /refused|hash/.test(ta.error) && !oa.ok && /another definition/.test(oa.error),
-      {forged: fa.ok ? {verdict: fa.result.verdict, matchesReceipt: fa.result.matchesReceipt, lifecycle: fa.result.lifecycle.side} : fa.error, tampered: ta.error, other: oa.error});
+      fa.ok && fa.result.verdict.result === 'failed' && fa.result.matchesReceipt === false && fa.result.lifecycle.side === 'verification-failed' && !ta.ok && /refused|hash/.test(msg(ta.error)) && !oa.ok && /another definition/.test(msg(oa.error)),
+      {forged: fa.ok ? {verdict: fa.result.verdict, matchesReceipt: fa.result.matchesReceipt, lifecycle: fa.result.lifecycle.side} : fa.error, tampered: msg(ta.error), other: msg(oa.error)});
     // a deliberately wrong definition (shifted by one record): FCEUX shows its withheld-screen claims fail
     const broken = (() => { const p = JSON.parse(JSON.stringify(pkg11)); const def = oracle.broken(p.candidate); delete def.definitionHash; const sealedBroken = Contract.sealCandidate(def);
       const hold = p.verification.jobs.find(x => x.job.id === 'holdout-baseline'), c = hold.forge.captures[0], ntB = Buffer.from(c.channels.nametables.base64, 'base64'), atB = Buffer.from(c.channels.attributes.base64, 'base64');
@@ -221,10 +222,11 @@ const sameInputs = truth => ['training', 'holdout'].every(k => JSON.stringify(de
   const insp = spawnSync(process.execPath, [path.join(ROOT, 'tools/agent-lab/inspect-package.cjs'), writeTmp('pkg11.json', pkg11)], {encoding: 'utf8'});
   const priv = await run('experiment.exportPackage', {privacy: 'private'}), privText = priv.ok ? JSON.stringify(priv.result) : '';
   const privChecks = priv.ok ? {valid: Pkg.validate(priv.result).ok, cartridgeReferenced: priv.result.cartridge.availability === 'reference' && !priv.result.cartridge.base64, noPayloadBytes: !priv.result.payloads.some(p => p.base64),
-    noJobBytes: priv.result.verification.jobs.every(j => j.forge.captures.every(c => Object.values(c.channels).every(x => !x.base64))), mutationsRedacted: priv.result.interventions.interventions.every(i => i.mutation.expected === undefined && i.mutation.value === undefined), noPaths: !/\/home\/|\.nes"/.test(privText)} : {error: priv.error};
+    noJobBytes: priv.result.verification.jobs.every(j => j.forge.captures.every(c => Object.values(c.channels).every(x => !x.base64))), mutationsRedacted: priv.result.interventions.interventions.every(i => i.mutation.expected === undefined && i.mutation.value === undefined) && priv.result.verification.jobs.every(j => j.job.mutations.every(m => m.expected === undefined && m.value === undefined)),
+    noCartridgeValues: priv.result.reconstruction.claims.cells.every(c => !c.tiles) && priv.result.verification.jobs.every(j => !(j.expectation.predict || []).some(p => p.value !== undefined)), noPaths: !/\/home\/|\.nes"/.test(privText)} : {error: priv.error};
   let localVerify = null, wrongCartridge = null;
   if (fx.available && priv.ok) { localVerify = VP.verifyPackage(priv.result, {fceux: fx, cartridge: rom11}).receipt; wrongCartridge = throws(() => VP.verifyPackage(priv.result, {fceux: fx, cartridge: romOf(development[1])})); }
-  check('Packages: the inspector validates an exported package outside the editor; a private package embeds no cartridge, payload or capture bytes and no mutation values, and still validates; verified against a locally supplied cartridge with the recorded SHA-256 it passes on digests alone, and the wrong cartridge is refused',
+  check('Packages: the inspector validates an exported package outside the editor; a private package embeds no cartridge, payload or capture bytes, no mutation values, no claimed tiles or predicted values (mutations kept as offset and XOR mask), and still validates; verified against a locally supplied cartridge with the recorded SHA-256 it passes on digests alone, and the wrong cartridge is refused',
     insp.status === 0 && Object.values(privChecks).every(v => v === true) && (!fx.available || (localVerify?.verdict.result === 'verified' && /SHA-256/.test(wrongCartridge || ''))),
     {inspector: insp.status === 0 ? 'valid' : insp.stdout.slice(0, 400) + insp.stderr.slice(0, 200), privChecks, localVerify: localVerify?.verdict, wrongCartridge});
   const meta = await run('experiment.exportMetadata', {});
@@ -236,19 +238,19 @@ const sameInputs = truth => ['training', 'holdout'].every(k => JSON.stringify(de
 
   // ---- differential execution and mutation controls (runner level, with the generator's known-effect patches) ----
   const ctrl = await controls();
-  check('Controls: a positive control (a drawn record byte) changes the screen; a palette-only change changes only the palette; changing an exact-copy decoy the program never reads changes nothing; a same-value write changes nothing; the original cartridge after every variant gives the original result (restoration); a byte of a table the program reads every frame for another purpose changes RAM but not the screen; tripping the guard changes the program\'s path while the screen stays the same (confounded); a program stuck in a loop times out; rendering never enabled is "target not reached"',
+  check('Controls: a positive control (a drawn record byte) changes the screen; a palette-only change changes only the palette; a same-value write changes nothing; the original cartridge after every variant gives the original result (restoration); an exact-copy decoy the complete trace shows was never read changes nothing (irrelevant for this input); a byte the program does read, from a table it reads every frame for another purpose, changes nothing observed (no observed effect, which is not irrelevance); tripping the guard changes the program\'s path while the screen stays the same (confounded); a program stuck in a loop times out; rendering never enabled is "target not reached"',
     ctrl.ok, ctrl);
   const truncated = await run('experiment.run', {plan: plan1('truncation', rom11, t11, [{id: 'baseline', kind: 'baseline', mutations: [], trace: true}], {prgReads: true, ppuWrites: true, maxEvents: 50}), bytes: Array.from(rom11)});
   const tr = truncated.ok ? truncated.result.receipts[0] : null;
   check('Trace truncation: a trace that reaches its event cap is marked truncated and incomplete, and the receipt says absence of an event is not evidence', !!tr && tr.trace.truncated && !tr.trace.complete && tr.limitations.some(l => /absence/.test(l)), tr ? tr.trace : truncated.error);
   const bad = new Uint8Array(rom11); bad[12] = 1; const nonSynth = new Uint8Array(rom11); nonSynth.fill(0, 16 + 0x3f00, 16 + 0x3f10);
   const badRun = await run('experiment.discoverMetatiles', {bytes: Array.from(bad), training: INPUTS.training, holdout: INPUTS.holdout}), nsRun = await run('experiment.discoverMetatiles', {bytes: Array.from(nonSynth), training: INPUTS.training, holdout: INPUTS.holdout});
-  check('Invalid or unsupported cartridges: a malformed header is refused (not repaired) and a cartridge without the synthetic-fixture marker is refused before anything runs', !badRun.ok && /header|repaired/.test(badRun.error) && !nsRun.ok && /synthetic/.test(nsRun.error), {bad: badRun.error, nonSynthetic: nsRun.error});
+  check('Invalid or unsupported cartridges: a malformed header is refused (not repaired) and a cartridge without the synthetic-fixture marker is refused before anything runs', !badRun.ok && /header|repaired/.test(msg(badRun.error)) && !nsRun.ok && /synthetic/.test(msg(nsRun.error)), {bad: msg(badRun.error), nonSynthetic: msg(nsRun.error)});
   // cancellation: a discovery cancelled mid-run stops, and leaves no sandbox behind
   const cancelStart = Date.now(); const pending = run('experiment.discoverMetatiles', {bytes: Array.from(rom11), training: INPUTS.training, holdout: INPUTS.holdout});
   await new Promise(r => setTimeout(r, 4000)); await run('experiment.cancel', {}); const cancelled = await pending; const afterCancel = await page.evaluate(() => ({iframes: document.querySelectorAll('iframe').length, sessions: Forge.services.ExperimentSandbox.sessions()}));
-  check('Cancellation: a discovery cancelled after 4 s stops within moments, claims nothing, and leaves no sandbox behind', (cancelled.ok ? cancelled.result.cancelled || cancelled.result.result?.reason === 'cancelled' || /cancel/.test(cancelled.result.result?.reason || '') : /cancel/i.test(cancelled.error)) && afterCancel.iframes === 0 && afterCancel.sessions === 0 && Date.now() - cancelStart < 30000,
-    {result: cancelled.ok ? cancelled.result.result : cancelled.error, afterCancel, ms: Date.now() - cancelStart});
+  check('Cancellation: a discovery cancelled after 4 s stops within moments, claims nothing, and leaves no sandbox behind', (cancelled.ok ? cancelled.result.cancelled === true && /cancel/.test(cancelled.result.result?.reason || '') && !cancelled.result.definition : /cancel/i.test(msg(cancelled.error))) && afterCancel.iframes === 0 && afterCancel.sessions === 0 && Date.now() - cancelStart < 30000,
+    {result: cancelled.ok ? {...cancelled.result.result, cancelled: cancelled.result.cancelled} : msg(cancelled.error), afterCancel, ms: Date.now() - cancelStart});
 
   // ---- promotion preview, panel, isolation ----
   await run('experiment.discoverMetatiles', {bytes: Array.from(rom11), training: INPUTS.training, holdout: INPUTS.holdout});
@@ -291,26 +293,31 @@ const sameInputs = truth => ['training', 'holdout'].every(k => JSON.stringify(de
       observe: {channels: ['cpu', 'ram', 'nametables', 'palette', 'oam', 'chr', 'pixels'], payloads: ['nametables', 'palette', 'ram'], frameDigests: true, ...(trace ? {trace} : {})}, budgets: {framesPerTrial: total, wallMsPerTrial: 60000, maxTrials: trials.length, eventsPerTrial: 100000}, trials};
   }
   async function controls() {
-    const fStd = f11, tStd = t11, rStd = rom11, out = {};
-    const P = tStd.patches, decoy = P.decoyCopy || null;
-    const r = await run('experiment.run', {plan: plan1('controls', rStd, tStd, [{id: 'baseline', kind: 'baseline', mutations: [], trace: true}, {id: 'positive', kind: 'variant', mutations: P.positive}, {id: 'palette-only', kind: 'variant', mutations: P.paletteOnly},
-      ...(decoy ? [{id: 'decoy', kind: 'variant', mutations: decoy}] : []), {id: 'same-value', kind: 'control-same-value', mutations: [{...P.positive[0], value: P.positive[0].expected}]}, {id: 'hang', kind: 'variant', mutations: P.hang}, {id: 'rendering-off', kind: 'variant', mutations: P.renderingOff},
-      {id: 'baseline-after', kind: 'baseline', mutations: []}], {prgReads: true, ppuWrites: true, maxEvents: 100000}), bytes: Array.from(rStd)});
-    if (!r.ok) return {ok: false, error: r.error};
-    const rc = id => r.result.receipts.find(x => x.trialId === id), ch = (id, name) => rc(id)?.channels?.[name]?.equalToBaseline;
-    out.positive = rc('positive').outcome === 'effect_observed' && ch('positive', 'nametables') === false;
-    out.paletteOnly = rc('palette-only').outcome === 'effect_observed' && ch('palette-only', 'palette') === false && ch('palette-only', 'nametables') === true;
-    out.decoy = decoy ? rc('decoy').outcome === 'no_effect_observed' : 'not present in this fixture';
-    out.sameValue = rc('same-value').outcome === 'no_effect_observed';
-    out.restoration = rc('baseline-after').outcome === 'no_effect_observed';
-    out.hang = rc('hang').outcome === 'timeout'; out.renderingOff = rc('rendering-off').outcome === 'target_not_reached';
+    const out = {}, P = t11.patches;
+    const r = await run('experiment.run', {plan: plan1('controls', rom11, t11, [{id: 'baseline', kind: 'baseline', mutations: [], trace: true}, {id: 'positive', kind: 'variant', mutations: P.positive}, {id: 'palette-only', kind: 'variant', mutations: P.paletteOnly},
+      {id: 'same-value', kind: 'control-same-value', mutations: [{...P.positive[0], value: P.positive[0].expected}]}, {id: 'hang', kind: 'variant', mutations: P.hang}, {id: 'rendering-off', kind: 'variant', mutations: P.renderingOff},
+      {id: 'baseline-after', kind: 'baseline', mutations: []}], {prgReads: true, ppuWrites: true, maxEvents: 100000}), bytes: Array.from(rom11)});
+    if (!r.ok) return {ok: false, error: msg(r.error)};
+    const rc = (res, id) => res.result.receipts.find(x => x.trialId === id), ch = (res, id, name) => rc(res, id)?.channels?.[name]?.equalToBaseline;
+    out.positive = rc(r, 'positive').outcome === 'effect_observed' && ch(r, 'positive', 'nametables') === false;
+    out.paletteOnly = rc(r, 'palette-only').outcome === 'effect_observed' && ch(r, 'palette-only', 'palette') === false && ch(r, 'palette-only', 'nametables') === true;
+    out.sameValue = rc(r, 'same-value').outcome === 'no_effect_observed';
+    out.restoration = rc(r, 'baseline-after').outcome === 'no_effect_observed';
+    out.hang = rc(r, 'hang').outcome === 'timeout'; out.renderingOff = rc(r, 'rendering-off').outcome === 'target_not_reached';
+    // "not read" (irrelevant for this input) versus "read, no observed effect": an exact-copy decoy, and a byte of the
+    // table the NMI handler reads every frame for another purpose
+    const fD = development.find(f => f.scenario === 'perfect-decoy'), tD = truthOf(fD), rD = romOf(fD);
+    const d = await run('experiment.run', {plan: plan1('decoy', rD, tD, [{id: 'baseline', kind: 'baseline', mutations: [], trace: true}, {id: 'decoy', kind: 'variant', mutations: tD.patches.decoyCopy}], {prgReads: true, ppuWrites: true, maxEvents: 100000}), bytes: Array.from(rD)});
+    const dm = tD.patches.decoyCopy[0].offset; out.decoyNotRead = d.ok && rc(d, 'decoy').outcome === 'no_effect_observed' && d.result.readByBaseline?.[dm]?.read === false && d.result.readByBaseline[dm].traceComplete;
     const fU = development.find(f => f.scenario === 'read-unrelated'), tU = truthOf(fU), rU = romOf(fU);
-    const u = await run('experiment.run', {plan: plan1('unrelated', rU, tU, [{id: 'baseline', kind: 'baseline', mutations: []}, {id: 'unrelated', kind: 'variant', mutations: tU.patches.unrelated}]), bytes: Array.from(rU)});
-    const ur = u.ok ? u.result.receipts[1] : null; out.readUnrelated = !!ur && ur.outcome === 'effect_observed' && ur.channels.ram.equalToBaseline === false && ur.channels.nametables.equalToBaseline === true && ur.channels.pixels.equalToBaseline === true;
+    const u = await run('experiment.run', {plan: plan1('unrelated', rU, tU, [{id: 'baseline', kind: 'baseline', mutations: [], trace: true}, {id: 'unrelated', kind: 'variant', mutations: tU.patches.unrelated}], {prgReads: true, ppuWrites: true, maxEvents: 100000}), bytes: Array.from(rU)});
+    // the bus trace sees the different value being read (the runner counts that as a divergence); every captured state channel stays equal
+    const um = tU.patches.unrelated[0].offset, uc = u.ok ? rc(u, 'unrelated').channels : null; out.readNoObservedEffect = u.ok && Object.values(uc).every(c => c.equalToBaseline === true) && u.result.readByBaseline?.[um]?.read === true;
+    out.readNoObservedEffectDetail = u.ok ? {outcome: rc(u, 'unrelated').outcome, stateChannelsEqual: Object.values(uc).every(c => c.equalToBaseline === true), firstDivergence: rc(u, 'unrelated').firstDivergence, read: u.result.readByBaseline?.[um]} : msg(u.error);
     const fG = development.find(f => f.scenario === 'confounded-guard'), tG = truthOf(fG), rG = romOf(fG);
     const g = await run('experiment.run', {plan: plan1('guard', rG, tG, [{id: 'baseline', kind: 'baseline', mutations: []}, {id: 'trip', kind: 'variant', mutations: tG.patches.guardTrip}]), bytes: Array.from(rG)});
     if (g.ok) { const [b0, t0] = g.result.results, div = b0.sync.pathDigests.findIndex((h, i) => h !== t0.sync.pathDigests[i]); out.guardConfounded = div >= 0 && g.result.receipts[1].channels.nametables.equalToBaseline === true; out.guardPathDivergesAtFrame = div + 1; }
-    out.ok = Object.values(out).every(v => v === true || typeof v === 'string' || typeof v === 'number');
+    out.ok = ['positive', 'paletteOnly', 'sameValue', 'restoration', 'hang', 'renderingOff', 'decoyNotRead', 'readNoObservedEffect', 'guardConfounded'].every(k => out[k] === true);
     return out;
   }
 })().catch(error => { console.error(error); process.exit(1); });

@@ -13,7 +13,7 @@ Modules: `app/src/re/experiment-lifecycle.js`, `app/src/re/experiment-promotion.
 
 | State | Evidence required |
 |---|---|
-| Uninvestigated | Nothing has run |
+| Uninvestigated | Nothing has run yet: no plan, receipt or capture exists for this cartridge |
 | Observed | A baseline run of the training input reached its target (background enabled at every capture), with sealed receipts |
 | Hypothesis | At least one ranked candidate table explains at least three distinct observed records. Its geometry is not yet tested |
 | Experimentally supported candidate | The intervention evidence below holds, the controls show no effect, every other tested hypothesis was falsified, and record 0 is established by instruction operands |

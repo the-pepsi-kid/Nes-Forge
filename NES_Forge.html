@@ -38357,7 +38357,8 @@ function checkPrediction(baseline,variant,predict){
   const a=visibleOf(baseline),b=visibleOf(variant);
   const changed=[];for(let i=0;i<1024;i++)if(visibleAt(a,i)!==visibleAt(b,i))changed.push(i);
   const expect=new Map(predict.map(p=>[p.index,p.value]));
-  const unexpected=changed.filter(i=>expect.get(i)!==visibleAt(b,i)),missing=[...expect.keys()].filter(i=>!changed.includes(i));
+  // a prediction without a value (a private package) asks only that exactly these positions change
+  const unexpected=changed.filter(i=>!expect.has(i)||(expect.get(i)!==undefined&&expect.get(i)!==visibleAt(b,i))),missing=[...expect.keys()].filter(i=>!changed.includes(i));
   return {changed:changed.length,predicted:expect.size,unexpected:unexpected.length,missing:missing.length,holds:changed.length>0&&!unexpected.length&&!missing.length};
 }
 function checkNoEffect(baseline,variant){
@@ -38455,7 +38456,7 @@ const STATES=Object.freeze(['uninvestigated','observed','hypothesis','experiment
 const SIDE=Object.freeze(['falsified','ambiguous','inconclusive','verification-blocked','verification-failed']);
 // The documented evidence requirement of each state (shown in the panel and in packages).
 const REQUIREMENTS=Object.freeze({
-  'uninvestigated':'Nothing has run.',
+  'uninvestigated':'Nothing has run yet: no plan, receipt or capture exists for this cartridge.',
   'observed':'A baseline run of the training input reached its target (background enabled at every capture) and produced sealed receipts.',
   'hypothesis':'At least one ranked candidate table explains at least three distinct observed records; geometry is not yet tested.',
   'experimentally-supported':'A frozen candidate whose single-byte interventions changed exactly the predicted cells to the predicted values at two record positions (when the table has a second record that appears once), without changing the program\'s path; same-value, unrelated-byte and restoration controls showed no effect; every other tested hypothesis was falsified; record 0 established by instruction operands.',
@@ -38611,7 +38612,13 @@ function build({report,store,rom,privacy='synthetic',generation=null,independent
     availability:synthetic?'embedded':'reference',...(synthetic?{base64:b64(rom)}:{note:'not included: supply the cartridge locally; it must have this SHA-256'}),...(generation?{generation}:{})};
   if(synthetic)embedded.push('cartridge');else referenced.push({id:'cartridge',reason:'a private cartridge is never included; verification uses a locally supplied file with this SHA-256'});
   // verification jobs: this engine's captures, normalized; small channels embedded, large ones by SHA-256
-  const jobs=(report.verification?.jobs||[]).map(j=>({job:plain(j.job),expectation:plain(j.expectation),forge:{...plain({...j.forge,captures:undefined}),captures:j.forge.captures.map(c=>{
+  // a private package keeps no cartridge-derived values: a mutation becomes its offset and an XOR mask (the original byte
+  // comes from the locally supplied cartridge), predictions keep positions, claims keep cell IDs (tiles and attribute
+  // bits are re-derived from the definition and the local cartridge)
+  const privateJob=j=>synthetic?j:{...j,mutations:(j.mutations||[]).map(m=>({offset:m.offset,xor:m.value^m.expected}))};
+  const privateExpectation=e=>{if(synthetic)return e;const out={...e};if(out.predict)out.predict=out.predict.map(p=>({label:p.label,index:p.index}));
+    if(out.claims)out.claims={...out.claims,cells:out.claims.cells.map(c=>({cell:c.cell,status:c.status,ids:c.ids,index:c.index})),attributes:out.claims.attributes.map(a=>({index:a.index,knownMask:a.knownMask}))};return out;};
+  const jobs=(report.verification?.jobs||[]).map(j=>({job:privateJob(plain(j.job)),expectation:privateExpectation(plain(j.expectation)),forge:{...plain({...j.forge,captures:undefined}),captures:j.forge.captures.map(c=>{
     const channels={};for(const [ch,bytes] of Object.entries(c.normalized.channels)){const id='sha256:'+c.digests[ch];const big=ch==='pixels'||ch==='chr'||ch==='reads';
       channels[ch]=synthetic&&(!big||j.job.id==='training-baseline'||j.job.id==='holdout-baseline'||embedLarge)?{sha256:c.digests[ch],availability:'embedded',base64:b64(bytes)}:{sha256:c.digests[ch],availability:'referenced',reason:synthetic?'regenerable by running the job':'derived from a private cartridge'};
       if(channels[ch].availability==='embedded')embedded.push(id);else referenced.push({id,reason:channels[ch].reason});}
@@ -38629,7 +38636,8 @@ function build({report,store,rom,privacy='synthetic',generation=null,independent
     observe:plain(report.stages.observe||null),propose:plain(report.stages.propose?{distinctTuples:report.stages.propose.distinctTuples,searched:report.stages.propose.searched,ranked:report.stages.propose.ranked}:null),
     candidate:report.definition?plain(report.definition):null,revisions:report.definition?[{revision:report.definition.revision?.number??1,definitionHash:report.definition.definitionHash,previous:report.definition.revision?.previous??null}]:[],
     result:plain(report.result),
-    reconstruction:report.holdout?{label:report.holdout.label,definitionHash:report.holdout.definitionHash,inputHash:report.holdout.inputHash,counts:report.holdout.reconstruction.counts,cells:report.holdout.reconstruction.cells,attributes:report.holdout.reconstruction.attributes,claims:report.holdout.claims,selfCheck:report.holdout.selfCheck}:null,
+    reconstruction:report.holdout?{label:report.holdout.label,definitionHash:report.holdout.definitionHash,inputHash:report.holdout.inputHash,counts:report.holdout.reconstruction.counts,cells:report.holdout.reconstruction.cells,
+      attributes:synthetic?report.holdout.reconstruction.attributes:report.holdout.reconstruction.attributes.map(a=>({index:a.index,knownMask:a.knownMask})),claims:privateExpectation({claims:report.holdout.claims}).claims,selfCheck:report.holdout.selfCheck}:null,
     verification:{mirroring:report.verification?.mirroring||layout.mirroring,colourClass:report.verification?.colourClass||null,jobs,sameEngineChecks:plain(report.verification?.sameEngineChecks||[]),independent:plain(independent),
       note:'Jobs are engine-neutral: from power-on, the joypad latches the listed masks at successive $4016 strobes; checkpoints are NMI-handler entries. Run them in an independent emulator with tools/agent-lab/independent/verify-package.cjs.'},
     lifecycle:plain(assessment),
@@ -38637,6 +38645,13 @@ function build({report,store,rom,privacy='synthetic',generation=null,independent
   return {...body,packageHash:contract.hashOf(body)};
 }
 
+// A stored plan is the validated (normalized) form; replaying it needs the input form the contract accepts.
+function planInput(n){
+  const trials=n.trials.map(t=>({id:t.id,kind:t.kind,mutations:t.mutations.map(m=>({offset:m.offset,expected:m.expected,value:m.value})),...(t.fromCheckpoint?{fromCheckpoint:t.fromCheckpoint}:{}),...(t.saveCheckpoints?{saveCheckpoints:true}:{}),trace:!!t.trace&&!!n.observe.trace}));
+  return {format:n.format,version:n.version,id:n.id,privacy:n.privacy,source:n.source,...(n.engine?{engine:n.engine}:{}),input:n.input,captures:n.captures,...(n.checkpoints?.length?{checkpoints:n.checkpoints}:{}),...(n.target?{target:n.target}:{}),
+    observe:{channels:n.observe.channels,payloads:n.observe.payloads,...(n.observe.trace?{trace:n.observe.trace}:{}),watchRam:n.observe.watchRam,frameDigests:n.observe.frameDigests},budgets:n.budgets,...(n.protect?.length?{protect:n.protect}:{}),trials,
+    ...(n.description?{description:n.description}:{}),...(n.seed!==undefined?{seed:n.seed}:{})};
+}
 // Checks everything that can be checked without running anything.
 function validate(pkg){
   const problems=[],add=m=>problems.push(m);
@@ -38672,7 +38687,7 @@ function inspect(pkg){
     reconstruction:pkg.reconstruction?pkg.reconstruction.counts:null,jobs:(pkg.verification?.jobs||[]).map(j=>j.job.id+' ('+j.expectation.kind+', '+j.forge.captures.length+' checkpoints)'),
     independent:(pkg.verification?.independent||[]).map(x=>({engine:x.engine?.name+' '+x.engine?.version,verdict:x.verdict?.result})),lifecycle:pkg.lifecycle?{state:pkg.lifecycle.state,side:pkg.lifecycle.side}:null};
 }
-return Object.freeze({version:VERSION,FORMAT,build,validate,cartridgeBytes,capturesOf,inspect});
+return Object.freeze({version:VERSION,FORMAT,build,validate,cartridgeBytes,capturesOf,inspect,planInput});
 });
 /* Generated by app/tools/bundle.py from src/shell-prefix.html and src/shell-suffix.html; do not edit. The experiment
  * sandbox (AL-EXP-01) rebuilds this exact standalone document from it and the script text. */
@@ -39144,10 +39159,11 @@ async function discover({rom,training,holdout,interventions=Finder.LIMITS.interv
       {id:'baseline-restored-1',kind:'baseline',mutations:[],fromCheckpoint:'after-boot',trace:true},
       {id:'baseline-restored-2',kind:'baseline',mutations:[],fromCheckpoint:'after-boot',trace:false},
       {id:'baseline-cold-2',kind:'baseline',mutations:[],trace:true}],{trace:true,checkpoints:[{label:'after-boot',frame:ck}]}),'observe');
+    if(signal?.aborted)return {...finish('inconclusive','cancelled: nothing is claimed'),cancelled:true};
     report.stages.observe={repeatability:r1.repeatability,trace:r1.reference?{events:r1.reference.result.trace.events.length,truncated:r1.reference.result.trace.truncated,complete:!r1.reference.result.trace.truncated,counts:r1.reference.result.trace.counts}:null};
     if(!r1.reference)return finish('inconclusive','the training input did not reach its target: '+(r1.receipts[0].stopReason||r1.receipts[0].outcome));
     if(r1.repeatability!=='passed')return finish('inconclusive','the baselines did not repeat ('+r1.repeatability+'): the engine is not deterministic for this input');
-    if(signal?.aborted)return {...finish('inconclusive','cancelled'),cancelled:true};
+    if(signal?.aborted)return {...finish('inconclusive','cancelled: nothing is claimed'),cancelled:true};
     const ref=r1.reference.result,roles=ref.trace.roles,traceComplete=!ref.trace.truncated;
     // 2. propose
     stage('propose',{message:'Searching the cartridge for tables that explain the screens'});
@@ -39173,6 +39189,7 @@ async function discover({rom,training,holdout,interventions=Finder.LIMITS.interv
       ...(unrelated>=0?[{id:'control-unrelated',kind:'control-unrelated',mutations:[{offset:unrelated,expected:rom[unrelated],value:rom[unrelated]^0xff}]}]:[]),
       {id:'baseline-after-variants',kind:'baseline',mutations:[]}];
     const r2=await runPlan(plan('interventions',rom,session.identity,training.steps,training.captures,trials),'test');
+    if(signal?.aborted)return {...finish('inconclusive','cancelled: nothing is claimed'),cancelled:true};
     if(!r2.reference)return finish('inconclusive','the intervention baseline did not reach its target');
     const refSync=r2.reference.result.sync;
     const judged=tests.map(t=>{const x=interpret(t,r2,refSync,roles,traceComplete,layout);return {...t,judgement:x.judgement,interpretation:x.interpretation,receiptHash:x.receipt.receiptHash,outcome:x.receipt.outcome};});
@@ -39218,7 +39235,7 @@ async function discover({rom,training,holdout,interventions=Finder.LIMITS.interv
     store.addCandidate(definition);
     report.stages.freeze={definitionHash:definition.definitionHash,candidate:w.id,rank:w.rank,revision:definition.revision?.number??1,numbering:definition.table.numbering||'operand-evidence',frozenBeforeHoldout:true};
     report.definition=definition;
-    if(signal?.aborted)return {...finish('inconclusive','cancelled'),cancelled:true};
+    if(signal?.aborted)return {...finish('inconclusive','cancelled: nothing is claimed'),cancelled:true};
     // 5. withheld input, after the freeze
     stage('holdout',{message:'Running the withheld input and reconstructing it from the frozen definition'});
     const r3=await runPlan(plan('holdout',rom,session.identity,holdout.steps,holdout.captures,[{id:'baseline',kind:'baseline',mutations:[]}]),'holdout');
@@ -39268,7 +39285,8 @@ async function verificationJobs({session,rom,romSha,layout,r1,r2,rc,ra,r3,judged
     const out=covered?{job:{captures:job.checkpoints.map(cp=>pre.find(x=>x.label===cp.label)),frames:null,nmis:s.result.sync.nmiFrames.length,latches:s.result.sync.latches.length,multiLatchFrames:s.result.sync.multiLatchFrames,missing:[],source:'snapshots taken during the frame-mode run'}}
       :await session.run({job,rom:variant.bytes,romSha:variant.sha256,budgets:{wallMs:60000}},{signal});
     for(const c of out.job?.captures||[])if(c.colourClass&&!colourClass)colourClass=Array.from(c.colourClass);
-    const captures=(out.job?.captures||[]).map(c=>{const n=V.normalize(c,{engine:'forge',mirroring:layout.mirroring,colourClass:c.colourClass});return {label:c.label,nmi:c.nmi,frame:c.frame,latches:c.latches,line:c.line,digests:V.digestAll(n),normalized:n};});
+    const keep=new Set(job.channels.flatMap(ch=>ch==='nametables'?['nametables','attributes']:[ch])); // exactly the job's channels, whether snapshot or job run
+    const captures=(out.job?.captures||[]).map(c=>{const n=V.normalize(c,{engine:'forge',mirroring:layout.mirroring,colourClass:c.colourClass});for(const ch of Object.keys(n.channels))if(!keep.has(ch))delete n.channels[ch];return {label:c.label,nmi:c.nmi,frame:c.frame,latches:c.latches,line:c.line,digests:V.digestAll(n),normalized:n};});
     jobs.push({job:{...job,variantSha256:variant.sha256},expectation:s.expectation,forge:{source:out.job?.source||'a job-mode run in this engine',captures,frames:out.job?.frames??null,nmis:out.job?.nmis??null,latches:out.job?.latches??null,multiLatchFrames:out.job?.multiLatchFrames??null,missing:out.job?.missing??null,stopReason:out.job?.stopReason||out.stopReason||null}});
   }
   // the same predictions judged on this engine's job captures (same-engine; the independent receipt repeats them on another engine)
@@ -39334,7 +39352,8 @@ async function replay(pkg,local=null){
   return exclusive('replay',async(signal,progress)=>{
     const session=await services.ExperimentSandbox.open(),out={build:{recorded:pkg.manifest.engine.documentSha256,now:session.identity.documentSha256},trials:[],jobs:[]};
     try{
-      for(const p of pkg.plans){if(!p.plan||signal.aborted)continue;const {engine,planHash,totalFrames,...body}=p.plan;
+      // the recorded plan, exactly (same plan hash); on another build its engine identity is dropped and the report says so
+      for(const p of pkg.plans){if(!p.plan||signal.aborted)continue;const body=Pkg.planInput(p.plan);if(body.engine&&body.engine.documentSha256!==session.identity.documentSha256)delete body.engine;
         const r=await services.ExperimentRunner.run(body,rom,{session,signal,onProgress:x=>progress({stage:'replay '+p.id,...x})});
         for(const rec of r.receipts){const old=pkg.receipts.find(x=>x.receiptHash===p.receipts[r.receipts.indexOf(rec)]||(x.planId===p.id&&x.trialId===rec.trialId));
           const same=!!old&&old.outcome===rec.outcome&&old.captures.length===rec.captures.length&&old.captures.every((cc,i)=>contract.hashOf(cc.digests)===contract.hashOf(rec.captures[i].digests));
@@ -39342,7 +39361,8 @@ async function replay(pkg,local=null){
       for(const j of pkg.verification?.jobs||[]){if(signal.aborted)break;const muts=contract.validateMutations(rom,contract.romLayout(rom),j.job.mutations||[]),variant=muts.length?contract.buildVariant(rom,pkg.cartridge.sha256,muts):{bytes:rom,sha256:pkg.cartridge.sha256};
         const res=await session.run({job:j.job,rom:variant.bytes,romSha:variant.sha256,budgets:{wallMs:60000}},{signal});
         const caps=(res.job?.captures||[]).map(x=>({label:x.label,digests:V.digestAll(V.normalize(x,{engine:'forge',mirroring:pkg.verification.mirroring,colourClass:x.colourClass}))}));
-        out.jobs.push({job:j.job.id,reproduced:j.forge.captures.every(fc=>{const n=caps.find(x=>x.label===fc.label);return n&&Object.keys(fc.digests).every(ch=>fc.digests[ch]===n.digests[ch]);})});}
+        const compared=fc=>Object.keys(fc.digests);
+        out.jobs.push({job:j.job.id,channels:j.forge.captures[0]?compared(j.forge.captures[0]):[],reproduced:j.forge.captures.length>0&&j.forge.captures.every(fc=>{const n=caps.find(x=>x.label===fc.label);return n&&compared(fc).every(ch=>fc.digests[ch]===n.digests[ch]);})});}
     }finally{session.close('replay finished');}
     out.summary={trials:out.trials.length,reproduced:out.trials.filter(t=>t.reproduced).length,jobs:out.jobs.length,jobsReproduced:out.jobs.filter(t=>t.reproduced).length,sameBuild:out.build.recorded===out.build.now};
     return out;});
@@ -39429,7 +39449,8 @@ if(C?.register){
     lifecycle:{states:Life.STATES,side:Life.SIDE,requirements:Life.REQUIREMENTS},verification:{formats:V.FORMATS,channels:V.CHANNELS,notCompared:V.NOT_COMPARED},promotion:{destinations:Promo.DESTINATIONS},isolation:services.ExperimentSandbox.available()?'available':'unavailable here'})});
   R({name:'experiment.validatePlan',title:'Validate an experiment plan',args:{plan:{type:'object',required:true}},summary:'Checks a NESForgeExperimentPlan v1. Nothing runs.',run:a=>{const p=contract.validatePlan(a.plan);return {planHash:p.planHash,totalFrames:p.totalFrames,trials:p.trials.map(t=>({id:t.id,kind:t.kind,mutations:t.mutations.length}))};}});
   R({name:'experiment.run',title:'Run an experiment plan on a synthetic fixture',args:{plan:{type:'object',required:true},bytes:{type:'bytes',required:true}},summary:'Runs the plan\'s trials in the isolated sandbox. Only cartridges carrying the synthetic-fixture marker are accepted.',
-    run:a=>{requireSynthetic(a.bytes);const store=Evidence.createStore();return exclusive('plan',async(signal,progress)=>{const r=await services.ExperimentRunner.run(a.plan,a.bytes,{store,signal,onProgress:progress});lastStore=store;return {repeatability:r.repeatability,baseUnchanged:r.baseUnchanged,receipts:r.receipts,identity:r.identity,store:store.stats(),results:r.results.map(x=>({trial:x.trial.id,sync:x.result.sync?{nmis:x.result.sync.nmiFrames.length,latches:x.result.sync.latches.length,pathDigests:x.result.sync.pathDigests}:null}))};});}});
+    run:a=>{requireSynthetic(a.bytes);const store=Evidence.createStore();return exclusive('plan',async(signal,progress)=>{const r=await services.ExperimentRunner.run(a.plan,a.bytes,{store,signal,onProgress:progress});lastStore=store;return {repeatability:r.repeatability,baseUnchanged:r.baseUnchanged,receipts:r.receipts,identity:r.identity,store:store.stats(),results:r.results.map(x=>({trial:x.trial.id,sync:x.result.sync?{nmis:x.result.sync.nmiFrames.length,latches:x.result.sync.latches.length,pathDigests:x.result.sync.pathDigests}:null})),
+      readByBaseline:(()=>{const t=r.results.find(x=>x.trial.kind==='baseline'&&x.result.trace)?.result.trace;if(!t)return null;const L=contract.romLayout(a.bytes);return Object.fromEntries(r.plan.trials.flatMap(tr=>tr.mutations).map(m=>[m.offset,{role:t.roles[m.offset-L.prgStart]??0,read:!!(t.roles[m.offset-L.prgStart]&4),traceComplete:!t.truncated}]));})()};});}});
   R({name:'experiment.discoverMetatiles',title:'Discover a metatile table in a synthetic fixture',args:{bytes:{type:'bytes',required:true},training:{type:'object',required:true},holdout:{type:'object',required:true}},summary:'Observe, propose, test, freeze, reconstruct the withheld input, prepare verification jobs. Synthetic fixtures only.',run:async a=>plain(await discover(a.bytes,a.training,a.holdout))});
   R({name:'experiment.demo',title:'Run the synthetic discovery demonstration',summary:'The experimental panel\'s demonstration on the embedded synthetic cartridge.',run:async()=>{const r=await runDemo();render(r);return plain(r);}});
   R({name:'experiment.cancel',title:'Cancel the running experiment',run:()=>{if(!running)return {cancelled:false};running.controller.abort();return {cancelled:true,label:running.label};}});

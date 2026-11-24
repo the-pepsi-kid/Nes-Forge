@@ -21,7 +21,8 @@ const b64 = u => Buffer.from(u).toString('base64');
 // the harness's own decoder for a frozen definition's claims (not NES Forge's finder)
 function decode(def, rom, id) { const t = def.table, f = ORDERS[t.order]; return QUADS.map(q => rom[t.physicalBase + id * t.recordStep + f[q] * t.fieldStep]); }
 
-function verifyPackage(pkg, {cartridge = null, fceux = null, log = () => {}} = {}) {
+function verifyPackage(input, {cartridge = null, fceux = null, log = () => {}} = {}) {
+  const pkg = JSON.parse(JSON.stringify(input)); // the harness never modifies the caller's package
   const v = P.validate(pkg); if (!v.ok) throw Object.assign(Error('invalid package: ' + v.problems.join('; ')), {code: 2});
   const rom = P.cartridgeBytes(pkg, cartridge), layout = C.romLayout(rom), mirroring = pkg.verification.mirroring || layout.mirroring;
   const session = fceux || FCEUX.open();
@@ -37,7 +38,8 @@ function verifyPackage(pkg, {cartridge = null, fceux = null, log = () => {}} = {
   const independentNorm = new Map();
   try {
     for (const fj of forgeJobs) {
-      const job = fj.job, mutations = C.validateMutations(rom, layout, job.mutations || []), variant = mutations.length ? C.buildVariant(rom, pkg.cartridge.sha256, mutations) : {bytes: rom, sha256: pkg.cartridge.sha256};
+      // a private package stores a mutation as offset + XOR mask: the original byte comes from the local cartridge
+      const job = fj.job, mutations = C.validateMutations(rom, layout, (job.mutations || []).map(m => m.xor !== undefined ? {offset: m.offset, expected: rom[m.offset], value: rom[m.offset] ^ m.xor} : m)), variant = mutations.length ? C.buildVariant(rom, pkg.cartridge.sha256, mutations) : {bytes: rom, sha256: pkg.cartridge.sha256};
       if (variant.sha256 !== job.variantSha256) throw Object.assign(Error('job ' + job.id + ': the rebuilt variant does not match the recorded SHA-256'), {code: 2});
       log('job ' + job.id);
       const r = session.run({id: job.id, rom: variant.bytes, nmiTarget: job.nmiTarget, latches: job.latches, defaultMask: job.defaultMask, checkpoints: job.checkpoints, maxFrames: job.maxFrames, trace: job.trace, chr: job.chr, pixels: job.pixels});
@@ -62,6 +64,7 @@ function verifyPackage(pkg, {cartridge = null, fceux = null, log = () => {}} = {
         predictions.push({job: fj.job.id, label: cp.label, kind: e.kind, engine: 'FCEUX', ...(e.kind === 'prediction' ? V.checkPrediction(b, n, e.predict.filter(p => p.label === cp.label)) : V.checkNoEffect(b, n))}); }
       if (e.kind === 'claims') {
         const n = independentNorm.get(fj.job.id + ':' + fj.job.checkpoints[0]?.label);
+        if (pkg.candidate) completeClaims(e.claims, pkg.candidate, rom);
         // re-derive each claimed cell's tiles with this harness's own decoder and the frozen definition
         const def = pkg.candidate, mismatched = def ? e.claims.cells.filter(c => decode(def, rom, c.ids[0]).join() !== c.tiles.join()).length : null;
         if (!n) predictions.push({job: fj.job.id, kind: 'claims', holds: false, error: 'capture missing on FCEUX'});
@@ -73,6 +76,18 @@ function verifyPackage(pkg, {cartridge = null, fceux = null, log = () => {}} = {
   const discrepancies = comparisons.filter(c => !c.agree).map(c => ({job: c.job, label: c.label, discrepancies: c.discrepancies}));
   const receipt = V.sealIndependent({format: V.FORMATS.independent, version: V.version, engine: {...session.identity, lua: jobs.find(j => j.captures.length) ? 'Lua 5.1' : null}, forgeEngine: pkg.manifest.engine, subject, jobs, comparisons, predictions, verdict, discrepancies, limitations, independent: true, timing: {ms: Date.now() - t0}});
   return {receipt};
+}
+// A private package's claims carry cell IDs only: tiles and attribute bits are re-derived here from the frozen definition
+// and the local cartridge (the harness's own decoder), exactly as the definition states them.
+function completeClaims(claims, def, rom) {
+  for (const c of claims.cells) if (!c.tiles) c.tiles = decode(def, rom, c.ids[0]);
+  if (claims.attributes.some(a => a.value === undefined)) {
+    const pal = def.attributes ? id => { const v = rom[def.attributes.physicalBase + id]; return def.attributes.decode === 'low2' ? v & 3 : v >> 6; } : null;
+    const byCell = new Map(claims.cells.map(c => [c.cell[1] * 16 + c.cell[0], c]));
+    for (const a of claims.attributes) { if (a.value !== undefined || !pal) continue; let value = 0; const ay = a.index >> 3, ax = a.index & 7;
+      for (const [dy, dx, shift] of [[0, 0, 0], [0, 1, 2], [1, 0, 4], [1, 1, 6]]) { const c = byCell.get((2 * ay + dy) * 16 + 2 * ax + dx); if (c && (a.knownMask >> shift & 3)) value |= pal(c.ids[0]) << shift; }
+      a.value = value; }
+  }
 }
 // NES Forge compares pictures as colour classes (indices its palette table draws identically share a class); the
 // package records that 64-entry table, and FCEUX's indices are reduced with the same table.

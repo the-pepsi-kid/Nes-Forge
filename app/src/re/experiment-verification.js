@@ -86,7 +86,8 @@ function checkPrediction(baseline,variant,predict){
   const a=visibleOf(baseline),b=visibleOf(variant);
   const changed=[];for(let i=0;i<1024;i++)if(visibleAt(a,i)!==visibleAt(b,i))changed.push(i);
   const expect=new Map(predict.map(p=>[p.index,p.value]));
-  const unexpected=changed.filter(i=>expect.get(i)!==visibleAt(b,i)),missing=[...expect.keys()].filter(i=>!changed.includes(i));
+  // a prediction without a value (a private package) asks only that exactly these positions change
+  const unexpected=changed.filter(i=>!expect.has(i)||(expect.get(i)!==undefined&&expect.get(i)!==visibleAt(b,i))),missing=[...expect.keys()].filter(i=>!changed.includes(i));
   return {changed:changed.length,predicted:expect.size,unexpected:unexpected.length,missing:missing.length,holds:changed.length>0&&!unexpected.length&&!missing.length};
 }
 function checkNoEffect(baseline,variant){

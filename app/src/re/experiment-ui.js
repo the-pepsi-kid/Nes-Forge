@@ -47,7 +47,8 @@ async function replay(pkg,local=null){
   return exclusive('replay',async(signal,progress)=>{
     const session=await services.ExperimentSandbox.open(),out={build:{recorded:pkg.manifest.engine.documentSha256,now:session.identity.documentSha256},trials:[],jobs:[]};
     try{
-      for(const p of pkg.plans){if(!p.plan||signal.aborted)continue;const {engine,planHash,totalFrames,...body}=p.plan;
+      // the recorded plan, exactly (same plan hash); on another build its engine identity is dropped and the report says so
+      for(const p of pkg.plans){if(!p.plan||signal.aborted)continue;const body=Pkg.planInput(p.plan);if(body.engine&&body.engine.documentSha256!==session.identity.documentSha256)delete body.engine;
         const r=await services.ExperimentRunner.run(body,rom,{session,signal,onProgress:x=>progress({stage:'replay '+p.id,...x})});
         for(const rec of r.receipts){const old=pkg.receipts.find(x=>x.receiptHash===p.receipts[r.receipts.indexOf(rec)]||(x.planId===p.id&&x.trialId===rec.trialId));
           const same=!!old&&old.outcome===rec.outcome&&old.captures.length===rec.captures.length&&old.captures.every((cc,i)=>contract.hashOf(cc.digests)===contract.hashOf(rec.captures[i].digests));
@@ -55,7 +56,8 @@ async function replay(pkg,local=null){
       for(const j of pkg.verification?.jobs||[]){if(signal.aborted)break;const muts=contract.validateMutations(rom,contract.romLayout(rom),j.job.mutations||[]),variant=muts.length?contract.buildVariant(rom,pkg.cartridge.sha256,muts):{bytes:rom,sha256:pkg.cartridge.sha256};
         const res=await session.run({job:j.job,rom:variant.bytes,romSha:variant.sha256,budgets:{wallMs:60000}},{signal});
         const caps=(res.job?.captures||[]).map(x=>({label:x.label,digests:V.digestAll(V.normalize(x,{engine:'forge',mirroring:pkg.verification.mirroring,colourClass:x.colourClass}))}));
-        out.jobs.push({job:j.job.id,reproduced:j.forge.captures.every(fc=>{const n=caps.find(x=>x.label===fc.label);return n&&Object.keys(fc.digests).every(ch=>fc.digests[ch]===n.digests[ch]);})});}
+        const compared=fc=>Object.keys(fc.digests);
+        out.jobs.push({job:j.job.id,channels:j.forge.captures[0]?compared(j.forge.captures[0]):[],reproduced:j.forge.captures.length>0&&j.forge.captures.every(fc=>{const n=caps.find(x=>x.label===fc.label);return n&&compared(fc).every(ch=>fc.digests[ch]===n.digests[ch]);})});}
     }finally{session.close('replay finished');}
     out.summary={trials:out.trials.length,reproduced:out.trials.filter(t=>t.reproduced).length,jobs:out.jobs.length,jobsReproduced:out.jobs.filter(t=>t.reproduced).length,sameBuild:out.build.recorded===out.build.now};
     return out;});
@@ -142,7 +144,8 @@ if(C?.register){
     lifecycle:{states:Life.STATES,side:Life.SIDE,requirements:Life.REQUIREMENTS},verification:{formats:V.FORMATS,channels:V.CHANNELS,notCompared:V.NOT_COMPARED},promotion:{destinations:Promo.DESTINATIONS},isolation:services.ExperimentSandbox.available()?'available':'unavailable here'})});
   R({name:'experiment.validatePlan',title:'Validate an experiment plan',args:{plan:{type:'object',required:true}},summary:'Checks a NESForgeExperimentPlan v1. Nothing runs.',run:a=>{const p=contract.validatePlan(a.plan);return {planHash:p.planHash,totalFrames:p.totalFrames,trials:p.trials.map(t=>({id:t.id,kind:t.kind,mutations:t.mutations.length}))};}});
   R({name:'experiment.run',title:'Run an experiment plan on a synthetic fixture',args:{plan:{type:'object',required:true},bytes:{type:'bytes',required:true}},summary:'Runs the plan\'s trials in the isolated sandbox. Only cartridges carrying the synthetic-fixture marker are accepted.',
-    run:a=>{requireSynthetic(a.bytes);const store=Evidence.createStore();return exclusive('plan',async(signal,progress)=>{const r=await services.ExperimentRunner.run(a.plan,a.bytes,{store,signal,onProgress:progress});lastStore=store;return {repeatability:r.repeatability,baseUnchanged:r.baseUnchanged,receipts:r.receipts,identity:r.identity,store:store.stats(),results:r.results.map(x=>({trial:x.trial.id,sync:x.result.sync?{nmis:x.result.sync.nmiFrames.length,latches:x.result.sync.latches.length,pathDigests:x.result.sync.pathDigests}:null}))};});}});
+    run:a=>{requireSynthetic(a.bytes);const store=Evidence.createStore();return exclusive('plan',async(signal,progress)=>{const r=await services.ExperimentRunner.run(a.plan,a.bytes,{store,signal,onProgress:progress});lastStore=store;return {repeatability:r.repeatability,baseUnchanged:r.baseUnchanged,receipts:r.receipts,identity:r.identity,store:store.stats(),results:r.results.map(x=>({trial:x.trial.id,sync:x.result.sync?{nmis:x.result.sync.nmiFrames.length,latches:x.result.sync.latches.length,pathDigests:x.result.sync.pathDigests}:null})),
+      readByBaseline:(()=>{const t=r.results.find(x=>x.trial.kind==='baseline'&&x.result.trace)?.result.trace;if(!t)return null;const L=contract.romLayout(a.bytes);return Object.fromEntries(r.plan.trials.flatMap(tr=>tr.mutations).map(m=>[m.offset,{role:t.roles[m.offset-L.prgStart]??0,read:!!(t.roles[m.offset-L.prgStart]&4),traceComplete:!t.truncated}]));})()};});}});
   R({name:'experiment.discoverMetatiles',title:'Discover a metatile table in a synthetic fixture',args:{bytes:{type:'bytes',required:true},training:{type:'object',required:true},holdout:{type:'object',required:true}},summary:'Observe, propose, test, freeze, reconstruct the withheld input, prepare verification jobs. Synthetic fixtures only.',run:async a=>plain(await discover(a.bytes,a.training,a.holdout))});
   R({name:'experiment.demo',title:'Run the synthetic discovery demonstration',summary:'The experimental panel\'s demonstration on the embedded synthetic cartridge.',run:async()=>{const r=await runDemo();render(r);return plain(r);}});
   R({name:'experiment.cancel',title:'Cancel the running experiment',run:()=>{if(!running)return {cancelled:false};running.controller.abort();return {cancelled:true,label:running.label};}});
