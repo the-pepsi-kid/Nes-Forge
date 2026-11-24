@@ -35,6 +35,8 @@ const NINJA = '07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e'
     let packResult = null;
     if (pack && fs.existsSync(pack)) packResult = await run('library.register', {__b64: fs.readFileSync(pack).toString('base64'), name: 'Ninja_Gaiden_U.zip'});
     await run('rom.import', {__b64: rom.toString('base64'), name: 'Ninja Gaiden (U).nes'});
+    // the import also adds the cartridge's translated CadEditor layouts (CAD-PORT-01) as a pack of their own
+    await page.evaluate(() => Forge.services.CadPortRecovery?.settled());
     const reg = await run('library.registerCatalog');
     report.stats = reg.stats;
     check('Every decoded location agrees with the cartridge layout', reg.stats.schema >= 3 && reg.stats.locations > 10000 && reg.stats.inconsistentLocations === 0, reg.stats);
@@ -75,9 +77,10 @@ const NINJA = '07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e'
       const packId = 'pack:' + packResult.packSha256.slice(0, 16) + ':Ninja_Gaiden_U/sprites/enemy_poses/pose_thrower_pic_08.json';
       const a = prov.links.find(l => l.id === packId), back = (await run('library.provenance', {id: packId})).links.find(l => l.id === id);
       const status = await run('library.status');
+      const cadPort = (await run('library.packs')).filter(p => p.sourceSha256 === sha(rom) && /CadEditor-derived layouts/.test(p.name)).reduce((n, p) => n + (p.stats?.entries || 0), 0);
       check('The pack\'s pose file and the catalog pose are linked on verified identity; both records are kept',
         a && back && /decoder record pose enemy:8/.test(a.basis) && /same horizontal offsets and palettes/.test(a.basis) && reg.links?.linked === 250 && reg.links.mismatched === 0 &&
-        status.entries === packResult.stats.entries + reg.stats.entries, {link: a?.basis, links: reg.links, entries: status.entries});
+        cadPort > 0 && status.entries === packResult.stats.entries + reg.stats.entries + cadPort, {link: a?.basis, links: reg.links, entries: status.entries, cadPortPackEntries: cadPort});
       const linked = await page.$$eval('#frx-preview button', bs => bs.some(b => /Same resource: pose_thrower_pic_08\.json/.test(b.textContent)));
       check('Resources shows the linked record', linked);
     }

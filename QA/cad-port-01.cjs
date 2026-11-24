@@ -196,7 +196,7 @@ function rnd(seed) { let s = seed >>> 0; return () => (s = (Math.imul(s, 1664525
   });
 
   const failed = results.filter(r => !r.ok);
-  const report = {suite: 'cad-port-01', editorSha256: hash(fs.readFileSync(editor)), passed: results.length - failed.length, failed: failed.length, results, metrics};
+  const report = {suite: 'cad-port-01', editorSha256: hash(fs.readFileSync(editor)), passed: failed.length === 0, total: results.length, checksPassed: results.length - failed.length, failed: failed.length, results, metrics};
   if (out) fs.writeFileSync(out, JSON.stringify(report, null, 1) + '\n');
   console.log((failed.length ? 'FAILED ' : 'PASSED ') + (results.length - failed.length) + '/' + results.length);
   process.exit(failed.length ? 1 : 0);

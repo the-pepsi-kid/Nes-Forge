@@ -118,7 +118,8 @@ is located:
 
 - in CHR ROM, as 1 KiB offsets;
 - for CHR RAM, by searching PRG for each tile verbatim. When every non-uniform tile is found, the table is recorded
-  as runs of PRG offsets plus the uniform tiles' byte. The editor rebuilds it from the user's cartridge.
+  as runs of PRG offsets plus the uniform tiles' byte. The editor rebuilds it from the user's cartridge. Graphics located this way are established only for the screens
+they were seen with. Graphics a configuration states cover its whole definition.
 
 The location seen most often is kept. Graphics count as established only when the engines that saw the screens located the same ones. The editor reads graphics from the user's own cartridge at these offsets, or at
 the offset the configuration states. Previews and editable copies exist only where graphics are established;

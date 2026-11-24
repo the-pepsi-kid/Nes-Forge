@@ -312,13 +312,16 @@ async function allPoses(page, sha, rom, ng) {
     report.phases.X);
   check('X: a second open tab of the same browser shows the new notice at once (no reload)', !!tab2Notice && tab2Notice === recognizedNotice, {tab2Notice});
   // one line per ROM: what the library holds and its state
+  await s.page.evaluate(() => Forge.services.CadPortRecovery?.settled());
   const romsX = await s.page.evaluate(() => Forge.commands.run('library.roms').then(r => r.result)), ngRow = romsX.find(r => r.sha === NINJA);
+  // the translated CadEditor layouts (CAD-PORT-01) are a pack of their own on this ROM's shelf
+  const cadX = ngRow?.otherPacks?.find(p => /CadEditor-derived layouts/.test(p.name)), ngExpected = 612 + (cadX?.files || 0);
   await s.page.click('#frx-open'); await s.page.click('#frx-lib'); await s.page.waitForSelector('#frx-rom-status [data-rom]'); await shot('X3_rom_status_in_library');
   const romLine = await s.page.$eval('#frx-rom-status [data-rom="' + NINJA + '"]', e => e.textContent); await s.page.evaluate(() => document.getElementById('frx-close')?.click());
   report.phases.X.romStatus = {row: ngRow, line: romLine};
-  check('X: the library lists each ROM with its status: Ninja Gaiden has its 612 entries, a complete catalog of 590, 22 verified frames, 1 investigation and how its sprites are drawn (library.roms and Resources > Library agree)',
-    ngRow && ngRow.entries === 612 && ngRow.catalog.state === 'complete' && ngRow.catalog.entries === 590 && ngRow.frames === 22 && ngRow.investigations === 1 && ngRow.drawing?.decoded === 83 &&
-    /Ninja Gaiden \(U\)\.nes · 612 entries · catalog complete \(590\) · 22 verified frames · 1 investigation · sprites: 83 in their room/.test(romLine), report.phases.X.romStatus);
+  check('X: the library lists each ROM with its status: Ninja Gaiden has its 612 entries plus its CadEditor-derived layouts pack, a complete catalog of 590, 22 verified frames, 1 investigation and how its sprites are drawn (library.roms and Resources > Library agree)',
+    ngRow && cadX && cadX.files > 0 && ngRow.entries === ngExpected && ngRow.catalog.state === 'complete' && ngRow.catalog.entries === 590 && ngRow.frames === 22 && ngRow.investigations === 1 && ngRow.drawing?.decoded === 83 &&
+    new RegExp('Ninja Gaiden \\(U\\)\\.nes · ' + ngExpected + ' entries · catalog complete \\(590\\) · 22 verified frames · 1 investigation · sprites: 83 in their room').test(romLine) && /CadEditor-derived layouts/.test(romLine), report.phases.X.romStatus);
   // visual resources
   const invX = await inventory(s.page, NINJA), px = await project(s.page);
   const pc1 = px.metasprites.find(m => m.id === used1.id), psc = pc1 && px.scenes.find(x => x.id === pc1.sceneId);

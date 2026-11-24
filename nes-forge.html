@@ -37103,7 +37103,10 @@ const CAT=()=>window.CadPortCatalog,DEC=()=>window.CadPortDecoders,REV=()=>windo
 const VERSION=1,cp=x=>JSON.parse(JSON.stringify(x)),fail=m=>{throw Error('CAD-PORT recovery: '+m);};
 const hex=n=>'$'+Number(n).toString(16).toUpperCase();
 const sha=bytes=>window.NativeEngineFormat.sha256(bytes);
-const session={registered:new Map(),last:null};
+const session={registered:new Map(),last:null,pending:0,waiters:[]};
+const settle=()=>{if(session.pending>0)return;const w=session.waiters.splice(0);for(const f of w)f();};
+// resolves when no import-time registration is in flight (tests and tools count the library after it)
+function settled(){return session.pending?new Promise(r=>session.waiters.push(r)):Promise.resolve();}
 // an editable copy holds at most this many pages (each Forge scene carries its own 256-tile sheet); the resource lists all
 const PROJECT_PAGES=12;
 
@@ -37267,13 +37270,13 @@ function coverage(){
 // ---------- the import event (subscribed once every module has loaded) ----------
 function autoEnabled(){try{return window.localStorage?.getItem('forge.cadport.auto')!=='off';}catch(_){return true;}}
 setTimeout(()=>{
-  services.RomImports?.subscribe(entry=>{if(!autoEnabled()||!entry.ines)return;void (async()=>{
+  services.RomImports?.subscribe(entry=>{if(!autoEnabled()||!entry.ines)return;session.pending++;void (async()=>{
     const bytes=services.RomImports.bytes(entry.sha256);if(!bytes)return;
     const r=recognize(bytes,entry.name);if(!r.recognized)return;await register(bytes,entry.name,{recognition:r});
-  })().catch(error=>{session.last={registered:false,error:String(error?.message||error).slice(0,300)};});});
+  })().catch(error=>{session.last={registered:false,error:String(error?.message||error).slice(0,300)};}).finally(()=>{session.pending--;settle();});});
 },0);
 
-services.CadPortRecovery=Object.freeze({version:VERSION,recognize,pack,register,intake,coverage,status:()=>({auto:autoEnabled(),registered:[...session.registered.values()].map(cp),last:session.last?cp(session.last):null})});
+services.CadPortRecovery=Object.freeze({version:VERSION,recognize,pack,register,intake,coverage,settled,status:()=>({auto:autoEnabled(),registered:[...session.registered.values()].map(cp),last:session.last?cp(session.last):null})});
 if(C?.register){
   C.register({name:'cadport.recognize',group:'cadport',title:'Recognize a ROM against the translated CadEditor catalog',summary:'Title hint and structure, or an exact revision observed at runtime; per definition: structural state, runtime observations and the coverage level.',
     args:{bytes:{type:'bytes',required:true},name:{type:'string',default:'rom.nes'}},run:a=>summarize(recognize(a.bytes,a.name))});
