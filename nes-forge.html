@@ -37174,7 +37174,11 @@ function graphicsOf(rom,def,rec){
   else if(def.palette?.source==='constant'){pal=def.palette.values.slice(0,16);palBasis='constant in the CadEditor configuration';}
   else if(def.palette?.source==='cartridge'){const o=def.palette.offset;if(o>=16&&o+16<=rom.length){pal=Array.from(rom.subarray(o,o+16));palBasis='cartridge table at file '+hex(o)+' (CadEditor configuration)';}}
   if(pal&&pal.some(v=>!Number.isInteger(v)||v<0||v>63))pal=null;
-  return {chr,chrBasis,pal,palBasis};
+  // graphics seen while the game drew some screens are established for those screens only; a configuration's
+  // statement covers the whole definition
+  const seen=[...new Set([...(rec?.runtime?.forge?.screens||[]),...(rec?.runtime?.fceux?.screens||[])])].sort((a,b)=>a-b);
+  const observed=!!chr&&/while the game drew|uploaded to CHR RAM/.test(chrBasis);
+  return {chr,chrBasis,pal,palBasis,screens:observed?seen:null};
 }
 function render(page,chr,pal){ // the page as NES colour indexes, then an indexed PNG of the colours it uses
   const rgbOf=NES_RGB();if(!rgbOf)return null;const px=new Uint8Array(256*240);
@@ -37194,7 +37198,7 @@ async function pack(bytes,name,{recognition=null}={}){
     if(!pages.length||pages.length>4096){summary.push({id:d.id,included:false,reason:'no pages'});continue;}
     const g=graphicsOf(rom,def,d),lvl=level(d);
     const resource={resource:{id:'cad-port:'+d.id,label:(game.title||game.folder)+' · '+def.config.replace(/^Settings_|\.cs$/g,'')+' · '+screens.length+' screen'+(screens.length===1?'':'s'),
-      reason:'Translated from CadEditor ('+up.repository+', '+String(up.commit).slice(0,7)+', MIT). '+lvl+'. Layout only: '+(g.chr?'graphics '+g.chrBasis+'.':'graphics not established for this cartridge (CadEditor reads them from an emulator dump, which is not included).')},
+      reason:'Translated from CadEditor ('+up.repository+', '+String(up.commit).slice(0,7)+', MIT). '+lvl+'. Layout only: '+(g.chr?'graphics '+g.chrBasis+(g.screens?', established for screens '+g.screens.join(', ')+' only':'')+'.':'graphics not established for this cartridge (CadEditor reads them from an emulator dump, which is not included).')},
       pages,source:{sha256:r.sha256,blocks:{format:def.blocks.format,fileOffset:def.blocks.offset,count:def.blocks.count,...(def.blocks.paletteOffset!==undefined?{paletteFileOffset:def.blocks.paletteOffset}:{})},
         ...(def.bigBlocks?{bigBlocks:{format:def.bigBlocks.format,fileOffset:def.bigBlocks.offset,count:def.bigBlocks.count,...(def.bigBlocks.paletteOffset!==undefined?{paletteFileOffset:def.bigBlocks.paletteOffset}:{})}}:{}),
         screens:screens.map(s=>({index:s.index,fileOffset:s.offset,length:s.length,width:s.width,height:s.height}))},
@@ -37202,14 +37206,15 @@ async function pack(bytes,name,{recognition=null}={}){
       translation:{definition:d.id,config:def.config,upstream:{project:up.project,repository:up.repository,commit:up.commit,license:up.license,copyright:up.copyright}}};
     files.push({name:'resources/'+base+'.json',data:enc.encode(JSON.stringify(resource))});
     let preview=false,project=false;
-    if(g.chr&&g.pal){const img=render(pages[0],g.chr,g.pal);if(img){files.push({name:'resources/'+base+'.png',data:img});preview=true;}
+    const drawn=g.screens?pages.filter(pg=>g.screens.includes(pg.screen)):pages; // the pages these graphics are established for
+    if(g.chr&&g.pal&&drawn.length){const img=render(drawn[0],g.chr,g.pal);if(img){files.push({name:'resources/'+base+'.png',data:img});preview=true;}
       // an editable copy: Forge scenes made by Forge's own constructor and normalization (makeScene, ProjectStore.prepareLoad)
       if(typeof makeScene==='function'&&typeof decodeTiles==='function'&&services.ProjectStore?.prepareLoad){
-        const chr=decodeTiles(Array.from(g.chr)),palette=[0,1,2,3].map(i=>g.pal.slice(i*4,i*4+4)),scenes=pages.slice(0,PROJECT_PAGES).map((pg,i)=>makeScene({id:'cad-port-'+base.replace(/\//g,'-')+'-'+i,name:'Screen '+pg.screen+(pages.filter(x=>x.screen===pg.screen).length>1?' · page '+pg.page:''),
+        const chr=decodeTiles(Array.from(g.chr)),palette=[0,1,2,3].map(i=>g.pal.slice(i*4,i*4+4)),scenes=drawn.slice(0,PROJECT_PAGES).map((pg,i)=>makeScene({id:'cad-port-'+base.replace(/\//g,'-')+'-'+i,name:'Screen '+pg.screen+(drawn.filter(x=>x.screen===pg.screen).length>1?' · page '+pg.page:''),
           nt:pg.nt,attr:pg.attr,chr,pal:palette,sceneType:'static',scrollDir:'none',gravity:0,captureMeta:{cadPort:{version:VERSION,definition:d.id,screen:pg.screen,page:pg.page,sourceSha256:r.sha256,fileOffset:screens[pg.screen].offset,level:lvl}}}));
         const doc={format:'NESForge',version:services.ProjectStore.schema,projectName:((game.title||game.folder)+' · '+def.config.replace(/^Settings_|\.cs$/g,'')+' (translated layout)').slice(0,120),scenes,activeScene:0,metasprites:[],animations:[],worlds:[],asmSource:'',mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,instruments:[],patterns:[],orderList:[],sfx:[],tempo:150,speed:6,audRows:64};
         const prepared=services.ProjectStore.prepareLoad(doc);files.push({name:'projects/'+base+'.nesforge.json',data:enc.encode(JSON.stringify({...doc,scenes:prepared.scenes}))});project=true;}}
-    summary.push({id:d.id,included:true,screens:screens.length,pages:pages.length,level:lvl,preview,project,...(project?{projectPages:Math.min(pages.length,PROJECT_PAGES)}:{}),graphics:g.chr?g.chrBasis:null});
+    summary.push({id:d.id,included:true,screens:screens.length,pages:pages.length,level:lvl,preview,project,...(project?{projectPages:Math.min(drawn.length,PROJECT_PAGES)}:{}),graphics:g.chr?g.chrBasis:null,...(g.screens?{graphicsFor:'screens '+g.screens.join(', ')+' (seen drawn with them)'}:{})});
   }
   const included=summary.filter(s=>s.included);if(!included.length)fail('no translated definition applies to this cartridge');
   const report={format:'NESForgeNativeExtraction',game:(game.title||game.folder)+' · CadEditor-derived layouts',rom:{sha256:r.sha256,byteLength:rom.length},origin:'cad-port',
