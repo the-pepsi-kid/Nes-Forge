@@ -157,10 +157,10 @@ function plan(id, rom, input, trials, extra = {}) {
     const L = Forge.services.ResourceLibrary, status = await L.status(), entries = await L.list({});
     return {emulator: await h(JSON.stringify({A: emu.A, X: emu.X, Y: emu.Y, SP: emu.SP, PC: emu.PC, cycles: emu.cycles, frame: emu.frameCount, ram: Array.from(emu.ram), vram: Array.from(emu.vram), pal: Array.from(emu.palRam), oam: Array.from(emu.oamMem)})),
       rom: await h(emu.lastBuiltRom), project: await h(Forge.services.ProjectStore.serialize()), library: await h(JSON.stringify({entries: status.entries ?? null, packs: status.packs ?? null, list: entries})),
-      libraryEntries: Array.isArray(entries) ? entries.length : (entries?.entries?.length ?? null), databases: indexedDB.databases ? (await indexedDB.databases()).map(d => d.name).sort() : null, iframes: document.querySelectorAll('iframe').length};
+      libraryEntries: entries?.total ?? entries?.items?.length ?? null, databases: indexedDB.databases ? (await indexedDB.databases()).map(d => d.name).sort() : null, iframes: document.querySelectorAll('iframe').length};
   });
   const liveBefore = await liveDigest();
-  check('Live editor set up before any experiment: an authored cartridge running, a frame in the library, the default project', loaded.ok && registered.ok && liveBefore.libraryEntries !== 0, {loaded: loaded.ok, registered: registered.ok ? null : registered.error, liveBefore});
+  check('Live editor set up before any experiment: an authored cartridge running, a frame in the library, the default project', loaded.ok && registered.ok && liveBefore.libraryEntries >= 1, {loaded: loaded.ok, registered: registered.ok ? null : registered.error, liveBefore});
 
   // ---- isolation (BL02) ----
   const bcdp = await browser.newBrowserCDPSession(), pcdp = await context.newCDPSession(page);
@@ -372,9 +372,11 @@ function plan(id, rom, input, trials, extra = {}) {
 
   // ---- the panel (synthetic demonstration only) ----
   await page.evaluate(() => { switchTab('disasm'); Forge.services.REAnalysisUI?.showWorkspace?.(true); document.getElementById('reDiscoveryPanel')?.scrollIntoView({block: 'start'}); });
-  const panelBefore = await page.evaluate(() => ({present: !!document.getElementById('reDiscoveryPanel'), text: document.getElementById('reDiscoveryPanel')?.textContent.slice(0, 400), pickers: document.querySelectorAll('#reDiscoveryPanel input[type=file], #reDiscoveryPanel select').length}));
+  // visible text only: the panel carries its own <style>
+  const panelText = () => { const p = document.getElementById('reDiscoveryPanel'); if (!p) return ''; const c = p.cloneNode(true); c.querySelectorAll('style,script').forEach(e => e.remove()); return c.textContent.replace(/\s+/g, ' ').trim(); };
+  const panelBefore = await page.evaluate(src => { const panelText = eval(src); return {present: !!document.getElementById('reDiscoveryPanel'), text: panelText().slice(0, 400), pickers: document.querySelectorAll('#reDiscoveryPanel input[type=file], #reDiscoveryPanel select').length}; }, '(' + panelText.toString() + ')');
   await page.click('#reDiscoveryRun'); await page.waitForFunction(() => /^Finished|^Stopped/.test(document.getElementById('reDiscoveryStatus').textContent), null, {timeout: 300000});
-  const panel = await page.evaluate(() => { const p = document.getElementById('reDiscoveryPanel'); return {status: document.getElementById('reDiscoveryStatus').textContent, text: p.textContent, rows: p.querySelectorAll('tbody tr').length, firstRowTested: p.querySelector('tbody tr td:last-child')?.textContent, chip: p.querySelector('.re-chip')?.textContent}; });
+  const panel = await page.evaluate(src => { const panelText = eval(src), p = document.getElementById('reDiscoveryPanel'); return {status: document.getElementById('reDiscoveryStatus').textContent, text: panelText(), rows: p.querySelectorAll('tbody tr').length, firstRowTested: p.querySelector('tbody tr td:last-child')?.textContent, chip: p.querySelector('.re-chip')?.textContent}; }, '(' + panelText.toString() + ')');
   if (shots) { await page.locator('#reDiscoveryPanel').screenshot({path: path.join(shots, 'AL1_discovery_panel.png')}); }
   const exported = await run('experiment.exportMetadata', {});
   if (output) fs.writeFileSync(path.join(path.dirname(output), 'al-exp-01-demonstration-metadata.json'), JSON.stringify(exported.ok ? exported.result : exported, null, 1) + '\n');
