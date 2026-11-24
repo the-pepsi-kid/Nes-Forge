@@ -46,7 +46,7 @@ args = parser.parse_args()
 #   mmc2-sync          Punch-Out!! (MMC2) frames along the route to the bout, an independent latch model, Agent Lab jobs (PRG 1, and PRG 0 when supplied)
 #   cnrom-investigation a CNROM cartridge Forge builds (3 worlds, 2 CHR banks): capture plan, Agent Lab job, import
 #   pose-links         Ninja Gaiden, 22 areas x 3 moments: drawn sprites linked to library poses, checked against RAM
-#   punch-out-pose-links  Punch-Out!! both revisions' catalogs, then all 14 fights (15 bouts) linked, checked against RAM
+#   punch-out-pose-links  Punch-Out!! both revisions' catalogs, then all 14 fights (15 bouts) linked, every link checked against the game's replayed pose routine
 #   zelda2-pose-links  Zelda II from a fresh save: palace, overworld, a forest battle; Link's links checked against the poses the game drew
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420

@@ -10,10 +10,13 @@
 // 3. All 14 fights, PRG 1: Glass Joe (new game); the circuits' first bouts by passcode: Don Flamenco (005 737 5423),
 //    Piston Honda's rematch (777 807 3454), King Hippo (135 792 4680, then Select+A+B), Mike Tyson (007 373 5963); the
 //    other nine by setting the opponent number (RAM $01) after New Game; and the Mike Tyson bout on PRG 0:
-//    every link made in a frame without a delta pose agrees with the game's pose selector ($A1, full poses below $80)
-//    over the frames that built the image, none contradicts it, every link is to the fight being played; and whenever
-//    the game's current full pose is drawn in place (this test decodes it with the game's routine at the runtime base
-//    $B0/$B1 and sprite mode $80/$81, and finds every piece at its screen position), Forge links it.
+//    every link agrees with the drawing the game made, none contradicts it, every link is to the fight being played;
+//    and whenever the game's drawing is one of the fight's full poses, Forge links it. The game's drawing: every time
+//    the game runs its pose routine ($C890 entered with $A0 set), the test records the selector ($A1: a full pose below
+//    $80, a delta from $80, applied to the pose already drawn), the base ($B0/$B1) and the sprite mode ($80/$81). For
+//    each frame it replays the applications since the last full pose with the game's routine (here in Node, from the
+//    cartridge) and finds the result drawn in place (every piece at its screen position). A delta result that equals
+//    no full pose is not in the library and is counted; a link in it must be a full pose drawn whole within it.
 // 4. Negative cases: one sprite moved by a pixel breaks the link; a sprite pointed at another CHR bank leaves a
 //    candidate, not a link.
 // 5. In the library and on screen: frames registered as library entries give the same links through
@@ -51,6 +54,11 @@ async function bout(page, cart, route) {
     const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
     const press = (b, hold = 4, after = 12) => FE.runFrames(hold + after, [{from: 0, to: hold - 1, buttons: {[b]: true}}]);
     const lr = await C.run('emulator.load', {bytes, name: 'punch-out.nes'}); if (!lr.ok) throw Error(lr.error.message);
+    // test-only: each application of the game's pose routine (the opcode fetch at $C890 reads $C890 with the program
+    // counter already at $C891; the routine starts "LDA $A0 / BEQ", so $A0 set means it draws)
+    const apps = [], read = window.cpuRead;
+    window.cpuRead = function (a) { if (a === 0xc890 && emu.PC === 0xc891 && emu.ram[0xa0]) apps.push({f: emu.frameCount, a1: emu.ram[0xa1], b0: emu.ram[0xb0], b1: emu.ram[0xb1], m80: emu.ram[0x80], m81: emu.ram[0x81]}); return read(a); };
+    try {
     await FE.runFrames(1200);
     // a passcode (entered with A and Right) starts a circuit's first bout; one passcode also needs Select+A+B held after
     // it; a new game starts with Glass Joe
@@ -73,12 +81,33 @@ async function bout(page, cart, route) {
       frames.push({frame: record.frame, state: r.state, sprites: record.sprites.filter(s => s.visible).map(s => ({index: s.index, tile: s.tile, x: s.x, y: s.y, height: s.height, flipH: s.flipH, flipV: s.flipV})),
         links, candidates: r.candidates.map(c => ({poseId: c.poseId, state: c.state, mode: c.mode?.key || null, pieces: c.pieces})), ambiguous: r.ambiguous.length});
     }
-    return {frames, hist, keep};
+    return {frames, hist, keep, apps};
+    } finally { window.cpuRead = read; }
   }, {b64: fs.readFileSync(cart.file).toString('base64'), route});
 }
 
-// the game's pose selector against Forge's links; coverage by this test's own search
-function judge(run, content, fight) {
+// the game's pose routine, replayed: applications since the last full pose, run in order on one RAM (minimal state: what
+// the library's decoder sets; deltas change the OAM the earlier applications wrote). The routine ends at $D857 (deltas
+// run its unrolled tail past $D800). Returns the pieces drawn (slots 3-63, y as the decoder reports it).
+const cpu6502 = globalThis.Forge6502Core;
+function replay(bytes, f, apps) {
+  const ram = new Uint8Array(2048), off = (bank, a) => 16 + bank * 8192 + (a & 0x1fff); ram[0xa9] = 5; ram.fill(248, 512, 768);
+  for (const app of apps) {
+    const state = {A: 0, X: 0, Y: 0, SP: 0xfb, PC: 0xc890, C: 0, Z: 0, I: 1, D: 0, V: 0, N: 0, cycles: 0, opsMissed: 0};
+    const rd = a => { a &= 65535; if (a < 0x2000) return ram[a & 2047]; if (a >= 0x8000) return bytes[a < 0xa000 ? off(f.bank8KiB, a) : 16 + 131072 - 24576 + a - 0xa000]; throw Error('the routine read ' + a.toString(16)); };
+    const wr = (a, v) => { a &= 65535; if (a >= 0x2000) throw Error('the routine wrote ' + a.toString(16)); ram[a & 2047] = v & 255; };
+    ram[3] = f.entryOffset; ram[0x80] = app.m80 === 16 ? 16 : 8; ram[0x81] = app.m81 === 2 ? 2 : 1; ram[0x82] = app.m81 === 2 ? 254 : 255; ram[0xb0] = app.b0; ram[0xb1] = app.b1;
+    ram[0xa0] = 128; ram[0xa1] = app.a1; ram[0x1fc] = 0xee; ram[0x1fd] = 0x7f;
+    const core = cpu6502.create(state, rd, wr); let steps = 0;
+    while (state.PC !== 0x7fef) { if (++steps > 50000 || state.PC < 0xc88b || state.PC > 0xd857) throw Error('the routine left $C88B-$D857'); core.step(); state.PC &= 65535; if (state.opsMissed) throw Error('unsupported instruction'); }
+  }
+  const pieces = []; for (let slot = 3; slot < 64; slot++) { const a = 512 + slot * 4; if (ram[a] >= 239) continue; pieces.push({x: ram[a + 3], y: ram[a] + 1, tile: ram[a + 1]}); }
+  return pieces;
+}
+const layoutKey = pieces => { const x0 = Math.min(...pieces.map(q => q.x)), y0 = Math.min(...pieces.map(q => q.y)); return pieces.map(q => (q.x - x0) + ',' + (q.y - y0) + ',' + q.tile).sort().join(' '); };
+
+// Forge's links against the drawing the game made; coverage by this test's own search
+function judge(run, content, fight, bytes) {
   const hist = new Map(run.hist.map(r => [r.f, r]));
   const lastFull = f => { for (let k = f; k > f - 6000; k--) { const r = hist.get(k); if (r && r.a1 < 128) return r.a1; } return null; };
   // a pose entry is one physical record (bank and address): every fight whose pose table names it, with its selectors
@@ -86,27 +115,48 @@ function judge(run, content, fight) {
     const uses = content.fights.filter(f => f.bank8KiB === bank).map(f => ({fight: f.index, selectors: f.poses.filter(p => p.status === 'source-record' && p.address === address).map(p => p.selector)})).filter(u => u.selectors.length);
     const mine = uses.find(u => u.fight === fight); return {fights: uses.map(u => u.fight), selectors: mine ? mine.selectors : []}; };
   const out = {frames: run.frames.length, links: 0, byLayoutAndGraphics: 0, byLayout: 0, modes: {}, agree: 0, contradictions: [], wrongFight: [], duringDelta: 0,
-    candidates: run.frames.reduce((n, f) => n + f.candidates.length, 0), ambiguous: run.frames.reduce((n, f) => n + f.ambiguous, 0), drawnInPlace: 0, covered: 0, missed: []};
+    candidates: run.frames.reduce((n, f) => n + f.candidates.length, 0), ambiguous: run.frames.reduce((n, f) => n + f.ambiguous, 0), drawnInPlace: 0, covered: 0, missed: [],
+    game: {applications: run.apps.length, deltaApplications: run.apps.filter(a => a.a1 >= 128).length, reproduced: 0, fullPose: 0, deltaResult: 0, deltaResultLinked: [], notReproduced: 0, linksNotJudged: 0, replayErrors: 0, chains: {}}};
+  // the fight's full poses by layout (relative positions and tiles), per sprite mode: which selectors a drawing equals
+  const f = content.fights[fight], layouts = {};
+  const fullOf = (mode, pieces) => { const k = mode.height + '/' + mode.step;
+    if (!layouts[k]) { layouts[k] = new Map(); for (const r of f.poses) { if (r.status !== 'source-record') continue; let p; try { p = content.pose(fight, r.selector, {x: 128, y: 120, mode}); } catch (_) { continue; }
+      if (!p.pieces.length) continue; const key = layoutKey(p.pieces); layouts[k].set(key, [...(layouts[k].get(key) || []), r.selector]); } }
+    return layouts[k].get(layoutKey(pieces)) || []; };
   for (const fr of run.frames) {
-    const recent = [0, 1, 2, 3].map(k => hist.get(fr.frame - k)).filter(Boolean), delta = recent.some(r => r.a1 >= 128), full = recent.map(r => lastFull(r.f));
+    const recent = [0, 1, 2, 3].map(k => hist.get(fr.frame - k)).filter(Boolean), delta = recent.some(r => r.a1 >= 128);
+    // the game's drawing: the applications since the last full pose, up to the end of this frame or of one of the two
+    // before it (the image shows the OAM copied at the start of the frame; lag -1 also takes an application counted
+    // with the next frame number); the most recent one drawn in place
+    let drawn = null;
+    for (const lag of [-1, 0, 1, 2]) {
+      const upTo = run.apps.filter(a => a.f < fr.frame - lag), start = upTo.map(a => a.a1 < 128).lastIndexOf(true); if (start < 0) continue;
+      const chain = upTo.slice(start); let pieces; try { pieces = replay(bytes, f, chain); } catch (e) { out.game.replayErrors++; continue; }
+      if (pieces.length >= 3 && pieces.every(q => fr.sprites.some(s => s.x === q.x && s.y === q.y - 1 && s.tile === q.tile))) {
+        const last = chain[0], mode = {height: last.m80 === 16 ? 16 : 8, step: last.m81 === 2 ? 2 : 1};
+        drawn = {pieces, chain: chain.map(a => a.a1), equals: fullOf(mode, pieces)}; break; }
+    }
+    if (drawn) { out.game.reproduced++; const k = drawn.chain.length === 1 ? 'full pose' : 'full pose + ' + (drawn.chain.length - 1) + ' delta(s)'; out.game.chains[k] = (out.game.chains[k] || 0) + 1;
+      if (drawn.equals.length) out.game.fullPose++; else out.game.deltaResult++; }
+    else out.game.notReproduced++;
     for (const l of fr.links) {
       out.links++; if (l.by === 'layout') out.byLayout++; else out.byLayoutAndGraphics++; out.modes[l.mode] = (out.modes[l.mode] || 0) + 1;
       const r = recordOf(l.poseId); if (!r || !r.fights.includes(fight)) { out.wrongFight.push({frame: fr.frame, pose: l.poseId}); continue; }
       if (l.flipsToggled) out.flipped = (out.flipped || 0) + 1;
-      if (delta) { out.duringDelta++; continue; }
-      if (r.selectors.some(s => full.includes(s))) out.agree++; else out.contradictions.push({frame: fr.frame, pose: l.poseId, selectors: r.selectors, game: full});
+      if (delta) out.duringDelta++;
+      if (!drawn) { out.game.linksNotJudged++; continue; }
+      // agreement: the drawing is this pose; or the drawing is a delta result and every linked sprite is part of it (a
+      // full pose drawn whole within what the game drew)
+      const within = l.sprites.every(i => { const sp = fr.sprites.find(t => t.index === i); return sp && drawn.pieces.some(q => q.x === sp.x && q.y - 1 === sp.y && q.tile === sp.tile); });
+      if (r.selectors.some(s => drawn.equals.includes(s))) out.agree++;
+      else if (!drawn.equals.length && within) { out.agree++; out.game.deltaResultLinked.push({frame: fr.frame, pose: l.poseId}); }
+      else out.contradictions.push({frame: fr.frame, pose: l.poseId, selectors: r.selectors, game: drawn.chain.map(v => v.toString(16)).join('>'), equals: drawn.equals, within});
     }
-    if (delta) continue;
-    // the game's current full pose, decoded with its own routine at the runtime base and sprite mode, every piece found
-    // at its screen position (OAM y is one less than the decoder's line)
-    let inPlace = null;
-    for (const r of recent) { const want = lastFull(r.f); if (want == null) continue; let p;
-      try { p = content.pose(fight, want, {x: r.b0, y: r.b1, mode: {height: r.m80 === 16 ? 16 : 8, step: r.m81 === 2 ? 2 : 1}}); } catch (_) { continue; }
-      if (p.pieces.length && p.pieces.every(q => fr.sprites.some(s => s.x === q.x && s.y === q.y - 1 && s.tile === q.tile))) { inPlace = want; break; } }
-    if (inPlace == null) continue;
+    // coverage: the game's drawing is one of the fight's full poses, drawn in place; Forge links it
+    if (!drawn || !drawn.equals.length) continue;
     out.drawnInPlace++;
-    if (fr.links.some(l => { const r = recordOf(l.poseId); return r && r.fights.includes(fight) && r.selectors.includes(inPlace); })) out.covered++;
-    else out.missed.push({frame: fr.frame, selector: inPlace, links: fr.links.map(l => l.poseId), candidates: fr.candidates.map(c => c.poseId + ':' + c.state)});
+    if (fr.links.some(l => { const r = recordOf(l.poseId); return r && r.fights.includes(fight) && r.selectors.some(s => drawn.equals.includes(s)); })) out.covered++;
+    else out.missed.push({frame: fr.frame, selectors: drawn.equals, chain: drawn.chain.map(v => v.toString(16)).join('>'), links: fr.links.map(l => l.poseId), candidates: fr.candidates.map(c => c.poseId + ':' + c.state)});
   }
   return out;
 }
@@ -209,18 +259,19 @@ function judge(run, content, fight) {
         [10, 'Don Flamenco, rematch'], [11, 'Mr. Sandman'], [12, 'Super Macho Man']].map(([fight, name]) => ({cart: p1, route: {tag: 'opponent ' + fight, opponent: fight, frames: 900}, fight, label: name + ' (PRG 1, opponent set in RAM)'}))];
     const kept = [];
     for (const play of plays) {
-      const t = Date.now(), run = await bout(page, play.cart, play.route), content = PunchOutContent.open(new Uint8Array(fs.readFileSync(play.cart.file)));
-      report.bouts[play.label] = {...judge(run, content, play.fight), seconds: Math.round((Date.now() - t) / 1000)};
+      const t = Date.now(), run = await bout(page, play.cart, play.route), cartBytes = new Uint8Array(fs.readFileSync(play.cart.file)), content = PunchOutContent.open(cartBytes);
+      report.bouts[play.label] = {...judge(run, content, play.fight, cartBytes), seconds: Math.round((Date.now() - t) / 1000)};
       // a line per bout: the bouts take minutes in all, and the runner stops a suite that prints nothing for 5 minutes
-      { const b = report.bouts[play.label]; console.log('  bout done: ' + play.label + ' · ' + b.links + ' links, ' + b.agree + ' agree with $A1, ' + b.contradictions.length + ' contradict, coverage ' + b.covered + '/' + b.drawnInPlace + ' · ' + b.seconds + ' s'); }
+      { const b = report.bouts[play.label]; console.log('  bout done: ' + play.label + ' · ' + b.links + ' links, ' + b.agree + ' agree with the game\'s drawing, ' + b.contradictions.length + ' contradict, coverage ' + b.covered + '/' + b.drawnInPlace + ', delta results ' + b.game.deltaResult + ' · ' + b.seconds + ' s'); }
       for (const [mode, k] of Object.entries(run.keep)) kept.push({bout: play.label, mode, ...k});
     }
     const B = Object.values(report.bouts);
-    check('In every bout, every link made in a frame without a delta pose agrees with the game\'s pose selector ($A1) over the frames that built the image; none contradicts it; every link is to the fight being played',
-      B.length >= 14 && new Set(plays.map(p => p.fight)).size === 14 && B.every(b => b.links > 20 && b.agree > 10 && !b.contradictions.length && !b.wrongFight.length && b.ambiguous === 0) && report.bouts['Mike Tyson (PRG 1)'].modes['8x8-step2'] > 0 && report.bouts['Mike Tyson (PRG 1)'].modes['8x16'] > 0,
-      Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {links: b.links, agree: b.agree, flipped: b.flipped || 0, contradictions: b.contradictions.slice(0, 3), wrongFight: b.wrongFight.slice(0, 3), modes: b.modes, ambiguous: b.ambiguous}])));
-    check('Coverage: whenever the game\'s current full pose is drawn in place (this test decodes it with the game\'s routine at the runtime base and sprite mode, and finds every piece on screen), Forge links it',
-      B.every(b => b.drawnInPlace > 10 && b.missed.length === 0), Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {drawnInPlace: b.drawnInPlace, covered: b.covered, missed: b.missed.slice(0, 3)}])));
+    check('In every bout, every link agrees with the drawing the game made (its pose routine\'s applications, full poses and deltas, replayed): the linked pose is that drawing, or a full pose drawn whole within a delta result; none contradicts it; every link is to the fight being played',
+      B.length >= 14 && new Set(plays.map(p => p.fight)).size === 14 && B.every(b => b.links > 20 && b.agree >= b.links - b.game.linksNotJudged && b.game.linksNotJudged <= 0.05 * b.links && !b.contradictions.length && !b.wrongFight.length && b.ambiguous === 0 && b.game.replayErrors === 0) &&
+        report.bouts['Mike Tyson (PRG 1)'].modes['8x8-step2'] > 0 && report.bouts['Mike Tyson (PRG 1)'].modes['8x16'] > 0,
+      Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {links: b.links, agree: b.agree, notJudged: b.game.linksNotJudged, flipped: b.flipped || 0, contradictions: b.contradictions.slice(0, 3), wrongFight: b.wrongFight.slice(0, 3), modes: b.modes, ambiguous: b.ambiguous, replayErrors: b.game.replayErrors}])));
+    check('Coverage: whenever the game\'s drawing (replayed) is one of the fight\'s full poses and is drawn in place, Forge links it; delta results that equal no full pose are counted, not linked',
+      B.every(b => b.drawnInPlace > 10 && b.missed.length === 0), Object.fromEntries(Object.entries(report.bouts).map(([k, b]) => [k, {drawnInPlace: b.drawnInPlace, covered: b.covered, missed: b.missed.slice(0, 3), game: {...b.game, deltaResultLinked: b.game.deltaResultLinked.length}}])));
     // ---------- 4. negative cases ----------
     const sample = kept.find(k => k.mode === '8x16' && k.link.by === 'layout and graphics') || kept[0];
     const neg = await page.evaluate(async ({record, link}) => {

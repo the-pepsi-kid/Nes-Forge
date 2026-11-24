@@ -588,7 +588,7 @@ and after a ROM's catalog is registered, so frames registered before the catalog
 **Limits.**
 - **First frame only.** The first frame that establishes a pose gives its drawing. Later frames that show it with
   other banks or colours, such as a hit flash, are recorded but don't change it.
-- **Delta poses** are still not catalogued (§17).
+- **Delta poses** are still not catalogued (§17). Since §23 they are measured: about 40% of the drawings in the 15 bouts are delta results.
 
 ## 19. Five Punch-Out!! fights, and what they showed (2026-11-23)
 
@@ -764,3 +764,53 @@ one, with its job id, as the library's provenance card already did. The suite ch
 
 **Not covered.** Poses 8, 9 and 11–14 did not occur on this route. 12–14 hold an item above Link's head. The library's
 poses are Link's only: enemies are not catalogued, so their sprites stay unlinked.
+
+## 23. Every Punch-Out!! link checked against the drawing the game made; delta poses measured (2026-11-24)
+
+Until now `QA/punch-out-pose-links.cjs` checked links against the game's pose selector, $A1, and only in frames
+without a delta pose. A delta is a selector from $80 that the game applies on top of the pose already drawn. A third
+of the links fell in such frames and were not checked.
+
+**The game's drawing, replayed.** The suite now records every time the game runs its pose routine: $C890 entered
+with $A0 set, read on the opcode fetch by a test-only hook. For each, it records:
+- the selector ($A1);
+- the base ($B0/$B1);
+- the sprite mode ($80/$81).
+
+For each frame, it replays the applications since the last full pose, in order, with the game's routine. This runs in
+Node, from the cartridge's bytes. It then finds the result drawn in place: every piece at its screen position. Up to
+two frames of lag are allowed, because the image shows the OAM copied at the start of the frame.
+
+**What deltas are.** They run the same routine and change the OAM the earlier applications wrote:
+- tiles;
+- attributes;
+- positions. Delta $C4, for example, runs an unrolled loop that adds X to each piece's x.
+
+The routine's tail runs to $D857. The library's decoder stops at $D800, which full poses never pass, so it cannot run
+deltas. Deltas stack: in the Mike Tyson bout, the game's drawing was a full pose followed by 1 to 20 deltas.
+
+**The checks now.**
+- **Precision.** Every link is judged against the game's drawing. A link agrees when that drawing is the linked pose,
+  or when the drawing is a delta result and the linked full pose is drawn whole within it. Links in frames whose
+  drawing could not be reproduced are counted; they must be under 5%.
+- **Coverage.** Whenever the game's drawing is one of the fight's full poses, drawn in place, Forge links it.
+- **Delta results.** A delta result that equals no full pose is not in the library. It is counted per bout, and it is
+  the gap the library has today.
+
+**Results (15 bouts, 3,150 frames; 9/9).**
+
+| | |
+|---|---|
+| Pose routine applications | 3,421 (1,833 of them deltas) |
+| Frames whose drawing was reproduced | 2,771 (379 not: before the first full pose, introductions, no fighter drawn) |
+| Drawings equal to a full pose | 1,658: every one linked (coverage 1,658 / 1,658) |
+| Links agreeing with the game's drawing | **1,658 of 1,658**, 0 contradictions (564 of them made while a delta was active, which the $A1 check could not judge) |
+| Delta results equal to no full pose | **1,113**, about 40% of the reproduced frames: not linked, as the library has no entry for them |
+| Longest chain | a full pose followed by 100 deltas |
+
+**Linking delta results would need what the game applied.** A frame alone does not say which deltas made it. A
+catalog of "full pose + one delta" would cover only part of what is drawn (in the Tyson bout, 69 of 116 delta
+results), with about 6,000 combinations per revision that the game mostly never draws. The exact way is to record
+the applications while the emulator runs, only for a ROM whose provider declares its pose routine, and keep them in
+the frame record, so the provider can replay them and link "pose P, then deltas D1…Dn, as the game applied them".
+That adds a check to the emulator's inner loop while such a cartridge runs, so it is left for a decision.
