@@ -21,7 +21,7 @@ function detect() {
   try { const display = startDisplay(xvfb); try { const r = spawnSync(fceux, ['--help'], {env: {...process.env, DISPLAY: display.name, HOME: tempHome()}, encoding: 'utf8', timeout: 20000}); help = (r.stdout || '') + (r.stderr || ''); } finally { display.stop(); } }
   catch (error) { return {available: false, reason: 'FCEUX could not start: ' + error.message}; }
   const m = (re) => (help.match(re) || [])[1] || null;
-  const version = m(/Starting FCEUX ([0-9][0-9.]*)/);
+  const version = m(/Starting FCEUX (\d+(?:\.\d+)*)/);
   if (!version) return {available: false, reason: 'FCEUX did not report a version (' + help.slice(0, 120).replace(/\s+/g, ' ') + ')'};
   let packageVersion = null; try { const r = spawnSync('dpkg-query', ['-W', '-f', '${Version}', 'fceux'], {encoding: 'utf8', timeout: 5000}); if (r.status === 0) packageVersion = r.stdout.trim(); } catch (_) {}
   let license = null; try { const c = fs.readFileSync('/usr/share/doc/fceux/copyright', 'utf8'); license = /GPL-2\+|GPL-2.0\+|GPL-2.0-or-later/.test(c) ? 'GPL-2.0-or-later' : /GPL/.test(c) ? 'GPL (see /usr/share/doc/fceux/copyright)' : null; } catch (_) {}
@@ -46,7 +46,7 @@ function luaJob(out, run) {
   const list = a => '{' + a.join(',') + '}';
   return 'return {out=' + luaString(out) + ',runs={{id=' + luaString(run.id) + ',nmiTarget=' + run.nmiTarget + ',latches=' + list(run.latches) + ',defaultMask=' + (run.defaultMask | 0) +
     ',checkpoints=' + list(run.checkpoints.map(c => '{label=' + luaString(c.label) + ',nmi=' + c.nmi + '}')) + ',maxFrames=' + run.maxFrames + ',trace=' + !!run.trace + ',maxReads=' + (run.maxReads || 200000) +
-    ',chr=' + !!run.chr + ',pixels=' + !!run.pixels + '}}}\n';
+    ',chr=' + !!run.chr + ',pixels=' + !!run.pixels + ',byFrame=' + !!run.byFrame + ',ctrl=' + !!run.ctrl + '}}}\n';
 }
 const unhex = s => Uint8Array.from(Buffer.from(s, 'hex'));
 function parse(text) {
@@ -62,6 +62,7 @@ function parse(text) {
     else if (tag === 'ppu') cp.ppu = unhex(rest);
     else if (tag === 'pal') cp.palette = unhex(rest);
     else if (tag === 'chr') cp.chr = unhex(rest);
+    else if (tag === 'ctrl') { const [v, state] = rest.split(' '); cp.ctrl = state === 'written' ? parseInt(v, 16) : null; }
     else if (tag === 'pix') cp.pixels = unhex(rest);
     else if (tag === 'reads') { const [count, data = ''] = rest.split(' '); cp.reads = []; for (let i = 0; i + 10 <= data.length; i += 10) cp.reads.push([parseInt(data.slice(i, i + 4), 16), parseInt(data.slice(i + 4, i + 8), 16), parseInt(data.slice(i + 8, i + 10), 16)]); cp.readCount = +count; }
     else if (tag === 'end') { const [, frames, nmis, latches, multi, remaining] = rest.split(' '); Object.assign(run, {frames: +frames, nmis: +nmis, latches: +latches, multiLatchFrames: +multi, missing: +remaining}); }

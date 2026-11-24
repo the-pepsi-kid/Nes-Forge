@@ -1,0 +1,111 @@
+{
+ "format": "NESForgeCadPortObservation",
+ "version": 1,
+ "cartridge": {
+  "name": "Castlevania 2 - Simon's Quest (U)",
+  "sha256": "f045d72683d3156555eccbb56090888f03a15e5b25e59db49dca7a87330472d3",
+  "bytes": 262160
+ },
+ "game": "castlevania_2",
+ "title": "Castlevania 2",
+ "upstream": "b28316ddd9be4e79ac5e6adf89b7751df609d94e",
+ "script": {
+  "name": "default",
+  "frames": 5438,
+  "every": 15,
+  "sha256": "254ce90ecf362d63"
+ },
+ "structural": [
+  {
+   "id": "castlevania_2/Castlevania2-1",
+   "state": "consistent",
+   "log10Chance": -294.3,
+   "control": {
+    "shifts": 99,
+    "passed": 5
+   }
+  }
+ ],
+ "engines": [
+  {
+   "engine": "fceux",
+   "identity": {
+    "name": "FCEUX",
+    "version": "2.6.5",
+    "packageVersion": "2.6.5+dfsg1-2build3",
+    "source": "https://github.com/TASVideos/fceux.git",
+    "commit": "ea6ed69b874e3ae94072f1b4f14b9a8f0fdd774b",
+    "qt": "5.15.12",
+    "sdl": "2.30.0",
+    "license": "GPL-2.0-or-later",
+    "configuration": {
+     "SDL.RamInitMethod": "2",
+     "SDL.Sound": "0",
+     "display": "Xvfb 640x480x24",
+     "video": "old PPU core (default), NTSC",
+     "lua": "Lua 5.1 (built in)"
+    }
+   },
+   "ms": 6833,
+   "captures": 362,
+   "explained": {
+    "captures": 358,
+    "meanShare": 0.017,
+    "capturesBelowHalf": 358,
+    "firstBelowHalf": [
+     {
+      "frame": 20,
+      "groups": 170,
+      "share": 0
+     },
+     {
+      "frame": 35,
+      "groups": 170,
+      "share": 0
+     },
+     {
+      "frame": 50,
+      "groups": 170,
+      "share": 0
+     },
+     {
+      "frame": 65,
+      "groups": 170,
+      "share": 0
+     },
+     {
+      "frame": 80,
+      "groups": 170,
+      "share": 0
+     },
+     {
+      "frame": 95,
+      "groups": 170,
+      "share": 0
+     },
+     {
+      "frame": 110,
+      "groups": 170,
+      "share": 0
+     },
+     {
+      "frame": 125,
+      "groups": 170,
+      "share": 0
+     }
+    ]
+   },
+   "definitions": [
+    {
+     "id": "castlevania_2/Castlevania2-1",
+     "structural": "consistent",
+     "observed": {},
+     "firstFrame": null,
+     "best": null,
+     "graphics": null,
+     "observedScreens": []
+    }
+   ]
+  }
+ ]
+}

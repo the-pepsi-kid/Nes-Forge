@@ -114,13 +114,13 @@ function render(report){
   if(t){p('Interventions: '+t.interventions.map(i=>i.trial+' → '+(i.interpretation?.classification||i.result)).join('; ')+'.');
     p('Controls: '+t.controls.map(x=>x.trial.replace('control-','')+' → '+x.outcome.replace(/_/g,' ')+(x.path&&x.path!=='same'?' (path '+x.path+')':'')).join('; ')+'.',t.controls.every(x=>x.passed));
     if(t.confirm)p('Second record position: '+(t.confirm.secondPosition?.classification||'—')+'; supporting change repeated: '+(t.confirm.repeat?(t.confirm.repeat.identicalToFirst?'identical captures':'different captures'):'—')+'.');}
-  p('Result: '+(CLASS_TEXT[cls]||cls)+'. '+(report.result?.reason||''),cls==='candidate');
+  p('Result: '+(CLASS_TEXT[cls]||cls)+'. '+String(report.result?.reason||'').replace(/^./,c=>c.toUpperCase()),cls==='candidate');
   if(d){p('Frozen definition '+d.definitionHash.slice(0,12)+'… (revision '+(d.revision?.number??1)+', decoder '+(d.decoder?d.decoder.name+' v'+d.decoder.version:'—')+'): '+(/^[aeiou]/.test(d.table.layout)?'an ':'a ')+d.table.layout+' table ('+d.table.order+' order'+(d.table.layout==='split'?', arrays '+d.table.fieldStep+' bytes apart':'')+') at file '+hex(d.table.physicalBase)+', records 0–'+d.extent.highest+' ('+d.extent.knownIds.length+' seen; numbering '+(d.table.numbering||'operand-evidence')+'); '+(d.attributes?'palette array at file '+hex(d.attributes.physicalBase)+' ('+d.attributes.decode+')':'no palette array confirmed')+'; '+d.aliases.length+' alias group(s). ').appendChild(make('span',{className:'re-chip'},'candidate'));}
   if(h){const k=h.reconstruction.counts;
     p('Withheld screen, reconstructed from the frozen definition: '+k.observed+' cells from seen records, '+k.interior+' from unseen records inside the table, '+k.resolved+' aliases resolved by palette, '+k.ambiguous+' ambiguous, '+k.extended+' past the seen range, '+k.unknown+' unknown. Attribute bits predicted: '+h.selfCheck.attributeBitsPredicted+', '+h.selfCheck.agreeWithCapture+' agree with the capture (same-engine consistency).');}
   head('Lifecycle');
   const lp=p('State: '+life.state.replace(/-/g,' ')+(life.side?' · '+life.side.replace(/-/g,' '):'')+'. ');lp.appendChild(make('span',{className:'re-state',id:'reDiscoveryLifecycle'},life.side||life.state));
-  if(life.sideReason)p(life.sideReason);
+  if(life.sideReason)p(life.sideReason.charAt(0).toUpperCase()+life.sideReason.slice(1));
   if(life.nextRequires)p('Next ('+life.next.replace(/-/g,' ')+') requires: '+life.nextRequires);
   head('Verification');
   const jobs=report.verification?.jobs||[];

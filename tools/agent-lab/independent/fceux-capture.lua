@@ -63,6 +63,9 @@ for _, run in ipairs(job.runs) do
       if ea and ea >= 0x8000 and #reads < run.maxReads then reads[#reads + 1] = string.format("%04x%04x%02x", pc, ea, band(nmi, 0xff)) end
     end)
   end
+  -- ctrl (CAD-PORT observation): the last value the program wrote to PPUCTRL ($2000), for its background pattern table
+  local ctrl = -1
+  if run.ctrl then memory.registerwrite(0x2000, 1, function(address, size, value) ctrl = value end) end
   memory.registerexecute(run.nmiTarget, function()
     nmi = nmi + 1
     local label = pending[nmi]
@@ -73,6 +76,7 @@ for _, run in ipairs(job.runs) do
       local w = {}; for i = 0, 0x7ff do w[#w + 1] = written[i] and "1" or "0" end; out:write("written ", table.concat(w), "\n")
       out:write("ppu ", rangehex(ppu.readbyterange, 0x2000, 0x1000), "\n")
       out:write("pal ", rangehex(ppu.readbyterange, 0x3f00, 0x20), "\n")
+      if run.ctrl then out:write("ctrl ", string.format("%02x", ctrl < 0 and 0 or ctrl), " ", ctrl < 0 and "unknown" or "written", "\n") end
       if run.chr then out:write("chr ", rangehex(ppu.readbyterange, 0x0000, 0x2000), "\n") end
       if run.pixels then
         local px = {}
@@ -85,7 +89,10 @@ for _, run in ipairs(job.runs) do
   end)
   local frames = 0
   while remaining > 0 and frames < run.maxFrames do
-    local m = run.latches[latches + 1] or run.defaultMask
+    -- byFrame (CAD-PORT observation): the input is indexed by frame instead of by latch
+    local m
+    if run.byFrame then m = run.latches[frames + 1] else m = run.latches[latches + 1] end
+    if m == nil then m = run.defaultMask end
     joypad.set(1, mask_buttons(m))
     frameLatches = 0
     emu.frameadvance()
@@ -94,6 +101,7 @@ for _, run in ipairs(job.runs) do
   end
   memory.registerexecute(run.nmiTarget, nil)
   if run.trace then memory.registerexecute(0x8000, 0x8000, nil) end
+  if run.ctrl then memory.registerwrite(0x2000, 1, nil) end
   memory.registerwrite(0x4016, nil)
   memory.registerwrite(0x0000, 0x0800, nil)
   out:write("end ", run.id, " ", frames, " ", nmi, " ", latches, " ", multi, " ", remaining, "\n")

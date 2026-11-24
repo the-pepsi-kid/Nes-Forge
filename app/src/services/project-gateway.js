@@ -92,6 +92,8 @@ async function inspect(input,{name='ROM',signal}={}){
   {resource:'Audio',inspect:audio?'Verified native cue catalog':domains('audio').length?'A source audio recovery method is available':'Driver unresolved',edit:audio||domains('audio').length?'Explicit preview and conversion to project Audio':'Author project Audio or investigate the source',build:'Project-wide score; no generic source audio writer'},
   {resource:'Code / bytes',inspect:valid?'Physical bytes and candidate 2A03 disassembly':'Raw bytes; platform and mapping unknown',edit:'Inspection annotations or a separate source workspace',build:'Disassembly is not a rebuildable source project'}
  ];
+ // CAD-PORT-01: what the translated CadEditor catalog adds for this cartridge (registered in the library on import)
+ const cadPort=services.CadPortRecovery?.intake(bytes,label);if(cadPort)rows.splice(3,0,cadPort.row);
  if(catalog){rows.unshift({resource:'Recovered Forge resources',inspect:catalog.evidence.scenes+' original-frame Scenes · '+catalog.evidence.metasprites+' editable metasprites · '+catalog.evidence.animations+' animations, courtyard pages, CHR uploads and native audio cues',edit:'Open linked Scenes, Sprite/Metasprite and Animation tabs via Resources explorer',build:'Authored project editing only; original Castlevania ROM patch/rebuild is NOT supported.'});}
  const ledger=services.RecoveryCoverage?.match(source.sha256);
  if(ledger)rows.unshift({resource:'Recorded cartridge revision',inspect:ledger.name+' · exact SHA-256',edit:'See the extraction ledger for the recorded domains. Open a matching extraction ZIP to browse its maps.',build:'Use the writers offered for this input.'});

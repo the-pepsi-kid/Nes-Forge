@@ -121,11 +121,37 @@ def evidence_packages():
                 assert hashlib.sha256(data).hexdigest() == cart['sha256'] and cart['sha256'] in pinned and synthetic_cartridge(data), name
 
 
+def cad_port():
+    # CAD-PORT-01: the translated CadEditor catalog and the verification ledger are knowledge only (offsets, counts,
+    # geometry, colour numbers, hashes): no code, no dumped CHR/palette/RAM, no cartridge bytes
+    def numeric_arrays(v, out):
+        if isinstance(v, list):
+            if v and all(isinstance(x, int) for x in v): out.append(len(v))
+            for x in v: numeric_arrays(x, out)
+        elif isinstance(v, dict):
+            for x in v.values(): numeric_arrays(x, out)
+        return out
+    for name, longest in [('src/re/cad-port-catalog.js', 32), ('src/re/cad-port-revisions.js', 16)]:
+        text = (ROOT/'app'/name).read_text()
+        data = json.loads(text[text.index('Object.freeze(') + len('Object.freeze('):text.rindex('));')])
+        lengths = numeric_arrays(data, [])
+        assert max(lengths or [0]) <= longest, name + ': a numeric array longer than ' + str(longest)
+    catalog = (ROOT/'app/src/re/cad-port-catalog.js').read_text()
+    assert 'Permission is hereby granted' in catalog and 'Copyright (c) 2018 spiiin' in catalog, 'CadEditor MIT notice missing'
+    assert not list((ROOT/'tools/cad-port').rglob('*.bin')), 'a binary dump in tools/cad-port'
+    for report in (ROOT/'QA/fixtures/cad-port-01/observations').glob('*.json'):
+        data = json.loads(report.read_text())
+        assert data.get('format') == 'NESForgeCadPortObservation', report.name
+        assert max(numeric_arrays(data, []) or [0]) <= 16, report.name + ': a numeric array longer than a 16-colour palette'
+    assert not [p for p in (ROOT/'QA/fixtures/cad-port-01').rglob('*') if p.suffix.lower() in ('.nes', '.bin', '.chr', '.png')], 'cartridge or graphics data in QA/fixtures/cad-port-01'
+
+
 check('Both launch entries reproduce all manifest source parts', sources)
 check('Private compressed capture catalogs are excluded', payloads)
 check('Distributed editable projects contain no preserved ROM field', examples)
 check('Only the four identified authored cartridges and the pinned synthetic AL-EXP-01/02 fixtures are shipped', fixtures)
 check('Committed evidence packages are synthetic and embed only pinned synthetic fixtures', evidence_packages)
+check('Translated CadEditor knowledge carries no code, dumps or cartridge bytes, and keeps its MIT notice', cad_port)
 report = {'editorSha256': digest, 'checks': checks, 'total': len(checks),
           'passed': all(row['passed'] for row in checks)}
 if args.output:

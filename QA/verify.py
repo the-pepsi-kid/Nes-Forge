@@ -19,6 +19,7 @@ parser.add_argument('--output', type=Path, default=ROOT/'Review-Results')
 parser.add_argument('--extractions', type=Path, help='Folder containing native extraction ZIPs to check')
 parser.add_argument('--cartridges', type=Path, help='Folder containing original .nes files for intake, playback and revision-specific writer checks')
 parser.add_argument('--browser', action='store_true', help='Also run the separate real-browser smoke test')
+parser.add_argument('--cadeditor', type=Path, help='A local CadEditor checkout: cad-port-01 then re-runs the translation and requires identical output')
 parser.add_argument('--evidence-shots', type=Path,
                     help='Folder OUTSIDE the repository for frame-evidence screenshots; enables its screenshot-hash check '
                          '(the frames are cartridge-derived, so they never go into the working tree)')
@@ -49,10 +50,11 @@ args = parser.parse_args()
 #   punch-out-pose-links  Punch-Out!! both revisions' catalogs, then all 14 fights (15 bouts) linked, every link checked against the game's replayed pose routine
 #   zelda2-pose-links  Zelda II from a fresh save: palace, overworld, a forest battle; Link's links checked against the poses the game drew
 #   al-exp-01          ~10 min, no cartridges needed: experimental discovery on 12 original synthetic fixtures (5 withheld) in the isolated sandbox, Audit 02 A01-A18 portions
+#   cad-port-01        ~10 min with cartridges: translated CadEditor catalog, shared decoders, recognition, import-time integration, ledger re-derived (FCEUX observation re-run)
 #   al-exp-02          ~30 min, no cartridges needed: 22 randomized adversarial synthetic fixtures (11 withheld), independent verification in FCEUX (reported blocked if FCEUX/Xvfb are missing), packages, lifecycle
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420
-TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 3600, 'pose-links': 900, 'punch-out-pose-links': 2400, 'zelda2-pose-links': 900, 'al-exp-01': 1800, 'al-exp-02': 3000}
+TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 3600, 'pose-links': 900, 'punch-out-pose-links': 2400, 'zelda2-pose-links': 900, 'al-exp-01': 1800, 'al-exp-02': 3000, 'cad-port-01': 1800}
 for item in args.timeout:
     suite, _, seconds = item.partition('=')
     if not suite or not seconds.isdigit():
@@ -226,6 +228,8 @@ if args.cartridges:
     record(run('mmc2-sync',['node',QA/'mmc2-sync.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
     receipt=output/'ninja-stage-table.json'
     record(run('ninja-stage-table',['node',QA/'ninja-stage-table.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))
+    receipt=output/'cad-port-01.json'
+    record(run('cad-port-01',['node',QA/'cad-port-01.cjs',EDITOR,receipt,args.cartridges.resolve()]+([str(args.cadeditor.resolve())] if args.cadeditor else []),receipt))
     if args.browser:
         receipt=output/'catalog-persistence.json'
         record(run('catalog-persistence',['node',QA/'catalog-persistence.cjs',EDITOR,receipt,args.cartridges.resolve()],receipt))

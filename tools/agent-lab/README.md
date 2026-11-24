@@ -158,6 +158,10 @@ Needs FCEUX 2.6 and Xvfb on Linux (`apt-get install fceux xvfb`). Details:
 - [package format](../../docs/architecture/EXPERIMENT_PACKAGE_FORMAT.md);
 - [lifecycle and promotion](../../docs/architecture/DISCOVERY_LIFECYCLE.md).
 
+CAD-PORT-01 uses the same FCEUX driver to observe translated CadEditor layouts on local cartridges
+(`tools/cad-port/observe.cjs`, frame-indexed input and PPUCTRL capture options); see
+[CAD-PORT](../../docs/architecture/CAD_PORT.md).
+
 ## Reproducible check and present limitations
 
 `python -m unittest discover -s tools/agent-lab/tests -v` runs seven synthetic/unit checks, including a forgery of an extracted-bank hash and a simulated loopback model. An additional local test against a user-provided Ninja Gaiden ROM (SHA-256 prefix `07d9e57e3518`) returned **48 scene/context entries, 202 poses, 83 scripts**, via `GameRENative.inspect`. This does **not** establish room pixel parity, enemy AI, scene writeback, or complete audio conversion. The public HTML's separate sanitized build still requires an end-to-end real-ROM rerun before release claims.
