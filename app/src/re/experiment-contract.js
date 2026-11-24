@@ -183,37 +183,64 @@ function verifyReceipt(receipt){
 }
 
 // ---------- candidate definitions ----------
-// A candidate stays a candidate: nothing here can mark it verified for the library.
+// A candidate stays a candidate: nothing here can mark it verified for the library. Version 1 (AL-EXP-01) stays
+// readable; version 2 (AL-EXP-02) adds the revision chain, the decoder it is written for, its assumptions, what it does
+// not support, and how record 0 was established (record numbering).
 const CANDIDATE_FIELDS=['format','version','kind','status','hypothesis','source','table','attributes','extent','aliases','evidence','verification','limitations'];
+const CANDIDATE_FIELDS_V2=[...CANDIDATE_FIELDS,'revision','decoder','assumptions','unsupported'];
+const NUMBERING=Object.freeze(['operand-evidence','relative']);
+const candidateFields=d=>d&&d.version===2?CANDIDATE_FIELDS_V2:CANDIDATE_FIELDS;
 function sealCandidate(definition){
-  const body={};for(const k of CANDIDATE_FIELDS){if(!(k in definition))fail('candidate.'+k,'is required');body[k]=definition[k];}
-  for(const k of Object.keys(definition))if(!CANDIDATE_FIELDS.includes(k)&&k!=='definitionHash')fail('candidate.'+k,'is not a recognised field');
+  const fields=candidateFields(definition),body={};for(const k of fields){if(!(k in definition))fail('candidate.'+k,'is required');body[k]=definition[k];}
+  for(const k of Object.keys(definition))if(!fields.includes(k)&&k!=='definitionHash')fail('candidate.'+k,'is not a recognised field');
   checkCandidateBody(body);return deepFreeze({...body,definitionHash:hashOf(body)});
 }
 function checkCandidateBody(c){
-  if(c.format!==FORMATS.candidate||c.version!==VERSION)fail('candidate','is not a '+FORMATS.candidate+' v'+VERSION);
+  if(c.format!==FORMATS.candidate||(c.version!==1&&c.version!==2))fail('candidate','is not a '+FORMATS.candidate+' v1 or v2');
   if(c.kind!=='metatile-table-2x2')fail('candidate.kind','must be metatile-table-2x2');
   if(c.status!=='candidate')fail('candidate.status','must be "candidate"; experimental findings are never verified library resources');
   oneOf(c.hypothesis,'candidate.hypothesis',HYPOTHESES);if(c.hypothesis==='reviewed')fail('candidate.hypothesis','"reviewed" needs a person; an experiment cannot set it');
+  if(c.hypothesis==='independently_verified')fail('candidate.hypothesis','independent verification is an evaluation record about a definition, never part of the definition');
   keys(c.source,'candidate.source',['sha256','byteLength']);hex64(c.source.sha256,'candidate.source.sha256');
-  keys(c.table,'candidate.table',['layout','order','physicalBase','cpuBase','recordStep','fieldStep','grid','baseEvidence']);keys(c.table.grid,'candidate.table.grid',['x','y']);int(c.table.grid.x,'candidate.table.grid.x',0,1);int(c.table.grid.y,'candidate.table.grid.y',0,1);
+  keys(c.table,'candidate.table',['layout','order','physicalBase','cpuBase','recordStep','fieldStep','grid','baseEvidence'],c.version===2?['numbering']:[]);keys(c.table.grid,'candidate.table.grid',['x','y']);int(c.table.grid.x,'candidate.table.grid.x',0,1);int(c.table.grid.y,'candidate.table.grid.y',0,1);
   oneOf(c.table.layout,'candidate.table.layout',['interleaved','split']);oneOf(c.table.order,'candidate.table.order',['row','column']);
   int(c.table.physicalBase,'candidate.table.physicalBase',16,8*1024*1024);int(c.table.recordStep,'candidate.table.recordStep',1,4);int(c.table.fieldStep,'candidate.table.fieldStep',1,256);
   keys(c.verification,'candidate.verification',['repeatability','interventions','independent']);
   if(c.verification.independent!=='not performed')fail('candidate.verification.independent','must be "not performed" in the definition; an evaluation is a separate record');
+  if(c.version===2){
+    oneOf(c.table.numbering,'candidate.table.numbering',NUMBERING);
+    keys(c.revision,'candidate.revision',['number','previous','reason']);int(c.revision.number,'candidate.revision.number',1,10000);
+    if(c.revision.number===1?c.revision.previous!==null:!/^[0-9a-f]{64}$/.test(c.revision.previous||''))fail('candidate.revision.previous','must be null for revision 1 and the previous revision\'s hash after it');
+    text(c.revision.reason,'candidate.revision.reason',LIMITS.description);
+    keys(c.decoder,'candidate.decoder',['name','version']);ident(c.decoder.name,'candidate.decoder.name');int(c.decoder.version,'candidate.decoder.version',1,1000);
+    keys(c.assumptions,'candidate.assumptions',['mapper','banking','mirroring','screen']);
+    list(c.unsupported,'candidate.unsupported',0,32).forEach((u,i)=>text(u,'candidate.unsupported['+i+']',LIMITS.description));
+  }
 }
 function verifyCandidate(definition){
   const problems=[];
-  try{if(!isObject(definition))fail('candidate','must be an object');const body={};for(const k of CANDIDATE_FIELDS)body[k]=definition[k];checkCandidateBody(body);
-    for(const k of Object.keys(definition))if(!CANDIDATE_FIELDS.includes(k)&&k!=='definitionHash')problems.push('unrecognised field '+k);
+  try{if(!isObject(definition))fail('candidate','must be an object');const fields=candidateFields(definition),body={};for(const k of fields)body[k]=definition[k];checkCandidateBody(body);
+    for(const k of Object.keys(definition))if(!fields.includes(k)&&k!=='definitionHash')problems.push('unrecognised field '+k);
     if(hashOf(body)!==definition.definitionHash)problems.push('the definition does not match its hash');}
   catch(error){problems.push(error.message);}
   return {ok:!problems.length,problems};
+}
+// A changed definition is a new revision: it starts untested (its predecessor's interventions, withheld evaluation and
+// independent verification do not carry over), and it names the revision it replaces.
+function reviseCandidate(definition,changes,reason){
+  const v=verifyCandidate(definition);if(!v.ok)fail('candidate','cannot be revised: '+v.problems.join('; '));
+  if(definition.version!==2)fail('candidate','only a v2 definition can be revised');
+  for(const k of Object.keys(changes||{}))if(!['table','attributes','extent','aliases','limitations','unsupported'].includes(k))fail('changes.'+k,'cannot be revised (identity, status and evidence are not editable)');
+  const copy=JSON.parse(JSON.stringify(definition));delete copy.definitionHash;Object.assign(copy,JSON.parse(JSON.stringify(changes||{})));
+  copy.revision={number:definition.revision.number+1,previous:definition.definitionHash,reason};copy.hypothesis='proposed';
+  copy.evidence={plans:[],interventions:[],revisedFrom:definition.definitionHash};
+  copy.verification={repeatability:'not tested (new revision)',interventions:'not tested (new revision)',independent:'not performed'};
+  return sealCandidate(copy);
 }
 
 function deepFreeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)&&!(value instanceof Uint8Array)){Object.freeze(value);for(const v of Object.values(value))deepFreeze(v);}return value;}
 
 return Object.freeze({version:VERSION,FORMATS,OUTCOMES,HYPOTHESES,VERIFICATION,LIMITS,BUTTONS,CHANNELS,TRIAL_KINDS,PRIVACY,SYNTHETIC_MARKER,
   canonical,sha256,hashOf,hex,fromHex,romLayout,isSynthetic,defaultProtected,validateSteps,validatePlan,validateMutations,buildVariant,
-  sealReceipt,verifyReceipt,sealCandidate,verifyCandidate,deepFreeze,fail});
+  sealReceipt,verifyReceipt,sealCandidate,verifyCandidate,reviseCandidate,NUMBERING,deepFreeze,fail});
 });

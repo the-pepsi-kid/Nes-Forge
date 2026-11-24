@@ -117,13 +117,15 @@ function cpuToPhysical(address,layout){if(address<0x8000)return -1;return layout
 function inferBase(w,rom,layout,events){
   const h=w.hypothesis,lo=layout.prgStart+w.lo,fallback={physical:lo,method:'lowest observed record (index of record 0 unknown)',votes:0,instructions:[]};
   if(!events)return fallback;
-  const end=lo+(h.layout==='split'?3*h.fieldStep+LIMITS.maxRecords:LIMITS.maxRecords*4),votes=new Map(),instructions=new Map();
+  // evidence only from reads of bytes this candidate attributes to one of its matched records (AL-EXP-02): a table the
+  // program reads for some other purpose nearby must not vote for record 0
+  const field=new Map();for(const ps of w.byKey.values())for(const p of ps)fieldOffsets(w,p).forEach((o,k)=>field.set(layout.prgStart+o,k));
+  const votes=new Map(),instructions=new Map();
   for(const e of events){
-    if(e[1]!==0)continue;const at=e[5];if(at<lo-LIMITS.maxRecords*h.recordStep||at>=end)continue;
+    if(e[1]!==0)continue;const at=e[5],k=field.get(at);if(k===undefined)continue;
     const pc=e[3];if(pc<0||pc+2>=rom.length)continue;const op=rom[pc];if(!INDEXED.has(op))continue;
     const operand=rom[pc+1]|(rom[pc+2]<<8),base=cpuToPhysical(operand,layout);if(base<0)continue;
-    let k;if(h.layout==='interleaved')k=((at-lo)%4+4)%4;else k=Math.floor((at-lo)/h.fieldStep);
-    if(k<0||k>3)continue;const b=base-k*h.fieldStep;
+    const b=base-k*h.fieldStep;
     if(b>lo||(lo-b)%h.recordStep)continue;
     votes.set(b,(votes.get(b)||0)+1);const key=pc+':'+k;if(!instructions.has(key))instructions.set(key,{pcPhysical:pc,cpuPc:e[2],opcode:op,operand,field:k,base:b});
   }
@@ -156,14 +158,14 @@ function attributeArrays(w,rom,layout,access,events){
 // ---------- interventions ----------
 // A falsifiable test of one candidate: change one tile byte of one record that appears exactly once in the candidate,
 // and predict exactly which nametable cells change, to what, in every capture.
-function planTileIntervention(w,rom,layout){
-  const keys=[...w.byKey.entries()].filter(([,ps])=>ps.length===1).map(([key])=>key);
+function planTileIntervention(w,rom,layout,{skipKeys=[],quadrant='TL'}={}){
+  const keys=[...w.byKey.entries()].filter(([key,ps])=>ps.length===1&&!skipKeys.includes(key)).map(([key])=>key);
   if(!keys.length)return null;
   const best=keys.map(k=>w.tuples.get(k)).sort((a,b)=>b.cells.length-a.cells.length||a.cells[0].screen-b.cells[0].screen||(a.key<b.key?-1:1))[0];
-  const p=w.byKey.get(best.key)[0],f=ORDERS[w.hypothesis.order].TL,offset=layout.prgStart+p+f*w.hypothesis.fieldStep,expected=rom[offset];
+  const q=QUADS.indexOf(quadrant),p=w.byKey.get(best.key)[0],f=ORDERS[w.hypothesis.order][quadrant],offset=layout.prgStart+p+f*w.hypothesis.fieldStep,expected=rom[offset];
   let value=expected^1;if(!value)value=expected^2;
-  const predict=best.cells.map(c=>({label:c.label,index:(2*c.my+w.grid.y)*32+2*c.mx+w.grid.x,value}));
-  return {kind:'tile',candidate:w.id,key:best.key,mutation:{offset,expected,value},predict};
+  const dx=q&1,dy=q>>1,predict=best.cells.map(c=>({label:c.label,index:(2*c.my+w.grid.y+dy)*32+2*c.mx+w.grid.x+dx,value}));
+  return {kind:'tile',candidate:w.id,key:best.key,quadrant,mutation:{offset,expected,value},predict};
 }
 function planAttributeIntervention(w,array,rom,layout,captureAttributes){
   const ids=indexMap(w,layout);
@@ -188,13 +190,19 @@ function judge(prediction,baseline,variant){
 }
 
 // ---------- the candidate definition (data only) ----------
-function define({w,array,interventions,repeatability,rom,layout,evidence}){
+const DECODER=Object.freeze({name:'metatile-2x2',version:1});
+function define({w,array,interventions,repeatability,rom,layout,evidence,version=2}){
   const ids=indexMap(w,layout),known=[...new Set([...ids.values()].flat())].sort((a,b)=>a-b);
   const h=w.hypothesis,aliasGroups=[];
   for(const [key,list] of ids)if(list.length>1){const t=w.tuples.get(key);aliasGroups.push({ids:list.slice().sort((a,b)=>a-b),resolvedBy:array&&new Set(list.map(id=>DECODERS[array.decode](rom[array.physical+id]))).size===list.length?'attribute palette':'none (identical record and palette)',observedPalettes:[...t.palettes].sort()});}
-  return {format:'NESForgeCandidateDefinition',version:1,kind:'metatile-table-2x2',status:'candidate',hypothesis:'supported',
+  const numbering=w.base.votes>0?'operand-evidence':'relative';
+  const v2=version===2?{revision:{number:1,previous:null,reason:'frozen after its predicted interventions held, before the withheld input ran'},decoder:{...DECODER},
+    assumptions:{mapper:'NROM (iNES mapper 0)',banking:'none: PRG is one fixed window, CHR is fixed',mirroring:layout.mirroring,screen:'unscrolled nametable 0, 16x15 metatiles of 2x2 tiles'},
+    unsupported:['bank-switched mappers','scrolled or partially scrolled screens','metatiles larger than 2x2 or nested','compressed tables','records reached through pointer tables',
+      ...(numbering==='relative'?['absolute record numbering: no instruction operand names record 0, so IDs count from the lowest observed record']:[])]}:{};
+  return {format:'NESForgeCandidateDefinition',version,kind:'metatile-table-2x2',status:'candidate',hypothesis:'supported',...v2,
     source:{sha256:evidence.sourceSha256,byteLength:rom.length},
-    table:{layout:h.layout,order:h.order,physicalBase:w.base.physical,cpuBase:w.base.cpuBase??null,recordStep:h.recordStep,fieldStep:h.fieldStep,grid:{x:w.grid.x,y:w.grid.y},
+    table:{layout:h.layout,order:h.order,physicalBase:w.base.physical,cpuBase:w.base.cpuBase??null,recordStep:h.recordStep,fieldStep:h.fieldStep,grid:{x:w.grid.x,y:w.grid.y},...(version===2?{numbering}:{}),
       baseEvidence:{method:w.base.method,votes:w.base.votes,instructions:w.base.instructions.map(i=>({cpuPc:i.cpuPc,pcPhysical:i.pcPhysical,opcode:i.opcode,operand:i.operand,field:i.field}))}},
     attributes:array?{physicalBase:array.physical,decode:array.decode,evidence:array.instructions.length?'operand of the indexed instruction that reads it':'consistent with every observed palette',instructions:array.instructions.slice(0,4)}:null,
     extent:{knownIds:known,lowest:known[0],highest:known[known.length-1],claim:'records 0 through the highest observed ID are one table; records past it are not claimed'},
@@ -232,5 +240,5 @@ function reconstruct(def,rom,layout,capture){
   return {supported:true,cells,attributes,counts};
 }
 
-return Object.freeze({version:VERSION,LIMITS,ORDERS,visible,tuples,propose,proposeAsync,attributeArrays,planTileIntervention,planAttributeIntervention,judge,define,decodeRecord,reconstruct,physicalNametable,paletteAt});
+return Object.freeze({version:VERSION,LIMITS,ORDERS,QUADS,DECODER,visible,tuples,propose,proposeAsync,attributeArrays,planTileIntervention,planAttributeIntervention,judge,define,decodeRecord,reconstruct,physicalNametable,paletteAt});
 });

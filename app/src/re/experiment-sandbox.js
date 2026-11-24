@@ -89,10 +89,71 @@ function snapshotChannel(name){
 }
 function fnv(arrays){let h=0x811c9dc5;for(const a of arrays)for(let i=0;i<a.length;i++){h^=a[i];h=Math.imul(h,0x01000193);}return h>>>0;}
 function masksOf(steps){const out=[];for(const s of steps){const m=s.buttons.reduce((v,b)=>v|BUTTON_BITS[b],0);for(let i=0;i<s.frames;i++)out.push(m);}return out;}
+// AL-EXP-02: the picture as NES colour indices. The renderer writes RGB through its palette table (NP); each RGB maps
+// back to the lowest index that draws it, and colourClass names, per index, that lowest index (colours the table draws
+// identically share a class).
+let rgbIndex=null,colourClass=null;
+function colourTables(){if(rgbIndex)return;rgbIndex=new Map();colourClass=new Uint8Array(64);for(let i=0;i<64;i++){const c=NP[i]||NP[15],k=(c[0]<<16)|(c[1]<<8)|c[2];if(!rgbIndex.has(k))rgbIndex.set(k,i);colourClass[i]=rgbIndex.get(k);}}
+function pixelIndices(){colourTables();const fb=emu.frameBuffer,out=new Uint8Array(256*240);for(let i=0;i<out.length;i++){const o=i*4,v=rgbIndex.get((fb[o]<<16)|(fb[o+1]<<8)|fb[o+2]);out[i]=v===undefined?255:v;}return out;}
+function nmiTargetOf(bytes){const layout=contract.romLayout(bytes);return bytes[layout.vectors.start]|(bytes[layout.vectors.start+1]<<8);}
+// AL-EXP-02 synchronization: NMI-handler entries (the k-th time the CPU is about to execute the instruction at the
+// cartridge's NMI vector target), $4016 latches (strobe falling edges, with the mask latched), RAM bytes written since
+// power-on, and a per-frame digest of the executed PC sequence (the program's path). Wraps the emulator's own CPU-step
+// and CPU-write functions in this sandbox copy only, and only records; installed before the bus observer, removed after it.
+function installSync({nmiTarget,onNmi=null,latchMask=null}){
+  const prev={step:cpuStepRaw,write:cpuWrite},state={nmis:0,nmiFrames:[],latches:[],written:new Uint8Array(0x800),path:0x811c9dc5,frameLatches:0,multiLatchFrames:0};
+  cpuStepRaw=function(...args){const pc=emu.PC&0xffff;state.path=Math.imul(state.path^pc,0x01000193);if(pc===nmiTarget){state.nmis++;state.nmiFrames.push(emu.frameCount);if(onNmi)onNmi(state.nmis);}return prev.step.apply(this,args);};
+  cpuWrite=function(a,v,...rest){a&=0xffff;if(a<0x2000)state.written[a&0x7ff]=1;
+    if(a===0x4016&&!(v&1)&&emu.joyStrobe){if(latchMask)agentMask=latchMask(state.latches.length);state.latches.push([emu.frameCount,agentMask??0]);state.frameLatches++;}
+    return prev.write.call(this,a,v,...rest);};
+  return {state,endFrame(){const h=state.path>>>0;state.path=0x811c9dc5;if(state.frameLatches>1)state.multiLatchFrames++;state.frameLatches=0;return h;},uninstall(){cpuStepRaw=prev.step;cpuWrite=prev.write;}};
+}
+function syncCapture(sync,label,channels,observer){
+  const c={label,nmi:sync.state.nmis,frame:emu.frameCount,latches:sync.state.latches.length,line:emu._ppuFrameLine};
+  if(channels.includes('cpu'))c.cpu={a:emu.A,x:emu.X,y:emu.Y,s:emu.SP,p:cpuGetP(),pc:emu.PC&0xffff};
+  if(channels.includes('ram')){c.ram=new Uint8Array(emu.ram);c.written=new Uint8Array(sync.state.written);}
+  if(channels.includes('nametables'))c.ciram=new Uint8Array(emu.vram.subarray(0,0x800));
+  if(channels.includes('palette')){c.palette=new Uint8Array(32);for(let i=0;i<32;i++)c.palette[i]=ppuBusRead(0x3f00+i);}
+  if(channels.includes('chr'))c.chr=emu.hasChrRam?new Uint8Array(emu.chrRam):new Uint8Array(emu.chrRom||0);
+  if(channels.includes('pixels')){c.pixels=pixelIndices();c.colourClass=new Uint8Array(colourClass);}
+  if(channels.includes('reads')&&observer){c.reads=observer.events.filter(e=>e[1]===0).map(e=>[e[2],e[4]]);c.readsComplete=!observer.summary().truncated;}
+  c.mirroring=emu.mirroring;return c;
+}
+// A verification job: from power-on, the joypad latches job.latches[i] at the i-th $4016 strobe (job.defaultMask after
+// the list), and the state is captured when the CPU enters the NMI handler for the k-th time, for each checkpoint k.
+// Engine-neutral by design: the independent emulator runs the same job (tools/agent-lab/independent).
+async function runJob(runId,request,report){
+  const t0=performance.now(),job=request.job,result={type:'result',runId,job:{captures:[],frames:0,nmis:0,latches:0,multiLatchFrames:0,stopReason:null}};
+  let sync=null,observer=null;
+  try{
+    const bytes=request.rom instanceof Uint8Array?request.rom:fail('a job needs cartridge bytes');
+    if(contract.sha256(bytes)!==request.romSha)fail('the cartridge bytes do not match their SHA-256');
+    const layout=contract.romLayout(bytes);if(layout.mapper!==0)return {...result,outcome:'unsupported',stopReason:'mapper '+layout.mapper+' is not supported in this slice (NROM only)'};
+    for(const ck of checkpoints.values())ck.handle.release();checkpoints.clear();
+    if(!emuLoadRomData(bytes,'experiment',0))return {...result,outcome:'crash',stopReason:'the emulator refused to load the cartridge'};
+    romSha=request.romSha;
+    const pending=new Map(job.checkpoints.map(c=>[c.nmi,c.label])),channels=job.channels;
+    agentMask=job.latches[0]??job.defaultMask;
+    sync=installSync({nmiTarget:nmiTargetOf(bytes),latchMask:i=>job.latches[i]??job.defaultMask,onNmi:k=>{const label=pending.get(k);if(label!==undefined){result.job.captures.push(syncCapture(sync,label,channels,observer));pending.delete(k);}}});
+    if(job.trace)observer=services.BusObserver.install({prgStart:layout.prgStart,prgBytes:layout.prgBytes,prgReads:true,ppuWrites:false,watchRam:[],maxEvents:job.maxEvents||100000});
+    let chunkStart=performance.now();
+    for(let f=0;f<job.maxFrames&&pending.size;f++){
+      agentMask=job.latches[sync.state.latches.length]??job.defaultMask;
+      emuRunFrame();sync.endFrame();if(observer)observer.endFrame();result.job.frames++;
+      if(performance.now()-t0>(request.budgets?.wallMs||60000)){result.job.stopReason='the job exceeded its wall-clock budget at frame '+(f+1);break;}
+      if(performance.now()-chunkStart>(request.chunkMs||16)){const held=agentMask;agentMask=null;await yieldTask();agentMask=held;chunkStart=performance.now();report({type:'progress',runId,frame:f+1,total:job.maxFrames});
+        if(cancelled.has(runId)){result.job.stopReason='cancelled at frame '+(f+1);result.outcomeHint='cancelled';break;}}
+    }
+    if(pending.size&&!result.job.stopReason)result.job.stopReason='checkpoints not reached within '+job.maxFrames+' frames: '+[...pending.values()].join(', ');
+    Object.assign(result.job,{nmis:sync.state.nmis,latches:sync.state.latches.length,multiLatchFrames:sync.state.multiLatchFrames,missing:[...pending.values()]});
+  }catch(error){result.outcomeHint='crash';result.stopReason=String(error?.message||error);}
+  finally{agentMask=null;if(observer)observer.uninstall();if(sync)sync.uninstall();cancelled.delete(runId);}
+  result.wallMs=Math.round(performance.now()-t0);return result;
+}
 // One trial, from a cold load or from a checkpoint of the ROM loaded now. Deterministic for equal requests.
 async function runTrial(runId,request,report){
-  const t0=performance.now();let observer=null,stop=null,outcomeHint=null;
-  const result={type:'result',runId,captures:[],frameDigests:[],checkpointsSaved:[],trace:null,framesRun:0,startFrame:0};
+  const t0=performance.now();let observer=null,sync=null,stop=null,outcomeHint=null;
+  const result={type:'result',runId,captures:[],frameDigests:[],checkpointsSaved:[],trace:null,framesRun:0,startFrame:0,sync:null};
   try{
     const steps=contract.validateSteps(request.steps,'request.steps').steps,masks=masksOf(steps),total=masks.length;
     if(total>request.budgets.frames)fail('the input runs more frames than the budget');
@@ -110,13 +171,14 @@ async function runTrial(runId,request,report){
       romSha=sha;
     }
     const layout=contract.romLayout(emu.lastBuiltRom);
+    sync=installSync({nmiTarget:nmiTargetOf(emu.lastBuiltRom)});const pathDigests=[];
     if(request.trace)observer=services.BusObserver.install({prgStart:layout.prgStart,prgBytes:layout.prgBytes,prgReads:request.trace.prgReads,ppuWrites:request.trace.ppuWrites,watchRam:request.trace.watchRam||[],maxEvents:request.trace.maxEvents});
     const captureAt=new Map(request.captures.map(c=>[c.frame,c])),saveAt=new Map((request.save||[]).map(c=>[c.frame,c])),channels=request.channels,payloads=new Set(request.payloads||[]);
     let chunkStart=performance.now(),stuck=0;
     agentMask=0;
     for(let f=result.startFrame;f<total;f++){
       if(saveAt.has(f)){const c=saveAt.get(f),handle=services.EmulatorTimeline.saveOwnedCheckpoint('experiment '+c.label);checkpoints.set(c.label,{label:c.label,frame:f,romSha,handle,stateDigest:contract.sha256(Uint8Array.from([...snapshotChannel('cpu'),...snapshotChannel('ram'),...snapshotChannel('nametables'),...snapshotChannel('palette'),...snapshotChannel('oam')]))});result.checkpointsSaved.push({label:c.label,frame:f});}
-      agentMask=masks[f];emuRunFrame();result.framesRun++;
+      agentMask=masks[f];emuRunFrame();result.framesRun++;pathDigests.push(sync.endFrame());
       if(observer){observer.endFrame();const fr=observer.frames[observer.frames.length-1];stuck=fr[1]>=0&&fr[2]-fr[1]<=4&&fr[3]===0?stuck+1:0;
         if(stuck>=request.hangFrames){stop='timeout';result.stopReason='the program is stuck: the CPU stayed within $'+fr[1].toString(16)+'–$'+fr[2].toString(16)+' with no interrupt for '+stuck+' frames';break;}}
       if(request.frameDigests)result.frameDigests.push(fnv([emu.ram,emu.vram,emu.palRam,emu.oamMem]));
@@ -129,8 +191,9 @@ async function runTrial(runId,request,report){
         if(cancelled.has(runId)){stop='cancelled';result.stopReason='cancelled at frame '+(f+1);break;}}
     }
     result.outcomeHint=stop;
+    result.sync={nmiFrames:sync.state.nmiFrames,latches:sync.state.latches,pathDigests,multiLatchFrames:sync.state.multiLatchFrames,nmiTarget:nmiTargetOf(emu.lastBuiltRom)};
   }catch(error){result.outcomeHint='crash';result.stopReason=String(error?.message||error);}
-  finally{agentMask=null;if(observer){result.trace={...observer.summary(),roles:observer.roles,events:observer.events,frames:observer.frames};observer.uninstall();}cancelled.delete(runId);}
+  finally{agentMask=null;if(observer){result.trace={...observer.summary(),roles:observer.roles,events:observer.events,frames:observer.frames};observer.uninstall();}if(sync)sync.uninstall();cancelled.delete(runId);}
   result.wallMs=Math.round(performance.now()-t0);result.endFrame=emu.frameCount;
   try{result.memory=performance.memory?{usedJSHeapSize:performance.memory.usedJSHeapSize,totalJSHeapSize:performance.memory.totalJSHeapSize}:null;}catch(_){result.memory=null;}
   return result;
@@ -149,9 +212,9 @@ function agent(){
     if(m.type==='cancel'){cancelled.add(m.runId);return;}
     if(m.type==='release'){for(const l of m.labels||[]){checkpoints.get(l)?.handle.release();checkpoints.delete(l);}return;}
     if(m.type==='run'){if(busy){send({type:'result',runId:m.runId,outcome:'invalid',stopReason:'the sandbox is already running a trial'});return;}
-      busy=true;try{send(await runTrial(m.runId,m.request,send));}finally{busy=false;}}
+      busy=true;try{send(await (m.request?.job?runJob:runTrial)(m.runId,m.request,send));}finally{busy=false;}}
   });
-  documentSha256().then(sha=>send({type:'ready',identity:{documentSha256:sha,engine:'NES Forge emulator, same build as the editor',mappers:[0],channels:contract.CHANNELS},errors:errors.slice()}));
+  documentSha256().then(sha=>send({type:'ready',identity:{documentSha256:sha,engine:'NES Forge emulator, same build as the editor',mappers:[0],channels:contract.CHANNELS,jobs:true},errors:errors.slice()}));
 }
 services.ExperimentSandboxAgent=Object.freeze({inSandbox:()=>inSandbox});
 services.ExperimentSandbox=Object.freeze({PREFIX,available,open,documentText,documentSha256,closeAll:()=>{for(const s of [...sessions])s.close('closed');},sessions:()=>sessions.size});

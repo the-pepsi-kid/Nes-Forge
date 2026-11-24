@@ -37909,39 +37909,66 @@ function verifyReceipt(receipt){
 }
 
 // ---------- candidate definitions ----------
-// A candidate stays a candidate: nothing here can mark it verified for the library.
+// A candidate stays a candidate: nothing here can mark it verified for the library. Version 1 (AL-EXP-01) stays
+// readable; version 2 (AL-EXP-02) adds the revision chain, the decoder it is written for, its assumptions, what it does
+// not support, and how record 0 was established (record numbering).
 const CANDIDATE_FIELDS=['format','version','kind','status','hypothesis','source','table','attributes','extent','aliases','evidence','verification','limitations'];
+const CANDIDATE_FIELDS_V2=[...CANDIDATE_FIELDS,'revision','decoder','assumptions','unsupported'];
+const NUMBERING=Object.freeze(['operand-evidence','relative']);
+const candidateFields=d=>d&&d.version===2?CANDIDATE_FIELDS_V2:CANDIDATE_FIELDS;
 function sealCandidate(definition){
-  const body={};for(const k of CANDIDATE_FIELDS){if(!(k in definition))fail('candidate.'+k,'is required');body[k]=definition[k];}
-  for(const k of Object.keys(definition))if(!CANDIDATE_FIELDS.includes(k)&&k!=='definitionHash')fail('candidate.'+k,'is not a recognised field');
+  const fields=candidateFields(definition),body={};for(const k of fields){if(!(k in definition))fail('candidate.'+k,'is required');body[k]=definition[k];}
+  for(const k of Object.keys(definition))if(!fields.includes(k)&&k!=='definitionHash')fail('candidate.'+k,'is not a recognised field');
   checkCandidateBody(body);return deepFreeze({...body,definitionHash:hashOf(body)});
 }
 function checkCandidateBody(c){
-  if(c.format!==FORMATS.candidate||c.version!==VERSION)fail('candidate','is not a '+FORMATS.candidate+' v'+VERSION);
+  if(c.format!==FORMATS.candidate||(c.version!==1&&c.version!==2))fail('candidate','is not a '+FORMATS.candidate+' v1 or v2');
   if(c.kind!=='metatile-table-2x2')fail('candidate.kind','must be metatile-table-2x2');
   if(c.status!=='candidate')fail('candidate.status','must be "candidate"; experimental findings are never verified library resources');
   oneOf(c.hypothesis,'candidate.hypothesis',HYPOTHESES);if(c.hypothesis==='reviewed')fail('candidate.hypothesis','"reviewed" needs a person; an experiment cannot set it');
+  if(c.hypothesis==='independently_verified')fail('candidate.hypothesis','independent verification is an evaluation record about a definition, never part of the definition');
   keys(c.source,'candidate.source',['sha256','byteLength']);hex64(c.source.sha256,'candidate.source.sha256');
-  keys(c.table,'candidate.table',['layout','order','physicalBase','cpuBase','recordStep','fieldStep','grid','baseEvidence']);keys(c.table.grid,'candidate.table.grid',['x','y']);int(c.table.grid.x,'candidate.table.grid.x',0,1);int(c.table.grid.y,'candidate.table.grid.y',0,1);
+  keys(c.table,'candidate.table',['layout','order','physicalBase','cpuBase','recordStep','fieldStep','grid','baseEvidence'],c.version===2?['numbering']:[]);keys(c.table.grid,'candidate.table.grid',['x','y']);int(c.table.grid.x,'candidate.table.grid.x',0,1);int(c.table.grid.y,'candidate.table.grid.y',0,1);
   oneOf(c.table.layout,'candidate.table.layout',['interleaved','split']);oneOf(c.table.order,'candidate.table.order',['row','column']);
   int(c.table.physicalBase,'candidate.table.physicalBase',16,8*1024*1024);int(c.table.recordStep,'candidate.table.recordStep',1,4);int(c.table.fieldStep,'candidate.table.fieldStep',1,256);
   keys(c.verification,'candidate.verification',['repeatability','interventions','independent']);
   if(c.verification.independent!=='not performed')fail('candidate.verification.independent','must be "not performed" in the definition; an evaluation is a separate record');
+  if(c.version===2){
+    oneOf(c.table.numbering,'candidate.table.numbering',NUMBERING);
+    keys(c.revision,'candidate.revision',['number','previous','reason']);int(c.revision.number,'candidate.revision.number',1,10000);
+    if(c.revision.number===1?c.revision.previous!==null:!/^[0-9a-f]{64}$/.test(c.revision.previous||''))fail('candidate.revision.previous','must be null for revision 1 and the previous revision\'s hash after it');
+    text(c.revision.reason,'candidate.revision.reason',LIMITS.description);
+    keys(c.decoder,'candidate.decoder',['name','version']);ident(c.decoder.name,'candidate.decoder.name');int(c.decoder.version,'candidate.decoder.version',1,1000);
+    keys(c.assumptions,'candidate.assumptions',['mapper','banking','mirroring','screen']);
+    list(c.unsupported,'candidate.unsupported',0,32).forEach((u,i)=>text(u,'candidate.unsupported['+i+']',LIMITS.description));
+  }
 }
 function verifyCandidate(definition){
   const problems=[];
-  try{if(!isObject(definition))fail('candidate','must be an object');const body={};for(const k of CANDIDATE_FIELDS)body[k]=definition[k];checkCandidateBody(body);
-    for(const k of Object.keys(definition))if(!CANDIDATE_FIELDS.includes(k)&&k!=='definitionHash')problems.push('unrecognised field '+k);
+  try{if(!isObject(definition))fail('candidate','must be an object');const fields=candidateFields(definition),body={};for(const k of fields)body[k]=definition[k];checkCandidateBody(body);
+    for(const k of Object.keys(definition))if(!fields.includes(k)&&k!=='definitionHash')problems.push('unrecognised field '+k);
     if(hashOf(body)!==definition.definitionHash)problems.push('the definition does not match its hash');}
   catch(error){problems.push(error.message);}
   return {ok:!problems.length,problems};
+}
+// A changed definition is a new revision: it starts untested (its predecessor's interventions, withheld evaluation and
+// independent verification do not carry over), and it names the revision it replaces.
+function reviseCandidate(definition,changes,reason){
+  const v=verifyCandidate(definition);if(!v.ok)fail('candidate','cannot be revised: '+v.problems.join('; '));
+  if(definition.version!==2)fail('candidate','only a v2 definition can be revised');
+  for(const k of Object.keys(changes||{}))if(!['table','attributes','extent','aliases','limitations','unsupported'].includes(k))fail('changes.'+k,'cannot be revised (identity, status and evidence are not editable)');
+  const copy=JSON.parse(JSON.stringify(definition));delete copy.definitionHash;Object.assign(copy,JSON.parse(JSON.stringify(changes||{})));
+  copy.revision={number:definition.revision.number+1,previous:definition.definitionHash,reason};copy.hypothesis='proposed';
+  copy.evidence={plans:[],interventions:[],revisedFrom:definition.definitionHash};
+  copy.verification={repeatability:'not tested (new revision)',interventions:'not tested (new revision)',independent:'not performed'};
+  return sealCandidate(copy);
 }
 
 function deepFreeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)&&!(value instanceof Uint8Array)){Object.freeze(value);for(const v of Object.values(value))deepFreeze(v);}return value;}
 
 return Object.freeze({version:VERSION,FORMATS,OUTCOMES,HYPOTHESES,VERIFICATION,LIMITS,BUTTONS,CHANNELS,TRIAL_KINDS,PRIVACY,SYNTHETIC_MARKER,
   canonical,sha256,hashOf,hex,fromHex,romLayout,isSynthetic,defaultProtected,validateSteps,validatePlan,validateMutations,buildVariant,
-  sealReceipt,verifyReceipt,sealCandidate,verifyCandidate,deepFreeze,fail});
+  sealReceipt,verifyReceipt,sealCandidate,verifyCandidate,reviseCandidate,NUMBERING,deepFreeze,fail});
 });
 /* AL-EXP-01 (BL06): a layout-agnostic 2x2 metatile table finder. Independent implementation written from functional
  * requirements (Audit 02, T06); no NesBlockFinder or CadEditor code is copied or translated. Pure: it reads cartridge
@@ -38062,13 +38089,15 @@ function cpuToPhysical(address,layout){if(address<0x8000)return -1;return layout
 function inferBase(w,rom,layout,events){
   const h=w.hypothesis,lo=layout.prgStart+w.lo,fallback={physical:lo,method:'lowest observed record (index of record 0 unknown)',votes:0,instructions:[]};
   if(!events)return fallback;
-  const end=lo+(h.layout==='split'?3*h.fieldStep+LIMITS.maxRecords:LIMITS.maxRecords*4),votes=new Map(),instructions=new Map();
+  // evidence only from reads of bytes this candidate attributes to one of its matched records (AL-EXP-02): a table the
+  // program reads for some other purpose nearby must not vote for record 0
+  const field=new Map();for(const ps of w.byKey.values())for(const p of ps)fieldOffsets(w,p).forEach((o,k)=>field.set(layout.prgStart+o,k));
+  const votes=new Map(),instructions=new Map();
   for(const e of events){
-    if(e[1]!==0)continue;const at=e[5];if(at<lo-LIMITS.maxRecords*h.recordStep||at>=end)continue;
+    if(e[1]!==0)continue;const at=e[5],k=field.get(at);if(k===undefined)continue;
     const pc=e[3];if(pc<0||pc+2>=rom.length)continue;const op=rom[pc];if(!INDEXED.has(op))continue;
     const operand=rom[pc+1]|(rom[pc+2]<<8),base=cpuToPhysical(operand,layout);if(base<0)continue;
-    let k;if(h.layout==='interleaved')k=((at-lo)%4+4)%4;else k=Math.floor((at-lo)/h.fieldStep);
-    if(k<0||k>3)continue;const b=base-k*h.fieldStep;
+    const b=base-k*h.fieldStep;
     if(b>lo||(lo-b)%h.recordStep)continue;
     votes.set(b,(votes.get(b)||0)+1);const key=pc+':'+k;if(!instructions.has(key))instructions.set(key,{pcPhysical:pc,cpuPc:e[2],opcode:op,operand,field:k,base:b});
   }
@@ -38101,14 +38130,14 @@ function attributeArrays(w,rom,layout,access,events){
 // ---------- interventions ----------
 // A falsifiable test of one candidate: change one tile byte of one record that appears exactly once in the candidate,
 // and predict exactly which nametable cells change, to what, in every capture.
-function planTileIntervention(w,rom,layout){
-  const keys=[...w.byKey.entries()].filter(([,ps])=>ps.length===1).map(([key])=>key);
+function planTileIntervention(w,rom,layout,{skipKeys=[],quadrant='TL'}={}){
+  const keys=[...w.byKey.entries()].filter(([key,ps])=>ps.length===1&&!skipKeys.includes(key)).map(([key])=>key);
   if(!keys.length)return null;
   const best=keys.map(k=>w.tuples.get(k)).sort((a,b)=>b.cells.length-a.cells.length||a.cells[0].screen-b.cells[0].screen||(a.key<b.key?-1:1))[0];
-  const p=w.byKey.get(best.key)[0],f=ORDERS[w.hypothesis.order].TL,offset=layout.prgStart+p+f*w.hypothesis.fieldStep,expected=rom[offset];
+  const q=QUADS.indexOf(quadrant),p=w.byKey.get(best.key)[0],f=ORDERS[w.hypothesis.order][quadrant],offset=layout.prgStart+p+f*w.hypothesis.fieldStep,expected=rom[offset];
   let value=expected^1;if(!value)value=expected^2;
-  const predict=best.cells.map(c=>({label:c.label,index:(2*c.my+w.grid.y)*32+2*c.mx+w.grid.x,value}));
-  return {kind:'tile',candidate:w.id,key:best.key,mutation:{offset,expected,value},predict};
+  const dx=q&1,dy=q>>1,predict=best.cells.map(c=>({label:c.label,index:(2*c.my+w.grid.y+dy)*32+2*c.mx+w.grid.x+dx,value}));
+  return {kind:'tile',candidate:w.id,key:best.key,quadrant,mutation:{offset,expected,value},predict};
 }
 function planAttributeIntervention(w,array,rom,layout,captureAttributes){
   const ids=indexMap(w,layout);
@@ -38133,13 +38162,19 @@ function judge(prediction,baseline,variant){
 }
 
 // ---------- the candidate definition (data only) ----------
-function define({w,array,interventions,repeatability,rom,layout,evidence}){
+const DECODER=Object.freeze({name:'metatile-2x2',version:1});
+function define({w,array,interventions,repeatability,rom,layout,evidence,version=2}){
   const ids=indexMap(w,layout),known=[...new Set([...ids.values()].flat())].sort((a,b)=>a-b);
   const h=w.hypothesis,aliasGroups=[];
   for(const [key,list] of ids)if(list.length>1){const t=w.tuples.get(key);aliasGroups.push({ids:list.slice().sort((a,b)=>a-b),resolvedBy:array&&new Set(list.map(id=>DECODERS[array.decode](rom[array.physical+id]))).size===list.length?'attribute palette':'none (identical record and palette)',observedPalettes:[...t.palettes].sort()});}
-  return {format:'NESForgeCandidateDefinition',version:1,kind:'metatile-table-2x2',status:'candidate',hypothesis:'supported',
+  const numbering=w.base.votes>0?'operand-evidence':'relative';
+  const v2=version===2?{revision:{number:1,previous:null,reason:'frozen after its predicted interventions held, before the withheld input ran'},decoder:{...DECODER},
+    assumptions:{mapper:'NROM (iNES mapper 0)',banking:'none: PRG is one fixed window, CHR is fixed',mirroring:layout.mirroring,screen:'unscrolled nametable 0, 16x15 metatiles of 2x2 tiles'},
+    unsupported:['bank-switched mappers','scrolled or partially scrolled screens','metatiles larger than 2x2 or nested','compressed tables','records reached through pointer tables',
+      ...(numbering==='relative'?['absolute record numbering: no instruction operand names record 0, so IDs count from the lowest observed record']:[])]}:{};
+  return {format:'NESForgeCandidateDefinition',version,kind:'metatile-table-2x2',status:'candidate',hypothesis:'supported',...v2,
     source:{sha256:evidence.sourceSha256,byteLength:rom.length},
-    table:{layout:h.layout,order:h.order,physicalBase:w.base.physical,cpuBase:w.base.cpuBase??null,recordStep:h.recordStep,fieldStep:h.fieldStep,grid:{x:w.grid.x,y:w.grid.y},
+    table:{layout:h.layout,order:h.order,physicalBase:w.base.physical,cpuBase:w.base.cpuBase??null,recordStep:h.recordStep,fieldStep:h.fieldStep,grid:{x:w.grid.x,y:w.grid.y},...(version===2?{numbering}:{}),
       baseEvidence:{method:w.base.method,votes:w.base.votes,instructions:w.base.instructions.map(i=>({cpuPc:i.cpuPc,pcPhysical:i.pcPhysical,opcode:i.opcode,operand:i.operand,field:i.field}))}},
     attributes:array?{physicalBase:array.physical,decode:array.decode,evidence:array.instructions.length?'operand of the indexed instruction that reads it':'consistent with every observed palette',instructions:array.instructions.slice(0,4)}:null,
     extent:{knownIds:known,lowest:known[0],highest:known[known.length-1],claim:'records 0 through the highest observed ID are one table; records past it are not claimed'},
@@ -38177,7 +38212,7 @@ function reconstruct(def,rom,layout,capture){
   return {supported:true,cells,attributes,counts};
 }
 
-return Object.freeze({version:VERSION,LIMITS,ORDERS,visible,tuples,propose,proposeAsync,attributeArrays,planTileIntervention,planAttributeIntervention,judge,define,decodeRecord,reconstruct,physicalNametable,paletteAt});
+return Object.freeze({version:VERSION,LIMITS,ORDERS,QUADS,DECODER,visible,tuples,propose,proposeAsync,attributeArrays,planTileIntervention,planAttributeIntervention,judge,define,decodeRecord,reconstruct,physicalNametable,paletteAt});
 });
 /* AL-EXP-01 (BL05): the experiment evidence store. Separate from the resource library by design: nothing here writes
  * to the library, a project or a cartridge, and nothing in the library reads it. Payloads are stored once per exact
@@ -38233,6 +38268,406 @@ function createStore({maxBytes=contract.LIMITS.evidenceBytes}={}){
 }
 function stripTiming(r){const {timing,...rest}=r;return rest;}
 return Object.freeze({version:VERSION,createStore,b64,unb64});
+});
+/* AL-EXP-02: independent verification. Pure and engine-neutral (UMD): the same code runs in the editor and in the
+ * development harness (tools/agent-lab/independent), so both sides normalize and compare identically.
+ *
+ * A verification job is what both engines run: a cartridge from power-on, the joypad masks latched at successive $4016
+ * strobes, and checkpoints at the k-th entry to the NMI handler. Frame counts are not compared: engines number frames
+ * differently, and the program's own events are the common clock.
+ *
+ * Normalization (representation only, never meaning): CPU flags B and bit 5 are not stored flags and are masked;
+ * nametable RAM is taken physically (2 KiB) through the cartridge's mirroring; palette RAM mirrors ($3F10/14/18/1C)
+ * are folded and values masked to 6 bits; the picture is compared as NES colour indices reduced to the classes NES
+ * Forge's palette table draws identically (RGB values, overscan and emulator palettes are never compared). Differences
+ * are kept and classified, never dropped: the three bytes of the interrupt frame on the stack are timing-dependent
+ * (where the main loop was when NMI arrived); every other difference is semantic until explained. */
+(function(root,factory){const node=typeof module!=='undefined'&&module.exports;const api=factory(node?require('./experiment-contract.js'):root.ForgeExperimentContract);if(node)module.exports=api;else root.ForgeExperimentVerification=api;})(typeof globalThis!=='undefined'?globalThis:this,function(contract){
+'use strict';
+const VERSION=1;
+const FORMATS=Object.freeze({job:'NESForgeVerificationJob',independent:'NESForgeIndependentVerification'});
+const CHANNELS=Object.freeze(['cpu','ram','nametables','attributes','palette','chr','pixels','reads']);
+const NOT_COMPARED=Object.freeze({oam:'FCEUX 2.6 exposes no OAM read to Lua; the fixtures draw no sprites',apu:'audio is outside this verification'});
+const VERDICTS=Object.freeze(['verified','failed','blocked','not-applicable']);
+function fail(message){throw Error('Verification: '+message);}
+const bytesOf=v=>v instanceof Uint8Array?v:v&&v.type==='Buffer'?Uint8Array.from(v.data):Array.isArray(v)?Uint8Array.from(v):null;
+
+// ---------- jobs ----------
+// From a Forge frame-mode run: the masks it latched, and the NMI index at each capture (the last NMI handler entry
+// before the end of the capture frame).
+function deriveJob({id,kind,cartridgeSha256,mutations=[],sync,captures,trace=false,chr=false,pixels=true,margin=120}){
+  if(!sync||!Array.isArray(sync.latches)||!Array.isArray(sync.nmiFrames))fail('the run carries no synchronization record');
+  const checkpoints=[];
+  for(const c of captures){const k=sync.nmiFrames.filter(f=>f<c.frame).length;if(k>0&&!checkpoints.some(x=>x.nmi===k))checkpoints.push({label:c.label,nmi:k});}
+  const latches=sync.latches.map(l=>l[1]);
+  return {format:FORMATS.job,version:VERSION,id,kind,cartridgeSha256,mutations:mutations.map(m=>({offset:m.offset,expected:m.expected,value:m.value})),
+    nmiTarget:sync.nmiTarget,latches,defaultMask:0,checkpoints,maxFrames:Math.max(...captures.map(c=>c.frame))+margin,trace:!!trace,chr:!!chr,pixels:!!pixels,
+    channels:['cpu','ram','nametables','palette',...(chr?['chr']:[]),...(pixels?['pixels']:[]),...(trace?['reads']:[])]};
+}
+
+// ---------- normalization ----------
+function foldPalette(p){const out=new Uint8Array(32);for(let i=0;i<32;i++){let j=i;if((j&19)===16)j-=16;out[i]=p[j]&63;}return out;}
+function splitCiram(ciram){const nt=new Uint8Array(1920),at=new Uint8Array(128);nt.set(ciram.subarray(0,960),0);nt.set(ciram.subarray(0x400,0x400+960),960);at.set(ciram.subarray(960,1024),0);at.set(ciram.subarray(0x400+960,0x800),64);return {nt,at};}
+// logical PPU $2000-$2FFF (as an emulator's PPU bus shows it) to physical nametable RAM
+function physicalFromLogical(ppu,mirroring){const out=new Uint8Array(0x800);if(mirroring==='vertical'){out.set(ppu.subarray(0,0x400),0);out.set(ppu.subarray(0x400,0x800),0x400);}else if(mirroring==='horizontal'){out.set(ppu.subarray(0,0x400),0);out.set(ppu.subarray(0x800,0xc00),0x400);}else fail('mirroring '+mirroring+' is not supported');return out;}
+function pixelsToClass(px,colourClass){const out=new Uint8Array(px.length);for(let i=0;i<px.length;i++){const v=px[i]&63;out[i]=px[i]===255?255:colourClass?colourClass[v]:v;}return out;}
+function readsBytes(reads){const out=new Uint8Array(reads.length*4);reads.forEach(([pc,a],i)=>{out[4*i]=pc&255;out[4*i+1]=pc>>8;out[4*i+2]=a&255;out[4*i+3]=a>>8;});return out;}
+// to {channel: bytes} with one form for both engines
+function normalize(capture,{engine,mirroring,colourClass}){
+  const out={label:capture.label,nmi:capture.nmi,frame:capture.frame,latches:capture.latches,channels:{}};const c=out.channels;
+  const regs=engine==='forge'?capture.cpu:capture.regs;
+  if(regs)c.cpu=Uint8Array.from([regs.a,regs.x,regs.y,regs.s,regs.p&0xcf,regs.pc&255,regs.pc>>8]);
+  const ram=bytesOf(capture.ram);if(ram)c.ram=ram;out.written=bytesOf(capture.written);
+  const ciram=engine==='forge'?bytesOf(capture.ciram):capture.ppu?physicalFromLogical(bytesOf(capture.ppu),mirroring):null;
+  if(ciram){const s=splitCiram(ciram);c.nametables=s.nt;c.attributes=s.at;out.ciram=ciram;}
+  const pal=bytesOf(capture.palette);if(pal)c.palette=foldPalette(pal);
+  const chr=bytesOf(capture.chr);if(chr)c.chr=chr;
+  const px=bytesOf(capture.pixels);if(px)c.pixels=pixelsToClass(px,colourClass);
+  if(capture.reads)c.reads=readsBytes(capture.reads.map(r=>[r[0],r[1]]));
+  return out;
+}
+const digestAll=n=>Object.fromEntries(Object.entries(n.channels).map(([k,v])=>[k,contract.sha256(v)]));
+
+// ---------- comparison ----------
+function compareNormalized(a,b){
+  const channels={},discrepancies=[];
+  for(const ch of CHANNELS){
+    const x=a.channels[ch],y=b.channels[ch];
+    if(!x||!y){channels[ch]={status:'not-compared',reason:!x&&!y?'captured by neither run':!x?'not captured by NES Forge':'not captured by the independent emulator'};continue;}
+    if(x.length===y.length&&x.every((v,i)=>v===y[i])){channels[ch]={status:'equal',bytes:x.length};continue;}
+    const diffs=[];for(let i=0;i<Math.max(x.length,y.length);i++)if(x[i]!==y[i])diffs.push(i);
+    const row={status:'differs',bytes:Math.max(x.length,y.length),count:diffs.length,first:diffs.slice(0,12).map(i=>({index:i,forge:x[i]??null,independent:y[i]??null}))};
+    if(ch==='ram'){const s=a.channels.cpu?a.channels.cpu[3]:null,frame=s===null?[]:[1,2,3].map(k=>0x100+((s+k)&0xff));
+      const timing=diffs.filter(i=>frame.includes(i)),semantic=diffs.filter(i=>!frame.includes(i));
+      row.timing={indexes:timing,reason:'the interrupt frame on the stack: where the main loop was when NMI arrived (instruction timing)'};row.semantic=semantic.length;
+      row.status=semantic.length?'differs':'equal-except-timing';}
+    if(ch==='reads'){row.forgeReads=x.length/4;row.independentReads=y.length/4;row.firstDivergence=diffs.length?Math.floor(diffs[0]/4):null;}
+    channels[ch]=row;
+    if(row.status==='differs')discrepancies.push({channel:ch,count:row.semantic??row.count,first:row.first,classification:'semantic (unexplained)'});
+  }
+  for(const [ch,reason] of Object.entries(NOT_COMPARED))channels[ch]={status:'not-compared',reason};
+  return {channels,discrepancies,agree:!discrepancies.length};
+}
+
+// ---------- predictions, judged on one engine's captures ----------
+// the visible (unscrolled, nametable 0) 1024 bytes: 960 tiles then 64 attribute bytes
+function visibleOf(n){if(n.ciram)return n.ciram.subarray(0,1024);const nt=n.channels.nametables,at=n.channels.attributes;if(!nt||!at)fail('a capture without nametable bytes cannot be judged');const v=new Uint8Array(1024);v.set(nt.subarray(0,960),0);v.set(at.subarray(0,64),960);return v;}
+const visibleAt=(v,i)=>v[i];
+function checkPrediction(baseline,variant,predict){
+  const a=visibleOf(baseline),b=visibleOf(variant);
+  const changed=[];for(let i=0;i<1024;i++)if(visibleAt(a,i)!==visibleAt(b,i))changed.push(i);
+  const expect=new Map(predict.map(p=>[p.index,p.value]));
+  const unexpected=changed.filter(i=>expect.get(i)!==visibleAt(b,i)),missing=[...expect.keys()].filter(i=>!changed.includes(i));
+  return {changed:changed.length,predicted:expect.size,unexpected:unexpected.length,missing:missing.length,holds:changed.length>0&&!unexpected.length&&!missing.length};
+}
+function checkNoEffect(baseline,variant){
+  const same=ch=>{const x=baseline.channels[ch],y=variant.channels[ch];return !x||!y||(x.length===y.length&&x.every((v,i)=>v===y[i]));};
+  const differing=['nametables','attributes','palette','pixels'].filter(ch=>!same(ch));
+  return {holds:!differing.length,differing};
+}
+// The frozen definition's claims about the withheld screen: each claimed cell's four tiles, and attribute bits
+function checkClaims(holdout,claims){
+  let cells=0,cellsHold=0,bits=0,bitsHold=0;const failures=[];
+  const v=visibleOf(holdout);
+  for(const c of claims.cells){cells++;const got=[c.index,c.index+1,c.index+32,c.index+33].map(i=>visibleAt(v,i));if(got.every((v,k)=>v===c.tiles[k]))cellsHold++;else if(failures.length<12)failures.push({cell:c.cell,claimed:c.tiles,captured:got});}
+  for(const a of claims.attributes){const got=visibleAt(v,960+a.index);for(let b=0;b<8;b++)if(a.knownMask>>b&1){bits++;if(((a.value^got)>>b&1)===0)bitsHold++;}}
+  return {cells,cellsHold,bits,bitsHold,holds:cells===cellsHold&&bits===bitsHold,failures};
+}
+
+// ---------- independent verification receipt ----------
+const RECEIPT_FIELDS=['format','version','engine','forgeEngine','subject','jobs','comparisons','predictions','verdict','discrepancies','limitations','independent'];
+function sealIndependent(body){const out={};for(const k of RECEIPT_FIELDS){if(!(k in body))fail('receipt.'+k+' is required');out[k]=body[k];}
+  for(const k of Object.keys(body))if(!RECEIPT_FIELDS.includes(k)&&k!=='receiptHash'&&k!=='timing')fail('receipt.'+k+' is not a recognised field');checkIndependent(out);
+  return contract.deepFreeze({...out,receiptHash:contract.hashOf(out),...(body.timing?{timing:body.timing}:{})});}
+function checkIndependent(r){
+  if(r.format!==FORMATS.independent||r.version!==VERSION)fail('not a '+FORMATS.independent+' v'+VERSION);
+  if(!r.engine||typeof r.engine.name!=='string'||!r.engine.version)fail('the receipt names no independent engine and version');
+  if(/forge/i.test(r.engine.name))fail('an NES Forge engine cannot be its own independent verifier');
+  if(r.independent!==true)fail('an independent receipt says independent: true');
+  if(!VERDICTS.includes(r.verdict?.result))fail('verdict.result must be one of '+VERDICTS.join(', '));
+  if(!r.subject||!/^[0-9a-f]{64}$/.test(r.subject.cartridgeSha256||''))fail('the receipt names no cartridge');
+}
+function verifyIndependent(r){const problems=[];try{const body={};for(const k of RECEIPT_FIELDS)body[k]=r[k];checkIndependent(body);
+  for(const k of Object.keys(r))if(!RECEIPT_FIELDS.includes(k)&&k!=='receiptHash'&&k!=='timing')problems.push('unrecognised field '+k);
+  if(contract.hashOf(body)!==r.receiptHash)problems.push('the receipt does not match its hash');}catch(e){problems.push(e.message);}return {ok:!problems.length,problems};}
+
+// The verdict from comparisons and predictions. "verified" needs agreement on every compared channel at every
+// checkpoint (timing-classified stack bytes reported, not hidden) and every prediction holding on the independent engine.
+function verdictOf({comparisons,predictions,blocked=null}){
+  if(blocked)return {result:'blocked',reason:blocked};
+  const disagreements=comparisons.filter(c=>!c.agree),failed=predictions.filter(p=>!p.holds);
+  if(!predictions.length&&!comparisons.length)return {result:'not-applicable',reason:'nothing to verify'};
+  if(disagreements.length||failed.length)return {result:'failed',reason:[disagreements.length?disagreements.length+' checkpoint(s) where the engines disagree':'',failed.length?failed.length+' prediction(s) that do not hold on the independent engine':''].filter(Boolean).join('; ')};
+  return {result:'verified',reason:'the engines agree on every compared channel at '+comparisons.length+' checkpoint(s), and '+predictions.length+' prediction(s) hold on the independent engine'};
+}
+
+// ---------- the editor's own re-check of an attached receipt ----------
+// A receipt carries the independent engine's normalized channels (small ones as bytes, large ones as SHA-256). NES Forge
+// compares them with its own job captures and re-judges every prediction on the independent captures itself, so the
+// verdict it shows is its own computation from raw data, never the harness's word.
+const fromB64=t=>{const s=typeof atob==='function'?atob(t):Buffer.from(t,'base64').toString('latin1');const out=new Uint8Array(s.length);for(let i=0;i<s.length;i++)out[i]=s.charCodeAt(i);return out;};
+function receiptCapture(c){return {label:c.label,nmi:c.nmi,channels:Object.fromEntries(Object.entries(c.payloads||{}).map(([ch,t])=>[ch,fromB64(t)])),digests:c.digests||{}};}
+function compareByDigest(forge,independent){
+  const channels={},discrepancies=[];
+  for(const ch of CHANNELS){const fx=forge.channels?.[ch],ix=independent.channels[ch],fd=forge.digests?.[ch],id=independent.digests?.[ch];
+    if(fx&&ix){const one=compareNormalized({channels:{[ch]:fx,...(ch==='ram'&&forge.channels.cpu?{cpu:forge.channels.cpu}:{})}},{channels:{[ch]:ix}});channels[ch]=one.channels[ch];discrepancies.push(...one.discrepancies);continue;}
+    if(!fd||!id){channels[ch]={status:'not-compared',reason:!fd&&!id?'captured by neither run':!fd?'not captured by NES Forge':'not captured by the independent emulator'};continue;}
+    if(fd===id)channels[ch]={status:'equal',by:'SHA-256 of the normalized bytes'};else{channels[ch]={status:'differs',by:'SHA-256 of the normalized bytes (bytes not in the receipt)'};if(ch!=='ram')discrepancies.push({channel:ch,classification:'semantic (unexplained)',by:'digest'});}}
+  for(const [ch,reason] of Object.entries(NOT_COMPARED))channels[ch]={status:'not-compared',reason};
+  return {channels,discrepancies,agree:!discrepancies.length};
+}
+// forgeJobs: [{job:{id}, expectation, captures:[{label, digests, channels(bytes, optional)}]}]
+function recheck({receipt,forgeJobs}){
+  const comparisons=[],predictions=[],notes=[];
+  const indep=new Map(receipt.jobs.map(j=>[j.id,j]));
+  const ibase=indep.get('training-baseline');const baseIndependent=ibase?ibase.captures.map(receiptCapture):[];
+  for(const fj of forgeJobs){const ij=indep.get(fj.job.id);if(!ij){notes.push('the receipt has no run of job '+fj.job.id);continue;}
+    if(ij.result?.missing?.length||ij.result?.stopReason){notes.push('job '+fj.job.id+' did not complete on the independent engine: '+(ij.result.stopReason||'missing '+ij.result.missing.join(', ')));}
+    for(const fc of fj.captures){const ic=ij.captures.find(c=>c.label===fc.label);if(!ic){comparisons.push({job:fj.job.id,label:fc.label,agree:false,channels:{},discrepancies:[{channel:'all',classification:'checkpoint missing on the independent engine'}]});continue;}
+      const r=compareByDigest(fc,receiptCapture(ic));comparisons.push({job:fj.job.id,label:fc.label,nmi:fc.nmi,...r});}
+    const e=fj.expectation,icaps=ij.captures.map(receiptCapture);
+    if(e.kind==='prediction'||e.kind==='no-effect')for(const c of icaps){const b=baseIndependent.find(x=>x.label===c.label);if(!b)continue;
+      try{const r=e.kind==='prediction'?checkPrediction(b,c,e.predict.filter(p=>p.label===c.label)):checkNoEffect(b,c);predictions.push({job:fj.job.id,label:c.label,kind:e.kind,engine:'independent',...r});}catch(err){predictions.push({job:fj.job.id,label:c.label,kind:e.kind,holds:false,error:err.message});}}
+    if(e.kind==='claims'&&icaps[0]){try{predictions.push({job:fj.job.id,label:icaps[0].label,kind:'claims',engine:'independent',...checkClaims(icaps[0],e.claims)});}catch(err){predictions.push({job:fj.job.id,kind:'claims',holds:false,error:err.message});}}
+  }
+  const verdict=verdictOf({comparisons,predictions});
+  const matchesReceipt=verdict.result===receipt.verdict?.result;
+  return {comparisons,predictions,verdict,notes,matchesReceipt,receiptVerdict:receipt.verdict};
+}
+
+return Object.freeze({version:VERSION,FORMATS,CHANNELS,NOT_COMPARED,VERDICTS,deriveJob,normalize,digestAll,compareNormalized,checkPrediction,checkNoEffect,checkClaims,visibleOf,recheck,compareByDigest,receiptCapture,
+  physicalFromLogical,foldPalette,sealIndependent,verifyIndependent,verdictOf,bytesOf});
+});
+/* AL-EXP-02: the discovery lifecycle. A state is never stored on a definition and never set by hand, a score or an
+ * agent: it is assessed from evidence every time, and each step names the evidence it requires. Falsified, ambiguous
+ * and inconclusive results are kept as findings, not discarded. UMD, pure.
+ *
+ *   uninvestigated -> observed -> hypothesis -> experimentally supported -> same-engine repeatable
+ *     -> independently verified -> promotion eligible -> user-approved resource
+ *   side states: falsified, ambiguous, inconclusive, verification blocked, verification failed */
+(function(root,factory){const node=typeof module!=='undefined'&&module.exports;const api=factory(node?require('./experiment-contract.js'):root.ForgeExperimentContract);if(node)module.exports=api;else root.ForgeExperimentLifecycle=api;})(typeof globalThis!=='undefined'?globalThis:this,function(contract){
+'use strict';
+const VERSION=1;
+const STATES=Object.freeze(['uninvestigated','observed','hypothesis','experimentally-supported','same-engine-repeatable','independently-verified','promotion-eligible','user-approved']);
+const SIDE=Object.freeze(['falsified','ambiguous','inconclusive','verification-blocked','verification-failed']);
+// The documented evidence requirement of each state (shown in the panel and in packages).
+const REQUIREMENTS=Object.freeze({
+  'uninvestigated':'Nothing has run.',
+  'observed':'A baseline run of the training input reached its target (background enabled at every capture) and produced sealed receipts.',
+  'hypothesis':'At least one ranked candidate table explains at least three distinct observed records; geometry is not yet tested.',
+  'experimentally-supported':'A frozen candidate whose single-byte interventions changed exactly the predicted cells to the predicted values at two record positions (when the table has a second record that appears once), without changing the program\'s path; same-value, unrelated-byte and restoration controls showed no effect; every other tested hypothesis was falsified; record 0 established by instruction operands.',
+  'same-engine-repeatable':'Two cold and two checkpoint-restored baselines identical (state, frames, ordered bus events), and the supporting intervention repeated with identical captures. This is determinism on one engine, not correctness.',
+  'independently-verified':'A sealed receipt from an emulator that is not NES Forge, bound to this definition and cartridge, whose raw captures NES Forge re-compares itself: the engines agree on every compared channel at every checkpoint (timing-classified stack bytes reported), and on the independent engine every supporting intervention shows its predicted effect, every control and decoy shows none, and every claim about the withheld screen holds.',
+  'promotion-eligible':'Independently verified; frozen before the withheld input ran; record numbering from operand evidence; a decoder version and destination the promotion contract supports; no blocking unsupported case. Eligibility allows a preview only.',
+  'user-approved':'A person approved the promotion preview of this exact definition (an approval record naming the definition and preview hashes). Not available in this phase: nothing is promoted.',
+  'falsified':'Every tested hypothesis was falsified by a clean intervention (not read, read with no observed effect, or an unpredicted effect).',
+  'ambiguous':'Several hypotheses survived their interventions and describe different tables, or the table is supported but record 0 is not established, so exact record identity is not claimed.',
+  'inconclusive':'The evidence cannot decide: a control showed an effect, an intervention changed the program\'s path (confounded), a run did not reach its target, or the observations are insufficient to fix a table\'s geometry.',
+  'verification-blocked':'The independent emulator could not run (not installed, no display, refused the cartridge); nothing was verified.',
+  'verification-failed':'The independent engine disagreed with NES Forge on a compared channel, or a prediction did not hold on it.',
+});
+
+function assess({discovery,independent=null,approval=null,priorEvaluations=[]}={}){
+  const steps=[],note=[];let state='uninvestigated',side=null,sideReason=null;
+  const reach=(s,evidence)=>{state=s;steps.push({state:s,evidence});};
+  if(!discovery)return finish();
+  const d=discovery,stages=d.stages||{},cls=d.result?.classification;
+  if(stages.observe&&stages.observe.trace!==undefined&&d.plans?.length)reach('observed',d.plans[0].receipts.filter(r=>r.trial.startsWith('baseline')).map(r=>r.receiptHash));
+  else return finish();
+  if(stages.propose?.ranked?.length)reach('hypothesis',stages.propose.ranked.slice(0,5).map(w=>w.id));
+  if(cls==='insufficient-evidence'){side='inconclusive';sideReason='insufficient evidence: '+d.result.reason;return finish();}
+  if(cls==='inconclusive'){const t=stages.test?.interventions||[];const allFalsified=t.length&&t.every(i=>String(i.interpretation?.classification).startsWith('falsified'));
+    side=allFalsified?'falsified':'inconclusive';sideReason=d.result.reason;return finish();}
+  if(!d.definition)return finish();
+  const ver=contract.verifyCandidate(d.definition);if(!ver.ok){side='inconclusive';sideReason='the definition does not verify: '+ver.problems.join('; ');return finish();}
+  const confirm=stages.test?.confirm,controls=stages.test?.controls||[];
+  // support must be this definition's own sealed evidence: a revision starts with none and does not inherit its predecessor's
+  const own=(d.definition.evidence?.interventions||[]).filter(i=>i.result==='supported').map(i=>i.receipt);
+  if(d.definition.revision&&d.definition.revision.number>1&&!own.length){note.push('revision '+d.definition.revision.number+' starts untested: it needs its own interventions and a withheld evaluation dataset not used for revision '+(d.definition.revision.number-1));
+    const reusedInput=priorEvaluations.find(e=>e.inputHash===d.holdout?.inputHash&&e.definitionHash!==d.definition.definitionHash);if(reusedInput)note.push('the withheld input recorded here already evaluated '+reusedInput.definitionHash.slice(0,12)+'…; it cannot evaluate this revision');return finish();}
+  const support=(stages.test?.interventions||[]).filter(i=>i.candidate===stages.freeze?.candidate&&i.interpretation?.classification==='supported'&&own.includes(i.receiptHash));
+  if(support.length&&controls.every(c=>c.passed)&&(confirm?.secondPosition?.classification==='supported'||confirm?.secondPosition?.classification==='not available'))
+    reach('experimentally-supported',[...support.map(i=>i.receiptHash),...(confirm?.secondPosition?.receiptHash?[confirm.secondPosition.receiptHash]:[]),...controls.map(c=>c.receiptHash)]);
+  else return finish();
+  if(cls==='ambiguous'){side='ambiguous';sideReason=d.result.reason;}
+  if(stages.observe.repeatability==='passed'&&confirm?.repeat?.identicalToFirst&&confirm.repeat.classification==='supported')reach('same-engine-repeatable',[...d.plans[0].receipts.map(r=>r.receiptHash),confirm.repeat.receiptHash]);
+  else return finish();
+  // withheld evaluation hygiene: one withheld input evaluates one revision
+  const reused=priorEvaluations.find(e=>e.inputHash===d.holdout?.inputHash&&e.definitionHash!==d.definition.definitionHash);
+  if(reused){side='inconclusive';sideReason='the withheld input was already used to evaluate another revision ('+reused.definitionHash.slice(0,12)+'…); a revised definition needs a new withheld evaluation dataset';return finish();}
+  if(!independent){note.push('independent verification not performed: run the verification jobs in an independent emulator and attach its receipt');return finish();}
+  if(independent.subject?.definitionHash!==d.definition.definitionHash){note.push('the attached independent receipt is about another definition ('+String(independent.subject?.definitionHash).slice(0,12)+'…)');return finish();}
+  if(independent.verdict.result==='blocked'){side='verification-blocked';sideReason=independent.verdict.reason;return finish();}
+  if(independent.verdict.result!=='verified'){side='verification-failed';sideReason=independent.verdict.reason;return finish();}
+  if(side)return finish(); // an ambiguous candidate can be independently verified for what it claims, but is not promoted
+  reach('independently-verified',[independent.receiptHash]);
+  const numbering=d.definition.table.numbering||'operand-evidence';
+  const eligible=d.stages.freeze?.frozenBeforeHoldout&&numbering==='operand-evidence'&&d.definition.decoder?.name==='metatile-2x2'&&d.definition.decoder.version===1;
+  if(eligible)reach('promotion-eligible',[d.definition.definitionHash]);else return finish();
+  if(approval&&approval.definitionHash===d.definition.definitionHash&&approval.previewHash)reach('user-approved',[approval.previewHash]);
+  return finish();
+  function finish(){const i=STATES.indexOf(state),next=STATES[i+1]||null;
+    return {format:'NESForgeLifecycleAssessment',version:VERSION,state,side,sideReason,steps,next,nextRequires:next&&!side?REQUIREMENTS[next]:null,notes:note,
+      definitionHash:discovery?.definition?.definitionHash||null,independentReceipt:independent?.receiptHash||null};}
+}
+return Object.freeze({version:VERSION,STATES,SIDE,REQUIREMENTS,assess});
+});
+/* AL-EXP-02: the resource promotion contract. Eligibility rules and a data-only preview of what a verified candidate
+ * would become in one of Forge's editors. This phase never promotes: there is no function here that writes to a
+ * project, the resource library or a cartridge, and an unverified candidate cannot even be previewed. UMD, pure. */
+(function(root,factory){const node=typeof module!=='undefined'&&module.exports;const api=factory(node?require('./experiment-contract.js'):root.ForgeExperimentContract);if(node)module.exports=api;else root.ForgeExperimentPromotion=api;})(typeof globalThis!=='undefined'?globalThis:this,function(contract){
+'use strict';
+const VERSION=1;
+const ORDERS={row:{TL:0,TR:1,BL:2,BR:3},column:{TL:0,BL:1,TR:2,BR:3}},QUADS=['TL','TR','BL','BR'];
+// Destinations in Forge's editors, and what this phase can preview into each.
+const DESTINATIONS=Object.freeze({
+  metatiles:{editor:'Metatiles (2x2 blocks)',kinds:['metatile-table-2x2'],preview:true},
+  chr:{editor:'CHR sheet',kinds:[],preview:false,reason:'a 2x2 metatile table holds tile numbers, not tile graphics; CHR comes from the CHR source, not this candidate'},
+  palettes:{editor:'Palettes',kinds:[],preview:false,reason:'the candidate\'s palette array selects one of four background palettes per record; palette colours are a separate resource, not yet a candidate kind'},
+  scenes:{editor:'Scenes',kinds:[],preview:false,reason:'a scene needs a screen map decoder (map location and format), not yet a candidate kind'},
+  world:{editor:'World',kinds:[],preview:false,reason:'world layout needs map and pointer-table decoders (later scope)'},
+  sprites:{editor:'Sprites and metasprites',kinds:[],preview:false,reason:'sprite definitions are a different discovery (later scope)'},
+  entities:{editor:'Entities',kinds:[],preview:false,reason:'entity placement and behaviour are later scope'},
+});
+const SUPPORTED_DECODERS=Object.freeze([{name:'metatile-2x2',version:1}]);
+
+// Every rule an eligible candidate must meet; each unmet rule is named.
+function eligibility({definition,assessment,destination='metatiles'}){
+  const unmet=[];const dest=DESTINATIONS[destination];
+  if(!dest)unmet.push('unknown destination '+destination);
+  const v=definition?contract.verifyCandidate(definition):{ok:false,problems:['no definition']};
+  if(!v.ok)unmet.push('the definition does not verify: '+v.problems.join('; '));
+  if(definition&&definition.version!==2)unmet.push('a v1 definition names no decoder version or assumptions');
+  if(dest&&definition&&!dest.kinds.includes(definition.kind))unmet.push((dest.reason||'this destination does not take '+definition.kind)+'');
+  if(definition&&!SUPPORTED_DECODERS.some(d=>d.name===definition.decoder?.name&&d.version===definition.decoder?.version))unmet.push('decoder '+JSON.stringify(definition?.decoder||null)+' is not one the promotion contract supports');
+  if(definition&&(definition.table.numbering||'operand-evidence')!=='operand-evidence')unmet.push('record numbering is relative: exact record identity is not established');
+  if(!assessment||!['independently-verified','promotion-eligible','user-approved'].includes(assessment.state)||assessment.side)unmet.push('the lifecycle assessment is '+(assessment?assessment.state+(assessment.side?' ('+assessment.side+')':''):'missing')+'; independent verification is required');
+  if(assessment&&definition&&assessment.definitionHash!==definition.definitionHash)unmet.push('the assessment is about another definition');
+  return {eligible:!unmet.length,destination,unmet,rules:['definition verifies (v2)','destination takes this kind','decoder version supported','record numbering from operand evidence','lifecycle: independently verified, no side state','assessment names this definition']};
+}
+
+// What promotion would create, as data: never written anywhere in this phase.
+function preview({definition,rom,assessment,destination='metatiles'}){
+  const e=eligibility({definition,assessment,destination});
+  if(!e.eligible)return {format:'NESForgePromotionPreview',version:VERSION,destination,eligible:false,unmet:e.unmet,records:[],writes:[]};
+  const t=definition.table,f=ORDERS[t.order],layout=contract.romLayout(rom);
+  if(contract.sha256(rom)!==definition.source.sha256)throw Error('Promotion preview: the cartridge is not the definition\'s source');
+  const pal=definition.attributes,decode=pal?.decode==='low2'?v=>v&3:pal?.decode==='high2'?v=>v>>6:null;
+  const aliasOf=new Map();definition.aliases.forEach((a,i)=>a.ids.forEach(id=>aliasOf.set(id,i)));
+  const records=[];
+  for(let id=0;id<=definition.extent.highest;id++){
+    const offsets=QUADS.map(q=>t.physicalBase+id*t.recordStep+f[q]*t.fieldStep);
+    records.push({id,tiles:offsets.map(o=>rom[o]),sourceOffsets:offsets,palette:decode?decode(rom[pal.physicalBase+id]):null,paletteOffset:pal?pal.physicalBase+id:null,observed:definition.extent.knownIds.includes(id),aliasGroup:aliasOf.has(id)?aliasOf.get(id):null});
+  }
+  const body={format:'NESForgePromotionPreview',version:VERSION,destination,eligible:true,definitionHash:definition.definitionHash,decoder:definition.decoder,assumptions:definition.assumptions,
+    source:{sha256:definition.source.sha256,mapper:layout.mapper,table:{physical:t.physicalBase,cpu:t.cpuBase,layout:t.layout,order:t.order,recordStep:t.recordStep,fieldStep:t.fieldStep,recordBytes:4},
+      palette:pal?{physical:pal.physicalBase,decode:pal.decode}:null,range:{first:0,last:definition.extent.highest,observed:definition.extent.knownIds.length}},
+    knownAliases:definition.aliases,unsupported:definition.unsupported,records,
+    wouldCreate:{metatiles:records.length,note:'2x2 metatiles in the Metatiles editor, each keeping its source offsets'},
+    writes:[],conflicts:'not evaluated: a preview never writes, so it cannot overwrite anything'};
+  return {...body,previewHash:contract.hashOf(body)};
+}
+return Object.freeze({version:VERSION,DESTINATIONS,SUPPORTED_DECODERS,eligibility,preview});
+});
+/* AL-EXP-02: reproducible experiment packages (NESForgeExperimentPackage v1). One JSON document holding everything
+ * needed to inspect an investigation and reproduce it: the cartridge (embedded for Forge's synthetic fixtures; for any
+ * other cartridge only its SHA-256, to be supplied locally), the inputs, the validated plans, the sealed receipts, the
+ * capture payloads, the hypotheses tested and rejected, the controls, the frozen candidate and its revisions, the
+ * withheld-screen reconstruction and its claims, the engine-neutral verification jobs with this engine's captures,
+ * any independent receipts, the lifecycle assessment and the limitations.
+ *
+ * Every piece of evidence is either embedded (bytes present, checked against their SHA-256) or referenced (SHA-256
+ * only, with the reason it is absent), and the manifest lists which is which. For a private (non-synthetic) cartridge,
+ * the cartridge, every capture derived from it and every mutation's byte values are referenced, never embedded. The
+ * metadata-only export of AL-EXP-01 stays available as the lightweight alternative. UMD, pure. */
+(function(root,factory){const node=typeof module!=='undefined'&&module.exports;const api=factory(node?require('./experiment-contract.js'):root.ForgeExperimentContract,node?require('./experiment-evidence.js'):root.ForgeExperimentEvidence,node?require('./experiment-verification.js'):root.ForgeExperimentVerification);if(node)module.exports=api;else root.ForgeExperimentPackage=api;})(typeof globalThis!=='undefined'?globalThis:this,function(contract,Evidence,V){
+'use strict';
+const VERSION=1,FORMAT='NESForgeExperimentPackage';
+const LARGE=96*1024; // a payload above this is referenced (its SHA-256 kept) rather than embedded, and says so
+function fail(message){throw Error('Experiment package: '+message);}
+const b64=Evidence.b64,unb64=Evidence.unb64;
+const plain=v=>JSON.parse(JSON.stringify(v,(k,x)=>x instanceof Uint8Array?Array.from(x):x));
+
+// report: the discovery report (in memory); store: its evidence store; rom: the cartridge bytes.
+function build({report,store,rom,privacy='synthetic',generation=null,independent=[],assessment=null,embedLarge=false}){
+  if(!report||report.format!=='NESForgeMetatileDiscovery')fail('needs a discovery report');
+  if(!(rom instanceof Uint8Array))fail('needs the cartridge bytes');
+  const sha=contract.sha256(rom);if(sha!==report.source.sha256)fail('the cartridge is not the report\'s source');
+  const layout=contract.romLayout(rom),synthetic=privacy==='synthetic';
+  if(synthetic&&!contract.isSynthetic(rom,layout))fail('only a cartridge carrying the synthetic-fixture marker can be packaged as synthetic');
+  const embedded=[],referenced=[];
+  const payload=(id,kind,bytes,why)=>{const entry={id,kind,sha256:id.replace(/^sha256:/,''),byteLength:bytes.length};
+    if(!synthetic){referenced.push({id,reason:'derived from a private cartridge: not embedded'});return {...entry,availability:'referenced',reason:'derived from a private cartridge'};}
+    if(bytes.length>LARGE&&!embedLarge){referenced.push({id,reason:why||'larger than '+LARGE+' bytes: regenerable by replaying the recorded inputs'});return {...entry,availability:'referenced',reason:why||'large: regenerable by replaying the recorded inputs'};}
+    embedded.push(id);return {...entry,availability:'embedded',base64:b64(bytes)};};
+  const meta=store.exportMetadata({privacy:synthetic?'synthetic':'private'});
+  const payloads=meta.payloads.map(p=>payload(p.id,p.kind,store.getBytes(p.id)));
+  const cartridge={sha256:sha,byteLength:rom.length,mapper:layout.mapper,mirroring:layout.mirroring,prgBytes:layout.prgBytes,chrBytes:layout.chrBytes,
+    availability:synthetic?'embedded':'reference',...(synthetic?{base64:b64(rom)}:{note:'not included: supply the cartridge locally; it must have this SHA-256'}),...(generation?{generation}:{})};
+  if(synthetic)embedded.push('cartridge');else referenced.push({id:'cartridge',reason:'a private cartridge is never included; verification uses a locally supplied file with this SHA-256'});
+  // verification jobs: this engine's captures, normalized; small channels embedded, large ones by SHA-256
+  const jobs=(report.verification?.jobs||[]).map(j=>({job:plain(j.job),expectation:plain(j.expectation),forge:{...plain({...j.forge,captures:undefined}),captures:j.forge.captures.map(c=>{
+    const channels={};for(const [ch,bytes] of Object.entries(c.normalized.channels)){const id='sha256:'+c.digests[ch];const big=ch==='pixels'||ch==='chr'||ch==='reads';
+      channels[ch]=synthetic&&(!big||j.job.id==='training-baseline'||j.job.id==='holdout-baseline'||embedLarge)?{sha256:c.digests[ch],availability:'embedded',base64:b64(bytes)}:{sha256:c.digests[ch],availability:'referenced',reason:synthetic?'regenerable by running the job':'derived from a private cartridge'};
+      if(channels[ch].availability==='embedded')embedded.push(id);else referenced.push({id,reason:channels[ch].reason});}
+    return {label:c.label,nmi:c.nmi,frame:c.frame,latches:c.latches,digests:c.digests,channels,...(synthetic&&c.normalized.written?{written:b64(c.normalized.written)}:{})};})}}));
+  const redact=m=>synthetic?m:{offset:m.offset,region:m.region};
+  const body={format:FORMAT,version:VERSION,
+    manifest:{engine:{documentSha256:report.identity.documentSha256,name:'NES Forge emulator (same build as the editor), experiment sandbox'},privacy:synthetic?'synthetic':'private',
+      contents:['cartridge','inputs','plans','receipts','payloads','edges','hypotheses','interventions','controls','candidate','revisions','result','reconstruction','verification','lifecycle','limitations'],
+      completeness:{kind:referenced.length?'partial':'complete',embedded:embedded.length,referenced:referenced.length,referencedItems:referenced.slice(0,200),
+        meaning:'embedded items carry their bytes and are checked against their SHA-256; referenced items carry only their SHA-256 and the reason they are absent'}},
+    cartridge,inputs:plain(report.inputs),
+    plans:report.plans.map(p=>({id:p.id,planHash:p.planHash,plan:p.plan?plain(p.plan):null,receipts:p.receipts.map(r=>r.receiptHash)})),
+    receipts:meta.receipts,payloads,edges:meta.edges,
+    hypotheses:plain(report.hypotheses),interventions:plain(report.stages.test?{interventions:report.stages.test.interventions.map(i=>({...i,mutation:redact(i.mutation)})),controls:report.stages.test.controls,confirm:report.stages.test.confirm||null,attributeArrays:report.stages.test.attributeArrays||[]}:null),
+    observe:plain(report.stages.observe||null),propose:plain(report.stages.propose?{distinctTuples:report.stages.propose.distinctTuples,searched:report.stages.propose.searched,ranked:report.stages.propose.ranked}:null),
+    candidate:report.definition?plain(report.definition):null,revisions:report.definition?[{revision:report.definition.revision?.number??1,definitionHash:report.definition.definitionHash,previous:report.definition.revision?.previous??null}]:[],
+    result:plain(report.result),
+    reconstruction:report.holdout?{label:report.holdout.label,definitionHash:report.holdout.definitionHash,inputHash:report.holdout.inputHash,counts:report.holdout.reconstruction.counts,cells:report.holdout.reconstruction.cells,attributes:report.holdout.reconstruction.attributes,claims:report.holdout.claims,selfCheck:report.holdout.selfCheck}:null,
+    verification:{mirroring:report.verification?.mirroring||layout.mirroring,colourClass:report.verification?.colourClass||null,jobs,sameEngineChecks:plain(report.verification?.sameEngineChecks||[]),independent:plain(independent),
+      note:'Jobs are engine-neutral: from power-on, the joypad latches the listed masks at successive $4016 strobes; checkpoints are NMI-handler entries. Run them in an independent emulator with tools/agent-lab/independent/verify-package.cjs.'},
+    lifecycle:plain(assessment),
+    limitations:['NROM only, unscrolled screens, 2x2 metatiles','same-engine results (repeatability, interventions) show determinism and consistency, not correctness','independent verification is a separate receipt from another emulator; NES Forge re-compares its raw captures','record meanings beyond four tiles and a palette are not inferred']};
+  return {...body,packageHash:contract.hashOf(body)};
+}
+
+// Checks everything that can be checked without running anything.
+function validate(pkg){
+  const problems=[],add=m=>problems.push(m);
+  if(!pkg||pkg.format!==FORMAT||pkg.version!==VERSION)return {ok:false,problems:['not a '+FORMAT+' v'+VERSION]};
+  const {packageHash,...body}=pkg;try{if(contract.hashOf(body)!==packageHash)add('the package does not match its hash (edited or damaged)');}catch(e){add('not canonical JSON: '+e.message);}
+  for(const r of pkg.receipts||[]){const v=contract.verifyReceipt(r);if(!v.ok&&!(pkg.manifest?.privacy==='private'&&v.problems.every(p=>/hash/.test(p))))add('receipt '+String(r.receiptHash).slice(0,12)+': '+v.problems.join('; '));}
+  if(pkg.candidate){const v=contract.verifyCandidate(pkg.candidate);if(!v.ok)add('candidate: '+v.problems.join('; '));}
+  for(const p of pkg.payloads||[])if(p.availability==='embedded'&&contract.sha256(unb64(p.base64))!==p.sha256)add('payload '+p.id+' does not match its bytes');
+  for(const j of pkg.verification?.jobs||[])for(const c of j.forge.captures)for(const [ch,x] of Object.entries(c.channels))if(x.availability==='embedded'&&contract.sha256(unb64(x.base64))!==x.sha256)add('job '+j.job.id+' '+c.label+' '+ch+' does not match its bytes');
+  if(pkg.cartridge?.availability==='embedded'){const b=unb64(pkg.cartridge.base64);if(contract.sha256(b)!==pkg.cartridge.sha256)add('the embedded cartridge does not match its SHA-256');}
+  if(pkg.manifest?.privacy!=='synthetic'&&(pkg.cartridge?.base64||(pkg.payloads||[]).some(p=>p.base64)))add('a private package embeds cartridge-derived bytes');
+  for(const x of pkg.verification?.independent||[]){const v=V.verifyIndependent(x);if(!v.ok)add('independent receipt: '+v.problems.join('; '));}
+  return {ok:!problems.length,problems,completeness:pkg.manifest?.completeness||null};
+}
+// The cartridge bytes: embedded (checked), or a locally supplied file that must have the recorded SHA-256.
+function cartridgeBytes(pkg,local=null){
+  if(pkg.cartridge.availability==='embedded'){const b=unb64(pkg.cartridge.base64);if(contract.sha256(b)!==pkg.cartridge.sha256)fail('the embedded cartridge does not match its SHA-256');return b;}
+  if(!local)fail('this package references its cartridge (SHA-256 '+pkg.cartridge.sha256+'); supply that cartridge locally');
+  if(contract.sha256(local)!==pkg.cartridge.sha256)fail('the supplied cartridge has SHA-256 '+contract.sha256(local)+', not the recorded '+pkg.cartridge.sha256);
+  return local;
+}
+function capturesOf(pkg,jobId){const j=(pkg.verification?.jobs||[]).find(x=>x.job.id===jobId);if(!j)return null;
+  return j.forge.captures.map(c=>({label:c.label,nmi:c.nmi,frame:c.frame,latches:c.latches,digests:c.digests,channels:Object.fromEntries(Object.entries(c.channels).filter(([,x])=>x.availability==='embedded').map(([ch,x])=>[ch,unb64(x.base64)])),written:c.written?unb64(c.written):null}));}
+// A short human-readable summary (the inspector CLI prints it).
+function inspect(pkg){
+  const v=validate(pkg),c=pkg.candidate;
+  return {valid:v.ok,problems:v.problems,packageHash:pkg.packageHash,privacy:pkg.manifest?.privacy,completeness:pkg.manifest?.completeness?{kind:pkg.manifest.completeness.kind,embedded:pkg.manifest.completeness.embedded,referenced:pkg.manifest.completeness.referenced}:null,
+    cartridge:{sha256:pkg.cartridge.sha256,availability:pkg.cartridge.availability,mapper:pkg.cartridge.mapper,generation:pkg.cartridge.generation||null},
+    engine:pkg.manifest?.engine,result:pkg.result,plans:pkg.plans.length,receipts:pkg.receipts.length,payloads:{embedded:pkg.payloads.filter(p=>p.availability==='embedded').length,referenced:pkg.payloads.filter(p=>p.availability!=='embedded').length},
+    hypotheses:{ranked:pkg.hypotheses?.ranked?.length||0,supported:pkg.hypotheses?.supported||[],falsified:(pkg.hypotheses?.falsified||[]).map(f=>f.id+' ('+f.classification+')'),confounded:(pkg.hypotheses?.confounded||[]).map(f=>f.id)},
+    controls:(pkg.interventions?.controls||[]).map(x=>x.trial+': '+x.outcome+(x.passed?'':' (FAILED)')),
+    candidate:c?{definitionHash:c.definitionHash,revision:c.revision?.number??1,layout:c.table.layout+'/'+c.table.order,physicalBase:c.table.physicalBase,numbering:c.table.numbering||'operand-evidence',records:c.extent.highest+1,decoder:c.decoder||null}:null,
+    reconstruction:pkg.reconstruction?pkg.reconstruction.counts:null,jobs:(pkg.verification?.jobs||[]).map(j=>j.job.id+' ('+j.expectation.kind+', '+j.forge.captures.length+' checkpoints)'),
+    independent:(pkg.verification?.independent||[]).map(x=>({engine:x.engine?.name+' '+x.engine?.version,verdict:x.verdict?.result})),lifecycle:pkg.lifecycle?{state:pkg.lifecycle.state,side:pkg.lifecycle.side}:null};
+}
+return Object.freeze({version:VERSION,FORMAT,build,validate,cartridgeBytes,capturesOf,inspect});
 });
 /* Generated by app/tools/bundle.py from src/shell-prefix.html and src/shell-suffix.html; do not edit. The experiment
  * sandbox (AL-EXP-01) rebuilds this exact standalone document from it and the script text. */
@@ -38389,10 +38824,71 @@ function snapshotChannel(name){
 }
 function fnv(arrays){let h=0x811c9dc5;for(const a of arrays)for(let i=0;i<a.length;i++){h^=a[i];h=Math.imul(h,0x01000193);}return h>>>0;}
 function masksOf(steps){const out=[];for(const s of steps){const m=s.buttons.reduce((v,b)=>v|BUTTON_BITS[b],0);for(let i=0;i<s.frames;i++)out.push(m);}return out;}
+// AL-EXP-02: the picture as NES colour indices. The renderer writes RGB through its palette table (NP); each RGB maps
+// back to the lowest index that draws it, and colourClass names, per index, that lowest index (colours the table draws
+// identically share a class).
+let rgbIndex=null,colourClass=null;
+function colourTables(){if(rgbIndex)return;rgbIndex=new Map();colourClass=new Uint8Array(64);for(let i=0;i<64;i++){const c=NP[i]||NP[15],k=(c[0]<<16)|(c[1]<<8)|c[2];if(!rgbIndex.has(k))rgbIndex.set(k,i);colourClass[i]=rgbIndex.get(k);}}
+function pixelIndices(){colourTables();const fb=emu.frameBuffer,out=new Uint8Array(256*240);for(let i=0;i<out.length;i++){const o=i*4,v=rgbIndex.get((fb[o]<<16)|(fb[o+1]<<8)|fb[o+2]);out[i]=v===undefined?255:v;}return out;}
+function nmiTargetOf(bytes){const layout=contract.romLayout(bytes);return bytes[layout.vectors.start]|(bytes[layout.vectors.start+1]<<8);}
+// AL-EXP-02 synchronization: NMI-handler entries (the k-th time the CPU is about to execute the instruction at the
+// cartridge's NMI vector target), $4016 latches (strobe falling edges, with the mask latched), RAM bytes written since
+// power-on, and a per-frame digest of the executed PC sequence (the program's path). Wraps the emulator's own CPU-step
+// and CPU-write functions in this sandbox copy only, and only records; installed before the bus observer, removed after it.
+function installSync({nmiTarget,onNmi=null,latchMask=null}){
+  const prev={step:cpuStepRaw,write:cpuWrite},state={nmis:0,nmiFrames:[],latches:[],written:new Uint8Array(0x800),path:0x811c9dc5,frameLatches:0,multiLatchFrames:0};
+  cpuStepRaw=function(...args){const pc=emu.PC&0xffff;state.path=Math.imul(state.path^pc,0x01000193);if(pc===nmiTarget){state.nmis++;state.nmiFrames.push(emu.frameCount);if(onNmi)onNmi(state.nmis);}return prev.step.apply(this,args);};
+  cpuWrite=function(a,v,...rest){a&=0xffff;if(a<0x2000)state.written[a&0x7ff]=1;
+    if(a===0x4016&&!(v&1)&&emu.joyStrobe){if(latchMask)agentMask=latchMask(state.latches.length);state.latches.push([emu.frameCount,agentMask??0]);state.frameLatches++;}
+    return prev.write.call(this,a,v,...rest);};
+  return {state,endFrame(){const h=state.path>>>0;state.path=0x811c9dc5;if(state.frameLatches>1)state.multiLatchFrames++;state.frameLatches=0;return h;},uninstall(){cpuStepRaw=prev.step;cpuWrite=prev.write;}};
+}
+function syncCapture(sync,label,channels,observer){
+  const c={label,nmi:sync.state.nmis,frame:emu.frameCount,latches:sync.state.latches.length,line:emu._ppuFrameLine};
+  if(channels.includes('cpu'))c.cpu={a:emu.A,x:emu.X,y:emu.Y,s:emu.SP,p:cpuGetP(),pc:emu.PC&0xffff};
+  if(channels.includes('ram')){c.ram=new Uint8Array(emu.ram);c.written=new Uint8Array(sync.state.written);}
+  if(channels.includes('nametables'))c.ciram=new Uint8Array(emu.vram.subarray(0,0x800));
+  if(channels.includes('palette')){c.palette=new Uint8Array(32);for(let i=0;i<32;i++)c.palette[i]=ppuBusRead(0x3f00+i);}
+  if(channels.includes('chr'))c.chr=emu.hasChrRam?new Uint8Array(emu.chrRam):new Uint8Array(emu.chrRom||0);
+  if(channels.includes('pixels')){c.pixels=pixelIndices();c.colourClass=new Uint8Array(colourClass);}
+  if(channels.includes('reads')&&observer){c.reads=observer.events.filter(e=>e[1]===0).map(e=>[e[2],e[4]]);c.readsComplete=!observer.summary().truncated;}
+  c.mirroring=emu.mirroring;return c;
+}
+// A verification job: from power-on, the joypad latches job.latches[i] at the i-th $4016 strobe (job.defaultMask after
+// the list), and the state is captured when the CPU enters the NMI handler for the k-th time, for each checkpoint k.
+// Engine-neutral by design: the independent emulator runs the same job (tools/agent-lab/independent).
+async function runJob(runId,request,report){
+  const t0=performance.now(),job=request.job,result={type:'result',runId,job:{captures:[],frames:0,nmis:0,latches:0,multiLatchFrames:0,stopReason:null}};
+  let sync=null,observer=null;
+  try{
+    const bytes=request.rom instanceof Uint8Array?request.rom:fail('a job needs cartridge bytes');
+    if(contract.sha256(bytes)!==request.romSha)fail('the cartridge bytes do not match their SHA-256');
+    const layout=contract.romLayout(bytes);if(layout.mapper!==0)return {...result,outcome:'unsupported',stopReason:'mapper '+layout.mapper+' is not supported in this slice (NROM only)'};
+    for(const ck of checkpoints.values())ck.handle.release();checkpoints.clear();
+    if(!emuLoadRomData(bytes,'experiment',0))return {...result,outcome:'crash',stopReason:'the emulator refused to load the cartridge'};
+    romSha=request.romSha;
+    const pending=new Map(job.checkpoints.map(c=>[c.nmi,c.label])),channels=job.channels;
+    agentMask=job.latches[0]??job.defaultMask;
+    sync=installSync({nmiTarget:nmiTargetOf(bytes),latchMask:i=>job.latches[i]??job.defaultMask,onNmi:k=>{const label=pending.get(k);if(label!==undefined){result.job.captures.push(syncCapture(sync,label,channels,observer));pending.delete(k);}}});
+    if(job.trace)observer=services.BusObserver.install({prgStart:layout.prgStart,prgBytes:layout.prgBytes,prgReads:true,ppuWrites:false,watchRam:[],maxEvents:job.maxEvents||100000});
+    let chunkStart=performance.now();
+    for(let f=0;f<job.maxFrames&&pending.size;f++){
+      agentMask=job.latches[sync.state.latches.length]??job.defaultMask;
+      emuRunFrame();sync.endFrame();if(observer)observer.endFrame();result.job.frames++;
+      if(performance.now()-t0>(request.budgets?.wallMs||60000)){result.job.stopReason='the job exceeded its wall-clock budget at frame '+(f+1);break;}
+      if(performance.now()-chunkStart>(request.chunkMs||16)){const held=agentMask;agentMask=null;await yieldTask();agentMask=held;chunkStart=performance.now();report({type:'progress',runId,frame:f+1,total:job.maxFrames});
+        if(cancelled.has(runId)){result.job.stopReason='cancelled at frame '+(f+1);result.outcomeHint='cancelled';break;}}
+    }
+    if(pending.size&&!result.job.stopReason)result.job.stopReason='checkpoints not reached within '+job.maxFrames+' frames: '+[...pending.values()].join(', ');
+    Object.assign(result.job,{nmis:sync.state.nmis,latches:sync.state.latches.length,multiLatchFrames:sync.state.multiLatchFrames,missing:[...pending.values()]});
+  }catch(error){result.outcomeHint='crash';result.stopReason=String(error?.message||error);}
+  finally{agentMask=null;if(observer)observer.uninstall();if(sync)sync.uninstall();cancelled.delete(runId);}
+  result.wallMs=Math.round(performance.now()-t0);return result;
+}
 // One trial, from a cold load or from a checkpoint of the ROM loaded now. Deterministic for equal requests.
 async function runTrial(runId,request,report){
-  const t0=performance.now();let observer=null,stop=null,outcomeHint=null;
-  const result={type:'result',runId,captures:[],frameDigests:[],checkpointsSaved:[],trace:null,framesRun:0,startFrame:0};
+  const t0=performance.now();let observer=null,sync=null,stop=null,outcomeHint=null;
+  const result={type:'result',runId,captures:[],frameDigests:[],checkpointsSaved:[],trace:null,framesRun:0,startFrame:0,sync:null};
   try{
     const steps=contract.validateSteps(request.steps,'request.steps').steps,masks=masksOf(steps),total=masks.length;
     if(total>request.budgets.frames)fail('the input runs more frames than the budget');
@@ -38410,13 +38906,14 @@ async function runTrial(runId,request,report){
       romSha=sha;
     }
     const layout=contract.romLayout(emu.lastBuiltRom);
+    sync=installSync({nmiTarget:nmiTargetOf(emu.lastBuiltRom)});const pathDigests=[];
     if(request.trace)observer=services.BusObserver.install({prgStart:layout.prgStart,prgBytes:layout.prgBytes,prgReads:request.trace.prgReads,ppuWrites:request.trace.ppuWrites,watchRam:request.trace.watchRam||[],maxEvents:request.trace.maxEvents});
     const captureAt=new Map(request.captures.map(c=>[c.frame,c])),saveAt=new Map((request.save||[]).map(c=>[c.frame,c])),channels=request.channels,payloads=new Set(request.payloads||[]);
     let chunkStart=performance.now(),stuck=0;
     agentMask=0;
     for(let f=result.startFrame;f<total;f++){
       if(saveAt.has(f)){const c=saveAt.get(f),handle=services.EmulatorTimeline.saveOwnedCheckpoint('experiment '+c.label);checkpoints.set(c.label,{label:c.label,frame:f,romSha,handle,stateDigest:contract.sha256(Uint8Array.from([...snapshotChannel('cpu'),...snapshotChannel('ram'),...snapshotChannel('nametables'),...snapshotChannel('palette'),...snapshotChannel('oam')]))});result.checkpointsSaved.push({label:c.label,frame:f});}
-      agentMask=masks[f];emuRunFrame();result.framesRun++;
+      agentMask=masks[f];emuRunFrame();result.framesRun++;pathDigests.push(sync.endFrame());
       if(observer){observer.endFrame();const fr=observer.frames[observer.frames.length-1];stuck=fr[1]>=0&&fr[2]-fr[1]<=4&&fr[3]===0?stuck+1:0;
         if(stuck>=request.hangFrames){stop='timeout';result.stopReason='the program is stuck: the CPU stayed within $'+fr[1].toString(16)+'–$'+fr[2].toString(16)+' with no interrupt for '+stuck+' frames';break;}}
       if(request.frameDigests)result.frameDigests.push(fnv([emu.ram,emu.vram,emu.palRam,emu.oamMem]));
@@ -38429,8 +38926,9 @@ async function runTrial(runId,request,report){
         if(cancelled.has(runId)){stop='cancelled';result.stopReason='cancelled at frame '+(f+1);break;}}
     }
     result.outcomeHint=stop;
+    result.sync={nmiFrames:sync.state.nmiFrames,latches:sync.state.latches,pathDigests,multiLatchFrames:sync.state.multiLatchFrames,nmiTarget:nmiTargetOf(emu.lastBuiltRom)};
   }catch(error){result.outcomeHint='crash';result.stopReason=String(error?.message||error);}
-  finally{agentMask=null;if(observer){result.trace={...observer.summary(),roles:observer.roles,events:observer.events,frames:observer.frames};observer.uninstall();}cancelled.delete(runId);}
+  finally{agentMask=null;if(observer){result.trace={...observer.summary(),roles:observer.roles,events:observer.events,frames:observer.frames};observer.uninstall();}if(sync)sync.uninstall();cancelled.delete(runId);}
   result.wallMs=Math.round(performance.now()-t0);result.endFrame=emu.frameCount;
   try{result.memory=performance.memory?{usedJSHeapSize:performance.memory.usedJSHeapSize,totalJSHeapSize:performance.memory.totalJSHeapSize}:null;}catch(_){result.memory=null;}
   return result;
@@ -38449,9 +38947,9 @@ function agent(){
     if(m.type==='cancel'){cancelled.add(m.runId);return;}
     if(m.type==='release'){for(const l of m.labels||[]){checkpoints.get(l)?.handle.release();checkpoints.delete(l);}return;}
     if(m.type==='run'){if(busy){send({type:'result',runId:m.runId,outcome:'invalid',stopReason:'the sandbox is already running a trial'});return;}
-      busy=true;try{send(await runTrial(m.runId,m.request,send));}finally{busy=false;}}
+      busy=true;try{send(await (m.request?.job?runJob:runTrial)(m.runId,m.request,send));}finally{busy=false;}}
   });
-  documentSha256().then(sha=>send({type:'ready',identity:{documentSha256:sha,engine:'NES Forge emulator, same build as the editor',mappers:[0],channels:contract.CHANNELS},errors:errors.slice()}));
+  documentSha256().then(sha=>send({type:'ready',identity:{documentSha256:sha,engine:'NES Forge emulator, same build as the editor',mappers:[0],channels:contract.CHANNELS,jobs:true},errors:errors.slice()}));
 }
 services.ExperimentSandboxAgent=Object.freeze({inSandbox:()=>inSandbox});
 services.ExperimentSandbox=Object.freeze({PREFIX,available,open,documentText,documentSha256,closeAll:()=>{for(const s of [...sessions])s.close('closed');},sessions:()=>sessions.size});
@@ -38564,17 +39062,26 @@ async function run(planInput,baseBytes,{store=Evidence.createStore(),session=nul
 }
 services.ExperimentRunner=Object.freeze({run,compare,classify});
 })();
-/* AL-EXP-01: blind metatile discovery on a synthetic cartridge, end to end. 1. Observe: cold and checkpoint-restored
+/* AL-EXP-01/02: blind metatile discovery on a synthetic cartridge, end to end. 1. Observe: cold and checkpoint-restored
  * baselines with a bus trace (repeatability). 2. Propose: ranked candidate tables from the screens and the recorded data
- * reads. 3. Test: one predicted intervention per leading candidate, with same-value and unrelated-byte controls and an
- * attribute-palette intervention. 4. Freeze the supported candidate as a sealed definition. 5. Only then run the
- * withheld input and reconstruct its screen from the frozen definition. Nothing here knows where the table is; the
- * answer for a synthetic fixture exists only outside the editor, in the acceptance suite's oracle. */
+ * reads. 3. Test: one predicted intervention per leading candidate, with same-value and unrelated-byte controls and a
+ * restoration baseline after the variants; every intervention is interpreted (was the byte read, did the program's path
+ * change, did the predicted effect occur). The surviving candidate is tested again at a second record position and
+ * repeated, and its palette array is tested. 4. Freeze the survivor as a sealed definition (revision 1). 5. Only then
+ * run the withheld input and reconstruct its screen from the frozen definition. 6. Run engine-neutral verification jobs
+ * in this engine, so an independent emulator can run the same jobs outside the editor.
+ *
+ * The result is classified, never forced: "candidate", "ambiguous" (several hypotheses survive, or record numbering is
+ * undetermined), "insufficient-evidence" (the observations cannot fix a table's geometry) or "inconclusive" (nothing
+ * survived, a control showed an effect, or an intervention changed the program's execution and so is confounded).
+ * Nothing here knows where the table is; the answer for a synthetic fixture exists only outside the editor, with the
+ * acceptance suite's oracle. */
 (()=>{
 'use strict';
-const services=window.Forge.services,contract=window.ForgeExperimentContract,Finder=window.ForgeMetatileFinder,Evidence=window.ForgeExperimentEvidence;
+const services=window.Forge.services,contract=window.ForgeExperimentContract,Finder=window.ForgeMetatileFinder,Evidence=window.ForgeExperimentEvidence,V=window.ForgeExperimentVerification;
 function fail(message){throw Error('Metatile discovery: '+message);}
 const ALL=['cpu','ram','nametables','palette','oam','chr','pixels'];
+const DATA=4;
 
 function plan(id,rom,identity,input,captures,trials,{trace=false,checkpoints=[]}={}){
   const total=input.reduce((n,s)=>n+s.frames,0);
@@ -38587,113 +39094,198 @@ const captureView=c=>({label:c.label,nametables:c.payloads.nametables,ppu:c.ppu}
 function visibleMap(result){const m=new Map();for(const c of result.captures){const v=Finder.visible(captureView(c));if(v.supported)m.set(c.label,v);}return m;}
 function summary(w){return {id:w.id,rank:w.rank,layout:w.hypothesis.layout,order:w.hypothesis.order,recordStep:w.hypothesis.recordStep,fieldStep:w.hypothesis.fieldStep,grid:w.grid,
   windowPhysical:[w.lo,w.hi],matched:w.matched,coverage:Math.round(w.coverage*1000)/1000,traceSupport:w.traceSupport===null?null:Math.round(w.traceSupport*1000)/1000,aliases:w.aliases.length,base:{physical:w.base.physical,method:w.base.method,votes:w.base.votes}};}
+const recordOf=r=>({id:r.plan.id,planHash:r.plan.planHash,plan:r.plan,receipts:r.receipts.map(x=>({trial:x.trialId,outcome:x.outcome,receiptHash:x.receiptHash,firstDivergence:x.firstDivergence}))});
+const sameTable=(a,b)=>a.base.physical===b.base.physical&&a.hypothesis.layout===b.hypothesis.layout&&a.hypothesis.order===b.hypothesis.order&&a.hypothesis.fieldStep===b.hypothesis.fieldStep&&a.hypothesis.recordStep===b.hypothesis.recordStep;
+function pathDivergence(a,b){if(!a||!b)return null;const n=Math.min(a.length,b.length);for(let i=0;i<n;i++)if(a[i]!==b[i])return i+1;return a.length===b.length?null:n+1;}
 
-async function discover({rom,training,holdout,interventions=Finder.LIMITS.interventions,onProgress=null,signal=null,store=Evidence.createStore()}){
+// What one intervention showed. "Not read" (with a complete trace) means irrelevant for this input only; "read, no
+// observed effect" is not the same thing; a change in the program's path makes the result confounded.
+function interpret(test,run,refSync,roles,traceComplete,layout){
+  const r=run.results.find(x=>x.trial.id===test.trial),b=visibleMap(run.reference.result);
+  const outcome=r.receipt.outcome,idx=test.mutation.offset-layout.prgStart;
+  const read=roles?(roles[idx]&DATA?'read':traceComplete?'not-read':'unknown (the trace was truncated)'):'unknown (no trace)';
+  const pathFrame=pathDivergence(refSync?.pathDigests,r.result.sync?.pathDigests);
+  if(!['effect_observed','no_effect_observed'].includes(outcome))return {judgement:{result:'inconclusive',reason:'trial outcome '+outcome},interpretation:{classification:'inconclusive',read,path:null,reason:'the trial did not complete ('+outcome+')'},receipt:r.receipt,result:r.result};
+  const j=Finder.judge(test,b,visibleMap(r.result));
+  let classification,reason;
+  if(pathFrame!==null){classification='confounded';reason='the change altered the program\'s execution from frame '+pathFrame+' (its path differs from the baseline), so the screen effect cannot be attributed to the table';}
+  else if(j.result==='supported'){classification='supported';reason='the predicted cells changed to the predicted values, and nothing else on screen changed';}
+  else if(outcome==='no_effect_observed'||j.reason==='no effect: nothing on screen changed')classification=read==='not-read'?'falsified-not-read':'falsified-no-observed-effect',reason=read==='not-read'?'the program never read this byte under this input (complete trace): irrelevant for this input, not shown irrelevant in general':'the byte was read but nothing observed changed: no observed effect, which is not the same as irrelevant';
+  else{classification='falsified-unpredicted-effect';reason='something changed, but not what this hypothesis predicts';}
+  const judgement=classification==='confounded'?{...j,result:'inconclusive',reason:'confounded: '+reason}:j;
+  return {judgement,interpretation:{classification,read,path:pathFrame===null?'same':'diverged at frame '+pathFrame,reason},receipt:r.receipt,result:r.result};
+}
+
+async function discover({rom,training,holdout,interventions=Finder.LIMITS.interventions,onProgress=null,signal=null,store=Evidence.createStore(),prepareVerification=true}){
   if(!(rom instanceof Uint8Array))fail('needs cartridge bytes');
   const t0=performance.now(),layout=contract.romLayout(rom),stage=(name,detail)=>onProgress?.({stage:name,...detail});
   if(!contract.isSynthetic(rom,layout))fail('this slice runs only on Forge synthetic fixtures');
   const romSha=contract.sha256(rom);
   stage('isolation',{message:'Starting an isolated copy of the editor'});
   const session=await services.ExperimentSandbox.open(),timings={bootMs:session.stats.bootMs};
-  const report={format:'NESForgeMetatileDiscovery',version:1,source:{sha256:romSha,byteLength:rom.length},identity:session.identity,plans:[],stages:{}};
+  const report={format:'NESForgeMetatileDiscovery',version:2,source:{sha256:romSha,byteLength:rom.length},identity:session.identity,plans:[],stages:{},inputs:{training,holdout},
+    result:null,hypotheses:{ranked:[],supported:[],falsified:[],confounded:[],untested:[]},definition:null,holdout:null,verification:null};
+  const finish=(classification,reason,extra={})=>{report.result={classification,reason,...extra};report.store=store.stats();timings.totalMs=Math.round(performance.now()-t0);report.timings=timings;report.sandbox={runs:session.stats.runs,bootMs:session.stats.bootMs};return report;};
+  const runs=[];const runPlan=async(p,label)=>{const r=await services.ExperimentRunner.run(p,rom,{store,session,signal,onProgress:x=>stage(label,x)});report.plans.push(recordOf(r));runs.push(r);return r;};
   try{
     // 1. observe
     stage('observe',{message:'Observing the training input: two cold runs and two runs restored from a checkpoint'});
     const first=training.captures[0].frame,ck=Math.max(1,Math.min(30,first-1));
-    const p1=plan('observe',rom,session.identity,training.steps,training.captures,[
+    const r1=await runPlan(plan('observe',rom,session.identity,training.steps,training.captures,[
       {id:'baseline-cold-1',kind:'baseline',mutations:[],saveCheckpoints:true,trace:true},
       {id:'baseline-restored-1',kind:'baseline',mutations:[],fromCheckpoint:'after-boot',trace:true},
       {id:'baseline-restored-2',kind:'baseline',mutations:[],fromCheckpoint:'after-boot',trace:false},
-      {id:'baseline-cold-2',kind:'baseline',mutations:[],trace:true}],{trace:true,checkpoints:[{label:'after-boot',frame:ck}]});
-    const r1=await services.ExperimentRunner.run(p1,rom,{store,session,signal,onProgress:p=>stage('observe',p)});
-    report.plans.push({id:p1.id,planHash:r1.plan.planHash,receipts:r1.receipts.map(r=>({trial:r.trialId,outcome:r.outcome,receiptHash:r.receiptHash,firstDivergence:r.firstDivergence}))});
-    report.stages.observe={repeatability:r1.repeatability,trace:r1.receipts[0].trace?{events:r1.reference.result.trace.events.length,truncated:r1.reference.result.trace.truncated,counts:r1.reference.result.trace.counts}:null};
-    if(!r1.reference)fail('the training input did not reach its target: '+(r1.receipts[0].stopReason||r1.receipts[0].outcome));
-    if(r1.repeatability!=='passed')fail('baselines did not repeat ('+r1.repeatability+'); results would be inconclusive');
-    if(signal?.aborted)return {...report,cancelled:true};
+      {id:'baseline-cold-2',kind:'baseline',mutations:[],trace:true}],{trace:true,checkpoints:[{label:'after-boot',frame:ck}]}),'observe');
+    report.stages.observe={repeatability:r1.repeatability,trace:r1.reference?{events:r1.reference.result.trace.events.length,truncated:r1.reference.result.trace.truncated,complete:!r1.reference.result.trace.truncated,counts:r1.reference.result.trace.counts}:null};
+    if(!r1.reference)return finish('inconclusive','the training input did not reach its target: '+(r1.receipts[0].stopReason||r1.receipts[0].outcome));
+    if(r1.repeatability!=='passed')return finish('inconclusive','the baselines did not repeat ('+r1.repeatability+'): the engine is not deterministic for this input');
+    if(signal?.aborted)return {...finish('inconclusive','cancelled'),cancelled:true};
+    const ref=r1.reference.result,roles=ref.trace.roles,traceComplete=!ref.trace.truncated;
     // 2. propose
     stage('propose',{message:'Searching the cartridge for tables that explain the screens'});
-    const ref=r1.reference.result,captures=ref.captures.map(captureView),tp=performance.now();
+    const captures=ref.captures.map(captureView),tp=performance.now();
     const pause=()=>new Promise(resolve=>{const c=new MessageChannel();c.port1.onmessage=()=>{c.port1.close();resolve();};c.port2.postMessage(0);});
-    const proposal=await Finder.proposeAsync({rom,layout,captures,access:ref.trace.roles,events:ref.trace.events},pause); // yields to the editor between slices
+    const proposal=await Finder.proposeAsync({rom,layout,captures,access:roles,events:ref.trace.events},pause); // yields to the editor between slices
     timings.proposeMs=Math.round(performance.now()-tp);
     report.stages.propose={distinctTuples:proposal.distinctTuples,searched:proposal.searched,ranked:proposal.candidates.map(summary),staticRanking:proposal.staticRanking.slice(0,8),skipped:proposal.skipped};
-    if(!proposal.candidates.length)fail('no candidate explains the screens');
+    report.hypotheses.ranked=report.stages.propose.ranked;
+    if(proposal.distinctTuples<Finder.LIMITS.minMatched)return finish('insufficient-evidence','the training screens show '+proposal.distinctTuples+' distinct 2x2 record(s); at least '+Finder.LIMITS.minMatched+' are needed to fix a table\'s geometry (stride, order and record numbering cannot be told apart with fewer)');
+    if(!proposal.candidates.length)return finish('insufficient-evidence','no table in the cartridge explains at least '+Finder.LIMITS.minMatched+' of the observed records');
     // 3. test the leading candidates
     stage('test',{message:'Testing the leading candidates with predicted interventions'});
     const tested=proposal.candidates.slice(0,interventions),tests=[];
     for(const w of tested){const t=Finder.planTileIntervention(w,rom,layout);if(t)tests.push({...t,trial:'tile-'+tests.length});}
-    if(!tests.length)fail('no candidate can be tested');
+    report.hypotheses.untested=proposal.candidates.slice(interventions).map(w=>w.id).concat(tested.filter(w=>!tests.some(t=>t.candidate===w.id)).map(w=>w.id));
+    if(!tests.length)return finish('insufficient-evidence','no candidate has a record that appears exactly once, so none can be tested by a single-byte change');
     const top=tests[0],windows=tested.map(w=>[layout.prgStart+w.lo,layout.prgStart+w.hi+3*w.hypothesis.fieldStep+4]);
-    let unrelated=-1;for(let i=Math.floor(layout.prgBytes/2);i<layout.prgBytes&&unrelated<0;i++){const o=layout.prgStart+i;if(!ref.trace.roles[i]&&!windows.some(([a,b])=>o>=a&&o<b)&&o<layout.vectors.start)unrelated=o;}
+    let unrelated=-1;for(let i=Math.floor(layout.prgBytes/2);i<layout.prgBytes&&unrelated<0;i++){const o=layout.prgStart+i;if(!roles[i]&&!windows.some(([a,b])=>o>=a&&o<b)&&o<layout.vectors.start)unrelated=o;}
     const trials=[{id:'baseline',kind:'baseline',mutations:[]},...tests.map(t=>({id:t.trial,kind:'variant',mutations:[t.mutation]})),
       {id:'control-same-value',kind:'control-same-value',mutations:[{...top.mutation,value:top.mutation.expected}]},
-      ...(unrelated>=0?[{id:'control-unrelated',kind:'control-unrelated',mutations:[{offset:unrelated,expected:rom[unrelated],value:rom[unrelated]^0xff}]}]:[])];
-    const p2=plan('interventions',rom,session.identity,training.steps,training.captures,trials);
-    const r2=await services.ExperimentRunner.run(p2,rom,{store,session,signal,onProgress:p=>stage('test',p)});
-    report.plans.push({id:p2.id,planHash:r2.plan.planHash,receipts:r2.receipts.map(r=>({trial:r.trialId,outcome:r.outcome,receiptHash:r.receiptHash,firstDivergence:r.firstDivergence}))});
-    if(!r2.reference)fail('the intervention baseline did not reach its target');
-    const judge=(t,run)=>{const r=run.results.find(x=>x.trial.id===t.trial),b=visibleMap(run.reference.result);
-      const j=['effect_observed','no_effect_observed'].includes(r.receipt.outcome)?Finder.judge(t,b,visibleMap(r.result)):{result:'inconclusive',reason:'trial outcome '+r.receipt.outcome};
-      return {...t,judgement:j,receiptHash:r.receipt.receiptHash,outcome:r.receipt.outcome};};
-    const judged=tests.map(t=>judge(t,r2));
-    const controls=['control-same-value','control-unrelated'].map(id=>r2.results.find(x=>x.trial.id===id)).filter(Boolean).map(r=>({trial:r.trial.id,outcome:r.receipt.outcome,expected:'no_effect_observed',passed:r.receipt.outcome==='no_effect_observed',mutation:r.receipt.variant.mutations[0],receiptHash:r.receipt.receiptHash}));
-    if(controls.some(c=>!c.passed))fail('a control showed an effect; the observations cannot be trusted ('+controls.filter(c=>!c.passed).map(c=>c.trial+': '+c.outcome).join(', ')+')');
-    const supported=judged.filter(t=>t.judgement.result==='supported').map(t=>tested.find(w=>w.id===t.candidate));
-    if(!supported.length)fail('no candidate survived its intervention');
-    const w=supported[0];
+      ...(unrelated>=0?[{id:'control-unrelated',kind:'control-unrelated',mutations:[{offset:unrelated,expected:rom[unrelated],value:rom[unrelated]^0xff}]}]:[]),
+      {id:'baseline-after-variants',kind:'baseline',mutations:[]}];
+    const r2=await runPlan(plan('interventions',rom,session.identity,training.steps,training.captures,trials),'test');
+    if(!r2.reference)return finish('inconclusive','the intervention baseline did not reach its target');
+    const refSync=r2.reference.result.sync;
+    const judged=tests.map(t=>{const x=interpret(t,r2,refSync,roles,traceComplete,layout);return {...t,judgement:x.judgement,interpretation:x.interpretation,receiptHash:x.receipt.receiptHash,outcome:x.receipt.outcome};});
+    const controlOf=(id,expectation)=>{const r=r2.results.find(x=>x.trial.id===id);if(!r)return null;const path=pathDivergence(refSync.pathDigests,r.result.sync?.pathDigests);
+      return {trial:id,expectation,outcome:r.receipt.outcome,expected:'no_effect_observed',path:path===null?'same':'diverged at frame '+path,passed:r.receipt.outcome==='no_effect_observed'&&path===null,mutation:r.receipt.variant?r.receipt.variant.mutations[0]:null,receiptHash:r.receipt.receiptHash};};
+    const controls=[controlOf('control-same-value','writing the byte\'s own value changes nothing'),controlOf('control-unrelated','changing a byte the program never read changes nothing'),
+      controlOf('baseline-after-variants','after every variant, the original cartridge gives the original result again (restoration)')].filter(Boolean);
+    report.stages.test={interventions:judged.map(t=>({trial:t.trial,kind:t.kind,candidate:t.candidate,quadrant:t.quadrant,mutation:t.mutation,predictedChanges:t.predict.length,outcome:t.outcome,result:t.judgement.result,reason:t.judgement.reason||null,interpretation:t.interpretation,receiptHash:t.receiptHash})),controls};
+    for(const t of judged){const i=t.interpretation;if(i.classification==='confounded')report.hypotheses.confounded.push({id:t.candidate,reason:i.reason});else if(i.classification.startsWith('falsified'))report.hypotheses.falsified.push({id:t.candidate,classification:i.classification,reason:i.reason});}
+    if(controls.some(c=>!c.passed))return finish('inconclusive','a control did not behave as expected, so the observations cannot be trusted ('+controls.filter(c=>!c.passed).map(c=>c.trial+': '+c.outcome+', path '+c.path).join('; ')+')');
+    const supportedTests=judged.filter(t=>t.interpretation.classification==='supported'),supported=supportedTests.map(t=>tested.find(w=>w.id===t.candidate));
+    report.hypotheses.supported=supported.map(w=>w.id);
+    if(!supported.length){const conf=judged.filter(t=>t.interpretation.classification==='confounded');
+      return finish('inconclusive',conf.length?'no hypothesis was supported: the intervention on '+conf.map(t=>t.candidate).join(', ')+' changed the program\'s execution (confounded), so the plausible candidates cannot be told apart by this experiment':'every tested hypothesis was falsified',{unresolved:conf.map(t=>t.candidate)});}
+    const distinct=supported.filter((w,i)=>supported.findIndex(x=>sameTable(x,w))===i);
+    if(distinct.length>1)return finish('ambiguous','several hypotheses survived their interventions and describe different tables: '+distinct.map(w=>w.id).join(', '),{unresolved:distinct.map(w=>w.id)});
+    const w=supported[0],first0=supportedTests[0];
+    // the survivor again: a second record and quadrant (a positive control at another position) and the first change repeated
+    const second=Finder.planTileIntervention(w,rom,layout,{skipKeys:[first0.key],quadrant:'BR'});
+    const confirmTrials=[{id:'baseline',kind:'baseline',mutations:[]},{id:'tile-repeat',kind:'variant',mutations:[first0.mutation]},...(second?[{id:'tile-second-position',kind:'variant',mutations:[second.mutation]}]:[])];
+    const rc=await runPlan(plan('confirm',rom,session.identity,training.steps,training.captures,confirmTrials),'test');
+    const repeat=rc.reference?interpret({...first0,trial:'tile-repeat'},rc,rc.reference.result.sync,roles,traceComplete,layout):null;
+    const secondJ=rc.reference&&second?interpret({...second,trial:'tile-second-position'},rc,rc.reference.result.sync,roles,traceComplete,layout):null;
+    const firstResult=r2.results.find(x=>x.trial.id===first0.trial).result,repeatResult=repeat?.result;
+    const repeatIdentical=!!repeatResult&&firstResult.captures.every(c=>{const d=repeatResult.captures.find(x=>x.label===c.label);return d&&contract.hashOf(c.digests)===contract.hashOf(d.digests);});
+    const confirm={repeat:repeat?{classification:repeat.interpretation.classification,identicalToFirst:repeatIdentical,receiptHash:repeat.receipt.receiptHash}:null,
+      secondPosition:secondJ?{key:second.key,quadrant:second.quadrant,mutation:second.mutation,predictedChanges:second.predict.length,classification:secondJ.interpretation.classification,result:secondJ.judgement.result,receiptHash:secondJ.receipt.receiptHash}:{classification:'not available',reason:'the candidate has no second record that appears exactly once'}};
+    report.stages.test.confirm=confirm;
+    if(!repeat||repeat.interpretation.classification!=='supported'||!repeatIdentical)return finish('inconclusive','the supported intervention did not repeat identically on the same engine');
+    if(secondJ&&secondJ.interpretation.classification!=='supported')return finish('inconclusive','the survivor\'s prediction failed at a second record position ('+secondJ.interpretation.classification+')');
     // the palette (attribute) array of the surviving candidate, tested the same way
-    const arrays=Finder.attributeArrays(w,rom,layout,ref.trace.roles,ref.trace.events),baseAttrs=new Map([...visibleMap(r2.reference.result)].map(([k,v])=>[k,v.attributes]));
-    const attrTest=arrays.length?Finder.planAttributeIntervention(w,arrays[0],rom,layout,baseAttrs):null;let attrJudged=null;
-    if(attrTest){const pa=plan('attribute-intervention',rom,session.identity,training.steps,training.captures,[{id:'baseline',kind:'baseline',mutations:[]},{id:'attribute-0',kind:'variant',mutations:[attrTest.mutation]}]);
-      const ra=await services.ExperimentRunner.run(pa,rom,{store,session,signal,onProgress:p=>stage('test',p)});
-      report.plans.push({id:pa.id,planHash:ra.plan.planHash,receipts:ra.receipts.map(r=>({trial:r.trialId,outcome:r.outcome,receiptHash:r.receiptHash,firstDivergence:r.firstDivergence}))});
-      if(ra.reference)attrJudged=judge({...attrTest,trial:'attribute-0'},ra);}
+    const arrays=Finder.attributeArrays(w,rom,layout,roles,ref.trace.events),baseAttrs=new Map([...visibleMap(r2.reference.result)].map(([k,v])=>[k,v.attributes]));
+    const attrTest=arrays.length?Finder.planAttributeIntervention(w,arrays[0],rom,layout,baseAttrs):null;let attrJudged=null,ra=null;
+    if(attrTest){ra=await runPlan(plan('attribute-intervention',rom,session.identity,training.steps,training.captures,[{id:'baseline',kind:'baseline',mutations:[]},{id:'attribute-0',kind:'variant',mutations:[attrTest.mutation]}]),'test');
+      if(ra.reference){const x=interpret({...attrTest,trial:'attribute-0'},ra,ra.reference.result.sync,roles,traceComplete,layout);attrJudged={...attrTest,trial:'attribute-0',judgement:x.judgement,interpretation:x.interpretation,receiptHash:x.receipt.receiptHash,outcome:x.receipt.outcome};}}
     const all=[...judged,...(attrJudged?[attrJudged]:[])];
-    report.stages.test={interventions:all.map(t=>({trial:t.trial,kind:t.kind,candidate:t.candidate,mutation:t.mutation,predictedChanges:t.predict.length,outcome:t.outcome,result:t.judgement.result,reason:t.judgement.reason||null})),controls,
-      attributeArrays:arrays.slice(0,4).map(a=>({physical:a.physical,decode:a.decode,constraints:a.constraints,instructions:a.instructions.length}))};
+    report.stages.test.interventions=all.map(t=>({trial:t.trial,kind:t.kind,candidate:t.candidate,quadrant:t.quadrant,mutation:t.mutation,predictedChanges:t.predict.length,outcome:t.outcome,result:t.judgement.result,reason:t.judgement.reason||null,interpretation:t.interpretation,receiptHash:t.receiptHash}));
+    report.stages.test.attributeArrays=arrays.slice(0,4).map(a=>({physical:a.physical,decode:a.decode,constraints:a.constraints,instructions:a.instructions.length}));
     // 4. freeze
-    const definition=contract.sealCandidate(Finder.define({w,array:attrJudged?.judgement.result==='supported'?arrays[0]:null,interventions:all.filter(t=>t.candidate===w.id),repeatability:r1.repeatability==='passed'?'passed: two cold and two restored runs identical (same engine)':r1.repeatability,rom,layout,
+    const ownTests=[...all.filter(t=>t.candidate===w.id),...(secondJ?[{...second,judgement:secondJ.judgement,receiptHash:secondJ.receipt.receiptHash}]:[])];
+    const definition=contract.sealCandidate(Finder.define({w,array:attrJudged?.interpretation.classification==='supported'?arrays[0]:null,interventions:ownTests,repeatability:'passed: two cold and two restored runs identical; the supporting intervention repeated identically (same engine)',rom,layout,
       evidence:{sourceSha256:romSha,plans:report.plans.map(x=>x.planHash)}}));
     store.addCandidate(definition);
-    report.stages.freeze={definitionHash:definition.definitionHash,candidate:w.id,rank:w.rank,frozenBeforeHoldout:true};
+    report.stages.freeze={definitionHash:definition.definitionHash,candidate:w.id,rank:w.rank,revision:definition.revision?.number??1,numbering:definition.table.numbering||'operand-evidence',frozenBeforeHoldout:true};
     report.definition=definition;
-    if(signal?.aborted)return {...report,cancelled:true};
+    if(signal?.aborted)return {...finish('inconclusive','cancelled'),cancelled:true};
     // 5. withheld input, after the freeze
     stage('holdout',{message:'Running the withheld input and reconstructing it from the frozen definition'});
-    const p3=plan('holdout',rom,session.identity,holdout.steps,holdout.captures,[{id:'baseline',kind:'baseline',mutations:[]}]);
-    const r3=await services.ExperimentRunner.run(p3,rom,{store,session,signal,onProgress:p=>stage('holdout',p)});
-    report.plans.push({id:p3.id,planHash:r3.plan.planHash,receipts:r3.receipts.map(r=>({trial:r.trialId,outcome:r.outcome,receiptHash:r.receiptHash}))});
-    if(!r3.reference)fail('the withheld input did not reach its target');
+    const r3=await runPlan(plan('holdout',rom,session.identity,holdout.steps,holdout.captures,[{id:'baseline',kind:'baseline',mutations:[]}]),'holdout');
+    if(!r3.reference)return finish('inconclusive','the withheld input did not reach its target',{definitionFrozen:true});
     const shot=r3.reference.result.captures[0],reconstruction=Finder.reconstruct(definition,rom,layout,captureView(shot));
-    report.holdout={label:shot.label,definitionHash:definition.definitionHash,reconstruction,
-      observedAttributes:Array.from(Finder.visible(captureView(shot)).attributes),
-      selfCheck:selfCheck(reconstruction,Finder.visible(captureView(shot)))};
-    report.store=store.stats();report.baseUnchanged=r1.baseUnchanged&&r2.baseUnchanged&&r3.baseUnchanged&&contract.sha256(rom)===romSha;
-    report.verification={sameEngine:'repeatability '+r1.repeatability+'; '+all.filter(t=>t.judgement.result==='supported').length+' predicted interventions supported',independent:'not performed in the editor: an independent oracle that knows the fixture is outside the editor (acceptance suite)'};
-    timings.totalMs=Math.round(performance.now()-t0);report.timings=timings;report.sandbox={runs:session.stats.runs,bootMs:session.stats.bootMs};
-    return report;
+    report.holdout={label:shot.label,definitionHash:definition.definitionHash,inputHash:contract.hashOf(holdout.steps),reconstruction,
+      observedAttributes:Array.from(Finder.visible(captureView(shot)).attributes),selfCheck:selfCheck(reconstruction,Finder.visible(captureView(shot))),claims:claimsOf(definition,rom,reconstruction,shot.label)};
+    report.baseUnchanged=runs.every(r=>r.baseUnchanged)&&contract.sha256(rom)===romSha;
+    // 6. verification jobs in this engine (the independent emulator runs the same jobs outside the editor)
+    if(prepareVerification){stage('verification',{message:'Running the engine-neutral verification jobs in this engine'});
+      report.verification=await verificationJobs({session,rom,romSha,layout,r1,r2,rc,ra,r3,judged,attrJudged,repeat,secondJ,second,first0,controls,claims:report.holdout.claims,training,holdout,signal});}
+    report.verification={...(report.verification||{}),sameEngine:'repeatability '+r1.repeatability+'; '+ownTests.filter(t=>t.judgement.result==='supported').length+' predicted interventions supported',
+      independent:'not performed in the editor: run the jobs in an independent emulator (tools/agent-lab/independent/verify-package.cjs) and attach its receipt'};
+    const numbering=definition.table.numbering||'operand-evidence';
+    if(numbering==='relative')return finish('ambiguous','the table\'s location and layout are supported, but no instruction names record 0, so record numbering is undetermined: IDs are relative to the lowest observed record and exact record identity is not claimed',{definitionFrozen:true,numbering});
+    return finish('candidate','one hypothesis survived its predicted interventions, at two record positions, repeated identically, with every control and decoy behaving as expected',{definitionFrozen:true,numbering});
   }finally{session.close('discovery finished');}
 }
 // the definition's predicted attribute bits against the attribute bytes the capture shows: a same-engine consistency check
 function selfCheck(reconstruction,visible){let known=0,agree=0;for(const a of reconstruction.attributes){const o=visible.attributes[a.index];for(let b=0;b<8;b++)if(a.knownMask>>b&1){known++;if(((a.value^o)>>b&1)===0)agree++;}}return {attributeBitsPredicted:known,agreeWithCapture:agree,kind:'same-engine consistency (not independent)'};}
+// What the frozen definition claims about the withheld screen, in engine-neutral form: each claimed cell's four tiles
+// (decoded from the cartridge with the definition) and every stated attribute bit.
+function claimsOf(definition,rom,reconstruction,label){
+  const t=definition.table,cells=[];
+  for(const c of reconstruction.cells){if(!c.ids.length)continue;const tiles=Finder.decodeRecord(definition,rom,c.ids[0]);cells.push({cell:[c.mx,c.my],status:c.status,ids:c.ids.slice(),index:(2*c.my+t.grid.y)*32+2*c.mx+t.grid.x,tiles});}
+  return {label,definitionHash:definition.definitionHash,cells,attributes:reconstruction.attributes.filter(a=>a.knownMask).map(a=>({index:a.index,value:a.value,knownMask:a.knownMask}))};
+}
+// Each verification job runs from power-on with the masks the frame-mode run latched; captures at NMI-handler entries.
+async function verificationJobs({session,rom,romSha,layout,r1,r2,rc,ra,r3,judged,attrJudged,repeat,secondJ,second,first0,controls,claims,training,holdout,signal}){
+  const specs=[],add=(id,kind,result,mutations,captures,expectation,extra={})=>{if(result?.sync)specs.push({id,kind,result,mutations,captures,expectation,...extra});};
+  const resultOf=(run,trial)=>run?.results.find(x=>x.trial.id===trial)?.result;
+  add('training-baseline','baseline',r1.reference.result,[],training.captures,{kind:'reference'},{trace:true,chr:true});
+  add('holdout-baseline','holdout',r3.reference.result,[],holdout.captures,{kind:'claims',claims});
+  for(const t of judged){const c=t.interpretation.classification;
+    add(t.trial,'intervention',resultOf(r2,t.trial),[t.mutation],training.captures,c==='supported'?{kind:'prediction',predict:t.predict,candidate:t.candidate}:c==='falsified-not-read'||c==='falsified-no-observed-effect'?{kind:'no-effect',candidate:t.candidate,reason:c}:{kind:'compare-only',candidate:t.candidate,reason:c});}
+  if(second&&secondJ?.interpretation.classification==='supported')add('tile-second-position','intervention',resultOf(rc,'tile-second-position'),[second.mutation],training.captures,{kind:'prediction',predict:second.predict,candidate:second.candidate});
+  if(attrJudged&&attrJudged.interpretation.classification==='supported')add('attribute-0','intervention',resultOf(ra,'attribute-0'),[attrJudged.mutation],training.captures,{kind:'prediction',predict:attrJudged.predict,candidate:attrJudged.candidate});
+  for(const c of controls)if(c.mutation)add(c.trial,'control',resultOf(r2,c.trial),[{offset:c.mutation.offset,expected:c.mutation.expected,value:c.mutation.value}],training.captures,{kind:'no-effect',reason:c.expectation});
+  const jobs=[];let colourClass=null;
+  for(const s of specs){
+    if(signal?.aborted)break;
+    const job=V.deriveJob({id:s.id,kind:s.kind,cartridgeSha256:romSha,mutations:s.mutations,sync:s.result.sync,captures:s.captures,trace:!!s.trace,chr:!!s.chr,pixels:true});
+    const variant=s.mutations.length?contract.buildVariant(rom,romSha,contract.validateMutations(rom,layout,s.mutations)):{bytes:rom,sha256:romSha};
+    const out=await session.run({job,rom:variant.bytes,romSha:variant.sha256,budgets:{wallMs:60000}},{signal});
+    for(const c of out.job?.captures||[])if(c.colourClass&&!colourClass)colourClass=Array.from(c.colourClass);
+    const captures=(out.job?.captures||[]).map(c=>{const n=V.normalize(c,{engine:'forge',mirroring:layout.mirroring,colourClass:c.colourClass});return {label:c.label,nmi:c.nmi,frame:c.frame,latches:c.latches,line:c.line,digests:V.digestAll(n),normalized:n};});
+    jobs.push({job:{...job,variantSha256:variant.sha256},expectation:s.expectation,forge:{captures,frames:out.job?.frames??null,nmis:out.job?.nmis??null,latches:out.job?.latches??null,multiLatchFrames:out.job?.multiLatchFrames??null,missing:out.job?.missing??null,stopReason:out.job?.stopReason||out.stopReason||null}});
+  }
+  // the same predictions judged on this engine's job captures (same-engine; the independent receipt repeats them on another engine)
+  const byId=id=>jobs.find(j=>j.job.id===id),base=byId('training-baseline'),checks=[];
+  for(const j of jobs){const e=j.expectation;if(!base)break;
+    if(e.kind==='prediction'||e.kind==='no-effect')for(const c of j.forge.captures){const b=base.forge.captures.find(x=>x.label===c.label);if(!b)continue;
+      const r=e.kind==='prediction'?V.checkPrediction(b.normalized,c.normalized,e.predict.filter(p=>p.label===c.label)):V.checkNoEffect(b.normalized,c.normalized);checks.push({job:j.job.id,label:c.label,kind:e.kind,...r});}
+    if(e.kind==='claims'){const h=j.forge.captures[0];if(h)checks.push({job:j.job.id,label:h.label,kind:'claims',...V.checkClaims(h.normalized,e.claims)});}}
+  return {jobs,sameEngineChecks:checks,mirroring:layout.mirroring,colourClass};
+}
 services.MetatileDiscovery=Object.freeze({discover});
 })();
 /* Generated by QA/fixtures/al-exp-01/generate.cjs --write; do not edit. An original synthetic test cartridge for the
  * AL-EXP-01 experimental panel (fixture seed 4, al-exp-01-fixture/1; Apache-2.0). Its input design only: the fixture
  * answers live outside the editor, with the acceptance suite's oracle. */
 window.ForgeExperimentDemoFixture=Object.freeze({"generator":"al-exp-01-fixture/1","seed":4,"sha256":"faac3ad2fd9c959b871b3aee57eeadbf780b557f549bd2aaea0e5d3f2507e893","byteLength":24592,"base64":"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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==","training":{"steps":[{"frames":60,"buttons":[]},{"frames":4,"buttons":["Right"]},{"frames":56,"buttons":[]},{"frames":4,"buttons":["Right"]},{"frames":56,"buttons":[]}],"captures":[{"label":"scene-0","frame":60},{"label":"scene-1","frame":120},{"label":"scene-2","frame":180}]},"holdout":{"steps":[{"frames":60,"buttons":[]},{"frames":4,"buttons":["B"]},{"frames":56,"buttons":[]}],"captures":[{"label":"holdout","frame":120}]}});
-/* AL-EXP-01: the experimental discovery panel and its commands. In this slice the panel runs only the synthetic
- * demonstration: Forge's own original test cartridge, in an isolated copy of the editor. It never uses the editor's
- * emulator, project, cartridge or library. What it finds is a candidate, shown as such; independent verification is not
- * something the editor can do for itself and is reported as not performed. */
+/* AL-EXP-01/02: the experimental discovery panel and its commands. The panel runs only the synthetic demonstration:
+ * Forge's own original test cartridge, in an isolated copy of the editor. It never uses the editor's emulator, project,
+ * cartridge or library. What it finds is a candidate, shown as such. Independent verification needs an emulator that is
+ * not NES Forge: the panel prepares the engine-neutral jobs, exports them in a reproducible evidence package, and
+ * re-checks a receipt from the development harness (FCEUX) itself; without one it says verification was not performed.
+ * Nothing here can promote, register or write a resource. */
 (()=>{
 'use strict';
 const F=window.Forge,services=F.services,C=F.commands,contract=window.ForgeExperimentContract,Evidence=window.ForgeExperimentEvidence,demo=window.ForgeExperimentDemoFixture;
-let running=null,last=null,lastStore=null,root=null,c={};
+const V=window.ForgeExperimentVerification,Pkg=window.ForgeExperimentPackage,Life=window.ForgeExperimentLifecycle,Promo=window.ForgeExperimentPromotion;
+let running=null,last=null,lastStore=null,lastRom=null,attached=null,root=null,c={},inspecting=null;
 function fail(message){throw Error('Experiments: '+message);}
 function bytesOfDemo(){const s=atob(demo.base64),b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);if(contract.sha256(b)!==demo.sha256)fail('the embedded demonstration cartridge does not match its SHA-256');return b;}
-function requireSynthetic(bytes){const layout=contract.romLayout(bytes);if(!contract.isSynthetic(bytes,layout))fail('this slice runs experiments only on Forge\'s synthetic fixtures; this cartridge carries no synthetic-fixture marker');return layout;}
+function requireSynthetic(bytes){const layout=contract.romLayout(bytes);if(!contract.isSynthetic(bytes,layout))fail('experiments run only on Forge\'s synthetic fixtures; this cartridge carries no synthetic-fixture marker');return layout;}
 async function exclusive(label,fn){
   if(running)fail('an experiment is already running ('+running.label+')');
   if(!services.ExperimentSandbox.available())fail('isolation is not available here: experiments need the standalone editor in a browser');
@@ -38702,65 +39294,144 @@ async function exclusive(label,fn){
 }
 async function discover(bytes,training,holdout){
   requireSynthetic(bytes);const store=Evidence.createStore();
-  return exclusive('discovery',async(signal,progress)=>{const report=await services.MetatileDiscovery.discover({rom:bytes,training,holdout,signal,onProgress:progress,store});last=report;lastStore=store;return report;});
+  return exclusive('discovery',async(signal,progress)=>{const report=await services.MetatileDiscovery.discover({rom:bytes,training,holdout,signal,onProgress:progress,store});last=report;lastStore=store;lastRom=new Uint8Array(bytes);attached=null;return report;});
 }
 function runDemo(){return discover(bytesOfDemo(),demo.training,demo.holdout);}
+function assessment(){return last?Life.assess({discovery:last,independent:attached?.effective||null}):Life.assess({});}
+function packageOf({privacy='synthetic'}={}){if(!last||!lastStore)fail('no experiment has run in this session');
+  return Pkg.build({report:last,store:lastStore,rom:lastRom,privacy,independent:attached?[attached.receipt]:[],assessment:assessment(),
+    generation:last.source.sha256===demo.sha256?{generator:demo.generator,seed:demo.seed,note:'regenerate with the AL-EXP-01 fixture generator (QA/fixtures/al-exp-01/generate.cjs) in the NES Forge repository'}:null});}
+// The receipt from an independent emulator: its seal checked, its subject matched, its comparisons and predictions
+// recomputed here from its raw captures. The verdict used is NES Forge's recomputation.
+function attach(receipt){
+  if(!last?.verification?.jobs?.length)fail('run the demonstration first: there are no verification jobs to compare with');
+  const seal=V.verifyIndependent(receipt);if(!seal.ok)fail('the receipt is refused: '+seal.problems.join('; '));
+  if(receipt.subject.cartridgeSha256!==last.source.sha256)fail('the receipt is about another cartridge');
+  if(last.definition&&receipt.subject.definitionHash!==last.definition.definitionHash)fail('the receipt is about another definition ('+String(receipt.subject.definitionHash).slice(0,12)+'…)');
+  const forgeJobs=last.verification.jobs.map(j=>({job:j.job,expectation:j.expectation,captures:j.forge.captures.map(x=>({label:x.label,nmi:x.nmi,digests:x.digests,channels:x.normalized.channels}))}));
+  const blocked=receipt.verdict.result==='blocked';
+  const re=blocked?{comparisons:[],predictions:[],verdict:receipt.verdict,notes:['the independent emulator could not run'],matchesReceipt:true}:V.recheck({receipt,forgeJobs});
+  attached={receipt,recheck:re,effective:{...receipt,verdict:re.verdict}};
+  return {verdict:re.verdict,matchesReceipt:re.matchesReceipt,checkpoints:re.comparisons.length,agree:re.comparisons.filter(x=>x.agree).length,predictions:re.predictions.length,predictionsHold:re.predictions.filter(p=>p.holds).length,notes:re.notes,lifecycle:assessment()};
+}
+// Re-run a package's plans and jobs from its recorded inputs and compare every capture digest with the recorded one.
+async function replay(pkg,local=null){
+  const v=Pkg.validate(pkg);if(!v.ok)fail('the package does not validate: '+v.problems.join('; '));
+  const rom=Pkg.cartridgeBytes(pkg,local);requireSynthetic(rom);
+  return exclusive('replay',async(signal,progress)=>{
+    const session=await services.ExperimentSandbox.open(),out={build:{recorded:pkg.manifest.engine.documentSha256,now:session.identity.documentSha256},trials:[],jobs:[]};
+    try{
+      for(const p of pkg.plans){if(!p.plan||signal.aborted)continue;const {engine,planHash,totalFrames,...body}=p.plan;
+        const r=await services.ExperimentRunner.run(body,rom,{session,signal,onProgress:x=>progress({stage:'replay '+p.id,...x})});
+        for(const rec of r.receipts){const old=pkg.receipts.find(x=>x.receiptHash===p.receipts[r.receipts.indexOf(rec)]||(x.planId===p.id&&x.trialId===rec.trialId));
+          const same=!!old&&old.outcome===rec.outcome&&old.captures.length===rec.captures.length&&old.captures.every((cc,i)=>contract.hashOf(cc.digests)===contract.hashOf(rec.captures[i].digests));
+          out.trials.push({plan:p.id,trial:rec.trialId,outcome:rec.outcome,recorded:old?.outcome??null,reproduced:same});}}
+      for(const j of pkg.verification?.jobs||[]){if(signal.aborted)break;const muts=contract.validateMutations(rom,contract.romLayout(rom),j.job.mutations||[]),variant=muts.length?contract.buildVariant(rom,pkg.cartridge.sha256,muts):{bytes:rom,sha256:pkg.cartridge.sha256};
+        const res=await session.run({job:j.job,rom:variant.bytes,romSha:variant.sha256,budgets:{wallMs:60000}},{signal});
+        const caps=(res.job?.captures||[]).map(x=>({label:x.label,digests:V.digestAll(V.normalize(x,{engine:'forge',mirroring:pkg.verification.mirroring,colourClass:x.colourClass}))}));
+        out.jobs.push({job:j.job.id,reproduced:j.forge.captures.every(fc=>{const n=caps.find(x=>x.label===fc.label);return n&&Object.keys(fc.digests).every(ch=>fc.digests[ch]===n.digests[ch]);})});}
+    }finally{session.close('replay finished');}
+    out.summary={trials:out.trials.length,reproduced:out.trials.filter(t=>t.reproduced).length,jobs:out.jobs.length,jobsReproduced:out.jobs.filter(t=>t.reproduced).length,sameBuild:out.build.recorded===out.build.now};
+    return out;});
+}
 
 // ---------- panel ----------
 const make=(tag,props={},text)=>{const n=document.createElement(tag);Object.assign(n,props);if(text!==undefined)n.textContent=text;return n;};
 const hex=n=>'$'+n.toString(16).toUpperCase();
+const download=(name,data)=>{const blob=new Blob([JSON.stringify(data,null,1)],{type:'application/json'}),a=make('a',{href:URL.createObjectURL(blob),download:name});document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
 function mount(){
   if(root)return root;const host=document.getElementById('reRuntimeWorkspace');if(!host||!demo)return null;
-  const css=make('style',{id:'reDiscoveryStyles'});css.textContent='#reDiscoveryPanel{margin:14px 0;padding:10px;border:1px solid #6b5f8a;border-radius:6px;min-width:0;overflow-wrap:anywhere}#reDiscoveryPanel .re-discovery-actions{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}#reDiscoveryPanel table{border-collapse:collapse;width:100%;font-size:12px;display:block;overflow-x:auto}#reDiscoveryPanel th,#reDiscoveryPanel td{border-bottom:1px solid #444;padding:3px 6px;text-align:left;white-space:nowrap}#reDiscoveryPanel .re-chip{display:inline-block;padding:1px 6px;border-radius:9px;border:1px solid #b08cff;color:#d9c8ff;font-size:12px}#reDiscoveryPanel [data-ok=false]{color:#ff9d8a}#reDiscoveryPanel [data-ok=true]{color:#9ee39e}';
+  const css=make('style',{id:'reDiscoveryStyles'});css.textContent='#reDiscoveryPanel{margin:14px 0;padding:10px;border:1px solid #6b5f8a;border-radius:6px;min-width:0;overflow-wrap:anywhere}#reDiscoveryPanel .re-discovery-actions{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}#reDiscoveryPanel table{border-collapse:collapse;width:100%;font-size:12px;display:block;overflow-x:auto}#reDiscoveryPanel th,#reDiscoveryPanel td{border-bottom:1px solid #444;padding:3px 6px;text-align:left;white-space:nowrap}#reDiscoveryPanel .re-chip,#reDiscoveryPanel .re-state{display:inline-block;padding:1px 6px;border-radius:9px;border:1px solid #b08cff;color:#d9c8ff;font-size:12px;margin-left:4px}#reDiscoveryPanel .re-state{border-color:#7fb3d5;color:#cfe6f5}#reDiscoveryPanel [data-ok=false]{color:#ff9d8a}#reDiscoveryPanel [data-ok=true]{color:#9ee39e}#reDiscoveryPanel pre{max-height:260px;overflow:auto;font-size:11px;background:#1b1830;padding:6px;white-space:pre-wrap}#reDiscoveryPanel h4{margin:10px 0 4px;font-size:13px}';
   root=make('section',{id:'reDiscoveryPanel'});root.setAttribute('aria-labelledby','reDiscoveryTitle');
   root.append(css,make('h3',{id:'reDiscoveryTitle'},'Experimental discovery · synthetic demonstration'),
     make('p',{},'Finds an unknown metatile table in Forge\'s own synthetic test cartridge: it observes the cartridge running, proposes where the table could be, changes single bytes in private copies to test each guess, and keeps only what the game\'s own drawing confirms. It runs in an isolated copy of this editor. Your project, emulator, cartridge and library are not touched. What it finds is a candidate, not a verified resource.'));
   const actions=make('div',{className:'re-discovery-actions'});
   c.run=make('button',{id:'reDiscoveryRun',type:'button'},'Run demonstration');c.cancel=make('button',{id:'reDiscoveryCancel',type:'button',disabled:true},'Cancel');c.export=make('button',{id:'reDiscoveryExport',type:'button',disabled:true},'Export metadata');
-  actions.append(c.run,c.cancel,c.export);c.status=make('p',{id:'reDiscoveryStatus'});c.status.setAttribute('role','status');c.status.setAttribute('aria-live','polite');c.result=make('div',{id:'reDiscoveryResult'});
-  root.append(actions,c.status,c.result);
+  c.package=make('button',{id:'reDiscoveryPackage',type:'button',disabled:true},'Export evidence package');c.attach=make('button',{id:'reDiscoveryAttach',type:'button',disabled:true},'Attach verification receipt…');
+  c.replay=make('button',{id:'reDiscoveryReplay',type:'button',disabled:true},'Reproduce from recorded inputs');
+  c.inspectDef=make('button',{id:'reDiscoveryInspectDefinition',type:'button',disabled:true},'Inspect definition');c.inspectHyp=make('button',{id:'reDiscoveryInspectHypotheses',type:'button',disabled:true},'Inspect hypotheses');c.inspectDisc=make('button',{id:'reDiscoveryInspectDiscrepancies',type:'button',disabled:true},'Inspect discrepancies');
+  actions.append(c.run,c.cancel,c.export,c.package,c.attach,c.replay,c.inspectDef,c.inspectHyp,c.inspectDisc);c.status=make('p',{id:'reDiscoveryStatus'});c.status.setAttribute('role','status');c.status.setAttribute('aria-live','polite');c.result=make('div',{id:'reDiscoveryResult'});c.detail=make('div',{id:'reDiscoveryDetail'});
+  root.append(actions,c.status,c.result,c.detail);
   c.run.addEventListener('click',()=>{runDemo().then(render).catch(e=>{c.status.textContent='Stopped: '+e.message;c.status.dataset.ok='false';});});
   c.cancel.addEventListener('click',()=>running?.controller.abort());
-  c.export.addEventListener('click',()=>{if(!lastStore)return;const blob=new Blob([JSON.stringify(lastStore.exportMetadata({privacy:'synthetic'}),null,1)],{type:'application/json'}),a=make('a',{href:URL.createObjectURL(blob),download:'al-exp-01-demonstration-metadata.json'});document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);});
+  c.export.addEventListener('click',()=>{if(lastStore)download('al-exp-demonstration-metadata.json',lastStore.exportMetadata({privacy:'synthetic'}));});
+  c.package.addEventListener('click',()=>{try{const p=packageOf();download('al-exp-demonstration.forge-experiment.json',p);c.status.textContent='Exported an evidence package ('+p.manifest.completeness.kind+': '+p.manifest.completeness.embedded+' embedded, '+p.manifest.completeness.referenced+' referenced).';}catch(e){c.status.textContent='Stopped: '+e.message;}});
+  c.attach.addEventListener('click',()=>{const input=make('input',{type:'file',accept:'.json,application/json'});input.addEventListener('change',async()=>{const f=input.files?.[0];if(!f)return;try{attach(JSON.parse(await f.text()));render(last);}catch(e){c.status.textContent='Stopped: '+e.message;c.status.dataset.ok='false';}});input.click();});
+  c.replay.addEventListener('click',()=>{try{const p=packageOf();replay(p).then(r=>{c.status.textContent='Reproduced from recorded inputs: '+r.summary.reproduced+' of '+r.summary.trials+' trials and '+r.summary.jobsReproduced+' of '+r.summary.jobs+' verification jobs gave identical captures'+(r.summary.sameBuild?'':' (a different build)')+'.';c.status.dataset.ok=String(r.summary.reproduced===r.summary.trials&&r.summary.jobsReproduced===r.summary.jobs);}).catch(e=>{c.status.textContent='Stopped: '+e.message;});}catch(e){c.status.textContent='Stopped: '+e.message;}});
+  const show=(what,data)=>{inspecting=inspecting===what?null:what;c.detail.replaceChildren();if(inspecting){c.detail.append(make('h4',{},what),make('pre',{},JSON.stringify(data,(k,v)=>v instanceof Uint8Array?'['+v.length+' bytes]':v,1)));}};
+  c.inspectDef.addEventListener('click',()=>show('Candidate definition',last?.definition||{note:'no definition was frozen',result:last?.result}));
+  c.inspectHyp.addEventListener('click',()=>show('Competing hypotheses',{...last?.hypotheses,tests:last?.stages?.test?.interventions,confirm:last?.stages?.test?.confirm}));
+  c.inspectDisc.addEventListener('click',()=>show('Discrepancies',attached?{verdict:attached.recheck.verdict,notes:attached.recheck.notes,disagreements:attached.recheck.comparisons.filter(x=>!x.agree),failedPredictions:attached.recheck.predictions.filter(p=>!p.holds),timingOnly:attached.recheck.comparisons.filter(x=>x.channels?.ram?.status==='equal-except-timing').map(x=>x.job+' '+x.label)}:{note:'no independent receipt attached: nothing to compare yet'}));
   for(const type of ['keydown','keyup'])root.addEventListener(type,e=>e.stopPropagation?.());
   const after=document.getElementById('reExperimentsPanel');if(after&&after.parentNode===host)after.after(root);else host.appendChild(root);
   refresh();return root;
 }
-function refresh(){if(!root)return;c.run.disabled=!!running;c.cancel.disabled=!running;c.export.disabled=!!running||!lastStore;
+function refresh(){if(!root)return;const busy=!!running,has=!!last;c.run.disabled=busy;c.cancel.disabled=!busy;c.export.disabled=busy||!lastStore;
+  for(const b of [c.package,c.replay])b.disabled=busy||!has;c.attach.disabled=busy||!has||!last?.verification?.jobs?.length;for(const b of [c.inspectDef,c.inspectHyp,c.inspectDisc])b.disabled=!has;
   if(running){const s=running.stage||{};c.status.dataset.ok='';c.status.textContent='Running in an isolated copy of the editor · '+(s.message||s.stage||'starting')+(s.frame?' · frame '+s.frame+'/'+s.total:'');}}
+const CLASS_TEXT={candidate:'a candidate definition (not a verified resource)',ambiguous:'ambiguous (no single answer is claimed)','insufficient-evidence':'insufficient evidence (nothing is claimed)',inconclusive:'inconclusive (nothing is claimed)'};
 function render(report){
-  if(!root)return;c.result.replaceChildren();c.status.dataset.ok='true';c.status.textContent='Finished. Result: a candidate definition (not a verified resource).';
-  const d=report.definition,o=report.stages.observe,t=report.stages.test,h=report.holdout;
+  if(!root||!report)return;c.result.replaceChildren();const cls=report.result?.classification||'candidate';
+  c.status.dataset.ok=String(cls==='candidate');c.status.textContent='Finished. Result: '+(CLASS_TEXT[cls]||cls)+'.';
+  const d=report.definition,o=report.stages.observe,t=report.stages.test,h=report.holdout,life=assessment();
   const p=(text,ok)=>{const n=make('p',{},text);if(ok!==undefined)n.dataset.ok=String(ok);c.result.appendChild(n);return n;};
-  p('Isolation: an identical copy of this editor build (document '+report.identity.documentSha256.slice(0,12)+'…), started in '+report.sandbox.bootMs+' ms; '+report.sandbox.runs+' runs. The editor\'s own emulator was not used.');
-  p('Same-engine repeatability: '+o.repeatability+' (two cold runs and two runs restored from a checkpoint gave identical results). This shows determinism, not correctness.',o.repeatability==='passed');
-  const table=make('table');table.innerHTML='<thead><tr><th>Rank</th><th>Layout</th><th>Where</th><th>Screens explained</th><th>Read by the game</th><th>Tested</th></tr></thead>';const body=make('tbody');
-  for(const row of report.stages.propose.ranked.slice(0,5)){const test=t.interventions.find(i=>i.candidate===row.id&&i.kind==='tile'),tr=make('tr');
-    for(const v of [row.rank,row.layout+' · '+row.order+(row.layout==='split'?' · stride '+row.fieldStep:''),'file '+hex(row.base.physical),Math.round(row.coverage*100)+'%',row.traceSupport===null?'—':Math.round(row.traceSupport*100)+'%',test?test.result:'not tested'])tr.appendChild(make('td',{},String(v)));
-    if(test)tr.lastChild.dataset.ok=String(test.result==='supported');body.appendChild(tr);}
-  table.appendChild(body);c.result.appendChild(table);
-  p('Controls: '+t.controls.map(x=>x.trial.replace('control-','')+' → '+x.outcome.replace(/_/g,' ')).join('; ')+'.',t.controls.every(x=>x.passed));
-  p('Frozen definition '+d.definitionHash.slice(0,12)+'…: '+(/^[aeiou]/.test(d.table.layout)?'an ':'a ')+d.table.layout+' table ('+d.table.order+' order'+(d.table.layout==='split'?', arrays '+d.table.fieldStep+' bytes apart':'')+') at file '+hex(d.table.physicalBase)+', records 0–'+d.extent.highest+' ('+d.extent.knownIds.length+' seen); '+(d.attributes?'palette array at file '+hex(d.attributes.physicalBase)+' ('+d.attributes.decode+')':'no palette array confirmed')+'; '+d.aliases.length+' alias group(s). ').appendChild(make('span',{className:'re-chip'},'candidate'));
-  const k=h.reconstruction.counts;
-  p('Withheld screen, reconstructed from the frozen definition: '+k.observed+' cells from seen records, '+k.interior+' from unseen records inside the table, '+k.resolved+' aliases resolved by palette, '+k.ambiguous+' ambiguous, '+k.extended+' past the seen range, '+k.unknown+' unknown. Attribute bits predicted: '+h.selfCheck.attributeBitsPredicted+', '+h.selfCheck.agreeWithCapture+' agree with the capture (same-engine consistency).');
-  p('Independent verification: not performed in the editor. The acceptance suite checks the result against the fixture generator\'s own data, outside the editor.');
+  const head=text=>c.result.appendChild(make('h4',{},text));
+  p('Isolation: an identical copy of this editor build (document '+report.identity.documentSha256.slice(0,12)+'…), started in '+report.sandbox.bootMs+' ms; '+report.sandbox.runs+' runs. The editor\'s own emulator was not used. Experiment engine: '+report.identity.engine+'.');
+  if(o)p('Same-engine repeatability: '+o.repeatability+' (two cold runs and two runs restored from a checkpoint gave identical results). This shows determinism, not correctness.',o.repeatability==='passed');
+  if(report.stages.propose){const table=make('table');table.innerHTML='<thead><tr><th>Rank</th><th>Layout</th><th>Where</th><th>Screens explained</th><th>Read by the game</th><th>Tested</th></tr></thead>';const body=make('tbody');
+    for(const row of report.stages.propose.ranked.slice(0,5)){const test=t?.interventions.find(i=>i.candidate===row.id&&i.kind==='tile'),tr=make('tr');
+      for(const v of [row.rank,row.layout+' · '+row.order+(row.layout==='split'?' · stride '+row.fieldStep:''),'file '+hex(row.base.physical),Math.round(row.coverage*100)+'%',row.traceSupport===null?'—':Math.round(row.traceSupport*100)+'%',test?test.result:'not tested'])tr.appendChild(make('td',{},String(v)));
+      if(test){tr.lastChild.dataset.ok=String(test.result==='supported');tr.lastChild.title=test.interpretation?.reason||'';}body.appendChild(tr);}
+    table.appendChild(body);c.result.appendChild(table);}
+  if(t){p('Interventions: '+t.interventions.map(i=>i.trial+' → '+(i.interpretation?.classification||i.result)).join('; ')+'.');
+    p('Controls: '+t.controls.map(x=>x.trial.replace('control-','')+' → '+x.outcome.replace(/_/g,' ')+(x.path&&x.path!=='same'?' (path '+x.path+')':'')).join('; ')+'.',t.controls.every(x=>x.passed));
+    if(t.confirm)p('Second record position: '+(t.confirm.secondPosition?.classification||'—')+'; supporting change repeated: '+(t.confirm.repeat?(t.confirm.repeat.identicalToFirst?'identical captures':'different captures'):'—')+'.');}
+  p('Result: '+(CLASS_TEXT[cls]||cls)+'. '+(report.result?.reason||''),cls==='candidate');
+  if(d){p('Frozen definition '+d.definitionHash.slice(0,12)+'… (revision '+(d.revision?.number??1)+', decoder '+(d.decoder?d.decoder.name+' v'+d.decoder.version:'—')+'): '+(/^[aeiou]/.test(d.table.layout)?'an ':'a ')+d.table.layout+' table ('+d.table.order+' order'+(d.table.layout==='split'?', arrays '+d.table.fieldStep+' bytes apart':'')+') at file '+hex(d.table.physicalBase)+', records 0–'+d.extent.highest+' ('+d.extent.knownIds.length+' seen; numbering '+(d.table.numbering||'operand-evidence')+'); '+(d.attributes?'palette array at file '+hex(d.attributes.physicalBase)+' ('+d.attributes.decode+')':'no palette array confirmed')+'; '+d.aliases.length+' alias group(s). ').appendChild(make('span',{className:'re-chip'},'candidate'));}
+  if(h){const k=h.reconstruction.counts;
+    p('Withheld screen, reconstructed from the frozen definition: '+k.observed+' cells from seen records, '+k.interior+' from unseen records inside the table, '+k.resolved+' aliases resolved by palette, '+k.ambiguous+' ambiguous, '+k.extended+' past the seen range, '+k.unknown+' unknown. Attribute bits predicted: '+h.selfCheck.attributeBitsPredicted+', '+h.selfCheck.agreeWithCapture+' agree with the capture (same-engine consistency).');}
+  head('Lifecycle');
+  const lp=p('State: '+life.state.replace(/-/g,' ')+(life.side?' · '+life.side.replace(/-/g,' '):'')+'. ');lp.appendChild(make('span',{className:'re-state',id:'reDiscoveryLifecycle'},life.side||life.state));
+  if(life.sideReason)p(life.sideReason);
+  if(life.nextRequires)p('Next ('+life.next.replace(/-/g,' ')+') requires: '+life.nextRequires);
+  head('Verification');
+  const jobs=report.verification?.jobs||[];
+  p('Verification jobs prepared: '+jobs.length+' engine-neutral jobs ('+jobs.reduce((n,j)=>n+j.forge.captures.length,0)+' NMI-synchronized checkpoints) run in this engine; same-engine checks: '+(report.verification?.sameEngineChecks||[]).filter(x=>x.holds).length+' of '+(report.verification?.sameEngineChecks||[]).length+' hold.');
+  if(!attached){p('Independent verification: not performed in the editor. It needs an emulator that is not NES Forge: export the evidence package and run tools/agent-lab/independent/verify-package.cjs (FCEUX) from the NES Forge repository, then attach its receipt here. The acceptance suite also checks the result against the fixture generator\'s own data, outside the editor.');}
+  else{const r=attached.recheck,e=attached.receipt.engine;
+    p('Independent engine: '+e.name+' '+e.version+(e.commit?' ('+e.source+' @ '+e.commit.slice(0,10)+')':'')+(e.license?', '+e.license:'')+'.');
+    p('Independent verification (recomputed here from the receipt\'s raw captures): '+r.verdict.result+' — '+r.verdict.reason+(r.matchesReceipt?'':' (the receipt itself claimed '+attached.receipt.verdict.result+')'),r.verdict.result==='verified');
+    const agree=r.comparisons.filter(x=>x.agree).length,timing=r.comparisons.filter(x=>x.channels?.ram?.status==='equal-except-timing').length;
+    p('Cross-emulator comparison: '+agree+' of '+r.comparisons.length+' checkpoints agree on every compared channel'+(timing?'; '+timing+' differ only in the interrupt frame on the stack (timing, reported)':'')+'. Predictions on the independent engine: '+r.predictions.filter(x=>x.holds).length+' of '+r.predictions.length+' hold.',agree===r.comparisons.length);
+    p('Not compared: '+Object.entries(V.NOT_COMPARED).map(([k,v])=>k+' ('+v+')').join('; ')+'.');}
+  p('Limitations: NROM only, unscrolled screens, 2x2 metatiles; same-engine results show determinism, not correctness; nothing is promoted or written to the library in this phase.');
 }
 function plain(report){return JSON.parse(JSON.stringify(report,(k,v)=>v instanceof Uint8Array?Array.from(v):v));}
 
 // ---------- commands ----------
 if(C?.register){
   const R=spec=>C.register({group:'experiment',...spec});
-  R({name:'experiment.describe',title:'Experiment contract',summary:'Formats, outcome and hypothesis states, limits. Experiments in this slice run only on Forge synthetic fixtures.',run:()=>({version:contract.version,formats:contract.FORMATS,outcomes:contract.OUTCOMES,hypotheses:contract.HYPOTHESES,limits:contract.LIMITS,channels:contract.CHANNELS,trialKinds:contract.TRIAL_KINDS,isolation:services.ExperimentSandbox.available()?'available':'unavailable here'})});
+  R({name:'experiment.describe',title:'Experiment contract',summary:'Formats, outcome and hypothesis states, lifecycle, limits. Experiments run only on Forge synthetic fixtures.',run:()=>({version:contract.version,formats:contract.FORMATS,outcomes:contract.OUTCOMES,hypotheses:contract.HYPOTHESES,limits:contract.LIMITS,channels:contract.CHANNELS,trialKinds:contract.TRIAL_KINDS,
+    lifecycle:{states:Life.STATES,side:Life.SIDE,requirements:Life.REQUIREMENTS},verification:{formats:V.FORMATS,channels:V.CHANNELS,notCompared:V.NOT_COMPARED},promotion:{destinations:Promo.DESTINATIONS},isolation:services.ExperimentSandbox.available()?'available':'unavailable here'})});
   R({name:'experiment.validatePlan',title:'Validate an experiment plan',args:{plan:{type:'object',required:true}},summary:'Checks a NESForgeExperimentPlan v1. Nothing runs.',run:a=>{const p=contract.validatePlan(a.plan);return {planHash:p.planHash,totalFrames:p.totalFrames,trials:p.trials.map(t=>({id:t.id,kind:t.kind,mutations:t.mutations.length}))};}});
   R({name:'experiment.run',title:'Run an experiment plan on a synthetic fixture',args:{plan:{type:'object',required:true},bytes:{type:'bytes',required:true}},summary:'Runs the plan\'s trials in the isolated sandbox. Only cartridges carrying the synthetic-fixture marker are accepted.',
-    run:a=>{requireSynthetic(a.bytes);const store=Evidence.createStore();return exclusive('plan',async(signal,progress)=>{const r=await services.ExperimentRunner.run(a.plan,a.bytes,{store,signal,onProgress:progress});lastStore=store;return {repeatability:r.repeatability,baseUnchanged:r.baseUnchanged,receipts:r.receipts,identity:r.identity,store:store.stats()};});}});
-  R({name:'experiment.discoverMetatiles',title:'Discover a metatile table in a synthetic fixture',args:{bytes:{type:'bytes',required:true},training:{type:'object',required:true},holdout:{type:'object',required:true}},summary:'Observe, propose, test, freeze, then reconstruct the withheld input. Synthetic fixtures only.',run:async a=>plain(await discover(a.bytes,a.training,a.holdout))});
+    run:a=>{requireSynthetic(a.bytes);const store=Evidence.createStore();return exclusive('plan',async(signal,progress)=>{const r=await services.ExperimentRunner.run(a.plan,a.bytes,{store,signal,onProgress:progress});lastStore=store;return {repeatability:r.repeatability,baseUnchanged:r.baseUnchanged,receipts:r.receipts,identity:r.identity,store:store.stats(),results:r.results.map(x=>({trial:x.trial.id,sync:x.result.sync?{nmis:x.result.sync.nmiFrames.length,latches:x.result.sync.latches.length,pathDigests:x.result.sync.pathDigests}:null}))};});}});
+  R({name:'experiment.discoverMetatiles',title:'Discover a metatile table in a synthetic fixture',args:{bytes:{type:'bytes',required:true},training:{type:'object',required:true},holdout:{type:'object',required:true}},summary:'Observe, propose, test, freeze, reconstruct the withheld input, prepare verification jobs. Synthetic fixtures only.',run:async a=>plain(await discover(a.bytes,a.training,a.holdout))});
   R({name:'experiment.demo',title:'Run the synthetic discovery demonstration',summary:'The experimental panel\'s demonstration on the embedded synthetic cartridge.',run:async()=>{const r=await runDemo();render(r);return plain(r);}});
   R({name:'experiment.cancel',title:'Cancel the running experiment',run:()=>{if(!running)return {cancelled:false};running.controller.abort();return {cancelled:true,label:running.label};}});
-  R({name:'experiment.status',title:'Experiment status',run:()=>({running:running?{label:running.label,stage:running.stage}:null,isolation:services.ExperimentSandbox.available(),sessions:services.ExperimentSandbox.sessions(),last:last?{definitionHash:last.definition?.definitionHash||null}:null})});
+  R({name:'experiment.status',title:'Experiment status',run:()=>({running:running?{label:running.label,stage:running.stage}:null,isolation:services.ExperimentSandbox.available(),sessions:services.ExperimentSandbox.sessions(),last:last?{definitionHash:last.definition?.definitionHash||null,classification:last.result?.classification||null}:null,attached:!!attached})});
   R({name:'experiment.exportMetadata',title:'Export the last experiment\'s metadata',summary:'Hashes, offsets, counts and outcomes; no cartridge or screen bytes.',run:()=>{if(!lastStore)fail('no experiment has run in this session');return lastStore.exportMetadata({privacy:'synthetic'});}});
+  R({name:'experiment.exportPackage',title:'Export the last experiment as a reproducible evidence package',args:{privacy:{type:'string'}},summary:'NESForgeExperimentPackage v1: cartridge (synthetic only), inputs, plans, receipts, payloads, hypotheses, controls, candidate, reconstruction, verification jobs, lifecycle. privacy "private" keeps every cartridge-derived byte out.',run:a=>packageOf({privacy:a.privacy||'synthetic'})});
+  R({name:'experiment.inspectPackage',title:'Inspect an evidence package',args:{package:{type:'object',required:true}},summary:'Validates hashes, receipts, payloads and the cartridge; summarizes completeness. Nothing runs.',run:a=>Pkg.inspect(a.package)});
+  R({name:'experiment.replayPackage',title:'Reproduce a package from its recorded inputs',args:{package:{type:'object',required:true},bytes:{type:'bytes'}},summary:'Re-runs every plan and verification job in the sandbox and compares each capture with the recorded one. A referenced cartridge must be supplied (its SHA-256 is checked).',run:a=>replay(a.package,a.bytes||null)});
+  R({name:'experiment.attachVerification',title:'Attach an independent emulator\'s verification receipt',args:{receipt:{type:'object',required:true}},summary:'Checks the seal and subject, recomputes every comparison and prediction from the receipt\'s raw captures, and reassesses the lifecycle. The library is not touched.',run:a=>attach(a.receipt)});
+  R({name:'experiment.lifecycle',title:'Lifecycle assessment of the last experiment',summary:'The state the evidence supports, its side state, and what the next state requires.',run:()=>assessment()});
+  R({name:'experiment.reviseDefinition',title:'Make a new revision of the frozen definition (for review)',args:{changes:{type:'object',required:true},reason:{type:'string',required:true}},summary:'A revision starts untested and names the one it replaces; nothing carries over.',run:a=>{if(!last?.definition)fail('no frozen definition');const rev=contract.reviseCandidate(last.definition,a.changes,a.reason);
+    return {definition:rev,lifecycle:Life.assess({discovery:{...last,definition:rev,stages:{...last.stages,freeze:{...last.stages.freeze,definitionHash:rev.definitionHash}}},independent:null,priorEvaluations:last.holdout?[{definitionHash:last.definition.definitionHash,inputHash:last.holdout.inputHash}]:[]})};}});
+  R({name:'experiment.promotionPreview',title:'Preview what the candidate would become (no writes)',args:{destination:{type:'string'}},summary:'Eligibility rules and a data-only preview; refused unless the lifecycle reached independent verification. Nothing is written.',run:a=>{if(!last)fail('no experiment has run');const life=assessment();
+    return {eligibility:Promo.eligibility({definition:last.definition,assessment:life,destination:a.destination||'metatiles'}),preview:last.definition?Promo.preview({definition:last.definition,rom:lastRom,assessment:life,destination:a.destination||'metatiles'}):null};}});
 }
-services.ExperimentUI=Object.freeze({mount,refresh,render,runDemo,status:()=>({running:!!running,last:!!last})});
+services.ExperimentUI=Object.freeze({mount,refresh,render,runDemo,status:()=>({running:!!running,last:!!last,attached:!!attached})});
 if(!services.ExperimentSandboxAgent.inSandbox())mount();
 })();
 </script>
