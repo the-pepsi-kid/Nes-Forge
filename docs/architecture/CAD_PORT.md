@@ -57,7 +57,10 @@ Formats (Forge names):
 Counts a configuration does not state take CadEditor's own default (256 blocks, 256 big blocks); a per-ID count
 function is a gap.
 
-Game-specific helpers are translated only when their whole body is a parameterised use of a shared format. The
+Game-specific helpers are translated only when their whole body is a parameterised use of a shared format. A
+shared reader (linear or aligned arrays) followed by a loop that takes each block's palette from a parallel array is
+recognized generally, whatever class it is written in. Capcom-style base classes are included, so `virtual` and
+`override` methods are read too. The
 translator strips each recognized statement and requires nothing to remain. Examples: the Ninja Gaiden helpers are
 linear 2x2 blocks plus 2x2 big blocks with a colour byte; Mega Man's blocks are computed from the block number, and
 its big blocks keep the block in the low 6 bits. Anything else stays untranslated with its reason.
@@ -91,6 +94,21 @@ Two measures of how surprising a pass is:
 | `supported` | The checks pass, analytic P ≤ 1e-6, and no shifted read passes |
 | `consistent` | The checks pass, but the evidence is weak. With 256 IDs, for example, every byte is valid |
 | `contradicted` | A check fails |
+
+## Capabilities kept apart
+
+Every recognized cartridge, every pack (`native_report.json` → `capabilities`) and the `cadport.coverage` command
+report four separate capabilities:
+
+| Capability | Meaning | Source |
+|---|---|---|
+| ROM identity | which cartridge this is: SHA-256, header reading (iNES 1.0, NES 2.0 or archaic, with any ignored bytes), how it was recognized | the file; `ines-header.js` |
+| Decoder compatibility | whether each translated definition decodes this cartridge: structural state | the decoders, on this cartridge |
+| Resource recovery coverage | what becomes resources: definitions packed, left to native profiles, graphics established, editable copies | the pack |
+| Emulator compatibility | whether each engine ran Agent Lab's observation of this revision, and per definition whether runtime verification is done (independently verified, one engine only), blocked by an emulator, or not reached by the script | the verification ledger |
+
+A definition's runtime status never decides whether it is recovered. Only structure decides that (not contradicted,
+and not already recovered natively).
 
 ## Evidence levels (coverage is tracked per level)
 
@@ -139,7 +157,10 @@ otherwise a resource carries tile numbers and palettes without pictures.
   engines and audio are not part of these resources.
 - Many games (558 configurations) read blocks with game-specific code. Those remain untranslated until their readers
   are re-implemented as Forge decoders, one shared format at a time.
-- NES Forge's emulator does not run Battletoads past its pre-level screen with the same input: it waits in a loop at `$863E` from about frame 2,700, while FCEUX continues into Level 1. Battletoads-1 is therefore observed in FCEUX only. This is a limitation of NES Forge's emulator, recorded rather than worked around.
+- Two emulator limitations found by this work are fixed in NES Forge's emulator (see
+  [emulator compatibility](EMULATOR_COMPATIBILITY.md)): archaic iNES headers ("DiskDude!", Mega Man) and the vertical
+  scroll after forced blank (Battletoads Level 1). Runtime verification that an emulator cannot perform is reported as
+  blocked; it never removes a definition from recovery.
 - Runtime observation depends on reaching an area with a scripted input. Areas a script does not reach are
   structurally checked only.
 - There is no writer from translated layouts back into the original cartridge. Editable copies are Forge projects.

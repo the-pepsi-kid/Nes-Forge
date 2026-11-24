@@ -75,6 +75,8 @@ function rnd(seed) { let s = seed >>> 0; return () => (s = (Math.imul(s, 1664525
     b = D.blocks(r, {format: 'aligned-arrays-2x2', offset: at, count: 10, transpose: true, palette: 'none'}); assert.deepEqual(b[3].tiles, [r[at + 3], r[at + 23], r[at + 13], r[at + 33]]); assert.equal(b[3].palettes, null);
     const al = D.bigBlocks(r, {format: 'aligned-2x2', offset: at, count: 6, palette: 'byte-per-big-block', paletteOffset: at + 24});
     assert.deepEqual(al[2].cells, [r[at + 2], r[at + 8], r[at + 14], r[at + 20]]); const ac = r[at + 26]; assert.deepEqual(al[2].palettes, [ac & 3, (ac >> 2) & 3, (ac >> 4) & 3, ac >> 6]);
+    // aligned arrays with a separate palette array at a shift (Super Robin Hood, BlockUtils.getBlocksAlignedWithSeparatePal)
+    b = D.blocks(r, {format: 'aligned-arrays-2x2', offset: at, count: 10, separatePalette: true, paletteOffset: at + 300, mask: 3, shift: 2}); assert.deepEqual(b[4].palettes, [(r[at + 304] >> 2) & 3]);
     // out of range is refused, never clamped
     assert.throws(() => D.blocks(r, {format: 'tiles16-attribute-byte', offset: r.length - 8, count: 4, paletteOffset: at}), /outside the cartridge/);
     assert.throws(() => D.blocks(r, {format: 'no-such-format', offset: at, count: 1}), /no block decoder/);
@@ -184,6 +186,20 @@ function rnd(seed) { let s = seed >>> 0; return () => (s = (Math.imul(s, 1664525
       rows.push({cartridge: c.name.replace(/\.nes$/i, ''), recognized: !!r.recognized, renamed: !!renamed.recognized, basis: r.basis || null}); }
     const metroid = cartridges.find(c => /metroid/i.test(c.name)); if (metroid) { const g = await s.ProjectGateway.inspect(w.Uint8Array.from(metroid.bytes), {name: metroid.name}); assert.ok(!g.rows.some(x => /Translated layouts/.test(x.resource))); }
     return {rows};
+  });
+  await check('capabilities: identity, decoder, recovery and emulator are reported apart; runtime status never excludes a definition', async () => {
+    if (!cartridges.length) return {skipped: 'no cartridge folder'};
+    const a = load(editor), w = a.window, s = w.Forge.services; await new Promise(r => setTimeout(r, 30));
+    const rows = [];
+    for (const c of cartridges.filter(x => expected.has(x.sha256))) {
+      const r = s.CadPortRecovery.recognize(w.Uint8Array.from(c.bytes), c.name), cap = r.capabilities;
+      assert.ok(cap && cap.identity && cap.decoder && cap.recovery && cap.emulator, c.name + ': four capabilities');
+      assert.equal(cap.identity.sha256, c.sha256); assert.ok(cap.identity.header, c.name + ': header reading');
+      const p = await s.CadPortRecovery.pack(w.Uint8Array.from(c.bytes), c.name), included = new Set(p.definitions.filter(d => d.included).map(d => d.id));
+      const eligible = new Set(r.definitions.filter(d => d.structural !== 'contradicted' && !d.native).map(d => d.id));
+      assert.deepEqual([...included].sort(), [...eligible].sort(), c.name + ': the pack holds every structurally usable definition, whatever its runtime status');
+      rows.push({cartridge: c.name.replace(/\.nes$/i, ''), header: cap.identity.header, decoder: cap.decoder.structural, packed: included.size, emulator: cap.emulator.engines, runtime: cap.emulator.runtimeVerification}); }
+    metrics.capabilities = rows; return {rows};
   });
   await check('coverage: tracked separately from implementation and verification', async () => {
     const a = load(editor), w = a.window; await new Promise(r => setTimeout(r, 30));

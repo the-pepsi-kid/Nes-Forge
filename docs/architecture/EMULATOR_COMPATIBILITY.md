@@ -97,6 +97,10 @@ stored). Each runs in NES Forge's emulator and in FCEUX, and the result is read 
 The pre-fix build fails `v-row4` with 0 hits. With the local cartridge, the suite also checks that Battletoads reaches
 Level 1: the NMI handler runs 384 times in frames 2600–3000, where before it stopped.
 
-**Not changed, and open.** The engines' first RAM difference on Battletoads comes much earlier, at the 31st NMI: byte
-`$0075` and register A. It is a timing-sensitive value that does not stop the game. It is recorded, not explained.
-NES Forge's PPU remains a scanline renderer: changes in the middle of a scanline take effect at scanline granularity.
+**Not changed, and open.** With every NMI compared, the engines' first RAM difference on Battletoads is at the 2nd
+NMI, before any input. It is one byte, `$0075` (NES Forge 220, FCEUX 113). It persists, but the game behaves the same
+in both engines: both reach Level 1 and draw the same screens at nearly the same frames (2674 and 2677). The
+inference, not traced instruction by instruction, is that it is a value the game's idle loop advances while it waits
+for vertical blank. It would then depend on how many CPU cycles pass between power-on and the first NMI, which differs
+between emulators and between power-ons of real hardware. It is recorded, not corrected. NES Forge's PPU remains a
+scanline renderer: changes in the middle of a scanline take effect at scanline granularity.

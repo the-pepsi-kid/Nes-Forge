@@ -30,6 +30,12 @@ const md = ['# CAD-PORT-01 catalog coverage', '',
   '|---|---|---|---|---|---|---|---|---|---|---|---|',
   '| **Game** | **folder** | **configs** | **decodable** | **partial** | **untranslated** | **local revisions** | **structural** | **observed (Forge)** | **observed (FCEUX)** | **independent** | **main gaps** |',
   ...rows, '',
+  '## Examined revisions: capabilities kept apart', '',
+  'For each local cartridge revision Agent Lab examined: its **identity** (header reading), **decoder compatibility** (structural state of the translated definitions on it), **emulator compatibility** (whether NES Forge\'s emulator and FCEUX ran the whole observation script) and **runtime verification** per definition. An emulator limitation never blocks static recovery: it shows here as blocked runtime verification.', '',
+  '| Revision | Header | Decoder (definitions) | NES Forge emulator | FCEUX | Runtime verification |', '|---|---|---|---|---|---|',
+  ...R.revisions.map(r => { const tally = (k) => Object.entries(r.definitions.reduce((m, d) => { const v = d[k] || 'not attempted'; m[v] = (m[v] || 0) + 1; return m; }, {})).map(([v, n]) => n + ' ' + v).join(', ');
+    const h = r.header ? r.header.format + ', mapper ' + r.header.mapper + (r.header.ignored ? ' (bytes 7-15 "' + r.header.ignored + '" ignored)' : '') : '—';
+    return '| ' + [r.name, h, tally('structural'), r.emulators?.forge?.status || '—', r.emulators?.fceux?.status || '—', tally('runtime')].join(' | ') + ' |'; }), '',
   'Gap codes: ' + Object.entries(C.gapText).map(([k, v]) => '`' + k + '` ' + v).join('; ') + '.', ''].join('\n');
 fs.mkdirSync(path.dirname(OUT), {recursive: true}); fs.writeFileSync(OUT, md);
 console.log('wrote', OUT, JSON.stringify(tot));

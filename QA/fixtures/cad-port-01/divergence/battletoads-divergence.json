@@ -1,0 +1,77 @@
+{
+ "format": "NESForgeDivergence",
+ "version": 1,
+ "cartridge": {
+  "name": "Battletoads (U)",
+  "sha256": "677330f45a1249d24d003792a4674c93f836be57fd18b57125306efe82f3cda8",
+  "header": "iNES 1.0 · mapper 7"
+ },
+ "script": "late-start",
+ "nmiTarget": 65432,
+ "engines": {
+  "forge": {
+   "checkpoints": 120,
+   "nmis": 120,
+   "latches": 0,
+   "frames": 133
+  },
+  "fceux": {
+   "checkpoints": 120,
+   "nmis": 120,
+   "latches": 0,
+   "identity": {
+    "name": "FCEUX",
+    "version": "2.6.5",
+    "packageVersion": "2.6.5+dfsg1-2build3",
+    "source": "https://github.com/TASVideos/fceux.git",
+    "commit": "ea6ed69b874e3ae94072f1b4f14b9a8f0fdd774b",
+    "qt": "5.15.12",
+    "sdl": "2.30.0",
+    "license": "GPL-2.0-or-later",
+    "configuration": {
+     "SDL.RamInitMethod": "2",
+     "SDL.Sound": "0",
+     "display": "Xvfb 640x480x24",
+     "video": "old PPU core (default), NTSC",
+     "lua": "Lua 5.1 (built in)"
+    }
+   }
+  }
+ },
+ "first": {
+  "nmi": 2,
+  "kind": "RAM differs outside the stack page",
+  "addresses": [
+   {
+    "address": "$0075",
+    "forge": 220,
+    "fceux": 113
+   }
+  ],
+  "differing": 1,
+  "forge": {
+   "frame": 14,
+   "latches": 0,
+   "regs": {
+    "a": 100,
+    "x": 255,
+    "y": 0,
+    "s": 250,
+    "pc": 65432
+   }
+  },
+  "fceux": {
+   "frame": 17,
+   "latches": 0,
+   "regs": {
+    "a": 100,
+    "x": 255,
+    "y": 0,
+    "s": 250,
+    "p": 69,
+    "pc": 65432
+   }
+  }
+ },
+ "agree": 1
+}

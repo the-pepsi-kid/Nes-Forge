@@ -30,9 +30,14 @@
   {
    "engine": "forge",
    "identity": "NES Forge emulator (this build)",
-   "ms": 141224,
+   "ms": 137483,
    "captures": 158,
-   "headerNote": "header bytes 7-15 cleared (archaic iNES header): NES Forge's emulator otherwise reads them into the mapper number",
+   "header": {
+    "format": "archaic iNES",
+    "mapper": 2,
+    "ignored": "DiskDude!",
+    "declaredMapper": 66
+   },
    "explained": {
     "captures": 59,
     "meanShare": 0,
@@ -474,7 +479,7 @@
      "lua": "Lua 5.1 (built in)"
     }
    },
-   "ms": 2363,
+   "ms": 2214,
    "captures": 158,
    "explained": {
     "captures": 59,

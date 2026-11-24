@@ -120,12 +120,16 @@
   {
    "engine": "forge",
    "identity": "NES Forge emulator (this build)",
-   "ms": 237017,
-   "captures": 170,
+   "ms": 218367,
+   "captures": 262,
+   "header": {
+    "format": "iNES 1.0",
+    "mapper": 7
+   },
    "explained": {
-    "captures": 118,
-    "meanShare": 0.049,
-    "capturesBelowHalf": 118,
+    "captures": 208,
+    "meanShare": 0.35,
+    "capturesBelowHalf": 119,
     "firstBelowHalf": [
      {
       "frame": 738,
@@ -173,11 +177,55 @@
     {
      "id": "battletoads/Battletoads-1",
      "structural": "supported",
-     "observed": {},
-     "firstFrame": null,
-     "best": null,
-     "graphics": null,
-     "observedScreens": []
+     "observed": {
+      "0": {
+       "frame": 2749,
+       "dx": 0,
+       "dy": 4,
+       "compared": 318,
+       "matched": 304,
+       "attributesCompared": 76,
+       "attributesMatched": 76
+      }
+     },
+     "firstFrame": 2674,
+     "best": {
+      "screen": 0,
+      "frame": 2749,
+      "matched": 304,
+      "compared": 318
+     },
+     "graphics": {
+      "table": "$1000",
+      "source": "chr-ram",
+      "tilesFoundVerbatimInPrg": 132,
+      "uniformTiles": 3,
+      "located": "132/253 non-uniform tiles verbatim in PRG",
+      "paletteHash": "a15385c5c1ac964a",
+      "backgroundPalette": [
+       15,
+       7,
+       23,
+       39,
+       15,
+       8,
+       23,
+       16,
+       15,
+       8,
+       9,
+       7,
+       15,
+       2,
+       18,
+       32
+      ],
+      "captures": 82,
+      "of": 88
+     },
+     "observedScreens": [
+      0
+     ]
     },
     {
      "id": "battletoads/Battletoads-10",
@@ -290,7 +338,7 @@
      "lua": "Lua 5.1 (built in)"
     }
    },
-   "ms": 5571,
+   "ms": 4045,
    "captures": 262,
    "explained": {
     "captures": 208,

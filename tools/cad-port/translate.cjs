@@ -48,7 +48,7 @@ function returns(text) {
   return out;
 }
 function bodies(text) { // name -> body of every method (balanced braces)
-  const out = {}, re = /(?:public|private|protected|internal)?\s*(?:static\s+)?[\w<>\[\],]+\s+(\w+)\s*\(([^)]*)\)\s*\{/g; let m;
+  const out = {}, re = /(?:(?:public|private|protected|internal|static|virtual|override)\s+)*[\w<>\[\],]+\s+(\w+)\s*\(([^)]*)\)\s*\{/g; let m;
   while ((m = re.exec(text))) { let depth = 1, i = re.lastIndex; for (; i < text.length && depth; i++) { if (text[i] === '{') depth++; else if (text[i] === '}') depth--; } out[m[1]] = {params: m[2], body: text.slice(re.lastIndex, i - 1)}; }
   return out;
 }
@@ -68,10 +68,29 @@ const BLOCKS = {
 const BIG = {'Utils.getBigBlocksCapcomDefault': {format: 'linear-2x2'}};
 // note: the aligned big-block format (Tiny Toon) is recognized from its helper body only
 // ---- game-specific helpers that are parameterised uses of the shared formats (recognised by their whole body) ----
+// A shared reader (readBlocksLinear or readBlocksFromAlignedArrays) with an optional loop that takes each block's
+// palette from a parallel array (at an optional bit shift, optionally masked to 2 bits); nothing else may remain.
+function sharedReader(body) {
+  let b = squash(body);
+  b = b.replace(/^intaddr=ConfigScript\.getTilesAddr\(\w+\);/, '').replace(/addr(?=,)/g, 'ConfigScript.getTilesAddr(x)').replace(/^intcount=(?:ConfigScript\.)?getBlocksCount\(\w*\);/, '');
+  const COUNT = '(?:count|(?:ConfigScript\\.)?getBlocksCount\\(\\w*\\))', ADDR = 'ConfigScript\\.getTilesAddr\\(\\w+\\)';
+  let m = new RegExp('^var(\\w+)=Utils\\.readBlocksLinear\\(Globals\\.romdata,' + ADDR + ',(\\d+),(\\d+),' + COUNT + ',(true|false),(true|false)\\);').exec(b), out;
+  if (m) { out = {format: 'linear', width: +m[2], height: +m[3], transpose: m[5] === 'true', ...(m[4] === 'true' ? {attributes: 'trailing'} : {})}; }
+  else if ((m = new RegExp('^var(\\w+)=Utils\\.readBlocksFromAlignedArrays\\(Globals\\.romdata,' + ADDR + ',' + COUNT + ',(?:true|false)\\);').exec(b))) out = {format: 'aligned-arrays-2x2'};
+  else return null;
+  const v = m[1]; b = b.slice(m[0].length);
+  const pal = new RegExp('^varpalAddr=(?:ConfigScript\\.)?getPalBytesAddr\\(\\w*\\);for\\(inti=0;i<' + COUNT + ';i\\+\\+\\)\\{' + v + '\\[i\\]\\.palBytes\\[0\\]=\\(?Globals\\.romdata\\[palAddr\\+i\\](?:>>(\\d))?\\)?(&0x3)?;\\}').exec(b);
+  if (pal) { b = b.slice(pal[0].length);
+    if (out.format === 'linear') { if (out.width !== 2 || out.height !== 2 || out.attributes) return null; out = {format: 'linear-2x2-palette-array', mask: pal[2] ? 3 : 255, ...(pal[1] ? {shift: +pal[1]} : {}), ...(out.transpose ? {transpose: true} : {})}; }
+    else out = {...out, separatePalette: true, mask: pal[2] ? 3 : 255, ...(pal[1] ? {shift: +pal[1]} : {})}; }
+  return b === 'return' + v + ';' ? out : null;
+}
 function helperBlocks(body, all) {
+  const shared = sharedReader(body); if (shared) return shared;
   const b = squash(body);
   let m = /^returnUtils\.readBlocksLinear\(Globals\.romdata,ConfigScript\.getTilesAddr\(\w+\),(\d+),(\d+),ConfigScript\.getBlocksCount\(\w+\),(true|false)(?:,(true|false))?\);$/.exec(b);
   if (m) return {format: 'linear', width: +m[1], height: +m[2], transpose: m[4] === 'true', ...(m[3] === 'true' ? {attributes: 'trailing'} : {})};
+  if (/^returnUtils\.readBlocksFromAlignedArrays\(Globals\.romdata,ConfigScript\.getTilesAddr\(\w+\),ConfigScript\.getBlocksCount\(\w+\),(?:true|false)\);$/.test(b)) return {format: 'aligned-arrays-2x2'};
   // 17-byte records: one attribute byte, then 16 tiles (the configured address is that of the first tile)
   m = /^return(\w+)\(Globals\.romdata,ConfigScript\.getTilesAddr\(\w+\),ConfigScript\.getBlocksCount\(\w+\)\);$/.exec(b);
   if (m && all[m[1]]) { const h = squash(all[m[1]].body);
@@ -142,7 +161,7 @@ function translateConfig(game, file, text, includeText) {
   let fam = BLOCKS[bf] || null; const viaHelper = !fam && bf ? (() => { const name = bf.split('.').pop(); return all[name] ? helperBlocks(all[name].body, all) : null; })() : null;
   if (viaHelper) fam = {...viaHelper, helper: bf};
   if (fam) {
-    const needsPal = ['tiles16-attribute-byte', 'linear-2x2-palette-array'].includes(fam.format), computed = fam.format === 'computed-2x2', {offsetAdjust = 0, ...f} = fam;
+    const needsPal = ['tiles16-attribute-byte', 'linear-2x2-palette-array'].includes(fam.format) || !!fam.separatePalette, computed = fam.format === 'computed-2x2', {offsetAdjust = 0, ...f} = fam;
     if ((!bo && !computed) || bc === null || bc < 1 || bc > 4096) gap('blocksExpr', bf);
     else if (needsPal && pa === null) gap('blocksPal', bf);
     else d.blocks = {...f, ...(computed ? {} : {offset: bo.begin + offsetAdjust}), count: bc, ...(needsPal ? {paletteOffset: pa} : {})};

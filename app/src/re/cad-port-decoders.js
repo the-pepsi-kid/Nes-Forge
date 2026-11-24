@@ -32,8 +32,10 @@ const BLOCKS={
     return {id,width:2,height:2,tiles:d.offsets.map(o=>(base+o)&255),palettes:null};}),
   // five arrays of one byte per block: the four quadrant tiles, then palette (low 2 bits) and type (high nibble)
   'aligned-arrays-2x2':(rom,d)=>{const a=at(rom,d.offset,d.count*5);
+    // the palette is the type byte's low 2 bits, or (separatePalette) a parallel array at an optional shift
+    const sp=d.separatePalette?at(rom,d.paletteOffset,d.count):null;
     return Array.from({length:d.count},(_,id)=>{const tc=a[d.count*4+id],t=[a[id],a[d.count+id],a[d.count*2+id],a[d.count*3+id]];
-      return {id,width:2,height:2,tiles:d.transpose?[t[0],t[2],t[1],t[3]]:t,palettes:d.palette==='none'?null:[tc&3],type:tc>>4,raw:tc};});},
+      return {id,width:2,height:2,tiles:d.transpose?[t[0],t[2],t[1],t[3]]:t,palettes:d.palette==='none'?null:sp?[((sp[id]>>(d.shift||0))&d.mask)&3]:[tc&3],type:tc>>4,raw:tc};});},
 };
 // ---- big blocks: 2x2 blocks, 4 bytes each (TL TR BL BR, or TL BL TR BR when swapMiddle; optionally only the bits of
 // a mask name the block), optional palette byte ----

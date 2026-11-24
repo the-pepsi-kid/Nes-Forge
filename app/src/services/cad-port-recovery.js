@@ -43,19 +43,36 @@ function recognize(bytes,name){
     const s=cand.definitions.find(x=>x.id===d.id),seen=rev?.definitions?.find(x=>x.id===d.id)||null;
     const native=natives.find(n=>d.screens.records.some(([o])=>o===n.offset));
     return {id:d.id,config:d.config,structural:s.state,log10Chance:s.log10Chance,control:s.control,checks:s.checks,
-      runtime:seen?{forge:seen.forge||null,fceux:seen.fceux||null}:null,graphics:seen?.graphics||null,palette:seen?.palette||null,
-      native:native?{profile:native.profile,label:native.label}:null};});
+      runtime:seen?{forge:seen.forge||null,fceux:seen.fceux||null}:null,runtimeStatus:seen?.runtime||(rev?'not attempted':'not examined on this revision'),
+      graphics:seen?.graphics||null,palette:seen?.palette||null,native:native?{profile:native.profile,label:native.label}:null};});
   return {recognized:true,sha256:digest,name:String(name||''),game:folder,title:game.title||folder,
-    basis:rev?'exact revision examined by Agent Lab':'title hint and structure',revision:rev?{name:rev.name,observed:rev.observed}:null,definitions:defs};
+    basis:rev?'exact revision examined by Agent Lab':'title hint and structure',revision:rev?{name:rev.name,observed:rev.observed}:null,definitions:defs,
+    capabilities:capabilities(rom,digest,rev,defs)};
+}
+// Four separate capabilities, never folded into one verdict:
+//  identity       which cartridge this is (SHA-256, header reading) and how it was recognized;
+//  decoder        whether the translated definitions decode this cartridge (structural state of each);
+//  recovery       what becomes resources (definitions packed, graphics established, editable copies);
+//  emulator       whether each engine runs this revision (Agent Lab's runs), and per definition whether runtime
+//                 verification was done, is blocked by an emulator, or was not reached.
+// An emulator limitation never blocks static recovery: it is reported here instead.
+function capabilities(rom,digest,rev,defs){
+  const header=window.InesHeader?InesHeader.inspect(rom):null,tally=(list,key)=>list.reduce((m,d)=>{m[d[key]]=(m[d[key]]||0)+1;return m;},{});
+  const packed=defs.filter(usable);
+  return {identity:{sha256:digest,header:header?InesHeader.describe(header):null,examinedRevision:rev?rev.name:null},
+    decoder:{definitions:defs.length,structural:tally(defs,'structural')},
+    recovery:{definitions:packed.length,leftToNativeProfiles:defs.filter(d=>d.native).length,contradicted:defs.filter(d=>d.structural==='contradicted').length},
+    emulator:{engines:rev?.emulators?Object.fromEntries(Object.entries(rev.emulators).map(([k,v])=>[k,{status:v.status,checkpoints:v.checkpoints,expected:v.expected}])):null,
+      runtimeVerification:tally(defs,'runtimeStatus')}};
 }
 // the definitions a pack carries: decodable, not contradicted, not covered by a native profile
 const usable=d=>d.structural!=='contradicted'&&!d.native;
-function level(d){ // the coverage level this cartridge's evidence reaches for one definition
-  if(d.runtime?.forge?.screens?.length&&d.runtime?.fceux?.screens?.length)return 'independently verified (FCEUX) on this revision';
-  if(d.runtime?.forge?.screens?.length)return 'observed at runtime (NES Forge) on this revision';
-  if(d.runtime?.fceux?.screens?.length)return 'observed at runtime in FCEUX only on this revision (NES Forge\'s emulator did not reach it)';
-  if(d.structural==='supported')return 'structurally supported on this cartridge';
-  return 'structurally consistent on this cartridge (weak: no structural evidence)';
+function level(d){ // the evidence this cartridge reaches for one definition: decoding, then runtime verification, kept apart
+  const decoding=d.structural==='supported'?'structurally supported on this cartridge':'structurally consistent on this cartridge (weak: no structural evidence)';
+  const rt=d.runtimeStatus;
+  if(rt==='independently verified')return decoding+'; runtime: independently verified (NES Forge and FCEUX) on this revision';
+  if(rt&&!/^not (examined|attempted)/.test(rt))return decoding+'; runtime: '+rt;
+  return decoding+'; runtime: '+(rt||'not examined');
 }
 
 // ---------- the pack ----------
@@ -136,6 +153,7 @@ async function pack(bytes,name,{recognition=null}={}){
   const included=summary.filter(s=>s.included);if(!included.length)fail('no translated definition applies to this cartridge');
   const report={format:'NESForgeNativeExtraction',game:(game.title||game.folder)+' · CadEditor-derived layouts',rom:{sha256:r.sha256,byteLength:rom.length},origin:'cad-port',
     recovery:{method:'CAD-PORT-01 translated definitions',version:VERSION,basis:r.basis,game:r.game,upstream:up,definitions:summary},
+    capabilities:{...r.capabilities,recovery:{...r.capabilities.recovery,packed:summary.filter(x=>x.included).length,withGraphics:summary.filter(x=>x.preview).length,editable:summary.filter(x=>x.project).length}},
     limitations:['Layouts (blocks and screens) as CadEditor\'s configuration describes them. Objects, enemies, level order, collision and the game\'s own engine are not part of these resources.',
       'Graphics appear only where they are established for this cartridge; otherwise a resource carries tile numbers and palettes without pictures.',
       'Editable copies are Forge projects; there is no writer back into the original cartridge for translated layouts.']};
@@ -157,12 +175,13 @@ async function register(bytes,name,{recognition=null,quiet=false}={}){
   try{window.dispatchEvent(new CustomEvent('forge:cad-port-registered',{detail:cp(out)}));}catch(_){/* no DOM events */}
   return out;
 }
-function summarize(r){return r.recognized?{recognized:true,game:r.game,title:r.title,basis:r.basis,definitions:r.definitions.map(d=>({id:d.id,structural:d.structural,level:level(d),native:d.native?.profile||null}))}:{recognized:false,candidates:r.candidates};}
+function summarize(r){return r.recognized?{recognized:true,game:r.game,title:r.title,basis:r.basis,capabilities:r.capabilities,definitions:r.definitions.map(d=>({id:d.id,structural:d.structural,runtime:d.runtimeStatus,level:level(d),native:d.native?.profile||null}))}:{recognized:false,candidates:r.candidates};}
 // a row for the editor's intake report (ProjectGateway.inspect), so the import dialog says what the catalog adds
 function intake(bytes,name){
   let r;try{r=recognize(bytes,name);}catch(_){return null;}if(!r.recognized)return null;
   const use=r.definitions.filter(usable),screens=use.reduce((n,d)=>{const def=CAT().games.find(g=>g.folder===r.game).definitions.find(x=>x.id===d.id);return n+def.screens.records.reduce((m,x)=>m+x[1],0);},0),native=r.definitions.filter(d=>d.native).length;
-  return {recognition:summarize(r),row:{resource:'Translated layouts (CadEditor)',inspect:use.length+' translated definition'+(use.length===1?'':'s')+' · '+screens+' screens · '+r.basis+(native?' · '+native+' left to the native profile':''),
+  const rv=r.capabilities.emulator.runtimeVerification,verified=rv['independently verified']||0,blocked=Object.entries(rv).filter(([k])=>/^blocked/.test(k)).reduce((n,[,v])=>n+v,0);
+  return {recognition:summarize(r),capabilities:r.capabilities,row:{resource:'Translated layouts (CadEditor)',inspect:use.length+' translated definition'+(use.length===1?'':'s')+' · '+screens+' screens · '+r.basis+(native?' · '+native+' left to the native profile':'')+(verified?' · '+verified+' verified at runtime':'')+(blocked?' · '+blocked+' runtime verification blocked by an emulator':''),
     edit:'Added to the Resource library on import; editable copies where the graphics are established',build:'No writer into the original cartridge for translated layouts'}};
 }
 
@@ -178,7 +197,12 @@ function coverage(){
   }
   return {format:'NESForgeCadPortCoverage',version:VERSION,upstream:cat.upstream,catalog:{titlesListed:cat.summary.titlesListed,folders:cat.games.length,configs},
     translated:{decodable,partial:cat.summary.partial,untranslated:cat.summary.untranslated,gamesWithDecodable:cat.summary.gamesWithDecodable},
-    verifiedRevisions:revs.length,structurallyConsistent:structural,runtimeObserved:observed,independentlyVerified:independent,games};
+    verifiedRevisions:revs.length,structurallyConsistent:structural,runtimeObserved:observed,independentlyVerified:independent,games,
+    // per examined revision, the four capabilities apart: identity, decoder compatibility, emulator compatibility and
+    // runtime verification (resource recovery is computed per cartridge when it is imported: cadport.recognize / pack)
+    revisions:revs.map(r=>{const tally={};for(const d of r.definitions)tally[d.runtime||'not attempted']=(tally[d.runtime||'not attempted']||0)+1;
+      return {game:r.game,name:r.name,identity:{sha256:r.sha256,header:r.header||null},decoder:r.definitions.reduce((m,d)=>{m[d.structural]=(m[d.structural]||0)+1;return m;},{}),
+        emulator:Object.fromEntries(Object.entries(r.emulators||{}).map(([k,v])=>[k,v.status])),runtimeVerification:tally};})};
 }
 
 // ---------- the import event (subscribed once every module has loaded) ----------
