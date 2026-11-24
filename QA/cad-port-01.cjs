@@ -70,6 +70,11 @@ function rnd(seed) { let s = seed >>> 0; return () => (s = (Math.imul(s, 1664525
     b = D.blocks(r, {format: 'computed-2x2', count: 20, rowLength: 8, rowStride: 32, step: 2, offsets: [0, 16, 1, 17]}); assert.deepEqual(b[9].tiles, [34, 50, 35, 51]);
     const mk = D.bigBlocks(r, {format: 'linear-2x2', offset: at, count: 4, mask: 0x3f, swapMiddle: true});
     assert.deepEqual(mk[3].cells, [r[at + 12] & 63, r[at + 14] & 63, r[at + 13] & 63, r[at + 15] & 63]);
+    // batch 3: shifted palette array, column-stored aligned arrays without palette, aligned big blocks with colour bytes after
+    b = D.blocks(r, {format: 'linear-2x2-palette-array', offset: at, count: 3, paletteOffset: at + 100, mask: 3, shift: 2}); assert.deepEqual(b[2].palettes, [(r[at + 102] >> 2) & 3]);
+    b = D.blocks(r, {format: 'aligned-arrays-2x2', offset: at, count: 10, transpose: true, palette: 'none'}); assert.deepEqual(b[3].tiles, [r[at + 3], r[at + 23], r[at + 13], r[at + 33]]); assert.equal(b[3].palettes, null);
+    const al = D.bigBlocks(r, {format: 'aligned-2x2', offset: at, count: 6, palette: 'byte-per-big-block', paletteOffset: at + 24});
+    assert.deepEqual(al[2].cells, [r[at + 2], r[at + 8], r[at + 14], r[at + 20]]); const ac = r[at + 26]; assert.deepEqual(al[2].palettes, [ac & 3, (ac >> 2) & 3, (ac >> 4) & 3, ac >> 6]);
     // out of range is refused, never clamped
     assert.throws(() => D.blocks(r, {format: 'tiles16-attribute-byte', offset: r.length - 8, count: 4, paletteOffset: at}), /outside the cartridge/);
     assert.throws(() => D.blocks(r, {format: 'no-such-format', offset: at, count: 1}), /no block decoder/);

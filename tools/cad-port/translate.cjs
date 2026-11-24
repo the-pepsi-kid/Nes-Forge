@@ -66,6 +66,7 @@ const BLOCKS = {
   'BlockUtils.getBlocksFromAlignedArrays': {format: 'aligned-arrays-2x2'},
 };
 const BIG = {'Utils.getBigBlocksCapcomDefault': {format: 'linear-2x2'}};
+// note: the aligned big-block format (Tiny Toon) is recognized from its helper body only
 // ---- game-specific helpers that are parameterised uses of the shared formats (recognised by their whole body) ----
 function helperBlocks(body, all) {
   const b = squash(body);
@@ -75,7 +76,13 @@ function helperBlocks(body, all) {
   m = /^return(\w+)\(Globals\.romdata,ConfigScript\.getTilesAddr\(\w+\),ConfigScript\.getBlocksCount\(\w+\)\);$/.exec(b);
   if (m && all[m[1]]) { const h = squash(all[m[1]].body);
     if (/intBLOCK_W=4;intBLOCK_H=4;/.test(h) && /Utils\.readBlocksLinear\(romdata,addr,BLOCK_W,BLOCK_H,count,false,false,1\)/.test(h) && /intpalBytesAddr=addr-1\+i\*17;/.test(h) && /newint\[\]\{\(palByte>>0\)&3,\(palByte>>2\)&3,\(palByte>>4\)&3,\(palByte>>6\)&3\}/.test(h))
-      return {format: 'tiles16-attribute-interleaved', offsetAdjust: -1}; }
+      return {format: 'tiles16-attribute-interleaved', offsetAdjust: -1};
+    // aligned arrays stored column by column, palette left to the big blocks (Tiny Toon)
+    if (h === 'varobjects=Utils.readBlocksFromAlignedArrays(romdata,addr,count,false);foreach(varoinobjects){o.indexes=Utils.transpose(o.indexes,2,2);o.palBytes[0]=0;}returnobjects;')
+      return {format: 'aligned-arrays-2x2', transpose: true, palette: 'none'}; }
+  // linear 2x2 tiles plus a parallel palette array whose palette sits at a bit shift
+  m = /^intcount=(?:ConfigScript\.)?getBlocksCount\(\w*\);varbb=Utils\.readBlocksLinear\(Globals\.romdata,ConfigScript\.getTilesAddr\(\w+\),2,2,count,false,false\);varpalAddr=(?:ConfigScript\.)?getPalBytesAddr\(\w*\);for\(inti=0;i<count;i\+\+\)\{bb\[i\]\.palBytes\[0\]=\(?Globals\.romdata\[palAddr\+i\](?:>>(\d))?\)?&0x3;\}returnbb;$/.exec(b);
+  if (m) return {format: 'linear-2x2-palette-array', mask: 3, ...(m[1] ? {shift: +m[1]} : {})};
   // blocks whose tiles are computed from the block number (no table in the cartridge)
   m = /^varobjects=newObjRec\[(?:ConfigScript\.)?getBlocksCount\(\w*\)\];for\(inti=0;i<objects\.Length;i\+\+\)\{varindexes=newint\[4\];varpalBytes=newint\[1\];intbi=(?:i\*(\d+)|\(i\/(\d+)\)\*(\d+)\+i%(\d+)\*(\d+));((?:indexes\[[0-3]\]=bi(?:\+\d+)?;){4})objects\[i\]=newObjRec\(2,2,0,indexes,palBytes\);\}returnobjects;$/.exec(b);
   if (m && (!m[2] || m[2] === m[4])) { const offsets = [null, null, null, null]; for (const x of m[6].matchAll(/indexes\[([0-3])\]=bi(?:\+(\d+))?;/g)) offsets[+x[1]] = +(x[2] || 0);
@@ -91,6 +98,13 @@ function helperBig(body, all) {
   const read = /^vardata=Utils\.readLinearBigBlockData\(0,\w+(?:,4)?\);varbb=Utils\.unlinearizeBigBlocks<BigBlockWithPal>\(data,2,2\);/;
   const capcom = /^returnUtils\.getBigBlocksCapcomDefault\(\w+\);$/;
   if (capcom.test(b)) return out;
+  // four aligned arrays (TL, TR, BL, BR), the colour bytes directly after them (Tiny Toon)
+  const aligned = /^varbigBlocksAddr=ConfigScript\.getBigTilesAddr\(0,\w+\);vardata=Utils\.readDataFromAlignedArrays\(Globals\.romdata,bigBlocksAddr,ConfigScript\.getBigBlocksCount\(0,\w+\)\);varbb=Utils\.unlinearizeBigBlocks<BigBlockWithPal>\(data,2,2\);/;
+  if (aligned.test(b)) { b = b.replace(aligned, ''); out.format = 'aligned-2x2';
+    const pa = /intpalByte=(\w+)\(i\);bb\[i\]\.palBytes\[0\]=palByte>>0&0x3;bb\[i\]\.palBytes\[1\]=palByte>>2&0x3;bb\[i\]\.palBytes\[2\]=palByte>>4&0x3;bb\[i\]\.palBytes\[3\]=palByte>>6&0x3;/.exec(b);
+    const after = pa && all[pa[1]] && squash(all[pa[1]].body) === 'intbtc=ConfigScript.getBigBlocksCount(0,0);intaddr=ConfigScript.getBigTilesAddr(0,0);returnGlobals.romdata[addr+btc*4+index];';
+    if (pa && !after) return null; if (pa) { out.palette = 'byte-per-big-block'; out.paletteAfterArrays = true; b = b.replace(pa[0], ''); }
+    out.swapMiddle = false; return b === 'for(inti=0;i<bb.Length;i++){}returnbb;' ? out : null; }
   if (!read.test(b)) return null; b = b.replace(read, '');
   const mask = /for\(intii=0;ii<bb\[i\]\.indexes\.Length;ii\+\+\)\{bb\[i\]\.indexes\[ii\]=bb\[i\]\.indexes\[ii\]&0x([0-9A-Fa-f]+);\}/.exec(b); if (mask) { out.mask = parseInt(mask[1], 16); b = b.replace(mask[0], ''); }
   for (const sw of [/vari1=bb\[i\]\.indexes\[1\];vari2=bb\[i\]\.indexes\[2\];bb\[i\]\.indexes\[1\]=i2;bb\[i\]\.indexes\[2\]=i1;/, /Utils\.swap\(refbb\[i\]\.indexes\[1\],refbb\[i\]\.indexes\[2\]\);/]) if (sw.test(b)) { out.swapMiddle = true; b = b.replace(sw, ''); }
@@ -122,7 +136,7 @@ function translateConfig(game, file, text, includeText) {
   if (/getDumpName|dumpName|Globals\.dumpdata|showDumpFileField\(\)\s*\{\s*return\s+true/.test(own + inc)) gap('dump');
   if (/true/.test(r.isUseSegaGraphics || '')) gap('segaWords');
   // blocks
-  const bf = squash(r.getBlocksFunc || ''), bo = r.getBlocksOffset ? offsetRec(r.getBlocksOffset) : null, bc = r.getBlocksCount ? evalInt(r.getBlocksCount) : null, pa = r.getPalBytesAddr ? evalInt(r.getPalBytesAddr) : null;
+  const bf = squash(r.getBlocksFunc || ''), bo = r.getBlocksOffset ? offsetRec(r.getBlocksOffset) : null, bc = r.getBlocksCount ? evalInt(r.getBlocksCount) : r.getBlocksCountFunc ? null : 256 /* CadEditor's default */, pa = r.getPalBytesAddr ? evalInt(r.getPalBytesAddr) : null;
   let fam = BLOCKS[bf] || null; const viaHelper = !fam && bf ? (() => { const name = bf.split('.').pop(); return all[name] ? helperBlocks(all[name].body, all) : null; })() : null;
   if (viaHelper) fam = {...viaHelper, helper: bf};
   if (fam) {
@@ -132,12 +146,14 @@ function translateConfig(game, file, text, includeText) {
     else d.blocks = {...f, ...(computed ? {} : {offset: bo.begin + offsetAdjust}), count: bc, ...(needsPal ? {paletteOffset: pa} : {})};
   } else if (bf) gap('blocksCustom', bf);
   // big blocks
-  const gf = squash(r.getBigBlocksFunc || ''), go = r.getBigBlocksOffset ? offsetRec(r.getBigBlocksOffset) : null, gc = r.getBigBlocksCount ? evalInt(r.getBigBlocksCount) : null;
+  const gf = squash(r.getBigBlocksFunc || ''), go = r.getBigBlocksOffset ? offsetRec(r.getBigBlocksOffset) : null, gc = r.getBigBlocksCount ? evalInt(r.getBigBlocksCount) : r.getBigBlocksCountFunc || /getBigBlocksCountHierarchy/.test(own + inc) ? null : 256 /* CadEditor's default */;
   const bigOn = !/false/.test(r.isBigBlockEditorEnabled || 'true');
   let big = BIG[gf] || null; if (!big && gf) { const name = gf.split('.').pop(); if (all[name]) { const h = helperBig(all[name].body, all); if (h) big = {...h, helper: gf}; } }
   if (big && bigOn) {
     if (!go) gap('bigExpr', gf);
-    else { const count = gc ?? go.count; if (big.palette && pa === null) gap('blocksPal', gf); else d.bigBlocks = {...big, offset: go.begin, count, ...(big.palette ? {paletteOffset: pa} : {})}; }
+    else if (gc === null) gap('bigExpr', 'a per-ID big-block count'); else { const count = gc, {paletteAfterArrays, ...bg} = big;
+      if (paletteAfterArrays) d.bigBlocks = {...bg, offset: go.begin, count, paletteOffset: go.begin + count * 4};
+      else if (big.palette && pa === null) gap('blocksPal', gf); else d.bigBlocks = {...big, offset: go.begin, count, ...(big.palette ? {paletteOffset: pa} : {})}; }
   } else if (gf && bigOn) gap('bigCustom', gf);
   // screens
   const sr = r.getScreensOffset ? offsetRecs(r.getScreensOffset) : null;

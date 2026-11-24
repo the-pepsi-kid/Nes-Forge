@@ -17,7 +17,7 @@ const BLOCKS={
   // 4 tile bytes per block (2x2), one byte per block in a parallel array; the palette is its low 2 bits
   'linear-2x2-palette-array':(rom,d)=>{const t=at(rom,d.offset,d.count*4),p=at(rom,d.paletteOffset,d.count);
     return Array.from({length:d.count},(_,id)=>{let tiles=Array.from(t.subarray(id*4,id*4+4));if(d.transpose)tiles=[tiles[0],tiles[2],tiles[1],tiles[3]];
-      return {id,width:2,height:2,tiles,palettes:[(p[id]&d.mask)&3],raw:p[id]};});},
+      return {id,width:2,height:2,tiles,palettes:[((p[id]>>(d.shift||0))&d.mask)&3],raw:p[id]};});},
   // w*h tile bytes per block, optionally stored column by column, optionally followed by its palette bytes
   'linear':(rom,d)=>{const w=d.width,h=d.height,n=w*h,pal=d.attributes==='trailing'?Math.ceil(w/2)*Math.ceil(h/2):0,size=n+pal,t=at(rom,d.offset,d.count*size);
     return Array.from({length:d.count},(_,id)=>{const s=t.subarray(id*size,id*size+n);let tiles=Array.from(s);
@@ -32,11 +32,15 @@ const BLOCKS={
     return {id,width:2,height:2,tiles:d.offsets.map(o=>(base+o)&255),palettes:null};}),
   // five arrays of one byte per block: the four quadrant tiles, then palette (low 2 bits) and type (high nibble)
   'aligned-arrays-2x2':(rom,d)=>{const a=at(rom,d.offset,d.count*5);
-    return Array.from({length:d.count},(_,id)=>{const tc=a[d.count*4+id];return {id,width:2,height:2,tiles:[a[id],a[d.count+id],a[d.count*2+id],a[d.count*3+id]],palettes:[tc&3],type:tc>>4,raw:tc};});},
+    return Array.from({length:d.count},(_,id)=>{const tc=a[d.count*4+id],t=[a[id],a[d.count+id],a[d.count*2+id],a[d.count*3+id]];
+      return {id,width:2,height:2,tiles:d.transpose?[t[0],t[2],t[1],t[3]]:t,palettes:d.palette==='none'?null:[tc&3],type:tc>>4,raw:tc};});},
 };
 // ---- big blocks: 2x2 blocks, 4 bytes each (TL TR BL BR, or TL BL TR BR when swapMiddle; optionally only the bits of
 // a mask name the block), optional palette byte ----
 const BIG={
+  // four aligned arrays of one block ID each (TL, TR, BL, BR), optionally a colour byte per big block
+  'aligned-2x2':(rom,d)=>{const a=at(rom,d.offset,d.count*4),p=d.palette==='byte-per-big-block'?at(rom,d.paletteOffset,d.count):null;
+    return Array.from({length:d.count},(_,id)=>({id,cells:[a[id],a[d.count+id],a[d.count*2+id],a[d.count*3+id]],palettes:p?quads(p[id]):null}));},
   'linear-2x2':(rom,d)=>{const a=at(rom,d.offset,d.count*4),p=d.palette==='byte-per-big-block'?at(rom,d.paletteOffset,d.count):null;
     return Array.from({length:d.count},(_,id)=>{const r=Array.from(a.subarray(id*4,id*4+4),v=>d.mask?v&d.mask:v),cells=d.swapMiddle?[r[0],r[2],r[1],r[3]]:r;return {id,cells,palettes:p?quads(p[id]):null};});},
 };

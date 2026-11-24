@@ -45,13 +45,17 @@ Formats (Forge names):
 | Format | What a record holds |
 |---|---|
 | `tiles16-attribute-byte` | 4x4 tiles, row by row, plus one attribute byte per block (four 2-bit palettes) in a parallel array |
-| `linear-2x2-palette-array` | 2x2 tiles (optionally stored column by column), plus one palette byte per block in a parallel array (low 2 bits) |
+| `linear-2x2-palette-array` | 2x2 tiles (optionally stored column by column), plus one palette byte per block in a parallel array (2 bits, at an optional shift) |
 | `linear` | w x h tiles (optionally column by column), optionally followed by its palette bytes |
-| `aligned-arrays-2x2` | five parallel arrays: the four quadrant tiles, then palette (low 2 bits) and type (high nibble) |
+| `aligned-arrays-2x2` | five parallel arrays: the four quadrant tiles (optionally column by column), then palette (low 2 bits, or left to the big blocks) and type (high nibble) |
 | `tiles16-attribute-interleaved` | 17-byte records: one attribute byte (four 2-bit palettes), then 4x4 tiles (Castlevania) |
 | `computed-2x2` | no table: a block's four tiles are computed from its number (base + per-quadrant offsets; Mega Man 1-2, Little Samson, Banana Prince) |
+| big blocks `aligned-2x2` | four parallel arrays of block IDs (TL, TR, BL, BR), optionally followed by one colour byte per big block (Tiny Toon) |
 | big blocks `linear-2x2` | four block IDs (TL TR BL BR, or TL BL TR BR; optionally only the bits of a mask name the block), optionally one colour byte per big block (four 2-bit palettes) |
 | screens | records of `[offset, count, size, width, height]`, byte or 16-bit cells, optional stride, optionally stored column by column |
+
+Counts a configuration does not state take CadEditor's own default (256 blocks, 256 big blocks); a per-ID count
+function is a gap.
 
 Game-specific helpers are translated only when their whole body is a parameterised use of a shared format. The
 translator strips each recognized statement and requires nothing to remain. Examples: the Ninja Gaiden helpers are
