@@ -86,8 +86,9 @@ function traceSupport(w,access){
   return all?read/all:0;
 }
 
-// Ranked candidates. options: {rom, layout (romLayout), screens:[capture], access (role bitset over PRG), events}
-function propose({rom,layout,captures,access=null,events=null}){
+// Ranked candidates. options: {rom, layout (romLayout), captures:[capture], access (role bitset over PRG), events}.
+// The search is a generator so the same steps can run at once (propose) or yield to a waiting page (proposeAsync).
+function* proposeSteps({rom,layout,captures,access=null,events=null}){
   if(!(rom instanceof Uint8Array))fail('needs cartridge bytes');
   const prg=rom.subarray(layout.prgStart,layout.prgStart+layout.prgBytes),screens=[],skipped=[];
   for(const c of captures.slice(0,LIMITS.observations)){const v=visible(c);if(v.supported)screens.push({label:c.label,...v});else skipped.push({label:c.label,reason:v.reason});}
@@ -95,9 +96,9 @@ function propose({rom,layout,captures,access=null,events=null}){
   const byValue=positionsByValue(prg),all=[];let observed=null;
   for(const grid of [{x:0,y:0},{x:1,y:0},{x:0,y:1},{x:1,y:1}]){
     const map=tuples(screens,grid),list=[...map.values()];if(!observed&&!grid.x&&!grid.y)observed=map;
-    for(const h of hypotheses(prg.length))for(const w of windows(matches(prg,byValue,list,h),h,list.length)){
+    for(const h of hypotheses(prg.length)){for(const w of windows(matches(prg,byValue,list,h),h,list.length)){
       w.grid=grid;w.tuples=map;w.traceSupport=traceSupport(w,access);w.aliases=[...w.byKey.entries()].filter(([,ps])=>ps.length>1).map(([key,ps])=>({key,positions:ps}));all.push(w);
-    }
+    }yield;}
   }
   const rank=(list,useTrace)=>list.slice().sort((a,b)=>(useTrace?(b.traceSupport||0)-(a.traceSupport||0):0)||b.coverage-a.coverage||a.aliases.length-b.aliases.length||(a.hi-a.lo)-(b.hi-b.lo)||a.lo-b.lo).slice(0,LIMITS.ranked);
   // trace support only ranks candidates that also explain the screens
@@ -107,6 +108,8 @@ function propose({rom,layout,captures,access=null,events=null}){
   for(const w of ranked)w.base=inferBase(w,rom,layout,events);
   return {version:VERSION,screens:screens.map(s=>s.label),skipped,distinctTuples:observed?observed.size:0,candidates:ranked,staticRanking:staticRanked.map(w=>w.id),searched:{hypotheses:hypotheses(prg.length).length*4,windows:all.length}};
 }
+function propose(options){const steps=proposeSteps(options);let r;while(!(r=steps.next()).done);return r.value;}
+async function proposeAsync(options,pause,sliceMs=10){const steps=proposeSteps(options);let r,t=Date.now();while(!(r=steps.next()).done)if(Date.now()-t>sliceMs){await pause();t=Date.now();}return r.value;}
 function describeId(w){const h=w.hypothesis;return h.layout+'/'+h.order+(h.layout==='split'?'/stride-'+h.fieldStep:'')+'/grid-'+w.grid.x+w.grid.y+'@prg+'+w.lo.toString(16);}
 
 // ---------- index 0: from the reading instructions ----------
@@ -229,5 +232,5 @@ function reconstruct(def,rom,layout,capture){
   return {supported:true,cells,attributes,counts};
 }
 
-return Object.freeze({version:VERSION,LIMITS,ORDERS,visible,tuples,propose,attributeArrays,planTileIntervention,planAttributeIntervention,judge,define,decodeRecord,reconstruct,physicalNametable,paletteAt});
+return Object.freeze({version:VERSION,LIMITS,ORDERS,visible,tuples,propose,proposeAsync,attributeArrays,planTileIntervention,planAttributeIntervention,judge,define,decodeRecord,reconstruct,physicalNametable,paletteAt});
 });

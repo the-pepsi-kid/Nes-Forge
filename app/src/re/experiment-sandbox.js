@@ -125,7 +125,7 @@ async function runTrial(runId,request,report){
         for(const ch of channels){const bytes=snapshotChannel(ch);row.digests[ch]=contract.sha256(bytes);if(payloads.has(ch))row.payloads[ch]=bytes;}
         result.captures.push(row);}
       if(performance.now()-t0>request.budgets.wallMs){stop='timeout';result.stopReason='the trial exceeded its '+request.budgets.wallMs+' ms wall-clock budget at frame '+(f+1);break;}
-      if(performance.now()-chunkStart>(request.chunkMs||25)){agentMask=null;await yieldTask();agentMask=masks[f];chunkStart=performance.now();report({type:'progress',runId,frame:f+1,total});
+      if(performance.now()-chunkStart>(request.chunkMs||16)){agentMask=null;await yieldTask();agentMask=masks[f];chunkStart=performance.now();report({type:'progress',runId,frame:f+1,total});
         if(cancelled.has(runId)){stop='cancelled';result.stopReason='cancelled at frame '+(f+1);break;}}
     }
     result.outcomeHint=stop;

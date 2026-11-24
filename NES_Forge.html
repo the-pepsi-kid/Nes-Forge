@@ -38031,8 +38031,9 @@ function traceSupport(w,access){
   return all?read/all:0;
 }
 
-// Ranked candidates. options: {rom, layout (romLayout), screens:[capture], access (role bitset over PRG), events}
-function propose({rom,layout,captures,access=null,events=null}){
+// Ranked candidates. options: {rom, layout (romLayout), captures:[capture], access (role bitset over PRG), events}.
+// The search is a generator so the same steps can run at once (propose) or yield to a waiting page (proposeAsync).
+function* proposeSteps({rom,layout,captures,access=null,events=null}){
   if(!(rom instanceof Uint8Array))fail('needs cartridge bytes');
   const prg=rom.subarray(layout.prgStart,layout.prgStart+layout.prgBytes),screens=[],skipped=[];
   for(const c of captures.slice(0,LIMITS.observations)){const v=visible(c);if(v.supported)screens.push({label:c.label,...v});else skipped.push({label:c.label,reason:v.reason});}
@@ -38040,9 +38041,9 @@ function propose({rom,layout,captures,access=null,events=null}){
   const byValue=positionsByValue(prg),all=[];let observed=null;
   for(const grid of [{x:0,y:0},{x:1,y:0},{x:0,y:1},{x:1,y:1}]){
     const map=tuples(screens,grid),list=[...map.values()];if(!observed&&!grid.x&&!grid.y)observed=map;
-    for(const h of hypotheses(prg.length))for(const w of windows(matches(prg,byValue,list,h),h,list.length)){
+    for(const h of hypotheses(prg.length)){for(const w of windows(matches(prg,byValue,list,h),h,list.length)){
       w.grid=grid;w.tuples=map;w.traceSupport=traceSupport(w,access);w.aliases=[...w.byKey.entries()].filter(([,ps])=>ps.length>1).map(([key,ps])=>({key,positions:ps}));all.push(w);
-    }
+    }yield;}
   }
   const rank=(list,useTrace)=>list.slice().sort((a,b)=>(useTrace?(b.traceSupport||0)-(a.traceSupport||0):0)||b.coverage-a.coverage||a.aliases.length-b.aliases.length||(a.hi-a.lo)-(b.hi-b.lo)||a.lo-b.lo).slice(0,LIMITS.ranked);
   // trace support only ranks candidates that also explain the screens
@@ -38052,6 +38053,8 @@ function propose({rom,layout,captures,access=null,events=null}){
   for(const w of ranked)w.base=inferBase(w,rom,layout,events);
   return {version:VERSION,screens:screens.map(s=>s.label),skipped,distinctTuples:observed?observed.size:0,candidates:ranked,staticRanking:staticRanked.map(w=>w.id),searched:{hypotheses:hypotheses(prg.length).length*4,windows:all.length}};
 }
+function propose(options){const steps=proposeSteps(options);let r;while(!(r=steps.next()).done);return r.value;}
+async function proposeAsync(options,pause,sliceMs=10){const steps=proposeSteps(options);let r,t=Date.now();while(!(r=steps.next()).done)if(Date.now()-t>sliceMs){await pause();t=Date.now();}return r.value;}
 function describeId(w){const h=w.hypothesis;return h.layout+'/'+h.order+(h.layout==='split'?'/stride-'+h.fieldStep:'')+'/grid-'+w.grid.x+w.grid.y+'@prg+'+w.lo.toString(16);}
 
 // ---------- index 0: from the reading instructions ----------
@@ -38174,7 +38177,7 @@ function reconstruct(def,rom,layout,capture){
   return {supported:true,cells,attributes,counts};
 }
 
-return Object.freeze({version:VERSION,LIMITS,ORDERS,visible,tuples,propose,attributeArrays,planTileIntervention,planAttributeIntervention,judge,define,decodeRecord,reconstruct,physicalNametable,paletteAt});
+return Object.freeze({version:VERSION,LIMITS,ORDERS,visible,tuples,propose,proposeAsync,attributeArrays,planTileIntervention,planAttributeIntervention,judge,define,decodeRecord,reconstruct,physicalNametable,paletteAt});
 });
 /* AL-EXP-01 (BL05): the experiment evidence store. Separate from the resource library by design: nothing here writes
  * to the library, a project or a cartridge, and nothing in the library reads it. Payloads are stored once per exact
@@ -38422,7 +38425,7 @@ async function runTrial(runId,request,report){
         for(const ch of channels){const bytes=snapshotChannel(ch);row.digests[ch]=contract.sha256(bytes);if(payloads.has(ch))row.payloads[ch]=bytes;}
         result.captures.push(row);}
       if(performance.now()-t0>request.budgets.wallMs){stop='timeout';result.stopReason='the trial exceeded its '+request.budgets.wallMs+' ms wall-clock budget at frame '+(f+1);break;}
-      if(performance.now()-chunkStart>(request.chunkMs||25)){agentMask=null;await yieldTask();agentMask=masks[f];chunkStart=performance.now();report({type:'progress',runId,frame:f+1,total});
+      if(performance.now()-chunkStart>(request.chunkMs||16)){agentMask=null;await yieldTask();agentMask=masks[f];chunkStart=performance.now();report({type:'progress',runId,frame:f+1,total});
         if(cancelled.has(runId)){stop='cancelled';result.stopReason='cancelled at frame '+(f+1);break;}}
     }
     result.outcomeHint=stop;
@@ -38517,7 +38520,7 @@ async function run(planInput,baseBytes,{store=Evidence.createStore(),session=nul
         if(mutations.length){variant=contract.buildVariant(base,baseSha,mutations);}
         const request={steps:plan.input.steps,captures:plan.captures,channels:plan.observe.channels,payloads:plan.observe.payloads,
           trace:trial.trace&&plan.observe.trace?{...plan.observe.trace,watchRam:plan.observe.watchRam}:null,frameDigests:plan.observe.frameDigests,
-          budgets:{frames:plan.budgets.framesPerTrial,wallMs:plan.budgets.wallMsPerTrial},hangFrames:60,chunkMs:25,save:trial.saveCheckpoints?plan.checkpoints:[]};
+          budgets:{frames:plan.budgets.framesPerTrial,wallMs:plan.budgets.wallMsPerTrial},hangFrames:60,chunkMs:16,save:trial.saveCheckpoints?plan.checkpoints:[]};
         if(trial.fromCheckpoint)request.restore={label:trial.fromCheckpoint,romSha:variant?variant.sha256:baseSha};
         else{request.rom=variant?variant.bytes:base;request.romSha=variant?variant.sha256:baseSha;}
         if(signal?.aborted||own.closed())result={captures:[],frameDigests:[],trace:null,framesRun:0,startFrame:0,outcome:'cancelled',stopReason:own.closed()?'the sandbox was closed before the trial started':'cancelled before the trial started'};
@@ -38553,7 +38556,7 @@ async function run(planInput,baseBytes,{store=Evidence.createStore(),session=nul
       if(signal?.aborted)break;
     }
   }finally{if(!session&&!keepSession)own.close();}
-  const baselines=results.filter(r=>r.trial.kind==='baseline'&&r.trial!==reference?.trial);
+  const baselines=results.filter(r=>r.trial.kind==='baseline'&&r.trial!==reference?.trial&&r.receipt.outcome!=='invalid'); // a refused trial never ran: it is not a repeat
   const repeatability=!reference?'not established (no reference baseline)':baselines.length===0?'not tested (one baseline)':baselines.every(r=>r.receipt.outcome==='no_effect_observed')?'passed':'failed';
   return {plan,results,receipts:results.map(r=>r.receipt),reference:reference?{trial:reference.trial.id,result:reference.result}:null,repeatability,
     baseUnchanged:contract.sha256(baseBytes)===callerSha&&contract.sha256(base)===baseSha,identity:own.identity,session:keepSession&&!session?own:null,store,
@@ -38611,7 +38614,8 @@ async function discover({rom,training,holdout,interventions=Finder.LIMITS.interv
     // 2. propose
     stage('propose',{message:'Searching the cartridge for tables that explain the screens'});
     const ref=r1.reference.result,captures=ref.captures.map(captureView),tp=performance.now();
-    const proposal=Finder.propose({rom,layout,captures,access:ref.trace.roles,events:ref.trace.events});
+    const pause=()=>new Promise(resolve=>{const c=new MessageChannel();c.port1.onmessage=()=>{c.port1.close();resolve();};c.port2.postMessage(0);});
+    const proposal=await Finder.proposeAsync({rom,layout,captures,access:ref.trace.roles,events:ref.trace.events},pause); // yields to the editor between slices
     timings.proposeMs=Math.round(performance.now()-tp);
     report.stages.propose={distinctTuples:proposal.distinctTuples,searched:proposal.searched,ranked:proposal.candidates.map(summary),staticRanking:proposal.staticRanking.slice(0,8),skipped:proposal.skipped};
     if(!proposal.candidates.length)fail('no candidate explains the screens');

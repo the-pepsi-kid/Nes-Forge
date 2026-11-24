@@ -61,7 +61,7 @@ async function run(planInput,baseBytes,{store=Evidence.createStore(),session=nul
         if(mutations.length){variant=contract.buildVariant(base,baseSha,mutations);}
         const request={steps:plan.input.steps,captures:plan.captures,channels:plan.observe.channels,payloads:plan.observe.payloads,
           trace:trial.trace&&plan.observe.trace?{...plan.observe.trace,watchRam:plan.observe.watchRam}:null,frameDigests:plan.observe.frameDigests,
-          budgets:{frames:plan.budgets.framesPerTrial,wallMs:plan.budgets.wallMsPerTrial},hangFrames:60,chunkMs:25,save:trial.saveCheckpoints?plan.checkpoints:[]};
+          budgets:{frames:plan.budgets.framesPerTrial,wallMs:plan.budgets.wallMsPerTrial},hangFrames:60,chunkMs:16,save:trial.saveCheckpoints?plan.checkpoints:[]};
         if(trial.fromCheckpoint)request.restore={label:trial.fromCheckpoint,romSha:variant?variant.sha256:baseSha};
         else{request.rom=variant?variant.bytes:base;request.romSha=variant?variant.sha256:baseSha;}
         if(signal?.aborted||own.closed())result={captures:[],frameDigests:[],trace:null,framesRun:0,startFrame:0,outcome:'cancelled',stopReason:own.closed()?'the sandbox was closed before the trial started':'cancelled before the trial started'};
@@ -97,7 +97,7 @@ async function run(planInput,baseBytes,{store=Evidence.createStore(),session=nul
       if(signal?.aborted)break;
     }
   }finally{if(!session&&!keepSession)own.close();}
-  const baselines=results.filter(r=>r.trial.kind==='baseline'&&r.trial!==reference?.trial);
+  const baselines=results.filter(r=>r.trial.kind==='baseline'&&r.trial!==reference?.trial&&r.receipt.outcome!=='invalid'); // a refused trial never ran: it is not a repeat
   const repeatability=!reference?'not established (no reference baseline)':baselines.length===0?'not tested (one baseline)':baselines.every(r=>r.receipt.outcome==='no_effect_observed')?'passed':'failed';
   return {plan,results,receipts:results.map(r=>r.receipt),reference:reference?{trial:reference.trial.id,result:reference.result}:null,repeatability,
     baseUnchanged:contract.sha256(baseBytes)===callerSha&&contract.sha256(base)===baseSha,identity:own.identity,session:keepSession&&!session?own:null,store,

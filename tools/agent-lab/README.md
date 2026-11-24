@@ -116,6 +116,14 @@ Each ROM's local `private/<ROM-hash+editor-hash>/inventory.json` groups **World/
 
 `private/` contains ROM-derived dumps, rendered graphics, source-index catalogs, audio projects, snapshots and logs; **never commit or redistribute it**. `review/` is allowlisted metadata but still requires manual release approval. Generated Forge projects may contain source ROM bytes. The pipeline refuses private output directories inside a Git working tree; `AGENT_POLICY.json` is the permission contract.
 
+## Experimental discovery (AL-EXP-01, slice 1)
+
+The editor can now run controlled experiments on Forge's own synthetic fixtures. It observes the cartridge, changes
+single bytes in private copies, compares the replays and freezes a candidate definition before a withheld input is
+checked by an independent oracle. Experiments run in a sandboxed second copy of the standalone build, never in the
+editor's emulator. This slice does not extend the worker (BL08) and runs no commercial-ROM experiment. See
+[AGENT_LAB_EXPERIMENTS.md](../../docs/architecture/AGENT_LAB_EXPERIMENTS.md).
+
 ## Reproducible check and present limitations
 
 `python -m unittest discover -s tools/agent-lab/tests -v` runs seven synthetic/unit checks, including a forgery of an extracted-bank hash and a simulated loopback model. An additional local test against a user-provided Ninja Gaiden ROM (SHA-256 prefix `07d9e57e3518`) returned **48 scene/context entries, 202 poses, 83 scripts**, via `GameRENative.inspect`. This does **not** establish room pixel parity, enemy AI, scene writeback, or complete audio conversion. The public HTML's separate sanitized build still requires an end-to-end real-ROM rerun before release claims.

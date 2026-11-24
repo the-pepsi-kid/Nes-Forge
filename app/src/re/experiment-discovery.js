@@ -48,7 +48,8 @@ async function discover({rom,training,holdout,interventions=Finder.LIMITS.interv
     // 2. propose
     stage('propose',{message:'Searching the cartridge for tables that explain the screens'});
     const ref=r1.reference.result,captures=ref.captures.map(captureView),tp=performance.now();
-    const proposal=Finder.propose({rom,layout,captures,access:ref.trace.roles,events:ref.trace.events});
+    const pause=()=>new Promise(resolve=>{const c=new MessageChannel();c.port1.onmessage=()=>{c.port1.close();resolve();};c.port2.postMessage(0);});
+    const proposal=await Finder.proposeAsync({rom,layout,captures,access:ref.trace.roles,events:ref.trace.events},pause); // yields to the editor between slices
     timings.proposeMs=Math.round(performance.now()-tp);
     report.stages.propose={distinctTuples:proposal.distinctTuples,searched:proposal.searched,ranked:proposal.candidates.map(summary),staticRanking:proposal.staticRanking.slice(0,8),skipped:proposal.skipped};
     if(!proposal.candidates.length)fail('no candidate explains the screens');
