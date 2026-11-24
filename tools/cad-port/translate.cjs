@@ -67,23 +67,38 @@ const BLOCKS = {
 };
 const BIG = {'Utils.getBigBlocksCapcomDefault': {format: 'linear-2x2'}};
 // ---- game-specific helpers that are parameterised uses of the shared formats (recognised by their whole body) ----
-function helperBlocks(body) {
+function helperBlocks(body, all) {
   const b = squash(body);
   let m = /^returnUtils\.readBlocksLinear\(Globals\.romdata,ConfigScript\.getTilesAddr\(\w+\),(\d+),(\d+),ConfigScript\.getBlocksCount\(\w+\),(true|false)(?:,(true|false))?\);$/.exec(b);
   if (m) return {format: 'linear', width: +m[1], height: +m[2], transpose: m[4] === 'true', ...(m[3] === 'true' ? {attributes: 'trailing'} : {})};
+  // 17-byte records: one attribute byte, then 16 tiles (the configured address is that of the first tile)
+  m = /^return(\w+)\(Globals\.romdata,ConfigScript\.getTilesAddr\(\w+\),ConfigScript\.getBlocksCount\(\w+\)\);$/.exec(b);
+  if (m && all[m[1]]) { const h = squash(all[m[1]].body);
+    if (/intBLOCK_W=4;intBLOCK_H=4;/.test(h) && /Utils\.readBlocksLinear\(romdata,addr,BLOCK_W,BLOCK_H,count,false,false,1\)/.test(h) && /intpalBytesAddr=addr-1\+i\*17;/.test(h) && /newint\[\]\{\(palByte>>0\)&3,\(palByte>>2\)&3,\(palByte>>4\)&3,\(palByte>>6\)&3\}/.test(h))
+      return {format: 'tiles16-attribute-interleaved', offsetAdjust: -1}; }
+  // blocks whose tiles are computed from the block number (no table in the cartridge)
+  m = /^varobjects=newObjRec\[(?:ConfigScript\.)?getBlocksCount\(\w*\)\];for\(inti=0;i<objects\.Length;i\+\+\)\{varindexes=newint\[4\];varpalBytes=newint\[1\];intbi=(?:i\*(\d+)|\(i\/(\d+)\)\*(\d+)\+i%(\d+)\*(\d+));((?:indexes\[[0-3]\]=bi(?:\+\d+)?;){4})objects\[i\]=newObjRec\(2,2,0,indexes,palBytes\);\}returnobjects;$/.exec(b);
+  if (m && (!m[2] || m[2] === m[4])) { const offsets = [null, null, null, null]; for (const x of m[6].matchAll(/indexes\[([0-3])\]=bi(?:\+(\d+))?;/g)) offsets[+x[1]] = +(x[2] || 0);
+    if (offsets.every(v => v !== null)) return {format: 'computed-2x2', ...(m[1] ? {step: +m[1]} : {rowLength: +m[2], rowStride: +m[3], step: +m[5]}), offsets}; }
   return null;
 }
 function helperBig(body, all) {
   let b = squash(body);
   // the four 2-bit palettes of one colour byte per big block, read through a helper or directly
   const colour = name => { const h = all[name]; if (!h) return null; const x = squash(h.body); return /^returnGlobals\.romdata\[ConfigScript\.getPalBytesAddr\(0\)\+\w+\];$/.test(x) ? 'palette-byte' : null; };
-  b = b.replace(/varb=bb\[i\];/, '').replace(/\bb\.(indexes|palBytes)/g, 'bb[i].$1');
-  const swap = /vari1=bb\[i\]\.indexes\[1\];vari2=bb\[i\]\.indexes\[2\];bb\[i\]\.indexes\[1\]=i2;bb\[i\]\.indexes\[2\]=i1;/;
-  const swapped = swap.test(b); b = b.replace(swap, '');
-  const m = /^vardata=Utils\.readLinearBigBlockData\(0,\w+,4\);varbb=Utils\.unlinearizeBigBlocks<BigBlockWithPal>\(data,2,2\);for\(inti=0;i<bb\.Length;i\+\+\)\{intpalByte=(\w+)\(i\);bb\[i\]\.palBytes\[0\]=palByte>>0&0x3;bb\[i\]\.palBytes\[1\]=palByte>>2&0x3;bb\[i\]\.palBytes\[2\]=palByte>>4&0x3;bb\[i\]\.palBytes\[3\]=palByte>>6&0x3;\}returnbb;$/.exec(b);
-  if (m && colour(m[1])) return {format: 'linear-2x2', palette: 'byte-per-big-block', swapMiddle: swapped};
-  if (/^returnUtils\.getBigBlocksCapcomDefault\(\w+\);$/.test(b)) return {format: 'linear-2x2'};
-  return null;
+  b = b.replace(/varb=bb\[i\];/, '').replace(/(^|[^A-Za-z0-9_])b\.(indexes|palBytes)/g, '$1bb[i].$2').replace(/refb\.indexes/g, 'refbb[i].indexes');
+  const out = {format: 'linear-2x2'};
+  const read = /^vardata=Utils\.readLinearBigBlockData\(0,\w+(?:,4)?\);varbb=Utils\.unlinearizeBigBlocks<BigBlockWithPal>\(data,2,2\);/;
+  const capcom = /^returnUtils\.getBigBlocksCapcomDefault\(\w+\);$/;
+  if (capcom.test(b)) return out;
+  if (!read.test(b)) return null; b = b.replace(read, '');
+  const mask = /for\(intii=0;ii<bb\[i\]\.indexes\.Length;ii\+\+\)\{bb\[i\]\.indexes\[ii\]=bb\[i\]\.indexes\[ii\]&0x([0-9A-Fa-f]+);\}/.exec(b); if (mask) { out.mask = parseInt(mask[1], 16); b = b.replace(mask[0], ''); }
+  for (const sw of [/vari1=bb\[i\]\.indexes\[1\];vari2=bb\[i\]\.indexes\[2\];bb\[i\]\.indexes\[1\]=i2;bb\[i\]\.indexes\[2\]=i1;/, /Utils\.swap\(refbb\[i\]\.indexes\[1\],refbb\[i\]\.indexes\[2\]\);/]) if (sw.test(b)) { out.swapMiddle = true; b = b.replace(sw, ''); }
+  const pal = /intpalByte=(?:(\w+)\(i\)|Globals\.romdata\[(?:ConfigScript\.)?getPalBytesAddr\(\w*\)\+i\]);bb\[i\]\.palBytes\[0\]=palByte>>0&0x3;bb\[i\]\.palBytes\[1\]=palByte>>2&0x3;bb\[i\]\.palBytes\[2\]=palByte>>4&0x3;bb\[i\]\.palBytes\[3\]=palByte>>6&0x3;/.exec(b);
+  if (pal) { if (pal[1] && !colour(pal[1])) return null; out.palette = 'byte-per-big-block'; b = b.replace(pal[0], ''); }
+  if (b !== 'for(inti=0;i<bb.Length;i++){}returnbb;' && b !== 'returnbb;') return null;
+  if (!out.swapMiddle) out.swapMiddle = false;
+  return out;
 }
 // a constant palette: getPalFunc returns a method whose body returns one literal byte array (16 or 32 entries)
 function constantPalette(name, all) {
@@ -108,13 +123,13 @@ function translateConfig(game, file, text, includeText) {
   if (/true/.test(r.isUseSegaGraphics || '')) gap('segaWords');
   // blocks
   const bf = squash(r.getBlocksFunc || ''), bo = r.getBlocksOffset ? offsetRec(r.getBlocksOffset) : null, bc = r.getBlocksCount ? evalInt(r.getBlocksCount) : null, pa = r.getPalBytesAddr ? evalInt(r.getPalBytesAddr) : null;
-  let fam = BLOCKS[bf] || null; const viaHelper = !fam && bf ? (() => { const name = bf.split('.').pop(); return all[name] ? helperBlocks(all[name].body) : null; })() : null;
+  let fam = BLOCKS[bf] || null; const viaHelper = !fam && bf ? (() => { const name = bf.split('.').pop(); return all[name] ? helperBlocks(all[name].body, all) : null; })() : null;
   if (viaHelper) fam = {...viaHelper, helper: bf};
   if (fam) {
-    const needsPal = ['tiles16-attribute-byte', 'linear-2x2-palette-array'].includes(fam.format);
-    if (!bo || bc === null || bc < 1 || bc > 4096) gap('blocksExpr', bf);
+    const needsPal = ['tiles16-attribute-byte', 'linear-2x2-palette-array'].includes(fam.format), computed = fam.format === 'computed-2x2', {offsetAdjust = 0, ...f} = fam;
+    if ((!bo && !computed) || bc === null || bc < 1 || bc > 4096) gap('blocksExpr', bf);
     else if (needsPal && pa === null) gap('blocksPal', bf);
-    else d.blocks = {...fam, offset: bo.begin, count: bc, ...(needsPal ? {paletteOffset: pa} : {})};
+    else d.blocks = {...f, ...(computed ? {} : {offset: bo.begin + offsetAdjust}), count: bc, ...(needsPal ? {paletteOffset: pa} : {})};
   } else if (bf) gap('blocksCustom', bf);
   // big blocks
   const gf = squash(r.getBigBlocksFunc || ''), go = r.getBigBlocksOffset ? offsetRec(r.getBigBlocksOffset) : null, gc = r.getBigBlocksCount ? evalInt(r.getBigBlocksCount) : null;

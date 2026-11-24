@@ -63,6 +63,13 @@ function rnd(seed) { let s = seed >>> 0; return () => (s = (Math.imul(s, 1664525
     // big blocks with swapped middle and a colour byte
     const g = D.bigBlocks(r, {format: 'linear-2x2', offset: at, count: 5, swapMiddle: true, palette: 'byte-per-big-block', paletteOffset: at + 500});
     assert.deepEqual(g[4].cells, [r[at + 16], r[at + 18], r[at + 17], r[at + 19]]); const c = r[at + 504]; assert.deepEqual(g[4].palettes, [c & 3, (c >> 2) & 3, (c >> 4) & 3, c >> 6]);
+    // batch 2: 17-byte interleaved records, computed blocks, masked big-block references
+    b = D.blocks(r, {format: 'tiles16-attribute-interleaved', offset: at, count: 3});
+    assert.deepEqual(b[2].tiles, Array.from(r.subarray(at + 35, at + 51))); const ia = r[at + 34]; assert.deepEqual(b[2].palettes, [ia & 3, (ia >> 2) & 3, (ia >> 4) & 3, ia >> 6]);
+    b = D.blocks(r, {format: 'computed-2x2', count: 20, step: 4, offsets: [0, 2, 1, 3]}); assert.deepEqual(b[5].tiles, [20, 22, 21, 23]); assert.equal(b[5].palettes, null);
+    b = D.blocks(r, {format: 'computed-2x2', count: 20, rowLength: 8, rowStride: 32, step: 2, offsets: [0, 16, 1, 17]}); assert.deepEqual(b[9].tiles, [34, 50, 35, 51]);
+    const mk = D.bigBlocks(r, {format: 'linear-2x2', offset: at, count: 4, mask: 0x3f, swapMiddle: true});
+    assert.deepEqual(mk[3].cells, [r[at + 12] & 63, r[at + 14] & 63, r[at + 13] & 63, r[at + 15] & 63]);
     // out of range is refused, never clamped
     assert.throws(() => D.blocks(r, {format: 'tiles16-attribute-byte', offset: r.length - 8, count: 4, paletteOffset: at}), /outside the cartridge/);
     assert.throws(() => D.blocks(r, {format: 'no-such-format', offset: at, count: 1}), /no block decoder/);

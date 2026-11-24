@@ -48,12 +48,15 @@ Formats (Forge names):
 | `linear-2x2-palette-array` | 2x2 tiles (optionally stored column by column), plus one palette byte per block in a parallel array (low 2 bits) |
 | `linear` | w x h tiles (optionally column by column), optionally followed by its palette bytes |
 | `aligned-arrays-2x2` | five parallel arrays: the four quadrant tiles, then palette (low 2 bits) and type (high nibble) |
-| big blocks `linear-2x2` | four block IDs (TL TR BL BR, or TL BL TR BR), optionally one colour byte per big block (four 2-bit palettes) |
+| `tiles16-attribute-interleaved` | 17-byte records: one attribute byte (four 2-bit palettes), then 4x4 tiles (Castlevania) |
+| `computed-2x2` | no table: a block's four tiles are computed from its number (base + per-quadrant offsets; Mega Man 1-2, Little Samson, Banana Prince) |
+| big blocks `linear-2x2` | four block IDs (TL TR BL BR, or TL BL TR BR; optionally only the bits of a mask name the block), optionally one colour byte per big block (four 2-bit palettes) |
 | screens | records of `[offset, count, size, width, height]`, byte or 16-bit cells, optional stride, optionally stored column by column |
 
-Game-specific helpers are translated only when their whole body is a parameterised use of a shared format. For
-example, the Ninja Gaiden helpers are linear 2x2 blocks plus 2x2 big blocks with a colour byte. Anything else stays
-untranslated with its reason.
+Game-specific helpers are translated only when their whole body is a parameterised use of a shared format. The
+translator strips each recognized statement and requires nothing to remain. Examples: the Ninja Gaiden helpers are
+linear 2x2 blocks plus 2x2 big blocks with a colour byte; Mega Man's blocks are computed from the block number, and
+its big blocks keep the block in the low 6 bits. Anything else stays untranslated with its reason.
 
 ## Recognition
 
@@ -110,7 +113,8 @@ is recorded alongside.
 is located:
 
 - in CHR ROM, as 1 KiB offsets;
-- for CHR RAM, by searching PRG for each tile verbatim.
+- for CHR RAM, by searching PRG for each tile verbatim. When every non-uniform tile is found, the table is recorded
+  as runs of PRG offsets plus the uniform tiles' byte. The editor rebuilds it from the user's cartridge.
 
 The location seen most often is kept. Graphics count as established only when the engines that saw the screens located the same ones. The editor reads graphics from the user's own cartridge at these offsets, or at
 the offset the configuration states. Previews and editable copies exist only where graphics are established;

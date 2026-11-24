@@ -1,0 +1,886 @@
+{
+ "format": "NESForgeCadPortObservation",
+ "version": 1,
+ "cartridge": {
+  "name": "Mega Man 2 (U)",
+  "sha256": "27b5a635df33ed57ed339dfc7fd62fc603b39c1d1603adb5cdc3562a0b0d555b",
+  "bytes": 262160
+ },
+ "game": "megaman_2",
+ "title": "Mega Man 2",
+ "upstream": "b28316ddd9be4e79ac5e6adf89b7751df609d94e",
+ "script": {
+  "name": "default",
+  "frames": 2376,
+  "every": 15,
+  "sha256": "113c5eef032be742"
+ },
+ "structural": [
+  {
+   "id": "megaman_2/MegaMan2-1",
+   "state": "consistent",
+   "log10Chance": -0.2,
+   "control": null
+  }
+ ],
+ "engines": [
+  {
+   "engine": "forge",
+   "identity": "NES Forge emulator (this build)",
+   "ms": 164706,
+   "captures": 158,
+   "explained": {
+    "captures": 158,
+    "meanShare": 0.009,
+    "capturesBelowHalf": 158,
+    "firstBelowHalf": [
+     {
+      "frame": 21,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 36,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 51,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 66,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 81,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 96,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 111,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 126,
+      "groups": 40,
+      "share": 0
+     }
+    ]
+   },
+   "definitions": [
+    {
+     "id": "megaman_2/MegaMan2-1",
+     "structural": "consistent",
+     "observed": {
+      "12": {
+       "frame": 453,
+       "dx": 62,
+       "dy": 52,
+       "compared": 97,
+       "matched": 93,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      },
+      "13": {
+       "frame": 453,
+       "dx": 0,
+       "dy": 0,
+       "compared": 384,
+       "matched": 384,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      },
+      "14": {
+       "frame": 453,
+       "dx": 0,
+       "dy": 0,
+       "compared": 192,
+       "matched": 192,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      }
+     },
+     "firstFrame": 453,
+     "best": {
+      "screen": 13,
+      "frame": 453,
+      "matched": 384,
+      "compared": 384
+     },
+     "graphics": {
+      "table": "$1000",
+      "source": "chr-ram",
+      "tilesFoundVerbatimInPrg": 210,
+      "uniformTiles": 46,
+      "located": "210/210 non-uniform tiles verbatim in PRG",
+      "runs": [
+       [
+        4,
+        7,
+        131152
+       ],
+       [
+        12,
+        1,
+        6341
+       ],
+       [
+        14,
+        1,
+        6341
+       ],
+       [
+        16,
+        18,
+        131344
+       ],
+       [
+        36,
+        1,
+        131360
+       ],
+       [
+        37,
+        1,
+        131360
+       ],
+       [
+        38,
+        1,
+        131568
+       ],
+       [
+        39,
+        1,
+        131568
+       ],
+       [
+        40,
+        1,
+        60352
+       ],
+       [
+        41,
+        1,
+        60096
+       ],
+       [
+        42,
+        1,
+        60000
+       ],
+       [
+        44,
+        1,
+        60000
+       ],
+       [
+        46,
+        1,
+        60000
+       ],
+       [
+        48,
+        1,
+        60096
+       ],
+       [
+        49,
+        1,
+        60096
+       ],
+       [
+        52,
+        1,
+        131920
+       ],
+       [
+        65,
+        1,
+        148632
+       ],
+       [
+        66,
+        30,
+        158768
+       ],
+       [
+        96,
+        54,
+        132112
+       ],
+       [
+        160,
+        10,
+        155408
+       ],
+       [
+        180,
+        76,
+        155728
+       ]
+      ],
+      "uniform": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        11,
+        0
+       ],
+       [
+        13,
+        0
+       ],
+       [
+        15,
+        0
+       ],
+       [
+        34,
+        0
+       ],
+       [
+        35,
+        0
+       ],
+       [
+        43,
+        0
+       ],
+       [
+        45,
+        0
+       ],
+       [
+        47,
+        0
+       ],
+       [
+        50,
+        0
+       ],
+       [
+        51,
+        0
+       ],
+       [
+        53,
+        0
+       ],
+       [
+        54,
+        0
+       ],
+       [
+        55,
+        0
+       ],
+       [
+        56,
+        0
+       ],
+       [
+        57,
+        0
+       ],
+       [
+        58,
+        0
+       ],
+       [
+        59,
+        0
+       ],
+       [
+        60,
+        0
+       ],
+       [
+        61,
+        0
+       ],
+       [
+        62,
+        0
+       ],
+       [
+        63,
+        0
+       ],
+       [
+        64,
+        0
+       ],
+       [
+        150,
+        0
+       ],
+       [
+        151,
+        0
+       ],
+       [
+        152,
+        0
+       ],
+       [
+        153,
+        0
+       ],
+       [
+        154,
+        0
+       ],
+       [
+        155,
+        0
+       ],
+       [
+        156,
+        0
+       ],
+       [
+        157,
+        0
+       ],
+       [
+        158,
+        0
+       ],
+       [
+        159,
+        0
+       ],
+       [
+        170,
+        0
+       ],
+       [
+        171,
+        0
+       ],
+       [
+        172,
+        0
+       ],
+       [
+        173,
+        0
+       ],
+       [
+        174,
+        0
+       ],
+       [
+        175,
+        0
+       ],
+       [
+        176,
+        0
+       ],
+       [
+        177,
+        0
+       ],
+       [
+        178,
+        0
+       ],
+       [
+        179,
+        0
+       ]
+      ],
+      "paletteHash": "bb3d94d8d426b748",
+      "backgroundPalette": [
+       15,
+       53,
+       33,
+       17,
+       15,
+       48,
+       60,
+       33,
+       15,
+       39,
+       23,
+       7,
+       15,
+       48,
+       17,
+       12
+      ],
+      "captures": 9,
+      "of": 9
+     },
+     "observedScreens": [
+      12,
+      13,
+      14
+     ]
+    }
+   ]
+  },
+  {
+   "engine": "fceux",
+   "identity": {
+    "name": "FCEUX",
+    "version": "2.6.5",
+    "packageVersion": "2.6.5+dfsg1-2build3",
+    "source": "https://github.com/TASVideos/fceux.git",
+    "commit": "ea6ed69b874e3ae94072f1b4f14b9a8f0fdd774b",
+    "qt": "5.15.12",
+    "sdl": "2.30.0",
+    "license": "GPL-2.0-or-later",
+    "configuration": {
+     "SDL.RamInitMethod": "2",
+     "SDL.Sound": "0",
+     "display": "Xvfb 640x480x24",
+     "video": "old PPU core (default), NTSC",
+     "lua": "Lua 5.1 (built in)"
+    }
+   },
+   "ms": 2382,
+   "captures": 158,
+   "explained": {
+    "captures": 158,
+    "meanShare": 0.009,
+    "capturesBelowHalf": 158,
+    "firstBelowHalf": [
+     {
+      "frame": 24,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 39,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 54,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 69,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 84,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 99,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 114,
+      "groups": 40,
+      "share": 0
+     },
+     {
+      "frame": 129,
+      "groups": 40,
+      "share": 0
+     }
+    ]
+   },
+   "definitions": [
+    {
+     "id": "megaman_2/MegaMan2-1",
+     "structural": "consistent",
+     "observed": {
+      "12": {
+       "frame": 456,
+       "dx": 62,
+       "dy": 52,
+       "compared": 97,
+       "matched": 93,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      },
+      "13": {
+       "frame": 456,
+       "dx": 0,
+       "dy": 0,
+       "compared": 384,
+       "matched": 384,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      },
+      "14": {
+       "frame": 456,
+       "dx": 0,
+       "dy": 0,
+       "compared": 192,
+       "matched": 192,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      }
+     },
+     "firstFrame": 456,
+     "best": {
+      "screen": 13,
+      "frame": 456,
+      "matched": 384,
+      "compared": 384
+     },
+     "graphics": {
+      "table": "$1000",
+      "source": "chr-ram",
+      "tilesFoundVerbatimInPrg": 210,
+      "uniformTiles": 46,
+      "located": "210/210 non-uniform tiles verbatim in PRG",
+      "runs": [
+       [
+        4,
+        7,
+        131152
+       ],
+       [
+        12,
+        1,
+        6341
+       ],
+       [
+        14,
+        1,
+        6341
+       ],
+       [
+        16,
+        18,
+        131344
+       ],
+       [
+        36,
+        1,
+        131360
+       ],
+       [
+        37,
+        1,
+        131360
+       ],
+       [
+        38,
+        1,
+        131568
+       ],
+       [
+        39,
+        1,
+        131568
+       ],
+       [
+        40,
+        1,
+        60352
+       ],
+       [
+        41,
+        1,
+        60096
+       ],
+       [
+        42,
+        1,
+        60000
+       ],
+       [
+        44,
+        1,
+        60000
+       ],
+       [
+        46,
+        1,
+        60000
+       ],
+       [
+        48,
+        1,
+        60096
+       ],
+       [
+        49,
+        1,
+        60096
+       ],
+       [
+        52,
+        1,
+        131920
+       ],
+       [
+        65,
+        1,
+        148632
+       ],
+       [
+        66,
+        30,
+        158768
+       ],
+       [
+        96,
+        54,
+        132112
+       ],
+       [
+        160,
+        10,
+        155408
+       ],
+       [
+        180,
+        76,
+        155728
+       ]
+      ],
+      "uniform": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        11,
+        0
+       ],
+       [
+        13,
+        0
+       ],
+       [
+        15,
+        0
+       ],
+       [
+        34,
+        0
+       ],
+       [
+        35,
+        0
+       ],
+       [
+        43,
+        0
+       ],
+       [
+        45,
+        0
+       ],
+       [
+        47,
+        0
+       ],
+       [
+        50,
+        0
+       ],
+       [
+        51,
+        0
+       ],
+       [
+        53,
+        0
+       ],
+       [
+        54,
+        0
+       ],
+       [
+        55,
+        0
+       ],
+       [
+        56,
+        0
+       ],
+       [
+        57,
+        0
+       ],
+       [
+        58,
+        0
+       ],
+       [
+        59,
+        0
+       ],
+       [
+        60,
+        0
+       ],
+       [
+        61,
+        0
+       ],
+       [
+        62,
+        0
+       ],
+       [
+        63,
+        0
+       ],
+       [
+        64,
+        0
+       ],
+       [
+        150,
+        0
+       ],
+       [
+        151,
+        0
+       ],
+       [
+        152,
+        0
+       ],
+       [
+        153,
+        0
+       ],
+       [
+        154,
+        0
+       ],
+       [
+        155,
+        0
+       ],
+       [
+        156,
+        0
+       ],
+       [
+        157,
+        0
+       ],
+       [
+        158,
+        0
+       ],
+       [
+        159,
+        0
+       ],
+       [
+        170,
+        0
+       ],
+       [
+        171,
+        0
+       ],
+       [
+        172,
+        0
+       ],
+       [
+        173,
+        0
+       ],
+       [
+        174,
+        0
+       ],
+       [
+        175,
+        0
+       ],
+       [
+        176,
+        0
+       ],
+       [
+        177,
+        0
+       ],
+       [
+        178,
+        0
+       ],
+       [
+        179,
+        0
+       ]
+      ],
+      "paletteHash": "bb3d94d8d426b748",
+      "backgroundPalette": [
+       15,
+       53,
+       33,
+       17,
+       15,
+       48,
+       60,
+       33,
+       15,
+       39,
+       23,
+       7,
+       15,
+       48,
+       17,
+       12
+      ],
+      "captures": 9,
+      "of": 9
+     },
+     "observedScreens": [
+      12,
+      13,
+      14
+     ]
+    }
+   ]
+  }
+ ]
+}

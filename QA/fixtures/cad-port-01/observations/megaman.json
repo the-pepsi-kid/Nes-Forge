@@ -1,0 +1,902 @@
+{
+ "format": "NESForgeCadPortObservation",
+ "version": 1,
+ "cartridge": {
+  "name": "Mega Man (U)",
+  "sha256": "1c8885892051d79db757746e2281f417cd5b156a86988b0010ad95d7bd4276c5",
+  "bytes": 131088
+ },
+ "game": "megaman",
+ "title": "Mega Man",
+ "upstream": "b28316ddd9be4e79ac5e6adf89b7751df609d94e",
+ "script": {
+  "name": "default",
+  "frames": 2376,
+  "every": 15,
+  "sha256": "113c5eef032be742"
+ },
+ "structural": [
+  {
+   "id": "megaman/MegaMan-1",
+   "state": "consistent",
+   "log10Chance": -114.9,
+   "control": {
+    "shifts": 99,
+    "passed": 2
+   }
+  }
+ ],
+ "engines": [
+  {
+   "engine": "forge",
+   "identity": "NES Forge emulator (this build)",
+   "ms": 141224,
+   "captures": 158,
+   "headerNote": "header bytes 7-15 cleared (archaic iNES header): NES Forge's emulator otherwise reads them into the mapper number",
+   "explained": {
+    "captures": 59,
+    "meanShare": 0,
+    "capturesBelowHalf": 59,
+    "firstBelowHalf": [
+     {
+      "frame": 21,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 36,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 51,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 66,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 81,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 96,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 111,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 126,
+      "groups": 72,
+      "share": 0
+     }
+    ]
+   },
+   "definitions": [
+    {
+     "id": "megaman/MegaMan-1",
+     "structural": "consistent",
+     "observed": {
+      "0": {
+       "frame": 921,
+       "dx": 0,
+       "dy": 48,
+       "compared": 96,
+       "matched": 96,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      },
+      "3": {
+       "frame": 921,
+       "dx": 0,
+       "dy": 52,
+       "compared": 192,
+       "matched": 192,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      },
+      "8": {
+       "frame": 921,
+       "dx": 0,
+       "dy": 48,
+       "compared": 480,
+       "matched": 480,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      },
+      "9": {
+       "frame": 921,
+       "dx": 0,
+       "dy": 48,
+       "compared": 192,
+       "matched": 192,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      }
+     },
+     "firstFrame": 921,
+     "best": {
+      "screen": 8,
+      "frame": 921,
+      "matched": 480,
+      "compared": 480
+     },
+     "graphics": {
+      "table": "$1000",
+      "source": "chr-ram",
+      "tilesFoundVerbatimInPrg": 206,
+      "uniformTiles": 50,
+      "located": "206/206 non-uniform tiles verbatim in PRG",
+      "runs": [
+       [
+        8,
+        28,
+        12432
+       ],
+       [
+        37,
+        1,
+        12896
+       ],
+       [
+        39,
+        1,
+        12928
+       ],
+       [
+        41,
+        1,
+        12960
+       ],
+       [
+        43,
+        11,
+        12992
+       ],
+       [
+        56,
+        2,
+        13136
+       ],
+       [
+        58,
+        26,
+        13232
+       ],
+       [
+        92,
+        5,
+        13776
+       ],
+       [
+        102,
+        5,
+        13936
+       ],
+       [
+        110,
+        1,
+        14064
+       ],
+       [
+        112,
+        15,
+        14096
+       ],
+       [
+        128,
+        64,
+        20496
+       ],
+       [
+        208,
+        1,
+        6072
+       ],
+       [
+        209,
+        1,
+        6072
+       ],
+       [
+        210,
+        9,
+        21808
+       ],
+       [
+        220,
+        1,
+        21936
+       ],
+       [
+        222,
+        34,
+        22000
+       ]
+      ],
+      "uniform": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        255
+       ],
+       [
+        5,
+        255
+       ],
+       [
+        6,
+        255
+       ],
+       [
+        7,
+        255
+       ],
+       [
+        36,
+        0
+       ],
+       [
+        38,
+        0
+       ],
+       [
+        40,
+        255
+       ],
+       [
+        42,
+        255
+       ],
+       [
+        54,
+        0
+       ],
+       [
+        55,
+        0
+       ],
+       [
+        84,
+        0
+       ],
+       [
+        85,
+        0
+       ],
+       [
+        86,
+        0
+       ],
+       [
+        87,
+        0
+       ],
+       [
+        88,
+        0
+       ],
+       [
+        89,
+        0
+       ],
+       [
+        90,
+        0
+       ],
+       [
+        91,
+        0
+       ],
+       [
+        97,
+        255
+       ],
+       [
+        98,
+        0
+       ],
+       [
+        99,
+        0
+       ],
+       [
+        100,
+        0
+       ],
+       [
+        101,
+        0
+       ],
+       [
+        107,
+        0
+       ],
+       [
+        108,
+        0
+       ],
+       [
+        109,
+        0
+       ],
+       [
+        111,
+        0
+       ],
+       [
+        127,
+        0
+       ],
+       [
+        192,
+        0
+       ],
+       [
+        193,
+        0
+       ],
+       [
+        194,
+        0
+       ],
+       [
+        195,
+        0
+       ],
+       [
+        196,
+        0
+       ],
+       [
+        197,
+        0
+       ],
+       [
+        198,
+        0
+       ],
+       [
+        199,
+        0
+       ],
+       [
+        200,
+        0
+       ],
+       [
+        201,
+        0
+       ],
+       [
+        202,
+        0
+       ],
+       [
+        203,
+        0
+       ],
+       [
+        204,
+        0
+       ],
+       [
+        205,
+        0
+       ],
+       [
+        206,
+        0
+       ],
+       [
+        207,
+        0
+       ],
+       [
+        219,
+        0
+       ],
+       [
+        221,
+        0
+       ]
+      ],
+      "paletteHash": "881c9190e6932ed1",
+      "backgroundPalette": [
+       15,
+       48,
+       43,
+       6,
+       15,
+       48,
+       43,
+       44,
+       15,
+       32,
+       16,
+       0,
+       15,
+       32,
+       16,
+       44
+      ],
+      "captures": 396,
+      "of": 396
+     },
+     "observedScreens": [
+      0,
+      3,
+      8,
+      9
+     ]
+    }
+   ]
+  },
+  {
+   "engine": "fceux",
+   "identity": {
+    "name": "FCEUX",
+    "version": "2.6.5",
+    "packageVersion": "2.6.5+dfsg1-2build3",
+    "source": "https://github.com/TASVideos/fceux.git",
+    "commit": "ea6ed69b874e3ae94072f1b4f14b9a8f0fdd774b",
+    "qt": "5.15.12",
+    "sdl": "2.30.0",
+    "license": "GPL-2.0-or-later",
+    "configuration": {
+     "SDL.RamInitMethod": "2",
+     "SDL.Sound": "0",
+     "display": "Xvfb 640x480x24",
+     "video": "old PPU core (default), NTSC",
+     "lua": "Lua 5.1 (built in)"
+    }
+   },
+   "ms": 2363,
+   "captures": 158,
+   "explained": {
+    "captures": 59,
+    "meanShare": 0,
+    "capturesBelowHalf": 59,
+    "firstBelowHalf": [
+     {
+      "frame": 24,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 39,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 54,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 69,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 84,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 99,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 114,
+      "groups": 72,
+      "share": 0
+     },
+     {
+      "frame": 129,
+      "groups": 72,
+      "share": 0
+     }
+    ]
+   },
+   "definitions": [
+    {
+     "id": "megaman/MegaMan-1",
+     "structural": "consistent",
+     "observed": {
+      "0": {
+       "frame": 924,
+       "dx": 0,
+       "dy": 48,
+       "compared": 96,
+       "matched": 96,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      },
+      "3": {
+       "frame": 924,
+       "dx": 0,
+       "dy": 52,
+       "compared": 192,
+       "matched": 192,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      },
+      "8": {
+       "frame": 924,
+       "dx": 0,
+       "dy": 48,
+       "compared": 480,
+       "matched": 480,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      },
+      "9": {
+       "frame": 924,
+       "dx": 0,
+       "dy": 48,
+       "compared": 192,
+       "matched": 192,
+       "attributesCompared": 0,
+       "attributesMatched": 0
+      }
+     },
+     "firstFrame": 924,
+     "best": {
+      "screen": 8,
+      "frame": 924,
+      "matched": 480,
+      "compared": 480
+     },
+     "graphics": {
+      "table": "$1000",
+      "source": "chr-ram",
+      "tilesFoundVerbatimInPrg": 206,
+      "uniformTiles": 50,
+      "located": "206/206 non-uniform tiles verbatim in PRG",
+      "runs": [
+       [
+        8,
+        28,
+        12432
+       ],
+       [
+        37,
+        1,
+        12896
+       ],
+       [
+        39,
+        1,
+        12928
+       ],
+       [
+        41,
+        1,
+        12960
+       ],
+       [
+        43,
+        11,
+        12992
+       ],
+       [
+        56,
+        2,
+        13136
+       ],
+       [
+        58,
+        26,
+        13232
+       ],
+       [
+        92,
+        5,
+        13776
+       ],
+       [
+        102,
+        5,
+        13936
+       ],
+       [
+        110,
+        1,
+        14064
+       ],
+       [
+        112,
+        15,
+        14096
+       ],
+       [
+        128,
+        64,
+        20496
+       ],
+       [
+        208,
+        1,
+        6072
+       ],
+       [
+        209,
+        1,
+        6072
+       ],
+       [
+        210,
+        9,
+        21808
+       ],
+       [
+        220,
+        1,
+        21936
+       ],
+       [
+        222,
+        34,
+        22000
+       ]
+      ],
+      "uniform": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        255
+       ],
+       [
+        5,
+        255
+       ],
+       [
+        6,
+        255
+       ],
+       [
+        7,
+        255
+       ],
+       [
+        36,
+        0
+       ],
+       [
+        38,
+        0
+       ],
+       [
+        40,
+        255
+       ],
+       [
+        42,
+        255
+       ],
+       [
+        54,
+        0
+       ],
+       [
+        55,
+        0
+       ],
+       [
+        84,
+        0
+       ],
+       [
+        85,
+        0
+       ],
+       [
+        86,
+        0
+       ],
+       [
+        87,
+        0
+       ],
+       [
+        88,
+        0
+       ],
+       [
+        89,
+        0
+       ],
+       [
+        90,
+        0
+       ],
+       [
+        91,
+        0
+       ],
+       [
+        97,
+        255
+       ],
+       [
+        98,
+        0
+       ],
+       [
+        99,
+        0
+       ],
+       [
+        100,
+        0
+       ],
+       [
+        101,
+        0
+       ],
+       [
+        107,
+        0
+       ],
+       [
+        108,
+        0
+       ],
+       [
+        109,
+        0
+       ],
+       [
+        111,
+        0
+       ],
+       [
+        127,
+        0
+       ],
+       [
+        192,
+        0
+       ],
+       [
+        193,
+        0
+       ],
+       [
+        194,
+        0
+       ],
+       [
+        195,
+        0
+       ],
+       [
+        196,
+        0
+       ],
+       [
+        197,
+        0
+       ],
+       [
+        198,
+        0
+       ],
+       [
+        199,
+        0
+       ],
+       [
+        200,
+        0
+       ],
+       [
+        201,
+        0
+       ],
+       [
+        202,
+        0
+       ],
+       [
+        203,
+        0
+       ],
+       [
+        204,
+        0
+       ],
+       [
+        205,
+        0
+       ],
+       [
+        206,
+        0
+       ],
+       [
+        207,
+        0
+       ],
+       [
+        219,
+        0
+       ],
+       [
+        221,
+        0
+       ]
+      ],
+      "paletteHash": "881c9190e6932ed1",
+      "backgroundPalette": [
+       15,
+       48,
+       43,
+       6,
+       15,
+       48,
+       43,
+       44,
+       15,
+       32,
+       16,
+       0,
+       15,
+       32,
+       16,
+       44
+      ],
+      "captures": 396,
+      "of": 396
+     },
+     "observedScreens": [
+      0,
+      3,
+      8,
+      9
+     ]
+    }
+   ]
+  }
+ ]
+}

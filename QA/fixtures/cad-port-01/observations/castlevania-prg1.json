@@ -1,0 +1,536 @@
+{
+ "format": "NESForgeCadPortObservation",
+ "version": 1,
+ "cartridge": {
+  "name": "Castlevania (U) (PRG 1)",
+  "sha256": "0bf466eb3819eee34e41de076b5c1bf16375d0de5ba64ede8ade6ed599accb53",
+  "bytes": 131088
+ },
+ "game": "castlevania",
+ "title": "Castlevania",
+ "upstream": "b28316ddd9be4e79ac5e6adf89b7751df609d94e",
+ "script": {
+  "name": "default",
+  "frames": 2376,
+  "every": 15,
+  "sha256": "113c5eef032be742"
+ },
+ "structural": [
+  {
+   "id": "castlevania/Castlevania-1",
+   "state": "consistent",
+   "log10Chance": 0,
+   "control": null
+  }
+ ],
+ "engines": [
+  {
+   "engine": "forge",
+   "identity": "NES Forge emulator (this build)",
+   "ms": 148458,
+   "captures": 158,
+   "explained": {
+    "captures": 158,
+    "meanShare": 0.397,
+    "capturesBelowHalf": 91,
+    "firstBelowHalf": [
+     {
+      "frame": 24,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 39,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 54,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 69,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 84,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 99,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 114,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 129,
+      "groups": 118,
+      "share": 0.008
+     }
+    ]
+   },
+   "definitions": [
+    {
+     "id": "castlevania/Castlevania-1",
+     "structural": "consistent",
+     "observed": {
+      "0": {
+       "frame": 747,
+       "dx": 0,
+       "dy": 4,
+       "compared": 453,
+       "matched": 453,
+       "attributesCompared": 105,
+       "attributesMatched": 105
+      },
+      "1": {
+       "frame": 747,
+       "dx": 0,
+       "dy": 4,
+       "compared": 453,
+       "matched": 453,
+       "attributesCompared": 105,
+       "attributesMatched": 105
+      },
+      "2": {
+       "frame": 1557,
+       "dx": 0,
+       "dy": 4,
+       "compared": 404,
+       "matched": 404,
+       "attributesCompared": 102,
+       "attributesMatched": 102
+      },
+      "3": {
+       "frame": 1932,
+       "dx": 0,
+       "dy": 4,
+       "compared": 570,
+       "matched": 570,
+       "attributesCompared": 146,
+       "attributesMatched": 146
+      },
+      "4": {
+       "frame": 2352,
+       "dx": 32,
+       "dy": 4,
+       "compared": 342,
+       "matched": 342,
+       "attributesCompared": 87,
+       "attributesMatched": 87
+      }
+     },
+     "firstFrame": 747,
+     "best": {
+      "screen": 3,
+      "frame": 1932,
+      "matched": 570,
+      "compared": 570
+     },
+     "graphics": {
+      "table": "$1000",
+      "source": "chr-ram",
+      "tilesFoundVerbatimInPrg": 245,
+      "uniformTiles": 11,
+      "located": "245/245 non-uniform tiles verbatim in PRG",
+      "runs": [
+       [
+        1,
+        156,
+        24616
+       ],
+       [
+        158,
+        1,
+        27128
+       ],
+       [
+        160,
+        37,
+        27160
+       ],
+       [
+        198,
+        1,
+        27768
+       ],
+       [
+        200,
+        1,
+        27800
+       ],
+       [
+        202,
+        1,
+        27832
+       ],
+       [
+        204,
+        1,
+        27864
+       ],
+       [
+        206,
+        1,
+        27896
+       ],
+       [
+        208,
+        45,
+        31256
+       ],
+       [
+        254,
+        1,
+        27593
+       ]
+      ],
+      "uniform": [
+       [
+        0,
+        0
+       ],
+       [
+        157,
+        0
+       ],
+       [
+        159,
+        0
+       ],
+       [
+        197,
+        0
+       ],
+       [
+        199,
+        0
+       ],
+       [
+        201,
+        0
+       ],
+       [
+        203,
+        0
+       ],
+       [
+        205,
+        0
+       ],
+       [
+        207,
+        0
+       ],
+       [
+        253,
+        0
+       ],
+       [
+        255,
+        0
+       ]
+      ],
+      "paletteHash": "1c13c777aac35f82",
+      "backgroundPalette": [
+       15,
+       16,
+       0,
+       23,
+       15,
+       16,
+       22,
+       37,
+       15,
+       1,
+       25,
+       9,
+       15,
+       48,
+       38,
+       22
+      ],
+      "captures": 301,
+      "of": 301
+     },
+     "observedScreens": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "engine": "fceux",
+   "identity": {
+    "name": "FCEUX",
+    "version": "2.6.5",
+    "packageVersion": "2.6.5+dfsg1-2build3",
+    "source": "https://github.com/TASVideos/fceux.git",
+    "commit": "ea6ed69b874e3ae94072f1b4f14b9a8f0fdd774b",
+    "qt": "5.15.12",
+    "sdl": "2.30.0",
+    "license": "GPL-2.0-or-later",
+    "configuration": {
+     "SDL.RamInitMethod": "2",
+     "SDL.Sound": "0",
+     "display": "Xvfb 640x480x24",
+     "video": "old PPU core (default), NTSC",
+     "lua": "Lua 5.1 (built in)"
+    }
+   },
+   "ms": 3037,
+   "captures": 158,
+   "explained": {
+    "captures": 158,
+    "meanShare": 0.392,
+    "capturesBelowHalf": 90,
+    "firstBelowHalf": [
+     {
+      "frame": 27,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 42,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 57,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 72,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 87,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 102,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 117,
+      "groups": 118,
+      "share": 0.008
+     },
+     {
+      "frame": 132,
+      "groups": 118,
+      "share": 0.008
+     }
+    ]
+   },
+   "definitions": [
+    {
+     "id": "castlevania/Castlevania-1",
+     "structural": "consistent",
+     "observed": {
+      "0": {
+       "frame": 750,
+       "dx": 0,
+       "dy": 4,
+       "compared": 453,
+       "matched": 453,
+       "attributesCompared": 105,
+       "attributesMatched": 105
+      },
+      "1": {
+       "frame": 750,
+       "dx": 0,
+       "dy": 4,
+       "compared": 453,
+       "matched": 453,
+       "attributesCompared": 105,
+       "attributesMatched": 105
+      },
+      "2": {
+       "frame": 1545,
+       "dx": 0,
+       "dy": 4,
+       "compared": 404,
+       "matched": 404,
+       "attributesCompared": 102,
+       "attributesMatched": 102
+      },
+      "3": {
+       "frame": 1935,
+       "dx": 0,
+       "dy": 4,
+       "compared": 570,
+       "matched": 570,
+       "attributesCompared": 146,
+       "attributesMatched": 146
+      },
+      "4": {
+       "frame": 1935,
+       "dx": 0,
+       "dy": 4,
+       "compared": 122,
+       "matched": 122,
+       "attributesCompared": 32,
+       "attributesMatched": 32
+      }
+     },
+     "firstFrame": 750,
+     "best": {
+      "screen": 3,
+      "frame": 1935,
+      "matched": 570,
+      "compared": 570
+     },
+     "graphics": {
+      "table": "$1000",
+      "source": "chr-ram",
+      "tilesFoundVerbatimInPrg": 245,
+      "uniformTiles": 11,
+      "located": "245/245 non-uniform tiles verbatim in PRG",
+      "runs": [
+       [
+        1,
+        156,
+        24616
+       ],
+       [
+        158,
+        1,
+        27128
+       ],
+       [
+        160,
+        37,
+        27160
+       ],
+       [
+        198,
+        1,
+        27768
+       ],
+       [
+        200,
+        1,
+        27800
+       ],
+       [
+        202,
+        1,
+        27832
+       ],
+       [
+        204,
+        1,
+        27864
+       ],
+       [
+        206,
+        1,
+        27896
+       ],
+       [
+        208,
+        45,
+        31256
+       ],
+       [
+        254,
+        1,
+        27593
+       ]
+      ],
+      "uniform": [
+       [
+        0,
+        0
+       ],
+       [
+        157,
+        0
+       ],
+       [
+        159,
+        0
+       ],
+       [
+        197,
+        0
+       ],
+       [
+        199,
+        0
+       ],
+       [
+        201,
+        0
+       ],
+       [
+        203,
+        0
+       ],
+       [
+        205,
+        0
+       ],
+       [
+        207,
+        0
+       ],
+       [
+        253,
+        0
+       ],
+       [
+        255,
+        0
+       ]
+      ],
+      "paletteHash": "1c13c777aac35f82",
+      "backgroundPalette": [
+       15,
+       16,
+       0,
+       23,
+       15,
+       16,
+       22,
+       37,
+       15,
+       1,
+       25,
+       9,
+       15,
+       48,
+       38,
+       22
+      ],
+      "captures": 301,
+      "of": 301
+     },
+     "observedScreens": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  }
+ ]
+}

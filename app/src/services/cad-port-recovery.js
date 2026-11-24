@@ -77,6 +77,12 @@ function graphicsOf(rom,def,rec){
   // what Agent Lab saw this revision use while it drew these screens comes first; the configuration's statement next
   if(rec?.graphics?.source==='chr-rom'&&Array.isArray(rec.graphics.kilobytes)&&rec.graphics.kilobytes.length===4&&rec.graphics.kilobytes.every(o=>Number.isInteger(o)&&o>=16&&o+1024<=rom.length)){
     chr=new Uint8Array(4096);rec.graphics.kilobytes.forEach((o,k)=>chr.set(rom.subarray(o,o+1024),k*1024));chrBasis='located in CHR ROM while the game drew these screens on this revision ('+rec.graphics.kilobytes.map(hex).join(', ')+')';}
+  else if(rec?.graphics?.source==='chr-ram'&&Array.isArray(rec.graphics.runs)&&Array.isArray(rec.graphics.uniform)){
+    // a CHR-RAM table the game uploads from PRG: every non-uniform tile was found verbatim; rebuilt from this cartridge
+    const t=new Uint8Array(4096),covered=new Set();let ok=true;
+    for(const [first,count,offset] of rec.graphics.runs){if(!(Number.isInteger(first)&&Number.isInteger(count)&&Number.isInteger(offset)&&offset>=16&&offset+count*16<=rom.length&&first+count<=256)){ok=false;break;}t.set(rom.subarray(offset,offset+count*16),first*16);for(let k=0;k<count;k++)covered.add(first+k);}
+    for(const [tile,value] of rec.graphics.uniform){if(!(Number.isInteger(tile)&&tile>=0&&tile<256&&Number.isInteger(value))){ok=false;break;}t.fill(value&255,tile*16,tile*16+16);covered.add(tile);}
+    if(ok&&covered.size===256){chr=t;chrBasis='uploaded to CHR RAM from PRG while the game drew these screens on this revision ('+rec.graphics.runs.length+' run'+(rec.graphics.runs.length===1?'':'s')+' from '+hex(rec.graphics.runs[0][2])+')';}}
   else if(def.graphics?.source==='cartridge'){const o=def.graphics.offset;if(o>=16&&o+4096<=rom.length){chr=rom.slice(o,o+4096);chrBasis='stated by the CadEditor configuration (file '+hex(o)+'), not observed on this revision';}}
   if(Array.isArray(rec?.palette)&&rec.palette.length===16&&rec.graphics){pal=rec.palette.slice();palBasis='observed while the game drew these screens on this revision';}
   else if(def.palette?.source==='constant'){pal=def.palette.values.slice(0,16);palBasis='constant in the CadEditor configuration';}

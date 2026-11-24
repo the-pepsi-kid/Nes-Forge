@@ -23,14 +23,22 @@ const BLOCKS={
     return Array.from({length:d.count},(_,id)=>{const s=t.subarray(id*size,id*size+n);let tiles=Array.from(s);
       if(d.transpose){tiles=new Array(n);for(let y=0;y<h;y++)for(let x=0;x<w;x++)tiles[y*w+x]=s[x*h+y];}
       return {id,width:w,height:h,tiles,palettes:pal?Array.from(t.subarray(id*size+n,id*size+size)).map(v=>v&3):null};});},
+  // 17-byte records: one attribute byte (four 2-bit palettes), then 16 tile bytes (4x4, row by row)
+  'tiles16-attribute-interleaved':(rom,d)=>{const t=at(rom,d.offset,d.count*17);
+    return Array.from({length:d.count},(_,id)=>({id,width:4,height:4,tiles:Array.from(t.subarray(id*17+1,id*17+17)),palettes:quads(t[id*17]),raw:t[id*17]}));},
+  // tiles computed from the block number (no table in the cartridge): base = (id / rowLength) * rowStride +
+  // (id % rowLength) * step, or id * step; each quadrant (TL TR BL BR) is base + its offset
+  'computed-2x2':(rom,d)=>Array.from({length:d.count},(_,id)=>{const base=d.rowLength?Math.floor(id/d.rowLength)*d.rowStride+(id%d.rowLength)*d.step:id*d.step;
+    return {id,width:2,height:2,tiles:d.offsets.map(o=>(base+o)&255),palettes:null};}),
   // five arrays of one byte per block: the four quadrant tiles, then palette (low 2 bits) and type (high nibble)
   'aligned-arrays-2x2':(rom,d)=>{const a=at(rom,d.offset,d.count*5);
     return Array.from({length:d.count},(_,id)=>{const tc=a[d.count*4+id];return {id,width:2,height:2,tiles:[a[id],a[d.count+id],a[d.count*2+id],a[d.count*3+id]],palettes:[tc&3],type:tc>>4,raw:tc};});},
 };
-// ---- big blocks: 2x2 blocks, 4 bytes each (TL TR BL BR, or TL BL TR BR when swapMiddle), optional palette byte ----
+// ---- big blocks: 2x2 blocks, 4 bytes each (TL TR BL BR, or TL BL TR BR when swapMiddle; optionally only the bits of
+// a mask name the block), optional palette byte ----
 const BIG={
   'linear-2x2':(rom,d)=>{const a=at(rom,d.offset,d.count*4),p=d.palette==='byte-per-big-block'?at(rom,d.paletteOffset,d.count):null;
-    return Array.from({length:d.count},(_,id)=>{const r=Array.from(a.subarray(id*4,id*4+4)),cells=d.swapMiddle?[r[0],r[2],r[1],r[3]]:r;return {id,cells,palettes:p?quads(p[id]):null};});},
+    return Array.from({length:d.count},(_,id)=>{const r=Array.from(a.subarray(id*4,id*4+4),v=>d.mask?v&d.mask:v),cells=d.swapMiddle?[r[0],r[2],r[1],r[3]]:r;return {id,cells,palettes:p?quads(p[id]):null};});},
 };
 function blocks(rom,d){const f=BLOCKS[d?.format];if(!f)fail('no block decoder for '+d?.format);if(!Number.isSafeInteger(d.count)||d.count<1||d.count>4096)fail('invalid block count');return f(rom,d);}
 function bigBlocks(rom,d){const f=BIG[d?.format];if(!f)fail('no big-block decoder for '+d?.format);if(!Number.isSafeInteger(d.count)||d.count<1||d.count>4096)fail('invalid big-block count');return f(rom,d);}
@@ -106,8 +114,8 @@ function applicability(rom,def,{shifts=99}={}){
     const big=def.screens.cells==='big-blocks';
     if(!def.blocks||(big&&!def.bigBlocks))return {state:'not-decodable',checks:[{name:'cells',ok:false,detail:'the '+(big?'big blocks':'blocks')+' of this definition are not decodable'}],log10Chance:0,control:null};
     const d=decodeAll(rom,def);add('every stated range lies inside the cartridge',true);
-    const r=screenChecks(rom,def,d,def.screens),prg=prgOf(rom),share=lim=>{let n=0;for(const v of prg)if(v<lim)n++;return Math.min(0.999,Math.max(1/prg.length,n/prg.length));};
-    log10Chance=(r.limit>=256?0:Math.min(r.cells.length,4096)*Math.log10(share(r.limit)))+(big&&d.blocks.length<256&&r.inner?Math.min(r.inner,4096)*Math.log10(share(d.blocks.length)):0);
+    const r=screenChecks(rom,def,d,def.screens),prg=prgOf(rom),share=(lim,mask=255)=>{let n=0;for(const v of prg)if((v&mask)<lim)n++;return Math.min(0.999,Math.max(1/prg.length,n/prg.length));};
+    log10Chance=(r.limit>=256?0:Math.min(r.cells.length,4096)*Math.log10(share(r.limit)))+(big&&d.blocks.length<256&&r.inner?Math.min(r.inner,4096)*Math.log10(share(d.blocks.length,def.bigBlocks.mask||255)):0); // a masked reference is valid only as often as its masked value is
     add('every screen cell is a valid '+(big?'big-block':'block')+' ID',r.valid===r.cells.length,{valid:r.valid,cells:r.cells.length,limit:r.limit});
     if(big)add('every big block used names a valid block',r.refsOk,{references:r.inner,blocks:d.blocks.length});
     add('the blocks the screens use are not mostly uniform',!r.used||r.uniform<r.used/2,{used:r.used,uniform:r.uniform});

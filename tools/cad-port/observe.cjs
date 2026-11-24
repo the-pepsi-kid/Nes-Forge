@@ -34,7 +34,10 @@ async function runForge() {
   const t0 = Date.now(), a = load(editor), w = a.window;
   await new Promise(r => setTimeout(r, 50));
   let mask = 0; w.emuReadJoyState = () => mask;
-  if (!w.eval('emuLoadRomData')(w.Uint8Array.from(rom), path.basename(cart), 0)) throw Error('Forge refused the cartridge');
+  // an archaic iNES header (bytes 12-15 not zero, e.g. "DiskDude!" in bytes 7-15) is read by NES Forge's emulator as part
+  // of the mapper number; FCEUX ignores those bytes. The emulator gets a copy with them cleared, and the report says so.
+  const given = Uint8Array.from(rom), archaic = rom[12] | rom[13] | rom[14] | rom[15]; if (archaic) given.fill(0, 7, 16);
+  if (!w.eval('emuLoadRomData')(w.Uint8Array.from(given), path.basename(cart), 0)) throw Error('Forge refused the cartridge');
   const caps = [], run = w.eval('emuRunFrame'), bus = w.eval('ppuBusRead'), emu = w.eval('emu');
   // captures at the k-th entry of the NMI handler, the same program event FCEUX's checkpoints use (the sandbox's hook):
   // a split-screen game switches pattern tables mid-frame, so the capture point decides which table is seen
@@ -46,7 +49,7 @@ async function runForge() {
   w.eval('(function(){const prev=cpuStepRaw;cpuStepRaw=function(...args){if((emu.PC&0xffff)===window.__cadPortNmiTarget)window.__cadPortNmi();return prev.apply(this,args);};})()');
   for (let f = 0; f < frames.length + 60 && want.size; f++) { mask = frames[f] ?? 0; run(); }
   // the window is left open: closing it lets a pending editor timer touch a torn-down document; the process exits below
-  return {engine: 'forge', identity: 'NES Forge emulator (this build)', ms: Date.now() - t0, nmis, captures: caps};
+  return {engine: 'forge', identity: 'NES Forge emulator (this build)', ms: Date.now() - t0, nmis, captures: caps, ...(archaic ? {headerNote: 'header bytes 7-15 cleared (archaic iNES header): NES Forge\'s emulator otherwise reads them into the mapper number'} : {})};
 }
 function runFceux() {
   const F = require('../agent-lab/independent/fceux.cjs'), s = F.open(); if (!s.available) return {engine: 'fceux', blocked: s.reason};
@@ -64,9 +67,15 @@ function locateGraphics(cap) {
   const find = (needle, from, to, step) => { outer: for (let o = from; o + needle.length <= to; o += step) { for (let i = 0; i < needle.length; i++) if (rom[o + i] !== needle[i]) continue outer; return o; } return null; };
   if (hasChrRom) { out.source = 'chr-rom'; out.kilobytes = [0, 1, 2, 3].map(k => find(table.subarray(k * 1024, k * 1024 + 1024), chrStart, rom.length, 1024)); out.located = out.kilobytes.filter(v => v !== null).length + '/4'; }
   else {
-    out.source = 'chr-ram'; let found = 0, blank = 0; const prgStart = 16 + (rom[6] & 4 ? 512 : 0);
-    for (let t = 0; t < 256; t++) { const tile = table.subarray(t * 16, t * 16 + 16); if (tile.every(v => v === tile[0])) { blank++; continue; } if (find(tile, prgStart, chrStart, 1) !== null) found++; }
+    out.source = 'chr-ram'; let found = 0, blank = 0; const prgStart = 16 + (rom[6] & 4 ? 512 : 0), at = [], fills = [];
+    // each tile located in PRG, preferring the offset that continues the previous tile's (tables are uploaded in runs)
+    const findAll = (needle) => { const hits = []; outer: for (let o = prgStart; o + 16 <= chrStart; o++) { for (let i = 0; i < 16; i++) if (rom[o + i] !== needle[i]) continue outer; hits.push(o); if (hits.length > 64) break; } return hits; };
+    for (let t = 0; t < 256; t++) { const tile = table.subarray(t * 16, t * 16 + 16); if (tile.every(v => v === tile[0])) { blank++; fills.push([t, tile[0]]); at.push(null); continue; }
+      const hits = findAll(tile), prev = at.slice().reverse().find(v => v !== null), next = prev != null && hits.includes(prev + 16) ? prev + 16 : hits[0] ?? null; at.push(next); if (next !== null) found++; }
     out.tilesFoundVerbatimInPrg = found; out.uniformTiles = blank; out.located = found + '/' + (256 - blank) + ' non-uniform tiles verbatim in PRG';
+    if (found === 256 - blank) { // complete: the table as runs [first tile, tile count, PRG file offset] plus uniform tiles [tile, byte]
+      const runs = []; for (let t = 0; t < 256; t++) { if (at[t] === null) continue; const r = runs[runs.length - 1]; if (r && r[0] + r[1] === t && r[2] + r[1] * 16 === at[t]) r[1]++; else runs.push([t, 1, at[t]]); }
+      out.runs = runs; out.uniform = fills; }
   }
   out.paletteHash = crypto.createHash('sha256').update(cap.palette).digest('hex').slice(0, 16);
   out.backgroundPalette = Array.from(cap.palette.subarray(0, 16), (v, i) => (i % 4 === 0 ? cap.palette[0] : v) & 63); // colour numbers only
@@ -78,8 +87,12 @@ function analyse(result) {
   // what the upstream knowledge does not cover: the share of the nametables' distinct 2x2 tile groups (aligned, not
   // uniform) that some translated definition's blocks contain. Low shares mark areas no definition explains.
   const known = new Set(); for (const x of defs) if (x.projections) for (const p of x.projections) for (let y = 0; y + 1 < p.rows; y += 2) for (let xx = 0; xx + 1 < p.cols; xx += 2) known.add(p.tiles[y * p.cols + xx] + ',' + p.tiles[y * p.cols + xx + 1] + ',' + p.tiles[(y + 1) * p.cols + xx] + ',' + p.tiles[(y + 1) * p.cols + xx + 1]);
-  const explained = result.captures.map(cap => { const g = D.ring(cap.nametables), seen = new Set(); for (let y = 0; y < 60; y += 2) for (let x = 0; x < 64; x += 2) { const a = g[y * 64 + x], b = g[y * 64 + x + 1], c = g[(y + 1) * 64 + x], d = g[(y + 1) * 64 + x + 1]; if (a === b && b === c && c === d) continue; seen.add(a + ',' + b + ',' + c + ',' + d); }
-    let hit = 0; for (const k of seen) if (known.has(k)) hit++; return {frame: cap.frame, groups: seen.size, share: seen.size ? hit / seen.size : null}; }).filter(e => e.groups >= 16);
+  // all four 2-tile alignments are tried and the best kept: a screen can sit at an odd tile offset in the nametables
+  const explained = result.captures.map(cap => { const g = D.ring(cap.nametables); let best = null;
+    for (const [px, py] of [[0, 0], [1, 0], [0, 1], [1, 1]]) { const seen = new Set();
+      for (let y = py; y < 60; y += 2) for (let x = px; x < 64; x += 2) { const a = g[y * 64 + x], b = g[y * 64 + (x + 1) % 64], c = g[((y + 1) % 60) * 64 + x], d = g[((y + 1) % 60) * 64 + (x + 1) % 64]; if (a === b && b === c && c === d) continue; seen.add(a + ',' + b + ',' + c + ',' + d); }
+      let hit = 0; for (const k of seen) if (known.has(k)) hit++; const e = {frame: cap.frame, groups: seen.size, share: seen.size ? hit / seen.size : null}; if (!best || (e.share ?? -1) > (best.share ?? -1)) best = e; }
+    return best; }).filter(e => e.groups >= 16);
   result.captures.forEach(cap => defs.forEach((x, i) => {
     if (!x.projections) return;
     for (const m of D.observeScreens(cap.nametables, x.projections)) {
@@ -89,7 +102,7 @@ function analyse(result) {
       if (!o.best || m.matched > o.best.matched) o.best = {screen: m.screen, frame: cap.frame, matched: m.matched, compared: m.compared};
       // graphics: located at every capture that shows a screen; the location seen most often is kept (a single capture
       // can fall in a fade or a bank switch)
-      const g = locateGraphics(cap), key = JSON.stringify({table: g.table, source: g.source, kilobytes: g.kilobytes, located: g.located}), v = o.votes.get(key) || {g, n: 0, palettes: new Map()};
+      const g = locateGraphics(cap), key = JSON.stringify({table: g.table, source: g.source, kilobytes: g.kilobytes, located: g.located, runs: g.runs, uniform: g.uniform}), v = o.votes.get(key) || {g, n: 0, palettes: new Map()};
       v.n++; const pk = JSON.stringify(g.backgroundPalette); v.palettes.set(pk, (v.palettes.get(pk) || 0) + 1); o.votes.set(key, v);
     }
   }));
@@ -99,7 +112,7 @@ function analyse(result) {
   const shares = explained.map(e => e.share), unexplained = explained.filter(e => e.share < 0.5);
   const coverage = {captures: explained.length, meanShare: shares.length ? Math.round(shares.reduce((a, b) => a + b, 0) / shares.length * 1000) / 1000 : null,
     capturesBelowHalf: unexplained.length, firstBelowHalf: unexplained.slice(0, 8).map(e => ({frame: e.frame, groups: e.groups, share: Math.round(e.share * 1000) / 1000}))};
-  return {engine: result.engine, identity: result.identity, ms: result.ms, captures: result.captures.length, explained: coverage, definitions: per.map(o => ({...o, observedScreens: Object.keys(o.observed).map(Number).sort((a, b) => a - b)}))};
+  return {engine: result.engine, identity: result.identity, ms: result.ms, captures: result.captures.length, ...(result.headerNote ? {headerNote: result.headerNote} : {}), explained: coverage, definitions: per.map(o => ({...o, observedScreens: Object.keys(o.observed).map(Number).sort((a, b) => a - b)}))};
 }
 (async () => {
   const report = {format: 'NESForgeCadPortObservation', version: 1, cartridge: {name: path.basename(cart).replace(/\.nes$/i, ''), sha256, bytes: rom.length}, game, title: g.title,

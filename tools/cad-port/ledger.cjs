@@ -23,7 +23,7 @@ for (const f of inputs) {
       const prev = d[e.engine], screens = [...new Set([...(prev?.screens || []), ...x.observedScreens])].sort((a, b) => a - b);
       d[e.engine] = {screens, firstFrame: prev?.firstFrame != null && x.firstFrame != null ? Math.min(prev.firstFrame, x.firstFrame) : prev?.firstFrame ?? x.firstFrame};
       if (x.graphics && x.observedScreens.length) {
-        const g = {table: x.graphics.table, source: x.graphics.source, ...(x.graphics.kilobytes ? {kilobytes: x.graphics.kilobytes} : {}), located: x.graphics.located};
+        const g = {table: x.graphics.table, source: x.graphics.source, ...(x.graphics.kilobytes ? {kilobytes: x.graphics.kilobytes} : {}), ...(x.graphics.runs ? {runs: x.graphics.runs, uniform: x.graphics.uniform} : {}), located: x.graphics.located};
         // graphics are recorded when an engine located them; when both engines did, they must agree
         if (!d.graphics) { d.graphics = g; d.graphicsBy = [e.engine]; d.palette = x.graphics.backgroundPalette || null; }
         else if (JSON.stringify(d.graphics) === JSON.stringify(g)) d.graphicsBy.push(e.engine);
