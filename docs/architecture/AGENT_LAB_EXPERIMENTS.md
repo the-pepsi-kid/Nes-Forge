@@ -102,6 +102,11 @@ its SHA-256 is re-checked after every trial.
 
 They are sealed with the SHA-256 of their canonical body. Timing is kept outside the hash.
 
+**Build identity.** Each receipt names the build it ran on (the sandbox document's SHA-256). A candidate definition's
+hash covers its evidence, so the same table found on another build has a different definition hash. On one build,
+repeated runs give the same hash: the acceptance suite's 12 definitions were identical in the regression and in a
+separate run.
+
 **The evidence store:**
 - stores each payload once per exact SHA-256;
 - keeps one causal edge per trial;
