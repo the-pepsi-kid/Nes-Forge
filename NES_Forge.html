@@ -837,6 +837,61 @@ input[type=file]{display:none}
 <div class="nes-picker" id="nesPicker" role="dialog" aria-label="NES palette picker"><button class="np-close" onclick="closePicker()" aria-label="Close palette picker">×</button><h3>NES COLOR</h3><p class="np-info" id="npTarget"></p><div class="np-grid" id="npGrid"></div><p class="np-cur">Current <span id="npCurHex"></span> · Hover <span id="npHoverHex"></span></p></div>
 
 <script>
+/* One recognizer for NES cartridge headers (iNES 1.0, NES 2.0 and archaic iNES), shared by the emulator, the intake
+ * analysis and the library. Detection follows the NESdev wiki ("iNES" and "NES 2.0", identification):
+ *
+ *   byte 7 AND $0C = $08 and the NES 2.0 sizes fit in the file  -> NES 2.0
+ *   byte 7 AND $0C = $04                                        -> archaic iNES
+ *   byte 7 AND $0C = $00 and bytes 12-15 are all zero          -> iNES 1.0
+ *   otherwise                                                   -> archaic iNES
+ *
+ * An archaic header is one written before bytes 7-15 had a meaning, or later overwritten by a dumping tool (the
+ * classic "DiskDude!" text). Only bytes 0-6 are trusted then: the mapper is byte 6's high nibble and bytes 7-15 are
+ * reported, never interpreted.
+ *
+ * Original bytes are never changed: inspect() reads, normalizedHeader() and view() return copies, and the caller keeps
+ * the original's SHA-256 as the cartridge's identity. UMD, pure. */
+(function(root,factory){const api=factory();if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.InesHeader=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+'use strict';
+const VERSION=1;
+const printable=b=>b>=0x20&&b<0x7f;
+function nes2Size(low,high,unit){return high===15?Math.pow(2,low>>2)*((low&3)*2+1):((high<<8)|low)*unit;}
+function inspect(input){
+  const b=input instanceof Uint8Array?input:Uint8Array.from(input||[]);
+  if(b.length<16||b[0]!==0x4e||b[1]!==0x45||b[2]!==0x53||b[3]!==0x1a)return {valid:false,reason:b.length<16&&b.length>=4&&b[0]===0x4e?'the header is truncated':'no NES header (the file does not start with "NES" and $1A)'};
+  const trainer=!!(b[6]&4),headerSize=16+(trainer?512:0),bits=b[7]&0x0c,tail=Array.from(b.subarray(7,16));
+  // NES 2.0 only when its own size fields fit in the file
+  let format;
+  if(bits===0x08){const prg=nes2Size(b[4],b[9]&15,16384),chr=nes2Size(b[5],b[9]>>4,8192);format=Number.isSafeInteger(prg+chr)&&headerSize+prg+chr<=b.length?'NES 2.0':'archaic iNES';}
+  else if(bits===0x04)format='archaic iNES';
+  else format=b[12]|b[13]|b[14]|b[15]?'archaic iNES':'iNES 1.0';
+  const declaredMapper=(b[6]>>4)|(b[7]&0xf0); // what reading byte 7 as iNES 1.0 would give
+  const out={valid:true,version:VERSION,format,trainer,headerSize,battery:!!(b[6]&2),
+    mirroring:b[6]&8?'four-screen':b[6]&1?'vertical':'horizontal',mirror:b[6]&8?4:b[6]&1,declaredMapper};
+  if(format==='NES 2.0'){
+    Object.assign(out,{mapper:(b[6]>>4)|(b[7]&0xf0)|((b[8]&15)<<8),submapper:b[8]>>4,prgSize:nes2Size(b[4],b[9]&15,16384),chrSize:nes2Size(b[5],b[9]>>4,8192),
+      prgRamSize:b[10]&15?64<<(b[10]&15):0,prgNvramSize:b[10]>>4?64<<(b[10]>>4):0,chrRamSize:b[11]&15?64<<(b[11]&15):0,chrNvramSize:b[11]>>4?64<<(b[11]>>4):0,
+      consoleType:b[7]&3,timing:['NTSC','PAL','multiple-region','Dendy'][b[12]&3]});
+  }else if(format==='iNES 1.0'){
+    Object.assign(out,{mapper:declaredMapper,submapper:0,prgSize:b[4]*16384,chrSize:b[5]*8192,consoleType:b[7]&3,vsUnisystem:!!(b[7]&1),playChoice:!!(b[7]&2)});
+  }else{
+    // archaic: bytes 7-15 are not header fields. Report them; say whether they are a known dumping tool's text.
+    const text=tail.map(v=>printable(v)?String.fromCharCode(v):'.').join(''),ascii=tail.filter(v=>v).every(printable)&&tail.some(v=>v);
+    Object.assign(out,{mapper:b[6]>>4,submapper:0,prgSize:b[4]*16384,chrSize:b[5]*8192,consoleType:0,
+      ignored:{bytes:'7-15',values:tail,text,...(ascii?{signature:tail.filter(v=>v&&printable(v)).map(v=>String.fromCharCode(v)).join('').trim()}:{})}});
+  }
+  out.mapperDiffersFromDeclared=out.mapper!==declaredMapper;
+  const end=headerSize+out.prgSize+out.chrSize;out.payloadBytes=out.prgSize+out.chrSize;out.truncated=end>b.length;out.trailingBytes=Math.max(0,b.length-end);
+  return out;
+}
+// the 16-byte header as a clean iNES 1.0 / NES 2.0 header would hold it (archaic: bytes 7-15 cleared); a copy
+function normalizedHeader(input){const b=input instanceof Uint8Array?input:Uint8Array.from(input||[]),h=b.slice(0,16),i=inspect(b);if(i.valid&&i.format==='archaic iNES')h.fill(0,7,16);return h;}
+// a copy of the whole file with the normalized header, for consumers that read header bytes themselves
+function view(input){const b=input instanceof Uint8Array?input:Uint8Array.from(input||[]),v=b.slice();v.set(normalizedHeader(b));return v;}
+function describe(i){if(!i?.valid)return i?.reason||'not an NES file';
+  return i.format+' · mapper '+i.mapper+(i.submapper?'.'+i.submapper:'')+(i.format==='archaic iNES'&&i.mapperDiffersFromDeclared?' (bytes 7-15 ignored'+(i.ignored?.signature?': "'+i.ignored.signature+'"':'')+'; read naively they would declare mapper '+i.declaredMapper+')':i.format==='archaic iNES'?' (bytes 7-15 ignored'+(i.ignored?.signature?': "'+i.ignored.signature+'"':'')+')':'');}
+return Object.freeze({version:VERSION,inspect,normalizedHeader,view,describe});
+});
 
 
 
@@ -1241,7 +1296,17 @@ const PRG=new Uint8Array(16384);
 
 return {prg:PRG,size:pc,reset:RESET,nmi:NMI,irq:IRQ};
 }
-function parseRomHeader(input){const r=input instanceof Uint8Array?input:Uint8Array.from(input||[]);if(r.length<16||r[0]!==78||r[1]!==69||r[2]!==83||r[3]!==26)throw new Error('Not a valid iNES .nes file');if((r[7]&12)===8)throw new Error('NES 2.0 is not supported by this emulator. Use an iNES 1.0 dump.');if(r[7]&3)throw new Error('VS System / PlayChoice ROMs are not supported');if(!r[4])throw new Error('ROM has no PRG bank');const prgSize=r[4]*16384,chrSize=r[5]*8192,headerSize=16+(r[6]&4?512:0),mapper=(r[6]>>4)|(r[7]&0xF0);if(headerSize+prgSize+chrSize>r.length)throw new Error('ROM is truncated');if(![0,1,2,3,4,7,11,66].includes(mapper))throw new Error('Unsupported mapper '+mapper+'. Supported: 0, 1, 2, 3, 4, 7, 11, 66.');if(mapper===0&&(prgSize>32768||chrSize>8192))throw new Error('Invalid NROM bank sizes');return {prgSize,chrSize,headerSize,mapper,mirror:r[6]&8?4:r[6]&1,battery:!!(r[6]&2),trainer:!!(r[6]&4)};}
+function parseRomHeader(input){const r=input instanceof Uint8Array?input:Uint8Array.from(input||[]);
+  // one header recognizer (src/re/ines-header.js): iNES 1.0, NES 2.0, or archaic iNES whose bytes 7-15 are ignored
+  // (e.g. "DiskDude!" written over them by a dumping tool). The cartridge bytes are never changed.
+  const i=InesHeader.inspect(r);if(!i.valid)throw new Error('Not a valid iNES .nes file');
+  if(i.format==='NES 2.0'&&i.consoleType!==0)throw new Error('VS System / PlayChoice / extended-console ROMs are not supported');
+  if(i.format==='iNES 1.0'&&(i.vsUnisystem||i.playChoice))throw new Error('VS System / PlayChoice ROMs are not supported');
+  if(i.format==='NES 2.0'&&i.submapper)throw new Error('NES 2.0 submapper '+i.mapper+'.'+i.submapper+' is not supported by this emulator.');
+  if(!i.prgSize)throw new Error('ROM has no PRG bank');const prgSize=i.prgSize,chrSize=i.chrSize,headerSize=i.headerSize,mapper=i.mapper;
+  if(i.truncated)throw new Error('ROM is truncated');if(![0,1,2,3,4,7,11,66].includes(mapper))throw new Error('Unsupported mapper '+mapper+'. Supported: 0, 1, 2, 3, 4, 7, 11, 66.');if(mapper===0&&(prgSize>32768||chrSize>8192))throw new Error('Invalid NROM bank sizes');
+  return {prgSize,chrSize,headerSize,mapper,mirror:i.mirror,battery:i.battery,trainer:i.trainer,headerFormat:i.format,
+    ...(i.format==='archaic iNES'?{declaredMapper:i.declaredMapper,mapperEvidence:InesHeader.describe(i)}:{})};}
 function romChrBanks(rom){const h=parseRomHeader(rom),banks=[];for(let b=0;b<h.chrSize/4096;b++)banks.push({tiles:decodeTiles(rom,h.headerSize+h.prgSize+b*4096),label:'4 KB bank '+b});return banks;}
 function expandOAM(oam){const out=[];for(const s of oam)if(s.active){if(s.height===16){const flip=!!(s.attr&0x80);out.push({...s,height:8,tile:flip?(s.tile2??s.tile+1):s.tile});if(s.y+8<240)out.push({...s,height:8,y:s.y+8,tile:flip?s.tile:(s.tile2??s.tile+1)});}else out.push({...s,height:8});}return out;}
 function buildGraphicsAtlas(scenes,custom){
@@ -4339,9 +4404,10 @@ function emuPoseWatchConfigure(rom){
 function cpuStepRaw(){return emuCPUCore.step();}
 
 // ── Frame runner ──
-function emuRunFrame(){if(!emu.loaded)return;const deadline=performance.now()+200;const start=emu._nextFrameCycle??emu.cycles;if(!Number.isFinite(start)||!Number.isFinite(emu.cycles))throw Error("Invalid CPU clock");emu.ppuStatus&=0x1F;emu.spr0Line=-1;emu.tAddrPre=emu.tAddr;emu.fineXPre=emu.fineX;emu.chrBank0Pre=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1;const scrollY=((emu.tAddr>>5)&31)*8+((emu.tAddr>>12)&7),ntY=(emu.tAddr>>11)&1;emu._rasterYBase=scrollY;emu._rasterNTY=ntY;
+function emuRunFrame(){if(!emu.loaded)return;const deadline=performance.now()+200;const start=emu._nextFrameCycle??emu.cycles;if(!Number.isFinite(start)||!Number.isFinite(emu.cycles))throw Error("Invalid CPU clock");emu.ppuStatus&=0x1F;emu.spr0Line=-1;emu.tAddrPre=emu.tAddr;emu.fineXPre=emu.fineX;emu.chrBank0Pre=emu.chrBank0;emu.chrBank1Pre=emu.chrBank1;// Vertical scroll, as the PPU keeps it in v: the pre-render line copies it from t only while rendering is on. With rendering off there (forced blank, e.g. for VRAM uploads), the first rendered scanline continues from v, which $2006 and $2007 may have changed meanwhile.
+  if(emu.ppuMask&24){const scrollY=((emu.tAddr>>5)&31)*8+((emu.tAddr>>12)&7),ntY=(emu.tAddr>>11)&1;emu._rasterYBase=scrollY;emu._rasterNTY=ntY;emu._rasterFromV=false;}else emu._rasterFromV=true;
   const stepTo=target=>{let steps=0;while(emu.cycles<target){if((emu.irqPending||apuCore.irq)&&!emu.I){cpuPush(emu.PC>>8);cpuPush(emu.PC&255);cpuPush(cpuGetP()&~16);emu.I=1;emu.PC=cpuRead16(0xFFFE);emu.cycles+=7;apuClock(7);}if(emu.PC===emu._poseWatchPC)emuPoseWatchHit();cpuStep();emu.PC&=65535;if(++steps>20000)throw new Error('CPU did not advance safely');}};
-  try{for(let line=0;line<262;line++){if((line&15)===0&&performance.now()>deadline)throw Error("Frame exceeded 200 ms safety budget; paused to protect the page");const lineStart=start+line*341/3;emu._ppuFrameLine=line;if(line<240){if(line===0)emu._chrLines=[[0,emu.chrBank0,emu.chrBank1]];else{const l=emu._chrLines[emu._chrLines.length-1];if(l[1]!==emu.chrBank0||l[2]!==emu.chrBank1)emu._chrLines.push([line,emu.chrBank0,emu.chrBank1]);}const hit=renderEmuLine(line,emu._rasterYBase,emu._rasterNTY);if(hit>=0&&!(emu.ppuStatus&64)){stepTo(lineStart+hit/3);emu.ppuStatus|=64;emu.spr0Line=line;}stepTo(start+(line+1)*341/3);if(emu.mapper===4)mmc3ScanlineTick();}else {if(line===241){emu.ppuStatus|=128;if(emu.ppuCtrl&128)cpuNmi();}stepTo(start+(line+1)*341/3);}}
+  try{for(let line=0;line<262;line++){if((line&15)===0&&performance.now()>deadline)throw Error("Frame exceeded 200 ms safety budget; paused to protect the page");const lineStart=start+line*341/3;emu._ppuFrameLine=line;if(line<240){if(line===0)emu._chrLines=[[0,emu.chrBank0,emu.chrBank1]];else{const l=emu._chrLines[emu._chrLines.length-1];if(l[1]!==emu.chrBank0||l[2]!==emu.chrBank1)emu._chrLines.push([line,emu.chrBank0,emu.chrBank1]);}if(emu.ppuMask&24){if(emu._rasterFromV){emu._rasterYBase=((emu.vAddr>>5)&31)*8+((emu.vAddr>>12)&7)-line;emu._rasterNTY=(emu.vAddr>>11)&1;emu._rasterFromV=false;}}else if(!emu._rasterFromV){/* rendering stops mid-frame: v keeps the vertical position it reached */const y=emu._rasterYBase+line,ly=((y%240)+240)%240,nt=emu._rasterNTY^(Math.floor(y/240)&1);emu.vAddr=(emu.vAddr&0x041F)|((ly&7)<<12)|((ly>>3)<<5)|(nt<<11);emu._rasterFromV=true;}const hit=renderEmuLine(line,emu._rasterYBase,emu._rasterNTY);if(hit>=0&&!(emu.ppuStatus&64)){stepTo(lineStart+hit/3);emu.ppuStatus|=64;emu.spr0Line=line;}stepTo(start+(line+1)*341/3);if(emu.mapper===4)mmc3ScanlineTick();}else {if(line===241){emu.ppuStatus|=128;if(emu.ppuCtrl&128)cpuNmi();}stepTo(start+(line+1)*341/3);}}
   }finally{emu._ppuFrameLine=-1;}emu._nextFrameCycle=start+262*341/3;emu.tAddrPost=emu.tAddr;emu.fineXPost=emu.fineX;emu.chrBank0Post=emu.chrBank0;emu.chrBank1Post=emu.chrBank1;emu.frameCount++;
   // Read-only ROM-frame evidence hook. No native engine or emulator state changes.
   try{window.Forge?.services?.NativeAnimationTrace?.sample?.(emu,emuReadJoyState());}
@@ -13962,14 +14028,17 @@ function parseContainer(bytes,{allowLegacyHeaderLayout=false}={}){
   if(!prgSize)return raw('The NES header declares no PRG ROM.');
   const trainerSize=bytes[6]&4?512:0,prgStart=16+trainerSize,chrStart=prgStart+prgSize,end=chrStart+chrSize;
   if(end>bytes.length)return raw('The NES header declares '+end+' bytes but this file has '+bytes.length+'; its payload is truncated.');
-  const mapper=(bytes[6]>>4)|(bytes[7]&0xf0)|(nes2?(bytes[8]&15)<<8:0),submapper=nes2?bytes[8]>>4:0,consoleType=bytes[7]&3;
+  // archaic iNES (src/re/ines-header.js): bytes 7-15 are not header fields (e.g. "DiskDude!"); the mapper is byte 6's high nibble
+  const ines=globalThis.InesHeader?.inspect(bytes),archaic=!nes2&&ines?.format==='archaic iNES';
+  const mapper=archaic?ines.mapper:(bytes[6]>>4)|(bytes[7]&0xf0)|(nes2?(bytes[8]&15)<<8:0),submapper=nes2?bytes[8]>>4:0,consoleType=archaic?0:bytes[7]&3;
   if(nes2&&((consoleType===0||consoleType===2)&&bytes[13]!==0))return raw('The NES 2.0 header uses reserved console-detail data.');
   if(nes2&&consoleType===3&&(bytes[13]&0xf0))return raw('The NES 2.0 extended console header uses reserved high bits.');
   const warnings=['Header values are declarations; no hardware behavior has been observed.'];
+  if(archaic)warnings.push('Archaic iNES header: bytes 7-15 are not header fields and are ignored'+(ines.ignored?.signature?' (they hold "'+ines.ignored.signature+'")':'')+'; the mapper is '+mapper+' from byte 6'+(ines.declaredMapper!==mapper?' (read naively they would declare mapper '+ines.declaredMapper+')':'')+'. The file is unchanged.');
   if(legacyReserved)warnings.push('Legacy reserved header bytes are nonzero. Only bounded physical PRG/CHR ranges are used; the declared mapper may be contaminated. No header repair or CPU bank mapping is inferred.');
   if(consoleType!==0)warnings.push('This container declares a nonstandard NES console type; generic byte inspection is available, but no platform execution or static CPU map is claimed.');
   if(end<bytes.length)warnings.push('Trailing bytes are preserved and inspectable; miscellaneous ROMs, console data or other trailing structure are not decoded.');
-  return {header:{status:'valid',...(legacyReserved?{legacyReserved:true}:{}),format:nes2?'NES 2.0':'iNES 1.0',rawBytes,mapper,submapper,prgSize,chrSize,trainer:!!trainerSize,consoleType,batteryFlag:!!(bytes[6]&2),nametableLayoutFlag:bytes[6]&8?'four-screen':bytes[6]&1?'vertical':'horizontal'},layout:{header:span(0,16),trainer:trainerSize?span(16,trainerSize):null,prg:span(prgStart,prgSize),chr:chrSize?span(chrStart,chrSize):null,trailing:end<bytes.length?span(end,bytes.length-end):null,raw:span(0,bytes.length)},warnings};
+  return {header:{status:'valid',...(legacyReserved?{legacyReserved:true}:{}),...(archaic?{archaic:true,declaredMapper:ines.declaredMapper,ignoredBytes:ines.ignored}:{}),format:nes2?'NES 2.0':archaic?'archaic iNES':'iNES 1.0',rawBytes,mapper,submapper,prgSize,chrSize,trainer:!!trainerSize,consoleType,batteryFlag:!!(bytes[6]&2),nametableLayoutFlag:bytes[6]&8?'four-screen':bytes[6]&1?'vertical':'horizontal'},layout:{header:span(0,16),trainer:trainerSize?span(16,trainerSize):null,prg:span(prgStart,prgSize),chr:chrSize?span(chrStart,chrSize):null,trailing:end<bytes.length?span(end,bytes.length-end):null,raw:span(0,bytes.length)},warnings};
 }
 // Only documented NMOS encodings. An unrecognized opcode is one unclassified
 // byte, not an assertion that it is an invalid CPU instruction. Linear sweeps
@@ -23238,13 +23307,6 @@ return Object.freeze({...parent,profiles:Object.freeze([...parent.profiles,profi
     prepareNativeFields,
     projectionSignature: baseSignature
   });
-})();
-/* Exact investigated legacy-header exception. Source/output bytes are never
- * normalized: only the existing emulator's header view uses proven MMC3. */
-(()=>{
-'use strict';
-const previous=parseRomHeader;
-parseRomHeader=function(input){const bytes=input instanceof Uint8Array?input:Uint8Array.from(input||[]);if(bytes.length===262160&&bytes[6]===0x42&&bytes[7]===0x44&&Forge.services.NativeResourceProject.recognizes(bytes)?.id==='shadowgate-us-pictures-v1'){const header=bytes.slice(0,16);header[7]&=15;const view=bytes.slice();view.set(header);return {...previous(view),declaredMapper:68,mapperEvidence:'shadowgate-us-pictures-v1 immutable source guard'};}return previous(input);};
 })();
 /*
  * NES FORGE MODULE: src/re/mmc2.js
@@ -35174,7 +35236,7 @@ const CODE_ROLE=/(^|\.)(reader|writer)$|^states\[\d+\]\.source$/;
 function romLayout(rom){
   if(!rom||rom.length<16||rom[0]!==0x4e||rom[1]!==0x45||rom[2]!==0x53||rom[3]!==0x1a)return null;
   const trainer=rom[6]&4?512:0,prgBytes=rom[4]*16384,chrBytes=rom[5]*8192;
-  return {mapper:(rom[6]>>4)|(rom[7]&0xf0),trainer,prgStart:16+trainer,prgBytes,chrStart:16+trainer+prgBytes,chrBytes,byteLength:rom.length};
+  return {mapper:globalThis.InesHeader?InesHeader.inspect(rom).mapper:(rom[6]>>4)|(rom[7]&0xf0),trainer,prgStart:16+trainer,prgBytes,chrStart:16+trainer+prgBytes,chrBytes,byteLength:rom.length};
 }
 const ROLE_NAMES={source:'data',pointerSource:'pointer table entry',attributesSource:'attribute bytes','extent.source':'horizontal extent code','extent.verticalSource':'vertical extent code',
   dispatch:'state pointer table',reader:'code that reads it',writer:'code that writes it','audioEvent.writer':'area-start audio writer (code)','audioEvent.source':'area-start cue byte',record:'record',

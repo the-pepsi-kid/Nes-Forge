@@ -34,10 +34,9 @@ async function runForge() {
   const t0 = Date.now(), a = load(editor), w = a.window;
   await new Promise(r => setTimeout(r, 50));
   let mask = 0; w.emuReadJoyState = () => mask;
-  // an archaic iNES header (bytes 12-15 not zero, e.g. "DiskDude!" in bytes 7-15) is read by NES Forge's emulator as part
-  // of the mapper number; FCEUX ignores those bytes. The emulator gets a copy with them cleared, and the report says so.
-  const given = Uint8Array.from(rom), archaic = rom[12] | rom[13] | rom[14] | rom[15]; if (archaic) given.fill(0, 7, 16);
-  if (!w.eval('emuLoadRomData')(w.Uint8Array.from(given), path.basename(cart), 0)) throw Error('Forge refused the cartridge');
+  // the cartridge exactly as it is: NES Forge's header recognizer (src/re/ines-header.js) handles archaic headers itself
+  if (!w.eval('emuLoadRomData')(w.Uint8Array.from(rom), path.basename(cart), 0)) throw Error('Forge refused the cartridge');
+  const header = w.eval('InesHeader').inspect(w.Uint8Array.from(rom));
   const caps = [], run = w.eval('emuRunFrame'), bus = w.eval('ppuBusRead'), emu = w.eval('emu');
   // captures at the k-th entry of the NMI handler, the same program event FCEUX's checkpoints use (the sandbox's hook):
   // a split-screen game switches pattern tables mid-frame, so the capture point decides which table is seen
@@ -49,7 +48,7 @@ async function runForge() {
   w.eval('(function(){const prev=cpuStepRaw;cpuStepRaw=function(...args){if((emu.PC&0xffff)===window.__cadPortNmiTarget)window.__cadPortNmi();return prev.apply(this,args);};})()');
   for (let f = 0; f < frames.length + 60 && want.size; f++) { mask = frames[f] ?? 0; run(); }
   // the window is left open: closing it lets a pending editor timer touch a torn-down document; the process exits below
-  return {engine: 'forge', identity: 'NES Forge emulator (this build)', ms: Date.now() - t0, nmis, captures: caps, ...(archaic ? {headerNote: 'header bytes 7-15 cleared (archaic iNES header): NES Forge\'s emulator otherwise reads them into the mapper number'} : {})};
+  return {engine: 'forge', identity: 'NES Forge emulator (this build)', ms: Date.now() - t0, nmis, captures: caps, header: {format: header.format, mapper: header.mapper, ...(header.format === 'archaic iNES' ? {ignored: header.ignored.signature || null, declaredMapper: header.declaredMapper} : {})}};
 }
 function runFceux() {
   const F = require('../agent-lab/independent/fceux.cjs'), s = F.open(); if (!s.available) return {engine: 'fceux', blocked: s.reason};
@@ -112,7 +111,7 @@ function analyse(result) {
   const shares = explained.map(e => e.share), unexplained = explained.filter(e => e.share < 0.5);
   const coverage = {captures: explained.length, meanShare: shares.length ? Math.round(shares.reduce((a, b) => a + b, 0) / shares.length * 1000) / 1000 : null,
     capturesBelowHalf: unexplained.length, firstBelowHalf: unexplained.slice(0, 8).map(e => ({frame: e.frame, groups: e.groups, share: Math.round(e.share * 1000) / 1000}))};
-  return {engine: result.engine, identity: result.identity, ms: result.ms, captures: result.captures.length, ...(result.headerNote ? {headerNote: result.headerNote} : {}), explained: coverage, definitions: per.map(o => ({...o, observedScreens: Object.keys(o.observed).map(Number).sort((a, b) => a - b)}))};
+  return {engine: result.engine, identity: result.identity, ms: result.ms, captures: result.captures.length, ...(result.header ? {header: result.header} : {}), explained: coverage, definitions: per.map(o => ({...o, observedScreens: Object.keys(o.observed).map(Number).sort((a, b) => a - b)}))};
 }
 (async () => {
   const report = {format: 'NESForgeCadPortObservation', version: 1, cartridge: {name: path.basename(cart).replace(/\.nes$/i, ''), sha256, bytes: rom.length}, game, title: g.title,

@@ -402,7 +402,17 @@ const PRG=new Uint8Array(16384);
 
 return {prg:PRG,size:pc,reset:RESET,nmi:NMI,irq:IRQ};
 }
-function parseRomHeader(input){const r=input instanceof Uint8Array?input:Uint8Array.from(input||[]);if(r.length<16||r[0]!==78||r[1]!==69||r[2]!==83||r[3]!==26)throw new Error('Not a valid iNES .nes file');if((r[7]&12)===8)throw new Error('NES 2.0 is not supported by this emulator. Use an iNES 1.0 dump.');if(r[7]&3)throw new Error('VS System / PlayChoice ROMs are not supported');if(!r[4])throw new Error('ROM has no PRG bank');const prgSize=r[4]*16384,chrSize=r[5]*8192,headerSize=16+(r[6]&4?512:0),mapper=(r[6]>>4)|(r[7]&0xF0);if(headerSize+prgSize+chrSize>r.length)throw new Error('ROM is truncated');if(![0,1,2,3,4,7,11,66].includes(mapper))throw new Error('Unsupported mapper '+mapper+'. Supported: 0, 1, 2, 3, 4, 7, 11, 66.');if(mapper===0&&(prgSize>32768||chrSize>8192))throw new Error('Invalid NROM bank sizes');return {prgSize,chrSize,headerSize,mapper,mirror:r[6]&8?4:r[6]&1,battery:!!(r[6]&2),trainer:!!(r[6]&4)};}
+function parseRomHeader(input){const r=input instanceof Uint8Array?input:Uint8Array.from(input||[]);
+  // one header recognizer (src/re/ines-header.js): iNES 1.0, NES 2.0, or archaic iNES whose bytes 7-15 are ignored
+  // (e.g. "DiskDude!" written over them by a dumping tool). The cartridge bytes are never changed.
+  const i=InesHeader.inspect(r);if(!i.valid)throw new Error('Not a valid iNES .nes file');
+  if(i.format==='NES 2.0'&&i.consoleType!==0)throw new Error('VS System / PlayChoice / extended-console ROMs are not supported');
+  if(i.format==='iNES 1.0'&&(i.vsUnisystem||i.playChoice))throw new Error('VS System / PlayChoice ROMs are not supported');
+  if(i.format==='NES 2.0'&&i.submapper)throw new Error('NES 2.0 submapper '+i.mapper+'.'+i.submapper+' is not supported by this emulator.');
+  if(!i.prgSize)throw new Error('ROM has no PRG bank');const prgSize=i.prgSize,chrSize=i.chrSize,headerSize=i.headerSize,mapper=i.mapper;
+  if(i.truncated)throw new Error('ROM is truncated');if(![0,1,2,3,4,7,11,66].includes(mapper))throw new Error('Unsupported mapper '+mapper+'. Supported: 0, 1, 2, 3, 4, 7, 11, 66.');if(mapper===0&&(prgSize>32768||chrSize>8192))throw new Error('Invalid NROM bank sizes');
+  return {prgSize,chrSize,headerSize,mapper,mirror:i.mirror,battery:i.battery,trainer:i.trainer,headerFormat:i.format,
+    ...(i.format==='archaic iNES'?{declaredMapper:i.declaredMapper,mapperEvidence:InesHeader.describe(i)}:{})};}
 function romChrBanks(rom){const h=parseRomHeader(rom),banks=[];for(let b=0;b<h.chrSize/4096;b++)banks.push({tiles:decodeTiles(rom,h.headerSize+h.prgSize+b*4096),label:'4 KB bank '+b});return banks;}
 function expandOAM(oam){const out=[];for(const s of oam)if(s.active){if(s.height===16){const flip=!!(s.attr&0x80);out.push({...s,height:8,tile:flip?(s.tile2??s.tile+1):s.tile});if(s.y+8<240)out.push({...s,height:8,y:s.y+8,tile:flip?s.tile:(s.tile2??s.tile+1)});}else out.push({...s,height:8});}return out;}
 function buildGraphicsAtlas(scenes,custom){

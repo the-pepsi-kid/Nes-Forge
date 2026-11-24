@@ -50,11 +50,13 @@ args = parser.parse_args()
 #   punch-out-pose-links  Punch-Out!! both revisions' catalogs, then all 14 fights (15 bouts) linked, every link checked against the game's replayed pose routine
 #   zelda2-pose-links  Zelda II from a fresh save: palace, overworld, a forest battle; Link's links checked against the poses the game drew
 #   al-exp-01          ~10 min, no cartridges needed: experimental discovery on 12 original synthetic fixtures (5 withheld) in the isolated sandbox, Audit 02 A01-A18 portions
+#   emulation-forced-blank ~3 min: vertical scroll from v when rendering is turned on mid-frame (synthetic cartridges in NES Forge and FCEUX; Battletoads Level 1 if given)
+#   ines-header        ~1 min: iNES 1.0 / NES 2.0 / archaic header recognition (synthetic; local cartridges if given), emulator runs a DiskDude-header cartridge
 #   cad-port-01        ~10 min with cartridges: translated CadEditor catalog, shared decoders, recognition, import-time integration, ledger re-derived (FCEUX observation re-run)
 #   al-exp-02          ~30 min, no cartridges needed: 22 randomized adversarial synthetic fixtures (11 withheld), independent verification in FCEUX (reported blocked if FCEUX/Xvfb are missing), packages, lifecycle
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420
-TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 3600, 'pose-links': 900, 'punch-out-pose-links': 2400, 'zelda2-pose-links': 900, 'al-exp-01': 1800, 'al-exp-02': 3000, 'cad-port-01': 1800}
+TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 3600, 'pose-links': 900, 'punch-out-pose-links': 2400, 'zelda2-pose-links': 900, 'al-exp-01': 1800, 'al-exp-02': 3000, 'cad-port-01': 1800, 'emulation-forced-blank': 900}
 for item in args.timeout:
     suite, _, seconds = item.partition('=')
     if not suite or not seconds.isdigit():
@@ -278,6 +280,10 @@ if args.browser:
     receipt=output/'al-exp-01.json'
     record(run('al-exp-01',['node',QA/'al-exp-01.cjs',EDITOR,receipt,str(output/'al-exp-01-shots')],receipt))
     # repository inputs only (original synthetic fixtures); FCEUX is an external test tool, checks needing it report blocked when absent
+    receipt=output/'emulation-forced-blank.json'
+    record(run('emulation-forced-blank',['node',QA/'emulation-forced-blank.cjs',EDITOR,receipt]+([str(args.cartridges.resolve())] if args.cartridges else []),receipt))
+    receipt=output/'ines-header.json'
+    record(run('ines-header',['node',QA/'ines-header.cjs',EDITOR,receipt]+([str(args.cartridges.resolve())] if args.cartridges else []),receipt))
     receipt=output/'al-exp-02.json'
     record(run('al-exp-02',['node',QA/'al-exp-02.cjs',EDITOR,receipt,str(output/'al-exp-02-artifacts')],receipt))
     receipt=output/'library-persistence.json'

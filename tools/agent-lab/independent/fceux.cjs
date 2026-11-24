@@ -88,10 +88,23 @@ function runJob(env, run, {timeoutMs = 120000} = {}) {
   } finally { fs.rmSync(dir, {recursive: true, force: true}); fs.rmSync(home, {recursive: true, force: true}); }
 }
 
+// An investigation script (Agent Lab): runs the given Lua source in FCEUX with the cartridge; FORGE_OUT names the file the
+// script writes, FORGE_JOB a file holding the given job text. Returns what the script wrote.
+function runLuaSource(env, {rom, lua, job = '', timeoutMs = 300000}) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-fceux-lua-')), home = tempHome();
+  try {
+    const romPath = path.join(dir, 'cartridge.nes'), luaPath = path.join(dir, 'probe.lua'), outPath = path.join(dir, 'out.txt'), jobPath = path.join(dir, 'job.txt');
+    fs.writeFileSync(romPath, rom); fs.writeFileSync(luaPath, lua); fs.writeFileSync(jobPath, job);
+    const r = spawnSync(env.fceux, ['--sound', '0', '--loadlua', luaPath, romPath], {env: {...process.env, DISPLAY: env.display, HOME: home, FORGE_OUT: outPath, FORGE_JOB: jobPath}, encoding: 'utf8', timeout: timeoutMs});
+    const text = fs.existsSync(outPath) ? fs.readFileSync(outPath, 'utf8') : '';
+    return {ok: !r.error && /\ndone\s*$/.test(text), text, ...(r.error ? {reason: r.error.message} : {})};
+  } finally { fs.rmSync(dir, {recursive: true, force: true}); fs.rmSync(home, {recursive: true, force: true}); }
+}
+
 // A session: detect, start one display, run jobs, stop.
 function open() {
   const found = detect(); if (!found.available) return {available: false, reason: found.reason};
   const display = startDisplay(found.xvfb), env = {fceux: found.fceux, display: display.name};
-  return {available: true, identity: found.identity, run: (job, options) => runJob(env, job, options), close: () => display.stop()};
+  return {available: true, identity: found.identity, run: (job, options) => runJob(env, job, options), runLua: options => runLuaSource(env, options), close: () => display.stop()};
 }
 module.exports = {detect, open, parse, luaJob, CONFIG};

@@ -41,7 +41,7 @@ const CODE_ROLE=/(^|\.)(reader|writer)$|^states\[\d+\]\.source$/;
 function romLayout(rom){
   if(!rom||rom.length<16||rom[0]!==0x4e||rom[1]!==0x45||rom[2]!==0x53||rom[3]!==0x1a)return null;
   const trainer=rom[6]&4?512:0,prgBytes=rom[4]*16384,chrBytes=rom[5]*8192;
-  return {mapper:(rom[6]>>4)|(rom[7]&0xf0),trainer,prgStart:16+trainer,prgBytes,chrStart:16+trainer+prgBytes,chrBytes,byteLength:rom.length};
+  return {mapper:globalThis.InesHeader?InesHeader.inspect(rom).mapper:(rom[6]>>4)|(rom[7]&0xf0),trainer,prgStart:16+trainer,prgBytes,chrStart:16+trainer+prgBytes,chrBytes,byteLength:rom.length};
 }
 const ROLE_NAMES={source:'data',pointerSource:'pointer table entry',attributesSource:'attribute bytes','extent.source':'horizontal extent code','extent.verticalSource':'vertical extent code',
   dispatch:'state pointer table',reader:'code that reads it',writer:'code that writes it','audioEvent.writer':'area-start audio writer (code)','audioEvent.source':'area-start cue byte',record:'record',
