@@ -1,5 +1,6 @@
 """Verify the public editor profile and the authored cartridge fixture identities."""
 import argparse
+import base64
 import hashlib
 import json
 import sys
@@ -34,9 +35,29 @@ def sources():
     assert release_name().encode() in editor, 'Stale build identity'
 
 
+SYNTHETIC = ROOT/'QA/fixtures/al-exp-01'
+MARKER = b'NESFORGE-SYNTHETIC/1 '
+
+
+def synthetic_cartridge(data):
+    # an AL-EXP-01 fixture: iNES NROM-128, 16 KiB PRG + 8 KiB CHR, the marker at the start of the last 256 PRG bytes
+    prg_start = 16 + (512 if data[6] & 4 else 0)
+    return data[:4] == b'NES\x1a' and data[4] == 1 and data[5] == 1 and data[prg_start+0x3f00:prg_start+0x3f00+len(MARKER)] == MARKER
+
+
 def payloads():
+    seeds = json.loads((SYNTHETIC/'seeds.json').read_text())
+    pinned = {row['seed']: row['sha256'] for row in seeds['fixtures']}
     for name in manifest['parts']:
         text = (ROOT/'app'/name).read_text()
+        if name == 'src/re/experiment-demo-fixture.js':
+            # The one reviewed exception: the experimental panel's original synthetic cartridge, identified by its pinned
+            # SHA-256 and marker. Anything else in this part fails.
+            blob = re.findall(r'"base64":"([A-Za-z0-9+/=]+)"', text)
+            assert len(blob) == 1, name
+            data = base64.b64decode(blob[0])
+            assert hashlib.sha256(data).hexdigest() == pinned[seeds['demoSeed']] and synthetic_cartridge(data), name
+            text = text.replace(blob[0], '')
         assert not re.search(r'[A-Za-z0-9+/]{501,}={0,2}', text), name
     text = (ROOT/'app/src/re/external-recovery-catalog.js').read_text()
     assert 'function find(){return null;}' in text, 'Captured-project catalog enabled'
@@ -63,12 +84,26 @@ def fixtures():
     assert found == set(expected), 'Unexpected authored cartridge fixture'
     for name, sha in expected.items():
         assert hashlib.sha256((ROOT/'QA/r'/name).read_bytes()).hexdigest() == sha, name
+    # AL-EXP-01 synthetic fixtures: exactly the pinned set, each regenerable and marked as synthetic
+    seeds = {row['file']: row['sha256'] for row in json.loads((SYNTHETIC/'seeds.json').read_text())['fixtures']}
+    roms = {file.name for file in (SYNTHETIC/'roms').iterdir() if file.is_file()}
+    assert roms == set(seeds), 'Unexpected synthetic fixture'
+    for name, sha in seeds.items():
+        data = (SYNTHETIC/'roms'/name).read_bytes()
+        assert hashlib.sha256(data).hexdigest() == sha and synthetic_cartridge(data), name
+    # no cartridge anywhere else in the source tree
+    allowed = {ROOT/'QA/r'/name for name in expected} | {SYNTHETIC/'roms'/name for name in seeds}
+    for folder in ['app', 'QA', 'tools', 'docs', 'Examples']:
+        for file in (ROOT/folder).rglob('*.nes'):
+            if 'node_modules' in file.parts:
+                continue
+            assert file in allowed, 'Unidentified cartridge '+str(file.relative_to(ROOT))
 
 
 check('Both launch entries reproduce all manifest source parts', sources)
 check('Private compressed capture catalogs are excluded', payloads)
 check('Distributed editable projects contain no preserved ROM field', examples)
-check('Only the four identified authored cartridge fixtures are shipped', fixtures)
+check('Only the four identified authored cartridges and the pinned synthetic AL-EXP-01 fixtures are shipped', fixtures)
 report = {'editorSha256': digest, 'checks': checks, 'total': len(checks),
           'passed': all(row['passed'] for row in checks)}
 if args.output:
