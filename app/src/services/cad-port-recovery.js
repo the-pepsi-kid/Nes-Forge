@@ -21,7 +21,9 @@ const session={registered:new Map(),last:null,pending:0,waiters:[]};
 const settle=()=>{if(session.pending>0)return;const w=session.waiters.splice(0);for(const f of w)f();};
 // resolves when no import-time registration is in flight (tests and tools count the library after it)
 function settled(){return session.pending?new Promise(r=>session.waiters.push(r)):Promise.resolve();}
-// an editable copy holds at most this many pages (each Forge scene carries its own 256-tile sheet); the resource lists all
+// AL-REC-01: every page with established graphics becomes editable. A project part holds at most this many pages (each
+// Forge scene carries its own 256-tile sheet, which bounds a project's memory); a definition with more pages gets
+// several linked parts, listed in its resource, instead of losing the pages after the twelfth
 const PROJECT_PAGES=12;
 
 // ---------- recognition ----------
@@ -93,7 +95,7 @@ function png(width,height,indexes,colours){ // a minimal indexed PNG (stored def
 // states it or as Agent Lab located it in CHR ROM while the game drew the screens on this revision; and a palette,
 // constant in the configuration, a cartridge table, or observed on this revision. Never guessed.
 function graphicsOf(rom,def,rec){
-  let chr=null,chrBasis=null,pal=null,palBasis=null;
+  let chr=null,chrBasis=null,pal=null,palBasis=null,partial=null;
   // what Agent Lab saw this revision use while it drew these screens comes first; the configuration's statement next
   if(rec?.graphics?.source==='chr-rom'&&Array.isArray(rec.graphics.kilobytes)&&rec.graphics.kilobytes.length===4&&rec.graphics.kilobytes.every(o=>Number.isInteger(o)&&o>=16&&o+1024<=rom.length)){
     chr=new Uint8Array(4096);rec.graphics.kilobytes.forEach((o,k)=>chr.set(rom.subarray(o,o+1024),k*1024));chrBasis='located in CHR ROM while the game drew these screens on this revision ('+rec.graphics.kilobytes.map(hex).join(', ')+')';}
@@ -102,7 +104,9 @@ function graphicsOf(rom,def,rec){
     const t=new Uint8Array(4096),covered=new Set();let ok=true;
     for(const [first,count,offset] of rec.graphics.runs){if(!(Number.isInteger(first)&&Number.isInteger(count)&&Number.isInteger(offset)&&offset>=16&&offset+count*16<=rom.length&&first+count<=256)){ok=false;break;}t.set(rom.subarray(offset,offset+count*16),first*16);for(let k=0;k<count;k++)covered.add(first+k);}
     for(const [tile,value] of rec.graphics.uniform){if(!(Number.isInteger(tile)&&tile>=0&&tile<256&&Number.isInteger(value))){ok=false;break;}t.fill(value&255,tile*16,tile*16+16);covered.add(tile);}
-    if(ok&&covered.size===256){chr=t;chrBasis='uploaded to CHR RAM from PRG while the game drew these screens on this revision ('+rec.graphics.runs.length+' run'+(rec.graphics.runs.length===1?'':'s')+' from '+hex(rec.graphics.runs[0][2])+')';}}
+    // AL-REC-01: a partly established table is used tile by tile: a page is drawn only when every tile it uses is
+    // established (see pack()); the table no longer has to be complete
+    if(ok&&covered.size){chr=t;chrBasis='uploaded to CHR RAM from PRG while the game drew these screens on this revision ('+rec.graphics.runs.length+' run'+(rec.graphics.runs.length===1?'':'s')+' from '+hex(rec.graphics.runs[0][2])+(covered.size<256?'; '+covered.size+' of 256 tiles established':'')+')';if(covered.size<256)partial=covered;}}
   else if(def.graphics?.source==='cartridge'){const o=def.graphics.offset;if(o>=16&&o+4096<=rom.length){chr=rom.slice(o,o+4096);chrBasis='stated by the CadEditor configuration (file '+hex(o)+'), not observed on this revision';}}
   if(Array.isArray(rec?.palette)&&rec.palette.length===16&&rec.graphics){pal=rec.palette.slice();palBasis='observed while the game drew these screens on this revision';}
   else if(def.palette?.source==='constant'){pal=def.palette.values.slice(0,16);palBasis='constant in the CadEditor configuration';}
@@ -112,7 +116,34 @@ function graphicsOf(rom,def,rec){
   // statement covers the whole definition
   const seen=[...new Set([...(rec?.runtime?.forge?.screens||[]),...(rec?.runtime?.fceux?.screens||[])])].sort((a,b)=>a-b);
   const observed=!!chr&&/while the game drew|uploaded to CHR RAM/.test(chrBasis);
-  return {chr,chrBasis,pal,palBasis,screens:observed?seen:null};
+  return {chr,chrBasis,pal,palBasis,screens:observed?seen:null,covered:partial};
+}
+// AL-REC-01: runtime captures as graphics for translated layouts. A capture (a validated frame the recovery ledger
+// recorded) holds the exact CHR, nametables and palette the game used at that frame. Where a translated screen is
+// found in a capture's nametables (the same band-voting matcher the observation tool uses), the capture's background
+// CHR and palette draw it: "captured graphics", exact for that frame, kept apart from graphics traced to the cartridge.
+const mirrorOf=(m,a)=>{a&=0xfff;return m===4?a:m===0?((a>>1)&0x400)|(a&0x3ff):m===1?a&0x7ff:m===3?0x400|(a&0x3ff):a&0x3ff;};
+const b64bytes=t=>{const s=atob(t||'');const out=new Uint8Array(s.length);for(let i=0;i<s.length;i++)out[i]=s.charCodeAt(i);return out;};
+async function capturesFor(rom,sha,{max=64}={}){
+  const R=services.RecoveryLedger;if(!R?.displayed)return [];
+  let list=[];try{list=await R.displayed(sha);}catch(_){list=[];}
+  const out=[],chrStart=16+((rom[6]&4)?512:0)+rom[4]*16384;
+  for(const d of list.slice(-max)){
+    let chr=d.chr?Uint8Array.from(d.chr):null;
+    if(!chr&&Array.isArray(d.chrOffsets)&&d.chrOffsets.length===4){chr=new Uint8Array(4096);d.chrOffsets.forEach((off,k)=>chr.set(rom.subarray(chrStart+off,chrStart+off+1024),k*1024));}
+    if(!chr||!Array.isArray(d.palette)||d.palette.length<16)continue;
+    out.push({frame:d.frame,entryId:d.entryId,nametables:Uint8Array.from(d.nametables),chr,palette:d.palette.slice(0,16),source:d.chr?'CHR RAM':'CHR ROM',layouts:d.layouts});
+  }
+  return out;
+}
+// which translated screens each runtime capture of this cartridge shows (diagnostics and the reconstruction report)
+async function captureMatches(bytes,name){
+  const rom=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes),r=recognize(rom,name);if(!r.recognized)return {recognized:false};
+  const caps=await capturesFor(rom,r.sha256),cat=CAT(),dec=DEC(),game=cat.games.find(g=>g.folder===r.game),out=[];
+  for(const d of r.definitions){const def=game.definitions.find(x=>x.id===d.id);if(!usable(d))continue;let projected;try{const x=dec.decodeAll(rom,def);projected=x.screens.map(sc=>dec.project(x,def,sc));}catch(_){continue;}
+    const hits=[];for(const c of caps){let m=[];try{m=dec.observeScreens(c.nametables,projected);}catch(_){m=[];}for(const h of m)hits.push({screen:h.screen,frame:c.frame,matched:h.matched,compared:h.compared});}
+    out.push({id:d.id,screens:projected.length,hits});}
+  return {recognized:true,captures:caps.length,definitions:out};
 }
 function render(page,chr,pal){ // the page as NES colour indexes, then an indexed PNG of the colours it uses
   const rgbOf=NES_RGB();if(!rgbOf)return null;const px=new Uint8Array(256*240);
@@ -121,7 +152,7 @@ function render(page,chr,pal){ // the page as NES colour indexes, then an indexe
   const used=[...new Set(px)].sort((x,y)=>x-y),slot=new Map(used.map((c,i)=>[c,i]));for(let i=0;i<px.length;i++)px[i]=slot.get(px[i]);
   return png(256,240,px,used.map(c=>rgbOf[c]||[0,0,0]));
 }
-async function pack(bytes,name,{recognition=null}={}){
+async function pack(bytes,name,{recognition=null,captures=null}={}){
   const rom=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes),r=recognition||recognize(rom,name);if(!r.recognized)fail('this cartridge is not recognized by a translated definition');
   const cat=CAT(),dec=DEC(),game=cat.games.find(g=>g.folder===r.game),enc=new TextEncoder(),files=[],summary=[],up=cat.upstream;
   for(const d of r.definitions){
@@ -130,7 +161,14 @@ async function pack(bytes,name,{recognition=null}={}){
     const projected=screens.map(s=>dec.project(decoded,def,s)),pages=[];
     projected.forEach((p,si)=>dec.pages(p).forEach((pg,k)=>pages.push({screen:si,page:k,x:pg.x,y:pg.y,width:pg.width,height:pg.height,palettesStated:Math.round(pg.palettesStated*1000)/1000,nt:pg.nt,attr:pg.attr})));
     if(!pages.length||pages.length>4096){summary.push({id:d.id,included:false,reason:'no pages'});continue;}
-    const g=graphicsOf(rom,def,d),lvl=level(d);
+    let g=graphicsOf(rom,def,d);const lvl=level(d);
+    if(!g.chr&&captures?.length){
+      // which of this definition's screens each capture shows
+      const found=new Map();
+      for(const c of captures){let hits=[];try{hits=dec.observeScreens(c.nametables,projected);}catch(_){hits=[];}for(const h of hits){const si=h.screen??h.index;if(Number.isInteger(si)&&!found.has(si))found.set(si,c);}}
+      if(found.size){const first=[...found.values()][0];
+        g={chr:first.chr,chrBasis:'captured at runtime (frame '+first.frame+', '+first.source+' as the game had it): exact for the screens it was seen drawing; not traced to the cartridge',pal:first.palette,palBasis:'captured with the same frame',screens:[...found.keys()].sort((x,y)=>x-y),covered:null,captured:found};}
+    }
     const resource={resource:{id:'cad-port:'+d.id,label:(game.title||game.folder)+' · '+def.config.replace(/^Settings_|\.cs$/g,'')+' · '+screens.length+' screen'+(screens.length===1?'':'s'),
       reason:'Translated from CadEditor ('+up.repository+', '+String(up.commit).slice(0,7)+', MIT). '+lvl+'. Layout only: '+(g.chr?'graphics '+g.chrBasis+(g.screens?', established for screens '+g.screens.join(', ')+' only':'')+'.':'graphics not established for this cartridge (CadEditor reads them from an emulator dump, which is not included).')},
       pages,source:{sha256:r.sha256,blocks:{format:def.blocks.format,fileOffset:def.blocks.offset,count:def.blocks.count,...(def.blocks.paletteOffset!==undefined?{paletteFileOffset:def.blocks.paletteOffset}:{})},
@@ -138,17 +176,29 @@ async function pack(bytes,name,{recognition=null}={}){
         screens:screens.map(s=>({index:s.index,fileOffset:s.offset,length:s.length,width:s.width,height:s.height}))},
       evidence:{level:lvl,structural:d.structural,log10Chance:d.log10Chance,control:d.control,runtime:d.runtime,graphics:g.chr?g.chrBasis:null,palette:g.pal?g.palBasis:null},
       translation:{definition:d.id,config:def.config,upstream:{project:up.project,repository:up.repository,commit:up.commit,license:up.license,copyright:up.copyright}}};
-    files.push({name:'resources/'+base+'.json',data:enc.encode(JSON.stringify(resource))});
-    let preview=false,project=false;
-    const drawn=g.screens?pages.filter(pg=>g.screens.includes(pg.screen)):pages; // the pages these graphics are established for
-    if(g.chr&&g.pal&&drawn.length){const img=render(drawn[0],g.chr,g.pal);if(img){files.push({name:'resources/'+base+'.png',data:img});preview=true;}
+    const resourceAt=files.length;files.push({name:'resources/'+base+'.json',data:null});
+    let preview=false,project=false;const projectFiles=[];
+    const seenWith=g.screens?pages.filter(pg=>g.screens.includes(pg.screen)):pages; // the pages these graphics are established for
+    // with a partly established CHR RAM table, only pages whose every tile is established are drawn
+    const drawn=g.covered?seenWith.filter(pg=>pg.nt.every(t=>g.covered.has(t))):seenWith,withoutTiles=seenWith.length-drawn.length;
+    // captured graphics are per screen: each page is drawn with the capture that showed its screen
+    const chrOf=pg=>g.captured?.get(pg.screen)?.chr||g.chr,palOf=pg=>g.captured?.get(pg.screen)?.palette||g.pal,tileSheets=new Map();
+    const tilesOf=pg=>{const c=chrOf(pg);if(!tileSheets.has(c))tileSheets.set(c,decodeTiles(Array.from(c)));return tileSheets.get(c);};
+    if(g.chr&&g.pal&&drawn.length){const img=render(drawn[0],chrOf(drawn[0]),palOf(drawn[0]));if(img){files.push({name:'resources/'+base+'.png',data:img});preview=true;}
       // an editable copy: Forge scenes made by Forge's own constructor and normalization (makeScene, ProjectStore.prepareLoad)
       if(typeof makeScene==='function'&&typeof decodeTiles==='function'&&services.ProjectStore?.prepareLoad){
-        const chr=decodeTiles(Array.from(g.chr)),palette=[0,1,2,3].map(i=>g.pal.slice(i*4,i*4+4)),scenes=drawn.slice(0,PROJECT_PAGES).map((pg,i)=>makeScene({id:'cad-port-'+base.replace(/\//g,'-')+'-'+i,name:'Screen '+pg.screen+(drawn.filter(x=>x.screen===pg.screen).length>1?' · page '+pg.page:''),
-          nt:pg.nt,attr:pg.attr,chr,pal:palette,sceneType:'static',scrollDir:'none',gravity:0,captureMeta:{cadPort:{version:VERSION,definition:d.id,screen:pg.screen,page:pg.page,sourceSha256:r.sha256,fileOffset:screens[pg.screen].offset,level:lvl}}}));
-        const doc={format:'NESForge',version:services.ProjectStore.schema,projectName:((game.title||game.folder)+' · '+def.config.replace(/^Settings_|\.cs$/g,'')+' (translated layout)').slice(0,120),scenes,activeScene:0,metasprites:[],animations:[],worlds:[],asmSource:'',mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,instruments:[],patterns:[],orderList:[],sfx:[],tempo:150,speed:6,audRows:64};
-        const prepared=services.ProjectStore.prepareLoad(doc);files.push({name:'projects/'+base+'.nesforge.json',data:enc.encode(JSON.stringify({...doc,scenes:prepared.scenes}))});project=true;}}
-    summary.push({id:d.id,included:true,screens:screens.length,pages:pages.length,level:lvl,preview,project,...(project?{projectPages:Math.min(drawn.length,PROJECT_PAGES)}:{}),graphics:g.chr?g.chrBasis:null,...(g.screens?{graphicsFor:'screens '+g.screens.join(', ')+' (seen drawn with them)'}:{})});
+        const parts=Math.ceil(drawn.length/PROJECT_PAGES),paletteOf=pg=>[0,1,2,3].map(i=>palOf(pg).slice(i*4,i*4+4)),title=((game.title||game.folder)+' · '+def.config.replace(/^Settings_|\.cs$/g,'')+' (translated layout)');
+        projectFiles.length=0;
+        for(let k=0;k<parts;k++){
+          const scenes=drawn.slice(k*PROJECT_PAGES,(k+1)*PROJECT_PAGES).map((pg,j)=>{const i=k*PROJECT_PAGES+j;return makeScene({id:'cad-port-'+base.replace(/\//g,'-')+'-'+i,name:'Screen '+pg.screen+(drawn.filter(x=>x.screen===pg.screen).length>1?' · page '+pg.page:''),
+            nt:pg.nt,attr:pg.attr,chr:tilesOf(pg),pal:paletteOf(pg),sceneType:'static',scrollDir:'none',gravity:0,captureMeta:{cadPort:{version:VERSION,definition:d.id,screen:pg.screen,page:pg.page,sourceSha256:r.sha256,fileOffset:screens[pg.screen].offset,level:lvl,...(parts>1?{part:k+1,parts}:{}),...(g.captured?{graphics:'captured at runtime, frame '+g.captured.get(pg.screen).frame,captureEntry:g.captured.get(pg.screen).entryId}:{})}}});});
+          const doc={format:'NESForge',version:services.ProjectStore.schema,projectName:(title.slice(0,parts>1?100:120)+(parts>1?' · part '+(k+1)+' of '+parts:'')).slice(0,120),scenes,activeScene:0,metasprites:[],animations:[],worlds:[],asmSource:'',mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,instruments:[],patterns:[],orderList:[],sfx:[],tempo:150,speed:6,audRows:64};
+          const prepared=services.ProjectStore.prepareLoad(doc),name='projects/'+base+(parts>1?'.part-'+String(k+1).padStart(2,'0'):'')+'.nesforge.json';
+          files.push({name,data:enc.encode(JSON.stringify({...doc,scenes:prepared.scenes}))});projectFiles.push(name);}
+        project=true;}}
+    if(projectFiles.length>1)resource.projects={parts:projectFiles,pagesPerPart:PROJECT_PAGES,pages:drawn.length,note:'every page with established graphics, in '+projectFiles.length+' linked project parts'};
+    files[resourceAt].data=enc.encode(JSON.stringify(resource));
+    summary.push({id:d.id,included:true,screens:screens.length,pages:pages.length,level:lvl,preview,project,...(project?{projectPages:drawn.length,projectParts:projectFiles.length}:{}),...(withoutTiles?{pagesWithUnestablishedTiles:withoutTiles}:{}),graphics:g.chr?g.chrBasis:null,...(g.screens?{graphicsFor:'screens '+g.screens.join(', ')+' (seen drawn with them)'}:{})});
   }
   const included=summary.filter(s=>s.included);if(!included.length)fail('no translated definition applies to this cartridge');
   const report={format:'NESForgeNativeExtraction',game:(game.title||game.folder)+' · CadEditor-derived layouts',rom:{sha256:r.sha256,byteLength:rom.length},origin:'cad-port',
@@ -164,12 +214,16 @@ async function pack(bytes,name,{recognition=null}={}){
 }
 async function register(bytes,name,{recognition=null,quiet=false}={}){
   const r=recognition||recognize(bytes,name);if(!r.recognized)return {registered:false,reason:'not recognized',recognition:summarize(r)};
-  const p=await pack(bytes,name,{recognition:r});
+  const captures=await capturesFor(bytes instanceof Uint8Array?bytes:new Uint8Array(bytes),r.sha256);
+  const p=await pack(bytes,name,{recognition:r,captures});
   if(!services.ResourceLibrary?.register)fail('the resource library is not available');
-  const result=await services.ResourceLibrary.register(p.zip,{name:(r.title)+' · CadEditor-derived layouts.zip'});
+  const packName=(r.title)+' · CadEditor-derived layouts.zip',result=await services.ResourceLibrary.register(p.zip,{name:packName});
+  // a pack rebuilt with more evidence (new runtime captures) replaces this cartridge's earlier one, so the library
+  // keeps one copy of each translated layout
+  if(!result.already&&result.packSha256)try{const listed=await F.commands.run('library.packs');for(const old of (listed.ok?listed.result:[]))if(old.sourceSha256===r.sha256&&old.name===packName&&old.packSha256!==result.packSha256)await services.ResourceLibrary.discard(old.packSha256);}catch(_){/* the older pack stays; nothing is lost */}
   const included=p.definitions.filter(d=>d.included),screens=included.reduce((n,d)=>n+d.screens,0);
   const out={registered:true,already:!!result.already,packSha256:result.packSha256,game:r.game,title:r.title,basis:r.basis,definitions:included.length,screens,
-    withGraphics:included.filter(d=>d.preview).length,editable:included.filter(d=>d.project).length,skipped:p.definitions.filter(d=>!d.included)};
+    withGraphics:included.filter(d=>d.preview).length,editable:included.filter(d=>d.project).length,editablePages:included.reduce((n,d)=>n+(d.projectPages||0),0),capturedGraphics:included.filter(d=>/captured at runtime/.test(d.graphics||'')).length,captures:captures.length,skipped:p.definitions.filter(d=>!d.included)};
   session.registered.set(r.sha256,out);session.last=out;
   if(!quiet&&!out.already)window.showToast?.('CadEditor-derived layouts for '+r.title+': '+screens+' screens from '+included.length+' definition'+(included.length===1?'':'s')+' added to your Resource library ('+r.basis+').');
   try{window.dispatchEvent(new CustomEvent('forge:cad-port-registered',{detail:cp(out)}));}catch(_){/* no DOM events */}
@@ -214,7 +268,7 @@ setTimeout(()=>{
   })().catch(error=>{session.last={registered:false,error:String(error?.message||error).slice(0,300)};}).finally(()=>{session.pending--;settle();});});
 },0);
 
-services.CadPortRecovery=Object.freeze({version:VERSION,recognize,pack,register,intake,coverage,settled,status:()=>({auto:autoEnabled(),registered:[...session.registered.values()].map(cp),last:session.last?cp(session.last):null})});
+services.CadPortRecovery=Object.freeze({captureMatches,version:VERSION,recognize,pack,register,intake,coverage,settled,status:()=>({auto:autoEnabled(),registered:[...session.registered.values()].map(cp),last:session.last?cp(session.last):null})});
 if(C?.register){
   C.register({name:'cadport.recognize',group:'cadport',title:'Recognize a ROM against the translated CadEditor catalog',summary:'Title hint and structure, or an exact revision observed at runtime; per definition: structural state, runtime observations and the coverage level.',
     args:{bytes:{type:'bytes',required:true},name:{type:'string',default:'rom.nes'}},run:a=>summarize(recognize(a.bytes,a.name))});

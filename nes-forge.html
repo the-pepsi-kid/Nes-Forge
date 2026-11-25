@@ -36846,17 +36846,23 @@ const MACROS=Object.freeze([
   ['wait',120,()=>0],
   ['random',150,(f,r)=>r(f)],
 ]);
-// power-on input scripts, played from reset; steps are [mask, frames] (the CAD-PORT observation script format)
+// power-on input scripts, played from reset on a cartridge's first run (about 12,500 frames together); steps are
+// [mask, frames] (the CAD-PORT observation script format)
 const WALK=[].concat(...Array.from({length:12},(_,i)=>[[BTN.Right,50],[BTN.Right|(i&1?BTN.B:BTN.A),8]]));
 const BOOTS=Object.freeze([
   {label:'two Starts',steps:[[0,120],[BTN.Start,5],[0,115],[BTN.Start,5],[0,115],...WALK]},
   {label:'three Starts',steps:[[0,180],[BTN.Start,6],[0,120],[BTN.Start,6],[0,180],[BTN.Start,6],[0,300],...WALK]},
   {label:'late Start (long intro)',steps:[[0,1400],[BTN.Start,6],[0,400],[BTN.Start,6],[0,300],[BTN.A,6],[0,200],...WALK]},
   {label:'Start, then A to confirm',steps:[[0,200],[BTN.Start,6],[0,90],[BTN.A,6],[0,90],[BTN.Start,6],[0,240],...WALK]},
+  {label:'five Starts, then a long walk right',steps:[[0,180],[BTN.Start,6],[0,120],[BTN.Start,6],[0,180],[BTN.Start,6],[0,240],[BTN.Start,6],[0,240],...[].concat(...Array.from({length:40},(_,i)=>[[BTN.Right,50],[BTN.Right|(i&1?BTN.B:BTN.A),8]]))]},
   {label:'attract mode (no input)',steps:[[0,2400]]},
 ]);
 const framesOf=steps=>steps.reduce((n,s)=>n+s[1],0);
 const scriptMask=(steps,f)=>{let at=0;for(const [m,n] of steps){if(f<at+n)return m;at+=n;}return 0;};
+// load a cartridge for a run: the page's own emulation loop is stopped, so only the run advances frames (otherwise
+// the loop would add frames between the run's own and input paths would not replay)
+function load(rom,label){if(!emuLoadRomData(rom,label,0))fail('the emulator refused the cartridge');hold();}
+function hold(){try{if(typeof emuPause==='function')emuPause();}catch(_){}if(emu.rafId){try{cancelAnimationFrame(emu.rafId);}catch(_){}emu.rafId=null;}emu.running=false;}
 function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296;};}
 function fnv(bytes,from=0,to=bytes.length,h=0x811c9dc5){for(let i=from;i<to;i++)h=Math.imul(h^bytes[i],0x01000193);return h>>>0;}
 const hex=v=>(v>>>0).toString(16).padStart(8,'0');
@@ -36894,7 +36900,7 @@ async function run(opts={}){
   const budget={frames:20000,wallMs:180000,cells:400,observations:150,stateBytes:48*1024*1024,stall:60,...(opts.budget||{})};
   const t0=performance.now(),random=rng(opts.seed||0x5eed),known={blocks:new Set(opts.known?.blocks||[]),tiles:new Set(opts.known?.tiles||[]),banks:new Set((opts.known?.banks||[]).map(Number)),palettes:new Set(opts.known?.palettes||[]),sprites:new Set(opts.known?.sprites||[])};
   const before={blocks:known.blocks.size,tiles:known.tiles.size,banks:known.banks.size,palettes:known.palettes.size,sprites:known.sprites.size};
-  let mask=0,frames=0,stateBytes=0,steps=0,stall=0,stopReason=null;
+  let mask=0,frames=0,stateBytes=0,steps=0,stall=0,stopReason=null,prevStepOuter=null;const seenScreens=new Set(opts.known?.screens||[]);
   const prevJoy=emuReadJoyState;emuReadJoyState=function(){return mask;};
   const cells=new Map(),observations=[],transitions=[];
   const sizeOf=s=>{let n=0;const walk=v=>{if(v&&typeof v==='object'){if(ArrayBuffer.isView(v))n+=v.byteLength;else for(const x of Object.values(v))walk(x);}else n+=8;};walk(s.emu);return n+4096;};
@@ -36902,11 +36908,24 @@ async function run(opts={}){
   const step=async(n,maskOf)=>{for(let f=0;f<n;f++){mask=maskOf(f);emuRunFrame();frames++;if((f&15)===15&&performance.now()-chunk>12){mask=0;await new Promise(r=>setTimeout(r,0));chunk=performance.now();}}mask=0;};
   let chunk=performance.now();
   try{
+    // translated layouts (CAD-PORT) of this game: each observation says which of their screens it shows
+    const cadPort=[];if(opts.cadPort?.game&&window.CadPortCatalog&&window.CadPortDecoders){const D=window.CadPortDecoders,g=window.CadPortCatalog.games.find(x=>x.folder===opts.cadPort.game);
+      for(const id of opts.cadPort.definitions||[]){const def=g?.definitions.find(x=>x.id===id);if(!def)continue;try{const x=D.decodeAll(opts.rom||emu.lastBuiltRom,def);cadPort.push({id,projections:x.screens.map(sc=>D.project(x,def,sc))});}catch(_){}}}
+    // what the frame displayed: the nametables, background CHR and palette at the entry of the game's NMI handler (by
+    // the end of the emulated frame the handler has often started writing the next frame's data)
+    let displayed=null,nmiTarget=-1;const vectorOf=()=>{try{return cpuRead(0xfffa)|(cpuRead(0xfffb)<<8);}catch(_){return -1;}};
+    const snapDisplayed=()=>{const nt=new Uint8Array(4096);for(let a=0;a<4096;a++)nt[a]=emu.vram[ppuMirror(a)%emu.vram.length];const bg=emu.ppuCtrl&16?4096:0;
+      displayed={frame:emu.frameCount,nametables:nt,palette:Array.from(emu.palRam.subarray(0,16)),bgTable:bg,chr:emu.hasChrRam?emu.chrRam.slice(bg,bg+4096):null,chrOffsets:emu.hasChrRam?null:[0,1,2,3].map(k=>{const a=bg+k*1024;return emu.mapper===4?(emu.chrPages?.[a>>10]||0):(a<4096?emu.chrBank0:emu.chrBank1)+(a&4095);})};};
+    const prevStep=cadPort.length?cpuStepRaw:null;prevStepOuter=prevStep;
+    if(prevStep)cpuStepRaw=function(...args){if((emu.PC&0xffff)===nmiTarget)snapDisplayed();return prevStep.apply(this,args);};
+    const logicalNametables=()=>displayed?displayed.nametables:(()=>{const nt=new Uint8Array(4096);for(let a=0;a<4096;a++)nt[a]=emu.vram[ppuMirror(a)%emu.vram.length];return nt;})();
+    const matchLayouts=()=>{if(!cadPort.length)return null;nmiTarget=vectorOf();const nt=logicalNametables(),out=[];for(const c of cadPort){let m=[];try{m=window.CadPortDecoders.observeScreens(nt,c.projections);}catch(_){m=[];}for(const h of m)out.push({definition:c.id,screen:h.screen,matched:h.matched,compared:h.compared});}return out;};
     const observe=async(why,cell,s,macro)=>{
       if(observations.length>=budget.observations)return null;
       let record=null;
       if(opts.capture!==false&&services.FrameEvidence?.capture){try{record=await services.FrameEvidence.capture({label:'recovery: '+why.join(', '),links:false,scene:true,pixels:!!opts.pixels});}catch(e){record={error:String(e.message||e)};}}
-      const o={index:observations.length,frame:emu.frameCount,why,cell:cell.key,from:cell.label,macro,path:cell.path,scroll:s.scroll,palette:s.pal,banks:s.banks,newTiles:s.newTiles,record};
+      const layouts=s.layouts||matchLayouts(),o={index:observations.length,frame:emu.frameCount,why,cell:cell.key,from:cell.label,macro,path:cell.path,scroll:s.scroll,palette:s.pal,banks:s.banks,newTiles:s.newTiles,record,layouts,
+        ...(layouts?.length&&displayed?{displayed:{frame:displayed.frame,nametables:displayed.nametables,palette:displayed.palette,bgTable:displayed.bgTable,chr:displayed.chr,chrOffsets:displayed.chrOffsets}}:{})};
       observations.push(o);return o;
     };
     // the cold or resumed starting point itself is an observation if it shows anything new
@@ -36916,7 +36935,8 @@ async function run(opts={}){
       const nk=s.banks.filter(b=>!known.banks.has(b));if(nk.length)why.push('graphics (CHR banks '+nk.join(', ')+')');
       if(!known.palettes.has(s.pal))why.push('palette');
       const ns=s.sprites.filter(x=>!known.sprites.has(x));if(ns.length>=4)why.push('sprites ('+ns.length+' new patterns)');
-      return {why,commit(){for(const b of s.blocks)known.blocks.add(b);for(const t of s.tiles)known.tiles.add(t);for(const b of s.banks)known.banks.add(b);known.palettes.add(s.pal);for(const x of s.sprites)known.sprites.add(x);}};};
+      if(cadPort.length){s.layouts=matchLayouts();const fresh=(s.layouts||[]).filter(m=>!seenScreens.has(m.definition+'#'+m.screen));if(fresh.length)why.push('translated screen'+(fresh.length===1?'':'s')+' seen ('+fresh.map(m=>m.definition.split('/').pop()+' #'+m.screen).join(', ')+')');s.freshScreens=fresh;}
+      return {why,commit(){for(const m of s.freshScreens||[])seenScreens.add(m.definition+'#'+m.screen);for(const b of s.blocks)known.blocks.add(b);for(const t of s.tiles)known.tiles.add(t);for(const b of s.banks)known.banks.add(b);known.palettes.add(s.pal);for(const x of s.sprites)known.sprites.add(x);}};};
     // the starting points: a resumed archive, the ledger's seeds, or a cold boot
     if(opts.archive?.cells?.length){for(const c of opts.archive.cells)addCell(c.key,c.state,c.path,c.parent,c.label);steps=opts.archive.steps||0;}
     for(const s of opts.seeds||[])addCell('seed:'+s.label,s.state,s.path||null,null,s.label);
@@ -36925,16 +36945,17 @@ async function run(opts={}){
       if(!(opts.rom instanceof Uint8Array))fail('a first run needs the cartridge');
       const boots=(opts.boots||BOOTS.map((_,i)=>i)).map(b=>typeof b==='number'?{index:b,...BOOTS[b]}:{index:-1,...b});
       for(const boot of boots){
-        if(!emuLoadRomData(opts.rom,'recovery',0))fail('the emulator refused the cartridge');
+        load(opts.rom,'recovery');
         const total=framesOf(boot.steps);let prevCell=null;
         for(let f=0;f<total;f+=30){const n=Math.min(30,total-f);await step(n,x=>scriptMask(boot.steps,f+x));
           const seg=boot.index>=0?['script',boot.index,f+n]:['input',boot.steps,f+n],s=sample();
           if(f+n>=120&&!cells.has(s.cell)&&cells.size<budget.cells){const c=addCell(s.cell,T.machineState(),[seg],prevCell,boot.label+' · frame '+(f+n));transitions.push({from:prevCell,to:c.key,macro:boot.label,scroll:s.scroll});prevCell=c.key;}
           scripted.push({s,cell:cells.get(s.cell)||{key:'script',label:boot.label,path:[seg]},boot:boot.label,path:[seg]});
           const e=evaluate(s);if(e.why.length){const o=await observe(e.why,cells.get(s.cell)||{key:s.cell,label:boot.label},s,boot.label);if(o)o.path=[seg];}e.commit();
-          if(frames>=budget.frames*(opts.bootShare||0.4)||performance.now()-t0>=budget.wallMs*(opts.bootShare||0.4))break;}
+          if(frames>=budget.frames||performance.now()-t0>=budget.wallMs)break;}
       }
-    }else if(opts.rom instanceof Uint8Array&&!emu.loaded){if(!emuLoadRomData(opts.rom,'recovery',0))fail('the emulator refused the cartridge');}
+    }else if(opts.rom instanceof Uint8Array&&!emu.loaded){load(opts.rom,'recovery');}
+    hold();
     if(!cells.size)fail('no starting state: the boot scripts reached nothing within the budget');
     if(!scripted.length){const first=[...cells.values()][0];T.applyMachineState(first.state);const s=sample(),e=evaluate(s);if(e.why.length)await observe(e.why,first,s,null);e.commit();}
     while(true){
@@ -36961,17 +36982,17 @@ async function run(opts={}){
       if(cells.size>=budget.cells&&stateBytes>=budget.stateBytes){stopReason='state budget reached';break;}
       opts.onProgress?.({steps,frames,cells:cells.size,observations:observations.length,ms:Math.round(performance.now()-t0)});
     }
-  }finally{emuReadJoyState=prevJoy;mask=0;}
+  }finally{emuReadJoyState=prevJoy;mask=0;if(prevStepOuter)cpuStepRaw=prevStepOuter;}
   const gained={blocks:known.blocks.size-before.blocks,tiles:known.tiles.size-before.tiles,banks:known.banks.size-before.banks,palettes:known.palettes.size-before.palettes,sprites:known.sprites.size-before.sprites};
   return {format:'NESForgeRecoveryRun',version:1,stopReason,steps,frames,ms:Math.round(performance.now()-t0),budget,cells:cells.size,stateBytes,gained,observations,transitions:transitions.slice(-2000),
-    known:{blocks:[...known.blocks],tiles:[...known.tiles],banks:[...known.banks],palettes:[...known.palettes],sprites:[...known.sprites]},
+    known:{blocks:[...known.blocks],tiles:[...known.tiles],banks:[...known.banks],palettes:[...known.palettes],sprites:[...known.sprites],screens:[...seenScreens]},
     archive:{steps,cells:[...cells.values()].map(c=>({key:c.key,state:c.state,path:c.path,parent:c.parent,label:c.label}))}};
 }
 // ---------- exact replay of an input path from power-on (for tracing) ----------
 // path: [['script', bootIndex, frames] or ['input', steps, frames], then [macroIndex, seed, framesPlayed], ...]
 async function replay(rom,path,{onFrame=null,loaded=false}={}){
   if(!allowedHere())fail('replays run only in an isolated copy of the editor');
-  if(!loaded&&!emuLoadRomData(rom,'recovery replay',0))fail('the emulator refused the cartridge');
+  if(!loaded)load(rom,'recovery replay');else hold();
   let mask=0;const prevJoy=emuReadJoyState;emuReadJoyState=function(){return mask;};let chunk=performance.now();
   const play=async(n,maskOf)=>{for(let f=0;f<n;f++){mask=maskOf(f);emuRunFrame();onFrame?.();if((f&15)===15&&performance.now()-chunk>12){mask=0;await new Promise(r=>setTimeout(r,0));chunk=performance.now();}}mask=0;};
   try{
@@ -37011,7 +37032,7 @@ services.RecoveryExplorer=Object.freeze({BTN,MACROS:MACROS.map(m=>m[0]),BOOTS:BO
 (()=>{
 'use strict';
 const F=window.Forge,services=F.services,C=F.commands;
-const DB='nes-forge-recovery',DBV=1,FORMAT='NESForgeRecoveryLedger',VERSION=1;
+const DB='nes-forge-recovery',DBV=2,FORMAT='NESForgeRecoveryLedger',VERSION=1;
 const MODES=Object.freeze({
   continue:{label:'Continue Recovery',budget:{frames:20000,wallMs:180000,observations:120,cells:400},trace:false},
   missing:{label:'Investigate Missing Resources',budget:{frames:30000,wallMs:300000,observations:150,cells:500,stall:90},trace:false},
@@ -37021,9 +37042,11 @@ const MODES=Object.freeze({
 function fail(m){throw Error('Recovery: '+m);}
 const now=()=>Date.now();
 // ---------- storage ----------
-let dbPromise=null;const memory={ledgers:new Map(),archives:new Map()};
+let dbPromise=null;const memory={ledgers:new Map(),archives:new Map(),displayed:new Map()};
 function idb(){if(typeof indexedDB==='undefined')return null;if(!dbPromise)dbPromise=new Promise((resolve,reject)=>{const r=indexedDB.open(DB,DBV);
-  r.onupgradeneeded=()=>{const d=r.result;for(const s of ['ledgers','archives'])if(!d.objectStoreNames.contains(s))d.createObjectStore(s,{keyPath:'sha256'});};
+  r.onupgradeneeded=()=>{const d=r.result;for(const s of ['ledgers','archives'])if(!d.objectStoreNames.contains(s))d.createObjectStore(s,{keyPath:'sha256'});
+    // what a frame displayed when a run saw translated screens in it (nametables, background CHR, palette): graphics evidence
+    if(!d.objectStoreNames.contains('displayed'))d.createObjectStore('displayed',{keyPath:'id'});};
   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);}).catch(()=>null);return dbPromise;}
 async function op(store,mode,fn){const d=await idb();if(!d){return fn(null,memory[store]);}
   return new Promise((resolve,reject)=>{const tx=d.transaction(store,mode),st=tx.objectStore(store);let out;const q=fn(st,null);if(q)q.onsuccess=()=>{out=q.result;};tx.oncomplete=()=>resolve(out);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}
@@ -37031,6 +37054,9 @@ const readLedger=sha=>op('ledgers','readonly',(st,m)=>st?st.get(sha):m.get(sha)|
 const writeLedger=l=>op('ledgers','readwrite',(st,m)=>st?st.put(l):(m.set(l.sha256,l),null));
 const readArchive=sha=>op('archives','readonly',(st,m)=>st?st.get(sha):m.get(sha)||null).then(v=>v||null);
 const writeArchive=a=>op('archives','readwrite',(st,m)=>st?st.put(a):(m.set(a.sha256,a),null));
+const putDisplayed=d=>op('displayed','readwrite',(st,m)=>st?st.put(d):(m.set(d.id,d),null));
+async function displayedFor(sha){const lo=sha+':',hi=sha+':\uffff';
+  return (await op('displayed','readonly',(st,m)=>st?st.getAll(IDBKeyRange.bound(lo,hi)):[...m.values()].filter(d=>d.id>=lo&&d.id<=hi)))||[];}
 async function hex256(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');}
 function cartridgeOf(bytes){
   const h=window.InesHeader?.inspect(bytes);
@@ -37062,11 +37088,18 @@ async function run(bytes,name,{mode='continue',budget=null,seed=null,onProgress=
   try{
     session=await services.ExperimentSandbox.open();
     const request={romSha:sha,rom:bytes,trace:m.trace&&l.cartridge.chrRam?{maxReplays:mode==='deep'?6:3,maxFrames:60000}:null,
-      explore:{budget:inv.budget,seed:seed??((l.revision*2654435761)>>>0)^l.investigations.length,known:l.known,archive:resume&&archive?{cells:archive.cells,steps:archive.steps}:null,capture:true,pixels:true}};
+      explore:{budget:inv.budget,seed:seed??((l.revision*2654435761)>>>0)^l.investigations.length,known:l.known,archive:resume&&archive?{cells:archive.cells,steps:archive.steps}:null,capture:true,pixels:true,cadPort:cadPortOf(bytes,name)}};
     result=await session.run(request,{signal:controller,hardCancelMs:60000,onProgress:p=>{r.progress=p;onProgress?.(p);emit();}});
   }finally{session?.close?.('recovery run finished');}
-  const out=await absorb(l,inv,result,r.intent);active.delete(sha);emit();return out;
+  const out=await absorb(l,inv,result,r.intent);
+  // translated layouts (CAD-PORT) pick up the graphics the run captured: their pack is rebuilt and replaces the old one
+  try{if(out.registered&&services.CadPortRecovery?.recognize?.(bytes,name)?.recognized){const c=await services.CadPortRecovery.register(bytes,name,{quiet:true});
+    out.cadPort={screens:c.screens,withGraphics:c.withGraphics,editable:c.editable,editablePages:c.editablePages,capturedGraphics:c.capturedGraphics,already:!!c.already};
+    inv.cadPort=out.cadPort;await save(l);}}catch(e){out.cadPort={error:String(e.message||e)};}
+  active.delete(sha);emit();return out;
 }
+// the translated layouts this cartridge is recognized for, so a run can say which of their screens it saw
+function cadPortOf(bytes,name){try{const r=services.CadPortRecovery?.recognize?.(bytes,name);if(!r?.recognized)return null;return {game:r.game,definitions:r.definitions.filter(d=>d.structural!=='contradicted'&&!d.native).map(d=>d.id)};}catch(_){return null;}}
 // what a run found goes into the library (through FrameEvidence.registerFrame) and the ledger
 async function absorb(l,inv,result,intent){
   inv.ended=now();
@@ -37075,7 +37108,8 @@ async function absorb(l,inv,result,intent){
   for(const o of x.observations){
     const rec=o.record;if(!rec||rec.error||!rec.digests){inv.unrecorded=(inv.unrecorded||0)+1;continue;}
     try{const e=await services.FrameEvidence.registerFrame({...rec,label:('recovery '+inv.mode+' · '+o.why.join(', ')).slice(0,110)});
-      registered.push({entryId:e.id,frame:o.frame,why:o.why,matched:rec.synchronization?.state==='matched',scene:!!rec.scene,digest:rec.digests.all,run:inv.id,macro:o.macro||null,from:o.from||null,traced:false});}
+      registered.push({entryId:e.id,frame:o.frame,why:o.why,matched:rec.synchronization?.state==='matched',scene:!!rec.scene,digest:rec.digests.all,run:inv.id,macro:o.macro||null,from:o.from||null,traced:false,...(o.layouts?.length?{layouts:o.layouts}:{})});
+      if(o.displayed&&o.layouts?.length)await putDisplayed({id:l.sha256+':'+String(o.displayed.frame).padStart(9,'0')+':'+inv.id,sha256:l.sha256,frame:o.displayed.frame,run:inv.id,entryId:e.id,layouts:o.layouts,nametables:o.displayed.nametables,palette:o.displayed.palette,bgTable:o.displayed.bgTable,chr:o.displayed.chr,chrOffsets:o.displayed.chrOffsets});}
     catch(err){inv.unrecorded=(inv.unrecorded||0)+1;}
   }
   for(const t of x.traces||[]){if(t.error){l.blockers.push({kind:'trace',detail:t.error,at:now()});continue;}
@@ -37174,14 +37208,16 @@ async function assess(sha){
   if(cad?.recognized){const ver=cad.definitions.filter(d=>/independently verified/.test(d.runtimeStatus||'')).length;if(ver){rows.screens.verified+=ver;rows.metatiles.verified+=ver;rows.screens.basis.add('CAD-PORT definitions observed in two emulators');}}
   // traced CHR RAM: tiles whose native source is known and can be written back
   if(l?.graphics?.writableTiles){rows['CHR graphics'].writable+=l.graphics.writableTiles;rows['native ROM writeback'].writable+=l.graphics.writableTiles;rows['CHR graphics'].basis.add('CHR RAM tiles traced to PRG (direct copies)');}
-  const frames=items.filter(e=>e.kind==='frame'),matched=frames.filter(e=>/0 different pixels/.test(e.validation?.reason||'')||e.validation?.state==='accepted').length;
+  // pixel comparison: each runtime capture was rebuilt from its own data and compared with the rendered frame when recorded
+  const frames=items.filter(e=>e.kind==='frame');let matched=0,unchecked=0;
+  for(const e of frames.slice(0,4000)){let full=null;try{full=await L.entry(e.id);}catch(_){full=null;}if(/0 different pixels/.test(full?.validation?.reason||''))matched++;else unchecked++;}
   const cart=l?.cartridge||(bytes?cartridgeOf(bytes):null);
   const graphics=cart?(cart.chrRam?{source:'CHR RAM',tilesSeen:l?.known.tiles.length||0,traced:l?.graphics.traced.length?l.graphics.traced[l.graphics.traced.length-1].summary:null}
     :{source:'CHR ROM',banks:cart.chrKiB,observed:(l?.known.banks||[]).filter(b=>b<cart.chrKiB).length,unobserved:Math.max(0,cart.chrKiB-new Set((l?.known.banks||[]).filter(b=>b<cart.chrKiB)).size)}):null;
   const table=CATEGORIES.map(c=>{const r=rows[c];return {category:c,captured:r.captured,decoded:r.decoded,editable:r.editable,verified:r.verified,writable:r.writable,basis:[...r.basis].slice(0,6),
     state:r.verified&&r.writable?'verified and writable (some)':r.verified?'verified (some)':r.editable?'editable (some)':r.decoded?'decoded (some)':r.captured?'captured only':'nothing recovered'};});
   return {format:'NESForgeReconstructionReport',version:1,sha256:sha,name:l?.name||null,cartridge:cart,generated:now(),entries:items.length,
-    parity:{frames:frames.length,rebuiltWithoutDifference:matched,basis:'each runtime capture is rebuilt from its own nametables, palettes and CHR and compared with the emulator\'s rendered frame pixel for pixel when it is recorded'},
+    parity:{frames:frames.length,rebuiltWithoutDifference:matched,notRebuilt:unchecked,basis:'each runtime capture is rebuilt from its own nametables, palettes and CHR and compared with the emulator\'s rendered frame pixel for pixel when it is recorded'},
     graphics,table,ledger:l?summary(l):null,
     verdict:'Not reconstructed 1:1: '+table.filter(r=>r.state==='nothing recovered').map(r=>r.category).join(', ')+(table.some(r=>r.state==='nothing recovered')?' have no recovered resources; ':'')+'a category counts as recovered here only with evidence, not because entries exist.'};
 }
@@ -37223,7 +37259,7 @@ if(C?.register){
   C.register({name:'recovery.report',group:'recovery',title:'Reconstruction report',summary:'Per resource category: captured, decoded, editable, independently verified and writable, with the evidence basis.',args:{sha256:{type:'string'}},run:async a=>assess(a?.sha256||(await hex256(pickBytes(a).bytes)))});
 }
 services.RecoveryLedger=Object.freeze({MODES,CATEGORIES,run,stop,pause:sha=>stop(sha,'pause'),cancel:sha=>stop(sha,'cancel'),current,recordGameplay,recording:()=>({on:rec.on,sha256:rec.sha,observations:rec.observations,seeds:rec.seeds,fromPowerOn:rec.fromPowerOn}),
-  ledger,read:readLedger,archive:readArchive,assess,status,subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},categoriesOf,romBytes,hex256});
+  ledger,read:readLedger,archive:readArchive,displayed:displayedFor,assess,status,subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},categoriesOf,romBytes,hex256});
 })();
 /*
  * NES FORGE MODULE: src/services/pose-links.js
@@ -37619,7 +37655,9 @@ const session={registered:new Map(),last:null,pending:0,waiters:[]};
 const settle=()=>{if(session.pending>0)return;const w=session.waiters.splice(0);for(const f of w)f();};
 // resolves when no import-time registration is in flight (tests and tools count the library after it)
 function settled(){return session.pending?new Promise(r=>session.waiters.push(r)):Promise.resolve();}
-// an editable copy holds at most this many pages (each Forge scene carries its own 256-tile sheet); the resource lists all
+// AL-REC-01: every page with established graphics becomes editable. A project part holds at most this many pages (each
+// Forge scene carries its own 256-tile sheet, which bounds a project's memory); a definition with more pages gets
+// several linked parts, listed in its resource, instead of losing the pages after the twelfth
 const PROJECT_PAGES=12;
 
 // ---------- recognition ----------
@@ -37691,7 +37729,7 @@ function png(width,height,indexes,colours){ // a minimal indexed PNG (stored def
 // states it or as Agent Lab located it in CHR ROM while the game drew the screens on this revision; and a palette,
 // constant in the configuration, a cartridge table, or observed on this revision. Never guessed.
 function graphicsOf(rom,def,rec){
-  let chr=null,chrBasis=null,pal=null,palBasis=null;
+  let chr=null,chrBasis=null,pal=null,palBasis=null,partial=null;
   // what Agent Lab saw this revision use while it drew these screens comes first; the configuration's statement next
   if(rec?.graphics?.source==='chr-rom'&&Array.isArray(rec.graphics.kilobytes)&&rec.graphics.kilobytes.length===4&&rec.graphics.kilobytes.every(o=>Number.isInteger(o)&&o>=16&&o+1024<=rom.length)){
     chr=new Uint8Array(4096);rec.graphics.kilobytes.forEach((o,k)=>chr.set(rom.subarray(o,o+1024),k*1024));chrBasis='located in CHR ROM while the game drew these screens on this revision ('+rec.graphics.kilobytes.map(hex).join(', ')+')';}
@@ -37700,7 +37738,9 @@ function graphicsOf(rom,def,rec){
     const t=new Uint8Array(4096),covered=new Set();let ok=true;
     for(const [first,count,offset] of rec.graphics.runs){if(!(Number.isInteger(first)&&Number.isInteger(count)&&Number.isInteger(offset)&&offset>=16&&offset+count*16<=rom.length&&first+count<=256)){ok=false;break;}t.set(rom.subarray(offset,offset+count*16),first*16);for(let k=0;k<count;k++)covered.add(first+k);}
     for(const [tile,value] of rec.graphics.uniform){if(!(Number.isInteger(tile)&&tile>=0&&tile<256&&Number.isInteger(value))){ok=false;break;}t.fill(value&255,tile*16,tile*16+16);covered.add(tile);}
-    if(ok&&covered.size===256){chr=t;chrBasis='uploaded to CHR RAM from PRG while the game drew these screens on this revision ('+rec.graphics.runs.length+' run'+(rec.graphics.runs.length===1?'':'s')+' from '+hex(rec.graphics.runs[0][2])+')';}}
+    // AL-REC-01: a partly established table is used tile by tile: a page is drawn only when every tile it uses is
+    // established (see pack()); the table no longer has to be complete
+    if(ok&&covered.size){chr=t;chrBasis='uploaded to CHR RAM from PRG while the game drew these screens on this revision ('+rec.graphics.runs.length+' run'+(rec.graphics.runs.length===1?'':'s')+' from '+hex(rec.graphics.runs[0][2])+(covered.size<256?'; '+covered.size+' of 256 tiles established':'')+')';if(covered.size<256)partial=covered;}}
   else if(def.graphics?.source==='cartridge'){const o=def.graphics.offset;if(o>=16&&o+4096<=rom.length){chr=rom.slice(o,o+4096);chrBasis='stated by the CadEditor configuration (file '+hex(o)+'), not observed on this revision';}}
   if(Array.isArray(rec?.palette)&&rec.palette.length===16&&rec.graphics){pal=rec.palette.slice();palBasis='observed while the game drew these screens on this revision';}
   else if(def.palette?.source==='constant'){pal=def.palette.values.slice(0,16);palBasis='constant in the CadEditor configuration';}
@@ -37710,7 +37750,34 @@ function graphicsOf(rom,def,rec){
   // statement covers the whole definition
   const seen=[...new Set([...(rec?.runtime?.forge?.screens||[]),...(rec?.runtime?.fceux?.screens||[])])].sort((a,b)=>a-b);
   const observed=!!chr&&/while the game drew|uploaded to CHR RAM/.test(chrBasis);
-  return {chr,chrBasis,pal,palBasis,screens:observed?seen:null};
+  return {chr,chrBasis,pal,palBasis,screens:observed?seen:null,covered:partial};
+}
+// AL-REC-01: runtime captures as graphics for translated layouts. A capture (a validated frame the recovery ledger
+// recorded) holds the exact CHR, nametables and palette the game used at that frame. Where a translated screen is
+// found in a capture's nametables (the same band-voting matcher the observation tool uses), the capture's background
+// CHR and palette draw it: "captured graphics", exact for that frame, kept apart from graphics traced to the cartridge.
+const mirrorOf=(m,a)=>{a&=0xfff;return m===4?a:m===0?((a>>1)&0x400)|(a&0x3ff):m===1?a&0x7ff:m===3?0x400|(a&0x3ff):a&0x3ff;};
+const b64bytes=t=>{const s=atob(t||'');const out=new Uint8Array(s.length);for(let i=0;i<s.length;i++)out[i]=s.charCodeAt(i);return out;};
+async function capturesFor(rom,sha,{max=64}={}){
+  const R=services.RecoveryLedger;if(!R?.displayed)return [];
+  let list=[];try{list=await R.displayed(sha);}catch(_){list=[];}
+  const out=[],chrStart=16+((rom[6]&4)?512:0)+rom[4]*16384;
+  for(const d of list.slice(-max)){
+    let chr=d.chr?Uint8Array.from(d.chr):null;
+    if(!chr&&Array.isArray(d.chrOffsets)&&d.chrOffsets.length===4){chr=new Uint8Array(4096);d.chrOffsets.forEach((off,k)=>chr.set(rom.subarray(chrStart+off,chrStart+off+1024),k*1024));}
+    if(!chr||!Array.isArray(d.palette)||d.palette.length<16)continue;
+    out.push({frame:d.frame,entryId:d.entryId,nametables:Uint8Array.from(d.nametables),chr,palette:d.palette.slice(0,16),source:d.chr?'CHR RAM':'CHR ROM',layouts:d.layouts});
+  }
+  return out;
+}
+// which translated screens each runtime capture of this cartridge shows (diagnostics and the reconstruction report)
+async function captureMatches(bytes,name){
+  const rom=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes),r=recognize(rom,name);if(!r.recognized)return {recognized:false};
+  const caps=await capturesFor(rom,r.sha256),cat=CAT(),dec=DEC(),game=cat.games.find(g=>g.folder===r.game),out=[];
+  for(const d of r.definitions){const def=game.definitions.find(x=>x.id===d.id);if(!usable(d))continue;let projected;try{const x=dec.decodeAll(rom,def);projected=x.screens.map(sc=>dec.project(x,def,sc));}catch(_){continue;}
+    const hits=[];for(const c of caps){let m=[];try{m=dec.observeScreens(c.nametables,projected);}catch(_){m=[];}for(const h of m)hits.push({screen:h.screen,frame:c.frame,matched:h.matched,compared:h.compared});}
+    out.push({id:d.id,screens:projected.length,hits});}
+  return {recognized:true,captures:caps.length,definitions:out};
 }
 function render(page,chr,pal){ // the page as NES colour indexes, then an indexed PNG of the colours it uses
   const rgbOf=NES_RGB();if(!rgbOf)return null;const px=new Uint8Array(256*240);
@@ -37719,7 +37786,7 @@ function render(page,chr,pal){ // the page as NES colour indexes, then an indexe
   const used=[...new Set(px)].sort((x,y)=>x-y),slot=new Map(used.map((c,i)=>[c,i]));for(let i=0;i<px.length;i++)px[i]=slot.get(px[i]);
   return png(256,240,px,used.map(c=>rgbOf[c]||[0,0,0]));
 }
-async function pack(bytes,name,{recognition=null}={}){
+async function pack(bytes,name,{recognition=null,captures=null}={}){
   const rom=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes),r=recognition||recognize(rom,name);if(!r.recognized)fail('this cartridge is not recognized by a translated definition');
   const cat=CAT(),dec=DEC(),game=cat.games.find(g=>g.folder===r.game),enc=new TextEncoder(),files=[],summary=[],up=cat.upstream;
   for(const d of r.definitions){
@@ -37728,7 +37795,14 @@ async function pack(bytes,name,{recognition=null}={}){
     const projected=screens.map(s=>dec.project(decoded,def,s)),pages=[];
     projected.forEach((p,si)=>dec.pages(p).forEach((pg,k)=>pages.push({screen:si,page:k,x:pg.x,y:pg.y,width:pg.width,height:pg.height,palettesStated:Math.round(pg.palettesStated*1000)/1000,nt:pg.nt,attr:pg.attr})));
     if(!pages.length||pages.length>4096){summary.push({id:d.id,included:false,reason:'no pages'});continue;}
-    const g=graphicsOf(rom,def,d),lvl=level(d);
+    let g=graphicsOf(rom,def,d);const lvl=level(d);
+    if(!g.chr&&captures?.length){
+      // which of this definition's screens each capture shows
+      const found=new Map();
+      for(const c of captures){let hits=[];try{hits=dec.observeScreens(c.nametables,projected);}catch(_){hits=[];}for(const h of hits){const si=h.screen??h.index;if(Number.isInteger(si)&&!found.has(si))found.set(si,c);}}
+      if(found.size){const first=[...found.values()][0];
+        g={chr:first.chr,chrBasis:'captured at runtime (frame '+first.frame+', '+first.source+' as the game had it): exact for the screens it was seen drawing; not traced to the cartridge',pal:first.palette,palBasis:'captured with the same frame',screens:[...found.keys()].sort((x,y)=>x-y),covered:null,captured:found};}
+    }
     const resource={resource:{id:'cad-port:'+d.id,label:(game.title||game.folder)+' · '+def.config.replace(/^Settings_|\.cs$/g,'')+' · '+screens.length+' screen'+(screens.length===1?'':'s'),
       reason:'Translated from CadEditor ('+up.repository+', '+String(up.commit).slice(0,7)+', MIT). '+lvl+'. Layout only: '+(g.chr?'graphics '+g.chrBasis+(g.screens?', established for screens '+g.screens.join(', ')+' only':'')+'.':'graphics not established for this cartridge (CadEditor reads them from an emulator dump, which is not included).')},
       pages,source:{sha256:r.sha256,blocks:{format:def.blocks.format,fileOffset:def.blocks.offset,count:def.blocks.count,...(def.blocks.paletteOffset!==undefined?{paletteFileOffset:def.blocks.paletteOffset}:{})},
@@ -37736,17 +37810,29 @@ async function pack(bytes,name,{recognition=null}={}){
         screens:screens.map(s=>({index:s.index,fileOffset:s.offset,length:s.length,width:s.width,height:s.height}))},
       evidence:{level:lvl,structural:d.structural,log10Chance:d.log10Chance,control:d.control,runtime:d.runtime,graphics:g.chr?g.chrBasis:null,palette:g.pal?g.palBasis:null},
       translation:{definition:d.id,config:def.config,upstream:{project:up.project,repository:up.repository,commit:up.commit,license:up.license,copyright:up.copyright}}};
-    files.push({name:'resources/'+base+'.json',data:enc.encode(JSON.stringify(resource))});
-    let preview=false,project=false;
-    const drawn=g.screens?pages.filter(pg=>g.screens.includes(pg.screen)):pages; // the pages these graphics are established for
-    if(g.chr&&g.pal&&drawn.length){const img=render(drawn[0],g.chr,g.pal);if(img){files.push({name:'resources/'+base+'.png',data:img});preview=true;}
+    const resourceAt=files.length;files.push({name:'resources/'+base+'.json',data:null});
+    let preview=false,project=false;const projectFiles=[];
+    const seenWith=g.screens?pages.filter(pg=>g.screens.includes(pg.screen)):pages; // the pages these graphics are established for
+    // with a partly established CHR RAM table, only pages whose every tile is established are drawn
+    const drawn=g.covered?seenWith.filter(pg=>pg.nt.every(t=>g.covered.has(t))):seenWith,withoutTiles=seenWith.length-drawn.length;
+    // captured graphics are per screen: each page is drawn with the capture that showed its screen
+    const chrOf=pg=>g.captured?.get(pg.screen)?.chr||g.chr,palOf=pg=>g.captured?.get(pg.screen)?.palette||g.pal,tileSheets=new Map();
+    const tilesOf=pg=>{const c=chrOf(pg);if(!tileSheets.has(c))tileSheets.set(c,decodeTiles(Array.from(c)));return tileSheets.get(c);};
+    if(g.chr&&g.pal&&drawn.length){const img=render(drawn[0],chrOf(drawn[0]),palOf(drawn[0]));if(img){files.push({name:'resources/'+base+'.png',data:img});preview=true;}
       // an editable copy: Forge scenes made by Forge's own constructor and normalization (makeScene, ProjectStore.prepareLoad)
       if(typeof makeScene==='function'&&typeof decodeTiles==='function'&&services.ProjectStore?.prepareLoad){
-        const chr=decodeTiles(Array.from(g.chr)),palette=[0,1,2,3].map(i=>g.pal.slice(i*4,i*4+4)),scenes=drawn.slice(0,PROJECT_PAGES).map((pg,i)=>makeScene({id:'cad-port-'+base.replace(/\//g,'-')+'-'+i,name:'Screen '+pg.screen+(drawn.filter(x=>x.screen===pg.screen).length>1?' · page '+pg.page:''),
-          nt:pg.nt,attr:pg.attr,chr,pal:palette,sceneType:'static',scrollDir:'none',gravity:0,captureMeta:{cadPort:{version:VERSION,definition:d.id,screen:pg.screen,page:pg.page,sourceSha256:r.sha256,fileOffset:screens[pg.screen].offset,level:lvl}}}));
-        const doc={format:'NESForge',version:services.ProjectStore.schema,projectName:((game.title||game.folder)+' · '+def.config.replace(/^Settings_|\.cs$/g,'')+' (translated layout)').slice(0,120),scenes,activeScene:0,metasprites:[],animations:[],worlds:[],asmSource:'',mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,instruments:[],patterns:[],orderList:[],sfx:[],tempo:150,speed:6,audRows:64};
-        const prepared=services.ProjectStore.prepareLoad(doc);files.push({name:'projects/'+base+'.nesforge.json',data:enc.encode(JSON.stringify({...doc,scenes:prepared.scenes}))});project=true;}}
-    summary.push({id:d.id,included:true,screens:screens.length,pages:pages.length,level:lvl,preview,project,...(project?{projectPages:Math.min(drawn.length,PROJECT_PAGES)}:{}),graphics:g.chr?g.chrBasis:null,...(g.screens?{graphicsFor:'screens '+g.screens.join(', ')+' (seen drawn with them)'}:{})});
+        const parts=Math.ceil(drawn.length/PROJECT_PAGES),paletteOf=pg=>[0,1,2,3].map(i=>palOf(pg).slice(i*4,i*4+4)),title=((game.title||game.folder)+' · '+def.config.replace(/^Settings_|\.cs$/g,'')+' (translated layout)');
+        projectFiles.length=0;
+        for(let k=0;k<parts;k++){
+          const scenes=drawn.slice(k*PROJECT_PAGES,(k+1)*PROJECT_PAGES).map((pg,j)=>{const i=k*PROJECT_PAGES+j;return makeScene({id:'cad-port-'+base.replace(/\//g,'-')+'-'+i,name:'Screen '+pg.screen+(drawn.filter(x=>x.screen===pg.screen).length>1?' · page '+pg.page:''),
+            nt:pg.nt,attr:pg.attr,chr:tilesOf(pg),pal:paletteOf(pg),sceneType:'static',scrollDir:'none',gravity:0,captureMeta:{cadPort:{version:VERSION,definition:d.id,screen:pg.screen,page:pg.page,sourceSha256:r.sha256,fileOffset:screens[pg.screen].offset,level:lvl,...(parts>1?{part:k+1,parts}:{}),...(g.captured?{graphics:'captured at runtime, frame '+g.captured.get(pg.screen).frame,captureEntry:g.captured.get(pg.screen).entryId}:{})}}});});
+          const doc={format:'NESForge',version:services.ProjectStore.schema,projectName:(title.slice(0,parts>1?100:120)+(parts>1?' · part '+(k+1)+' of '+parts:'')).slice(0,120),scenes,activeScene:0,metasprites:[],animations:[],worlds:[],asmSource:'',mapper:0,mirroring:'v',hasSRAM:false,prgBanks:1,chrBanks:1,packScenes:true,importedRom:null,instruments:[],patterns:[],orderList:[],sfx:[],tempo:150,speed:6,audRows:64};
+          const prepared=services.ProjectStore.prepareLoad(doc),name='projects/'+base+(parts>1?'.part-'+String(k+1).padStart(2,'0'):'')+'.nesforge.json';
+          files.push({name,data:enc.encode(JSON.stringify({...doc,scenes:prepared.scenes}))});projectFiles.push(name);}
+        project=true;}}
+    if(projectFiles.length>1)resource.projects={parts:projectFiles,pagesPerPart:PROJECT_PAGES,pages:drawn.length,note:'every page with established graphics, in '+projectFiles.length+' linked project parts'};
+    files[resourceAt].data=enc.encode(JSON.stringify(resource));
+    summary.push({id:d.id,included:true,screens:screens.length,pages:pages.length,level:lvl,preview,project,...(project?{projectPages:drawn.length,projectParts:projectFiles.length}:{}),...(withoutTiles?{pagesWithUnestablishedTiles:withoutTiles}:{}),graphics:g.chr?g.chrBasis:null,...(g.screens?{graphicsFor:'screens '+g.screens.join(', ')+' (seen drawn with them)'}:{})});
   }
   const included=summary.filter(s=>s.included);if(!included.length)fail('no translated definition applies to this cartridge');
   const report={format:'NESForgeNativeExtraction',game:(game.title||game.folder)+' · CadEditor-derived layouts',rom:{sha256:r.sha256,byteLength:rom.length},origin:'cad-port',
@@ -37762,12 +37848,16 @@ async function pack(bytes,name,{recognition=null}={}){
 }
 async function register(bytes,name,{recognition=null,quiet=false}={}){
   const r=recognition||recognize(bytes,name);if(!r.recognized)return {registered:false,reason:'not recognized',recognition:summarize(r)};
-  const p=await pack(bytes,name,{recognition:r});
+  const captures=await capturesFor(bytes instanceof Uint8Array?bytes:new Uint8Array(bytes),r.sha256);
+  const p=await pack(bytes,name,{recognition:r,captures});
   if(!services.ResourceLibrary?.register)fail('the resource library is not available');
-  const result=await services.ResourceLibrary.register(p.zip,{name:(r.title)+' · CadEditor-derived layouts.zip'});
+  const packName=(r.title)+' · CadEditor-derived layouts.zip',result=await services.ResourceLibrary.register(p.zip,{name:packName});
+  // a pack rebuilt with more evidence (new runtime captures) replaces this cartridge's earlier one, so the library
+  // keeps one copy of each translated layout
+  if(!result.already&&result.packSha256)try{const listed=await F.commands.run('library.packs');for(const old of (listed.ok?listed.result:[]))if(old.sourceSha256===r.sha256&&old.name===packName&&old.packSha256!==result.packSha256)await services.ResourceLibrary.discard(old.packSha256);}catch(_){/* the older pack stays; nothing is lost */}
   const included=p.definitions.filter(d=>d.included),screens=included.reduce((n,d)=>n+d.screens,0);
   const out={registered:true,already:!!result.already,packSha256:result.packSha256,game:r.game,title:r.title,basis:r.basis,definitions:included.length,screens,
-    withGraphics:included.filter(d=>d.preview).length,editable:included.filter(d=>d.project).length,skipped:p.definitions.filter(d=>!d.included)};
+    withGraphics:included.filter(d=>d.preview).length,editable:included.filter(d=>d.project).length,editablePages:included.reduce((n,d)=>n+(d.projectPages||0),0),capturedGraphics:included.filter(d=>/captured at runtime/.test(d.graphics||'')).length,captures:captures.length,skipped:p.definitions.filter(d=>!d.included)};
   session.registered.set(r.sha256,out);session.last=out;
   if(!quiet&&!out.already)window.showToast?.('CadEditor-derived layouts for '+r.title+': '+screens+' screens from '+included.length+' definition'+(included.length===1?'':'s')+' added to your Resource library ('+r.basis+').');
   try{window.dispatchEvent(new CustomEvent('forge:cad-port-registered',{detail:cp(out)}));}catch(_){/* no DOM events */}
@@ -37812,7 +37902,7 @@ setTimeout(()=>{
   })().catch(error=>{session.last={registered:false,error:String(error?.message||error).slice(0,300)};}).finally(()=>{session.pending--;settle();});});
 },0);
 
-services.CadPortRecovery=Object.freeze({version:VERSION,recognize,pack,register,intake,coverage,settled,status:()=>({auto:autoEnabled(),registered:[...session.registered.values()].map(cp),last:session.last?cp(session.last):null})});
+services.CadPortRecovery=Object.freeze({captureMatches,version:VERSION,recognize,pack,register,intake,coverage,settled,status:()=>({auto:autoEnabled(),registered:[...session.registered.values()].map(cp),last:session.last?cp(session.last):null})});
 if(C?.register){
   C.register({name:'cadport.recognize',group:'cadport',title:'Recognize a ROM against the translated CadEditor catalog',summary:'Title hint and structure, or an exact revision observed at runtime; per definition: structural state, runtime observations and the coverage level.',
     args:{bytes:{type:'bytes',required:true},name:{type:'string',default:'rom.nes'}},run:a=>summarize(recognize(a.bytes,a.name))});

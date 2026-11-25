@@ -39,17 +39,23 @@ const MACROS=Object.freeze([
   ['wait',120,()=>0],
   ['random',150,(f,r)=>r(f)],
 ]);
-// power-on input scripts, played from reset; steps are [mask, frames] (the CAD-PORT observation script format)
+// power-on input scripts, played from reset on a cartridge's first run (about 12,500 frames together); steps are
+// [mask, frames] (the CAD-PORT observation script format)
 const WALK=[].concat(...Array.from({length:12},(_,i)=>[[BTN.Right,50],[BTN.Right|(i&1?BTN.B:BTN.A),8]]));
 const BOOTS=Object.freeze([
   {label:'two Starts',steps:[[0,120],[BTN.Start,5],[0,115],[BTN.Start,5],[0,115],...WALK]},
   {label:'three Starts',steps:[[0,180],[BTN.Start,6],[0,120],[BTN.Start,6],[0,180],[BTN.Start,6],[0,300],...WALK]},
   {label:'late Start (long intro)',steps:[[0,1400],[BTN.Start,6],[0,400],[BTN.Start,6],[0,300],[BTN.A,6],[0,200],...WALK]},
   {label:'Start, then A to confirm',steps:[[0,200],[BTN.Start,6],[0,90],[BTN.A,6],[0,90],[BTN.Start,6],[0,240],...WALK]},
+  {label:'five Starts, then a long walk right',steps:[[0,180],[BTN.Start,6],[0,120],[BTN.Start,6],[0,180],[BTN.Start,6],[0,240],[BTN.Start,6],[0,240],...[].concat(...Array.from({length:40},(_,i)=>[[BTN.Right,50],[BTN.Right|(i&1?BTN.B:BTN.A),8]]))]},
   {label:'attract mode (no input)',steps:[[0,2400]]},
 ]);
 const framesOf=steps=>steps.reduce((n,s)=>n+s[1],0);
 const scriptMask=(steps,f)=>{let at=0;for(const [m,n] of steps){if(f<at+n)return m;at+=n;}return 0;};
+// load a cartridge for a run: the page's own emulation loop is stopped, so only the run advances frames (otherwise
+// the loop would add frames between the run's own and input paths would not replay)
+function load(rom,label){if(!emuLoadRomData(rom,label,0))fail('the emulator refused the cartridge');hold();}
+function hold(){try{if(typeof emuPause==='function')emuPause();}catch(_){}if(emu.rafId){try{cancelAnimationFrame(emu.rafId);}catch(_){}emu.rafId=null;}emu.running=false;}
 function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296;};}
 function fnv(bytes,from=0,to=bytes.length,h=0x811c9dc5){for(let i=from;i<to;i++)h=Math.imul(h^bytes[i],0x01000193);return h>>>0;}
 const hex=v=>(v>>>0).toString(16).padStart(8,'0');
@@ -87,7 +93,7 @@ async function run(opts={}){
   const budget={frames:20000,wallMs:180000,cells:400,observations:150,stateBytes:48*1024*1024,stall:60,...(opts.budget||{})};
   const t0=performance.now(),random=rng(opts.seed||0x5eed),known={blocks:new Set(opts.known?.blocks||[]),tiles:new Set(opts.known?.tiles||[]),banks:new Set((opts.known?.banks||[]).map(Number)),palettes:new Set(opts.known?.palettes||[]),sprites:new Set(opts.known?.sprites||[])};
   const before={blocks:known.blocks.size,tiles:known.tiles.size,banks:known.banks.size,palettes:known.palettes.size,sprites:known.sprites.size};
-  let mask=0,frames=0,stateBytes=0,steps=0,stall=0,stopReason=null;
+  let mask=0,frames=0,stateBytes=0,steps=0,stall=0,stopReason=null,prevStepOuter=null;const seenScreens=new Set(opts.known?.screens||[]);
   const prevJoy=emuReadJoyState;emuReadJoyState=function(){return mask;};
   const cells=new Map(),observations=[],transitions=[];
   const sizeOf=s=>{let n=0;const walk=v=>{if(v&&typeof v==='object'){if(ArrayBuffer.isView(v))n+=v.byteLength;else for(const x of Object.values(v))walk(x);}else n+=8;};walk(s.emu);return n+4096;};
@@ -95,11 +101,24 @@ async function run(opts={}){
   const step=async(n,maskOf)=>{for(let f=0;f<n;f++){mask=maskOf(f);emuRunFrame();frames++;if((f&15)===15&&performance.now()-chunk>12){mask=0;await new Promise(r=>setTimeout(r,0));chunk=performance.now();}}mask=0;};
   let chunk=performance.now();
   try{
+    // translated layouts (CAD-PORT) of this game: each observation says which of their screens it shows
+    const cadPort=[];if(opts.cadPort?.game&&window.CadPortCatalog&&window.CadPortDecoders){const D=window.CadPortDecoders,g=window.CadPortCatalog.games.find(x=>x.folder===opts.cadPort.game);
+      for(const id of opts.cadPort.definitions||[]){const def=g?.definitions.find(x=>x.id===id);if(!def)continue;try{const x=D.decodeAll(opts.rom||emu.lastBuiltRom,def);cadPort.push({id,projections:x.screens.map(sc=>D.project(x,def,sc))});}catch(_){}}}
+    // what the frame displayed: the nametables, background CHR and palette at the entry of the game's NMI handler (by
+    // the end of the emulated frame the handler has often started writing the next frame's data)
+    let displayed=null,nmiTarget=-1;const vectorOf=()=>{try{return cpuRead(0xfffa)|(cpuRead(0xfffb)<<8);}catch(_){return -1;}};
+    const snapDisplayed=()=>{const nt=new Uint8Array(4096);for(let a=0;a<4096;a++)nt[a]=emu.vram[ppuMirror(a)%emu.vram.length];const bg=emu.ppuCtrl&16?4096:0;
+      displayed={frame:emu.frameCount,nametables:nt,palette:Array.from(emu.palRam.subarray(0,16)),bgTable:bg,chr:emu.hasChrRam?emu.chrRam.slice(bg,bg+4096):null,chrOffsets:emu.hasChrRam?null:[0,1,2,3].map(k=>{const a=bg+k*1024;return emu.mapper===4?(emu.chrPages?.[a>>10]||0):(a<4096?emu.chrBank0:emu.chrBank1)+(a&4095);})};};
+    const prevStep=cadPort.length?cpuStepRaw:null;prevStepOuter=prevStep;
+    if(prevStep)cpuStepRaw=function(...args){if((emu.PC&0xffff)===nmiTarget)snapDisplayed();return prevStep.apply(this,args);};
+    const logicalNametables=()=>displayed?displayed.nametables:(()=>{const nt=new Uint8Array(4096);for(let a=0;a<4096;a++)nt[a]=emu.vram[ppuMirror(a)%emu.vram.length];return nt;})();
+    const matchLayouts=()=>{if(!cadPort.length)return null;nmiTarget=vectorOf();const nt=logicalNametables(),out=[];for(const c of cadPort){let m=[];try{m=window.CadPortDecoders.observeScreens(nt,c.projections);}catch(_){m=[];}for(const h of m)out.push({definition:c.id,screen:h.screen,matched:h.matched,compared:h.compared});}return out;};
     const observe=async(why,cell,s,macro)=>{
       if(observations.length>=budget.observations)return null;
       let record=null;
       if(opts.capture!==false&&services.FrameEvidence?.capture){try{record=await services.FrameEvidence.capture({label:'recovery: '+why.join(', '),links:false,scene:true,pixels:!!opts.pixels});}catch(e){record={error:String(e.message||e)};}}
-      const o={index:observations.length,frame:emu.frameCount,why,cell:cell.key,from:cell.label,macro,path:cell.path,scroll:s.scroll,palette:s.pal,banks:s.banks,newTiles:s.newTiles,record};
+      const layouts=s.layouts||matchLayouts(),o={index:observations.length,frame:emu.frameCount,why,cell:cell.key,from:cell.label,macro,path:cell.path,scroll:s.scroll,palette:s.pal,banks:s.banks,newTiles:s.newTiles,record,layouts,
+        ...(layouts?.length&&displayed?{displayed:{frame:displayed.frame,nametables:displayed.nametables,palette:displayed.palette,bgTable:displayed.bgTable,chr:displayed.chr,chrOffsets:displayed.chrOffsets}}:{})};
       observations.push(o);return o;
     };
     // the cold or resumed starting point itself is an observation if it shows anything new
@@ -109,7 +128,8 @@ async function run(opts={}){
       const nk=s.banks.filter(b=>!known.banks.has(b));if(nk.length)why.push('graphics (CHR banks '+nk.join(', ')+')');
       if(!known.palettes.has(s.pal))why.push('palette');
       const ns=s.sprites.filter(x=>!known.sprites.has(x));if(ns.length>=4)why.push('sprites ('+ns.length+' new patterns)');
-      return {why,commit(){for(const b of s.blocks)known.blocks.add(b);for(const t of s.tiles)known.tiles.add(t);for(const b of s.banks)known.banks.add(b);known.palettes.add(s.pal);for(const x of s.sprites)known.sprites.add(x);}};};
+      if(cadPort.length){s.layouts=matchLayouts();const fresh=(s.layouts||[]).filter(m=>!seenScreens.has(m.definition+'#'+m.screen));if(fresh.length)why.push('translated screen'+(fresh.length===1?'':'s')+' seen ('+fresh.map(m=>m.definition.split('/').pop()+' #'+m.screen).join(', ')+')');s.freshScreens=fresh;}
+      return {why,commit(){for(const m of s.freshScreens||[])seenScreens.add(m.definition+'#'+m.screen);for(const b of s.blocks)known.blocks.add(b);for(const t of s.tiles)known.tiles.add(t);for(const b of s.banks)known.banks.add(b);known.palettes.add(s.pal);for(const x of s.sprites)known.sprites.add(x);}};};
     // the starting points: a resumed archive, the ledger's seeds, or a cold boot
     if(opts.archive?.cells?.length){for(const c of opts.archive.cells)addCell(c.key,c.state,c.path,c.parent,c.label);steps=opts.archive.steps||0;}
     for(const s of opts.seeds||[])addCell('seed:'+s.label,s.state,s.path||null,null,s.label);
@@ -118,16 +138,17 @@ async function run(opts={}){
       if(!(opts.rom instanceof Uint8Array))fail('a first run needs the cartridge');
       const boots=(opts.boots||BOOTS.map((_,i)=>i)).map(b=>typeof b==='number'?{index:b,...BOOTS[b]}:{index:-1,...b});
       for(const boot of boots){
-        if(!emuLoadRomData(opts.rom,'recovery',0))fail('the emulator refused the cartridge');
+        load(opts.rom,'recovery');
         const total=framesOf(boot.steps);let prevCell=null;
         for(let f=0;f<total;f+=30){const n=Math.min(30,total-f);await step(n,x=>scriptMask(boot.steps,f+x));
           const seg=boot.index>=0?['script',boot.index,f+n]:['input',boot.steps,f+n],s=sample();
           if(f+n>=120&&!cells.has(s.cell)&&cells.size<budget.cells){const c=addCell(s.cell,T.machineState(),[seg],prevCell,boot.label+' · frame '+(f+n));transitions.push({from:prevCell,to:c.key,macro:boot.label,scroll:s.scroll});prevCell=c.key;}
           scripted.push({s,cell:cells.get(s.cell)||{key:'script',label:boot.label,path:[seg]},boot:boot.label,path:[seg]});
           const e=evaluate(s);if(e.why.length){const o=await observe(e.why,cells.get(s.cell)||{key:s.cell,label:boot.label},s,boot.label);if(o)o.path=[seg];}e.commit();
-          if(frames>=budget.frames*(opts.bootShare||0.4)||performance.now()-t0>=budget.wallMs*(opts.bootShare||0.4))break;}
+          if(frames>=budget.frames||performance.now()-t0>=budget.wallMs)break;}
       }
-    }else if(opts.rom instanceof Uint8Array&&!emu.loaded){if(!emuLoadRomData(opts.rom,'recovery',0))fail('the emulator refused the cartridge');}
+    }else if(opts.rom instanceof Uint8Array&&!emu.loaded){load(opts.rom,'recovery');}
+    hold();
     if(!cells.size)fail('no starting state: the boot scripts reached nothing within the budget');
     if(!scripted.length){const first=[...cells.values()][0];T.applyMachineState(first.state);const s=sample(),e=evaluate(s);if(e.why.length)await observe(e.why,first,s,null);e.commit();}
     while(true){
@@ -154,17 +175,17 @@ async function run(opts={}){
       if(cells.size>=budget.cells&&stateBytes>=budget.stateBytes){stopReason='state budget reached';break;}
       opts.onProgress?.({steps,frames,cells:cells.size,observations:observations.length,ms:Math.round(performance.now()-t0)});
     }
-  }finally{emuReadJoyState=prevJoy;mask=0;}
+  }finally{emuReadJoyState=prevJoy;mask=0;if(prevStepOuter)cpuStepRaw=prevStepOuter;}
   const gained={blocks:known.blocks.size-before.blocks,tiles:known.tiles.size-before.tiles,banks:known.banks.size-before.banks,palettes:known.palettes.size-before.palettes,sprites:known.sprites.size-before.sprites};
   return {format:'NESForgeRecoveryRun',version:1,stopReason,steps,frames,ms:Math.round(performance.now()-t0),budget,cells:cells.size,stateBytes,gained,observations,transitions:transitions.slice(-2000),
-    known:{blocks:[...known.blocks],tiles:[...known.tiles],banks:[...known.banks],palettes:[...known.palettes],sprites:[...known.sprites]},
+    known:{blocks:[...known.blocks],tiles:[...known.tiles],banks:[...known.banks],palettes:[...known.palettes],sprites:[...known.sprites],screens:[...seenScreens]},
     archive:{steps,cells:[...cells.values()].map(c=>({key:c.key,state:c.state,path:c.path,parent:c.parent,label:c.label}))}};
 }
 // ---------- exact replay of an input path from power-on (for tracing) ----------
 // path: [['script', bootIndex, frames] or ['input', steps, frames], then [macroIndex, seed, framesPlayed], ...]
 async function replay(rom,path,{onFrame=null,loaded=false}={}){
   if(!allowedHere())fail('replays run only in an isolated copy of the editor');
-  if(!loaded&&!emuLoadRomData(rom,'recovery replay',0))fail('the emulator refused the cartridge');
+  if(!loaded)load(rom,'recovery replay');else hold();
   let mask=0;const prevJoy=emuReadJoyState;emuReadJoyState=function(){return mask;};let chunk=performance.now();
   const play=async(n,maskOf)=>{for(let f=0;f<n;f++){mask=maskOf(f);emuRunFrame();onFrame?.();if((f&15)===15&&performance.now()-chunk>12){mask=0;await new Promise(r=>setTimeout(r,0));chunk=performance.now();}}mask=0;};
   try{

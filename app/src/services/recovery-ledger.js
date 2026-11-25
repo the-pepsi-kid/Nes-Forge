@@ -22,7 +22,7 @@
 (()=>{
 'use strict';
 const F=window.Forge,services=F.services,C=F.commands;
-const DB='nes-forge-recovery',DBV=1,FORMAT='NESForgeRecoveryLedger',VERSION=1;
+const DB='nes-forge-recovery',DBV=2,FORMAT='NESForgeRecoveryLedger',VERSION=1;
 const MODES=Object.freeze({
   continue:{label:'Continue Recovery',budget:{frames:20000,wallMs:180000,observations:120,cells:400},trace:false},
   missing:{label:'Investigate Missing Resources',budget:{frames:30000,wallMs:300000,observations:150,cells:500,stall:90},trace:false},
@@ -32,9 +32,11 @@ const MODES=Object.freeze({
 function fail(m){throw Error('Recovery: '+m);}
 const now=()=>Date.now();
 // ---------- storage ----------
-let dbPromise=null;const memory={ledgers:new Map(),archives:new Map()};
+let dbPromise=null;const memory={ledgers:new Map(),archives:new Map(),displayed:new Map()};
 function idb(){if(typeof indexedDB==='undefined')return null;if(!dbPromise)dbPromise=new Promise((resolve,reject)=>{const r=indexedDB.open(DB,DBV);
-  r.onupgradeneeded=()=>{const d=r.result;for(const s of ['ledgers','archives'])if(!d.objectStoreNames.contains(s))d.createObjectStore(s,{keyPath:'sha256'});};
+  r.onupgradeneeded=()=>{const d=r.result;for(const s of ['ledgers','archives'])if(!d.objectStoreNames.contains(s))d.createObjectStore(s,{keyPath:'sha256'});
+    // what a frame displayed when a run saw translated screens in it (nametables, background CHR, palette): graphics evidence
+    if(!d.objectStoreNames.contains('displayed'))d.createObjectStore('displayed',{keyPath:'id'});};
   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);}).catch(()=>null);return dbPromise;}
 async function op(store,mode,fn){const d=await idb();if(!d){return fn(null,memory[store]);}
   return new Promise((resolve,reject)=>{const tx=d.transaction(store,mode),st=tx.objectStore(store);let out;const q=fn(st,null);if(q)q.onsuccess=()=>{out=q.result;};tx.oncomplete=()=>resolve(out);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}
@@ -42,6 +44,9 @@ const readLedger=sha=>op('ledgers','readonly',(st,m)=>st?st.get(sha):m.get(sha)|
 const writeLedger=l=>op('ledgers','readwrite',(st,m)=>st?st.put(l):(m.set(l.sha256,l),null));
 const readArchive=sha=>op('archives','readonly',(st,m)=>st?st.get(sha):m.get(sha)||null).then(v=>v||null);
 const writeArchive=a=>op('archives','readwrite',(st,m)=>st?st.put(a):(m.set(a.sha256,a),null));
+const putDisplayed=d=>op('displayed','readwrite',(st,m)=>st?st.put(d):(m.set(d.id,d),null));
+async function displayedFor(sha){const lo=sha+':',hi=sha+':\uffff';
+  return (await op('displayed','readonly',(st,m)=>st?st.getAll(IDBKeyRange.bound(lo,hi)):[...m.values()].filter(d=>d.id>=lo&&d.id<=hi)))||[];}
 async function hex256(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');}
 function cartridgeOf(bytes){
   const h=window.InesHeader?.inspect(bytes);
@@ -73,11 +78,18 @@ async function run(bytes,name,{mode='continue',budget=null,seed=null,onProgress=
   try{
     session=await services.ExperimentSandbox.open();
     const request={romSha:sha,rom:bytes,trace:m.trace&&l.cartridge.chrRam?{maxReplays:mode==='deep'?6:3,maxFrames:60000}:null,
-      explore:{budget:inv.budget,seed:seed??((l.revision*2654435761)>>>0)^l.investigations.length,known:l.known,archive:resume&&archive?{cells:archive.cells,steps:archive.steps}:null,capture:true,pixels:true}};
+      explore:{budget:inv.budget,seed:seed??((l.revision*2654435761)>>>0)^l.investigations.length,known:l.known,archive:resume&&archive?{cells:archive.cells,steps:archive.steps}:null,capture:true,pixels:true,cadPort:cadPortOf(bytes,name)}};
     result=await session.run(request,{signal:controller,hardCancelMs:60000,onProgress:p=>{r.progress=p;onProgress?.(p);emit();}});
   }finally{session?.close?.('recovery run finished');}
-  const out=await absorb(l,inv,result,r.intent);active.delete(sha);emit();return out;
+  const out=await absorb(l,inv,result,r.intent);
+  // translated layouts (CAD-PORT) pick up the graphics the run captured: their pack is rebuilt and replaces the old one
+  try{if(out.registered&&services.CadPortRecovery?.recognize?.(bytes,name)?.recognized){const c=await services.CadPortRecovery.register(bytes,name,{quiet:true});
+    out.cadPort={screens:c.screens,withGraphics:c.withGraphics,editable:c.editable,editablePages:c.editablePages,capturedGraphics:c.capturedGraphics,already:!!c.already};
+    inv.cadPort=out.cadPort;await save(l);}}catch(e){out.cadPort={error:String(e.message||e)};}
+  active.delete(sha);emit();return out;
 }
+// the translated layouts this cartridge is recognized for, so a run can say which of their screens it saw
+function cadPortOf(bytes,name){try{const r=services.CadPortRecovery?.recognize?.(bytes,name);if(!r?.recognized)return null;return {game:r.game,definitions:r.definitions.filter(d=>d.structural!=='contradicted'&&!d.native).map(d=>d.id)};}catch(_){return null;}}
 // what a run found goes into the library (through FrameEvidence.registerFrame) and the ledger
 async function absorb(l,inv,result,intent){
   inv.ended=now();
@@ -86,7 +98,8 @@ async function absorb(l,inv,result,intent){
   for(const o of x.observations){
     const rec=o.record;if(!rec||rec.error||!rec.digests){inv.unrecorded=(inv.unrecorded||0)+1;continue;}
     try{const e=await services.FrameEvidence.registerFrame({...rec,label:('recovery '+inv.mode+' · '+o.why.join(', ')).slice(0,110)});
-      registered.push({entryId:e.id,frame:o.frame,why:o.why,matched:rec.synchronization?.state==='matched',scene:!!rec.scene,digest:rec.digests.all,run:inv.id,macro:o.macro||null,from:o.from||null,traced:false});}
+      registered.push({entryId:e.id,frame:o.frame,why:o.why,matched:rec.synchronization?.state==='matched',scene:!!rec.scene,digest:rec.digests.all,run:inv.id,macro:o.macro||null,from:o.from||null,traced:false,...(o.layouts?.length?{layouts:o.layouts}:{})});
+      if(o.displayed&&o.layouts?.length)await putDisplayed({id:l.sha256+':'+String(o.displayed.frame).padStart(9,'0')+':'+inv.id,sha256:l.sha256,frame:o.displayed.frame,run:inv.id,entryId:e.id,layouts:o.layouts,nametables:o.displayed.nametables,palette:o.displayed.palette,bgTable:o.displayed.bgTable,chr:o.displayed.chr,chrOffsets:o.displayed.chrOffsets});}
     catch(err){inv.unrecorded=(inv.unrecorded||0)+1;}
   }
   for(const t of x.traces||[]){if(t.error){l.blockers.push({kind:'trace',detail:t.error,at:now()});continue;}
@@ -185,14 +198,16 @@ async function assess(sha){
   if(cad?.recognized){const ver=cad.definitions.filter(d=>/independently verified/.test(d.runtimeStatus||'')).length;if(ver){rows.screens.verified+=ver;rows.metatiles.verified+=ver;rows.screens.basis.add('CAD-PORT definitions observed in two emulators');}}
   // traced CHR RAM: tiles whose native source is known and can be written back
   if(l?.graphics?.writableTiles){rows['CHR graphics'].writable+=l.graphics.writableTiles;rows['native ROM writeback'].writable+=l.graphics.writableTiles;rows['CHR graphics'].basis.add('CHR RAM tiles traced to PRG (direct copies)');}
-  const frames=items.filter(e=>e.kind==='frame'),matched=frames.filter(e=>/0 different pixels/.test(e.validation?.reason||'')||e.validation?.state==='accepted').length;
+  // pixel comparison: each runtime capture was rebuilt from its own data and compared with the rendered frame when recorded
+  const frames=items.filter(e=>e.kind==='frame');let matched=0,unchecked=0;
+  for(const e of frames.slice(0,4000)){let full=null;try{full=await L.entry(e.id);}catch(_){full=null;}if(/0 different pixels/.test(full?.validation?.reason||''))matched++;else unchecked++;}
   const cart=l?.cartridge||(bytes?cartridgeOf(bytes):null);
   const graphics=cart?(cart.chrRam?{source:'CHR RAM',tilesSeen:l?.known.tiles.length||0,traced:l?.graphics.traced.length?l.graphics.traced[l.graphics.traced.length-1].summary:null}
     :{source:'CHR ROM',banks:cart.chrKiB,observed:(l?.known.banks||[]).filter(b=>b<cart.chrKiB).length,unobserved:Math.max(0,cart.chrKiB-new Set((l?.known.banks||[]).filter(b=>b<cart.chrKiB)).size)}):null;
   const table=CATEGORIES.map(c=>{const r=rows[c];return {category:c,captured:r.captured,decoded:r.decoded,editable:r.editable,verified:r.verified,writable:r.writable,basis:[...r.basis].slice(0,6),
     state:r.verified&&r.writable?'verified and writable (some)':r.verified?'verified (some)':r.editable?'editable (some)':r.decoded?'decoded (some)':r.captured?'captured only':'nothing recovered'};});
   return {format:'NESForgeReconstructionReport',version:1,sha256:sha,name:l?.name||null,cartridge:cart,generated:now(),entries:items.length,
-    parity:{frames:frames.length,rebuiltWithoutDifference:matched,basis:'each runtime capture is rebuilt from its own nametables, palettes and CHR and compared with the emulator\'s rendered frame pixel for pixel when it is recorded'},
+    parity:{frames:frames.length,rebuiltWithoutDifference:matched,notRebuilt:unchecked,basis:'each runtime capture is rebuilt from its own nametables, palettes and CHR and compared with the emulator\'s rendered frame pixel for pixel when it is recorded'},
     graphics,table,ledger:l?summary(l):null,
     verdict:'Not reconstructed 1:1: '+table.filter(r=>r.state==='nothing recovered').map(r=>r.category).join(', ')+(table.some(r=>r.state==='nothing recovered')?' have no recovered resources; ':'')+'a category counts as recovered here only with evidence, not because entries exist.'};
 }
@@ -234,5 +249,5 @@ if(C?.register){
   C.register({name:'recovery.report',group:'recovery',title:'Reconstruction report',summary:'Per resource category: captured, decoded, editable, independently verified and writable, with the evidence basis.',args:{sha256:{type:'string'}},run:async a=>assess(a?.sha256||(await hex256(pickBytes(a).bytes)))});
 }
 services.RecoveryLedger=Object.freeze({MODES,CATEGORIES,run,stop,pause:sha=>stop(sha,'pause'),cancel:sha=>stop(sha,'cancel'),current,recordGameplay,recording:()=>({on:rec.on,sha256:rec.sha,observations:rec.observations,seeds:rec.seeds,fromPowerOn:rec.fromPowerOn}),
-  ledger,read:readLedger,archive:readArchive,assess,status,subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},categoriesOf,romBytes,hex256});
+  ledger,read:readLedger,archive:readArchive,displayed:displayedFor,assess,status,subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},categoriesOf,romBytes,hex256});
 })();
