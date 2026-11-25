@@ -1,0 +1,375 @@
+{
+ "cartridge": "Mega Man (U)",
+ "sha256": "1c8885892051d79db757746e2281f417cd5b156a86988b0010ad95d7bd4276c5",
+ "ms": 311916,
+ "extractionPack": "Mega_Man_U.zip",
+ "pageErrors": [],
+ "steps": {
+  "import": {
+   "opened": true,
+   "profile": "megaman-us-prg-layout-v1"
+  },
+  "catalog": {
+   "registered": false
+  },
+  "pack": "Mega_Man_U.zip"
+ },
+ "before": {
+  "entries": 856,
+  "kinds": {
+   "unknown": 1,
+   "audit": 2,
+   "nativeProject": 1,
+   "report": 2,
+   "document": 1,
+   "collision": 282,
+   "resource": 283,
+   "image": 283,
+   "project": 1
+  },
+  "previews": 283,
+  "projects": 2,
+  "projectScenes": 9
+ },
+ "runs": [
+  {
+   "id": "run-mwvxq4jw",
+   "mode": "continue",
+   "label": "Continue Recovery",
+   "started": 1795599742604,
+   "budget": {
+    "frames": 20000,
+    "wallMs": 1200000,
+    "observations": 120,
+    "cells": 400
+   },
+   "resumedFrom": 0,
+   "state": "finished",
+   "ended": 1795599932884,
+   "stopReason": "frame budget (20000 frames) exhausted",
+   "frames": 20072,
+   "ms": 191038,
+   "steps": 75,
+   "cells": 50,
+   "gained": {
+    "blocks": 100,
+    "tiles": 892,
+    "banks": 0,
+    "palettes": 6,
+    "sprites": 142
+   },
+   "recorded": 16,
+   "traced": 0,
+   "transitions": 50,
+   "cadPort": {
+    "screens": 17,
+    "withGraphics": 1,
+    "editable": 1,
+    "editablePages": 8,
+    "capturedGraphics": 0,
+    "already": true
+   },
+   "registered": 16
+  },
+  {
+   "id": "run-mwvxu7yn",
+   "mode": "retry",
+   "label": "Retry Unresolved Resources",
+   "started": 1795599933647,
+   "budget": {
+    "frames": 12000,
+    "wallMs": 1200000,
+    "observations": 120,
+    "cells": 400,
+    "stall": 90
+   },
+   "resumedFrom": 50,
+   "state": "finished",
+   "ended": 1795600022790,
+   "stopReason": "converged: 90 steps in a row found nothing new from 68 states (not a proof that nothing is left)",
+   "frames": 9420,
+   "ms": 89169,
+   "steps": 165,
+   "cells": 68,
+   "gained": {
+    "blocks": 0,
+    "tiles": 0,
+    "banks": 0,
+    "palettes": 0,
+    "sprites": 0
+   },
+   "recorded": 0,
+   "traced": 0,
+   "transitions": 18,
+   "registered": 0,
+   "cadPort": null
+  }
+ ],
+ "after": {
+  "entries": 872,
+  "kinds": {
+   "frame": 16,
+   "unknown": 1,
+   "audit": 2,
+   "nativeProject": 1,
+   "report": 2,
+   "document": 1,
+   "collision": 282,
+   "resource": 283,
+   "image": 283,
+   "project": 1
+  },
+  "previews": 299,
+  "projects": 2,
+  "projectScenes": 9
+ },
+ "report": {
+  "table": [
+   {
+    "category": "CHR graphics",
+    "captured": 16,
+    "decoded": 283,
+    "editable": 16,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)",
+     "resource"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "palettes",
+    "captured": 16,
+    "decoded": 283,
+    "editable": 16,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)",
+     "resource"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "metatiles",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 1,
+    "writable": 0,
+    "basis": [],
+    "state": "verified (some)"
+   },
+   {
+    "category": "screens",
+    "captured": 16,
+    "decoded": 284,
+    "editable": 17,
+    "verified": 1,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)",
+     "resource",
+     "project",
+     "CAD-PORT definitions observed in two emulators"
+    ],
+    "state": "verified (some)"
+   },
+   {
+    "category": "level layouts",
+    "captured": 1,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "scrolling observed within areas (not stitched)"
+    ],
+    "state": "captured only"
+   },
+   {
+    "category": "world transitions",
+    "captured": 6,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "runtime transitions between areas"
+    ],
+    "state": "captured only"
+   },
+   {
+    "category": "sprites",
+    "captured": 16,
+    "decoded": 0,
+    "editable": 16,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "metasprites",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "animations",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "entities",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "collision",
+    "captured": 0,
+    "decoded": 282,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "collision"
+    ],
+    "state": "decoded (some)"
+   },
+   {
+    "category": "audio",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "gameplay logic",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "native ROM writeback",
+    "captured": 0,
+    "decoded": 1,
+    "editable": 1,
+    "verified": 0,
+    "writable": 1,
+    "basis": [
+     "nativeProject"
+    ],
+    "state": "editable (some)"
+   }
+  ],
+  "parity": {
+   "frames": 16,
+   "rebuiltWithoutDifference": 16,
+   "notRebuilt": 0,
+   "basis": "each runtime capture is rebuilt from its own nametables, palettes and CHR and compared with the emulator's rendered frame pixel for pixel when it is recorded"
+  },
+  "graphics": {
+   "source": "CHR RAM",
+   "tilesSeen": 892,
+   "traced": null
+  },
+  "verdict": "Not reconstructed 1:1: metasprites, animations, entities, audio, gameplay logic have no recovered resources; a category counts as recovered here only with evidence, not because entries exist.",
+  "world": {
+   "areas": 6,
+   "transitions": 6,
+   "scrolling": 1
+  }
+ },
+ "ledger": {
+  "known": {
+   "blocks": 100,
+   "tiles": 892,
+   "banks": 0,
+   "palettes": 6,
+   "sprites": 142
+  },
+  "observations": 16,
+  "editable": 16,
+  "traced": 0,
+  "writableTiles": 0,
+  "next": [
+   "CHR RAM tiles have been captured but not traced to their source; Deep Recovery traces them",
+   "the last run stopped finding new situations (converged: 90 steps in a row found nothing new from 68 states (not a proof that nothing is left)); record gameplay past that point, or retry with other inputs",
+   "blocked: entities, collision rules and gameplay logic need the game's own data formats; no general recovery exists for them"
+  ],
+  "runs": [
+   {
+    "mode": "continue",
+    "state": "finished",
+    "stopReason": "frame budget (20000 frames) exhausted",
+    "frames": 20072,
+    "recorded": 16,
+    "gained": {
+     "blocks": 100,
+     "tiles": 892,
+     "banks": 0,
+     "palettes": 6,
+     "sprites": 142
+    },
+    "resumedFrom": 0
+   },
+   {
+    "mode": "retry",
+    "state": "finished",
+    "stopReason": "converged: 90 steps in a row found nothing new from 68 states (not a proof that nothing is left)",
+    "frames": 9420,
+    "recorded": 0,
+    "gained": {
+     "blocks": 0,
+     "tiles": 0,
+     "banks": 0,
+     "palettes": 0,
+     "sprites": 0
+    },
+    "resumedFrom": 50
+   }
+  ]
+ },
+ "traced": null,
+ "cadPort": {
+  "before": {
+   "screens": 17,
+   "withGraphics": 1,
+   "editable": 1,
+   "editablePages": 8
+  },
+  "after": {
+   "screens": 17,
+   "withGraphics": 1,
+   "editable": 1,
+   "editablePages": 8,
+   "capturedGraphics": 0,
+   "already": true
+  }
+ }
+}

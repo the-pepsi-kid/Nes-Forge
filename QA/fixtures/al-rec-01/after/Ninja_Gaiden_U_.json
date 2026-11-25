@@ -1,0 +1,401 @@
+{
+ "cartridge": "Ninja Gaiden (U)",
+ "sha256": "07d9e57e35184667c7b89e30857a44c5c404b48332ad12e66be91100eccd4f5e",
+ "ms": 373098,
+ "extractionPack": "Ninja_Gaiden_U.zip",
+ "pageErrors": [],
+ "steps": {
+  "import": {
+   "opened": true,
+   "profile": "ninja-gaiden-us"
+  },
+  "catalog": {
+   "registered": false
+  },
+  "pack": "Ninja_Gaiden_U.zip"
+ },
+ "before": {
+  "entries": 902,
+  "kinds": {
+   "report": 2,
+   "catalog": 4,
+   "unknown": 1,
+   "audioReport": 1,
+   "audioProject": 66,
+   "document": 2,
+   "map": 48,
+   "image": 379,
+   "project": 49,
+   "room": 48,
+   "pose": 202,
+   "animationProject": 80,
+   "resource": 20
+  },
+  "previews": 379,
+  "projects": 195,
+  "projectScenes": 1231
+ },
+ "runs": [
+  {
+   "id": "run-mwvx6igb",
+   "mode": "continue",
+   "label": "Continue Recovery",
+   "started": 1795598827499,
+   "budget": {
+    "frames": 20000,
+    "wallMs": 1200000,
+    "observations": 120,
+    "cells": 400
+   },
+   "resumedFrom": 0,
+   "state": "finished",
+   "ended": 1795598982133,
+   "stopReason": "frame budget (20000 frames) exhausted",
+   "frames": 20072,
+   "ms": 159840,
+   "steps": 75,
+   "cells": 213,
+   "gained": {
+    "blocks": 371,
+    "tiles": 0,
+    "banks": 36,
+    "palettes": 47,
+    "sprites": 93
+   },
+   "recorded": 104,
+   "traced": 0,
+   "transitions": 213,
+   "cadPort": {
+    "screens": 20,
+    "withGraphics": 1,
+    "editable": 1,
+    "editablePages": 12,
+    "capturedGraphics": 0,
+    "already": true
+   },
+   "registered": 104
+  },
+  {
+   "id": "run-mwvx9xsc",
+   "mode": "retry",
+   "label": "Retry Unresolved Resources",
+   "started": 1795598987340,
+   "budget": {
+    "frames": 12000,
+    "wallMs": 1200000,
+    "observations": 120,
+    "cells": 400,
+    "stall": 90
+   },
+   "resumedFrom": 213,
+   "state": "finished",
+   "ended": 1795599083287,
+   "stopReason": "frame budget (12000 frames) exhausted",
+   "frames": 12030,
+   "ms": 98133,
+   "steps": 190,
+   "cells": 334,
+   "gained": {
+    "blocks": 65,
+    "tiles": 0,
+    "banks": 0,
+    "palettes": 5,
+    "sprites": 11
+   },
+   "recorded": 24,
+   "traced": 0,
+   "transitions": 121,
+   "cadPort": {
+    "screens": 20,
+    "withGraphics": 1,
+    "editable": 1,
+    "editablePages": 12,
+    "capturedGraphics": 0,
+    "already": true
+   },
+   "registered": 24
+  }
+ ],
+ "after": {
+  "entries": 1030,
+  "kinds": {
+   "frame": 128,
+   "report": 2,
+   "catalog": 4,
+   "unknown": 1,
+   "audioReport": 1,
+   "audioProject": 66,
+   "document": 2,
+   "map": 48,
+   "image": 379,
+   "project": 49,
+   "room": 48,
+   "pose": 202,
+   "animationProject": 80,
+   "resource": 20
+  },
+  "previews": 507,
+  "projects": 195,
+  "projectScenes": 1231
+ },
+ "report": {
+  "table": [
+   {
+    "category": "CHR graphics",
+    "captured": 128,
+    "decoded": 3,
+    "editable": 128,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)",
+     "image",
+     "resource"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "palettes",
+    "captured": 128,
+    "decoded": 1,
+    "editable": 128,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)",
+     "resource"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "metatiles",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 1,
+    "writable": 0,
+    "basis": [],
+    "state": "verified (some)"
+   },
+   {
+    "category": "screens",
+    "captured": 128,
+    "decoded": 165,
+    "editable": 177,
+    "verified": 1,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)",
+     "map",
+     "project",
+     "room",
+     "resource",
+     "CAD-PORT definitions observed in two emulators"
+    ],
+    "state": "verified (some)"
+   },
+   {
+    "category": "level layouts",
+    "captured": 7,
+    "decoded": 48,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "map",
+     "scrolling observed within areas (not stitched)"
+    ],
+    "state": "decoded (some)"
+   },
+   {
+    "category": "world transitions",
+    "captured": 54,
+    "decoded": 3,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "catalog",
+     "runtime transitions between areas"
+    ],
+    "state": "decoded (some)"
+   },
+   {
+    "category": "sprites",
+    "captured": 128,
+    "decoded": 202,
+    "editable": 128,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)",
+     "pose"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "metasprites",
+    "captured": 0,
+    "decoded": 202,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "pose"
+    ],
+    "state": "decoded (some)"
+   },
+   {
+    "category": "animations",
+    "captured": 0,
+    "decoded": 81,
+    "editable": 80,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "catalog",
+     "animationProject"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "entities",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "collision",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "audio",
+    "captured": 0,
+    "decoded": 67,
+    "editable": 66,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "audioReport",
+     "audioProject"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "gameplay logic",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "native ROM writeback",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   }
+  ],
+  "parity": {
+   "frames": 128,
+   "rebuiltWithoutDifference": 128,
+   "notRebuilt": 0,
+   "basis": "each runtime capture is rebuilt from its own nametables, palettes and CHR and compared with the emulator's rendered frame pixel for pixel when it is recorded"
+  },
+  "graphics": {
+   "source": "CHR ROM",
+   "banks": 128,
+   "observed": 36,
+   "unobserved": 92
+  },
+  "verdict": "Not reconstructed 1:1: entities, collision, gameplay logic, native ROM writeback have no recovered resources; a category counts as recovered here only with evidence, not because entries exist.",
+  "world": {
+   "areas": 50,
+   "transitions": 54,
+   "scrolling": 7
+  }
+ },
+ "ledger": {
+  "known": {
+   "blocks": 436,
+   "tiles": 0,
+   "banks": 36,
+   "palettes": 52,
+   "sprites": 104
+  },
+  "observations": 128,
+  "editable": 128,
+  "traced": 0,
+  "writableTiles": 0,
+  "next": [
+   "92 of 128 CHR ROM 1 KiB banks have not been seen in use; Investigate Missing Resources explores further, gameplay recording reaches places exploration does not",
+   "the last run used its budget while still finding new resources (frame budget (12000 frames) exhausted); continue from where it stopped",
+   "blocked: entities, collision rules and gameplay logic need the game's own data formats; no general recovery exists for them"
+  ],
+  "runs": [
+   {
+    "mode": "continue",
+    "state": "finished",
+    "stopReason": "frame budget (20000 frames) exhausted",
+    "frames": 20072,
+    "recorded": 104,
+    "gained": {
+     "blocks": 371,
+     "tiles": 0,
+     "banks": 36,
+     "palettes": 47,
+     "sprites": 93
+    },
+    "resumedFrom": 0
+   },
+   {
+    "mode": "retry",
+    "state": "finished",
+    "stopReason": "frame budget (12000 frames) exhausted",
+    "frames": 12030,
+    "recorded": 24,
+    "gained": {
+     "blocks": 65,
+     "tiles": 0,
+     "banks": 0,
+     "palettes": 5,
+     "sprites": 11
+    },
+    "resumedFrom": 213
+   }
+  ]
+ },
+ "traced": null,
+ "cadPort": {
+  "before": {
+   "screens": 20,
+   "withGraphics": 1,
+   "editable": 1,
+   "editablePages": 12
+  },
+  "after": {
+   "screens": 20,
+   "withGraphics": 1,
+   "editable": 1,
+   "editablePages": 12,
+   "capturedGraphics": 0,
+   "already": true
+  }
+ }
+}

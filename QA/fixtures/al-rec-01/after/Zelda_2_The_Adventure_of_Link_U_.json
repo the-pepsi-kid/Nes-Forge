@@ -1,0 +1,369 @@
+{
+ "cartridge": "Zelda 2 - The Adventure of Link (U)",
+ "sha256": "ad8c0fbcf092bf84b48e69fd3964eea4ed91bfe62abc352943d537979782680c",
+ "ms": 306229,
+ "extractionPack": "Zelda_2_The_Adventure_of_Link_U.zip",
+ "pageErrors": [],
+ "steps": {
+  "import": {
+   "opened": true,
+   "profile": "zelda2-us"
+  },
+  "catalog": {
+   "registered": false
+  },
+  "pack": "Zelda_2_The_Adventure_of_Link_U.zip"
+ },
+ "before": {
+  "entries": 1171,
+  "kinds": {
+   "catalog": 4,
+   "unknown": 2,
+   "audioReport": 1,
+   "audioProject": 60,
+   "document": 2,
+   "map": 4,
+   "image": 292,
+   "report": 1,
+   "audit": 1,
+   "project": 258,
+   "collision": 258,
+   "room": 258,
+   "pose": 30
+  },
+  "previews": 292,
+  "projects": 318,
+  "projectScenes": 1006
+ },
+ "runs": [
+  {
+   "id": "run-mwvxe5ra",
+   "mode": "continue",
+   "label": "Continue Recovery",
+   "started": 1795599184294,
+   "budget": {
+    "frames": 20000,
+    "wallMs": 1200000,
+    "observations": 120,
+    "cells": 400
+   },
+   "resumedFrom": 0,
+   "state": "finished",
+   "ended": 1795599320853,
+   "stopReason": "converged: 60 steps in a row found nothing new from 13 states (not a proof that nothing is left)",
+   "frames": 18442,
+   "ms": 136826,
+   "steps": 60,
+   "cells": 13,
+   "gained": {
+    "blocks": 105,
+    "tiles": 0,
+    "banks": 8,
+    "palettes": 2,
+    "sprites": 17
+   },
+   "recorded": 4,
+   "traced": 0,
+   "transitions": 13,
+   "registered": 4,
+   "cadPort": null
+  },
+  {
+   "id": "run-mwvxh3bv",
+   "mode": "retry",
+   "label": "Retry Unresolved Resources",
+   "started": 1795599321115,
+   "budget": {
+    "frames": 12000,
+    "wallMs": 1200000,
+    "observations": 120,
+    "cells": 400,
+    "stall": 90
+   },
+   "resumedFrom": 13,
+   "state": "finished",
+   "ended": 1795599393083,
+   "stopReason": "converged: 90 steps in a row found nothing new from 13 states (not a proof that nothing is left)",
+   "frames": 8950,
+   "ms": 71982,
+   "steps": 150,
+   "cells": 13,
+   "gained": {
+    "blocks": 0,
+    "tiles": 0,
+    "banks": 0,
+    "palettes": 0,
+    "sprites": 0
+   },
+   "recorded": 0,
+   "traced": 0,
+   "transitions": 0,
+   "registered": 0,
+   "cadPort": null
+  }
+ ],
+ "after": {
+  "entries": 1175,
+  "kinds": {
+   "frame": 4,
+   "catalog": 4,
+   "unknown": 2,
+   "audioReport": 1,
+   "audioProject": 60,
+   "document": 2,
+   "map": 4,
+   "image": 292,
+   "report": 1,
+   "audit": 1,
+   "project": 258,
+   "collision": 258,
+   "room": 258,
+   "pose": 30
+  },
+  "previews": 296,
+  "projects": 318,
+  "projectScenes": 1006
+ },
+ "report": {
+  "table": [
+   {
+    "category": "CHR graphics",
+    "captured": 4,
+    "decoded": 0,
+    "editable": 4,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "palettes",
+    "captured": 4,
+    "decoded": 0,
+    "editable": 4,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "metatiles",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "screens",
+    "captured": 4,
+    "decoded": 520,
+    "editable": 262,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)",
+     "map",
+     "project",
+     "room"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "level layouts",
+    "captured": 1,
+    "decoded": 4,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "map",
+     "scrolling observed within areas (not stitched)"
+    ],
+    "state": "decoded (some)"
+   },
+   {
+    "category": "world transitions",
+    "captured": 1,
+    "decoded": 4,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "catalog",
+     "runtime transitions between areas"
+    ],
+    "state": "decoded (some)"
+   },
+   {
+    "category": "sprites",
+    "captured": 4,
+    "decoded": 30,
+    "editable": 4,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)",
+     "pose"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "metasprites",
+    "captured": 0,
+    "decoded": 30,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "pose"
+    ],
+    "state": "decoded (some)"
+   },
+   {
+    "category": "animations",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "entities",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "collision",
+    "captured": 0,
+    "decoded": 258,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "collision"
+    ],
+    "state": "decoded (some)"
+   },
+   {
+    "category": "audio",
+    "captured": 0,
+    "decoded": 61,
+    "editable": 60,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "audioReport",
+     "audioProject"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "gameplay logic",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "native ROM writeback",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   }
+  ],
+  "parity": {
+   "frames": 4,
+   "rebuiltWithoutDifference": 4,
+   "notRebuilt": 0,
+   "basis": "each runtime capture is rebuilt from its own nametables, palettes and CHR and compared with the emulator's rendered frame pixel for pixel when it is recorded"
+  },
+  "graphics": {
+   "source": "CHR ROM",
+   "banks": 128,
+   "observed": 8,
+   "unobserved": 120
+  },
+  "verdict": "Not reconstructed 1:1: metatiles, animations, entities, gameplay logic, native ROM writeback have no recovered resources; a category counts as recovered here only with evidence, not because entries exist.",
+  "world": {
+   "areas": 2,
+   "transitions": 1,
+   "scrolling": 1
+  }
+ },
+ "ledger": {
+  "known": {
+   "blocks": 105,
+   "tiles": 0,
+   "banks": 8,
+   "palettes": 2,
+   "sprites": 17
+  },
+  "observations": 4,
+  "editable": 4,
+  "traced": 0,
+  "writableTiles": 0,
+  "next": [
+   "120 of 128 CHR ROM 1 KiB banks have not been seen in use; Investigate Missing Resources explores further, gameplay recording reaches places exploration does not",
+   "the last run stopped finding new situations (converged: 90 steps in a row found nothing new from 13 states (not a proof that nothing is left)); record gameplay past that point, or retry with other inputs",
+   "blocked: entities, collision rules and gameplay logic need the game's own data formats; no general recovery exists for them"
+  ],
+  "runs": [
+   {
+    "mode": "continue",
+    "state": "finished",
+    "stopReason": "converged: 60 steps in a row found nothing new from 13 states (not a proof that nothing is left)",
+    "frames": 18442,
+    "recorded": 4,
+    "gained": {
+     "blocks": 105,
+     "tiles": 0,
+     "banks": 8,
+     "palettes": 2,
+     "sprites": 17
+    },
+    "resumedFrom": 0
+   },
+   {
+    "mode": "retry",
+    "state": "finished",
+    "stopReason": "converged: 90 steps in a row found nothing new from 13 states (not a proof that nothing is left)",
+    "frames": 8950,
+    "recorded": 0,
+    "gained": {
+     "blocks": 0,
+     "tiles": 0,
+     "banks": 0,
+     "palettes": 0,
+     "sprites": 0
+    },
+    "resumedFrom": 13
+   }
+  ]
+ },
+ "traced": null,
+ "cadPort": {
+  "before": null,
+  "after": null
+ }
+}

@@ -1,0 +1,424 @@
+{
+ "cartridge": "Castlevania (U) (PRG 1)",
+ "sha256": "0bf466eb3819eee34e41de076b5c1bf16375d0de5ba64ede8ade6ed599accb53",
+ "ms": 478703,
+ "extractionPack": "Castlevania_U_PRG_1.zip",
+ "pageErrors": [],
+ "steps": {
+  "import": {
+   "opened": true,
+   "profile": "Castlevania · recorded revision"
+  },
+  "catalog": {
+   "registered": false
+  },
+  "pack": "Castlevania_U_PRG_1.zip"
+ },
+ "before": {
+  "entries": 56,
+  "kinds": {
+   "unknown": 1,
+   "audioReport": 1,
+   "document": 1,
+   "audioProject": 49,
+   "report": 1,
+   "project": 1,
+   "resource": 1,
+   "image": 1
+  },
+  "previews": 1,
+  "projects": 50,
+  "projectScenes": 54
+ },
+ "runs": [
+  {
+   "id": "run-mwvxfdo9",
+   "mode": "continue",
+   "label": "Continue Recovery",
+   "started": 1795599241209,
+   "budget": {
+    "frames": 20000,
+    "wallMs": 1200000,
+    "observations": 120,
+    "cells": 400
+   },
+   "resumedFrom": 0,
+   "state": "finished",
+   "ended": 1795599448613,
+   "stopReason": "frame budget (20000 frames) exhausted",
+   "frames": 20072,
+   "ms": 209814,
+   "steps": 75,
+   "cells": 158,
+   "gained": {
+    "blocks": 385,
+    "tiles": 981,
+    "banks": 0,
+    "palettes": 6,
+    "sprites": 108
+   },
+   "recorded": 55,
+   "traced": 0,
+   "transitions": 158,
+   "cadPort": {
+    "screens": 16,
+    "withGraphics": 1,
+    "editable": 1,
+    "editablePages": 5,
+    "capturedGraphics": 0,
+    "already": true
+   },
+   "registered": 55
+  },
+  {
+   "id": "run-mwvxjvkp",
+   "mode": "retry",
+   "label": "Retry Unresolved Resources",
+   "started": 1795599451033,
+   "budget": {
+    "frames": 12000,
+    "wallMs": 1200000,
+    "observations": 120,
+    "cells": 400,
+    "stall": 90
+   },
+   "resumedFrom": 158,
+   "state": "finished",
+   "ended": 1795599709036,
+   "stopReason": "frame budget (12000 frames) exhausted",
+   "frames": 12030,
+   "ms": 258447,
+   "steps": 190,
+   "cells": 267,
+   "gained": {
+    "blocks": 13,
+    "tiles": 0,
+    "banks": 0,
+    "palettes": 0,
+    "sprites": 1
+   },
+   "recorded": 4,
+   "traced": 4,
+   "transitions": 109,
+   "cadPort": {
+    "screens": 16,
+    "withGraphics": 1,
+    "editable": 1,
+    "editablePages": 5,
+    "capturedGraphics": 0,
+    "already": true
+   },
+   "registered": 4
+  }
+ ],
+ "after": {
+  "entries": 115,
+  "kinds": {
+   "unknown": 1,
+   "audioReport": 1,
+   "document": 1,
+   "audioProject": 49,
+   "frame": 59,
+   "report": 1,
+   "project": 1,
+   "resource": 1,
+   "image": 1
+  },
+  "previews": 60,
+  "projects": 50,
+  "projectScenes": 54
+ },
+ "report": {
+  "table": [
+   {
+    "category": "CHR graphics",
+    "captured": 59,
+    "decoded": 1,
+    "editable": 59,
+    "verified": 0,
+    "writable": 447,
+    "basis": [
+     "frame (runtime-capture)",
+     "resource",
+     "CHR RAM tiles traced to PRG (direct copies)"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "palettes",
+    "captured": 59,
+    "decoded": 1,
+    "editable": 59,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)",
+     "resource"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "metatiles",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 1,
+    "writable": 0,
+    "basis": [],
+    "state": "verified (some)"
+   },
+   {
+    "category": "screens",
+    "captured": 59,
+    "decoded": 2,
+    "editable": 60,
+    "verified": 1,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)",
+     "project",
+     "resource",
+     "CAD-PORT definitions observed in two emulators"
+    ],
+    "state": "verified (some)"
+   },
+   {
+    "category": "level layouts",
+    "captured": 2,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "scrolling observed within areas (not stitched)"
+    ],
+    "state": "captured only"
+   },
+   {
+    "category": "world transitions",
+    "captured": 6,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "runtime transitions between areas"
+    ],
+    "state": "captured only"
+   },
+   {
+    "category": "sprites",
+    "captured": 59,
+    "decoded": 0,
+    "editable": 59,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "frame (runtime-capture)"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "metasprites",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "animations",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "entities",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "collision",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "audio",
+    "captured": 0,
+    "decoded": 50,
+    "editable": 49,
+    "verified": 0,
+    "writable": 0,
+    "basis": [
+     "audioReport",
+     "audioProject"
+    ],
+    "state": "editable (some)"
+   },
+   {
+    "category": "gameplay logic",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 0,
+    "basis": [],
+    "state": "nothing recovered"
+   },
+   {
+    "category": "native ROM writeback",
+    "captured": 0,
+    "decoded": 0,
+    "editable": 0,
+    "verified": 0,
+    "writable": 447,
+    "basis": [],
+    "state": "nothing recovered"
+   }
+  ],
+  "parity": {
+   "frames": 59,
+   "rebuiltWithoutDifference": 59,
+   "notRebuilt": 0,
+   "basis": "each runtime capture is rebuilt from its own nametables, palettes and CHR and compared with the emulator's rendered frame pixel for pixel when it is recorded"
+  },
+  "graphics": {
+   "source": "CHR RAM",
+   "tilesSeen": 981,
+   "traced": {
+    "tiles": 512,
+    "byClass": {
+     "uniform": 65,
+     "direct": 447
+    },
+    "writable": 447,
+    "writableWholeTile": 447,
+    "nonUniform": 447,
+    "rewritten": 329
+   }
+  },
+  "verdict": "Not reconstructed 1:1: metasprites, animations, entities, collision, gameplay logic, native ROM writeback have no recovered resources; a category counts as recovered here only with evidence, not because entries exist.",
+  "world": {
+   "areas": 6,
+   "transitions": 6,
+   "scrolling": 2
+  }
+ },
+ "ledger": {
+  "known": {
+   "blocks": 398,
+   "tiles": 981,
+   "banks": 0,
+   "palettes": 6,
+   "sprites": 109
+  },
+  "observations": 59,
+  "editable": 59,
+  "traced": 4,
+  "writableTiles": 447,
+  "next": [
+   "the last run used its budget while still finding new resources (frame budget (12000 frames) exhausted); continue from where it stopped",
+   "blocked: entities, collision rules and gameplay logic need the game's own data formats; no general recovery exists for them"
+  ],
+  "runs": [
+   {
+    "mode": "continue",
+    "state": "finished",
+    "stopReason": "frame budget (20000 frames) exhausted",
+    "frames": 20072,
+    "recorded": 55,
+    "gained": {
+     "blocks": 385,
+     "tiles": 981,
+     "banks": 0,
+     "palettes": 6,
+     "sprites": 108
+    },
+    "resumedFrom": 0
+   },
+   {
+    "mode": "retry",
+    "state": "finished",
+    "stopReason": "frame budget (12000 frames) exhausted",
+    "frames": 12030,
+    "recorded": 4,
+    "gained": {
+     "blocks": 13,
+     "tiles": 0,
+     "banks": 0,
+     "palettes": 0,
+     "sprites": 1
+    },
+    "resumedFrom": 158
+   }
+  ]
+ },
+ "traced": {
+  "frame": 3330,
+  "summary": {
+   "tiles": 512,
+   "byClass": {
+    "uniform": 65,
+    "direct": 447
+   },
+   "writable": 447,
+   "writableWholeTile": 447,
+   "nonUniform": 447,
+   "rewritten": 329
+  },
+  "shown": {
+   "tiles": 102,
+   "byClass": {
+    "direct": 96,
+    "uniform": 6
+   },
+   "writable": 96,
+   "writableWholeTile": 96,
+   "nonUniform": 96,
+   "rewritten": 88
+  },
+  "writers": [
+   {
+    "fileOffset": 130482,
+    "writes": 19264,
+    "copied": 19264,
+    "derived": 0,
+    "generated": 0,
+    "vram": 0,
+    "untraced": 0
+   }
+  ]
+ },
+ "cadPort": {
+  "before": {
+   "screens": 16,
+   "withGraphics": 1,
+   "editable": 1,
+   "editablePages": 5
+  },
+  "after": {
+   "screens": 16,
+   "withGraphics": 1,
+   "editable": 1,
+   "editablePages": 5,
+   "capturedGraphics": 0,
+   "already": true
+  }
+ }
+}

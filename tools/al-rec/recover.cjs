@@ -24,12 +24,15 @@ if (!cartDir || !outDir) { console.error('usage: recover.cjs --carts DIR --out D
 const DEFAULT = ['Battletoads (U)', 'Castlevania (U) (PRG 0)', 'Castlevania (U) (PRG 1)', 'Mega Man (U)', 'Mega Man 2 (U)', 'Ninja Gaiden (U)', 'Teenage Mutant Ninja Turtles (U)', 'Zelda 2 - The Adventure of Link (U)', 'Metroid (U)', "Mike Tyson's Punch-Out!! (U) (PRG 0)", "Mike Tyson's Punch-Out!! (U) (PRG 1)"];
 const wanted = all('only').length ? all('only') : DEFAULT;
 const sha = b => crypto.createHash('sha256').update(b).digest('hex');
-function packFor(romSha) {
+function packFor(romSha, name) {
   if (!exDir || !fs.existsSync(exDir)) return null;
   for (const f of fs.readdirSync(exDir).filter(f => f.endsWith('.zip'))) {
     const py = spawnSync('python3', ['-I', '-c', 'import json,sys,zipfile\nz=zipfile.ZipFile(sys.argv[1])\nfor n in z.namelist():\n  if n.endswith("native_report.json"):\n    r=json.loads(z.read(n));print((r.get("rom") or {}).get("sha256") or (r.get("source") or {}).get("sha256") or "");break', path.join(exDir, f)], {encoding: 'utf8'});
     if ((py.stdout || '').trim() === romSha) return {file: f, bytes: fs.readFileSync(path.join(exDir, f))};
   }
+  // older packs do not record the cartridge's SHA-256: matched by name, as the baseline measurement did
+  const norm = s => s.replace(/\.(nes|zip)$/i, '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '').toLowerCase();
+  for (const f of fs.readdirSync(exDir).filter(f => f.endsWith('.zip'))) if (norm(f) === norm(name)) return {file: f, bytes: fs.readFileSync(path.join(exDir, f)), matched: 'by name'};
   return null;
 }
 const PAGE_LIBRARY = async sha => { const L = Forge.services.ResourceLibrary, r = await L.list({shelf: sha, limit: 1e6}); let scenes = 0, projects = 0;
@@ -39,7 +42,7 @@ const PAGE_LIBRARY = async sha => { const L = Forge.services.ResourceLibrary, r 
   fs.mkdirSync(outDir, {recursive: true}); const browser = await chromium.launch(), rows = [];
   for (const n of wanted) {
     const f = path.join(cartDir, n + '.nes'); if (!fs.existsSync(f)) continue;
-    const rom = fs.readFileSync(f), romSha = sha(rom), pack = packFor(romSha), t0 = Date.now();
+    const rom = fs.readFileSync(f), romSha = sha(rom), pack = packFor(romSha, n), t0 = Date.now();
     process.stdout.write(n + ' … ');
     const ctx = await browser.newContext(), page = await ctx.newPage(), errors = []; page.on('pageerror', e => errors.push(e.message.slice(0, 200)));
     await page.goto('file://' + editor); await page.waitForFunction('window.Forge?.services?.RecoveryLedger'); await page.waitForTimeout(500);
