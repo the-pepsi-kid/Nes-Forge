@@ -12,15 +12,20 @@ let running=null,last=null,lastStore=null,lastRom=null,attached=null,root=null,c
 function fail(message){throw Error('Experiments: '+message);}
 function bytesOfDemo(){const s=atob(demo.base64),b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);if(contract.sha256(b)!==demo.sha256)fail('the embedded demonstration cartridge does not match its SHA-256');return b;}
 function requireSynthetic(bytes){const layout=contract.romLayout(bytes);if(!contract.isSynthetic(bytes,layout))fail('experiments run only on Forge\'s synthetic fixtures; this cartridge carries no synthetic-fixture marker');return layout;}
+// AL-REC-01: a locally supplied cartridge runs only with the user's explicit approval for it (approve: true on the
+// command, given by the person running it); its plans are private and nothing of it leaves this browser
+function authorizeCartridge(bytes,approve){const layout=contract.romLayout(bytes);if(contract.isSynthetic(bytes,layout))return null;
+  if(approve!==true)fail('experiments run only on Forge\'s synthetic fixtures unless you approve this locally supplied cartridge (SHA-256 '+contract.sha256(bytes).slice(0,12)+'…): run the command again with approve: true');
+  const approval=contract.approval(bytes,{by:'user (experiment.discoverMetatiles approve: true)'});contract.authorize(bytes,layout,{privacy:'private',approval});return approval;}
 async function exclusive(label,fn){
   if(running)fail('an experiment is already running ('+running.label+')');
   if(!services.ExperimentSandbox.available())fail('isolation is not available here: experiments need the standalone editor in a browser');
   const controller=new AbortController();running={label,controller,stage:null,started:Date.now()};refresh();
   try{return await fn(controller.signal,p=>{running.stage=p;refresh();});}finally{running=null;refresh();}
 }
-async function discover(bytes,training,holdout){
-  requireSynthetic(bytes);const store=Evidence.createStore();
-  return exclusive('discovery',async(signal,progress)=>{const report=await services.MetatileDiscovery.discover({rom:bytes,training,holdout,signal,onProgress:progress,store});last=report;lastStore=store;lastRom=new Uint8Array(bytes);attached=null;return report;});
+async function discover(bytes,training,holdout,approve=false){
+  const approval=authorizeCartridge(bytes,approve);const store=Evidence.createStore();
+  return exclusive('discovery',async(signal,progress)=>{const report=await services.MetatileDiscovery.discover({rom:bytes,training,holdout,signal,onProgress:progress,store,approval});last=report;lastStore=store;lastRom=new Uint8Array(bytes);attached=null;return report;});
 }
 function runDemo(){return discover(bytesOfDemo(),demo.training,demo.holdout);}
 function assessment(){return last?Life.assess({discovery:last,independent:attached?.effective||null}):Life.assess({});}
@@ -146,7 +151,7 @@ if(C?.register){
   R({name:'experiment.run',title:'Run an experiment plan on a synthetic fixture',args:{plan:{type:'object',required:true},bytes:{type:'bytes',required:true}},summary:'Runs the plan\'s trials in the isolated sandbox. Only cartridges carrying the synthetic-fixture marker are accepted.',
     run:a=>{requireSynthetic(a.bytes);const store=Evidence.createStore();return exclusive('plan',async(signal,progress)=>{const r=await services.ExperimentRunner.run(a.plan,a.bytes,{store,signal,onProgress:progress});lastStore=store;return {repeatability:r.repeatability,baseUnchanged:r.baseUnchanged,receipts:r.receipts,identity:r.identity,store:store.stats(),results:r.results.map(x=>({trial:x.trial.id,sync:x.result.sync?{nmis:x.result.sync.nmiFrames.length,latches:x.result.sync.latches.length,pathDigests:x.result.sync.pathDigests}:null})),
       readByBaseline:(()=>{const t=r.results.find(x=>x.trial.kind==='baseline'&&x.result.trace)?.result.trace;if(!t)return null;const L=contract.romLayout(a.bytes);return Object.fromEntries(r.plan.trials.flatMap(tr=>tr.mutations).map(m=>[m.offset,{role:t.roles[m.offset-L.prgStart]??0,read:!!(t.roles[m.offset-L.prgStart]&4),traceComplete:!t.truncated}]));})()};});}});
-  R({name:'experiment.discoverMetatiles',title:'Discover a metatile table in a synthetic fixture',args:{bytes:{type:'bytes',required:true},training:{type:'object',required:true},holdout:{type:'object',required:true}},summary:'Observe, propose, test, freeze, reconstruct the withheld input, prepare verification jobs. Synthetic fixtures only.',run:async a=>plain(await discover(a.bytes,a.training,a.holdout))});
+  R({name:'experiment.discoverMetatiles',title:'Discover a metatile table in a synthetic fixture or an approved local cartridge',args:{bytes:{type:'bytes',required:true},training:{type:'object',required:true},holdout:{type:'object',required:true},approve:{type:'boolean'}},summary:'Observe, propose, test, freeze, reconstruct the withheld input, prepare verification jobs. Synthetic fixtures; a locally supplied cartridge only with approve: true (private: nothing of it leaves this browser; supported mappers 0-4 and 7).',run:async a=>plain(await discover(a.bytes,a.training,a.holdout,a.approve===true))});
   R({name:'experiment.demo',title:'Run the synthetic discovery demonstration',summary:'The experimental panel\'s demonstration on the embedded synthetic cartridge.',run:async()=>{const r=await runDemo();render(r);return plain(r);}});
   R({name:'experiment.cancel',title:'Cancel the running experiment',run:()=>{if(!running)return {cancelled:false};running.controller.abort();return {cancelled:true,label:running.label};}});
   R({name:'experiment.status',title:'Experiment status',run:()=>({running:running?{label:running.label,stage:running.stage}:null,isolation:services.ExperimentSandbox.available(),sessions:services.ExperimentSandbox.sessions(),last:last?{definitionHash:last.definition?.definitionHash||null,classification:last.result?.classification||null}:null,attached:!!attached})});

@@ -68,7 +68,11 @@ function romLayout(bytes){
   if(bytes.length<16||bytes[0]!==0x4e||bytes[1]!==0x45||bytes[2]!==0x53||bytes[3]!==0x1a)fail('rom','is not an iNES file');
   if((bytes[7]&0x0c)===0x08)fail('rom','is NES 2.0, which this slice does not support');
   const reading=InesHeader?InesHeader.inspect(bytes):null,archaic=reading?reading.format==='archaic iNES':bytes.subarray(11,16).some(b=>b!==0);
-  if(archaic&&!reading)fail('rom','has a non-zero iNES 1.0 header tail and the shared header reader is not available');
+  // Forge's own synthetic fixtures are generated with clean headers: a dirty tail on one is damage, refused as before.
+  // A locally supplied cartridge with an archaic header is read by the shared rule (nothing is repaired).
+  if(archaic){const at=16+(bytes[6]&4?512:0)+bytes[4]*16384-256;let fixture=at>=16&&at+SYNTHETIC_MARKER.length<=bytes.length;
+    for(let i=0;fixture&&i<SYNTHETIC_MARKER.length;i++)if(bytes[at+i]!==SYNTHETIC_MARKER.charCodeAt(i))fixture=false;
+    if(fixture||!reading)fail('rom','has a non-zero iNES 1.0 header tail; it is not repaired');}
   const trainerBytes=bytes[6]&4?512:0,prgBytes=bytes[4]*16384,chrBytes=bytes[5]*8192,mapper=archaic?reading.mapper:(bytes[6]>>4)|(bytes[7]&0xf0);
   if(!prgBytes)fail('rom','declares no PRG');
   const prgStart=16+trainerBytes,chrStart=prgStart+prgBytes,end=chrStart+chrBytes;
