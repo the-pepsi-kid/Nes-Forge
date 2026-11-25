@@ -60,7 +60,9 @@ const EXPECTED = {
     const a = load(editor), w = a.window, s = w.Forge.services; await new Promise(r => setTimeout(r, 30));
     const parse = w.eval('parseRomHeader'), rows = [];
     for (const c of cartridges) { const i = H.inspect(c.bytes); let emu = null; try { emu = parse(w.Uint8Array.from(c.bytes)).mapper; } catch (e) { emu = 'refused: ' + e.message; }
-      const an = await s.REAnalysis.open(w.Uint8Array.from(c.bytes), {name: c.name + '.nes', allowLegacyHeaderLayout: true}), am = an.report.header.mapper;
+      const an = await s.REAnalysis.open(w.Uint8Array.from(c.bytes), {name: c.name + '.nes', allowLegacyHeaderLayout: true}), am = an.report.headerReading.mapper;
+      // the analysis's header record keeps the declarations unchanged (stored ROM-project catalogs compare it exactly)
+      assert.equal(an.report.header.mapper, i.declaredMapper, c.name + ' declared mapper');
       const lib = s.LibraryCatalog.romLayout(w.Uint8Array.from(c.bytes)).mapper;
       if (typeof emu === 'number') assert.equal(emu, i.mapper, c.name + ' emulator'); assert.equal(am, i.mapper, c.name + ' analysis'); assert.equal(lib, i.mapper, c.name + ' library');
       rows.push({cartridge: c.name, mapper: i.mapper, emulator: emu, analysis: am, library: lib}); }
@@ -84,12 +86,13 @@ const EXPECTED = {
     const shown = Array.from({length: 960}, (_, i) => w.eval('ppuBusRead')(0x2000 + i)).filter(v => v).length;
     return {mapper: emu.mapper, nmis, nonzeroNametableTiles: shown};
   });
-  await check('editor: the intake reports the archaic header and the mapper it uses', async () => {
+  await check('editor: the intake keeps the header\'s declarations and reports the archaic reading and the mapper it uses', async () => {
     const c = cartridges.find(x => x.name === 'Shadowgate (U)') || cartridges.find(x => x.name === 'Mega Man (U)'); if (!c) return {skipped: 'no cartridge'};
     const a = load(editor), w = a.window, s = w.Forge.services; await new Promise(r => setTimeout(r, 30));
     const an = await s.REAnalysis.open(w.Uint8Array.from(c.bytes), {name: c.name + '.nes', allowLegacyHeaderLayout: true});
-    assert.equal(an.report.header.archaic, true); assert.equal(an.report.header.format, 'archaic iNES'); assert.ok(an.report.warnings?.some?.(x => /Archaic iNES header/.test(x)) || JSON.stringify(an.report).includes('Archaic iNES header'));
-    return {cartridge: c.name, header: {format: an.report.header.format, mapper: an.report.header.mapper, declaredMapper: an.report.header.declaredMapper}};
+    assert.equal(an.report.headerReading.format, 'archaic iNES'); assert.ok(an.report.warnings?.some?.(x => /Archaic iNES header/.test(x)) || JSON.stringify(an.report).includes('Archaic iNES header'));
+    assert.equal(an.report.header.format, 'iNES 1.0', 'the declared header record is unchanged');
+    return {cartridge: c.name, declared: {format: an.report.header.format, mapper: an.report.header.mapper}, reading: an.report.headerReading};
   });
   const failed = results.filter(r => !r.ok);
   const report = {suite: 'ines-header', editorSha256: hash(fs.readFileSync(editor)), passed: failed.length === 0, total: results.length, checksPassed: results.length - failed.length, results};

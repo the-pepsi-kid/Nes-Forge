@@ -24,7 +24,10 @@ for another cartridge with the same contamination (Shadowgate, `shadowgate-mappi
 
 **One recognizer for every reader:**
 - the emulator's `parseRomHeader` (which now also loads valid NES 2.0 headers whose mapper it supports);
-- the intake analysis (`REAnalysis`, which labels the header "archaic iNES" and says which bytes were ignored);
+- the intake analysis (`REAnalysis`). Its `header` record still states what the header bytes declare, because stored
+  ROM projects compare that record exactly when they are reopened. The recognizer's reading goes in a separate
+  `headerReading` (format, effective mapper, which bytes were ignored, and any text in them), and the intake warning
+  says which mapper is used;
 - the library's cartridge layout.
 
 The Shadowgate exception is removed: the general rule gives the same mapper.
@@ -45,7 +48,7 @@ contract still refuses NES 2.0 and dirty header tails by design; that slice acce
 - synthetic iNES 1.0, NES 2.0, contaminated and size-inconsistent headers;
 - the original bytes are unchanged;
 - every local cartridge is read as expected;
-- the emulator, the intake and the library agree on the mapper;
+- the emulator, the intake's reading and the library agree on the mapper, and the intake's declared record is unchanged;
 - Mega Man runs in the emulator unmodified: the NMI handler ran 233 times in 240 frames, where before it never ran.
 
 ## 2. Vertical scroll when rendering is turned on mid-frame

@@ -44,17 +44,20 @@ function parseContainer(bytes,{allowLegacyHeaderLayout=false}={}){
   if(!prgSize)return raw('The NES header declares no PRG ROM.');
   const trainerSize=bytes[6]&4?512:0,prgStart=16+trainerSize,chrStart=prgStart+prgSize,end=chrStart+chrSize;
   if(end>bytes.length)return raw('The NES header declares '+end+' bytes but this file has '+bytes.length+'; its payload is truncated.');
-  // archaic iNES (src/re/ines-header.js): bytes 7-15 are not header fields (e.g. "DiskDude!"); the mapper is byte 6's high nibble
+  // header records the header's declarations, as they always have (stored ROM-project catalogs compare it exactly);
+  // headerReading is the shared recognizer's interpretation (src/re/ines-header.js): for an archaic iNES header,
+  // bytes 7-15 are not header fields (e.g. "DiskDude!") and the effective mapper is byte 6's high nibble
   const ines=globalThis.InesHeader?.inspect(bytes),archaic=!nes2&&ines?.format==='archaic iNES';
-  const mapper=archaic?ines.mapper:(bytes[6]>>4)|(bytes[7]&0xf0)|(nes2?(bytes[8]&15)<<8:0),submapper=nes2?bytes[8]>>4:0,consoleType=archaic?0:bytes[7]&3;
+  const mapper=(bytes[6]>>4)|(bytes[7]&0xf0)|(nes2?(bytes[8]&15)<<8:0),submapper=nes2?bytes[8]>>4:0,consoleType=bytes[7]&3;
+  const headerReading=ines?.valid?{format:ines.format,mapper:ines.mapper,submapper:ines.submapper,...(ines.ignored?{ignoredBytes:ines.ignored.bytes,ignoredText:ines.ignored.signature||null}:{}),description:globalThis.InesHeader.describe(ines)}:null;
   if(nes2&&((consoleType===0||consoleType===2)&&bytes[13]!==0))return raw('The NES 2.0 header uses reserved console-detail data.');
   if(nes2&&consoleType===3&&(bytes[13]&0xf0))return raw('The NES 2.0 extended console header uses reserved high bits.');
   const warnings=['Header values are declarations; no hardware behavior has been observed.'];
-  if(archaic)warnings.push('Archaic iNES header: bytes 7-15 are not header fields and are ignored'+(ines.ignored?.signature?' (they hold "'+ines.ignored.signature+'")':'')+'; the mapper is '+mapper+' from byte 6'+(ines.declaredMapper!==mapper?' (read naively they would declare mapper '+ines.declaredMapper+')':'')+'. The file is unchanged.');
+  if(archaic)warnings.push('Archaic iNES header: bytes 7-15 are not header fields and are ignored'+(ines.ignored?.signature?' (they hold "'+ines.ignored.signature+'")':'')+'; the effective mapper is '+ines.mapper+' from byte 6'+(ines.mapper!==mapper?' (the bytes as declared read '+mapper+')':'')+'. The file is unchanged.');
   if(legacyReserved)warnings.push('Legacy reserved header bytes are nonzero. Only bounded physical PRG/CHR ranges are used; the declared mapper may be contaminated. No header repair or CPU bank mapping is inferred.');
   if(consoleType!==0)warnings.push('This container declares a nonstandard NES console type; generic byte inspection is available, but no platform execution or static CPU map is claimed.');
   if(end<bytes.length)warnings.push('Trailing bytes are preserved and inspectable; miscellaneous ROMs, console data or other trailing structure are not decoded.');
-  return {header:{status:'valid',...(legacyReserved?{legacyReserved:true}:{}),...(archaic?{archaic:true,declaredMapper:ines.declaredMapper,ignoredBytes:ines.ignored}:{}),format:nes2?'NES 2.0':archaic?'archaic iNES':'iNES 1.0',rawBytes,mapper,submapper,prgSize,chrSize,trainer:!!trainerSize,consoleType,batteryFlag:!!(bytes[6]&2),nametableLayoutFlag:bytes[6]&8?'four-screen':bytes[6]&1?'vertical':'horizontal'},layout:{header:span(0,16),trainer:trainerSize?span(16,trainerSize):null,prg:span(prgStart,prgSize),chr:chrSize?span(chrStart,chrSize):null,trailing:end<bytes.length?span(end,bytes.length-end):null,raw:span(0,bytes.length)},warnings};
+  return {header:{status:'valid',...(legacyReserved?{legacyReserved:true}:{}),format:nes2?'NES 2.0':'iNES 1.0',rawBytes,mapper,submapper,prgSize,chrSize,trainer:!!trainerSize,consoleType,batteryFlag:!!(bytes[6]&2),nametableLayoutFlag:bytes[6]&8?'four-screen':bytes[6]&1?'vertical':'horizontal'},layout:{header:span(0,16),trainer:trainerSize?span(16,trainerSize):null,prg:span(prgStart,prgSize),chr:chrSize?span(chrStart,chrSize):null,trailing:end<bytes.length?span(end,bytes.length-end):null,raw:span(0,bytes.length)},warnings,...(headerReading?{headerReading}:{})};
 }
 // Only documented NMOS encodings. An unrecognized opcode is one unclassified
 // byte, not an assertion that it is an invalid CPU instruction. Linear sweeps
@@ -95,7 +98,7 @@ async function open(input,configuration={}){
     const fileOffset=layout.prg.start+((cpuAddress-0x8000)%header.prgSize),rawBytes=[bytes[fileOffset],bytes[fileOffset+1]],target=rawBytes[0]|rawBytes[1]<<8;
     return {name,cpuAddress,status:'read',fileOffset,rawBytes,target,provenance:source(fileOffset,2),interpretation:'Header-derived vector value; not proof of executed code.'};
   });
-  const report=freeze({format:'NESForgeREInspection',version:2,modelVersion:'re-analysis-1',identity:{name,algorithm:'SHA-256',sha256,byteLength:bytes.length},header,layout,cpuMapping,vectors,
+  const report=freeze({format:'NESForgeREInspection',version:2,modelVersion:'re-analysis-1',identity:{name,algorithm:'SHA-256',sha256,byteLength:bytes.length},header,...(container.headerReading?{headerReading:container.headerReading}:{}),layout,cpuMapping,vectors,
     chr:{status:layout.chr?'physical-ROM-patterns-available':header.status==='valid'?'runtime-CHR-RAM-unknown':'layout-unknown',tileCount:layout.chr?Math.floor(layout.chr.length/16):0},
     capabilities:{generalInspection:{status:'available'},addressMapping:{status:staticNrom?'known-static':'user-required',reason:staticNrom?'Header-derived NROM map; explicit mappings remain user interpretations.':'Physical bytes remain available; provide a CPU address and bank label where known.'},emulation:{status:'not-evaluated',reason:'Inspection does not load or execute a ROM.'},recovery:{status:'not-checked',reason:'Check supported recovery profiles separately.'}},
     limits:LIMITS,variants:['6502','2a03'],opcodePolicy:'151 documented NMOS 6502 encodings; unrecognized opcodes remain .byte. No 65C02 or 65816 decoding.',
