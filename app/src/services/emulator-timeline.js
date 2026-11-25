@@ -212,6 +212,31 @@ function importCheckpoint(data,name){
 function deleteCheckpointOwned(id,owner){syncSession();const entry=checkpoints.get(id);if(!entry)return false;if(entry.owner&&entry.owner!==owner)fail('This checkpoint belongs to an active reversible operation. Restore or keep that operation first.');if(busy)fail('Wait for navigation or replay before deleting a checkpoint.');checkpoints.delete(id);checkpointBytes-=entry.size;notify();return true;}
 function deleteCheckpoint(id){return deleteCheckpointOwned(id,null);}
 function applyPrepared(state){const withVideo=new Set([...excluded]);withVideo.delete('frameBuffer');withVideo.delete('bgFrameBuffer');assignState(emu,state.emu,withVideo);assignState(apuCore,state.apu,callbacks);apuSilence();}
+// AL-REC-01: whole-machine state for an automated investigation in an isolated copy of the editor (the experiment
+// sandbox or an Agent Lab page): the same physical state a checkpoint holds, without its video, bounded history or
+// notifications. A state is bound to the loaded cartridge configuration and PRG contents, and copied in both directions
+// so a kept state is never changed by later emulation.
+const prgDigests=new WeakMap(),machineExcluded=new Set([...excluded,'captureTrace']); // the renderer's per-frame trace is rebuilt every frame
+
+function prgDigest(){const p=emu.prgRom;if(!p)return 0;let d=prgDigests.get(p);if(d===undefined){let h=0x811c9dc5;for(let i=0;i<p.length;i+=7)h=Math.imul(h^p[i],0x01000193);d=h>>>0;prgDigests.set(p,d);}return d;}
+function deepCopy(value){
+ if(typeof structuredClone==='function')return structuredClone(value);
+ const copy=v=>v===null||typeof v!=='object'?v:ArrayBuffer.isView(v)?v.slice():Array.isArray(v)?v.map(copy):v instanceof Map?new Map([...v].map(([k,x])=>[k,copy(x)])):v instanceof Set?new Set([...v].map(copy)):Object.fromEntries(Object.entries(v).map(([k,x])=>[k,copy(x)]));
+ return copy(value);
+}
+function machineState(){
+ if(!emu.loaded)fail('No ROM is loaded.');
+ return {format:'NESForgeMachineState',version:1,frame:emu.frameCount,mapper:emu.mapper,prgBytes:emu.prgSize,chrBytes:emu.chrRom?.length||0,prgDigest:prgDigest(),
+  emu:deepCopy(physical(emu,machineExcluded)),apu:deepCopy(physical(apuCore,callbacks))};
+}
+function applyMachineState(state){
+ if(!emu.loaded)fail('No ROM is loaded.');
+ if(state?.format!=='NESForgeMachineState'||state.version!==1)fail('Not a machine state.');
+ if(state.mapper!==emu.mapper||state.prgBytes!==emu.prgSize||state.chrBytes!==(emu.chrRom?.length||0)||state.prgDigest!==prgDigest())fail('The machine state belongs to another cartridge.');
+ if(busy)fail('Wait for navigation or replay before restoring a machine state.');
+ assignState(emu,deepCopy(state.emu),machineExcluded);assignState(apuCore,deepCopy(state.apu),callbacks);apuSilence();
+ return state.frame;
+}
 function restoreCheckpoint(id){
  requirePausedOperation();const entry=checkpoints.get(id);if(!entry)fail('Checkpoint is not available in this ROM session.');const state=prepare(entry);
  const token=++operation;busy=true;blockNavigation(true);notify();pauseForNavigation();
@@ -283,5 +308,5 @@ services.ProjectStore.commit=function(...args){const result=oldCommit.apply(this
 const oldReplace=Forge166.project.replaceProject;
 Forge166.project.replaceProject=function(...args){const result=oldReplace.apply(this,args);syncSession();return result;};
 identity=currentIdentity();
-services.EmulatorTimeline=Object.freeze({saveCheckpoint,saveOwnedCheckpoint,exportCheckpoint,importCheckpoint,restoreCheckpoint,deleteCheckpoint,listCheckpoints,readRAM,patchRAM,validateScript,runScript,setEnabled,enableHistory:setEnabled,back:(count=1)=>seekRelative(-count),forward:(count=1)=>seekRelative(count),seekRelative,cancel,status(){syncSession();return rawStatus();},subscribe(fn){if(typeof fn!=='function')return ()=>{};listeners.add(fn);fn(rawStatus());return ()=>listeners.delete(fn);}});
+services.EmulatorTimeline=Object.freeze({machineState,applyMachineState,saveCheckpoint,saveOwnedCheckpoint,exportCheckpoint,importCheckpoint,restoreCheckpoint,deleteCheckpoint,listCheckpoints,readRAM,patchRAM,validateScript,runScript,setEnabled,enableHistory:setEnabled,back:(count=1)=>seekRelative(-count),forward:(count=1)=>seekRelative(count),seekRelative,cancel,status(){syncSession();return rawStatus();},subscribe(fn){if(typeof fn!=='function')return ()=>{};listeners.add(fn);fn(rawStatus());return ()=>listeners.delete(fn);}});
 })();

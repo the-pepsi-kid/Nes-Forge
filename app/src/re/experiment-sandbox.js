@@ -200,6 +200,45 @@ async function runTrial(runId,request,report){
   try{result.memory=performance.memory?{usedJSHeapSize:performance.memory.usedJSHeapSize,totalJSHeapSize:performance.memory.totalJSHeapSize}:null;}catch(_){result.memory=null;}
   return result;
 }
+// AL-REC-01: an incremental recovery run (src/services/recovery-explorer.js) on a locally supplied cartridge. Any
+// mapper the emulator itself loads; the cartridge is checked against its SHA-256 and never changed; results go back to
+// the editor only. A soft cancel stops the run at its next sample and still returns what it found.
+async function runExplore(runId,request,report){
+  const t0=performance.now();
+  try{
+    const bytes=request.rom instanceof Uint8Array?request.rom:fail('a recovery run needs the cartridge');
+    if(contract.sha256(bytes)!==request.romSha)fail('the cartridge bytes do not match their SHA-256');
+    if(!services.RecoveryExplorer)fail('this build has no recovery explorer');
+    for(const ck of checkpoints.values())ck.handle.release();checkpoints.clear();romSha=request.romSha;
+    let last=0;
+    const result=await services.RecoveryExplorer.run({...(request.explore||{}),rom:bytes,
+      onProgress:p=>{if(performance.now()-last>250){last=performance.now();report({type:'progress',runId,...p});}},
+      shouldStop:()=>cancelled.has(runId)?'stopped on request':null});
+    if(request.trace&&services.RecoveryTrace&&result.observations.length&&emu.hasChrRam)result.traces=await traceObservations(bytes,result,request.trace,runId);
+    return {type:'result',runId,outcome:'completed',explore:result,wallMs:Math.round(performance.now()-t0)};
+  }catch(error){return {type:'result',runId,outcome:'crash',stopReason:String(error?.message||error),wallMs:Math.round(performance.now()-t0)};}
+  finally{cancelled.delete(runId);}
+}
+// replays the input paths that reached graphics observations from power-on with the CHR tracer on, and classifies the
+// CHR RAM at each of those frames (deepest paths first, so one replay covers the observations along it)
+async function traceObservations(bytes,result,{maxReplays=4,maxFrames=30000}={},runId){
+  const E=services.RecoveryExplorer,T=services.RecoveryTrace,out=[],wanted=result.observations.filter(o=>o.path&&o.why.some(w=>/graphics|layout/.test(w))&&o.record?.scene);
+  const key=p=>JSON.stringify(p),covered=new Set(),paths=[];
+  for(const o of [...wanted].sort((a,b)=>b.frame-a.frame)){if(covered.has(o.index))continue;const p=o.path;paths.push({path:p,frame:o.frame});
+    for(const x of wanted)if(x.frame<=o.frame&&key(x.path)===key(p.slice(0,x.path.length)))covered.add(x.index);if(paths.length>=maxReplays)break;}
+  for(const {path} of paths){
+    if(cancelled.has(runId))break;
+    const at=new Map(wanted.filter(x=>key(x.path)===key(path.slice(0,x.path.length))).map(x=>[x.frame,x]));let tracer=null,total=0;
+    if(!emuLoadRomData(bytes,'recovery trace',0))break;
+    tracer=T.install();
+    try{await E.replay(bytes,path,{loaded:true,onFrame:()=>{tracer.endFrame();total++;const o=at.get(emu.frameCount);if(o&&!out.some(r=>r.observation===o.index)){const cap=tracer.capture(),an=T.analyze(cap,bytes);
+      out.push({observation:o.index,frame:emu.frameCount,summary:an.summary,shown:an.shown,used:an.used,rows:an.rows.filter(r=>r.class!=='uniform').map(r=>({tile:r.tile,class:r.class,detail:r.detail,offsets:r.offsets||null,writable:!!r.writable,rewritten:!!r.rewritten,background:!!r.background,sprite:!!r.sprite,located:r.located||null,transform:r.transform||null})),
+        writers:cap.writers.slice(0,16),batches:cap.batchesTotal,bankWrites:cap.bankWritesTotal,counts:cap.counts,truncated:cap.truncated});}if(total>maxFrames)throw Error('trace frame budget');}});}
+    catch(e){out.push({error:String(e.message||e),path:path.length});}
+    finally{tracer?.uninstall();}
+  }
+  return out;
+}
 function agent(){
   const nonce=window.name.slice(PREFIX.length);
   window.addEventListener('error',e=>{if(errors.length<20)errors.push(String(e.message||e.error||'error'));});
@@ -214,7 +253,7 @@ function agent(){
     if(m.type==='cancel'){cancelled.add(m.runId);return;}
     if(m.type==='release'){for(const l of m.labels||[]){checkpoints.get(l)?.handle.release();checkpoints.delete(l);}return;}
     if(m.type==='run'){if(busy){send({type:'result',runId:m.runId,outcome:'invalid',stopReason:'the sandbox is already running a trial'});return;}
-      busy=true;try{send(await (m.request?.job?runJob:runTrial)(m.runId,m.request,send));}finally{busy=false;}}
+      busy=true;try{send(await (m.request?.explore?runExplore:m.request?.job?runJob:runTrial)(m.runId,m.request,send));}finally{busy=false;}}
   });
   documentSha256().then(sha=>send({type:'ready',identity:{documentSha256:sha,engine:'NES Forge emulator, same build as the editor',mappers:[0],channels:contract.CHANNELS,jobs:true},errors:errors.slice()}));
 }
