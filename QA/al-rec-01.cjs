@@ -118,15 +118,18 @@ let browser = null; const chromiumPage = async () => { const {chromium} = requir
     const r = await page.evaluate(async rom => { window.__forgeAgentLabPage = true; const s = Forge.services, bytes = new Uint8Array(rom); emuLoadRomData(bytes, 'bt', 0); const tr = s.RecoveryTrace.install(); let cap = null;
       await s.RecoveryExplorer.replay(bytes, [['script', 2, 3000]], {loaded: true, onFrame: () => { tr.endFrame(); if (emu.frameCount === 3000) cap = tr.capture(); }}); tr.uninstall();
       const an = s.RecoveryTrace.analyze(cap, bytes);
-      return {summary: an.summary, shown: an.shown, rows: an.rows.filter(x => x.class !== 'uniform').map(x => ({tile: x.tile, class: x.class, offsets: x.offsets || null, writable: x.writable || false, background: !!x.background, plane: x.plane, fill: x.fill, literals: x.literals || null})), chr: Array.from(cap.chr), writers: cap.writers.slice(0, 4)}; }, Array.from(BT));
+      return {summary: an.summary, shown: an.shown, rows: an.rows.filter(x => x.class !== 'uniform').map(x => ({tile: x.tile, class: x.class, offsets: x.offsets || null, writable: x.writable || false, tests: x.tests || null, background: !!x.background, plane: x.plane, fill: x.fill, literals: x.literals || null})), chr: Array.from(cap.chr), writers: cap.writers.slice(0, 4)}; }, Array.from(BT));
     const by = r.summary.byClass; assert.ok(by.direct > 0 && by.compressed > 0 && by.transformed > 0, JSON.stringify(by));
-    const pick = r.rows.find(x => x.class === 'direct' && x.writable === true && x.background);
-    const edit = Uint8Array.from({length: 16}, (_, i) => r.chr[pick.tile * 16 + i] ^ 0xff), wb = P.writeback(BT, r.rows, [{tile: pick.tile, bytes: edit}]);
-    assert.equal(wb.refused.length, 0); assert.notEqual(sha(wb.rom), sha(BT)); assert.equal(sha(BT), sha(cart('Battletoads (U)')), 'the original stays as it is');
+    // a direct background tile whose edit the writeback accepts (bytes the decoder also tests must keep what it tests)
+    let pick = null, edit = null, wb = null; const refusedEdits = [];
+    for (const x of r.rows.filter(x => x.class === 'direct' && x.writable && x.background)) {
+      const original = Uint8Array.from(r.chr.slice(x.tile * 16, x.tile * 16 + 16)), e = original.map(v => v ^ 0xff), w = P.writeback(BT, r.rows, [{tile: x.tile, bytes: e, original}]);
+      if (w.refused.length) { refusedEdits.push({tile: x.tile, reason: w.refused[0].reason}); continue; } pick = x; edit = e; wb = w; break; }
+    assert.ok(pick, 'some traced direct tile accepts an edit'); assert.notEqual(sha(wb.rom), sha(BT)); assert.equal(sha(BT), sha(cart('Battletoads (U)')), 'the original stays as it is');
     const r2 = await page.evaluate(async ([rom, tile]) => { const s = Forge.services, bytes = new Uint8Array(rom); await s.RecoveryExplorer.replay(bytes, [['script', 2, 3000]]); return Array.from(emu.chrRam.subarray(tile * 16, tile * 16 + 16)); }, [Array.from(wb.rom), pick.tile]);
     await ctx.close();
     assert.deepEqual(r2, Array.from(edit), 'the edited tile is what the game uploads');
-    metrics.battletoads = {byClass: by, writable: r.summary.writable, writableWholeTile: r.summary.writableWholeTile, shown: r.shown.byClass, writebackTile: pick.tile, writebackOffset: pick.offsets[0], writers: r.writers};
+    metrics.battletoads = {byClass: by, writable: r.summary.writable, writableWithoutConditions: r.summary.writableWholeTile, checked: r.rows.filter(x => x.writable === 'checked').length, shown: r.shown.byClass, writebackTile: pick.tile, writebackOffset: pick.offsets[0], refusedBeforeIt: refusedEdits, writers: r.writers};
     return metrics.battletoads;
   });
   await check('Battletoads: translated layouts get captured graphics where a run saw their screens; editable pages appear', async () => {
