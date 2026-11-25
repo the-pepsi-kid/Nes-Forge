@@ -218,7 +218,7 @@ function applyPrepared(state){const withVideo=new Set([...excluded]);withVideo.d
 // so a kept state is never changed by later emulation.
 const prgDigests=new WeakMap(),machineExcluded=new Set([...excluded,'captureTrace']); // the renderer's per-frame trace is rebuilt every frame
 
-function prgDigest(){const p=emu.prgRom;if(!p)return 0;let d=prgDigests.get(p);if(d===undefined){let h=0x811c9dc5;for(let i=0;i<p.length;i+=7)h=Math.imul(h^p[i],0x01000193);d=h>>>0;prgDigests.set(p,d);}return d;}
+function prgDigest(){const p=emu.prgRom;if(!p)return 0;let d=prgDigests.get(p);if(d===undefined){let h=0x811c9dc5;for(let i=0;i<p.length;i++)h=Math.imul(h^p[i],0x01000193);d=h>>>0;prgDigests.set(p,d);}return d;}
 function deepCopy(value){
  if(typeof structuredClone==='function')return structuredClone(value);
  const copy=v=>v===null||typeof v!=='object'?v:ArrayBuffer.isView(v)?v.slice():Array.isArray(v)?v.map(copy):v instanceof Map?new Map([...v].map(([k,x])=>[k,copy(x)])):v instanceof Set?new Set([...v].map(copy)):Object.fromEntries(Object.entries(v).map(([k,x])=>[k,copy(x)]));

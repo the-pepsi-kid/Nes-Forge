@@ -53,10 +53,11 @@ args = parser.parse_args()
 #   emulation-forced-blank ~3 min: vertical scroll from v when rendering is turned on mid-frame (synthetic cartridges in NES Forge and FCEUX; Battletoads Level 1 if given)
 #   ines-header        ~1 min: iNES 1.0 / NES 2.0 / archaic header recognition (synthetic; local cartridges if given), emulator runs a DiskDude-header cartridge
 #   cad-port-01        ~10 min with cartridges: translated CadEditor catalog, shared decoders, recognition, import-time integration, ledger re-derived (FCEUX observation re-run)
+#   al-rec-01          ~35 min with cartridges: CHR RAM provenance and writeback, machine states, persistent continuation, controls, Battletoads tracing, linked parts, worker continuation, commercial experiments, report
 #   al-exp-02          ~30 min, no cartridges needed: 22 randomized adversarial synthetic fixtures (11 withheld), independent verification in FCEUX (reported blocked if FCEUX/Xvfb are missing), packages, lifecycle
 # Each limit leaves room for a loaded machine; hang detection (--idle-timeout) still stops a silent suite early.
 DEFAULT_TIMEOUT = 420
-TIMEOUTS = {'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 3600, 'pose-links': 900, 'punch-out-pose-links': 2400, 'zelda2-pose-links': 900, 'al-exp-01': 1800, 'al-exp-02': 3000, 'cad-port-01': 1800, 'emulation-forced-blank': 900}
+TIMEOUTS = {'al-rec-01': 3600, 'extraction': 1200, 'ninja-stage-table': 900, 'library-workflow': 1500, 'library-locations': 900, 'native-corpus': 900, 'frame-evidence': 1500, 'agent-lab-background': 1200, 'project-recovery': 900, 'one-rom-loop': 1200, 'catalog-recovery': 1500, 'library-integrity': 1500, 'mmc2-sync': 3600, 'pose-links': 900, 'punch-out-pose-links': 2400, 'zelda2-pose-links': 900, 'al-exp-01': 1800, 'al-exp-02': 3000, 'cad-port-01': 1800, 'emulation-forced-blank': 900}
 for item in args.timeout:
     suite, _, seconds = item.partition('=')
     if not suite or not seconds.isdigit():
@@ -286,6 +287,9 @@ if args.browser:
     record(run('ines-header',['node',QA/'ines-header.cjs',EDITOR,receipt]+([str(args.cartridges.resolve())] if args.cartridges else []),receipt))
     receipt=output/'al-exp-02.json'
     record(run('al-exp-02',['node',QA/'al-exp-02.cjs',EDITOR,receipt,str(output/'al-exp-02-artifacts')],receipt))
+    # AL-REC-01: persistent recovery (synthetic checks always; cartridge checks with --cartridges / --extractions)
+    receipt=output/'al-rec-01.json'
+    record(run('al-rec-01',['node',QA/'al-rec-01.cjs',EDITOR,receipt]+([str(args.cartridges.resolve())] if args.cartridges else [])+([str(args.extractions.resolve())] if args.cartridges and args.extractions else []),receipt))
     receipt=output/'library-persistence.json'
     lib_args=['node',QA/'library-persistence.cjs',EDITOR,receipt]+([str(args.extractions.resolve())] if args.extractions else [])
     record(run('library-persistence',lib_args,receipt))
