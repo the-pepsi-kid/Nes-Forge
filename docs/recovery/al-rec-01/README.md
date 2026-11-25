@@ -1,6 +1,8 @@
 # AL-REC-01: per-ROM recovery comparison
 
-Before: build `dcdb55d14f0c…` (baseline (5aee66b, before AL-REC-01)). After: the AL-REC-01 build, two recovery runs per cartridge. One page per cartridge links below.
+Before: build `dcdb55d14f0c…` (baseline (5aee66b, before AL-REC-01)). After: AL-REC-01 builds (CHR ROM cartridges measured with `37fceb7da822…`; CHR RAM cartridges, whose traces the final tracer changes, with `d3a8919b74e6…` (identical exploration counts on both builds)), two recovery runs per cartridge: Continue Recovery, then Retry Unresolved Resources continuing from the first run's states. One page per cartridge links below.
+
+The graphics column compares different things: *before* is what one Agent Lab job showed (the profile plan where the worker has one, else the generic plan); *after* is what the two recovery runs saw. Punch-Out's profile plan visits all 14 fights and saw more CHR banks (56) than 32,000 frames of general exploration (24): exploration adds to game-specific plans, it does not replace them.
 
 | Cartridge | Library entries before → after | Investigation before: frames / screens | After: observations (run 1 + run 2) | Graphics before → after | Run 2 stop reason |
 |---|---|---|---|---|---|
