@@ -26,7 +26,10 @@ function compare(reference,result,plan){
   }
   const start=result.startFrame||0;let frame=null,event=null;
   if(reference.frameDigests.length&&result.frameDigests.length){const offset=start-(reference.startFrame||0);for(let i=0;i<result.frameDigests.length;i++)if(reference.frameDigests[i+offset]!==result.frameDigests[i]){frame=start+i+1;break;}}
-  if(reference.trace&&result.trace){const a=eventsAfter(reference.trace,start),b=eventsAfter(result.trace,start),n=Math.min(a.length,b.length);
+  // a truncated trace says nothing about events after its cap: two traces are compared up to the earliest frame both
+  // recorded (AL-REC-01: long commercial runs reach the cap; a run restored from a checkpoint reaches it later)
+  if(reference.trace&&result.trace){const capAt=t=>t.truncated&&t.events.length?t.events[t.events.length-1][0]:Infinity,limit=Math.min(capAt(reference.trace),capAt(result.trace));
+    const a=eventsAfter(reference.trace,start).filter(e=>e[0]<limit),b=eventsAfter(result.trace,start).filter(e=>e[0]<limit),n=Math.min(a.length,b.length);
     for(let i=0;i<n;i++)if(a[i].some((v,k)=>v!==b[i][k])){event={index:i,baseline:a[i].slice(),variant:b[i].slice()};break;}
     if(!event&&a.length!==b.length)event={index:n,baseline:a[n]?a[n].slice():null,variant:b[n]?b[n].slice():null};}
   return {channels,captures,firstDivergence:frame===null&&!event?null:{frame,event}};
@@ -41,14 +44,14 @@ function classify(result,comparison,plan){
 }
 const plain=v=>JSON.parse(JSON.stringify(v));
 
-async function run(planInput,baseBytes,{store=Evidence.createStore(),session=null,keepSession=false,onProgress=null,signal=null}={}){
+async function run(planInput,baseBytes,{store=Evidence.createStore(),session=null,keepSession=false,onProgress=null,signal=null,approval=null}={}){
   const plan=contract.validatePlan(planInput);
   if(!(baseBytes instanceof Uint8Array))fail('needs cartridge bytes');
   const callerSha=contract.sha256(baseBytes),base=new Uint8Array(baseBytes),baseSha=contract.sha256(base);
   if(baseSha!==plan.source.sha256||base.length!==plan.source.byteLength)fail('the cartridge is not the plan\'s source ('+baseSha.slice(0,12)+'…)');
   const layout=contract.romLayout(base);
-  if(!contract.isSynthetic(base,layout))fail('this slice runs experiments only on Forge\'s synthetic fixtures; this cartridge carries no synthetic-fixture marker');
-  if(plan.privacy!=='synthetic')fail('a synthetic fixture\'s plan must declare privacy "synthetic"');
+  // a synthetic fixture, or a locally supplied cartridge with privacy "private", a supported mapper and the user's approval
+  const authorization=contract.authorize(base,layout,{privacy:plan.privacy,approval});
   const own=session||await services.ExperimentSandbox.open();
   if(plan.engine&&plan.engine.documentSha256!==own.identity.documentSha256)fail('the plan names another build ('+plan.engine.documentSha256.slice(0,12)+'…)');
   const inputHash=contract.hashOf(plan.input.steps),results=[],started=performance.now();let reference=null;
@@ -100,7 +103,7 @@ async function run(planInput,baseBytes,{store=Evidence.createStore(),session=nul
   }finally{if(!session&&!keepSession)own.close();}
   const baselines=results.filter(r=>r.trial.kind==='baseline'&&r.trial!==reference?.trial&&r.receipt.outcome!=='invalid'); // a refused trial never ran: it is not a repeat
   const repeatability=!reference?'not established (no reference baseline)':baselines.length===0?'not tested (one baseline)':baselines.every(r=>r.receipt.outcome==='no_effect_observed')?'passed':'failed';
-  return {plan,results,receipts:results.map(r=>r.receipt),reference:reference?{trial:reference.trial.id,result:reference.result}:null,repeatability,
+  return {plan,authorization,results,receipts:results.map(r=>r.receipt),reference:reference?{trial:reference.trial.id,result:reference.result}:null,repeatability,
     baseUnchanged:contract.sha256(baseBytes)===callerSha&&contract.sha256(base)===baseSha,identity:own.identity,session:keepSession&&!session?own:null,store,
     timing:{wallMs:Math.round(performance.now()-started)}};
 }

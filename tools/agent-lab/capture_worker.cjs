@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /*
- NES Forge Agent Lab · background capture worker (v0.4.1)
+ NES Forge Agent Lab · background capture worker (v0.5.0)
 
  Investigates a ROM while the developer keeps working in Forge. It runs Forge's own emulator in an isolated headless
  Chromium (its own process and profile: nothing is shared with an open Forge window), follows a capture plan, and
@@ -77,6 +77,16 @@ function inspectRom(bytes) {
 
 // ---------- plans ----------
 const PLAN_DIR = path.join(__dirname, 'plans');
+// AL-REC-01: a continuation plan for incremental recovery. It names the exploration archive it starts from (the states
+// and signatures earlier explore targets left), so identical work is still recognised as identical, and a ROM that
+// was investigated before gets a new plan as soon as there is something new to start from.
+function archivePaths(root, romSha) { const d = path.join(root, 'archives'); return {dir: d, archive: path.join(d, romSha + '.archive.json'), known: path.join(d, romSha + '.known.json')}; }
+function continuePlan(root, romSha, {mode = 'continue', frames = 20000, wallMs = 300000} = {}) {
+  const a = archivePaths(root, romSha), from = fs.existsSync(a.archive) ? sha(fs.readFileSync(a.archive)) : null;
+  return {format: 'NESForgeCapturePlan', version: 1, name: (mode === 'deep' ? 'Deep recovery' : 'Continue recovery') + (from ? ' (from archive ' + from.slice(0, 12) + ')' : ' (first run)'), profile: null, match: {any: true},
+    method: 'Novelty-driven exploration (Forge RecoveryExplorer) from the states earlier runs left; records what is new: layout blocks, CHR tiles or banks, palettes, sprite patterns.',
+    boot: {frames: 60, inputs: []}, targets: [{label: mode === 'deep' ? 'deep recovery' : 'continue recovery', explore: {budget: {frames, wallMs, observations: mode === 'deep' ? 400 : 150}, mode, from}}]};
+}
 function choosePlan(spec, romSha) {
   if (spec && spec !== 'generic' && spec !== 'profile') { const p = readJson(path.resolve(spec)); return {plan: p, source: 'file ' + path.basename(spec)}; }
   if (spec !== 'generic') for (const f of fs.readdirSync(PLAN_DIR).filter(f => f.endsWith('.json'))) { const p = readJson(path.join(PLAN_DIR, f)); if (p.match?.sha256?.includes(romSha)) return {plan: p, source: 'profile ' + f}; }
@@ -86,7 +96,9 @@ function choosePlan(spec, romSha) {
 function validatePlan(plan) {
   if (!plan || plan.format !== 'NESForgeCapturePlan' || plan.version !== 1) throw Error('not a capture plan (NESForgeCapturePlan v1)');
   if (!Array.isArray(plan.targets) || !plan.targets.length || plan.targets.length > 512) throw Error('a plan needs 1-512 targets');
-  for (const t of plan.targets) { if ((t.frames || 1) > 36000 || (t.maxFrames || 0) > 72000) throw Error('target "' + t.label + '" exceeds the frame limits'); }
+  for (const t of plan.targets) {
+    if (t.explore) { const b = t.explore.budget || {}; if ((b.frames || 0) > 200000 || (b.wallMs || 0) > 3600000 || (b.observations || 0) > 1000) throw Error('explore target "' + t.label + '" exceeds the exploration limits'); continue; }
+    if ((t.frames || 1) > 36000 || (t.maxFrames || 0) > 72000) throw Error('target "' + t.label + '" exceeds the frame limits'); }
 }
 
 // ---------- jobs ----------
@@ -96,7 +108,7 @@ const investigationKey = (romSha, planSha, editorSha, verify) => sha(JSON.string
 function enqueue(root, {romBytes, romName, planSpec, plan: planObject, verify = 'restore', maxJobMs = 30 * 60 * 1000, editorSha = null, requestedBy = null, reason = null, allowDuplicate = false}) {
   const romSha = sha(romBytes), rom = inspectRom(romBytes);
   if (!rom.header) throw Error('not an iNES ROM');
-  const chosen = planObject ? {plan: planObject, source: 'supplied'} : choosePlan(planSpec, romSha); validatePlan(chosen.plan);
+  const chosen = planObject ? {plan: planObject, source: 'supplied'} : (planSpec === 'continue' || planSpec === 'deep') ? {plan: continuePlan(root, romSha, {mode: planSpec}), source: 'generated (' + planSpec + ')'} : choosePlan(planSpec, romSha); validatePlan(chosen.plan);
   const key = investigationKey(romSha, sha(JSON.stringify(chosen.plan)), editorSha, verify);
   if (!allowDuplicate) { const same = listJobs(root).find(j => j.investigationKey === key && !['failed', 'cancelled'].includes(j.state)); if (same) return {job: same, duplicate: true}; }
   writeAtomic(path.join(root, 'roms', romSha + '.nes'), romBytes, 0o600);
@@ -149,6 +161,11 @@ const PAGE = {
   release: async name => { window.__agentCk?.[name]?.release?.(); delete window.__agentCk?.[name]; return true; },
   target: async target => Forge.services.FrameEvidence.runTarget(target),
   capture: async label => Forge.services.FrameEvidence.capture({label, links: false, pixels: true, scene: true}),
+  explore: async ([b64, explore, archiveText, knownText]) => { window.__forgeAgentLabPage = true; const E = Forge.services.RecoveryExplorer, bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const archive = archiveText ? E.decodeArchive(archiveText) : null, known = knownText ? JSON.parse(knownText) : null;
+    const r = await E.run({rom: bytes, budget: explore.budget, seed: explore.seed || 1, known, archive: archive ? {cells: archive.cells, steps: archive.steps} : null, capture: true, pixels: true});
+    return {stopReason: r.stopReason, frames: r.frames, ms: r.ms, steps: r.steps, cells: r.cells, gained: r.gained, observations: r.observations.map(o => ({frame: o.frame, why: o.why, macro: o.macro, record: o.record})),
+      archive: E.encodeArchive(r.archive), known: JSON.stringify(r.known)}; },
   recognize: async sha => { const m = Forge.services.RecoveryCoverage?.match?.(sha); return m ? {title: m.title || null, name: m.name || null} : null; }
 };
 function png(rgba) {
@@ -161,6 +178,29 @@ function png(rgba) {
 }
 
 // ---------- running one job ----------
+// an explore target: one novelty-driven run; every new observation is one frame record, and the archive it leaves is
+// the next continuation's starting point (written only after the records)
+async function exploreTarget(root, job, i, session, b64, editorSha, key) {
+  const target = job.plan.targets[i], a = archivePaths(root, job.rom.sha256), t0 = Date.now(); fs.mkdirSync(a.dir, {recursive: true, mode: 0o700});
+  job.progress.current = target.label; saveJob(root, job);
+  const archiveText = fs.existsSync(a.archive) ? fs.readFileSync(a.archive, 'utf8') : null, knownText = fs.existsSync(a.known) ? fs.readFileSync(a.known, 'utf8') : null;
+  if (target.explore.from && archiveText && sha(Buffer.from(archiveText)) !== target.explore.from) job.failures.push({at: now(), stage: target.label, error: 'the archive changed since the plan was made; continuing from the newer one'});
+  const r = await session.call(PAGE.explore, [b64, target.explore, archiveText, knownText]);
+  const dir = jobDir(root, job.id); let k = 0;
+  for (const o of r.observations) {
+    const record = o.record; if (!record || record.error || !record.rendered?.rgba) continue;
+    const name = String(i).padStart(3, '0') + '-' + String(k++).padStart(4, '0'), rgba = Buffer.from(record.rendered.rgba, 'base64');
+    if (sha(rgba) !== record.rendered.framebufferSha256) throw Error('screenshot pixels differ from the record');
+    const {rgba: _drop, ...rendered} = record.rendered;
+    const stored = {...record, rendered, provenance: {job: job.id, plan: {name: job.plan.name, sha256: job.planSha256, target: i}, emulatorBuild: editorSha, execution: {source: 'exploration', why: o.why, macro: o.macro, checkpointKey: key, worker: 'agent-lab capture_worker v0.5'}}};
+    writeAtomic(path.join(dir, 'frames', name + '.png'), png(rgba)); writeAtomic(path.join(dir, 'frames', name + '.json'), JSON.stringify(stored));
+    job.results.push({index: i, sub: k - 1, label: target.label + ' · ' + o.why.join(', ').slice(0, 80), file: 'frames/' + name + '.json', png: 'frames/' + name + '.png', digest: record.digests.all, frame: record.frame, ms: 0, source: 'exploration', reached: true,
+      synchronization: record.synchronization?.state || 'unknown', synchronizationReason: record.synchronization?.reason || null, scene: !!record.scene, split: false});
+  }
+  writeAtomic(a.archive, r.archive, 0o600); writeAtomic(a.known, r.known, 0o600);
+  job.exploration = (job.exploration || []).concat([{target: i, stopReason: r.stopReason, frames: r.frames, ms: Date.now() - t0, steps: r.steps, cells: r.cells, gained: r.gained, recorded: k, archive: sha(Buffer.from(r.archive)).slice(0, 16)}]);
+  job.progress.done = job.results.filter(x => x.sub === undefined).length + (job.exploration || []).length;
+}
 async function runJob(root, job, session, editorSha, stop) {
   const started = Date.now(), dir = jobDir(root, job.id), romBytes = fs.readFileSync(path.join(root, 'roms', job.rom.sha256 + '.nes')), b64 = romBytes.toString('base64');
   const run = {started: now(), worker: process.pid, editorSha256: editorSha, boots: 0, restoredFromDisk: false, targetsFromCheckpoint: 0, targetsComputed: 0};
@@ -203,11 +243,12 @@ async function runJob(root, job, session, editorSha, stop) {
   saveJob(root, job);
   // ---- targets ----
   for (let i = 0; i < job.plan.targets.length; i++) {
-    if (job.results.some(r => r.index === i)) continue; // finished in an earlier run
+    if (job.results.some(r => r.index === i && r.sub === undefined) || job.exploration?.some(e => e.target === i)) continue; // finished in an earlier run
     const fresh = loadJob(root, job.id); if (fresh.control) job.control = fresh.control;
     if (job.control === 'pause') { job.state = 'paused'; delete job.control; run.ended = now(); return saveJob(root, job); }
     if (job.control === 'cancel' || stop()) { job.state = job.control === 'cancel' ? 'cancelled' : 'interrupted'; delete job.control; run.ended = now(); return saveJob(root, job); }
     if (Date.now() - started > job.limits.maxJobMs) { job.state = 'paused'; job.failures.push({at: now(), stage: 'limit', error: 'paused at the job time limit (' + Math.round(job.limits.maxJobMs / 1000) + ' s); resume to continue'}); run.ended = now(); return saveJob(root, job); }
+    if (job.plan.targets[i].explore) { await exploreTarget(root, job, i, session, b64, editorSha, key); saveJob(root, job); continue; }
     const target = job.plan.targets[i], tHash = sha(JSON.stringify(target)).slice(0, 24), tFile = path.join(ckDir, 'targets', tHash + '.json'), t0 = Date.now();
     job.progress.current = target.label; saveJob(root, job);
     let record = null, source = 'computed', reached = {reached: true, frames: 0};
@@ -242,7 +283,9 @@ async function runJob(root, job, session, editorSha, stop) {
     job.results.sort((a, b) => a.index - b.index); job.progress.done = job.results.length; saveJob(root, job);
   }
   job.progress.current = null; run.ended = now(); run.ms = Date.now() - started;
-  job.state = job.results.length ? 'completed' : 'failed'; if (job.state === 'completed') job.completed = now();
+  // an exploration that found nothing new has still done its work (its stop reason says why it stopped); a job that
+  // finished does not mean the ROM is recovered: Forge's recovery ledger keeps that apart
+  job.state = job.results.length || (job.exploration || []).length ? 'completed' : 'failed'; if (job.state === 'completed') job.completed = now();
   return saveJob(root, job);
 }
 // the results bundle Forge imports (validated there again)

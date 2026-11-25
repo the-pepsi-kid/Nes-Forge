@@ -128,7 +128,7 @@ async function runJob(runId,request,report){
   try{
     const bytes=request.rom instanceof Uint8Array?request.rom:fail('a job needs cartridge bytes');
     if(contract.sha256(bytes)!==request.romSha)fail('the cartridge bytes do not match their SHA-256');
-    const layout=contract.romLayout(bytes);if(layout.mapper!==0)return {...result,outcome:'unsupported',stopReason:'mapper '+layout.mapper+' is not supported in this slice (NROM only)'};
+    const layout=contract.romLayout(bytes);if(!contract.SUPPORTED_MAPPERS.includes(layout.mapper))return {...result,outcome:'unsupported',stopReason:'mapper '+layout.mapper+' is not supported by experiments (supported: '+contract.SUPPORTED_MAPPERS.join(', ')+')'};
     for(const ck of checkpoints.values())ck.handle.release();checkpoints.clear();
     if(!emuLoadRomData(bytes,'experiment',0))return {...result,outcome:'crash',stopReason:'the emulator refused to load the cartridge'};
     romSha=request.romSha;
@@ -165,7 +165,7 @@ async function runTrial(runId,request,report){
     }else{
       const bytes=request.rom instanceof Uint8Array?request.rom:fail('a cold run needs cartridge bytes');
       const sha=contract.sha256(bytes);if(sha!==request.romSha)fail('the cartridge bytes do not match their SHA-256');
-      const layout=contract.romLayout(bytes);if(layout.mapper!==0)return {...result,outcome:'unsupported',stopReason:'mapper '+layout.mapper+' is not supported by the sandbox in this slice (NROM only)'};
+      const layout=contract.romLayout(bytes);if(!contract.SUPPORTED_MAPPERS.includes(layout.mapper))return {...result,outcome:'unsupported',stopReason:'mapper '+layout.mapper+' is not supported by experiments (supported: '+contract.SUPPORTED_MAPPERS.join(', ')+')'};
       for(const ck of checkpoints.values())ck.handle.release();checkpoints.clear();
       if(!emuLoadRomData(bytes,'experiment',0))return {...result,outcome:'crash',stopReason:'the emulator refused to load the cartridge'};
       romSha=sha;
@@ -255,7 +255,7 @@ function agent(){
     if(m.type==='run'){if(busy){send({type:'result',runId:m.runId,outcome:'invalid',stopReason:'the sandbox is already running a trial'});return;}
       busy=true;try{send(await (m.request?.explore?runExplore:m.request?.job?runJob:runTrial)(m.runId,m.request,send));}finally{busy=false;}}
   });
-  documentSha256().then(sha=>send({type:'ready',identity:{documentSha256:sha,engine:'NES Forge emulator, same build as the editor',mappers:[0],channels:contract.CHANNELS,jobs:true},errors:errors.slice()}));
+  documentSha256().then(sha=>send({type:'ready',identity:{documentSha256:sha,engine:'NES Forge emulator, same build as the editor',mappers:contract.SUPPORTED_MAPPERS.slice(),channels:contract.CHANNELS,jobs:true},errors:errors.slice()}));
 }
 services.ExperimentSandboxAgent=Object.freeze({inSandbox:()=>inSandbox});
 services.ExperimentSandbox=Object.freeze({PREFIX,available,open,documentText,documentSha256,closeAll:()=>{for(const s of [...sessions])s.close('closed');},sessions:()=>sessions.size});

@@ -8,7 +8,8 @@
  *     typed after pairing, or kept in localStorage (see docs/architecture/AGENT_LAB_SECURITY.md).
  *   - Opt-in automation (remembered): "Investigate ROMs I import" queues the ROM named by each import event
  *     (Forge.services.RomImports) — never a guess between the project's and the emulator's ROM; the worker returns
- *     the existing job for a ROM already investigated with the same plan and emulator build. "Add verified results
+ *     the existing job for a ROM already investigated with the same plan and emulator build; with "Keep recovering ROMs
+ *     already in the library" (AL-REC-01) a ROM already recovered gets a continuation plan instead. "Add verified results
  *     to the library" imports a job's results when it finishes, through the validated FrameEvidence import, and
  *     registers the ROM's recovered catalog through LibraryCatalog.registerCatalog when Forge has one.
  *   - Manual controls stay: investigate a chosen ROM, pause, resume, cancel, import, import again.
@@ -30,7 +31,7 @@ function pdb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(PDB,
 async function pairingOp(mode,value){const db=await pdb();try{return await new Promise((resolve,reject)=>{const tx=db.transaction(PSTORE,mode==='get'?'readonly':'readwrite'),st=tx.objectStore(PSTORE);
   const q=mode==='get'?st.get('current'):mode==='put'?st.put({id:'current',...value}):st.delete('current');let out=null;q.onsuccess=()=>{out=q.result??null;};tx.oncomplete=()=>resolve(out);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}finally{db.close();}}
 const NOTICE_LIMIT=8,readNotices=raw=>{try{const v=JSON.parse(raw||'[]');return Array.isArray(v)?v.filter(n=>n&&typeof n.text==='string'&&Number.isFinite(n.at)).slice(0,NOTICE_LIMIT):[];}catch(_){return [];}};
-const settings={autoInvestigate:store.get('autoInvestigate')==='1',autoImport:store.get('autoImport')==='1',autoImportSince:Number(store.get('autoImportSince')||0)};
+const settings={autoInvestigate:store.get('autoInvestigate')==='1',autoImport:store.get('autoImport')==='1',autoImportSince:Number(store.get('autoImportSince')||0),autoContinue:store.get('autoContinue')==='1'};
 const state={url:store.get('url')||'http://127.0.0.1:8787',pairing:null,connected:false,status:null,error:'',imported:[],timer:null,notices:readNotices(store.get('notices')),pendingAuto:new Map(),requested:new Set(),autoTried:new Set(),catalogs:new Map(),catalogNoticed:new Map(),supplying:new Set(),recognized:new Map(),busy:false,lastPoll:0,ready:null};
 // Notices are kept for this browser profile (not only this tab), so "Open in Library" survives closing Forge; other
 // open tabs see them at once. A repeat of the latest notice updates its time instead of adding a line.
@@ -100,17 +101,23 @@ function candidates(){
   return out;
 }
 const b64=bytes=>{let s='';for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(s);};
-async function enqueue(rom,reason){
+async function enqueue(rom,reason,plan=null){
   const bytes=rom.bytes instanceof Uint8Array?rom.bytes:rom.bytes();if(!bytes)throw Error('the ROM bytes are no longer available; import it again');
-  let job;try{job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan:'profile',reason});}
-  catch(e){if(/no profile plan/.test(e.message))job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan:'generic',reason});else throw e;}
+  let job;
+  if(plan)job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan,reason});
+  else{try{job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan:'profile',reason});}
+    catch(e){if(/no profile plan/.test(e.message))job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan:'generic',reason});else throw e;}}
   state.requested.add(job.id);return job;
 }
 async function investigate(choice){
   const all=candidates(),rom=typeof choice==='object'&&choice?.bytes?choice:all.find(c=>c.key===(choice||document.getElementById('agentLabRom')?.value))||all[0];
   if(!rom)throw Error('import a ROM first (Open ROM / project / ZIP, Import ROM, or the emulator\'s Load ROM)');
-  const job=await enqueue(rom,'manual');
-  notice(job.duplicate?rom.name+' is already '+(job.state==='completed'?'investigated':job.state)+' with the same plan and emulator build (job '+job.id+'); no new job was queued.':'Queued '+rom.name+' for investigation ('+job.plan.name+').');
+  let job=await enqueue(rom,'manual');
+  // AL-REC-01: investigated before is not recovered: an identical finished job is followed by a continuation plan,
+  // which starts from what earlier runs left (identical work is still not repeated)
+  if(job.duplicate&&job.state==='completed'){const next=await enqueue(rom,'manual: continue recovery','continue');
+    notice(next.duplicate?rom.name+': the continuation from its current evidence is already '+next.state+' (job '+next.id+').':'Queued '+rom.name+' to continue recovery from its earlier evidence ('+next.plan.name+').');await refresh();return next;}
+  notice(job.duplicate?rom.name+' is already '+job.state+' with the same plan and emulator build (job '+job.id+'); no new job was queued.':'Queued '+rom.name+' for investigation ('+job.plan.name+').');
   await refresh();return job;
 }
 // imports announced by RomImports: queued while paired, kept for this tab until then
@@ -121,7 +128,10 @@ services.RomImports?.subscribe(entry=>{void (async()=>{
   if(!entry.ines){notice(entry.name+' is not an iNES ROM; it was not investigated.');return;}
   let known=null;try{known=await services.LibraryCatalog?.recognize?.(entry.sha256);}catch(_){known=null;}
   if(known?.recovered){const job=known.investigations[known.investigations.length-1];state.recognized.set(entry.sha256,known);
-    notice(services.LibraryCatalog.recognitionText(entry.name,known,{job:job.jobId})+' No new investigation was queued; Investigate selected ROM runs one on request.',{open:known.open});return;}
+    // previously recovered is not fully recovered: with "Keep recovering ROMs already in the library" a continuation
+    // plan is queued; otherwise the user is told how to continue
+    if(settings.autoContinue){state.pendingAuto.set(entry.sha256,{...entry,plan:'continue'});notice(services.LibraryCatalog.recognitionText(entry.name,known,{job:job.jobId})+' Recovery continues from that evidence in the background.',{open:known.open});void drainAuto();return;}
+    notice(services.LibraryCatalog.recognitionText(entry.name,known,{job:job.jobId})+' No new investigation was queued; Investigate selected ROM (or ROM recovery › Continue Recovery) continues from that evidence.',{open:known.open});return;}
   state.pendingAuto.set(entry.sha256,entry);
   if(!state.pairing||!state.connected)notice(entry.name+' will be investigated when the worker is '+(state.pairing?'reachable':'paired')+'.');
   void drainAuto();
@@ -129,7 +139,7 @@ services.RomImports?.subscribe(entry=>{void (async()=>{
 async function drainAuto(){
   if(!state.pairing||!state.connected||state.draining)return;state.draining=true;
   try{for(const [sha,entry] of [...state.pendingAuto]){
-    try{const job=await enqueue({name:entry.name,bytes:()=>services.RomImports.bytes(sha)},'import');state.pendingAuto.delete(sha);
+    try{const job=await enqueue({name:entry.name,bytes:()=>services.RomImports.bytes(sha)},entry.plan==='continue'?'import: continue recovery':'import',entry.plan||null);state.pendingAuto.delete(sha);
       notice(job.duplicate?'Imported '+entry.name+': already '+(job.state==='completed'?'investigated':job.state)+' with this plan and emulator build (job '+job.id+'); reusing it.':'Imported '+entry.name+': queued for background investigation ('+job.plan.name+').');}
     catch(e){if(e.status===401||e instanceof TypeError)break;state.pendingAuto.delete(sha);notice('Could not queue '+entry.name+': '+e.message);}
   }}finally{state.draining=false;}
@@ -187,8 +197,9 @@ async function autoImport(){
   }finally{state.autoImporting=false;}
 }
 async function control(id,action){const r=await signedFetch('POST','/jobs/'+encodeURIComponent(id)+'/'+action);await refresh();return r;}
-function setOptions({autoInvestigate,autoImport:imp}={}){
+function setOptions({autoInvestigate,autoImport:imp,autoContinue}={}){
   if(typeof autoInvestigate==='boolean'){settings.autoInvestigate=autoInvestigate;store.set('autoInvestigate',autoInvestigate?'1':'0');}
+  if(typeof autoContinue==='boolean'){settings.autoContinue=autoContinue;store.set('autoContinue',autoContinue?'1':'0');}
   if(typeof imp==='boolean'){if(imp&&!settings.autoImport){settings.autoImportSince=Date.now();store.set('autoImportSince',String(settings.autoImportSince));}settings.autoImport=imp;store.set('autoImport',imp?'1':'0');}
   render();schedule();void refresh();return {...settings};
 }
@@ -225,6 +236,7 @@ function render(){
   const opts=el('div');opts.className='al-row';
   const opt=(id,label,value,fn)=>{const l=el('label');const c=el('input',id);c.type='checkbox';c.checked=value;c.onchange=()=>fn(c.checked);l.append(c,' '+label);opts.appendChild(l);};
   opt('agentLabAutoInvestigate','Investigate ROMs I import',settings.autoInvestigate,v=>setOptions({autoInvestigate:v}));
+  opt('agentLabAutoContinue','Keep recovering ROMs already in the library',settings.autoContinue,v=>setOptions({autoContinue:v}));
   opt('agentLabAutoImport','Add verified results to the library when a job finishes',settings.autoImport,v=>setOptions({autoImport:v}));
   opts.appendChild(el('span','agentLabOptsNote','Remembered in this browser. Results are validated on import; your project is never changed.'));opts.lastChild.className='al-note';body.appendChild(opts);
   const act=el('div');act.className='al-row';const sel=el('select','agentLabRom');sel.setAttribute('aria-label','ROM to investigate');

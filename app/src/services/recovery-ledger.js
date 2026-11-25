@@ -199,6 +199,9 @@ async function assess(sha){
   // traced CHR RAM: tiles whose native source is known and can be written back
   if(l?.graphics?.writableTiles){rows['CHR graphics'].writable+=l.graphics.writableTiles;rows['native ROM writeback'].writable+=l.graphics.writableTiles;rows['CHR graphics'].basis.add('CHR RAM tiles traced to PRG (direct copies)');}
   // pixel comparison: each runtime capture was rebuilt from its own data and compared with the rendered frame when recorded
+  // world organization observed at runtime (areas, transitions, scrolling)
+  const w=l?world(l):null;if(w){rows['world transitions'].captured+=w.transitions.length;if(w.transitions.length)rows['world transitions'].basis.add('runtime transitions between areas');
+    rows['level layouts'].captured+=w.scrolling.length;if(w.scrolling.length)rows['level layouts'].basis.add('scrolling observed within areas (not stitched)');}
   const frames=items.filter(e=>e.kind==='frame');let matched=0,unchecked=0;
   for(const e of frames.slice(0,4000)){let full=null;try{full=await L.entry(e.id);}catch(_){full=null;}if(/0 different pixels/.test(full?.validation?.reason||''))matched++;else unchecked++;}
   const cart=l?.cartridge||(bytes?cartridgeOf(bytes):null);
@@ -208,8 +211,23 @@ async function assess(sha){
     state:r.verified&&r.writable?'verified and writable (some)':r.verified?'verified (some)':r.editable?'editable (some)':r.decoded?'decoded (some)':r.captured?'captured only':'nothing recovered'};});
   return {format:'NESForgeReconstructionReport',version:1,sha256:sha,name:l?.name||null,cartridge:cart,generated:now(),entries:items.length,
     parity:{frames:frames.length,rebuiltWithoutDifference:matched,notRebuilt:unchecked,basis:'each runtime capture is rebuilt from its own nametables, palettes and CHR and compared with the emulator\'s rendered frame pixel for pixel when it is recorded'},
-    graphics,table,ledger:l?summary(l):null,
+    graphics,table,ledger:l?summary(l):null,world:l?world(l):null,
     verdict:'Not reconstructed 1:1: '+table.filter(r=>r.state==='nothing recovered').map(r=>r.category).join(', ')+(table.some(r=>r.state==='nothing recovered')?' have no recovered resources; ':'')+'a category counts as recovered here only with evidence, not because entries exist.'};
+}
+// world organization from runtime evidence: areas (by palette, which games change between stages and rooms), the
+// scrolling inside an area, the transitions between areas, and the order areas are first reached from power-on.
+// Only what transitions observed in this cartridge show; nothing is inferred beyond them.
+function world(l){
+  const T=(l.transitions||[]).filter(t=>t.toPal),areas=new Map(),edges=new Map(),scroll=new Map();
+  const area=p=>{if(!areas.has(p))areas.set(p,{id:'area-'+(areas.size+1),palette:p,firstDepth:Infinity,states:0,observations:0});return areas.get(p);};
+  for(const t of T){const to=area(t.toPal);to.states++;if(Number.isFinite(t.depth))to.firstDepth=Math.min(to.firstDepth,t.depth);
+    if(t.fromPal&&t.fromPal!==t.toPal){const from=area(t.fromPal),k=from.id+'>'+to.id,e=edges.get(k)||{from:from.id,to:to.id,kind:'transition',count:0,macros:new Set()};e.count++;e.macros.add(t.macro);edges.set(k,e);}
+    else if(t.fromScroll&&t.scroll){const dx=((t.scroll.x-t.fromScroll.x+768)%512)-256,dy=t.scroll.y-t.fromScroll.y;if(dx||dy){const s=scroll.get(to.id)||{area:to.id,right:0,left:0,down:0,up:0,maxDx:0,maxDy:0};
+      if(dx>0)s.right++;if(dx<0)s.left++;if(dy>0)s.down++;if(dy<0)s.up++;s.maxDx=Math.max(s.maxDx,Math.abs(dx));s.maxDy=Math.max(s.maxDy,Math.abs(dy));scroll.set(to.id,s);}}}
+  const list=[...areas.values()].sort((a,b)=>a.firstDepth-b.firstDepth);list.forEach((a,i)=>{a.order=i+1;if(!Number.isFinite(a.firstDepth))a.firstDepth=null;});
+  return {areas:list,transitions:[...edges.values()].map(e=>({...e,macros:[...e.macros].slice(0,6)})),scrolling:[...scroll.values()],
+    basis:'runtime transitions between distinct game states: an area is a palette the game used; scrolling is a scroll-register change within an area; a transition is a change of area; order is the earliest frame from power-on at which an area was reached',
+    limits:'areas that share a palette are not told apart; screens are not stitched into a continuous map; areas no run reached are not listed'};
 }
 async function refreshNext(l){
   const next=[],cart=l.cartridge,last=l.investigations.filter(i=>i.mode!=='current'&&i.mode!=='gameplay').slice(-1)[0];
@@ -249,5 +267,5 @@ if(C?.register){
   C.register({name:'recovery.report',group:'recovery',title:'Reconstruction report',summary:'Per resource category: captured, decoded, editable, independently verified and writable, with the evidence basis.',args:{sha256:{type:'string'}},run:async a=>assess(a?.sha256||(await hex256(pickBytes(a).bytes)))});
 }
 services.RecoveryLedger=Object.freeze({MODES,CATEGORIES,run,stop,pause:sha=>stop(sha,'pause'),cancel:sha=>stop(sha,'cancel'),current,recordGameplay,recording:()=>({on:rec.on,sha256:rec.sha,observations:rec.observations,seeds:rec.seeds,fromPowerOn:rec.fromPowerOn}),
-  ledger,read:readLedger,archive:readArchive,displayed:displayedFor,assess,status,subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},categoriesOf,romBytes,hex256});
+  ledger,read:readLedger,archive:readArchive,displayed:displayedFor,assess,world:async sha=>{const l=await readLedger(sha);return l?world(l):null;},status,subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},categoriesOf,romBytes,hex256});
 })();

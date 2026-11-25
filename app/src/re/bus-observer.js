@@ -21,7 +21,9 @@ function install({prgStart,prgBytes,prgReads=true,ppuWrites=true,watchRam=[],max
   if(active)fail('already installed');
   const roles=new Uint8Array(prgBytes),events=[],frames=[],watch=new Set(watchRam.map(a=>a&0x7ff));
   const state={pc:-1,pcPhysical:-1,fetch:false,next:0,remaining:0,frameMin:0x10000,frameMax:-1,frameVectors:0,frameInstructions:0,dropped:0,counts:{opcode:0,operand:0,data:0,vector:0,other:0}};
-  const physical=a=>{const within=(a>=0xc000?emu.prgBank1:emu.prgBank0)+(a&0x3fff);return prgStart+(within%prgBytes);};
+  // the cartridge file offset a CPU address reads now, through the mapper's PRG banking (8 KiB pages for MMC3 and MMC2,
+  // 16 KiB halves for the others; AxROM's 32 KiB bank is two halves)
+  const physical=a=>{const within=(emu.mapper===4||emu.mapper===9)&&emu.prgPage?emu.prgPage[(a>>13)&3]+(a&0x1fff):(a>=0xc000?emu.prgBank1:emu.prgBank0)+(a&0x3fff);return prgStart+(within%prgBytes);};
   const log=row=>{if(events.length<maxEvents)events.push(row);else state.dropped++;};
   const prev={step:cpuStepRaw,read:cpuRead,write:cpuWrite,ppu:ppuBusWrite};
   cpuStepRaw=function(...args){

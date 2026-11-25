@@ -36904,7 +36904,7 @@ async function run(opts={}){
   const prevJoy=emuReadJoyState;emuReadJoyState=function(){return mask;};
   const cells=new Map(),observations=[],transitions=[];
   const sizeOf=s=>{let n=0;const walk=v=>{if(v&&typeof v==='object'){if(ArrayBuffer.isView(v))n+=v.byteLength;else for(const x of Object.values(v))walk(x);}else n+=8;};walk(s.emu);return n+4096;};
-  const addCell=(key,state,path,parent,label)=>{if(cells.has(key))return cells.get(key);const c={key,state,path,parent,label,visits:0,found:0,born:steps};stateBytes+=sizeOf(state);cells.set(key,c);return c;};
+  const addCell=(key,state,path,parent,label,pal=null,depth=0)=>{if(cells.has(key))return cells.get(key);const c={key,state,path,parent,label,pal,depth,visits:0,found:0,born:steps};stateBytes+=sizeOf(state);cells.set(key,c);return c;};
   const step=async(n,maskOf)=>{for(let f=0;f<n;f++){mask=maskOf(f);emuRunFrame();frames++;if((f&15)===15&&performance.now()-chunk>12){mask=0;await new Promise(r=>setTimeout(r,0));chunk=performance.now();}}mask=0;};
   let chunk=performance.now();
   try{
@@ -36938,7 +36938,7 @@ async function run(opts={}){
       if(cadPort.length){s.layouts=matchLayouts();const fresh=(s.layouts||[]).filter(m=>!seenScreens.has(m.definition+'#'+m.screen));if(fresh.length)why.push('translated screen'+(fresh.length===1?'':'s')+' seen ('+fresh.map(m=>m.definition.split('/').pop()+' #'+m.screen).join(', ')+')');s.freshScreens=fresh;}
       return {why,commit(){for(const m of s.freshScreens||[])seenScreens.add(m.definition+'#'+m.screen);for(const b of s.blocks)known.blocks.add(b);for(const t of s.tiles)known.tiles.add(t);for(const b of s.banks)known.banks.add(b);known.palettes.add(s.pal);for(const x of s.sprites)known.sprites.add(x);}};};
     // the starting points: a resumed archive, the ledger's seeds, or a cold boot
-    if(opts.archive?.cells?.length){for(const c of opts.archive.cells)addCell(c.key,c.state,c.path,c.parent,c.label);steps=opts.archive.steps||0;}
+    if(opts.archive?.cells?.length){for(const c of opts.archive.cells)addCell(c.key,c.state,c.path,c.parent,c.label,c.pal||null,c.depth||0);steps=opts.archive.steps||0;}
     for(const s of opts.seeds||[])addCell('seed:'+s.label,s.state,s.path||null,null,s.label);
     const scripted=[];
     if(!cells.size){
@@ -36946,10 +36946,10 @@ async function run(opts={}){
       const boots=(opts.boots||BOOTS.map((_,i)=>i)).map(b=>typeof b==='number'?{index:b,...BOOTS[b]}:{index:-1,...b});
       for(const boot of boots){
         load(opts.rom,'recovery');
-        const total=framesOf(boot.steps);let prevCell=null;
+        const total=framesOf(boot.steps);let prevCell=null,prevScroll=null,prevPal=null;
         for(let f=0;f<total;f+=30){const n=Math.min(30,total-f);await step(n,x=>scriptMask(boot.steps,f+x));
           const seg=boot.index>=0?['script',boot.index,f+n]:['input',boot.steps,f+n],s=sample();
-          if(f+n>=120&&!cells.has(s.cell)&&cells.size<budget.cells){const c=addCell(s.cell,T.machineState(),[seg],prevCell,boot.label+' · frame '+(f+n));transitions.push({from:prevCell,to:c.key,macro:boot.label,scroll:s.scroll});prevCell=c.key;}
+          if(f+n>=120&&!cells.has(s.cell)&&cells.size<budget.cells){const c=addCell(s.cell,T.machineState(),[seg],prevCell,boot.label+' · frame '+(f+n),s.pal,f+n);transitions.push({from:prevCell,to:c.key,macro:boot.label,scroll:s.scroll,fromScroll:prevScroll,fromPal:prevPal,toPal:s.pal,depth:f+n});prevCell=c.key;}prevScroll=s.scroll;prevPal=s.pal;
           scripted.push({s,cell:cells.get(s.cell)||{key:'script',label:boot.label,path:[seg]},boot:boot.label,path:[seg]});
           const e=evaluate(s);if(e.why.length){const o=await observe(e.why,cells.get(s.cell)||{key:s.cell,label:boot.label},s,boot.label);if(o)o.path=[seg];}e.commit();
           if(frames>=budget.frames||performance.now()-t0>=budget.wallMs)break;}
@@ -36970,11 +36970,12 @@ async function run(opts={}){
       cell.visits++;steps++;T.applyMachineState(cell.state);
       const mi=Math.floor(random()*MACROS.length),[name,len,fn]=MACROS[mi],seed=Math.floor(random()*2**31),r=rng(seed);let held=0,until=0;
       const maskOf=name==='random'?f=>{if(f>=until){held=Math.floor(r()*256)&~(BTN.Select);if((held&48)===48)held&=~32;if((held&192)===192)held&=~64;until=f+8+Math.floor(r()*16);}return held;}:fn;
-      let found=false,last=cell,lastScroll=null;
+      let found=false,last=cell,lastScroll=null,lastPal=null;
       for(let seg=0;seg<len;seg+=30){
         await step(Math.min(30,len-seg),f=>maskOf(f+seg));
         const s=sample(),e=evaluate(s),path=[...(cell.path||[]),[mi,seed,seg+Math.min(30,len-seg)]];
-        if(!cells.has(s.cell)&&cells.size<budget.cells&&stateBytes<budget.stateBytes){const c=addCell(s.cell,T.machineState(),cell.path?path:null,cell.key,name+' from '+cell.label);transitions.push({from:last.key,to:c.key,macro:name,scroll:s.scroll,fromScroll:lastScroll});last=c;}
+        if(!cells.has(s.cell)&&cells.size<budget.cells&&stateBytes<budget.stateBytes){const c=addCell(s.cell,T.machineState(),cell.path?path:null,cell.key,name+' from '+cell.label,s.pal,(cell.depth||0)+seg+30);transitions.push({from:last.key,to:c.key,macro:name,scroll:s.scroll,fromScroll:lastScroll,fromPal:lastPal??cell.pal,toPal:s.pal,depth:(cell.depth||0)+seg+30});last=c;}
+        lastPal=s.pal;
         if(e.why.length){const o=await observe(e.why,cells.get(s.cell)||cell,s,name);e.commit();found=true;if(o)o.path=cell.path?path:null;}
         lastScroll=s.scroll;
       }
@@ -36986,7 +36987,7 @@ async function run(opts={}){
   const gained={blocks:known.blocks.size-before.blocks,tiles:known.tiles.size-before.tiles,banks:known.banks.size-before.banks,palettes:known.palettes.size-before.palettes,sprites:known.sprites.size-before.sprites};
   return {format:'NESForgeRecoveryRun',version:1,stopReason,steps,frames,ms:Math.round(performance.now()-t0),budget,cells:cells.size,stateBytes,gained,observations,transitions:transitions.slice(-2000),
     known:{blocks:[...known.blocks],tiles:[...known.tiles],banks:[...known.banks],palettes:[...known.palettes],sprites:[...known.sprites],screens:[...seenScreens]},
-    archive:{steps,cells:[...cells.values()].map(c=>({key:c.key,state:c.state,path:c.path,parent:c.parent,label:c.label}))}};
+    archive:{steps,cells:[...cells.values()].map(c=>({key:c.key,state:c.state,path:c.path,parent:c.parent,label:c.label,pal:c.pal,depth:c.depth}))}};
 }
 // ---------- exact replay of an input path from power-on (for tracing) ----------
 // path: [['script', bootIndex, frames] or ['input', steps, frames], then [macroIndex, seed, framesPlayed], ...]
@@ -37006,7 +37007,11 @@ async function replay(rom,path,{onFrame=null,loaded=false}={}){
   }finally{emuReadJoyState=prevJoy;}
   return emu.frameCount;
 }
-services.RecoveryExplorer=Object.freeze({BTN,MACROS:MACROS.map(m=>m[0]),BOOTS:BOOTS.map(b=>b.label),run,replay,sample,allowedHere});
+// an archive (machine states hold typed arrays) as text and back, for storage outside the browser (Agent Lab)
+function encodeArchive(value){return JSON.stringify(value,(k,v)=>{if(ArrayBuffer.isView(v)){let s='';const b=new Uint8Array(v.buffer,v.byteOffset,v.byteLength);for(let i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return {__typed:v.constructor.name,b64:btoa(s)};}return v;});}
+function decodeArchive(text){const T={Uint8Array,Uint8ClampedArray,Uint16Array,Uint32Array,Int8Array,Int16Array,Int32Array,Float32Array,Float64Array};
+  return JSON.parse(text,(k,v)=>{if(v&&typeof v==='object'&&v.__typed&&T[v.__typed]){const s=atob(v.b64),b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return new T[v.__typed](b.buffer,0,b.length/T[v.__typed].BYTES_PER_ELEMENT);}return v;});}
+services.RecoveryExplorer=Object.freeze({encodeArchive,decodeArchive,BTN,MACROS:MACROS.map(m=>m[0]),BOOTS:BOOTS.map(b=>b.label),run,replay,sample,allowedHere});
 })();
 /* NES FORGE MODULE: src/services/recovery-ledger.js
  * Entry: Forge.services.RecoveryLedger, commands recovery.*
@@ -37209,6 +37214,9 @@ async function assess(sha){
   // traced CHR RAM: tiles whose native source is known and can be written back
   if(l?.graphics?.writableTiles){rows['CHR graphics'].writable+=l.graphics.writableTiles;rows['native ROM writeback'].writable+=l.graphics.writableTiles;rows['CHR graphics'].basis.add('CHR RAM tiles traced to PRG (direct copies)');}
   // pixel comparison: each runtime capture was rebuilt from its own data and compared with the rendered frame when recorded
+  // world organization observed at runtime (areas, transitions, scrolling)
+  const w=l?world(l):null;if(w){rows['world transitions'].captured+=w.transitions.length;if(w.transitions.length)rows['world transitions'].basis.add('runtime transitions between areas');
+    rows['level layouts'].captured+=w.scrolling.length;if(w.scrolling.length)rows['level layouts'].basis.add('scrolling observed within areas (not stitched)');}
   const frames=items.filter(e=>e.kind==='frame');let matched=0,unchecked=0;
   for(const e of frames.slice(0,4000)){let full=null;try{full=await L.entry(e.id);}catch(_){full=null;}if(/0 different pixels/.test(full?.validation?.reason||''))matched++;else unchecked++;}
   const cart=l?.cartridge||(bytes?cartridgeOf(bytes):null);
@@ -37218,8 +37226,23 @@ async function assess(sha){
     state:r.verified&&r.writable?'verified and writable (some)':r.verified?'verified (some)':r.editable?'editable (some)':r.decoded?'decoded (some)':r.captured?'captured only':'nothing recovered'};});
   return {format:'NESForgeReconstructionReport',version:1,sha256:sha,name:l?.name||null,cartridge:cart,generated:now(),entries:items.length,
     parity:{frames:frames.length,rebuiltWithoutDifference:matched,notRebuilt:unchecked,basis:'each runtime capture is rebuilt from its own nametables, palettes and CHR and compared with the emulator\'s rendered frame pixel for pixel when it is recorded'},
-    graphics,table,ledger:l?summary(l):null,
+    graphics,table,ledger:l?summary(l):null,world:l?world(l):null,
     verdict:'Not reconstructed 1:1: '+table.filter(r=>r.state==='nothing recovered').map(r=>r.category).join(', ')+(table.some(r=>r.state==='nothing recovered')?' have no recovered resources; ':'')+'a category counts as recovered here only with evidence, not because entries exist.'};
+}
+// world organization from runtime evidence: areas (by palette, which games change between stages and rooms), the
+// scrolling inside an area, the transitions between areas, and the order areas are first reached from power-on.
+// Only what transitions observed in this cartridge show; nothing is inferred beyond them.
+function world(l){
+  const T=(l.transitions||[]).filter(t=>t.toPal),areas=new Map(),edges=new Map(),scroll=new Map();
+  const area=p=>{if(!areas.has(p))areas.set(p,{id:'area-'+(areas.size+1),palette:p,firstDepth:Infinity,states:0,observations:0});return areas.get(p);};
+  for(const t of T){const to=area(t.toPal);to.states++;if(Number.isFinite(t.depth))to.firstDepth=Math.min(to.firstDepth,t.depth);
+    if(t.fromPal&&t.fromPal!==t.toPal){const from=area(t.fromPal),k=from.id+'>'+to.id,e=edges.get(k)||{from:from.id,to:to.id,kind:'transition',count:0,macros:new Set()};e.count++;e.macros.add(t.macro);edges.set(k,e);}
+    else if(t.fromScroll&&t.scroll){const dx=((t.scroll.x-t.fromScroll.x+768)%512)-256,dy=t.scroll.y-t.fromScroll.y;if(dx||dy){const s=scroll.get(to.id)||{area:to.id,right:0,left:0,down:0,up:0,maxDx:0,maxDy:0};
+      if(dx>0)s.right++;if(dx<0)s.left++;if(dy>0)s.down++;if(dy<0)s.up++;s.maxDx=Math.max(s.maxDx,Math.abs(dx));s.maxDy=Math.max(s.maxDy,Math.abs(dy));scroll.set(to.id,s);}}}
+  const list=[...areas.values()].sort((a,b)=>a.firstDepth-b.firstDepth);list.forEach((a,i)=>{a.order=i+1;if(!Number.isFinite(a.firstDepth))a.firstDepth=null;});
+  return {areas:list,transitions:[...edges.values()].map(e=>({...e,macros:[...e.macros].slice(0,6)})),scrolling:[...scroll.values()],
+    basis:'runtime transitions between distinct game states: an area is a palette the game used; scrolling is a scroll-register change within an area; a transition is a change of area; order is the earliest frame from power-on at which an area was reached',
+    limits:'areas that share a palette are not told apart; screens are not stitched into a continuous map; areas no run reached are not listed'};
 }
 async function refreshNext(l){
   const next=[],cart=l.cartridge,last=l.investigations.filter(i=>i.mode!=='current'&&i.mode!=='gameplay').slice(-1)[0];
@@ -37259,7 +37282,7 @@ if(C?.register){
   C.register({name:'recovery.report',group:'recovery',title:'Reconstruction report',summary:'Per resource category: captured, decoded, editable, independently verified and writable, with the evidence basis.',args:{sha256:{type:'string'}},run:async a=>assess(a?.sha256||(await hex256(pickBytes(a).bytes)))});
 }
 services.RecoveryLedger=Object.freeze({MODES,CATEGORIES,run,stop,pause:sha=>stop(sha,'pause'),cancel:sha=>stop(sha,'cancel'),current,recordGameplay,recording:()=>({on:rec.on,sha256:rec.sha,observations:rec.observations,seeds:rec.seeds,fromPowerOn:rec.fromPowerOn}),
-  ledger,read:readLedger,archive:readArchive,displayed:displayedFor,assess,status,subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},categoriesOf,romBytes,hex256});
+  ledger,read:readLedger,archive:readArchive,displayed:displayedFor,assess,world:async sha=>{const l=await readLedger(sha);return l?world(l):null;},status,subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},categoriesOf,romBytes,hex256});
 })();
 /*
  * NES FORGE MODULE: src/services/pose-links.js
@@ -37924,7 +37947,8 @@ if(C?.register){
  *     typed after pairing, or kept in localStorage (see docs/architecture/AGENT_LAB_SECURITY.md).
  *   - Opt-in automation (remembered): "Investigate ROMs I import" queues the ROM named by each import event
  *     (Forge.services.RomImports) — never a guess between the project's and the emulator's ROM; the worker returns
- *     the existing job for a ROM already investigated with the same plan and emulator build. "Add verified results
+ *     the existing job for a ROM already investigated with the same plan and emulator build; with "Keep recovering ROMs
+ *     already in the library" (AL-REC-01) a ROM already recovered gets a continuation plan instead. "Add verified results
  *     to the library" imports a job's results when it finishes, through the validated FrameEvidence import, and
  *     registers the ROM's recovered catalog through LibraryCatalog.registerCatalog when Forge has one.
  *   - Manual controls stay: investigate a chosen ROM, pause, resume, cancel, import, import again.
@@ -37946,7 +37970,7 @@ function pdb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(PDB,
 async function pairingOp(mode,value){const db=await pdb();try{return await new Promise((resolve,reject)=>{const tx=db.transaction(PSTORE,mode==='get'?'readonly':'readwrite'),st=tx.objectStore(PSTORE);
   const q=mode==='get'?st.get('current'):mode==='put'?st.put({id:'current',...value}):st.delete('current');let out=null;q.onsuccess=()=>{out=q.result??null;};tx.oncomplete=()=>resolve(out);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}finally{db.close();}}
 const NOTICE_LIMIT=8,readNotices=raw=>{try{const v=JSON.parse(raw||'[]');return Array.isArray(v)?v.filter(n=>n&&typeof n.text==='string'&&Number.isFinite(n.at)).slice(0,NOTICE_LIMIT):[];}catch(_){return [];}};
-const settings={autoInvestigate:store.get('autoInvestigate')==='1',autoImport:store.get('autoImport')==='1',autoImportSince:Number(store.get('autoImportSince')||0)};
+const settings={autoInvestigate:store.get('autoInvestigate')==='1',autoImport:store.get('autoImport')==='1',autoImportSince:Number(store.get('autoImportSince')||0),autoContinue:store.get('autoContinue')==='1'};
 const state={url:store.get('url')||'http://127.0.0.1:8787',pairing:null,connected:false,status:null,error:'',imported:[],timer:null,notices:readNotices(store.get('notices')),pendingAuto:new Map(),requested:new Set(),autoTried:new Set(),catalogs:new Map(),catalogNoticed:new Map(),supplying:new Set(),recognized:new Map(),busy:false,lastPoll:0,ready:null};
 // Notices are kept for this browser profile (not only this tab), so "Open in Library" survives closing Forge; other
 // open tabs see them at once. A repeat of the latest notice updates its time instead of adding a line.
@@ -38016,17 +38040,23 @@ function candidates(){
   return out;
 }
 const b64=bytes=>{let s='';for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(s);};
-async function enqueue(rom,reason){
+async function enqueue(rom,reason,plan=null){
   const bytes=rom.bytes instanceof Uint8Array?rom.bytes:rom.bytes();if(!bytes)throw Error('the ROM bytes are no longer available; import it again');
-  let job;try{job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan:'profile',reason});}
-  catch(e){if(/no profile plan/.test(e.message))job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan:'generic',reason});else throw e;}
+  let job;
+  if(plan)job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan,reason});
+  else{try{job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan:'profile',reason});}
+    catch(e){if(/no profile plan/.test(e.message))job=await signedFetch('POST','/jobs',{rom:b64(bytes),name:rom.name,plan:'generic',reason});else throw e;}}
   state.requested.add(job.id);return job;
 }
 async function investigate(choice){
   const all=candidates(),rom=typeof choice==='object'&&choice?.bytes?choice:all.find(c=>c.key===(choice||document.getElementById('agentLabRom')?.value))||all[0];
   if(!rom)throw Error('import a ROM first (Open ROM / project / ZIP, Import ROM, or the emulator\'s Load ROM)');
-  const job=await enqueue(rom,'manual');
-  notice(job.duplicate?rom.name+' is already '+(job.state==='completed'?'investigated':job.state)+' with the same plan and emulator build (job '+job.id+'); no new job was queued.':'Queued '+rom.name+' for investigation ('+job.plan.name+').');
+  let job=await enqueue(rom,'manual');
+  // AL-REC-01: investigated before is not recovered: an identical finished job is followed by a continuation plan,
+  // which starts from what earlier runs left (identical work is still not repeated)
+  if(job.duplicate&&job.state==='completed'){const next=await enqueue(rom,'manual: continue recovery','continue');
+    notice(next.duplicate?rom.name+': the continuation from its current evidence is already '+next.state+' (job '+next.id+').':'Queued '+rom.name+' to continue recovery from its earlier evidence ('+next.plan.name+').');await refresh();return next;}
+  notice(job.duplicate?rom.name+' is already '+job.state+' with the same plan and emulator build (job '+job.id+'); no new job was queued.':'Queued '+rom.name+' for investigation ('+job.plan.name+').');
   await refresh();return job;
 }
 // imports announced by RomImports: queued while paired, kept for this tab until then
@@ -38037,7 +38067,10 @@ services.RomImports?.subscribe(entry=>{void (async()=>{
   if(!entry.ines){notice(entry.name+' is not an iNES ROM; it was not investigated.');return;}
   let known=null;try{known=await services.LibraryCatalog?.recognize?.(entry.sha256);}catch(_){known=null;}
   if(known?.recovered){const job=known.investigations[known.investigations.length-1];state.recognized.set(entry.sha256,known);
-    notice(services.LibraryCatalog.recognitionText(entry.name,known,{job:job.jobId})+' No new investigation was queued; Investigate selected ROM runs one on request.',{open:known.open});return;}
+    // previously recovered is not fully recovered: with "Keep recovering ROMs already in the library" a continuation
+    // plan is queued; otherwise the user is told how to continue
+    if(settings.autoContinue){state.pendingAuto.set(entry.sha256,{...entry,plan:'continue'});notice(services.LibraryCatalog.recognitionText(entry.name,known,{job:job.jobId})+' Recovery continues from that evidence in the background.',{open:known.open});void drainAuto();return;}
+    notice(services.LibraryCatalog.recognitionText(entry.name,known,{job:job.jobId})+' No new investigation was queued; Investigate selected ROM (or ROM recovery › Continue Recovery) continues from that evidence.',{open:known.open});return;}
   state.pendingAuto.set(entry.sha256,entry);
   if(!state.pairing||!state.connected)notice(entry.name+' will be investigated when the worker is '+(state.pairing?'reachable':'paired')+'.');
   void drainAuto();
@@ -38045,7 +38078,7 @@ services.RomImports?.subscribe(entry=>{void (async()=>{
 async function drainAuto(){
   if(!state.pairing||!state.connected||state.draining)return;state.draining=true;
   try{for(const [sha,entry] of [...state.pendingAuto]){
-    try{const job=await enqueue({name:entry.name,bytes:()=>services.RomImports.bytes(sha)},'import');state.pendingAuto.delete(sha);
+    try{const job=await enqueue({name:entry.name,bytes:()=>services.RomImports.bytes(sha)},entry.plan==='continue'?'import: continue recovery':'import',entry.plan||null);state.pendingAuto.delete(sha);
       notice(job.duplicate?'Imported '+entry.name+': already '+(job.state==='completed'?'investigated':job.state)+' with this plan and emulator build (job '+job.id+'); reusing it.':'Imported '+entry.name+': queued for background investigation ('+job.plan.name+').');}
     catch(e){if(e.status===401||e instanceof TypeError)break;state.pendingAuto.delete(sha);notice('Could not queue '+entry.name+': '+e.message);}
   }}finally{state.draining=false;}
@@ -38103,8 +38136,9 @@ async function autoImport(){
   }finally{state.autoImporting=false;}
 }
 async function control(id,action){const r=await signedFetch('POST','/jobs/'+encodeURIComponent(id)+'/'+action);await refresh();return r;}
-function setOptions({autoInvestigate,autoImport:imp}={}){
+function setOptions({autoInvestigate,autoImport:imp,autoContinue}={}){
   if(typeof autoInvestigate==='boolean'){settings.autoInvestigate=autoInvestigate;store.set('autoInvestigate',autoInvestigate?'1':'0');}
+  if(typeof autoContinue==='boolean'){settings.autoContinue=autoContinue;store.set('autoContinue',autoContinue?'1':'0');}
   if(typeof imp==='boolean'){if(imp&&!settings.autoImport){settings.autoImportSince=Date.now();store.set('autoImportSince',String(settings.autoImportSince));}settings.autoImport=imp;store.set('autoImport',imp?'1':'0');}
   render();schedule();void refresh();return {...settings};
 }
@@ -38141,6 +38175,7 @@ function render(){
   const opts=el('div');opts.className='al-row';
   const opt=(id,label,value,fn)=>{const l=el('label');const c=el('input',id);c.type='checkbox';c.checked=value;c.onchange=()=>fn(c.checked);l.append(c,' '+label);opts.appendChild(l);};
   opt('agentLabAutoInvestigate','Investigate ROMs I import',settings.autoInvestigate,v=>setOptions({autoInvestigate:v}));
+  opt('agentLabAutoContinue','Keep recovering ROMs already in the library',settings.autoContinue,v=>setOptions({autoContinue:v}));
   opt('agentLabAutoImport','Add verified results to the library when a job finishes',settings.autoImport,v=>setOptions({autoImport:v}));
   opts.appendChild(el('span','agentLabOptsNote','Remembered in this browser. Results are validated on import; your project is never changed.'));opts.lastChild.className='al-note';body.appendChild(opts);
   const act=el('div');act.className='al-row';const sel=el('select','agentLabRom');sel.setAttribute('aria-label','ROM to investigate');
@@ -38847,7 +38882,7 @@ services.Spatial=Object.freeze({open,close,state:()=>({open:state.open,mode:stat
  * them is executed, and unknown fields, kinds or commands are rejected rather than ignored. Identities are full SHA-256
  * of canonical JSON (object keys sorted, integers only) or of exact bytes. Physical file offsets are zero-based and
  * ranges are end-exclusive. A same-engine repeat is repeatability, never independent verification. */
-(function(root,factory){const node=typeof module!=='undefined'&&module.exports;const api=factory(node?require('node:crypto'):null,root);if(node)module.exports=api;else root.ForgeExperimentContract=api;})(typeof globalThis!=='undefined'?globalThis:this,function(nodeCrypto,root){
+(function(root,factory){const node=typeof module!=='undefined'&&module.exports;const api=factory(node?require('node:crypto'):null,root,node?require('./ines-header.js'):root.InesHeader);if(node)module.exports=api;else root.ForgeExperimentContract=api;})(typeof globalThis!=='undefined'?globalThis:this,function(nodeCrypto,root,InesHeader){
 'use strict';
 const VERSION=1;
 const FORMATS=Object.freeze({plan:'NESForgeExperimentPlan',receipt:'NESForgeExperimentReceipt',candidate:'NESForgeCandidateDefinition',evaluation:'NESForgeExperimentEvaluation',evidence:'NESForgeExperimentEvidence'});
@@ -38906,22 +38941,38 @@ function oneOf(value,path,list){if(!list.includes(value))fail(path,'must be one 
 function list(value,path,min,max){if(!Array.isArray(value)||value.length<min||value.length>max)fail(path,'must be a list of '+min+'–'+max+' items');return value;}
 
 // ---------- cartridge layout ----------
-// iNES 1.0 only in this slice. Malformed or truncated headers are rejected, never repaired.
+// iNES 1.0, and (AL-REC-01) archaic iNES headers read by the shared rule (src/re/ines-header.js: bytes 7-15 ignored,
+// the mapper from byte 6). Nothing is repaired: the cartridge's bytes stay as they are. NES 2.0 is not supported here.
 function romLayout(bytes){
   if(!(bytes instanceof Uint8Array))fail('rom','must be bytes');
   if(bytes.length<16||bytes[0]!==0x4e||bytes[1]!==0x45||bytes[2]!==0x53||bytes[3]!==0x1a)fail('rom','is not an iNES file');
   if((bytes[7]&0x0c)===0x08)fail('rom','is NES 2.0, which this slice does not support');
-  if(bytes.subarray(11,16).some(b=>b!==0))fail('rom','has a non-zero iNES 1.0 header tail; it is not repaired');
-  const trainerBytes=bytes[6]&4?512:0,prgBytes=bytes[4]*16384,chrBytes=bytes[5]*8192,mapper=(bytes[6]>>4)|(bytes[7]&0xf0);
+  const reading=InesHeader?InesHeader.inspect(bytes):null,archaic=reading?reading.format==='archaic iNES':bytes.subarray(11,16).some(b=>b!==0);
+  if(archaic&&!reading)fail('rom','has a non-zero iNES 1.0 header tail and the shared header reader is not available');
+  const trainerBytes=bytes[6]&4?512:0,prgBytes=bytes[4]*16384,chrBytes=bytes[5]*8192,mapper=archaic?reading.mapper:(bytes[6]>>4)|(bytes[7]&0xf0);
   if(!prgBytes)fail('rom','declares no PRG');
   const prgStart=16+trainerBytes,chrStart=prgStart+prgBytes,end=chrStart+chrBytes;
   if(bytes.length!==end)fail('rom','is '+bytes.length+' bytes; its header declares '+end+' (not repaired)');
-  return Object.freeze({byteLength:bytes.length,headerBytes:16,trainerStart:16,trainerBytes,prgStart,prgBytes,chrStart,chrBytes,mapper,
+  return Object.freeze({byteLength:bytes.length,headerBytes:16,trainerStart:16,trainerBytes,prgStart,prgBytes,chrStart,chrBytes,mapper,header:archaic?'archaic iNES':'iNES 1.0',
     mirroring:bytes[6]&8?'four-screen':bytes[6]&1?'vertical':'horizontal',vectors:Object.freeze({start:chrStart-6,end:chrStart})});
 }
 function isSynthetic(bytes,layout=romLayout(bytes)){
   const at=layout.prgStart+layout.prgBytes-256,marker=SYNTHETIC_MARKER;
   for(let i=0;i<marker.length;i++)if(bytes[at+i]!==marker.charCodeAt(i))return false;return true;
+}
+// AL-REC-01: who may run experiments on which cartridge. Forge's synthetic fixtures (marker in PRG, privacy
+// "synthetic"), as before; and a cartridge the user supplied locally, only with privacy "private" (its bytes and
+// captures never leave this browser: exported evidence carries hashes, offsets and outcomes), a mapper whose PRG banking
+// the bus observer translates to file offsets, and the user's explicit approval for this cartridge (by SHA-256). The
+// original bytes are never written: every trial runs a temporary variant.
+const SUPPORTED_MAPPERS=Object.freeze([0,1,2,3,4,7]);
+function approval(bytes,{by='user',at=Date.now()}={}){return deepFreeze({kind:'local-cartridge',sha256:sha256(bytes),by:String(by).slice(0,80),at});}
+function authorize(bytes,layout=romLayout(bytes),{privacy,approval:granted=null}={}){
+  if(isSynthetic(bytes,layout)){if(privacy!=='synthetic')fail('plan.privacy','a synthetic fixture\'s plan must declare privacy "synthetic"');return {kind:'synthetic fixture'};}
+  if(privacy!=='private')fail('plan.privacy','an experiment on a locally supplied cartridge must declare privacy "private" (its data never leaves this browser)');
+  if(!SUPPORTED_MAPPERS.includes(layout.mapper))fail('rom','uses mapper '+layout.mapper+'; experiments support mappers '+SUPPORTED_MAPPERS.join(', ')+' (their PRG banking is translated to file offsets)');
+  if(!granted||granted.kind!=='local-cartridge'||granted.sha256!==sha256(bytes))fail('approval','experiments on a locally supplied cartridge need your explicit approval for this cartridge (SHA-256 '+sha256(bytes).slice(0,12)+'…)');
+  return {kind:'locally supplied cartridge',mapper:layout.mapper,header:layout.header,approvedBy:granted.by,approvedAt:granted.at};
 }
 function defaultProtected(layout){
   const out=[{start:0,end:16,reason:'iNES header'}];
@@ -39086,7 +39137,7 @@ function reviseCandidate(definition,changes,reason){
 function deepFreeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)&&!(value instanceof Uint8Array)){Object.freeze(value);for(const v of Object.values(value))deepFreeze(v);}return value;}
 
 return Object.freeze({version:VERSION,FORMATS,OUTCOMES,HYPOTHESES,VERIFICATION,LIMITS,BUTTONS,CHANNELS,TRIAL_KINDS,PRIVACY,SYNTHETIC_MARKER,
-  canonical,sha256,hashOf,hex,fromHex,romLayout,isSynthetic,defaultProtected,validateSteps,validatePlan,validateMutations,buildVariant,
+  canonical,sha256,hashOf,hex,fromHex,romLayout,isSynthetic,SUPPORTED_MAPPERS,approval,authorize,defaultProtected,validateSteps,validatePlan,validateMutations,buildVariant,
   sealReceipt,verifyReceipt,sealCandidate,verifyCandidate,reviseCandidate,NUMBERING,deepFreeze,fail});
 });
 /* AL-EXP-01 (BL06): a layout-agnostic 2x2 metatile table finder. Independent implementation written from functional
@@ -39834,7 +39885,9 @@ function install({prgStart,prgBytes,prgReads=true,ppuWrites=true,watchRam=[],max
   if(active)fail('already installed');
   const roles=new Uint8Array(prgBytes),events=[],frames=[],watch=new Set(watchRam.map(a=>a&0x7ff));
   const state={pc:-1,pcPhysical:-1,fetch:false,next:0,remaining:0,frameMin:0x10000,frameMax:-1,frameVectors:0,frameInstructions:0,dropped:0,counts:{opcode:0,operand:0,data:0,vector:0,other:0}};
-  const physical=a=>{const within=(a>=0xc000?emu.prgBank1:emu.prgBank0)+(a&0x3fff);return prgStart+(within%prgBytes);};
+  // the cartridge file offset a CPU address reads now, through the mapper's PRG banking (8 KiB pages for MMC3 and MMC2,
+  // 16 KiB halves for the others; AxROM's 32 KiB bank is two halves)
+  const physical=a=>{const within=(emu.mapper===4||emu.mapper===9)&&emu.prgPage?emu.prgPage[(a>>13)&3]+(a&0x1fff):(a>=0xc000?emu.prgBank1:emu.prgBank0)+(a&0x3fff);return prgStart+(within%prgBytes);};
   const log=row=>{if(events.length<maxEvents)events.push(row);else state.dropped++;};
   const prev={step:cpuStepRaw,read:cpuRead,write:cpuWrite,ppu:ppuBusWrite};
   cpuStepRaw=function(...args){
@@ -40323,7 +40376,7 @@ async function runJob(runId,request,report){
   try{
     const bytes=request.rom instanceof Uint8Array?request.rom:fail('a job needs cartridge bytes');
     if(contract.sha256(bytes)!==request.romSha)fail('the cartridge bytes do not match their SHA-256');
-    const layout=contract.romLayout(bytes);if(layout.mapper!==0)return {...result,outcome:'unsupported',stopReason:'mapper '+layout.mapper+' is not supported in this slice (NROM only)'};
+    const layout=contract.romLayout(bytes);if(!contract.SUPPORTED_MAPPERS.includes(layout.mapper))return {...result,outcome:'unsupported',stopReason:'mapper '+layout.mapper+' is not supported by experiments (supported: '+contract.SUPPORTED_MAPPERS.join(', ')+')'};
     for(const ck of checkpoints.values())ck.handle.release();checkpoints.clear();
     if(!emuLoadRomData(bytes,'experiment',0))return {...result,outcome:'crash',stopReason:'the emulator refused to load the cartridge'};
     romSha=request.romSha;
@@ -40360,7 +40413,7 @@ async function runTrial(runId,request,report){
     }else{
       const bytes=request.rom instanceof Uint8Array?request.rom:fail('a cold run needs cartridge bytes');
       const sha=contract.sha256(bytes);if(sha!==request.romSha)fail('the cartridge bytes do not match their SHA-256');
-      const layout=contract.romLayout(bytes);if(layout.mapper!==0)return {...result,outcome:'unsupported',stopReason:'mapper '+layout.mapper+' is not supported by the sandbox in this slice (NROM only)'};
+      const layout=contract.romLayout(bytes);if(!contract.SUPPORTED_MAPPERS.includes(layout.mapper))return {...result,outcome:'unsupported',stopReason:'mapper '+layout.mapper+' is not supported by experiments (supported: '+contract.SUPPORTED_MAPPERS.join(', ')+')'};
       for(const ck of checkpoints.values())ck.handle.release();checkpoints.clear();
       if(!emuLoadRomData(bytes,'experiment',0))return {...result,outcome:'crash',stopReason:'the emulator refused to load the cartridge'};
       romSha=sha;
@@ -40450,7 +40503,7 @@ function agent(){
     if(m.type==='run'){if(busy){send({type:'result',runId:m.runId,outcome:'invalid',stopReason:'the sandbox is already running a trial'});return;}
       busy=true;try{send(await (m.request?.explore?runExplore:m.request?.job?runJob:runTrial)(m.runId,m.request,send));}finally{busy=false;}}
   });
-  documentSha256().then(sha=>send({type:'ready',identity:{documentSha256:sha,engine:'NES Forge emulator, same build as the editor',mappers:[0],channels:contract.CHANNELS,jobs:true},errors:errors.slice()}));
+  documentSha256().then(sha=>send({type:'ready',identity:{documentSha256:sha,engine:'NES Forge emulator, same build as the editor',mappers:contract.SUPPORTED_MAPPERS.slice(),channels:contract.CHANNELS,jobs:true},errors:errors.slice()}));
 }
 services.ExperimentSandboxAgent=Object.freeze({inSandbox:()=>inSandbox});
 services.ExperimentSandbox=Object.freeze({PREFIX,available,open,documentText,documentSha256,closeAll:()=>{for(const s of [...sessions])s.close('closed');},sessions:()=>sessions.size});
@@ -40484,7 +40537,10 @@ function compare(reference,result,plan){
   }
   const start=result.startFrame||0;let frame=null,event=null;
   if(reference.frameDigests.length&&result.frameDigests.length){const offset=start-(reference.startFrame||0);for(let i=0;i<result.frameDigests.length;i++)if(reference.frameDigests[i+offset]!==result.frameDigests[i]){frame=start+i+1;break;}}
-  if(reference.trace&&result.trace){const a=eventsAfter(reference.trace,start),b=eventsAfter(result.trace,start),n=Math.min(a.length,b.length);
+  // a truncated trace says nothing about events after its cap: two traces are compared up to the earliest frame both
+  // recorded (AL-REC-01: long commercial runs reach the cap; a run restored from a checkpoint reaches it later)
+  if(reference.trace&&result.trace){const capAt=t=>t.truncated&&t.events.length?t.events[t.events.length-1][0]:Infinity,limit=Math.min(capAt(reference.trace),capAt(result.trace));
+    const a=eventsAfter(reference.trace,start).filter(e=>e[0]<limit),b=eventsAfter(result.trace,start).filter(e=>e[0]<limit),n=Math.min(a.length,b.length);
     for(let i=0;i<n;i++)if(a[i].some((v,k)=>v!==b[i][k])){event={index:i,baseline:a[i].slice(),variant:b[i].slice()};break;}
     if(!event&&a.length!==b.length)event={index:n,baseline:a[n]?a[n].slice():null,variant:b[n]?b[n].slice():null};}
   return {channels,captures,firstDivergence:frame===null&&!event?null:{frame,event}};
@@ -40499,14 +40555,14 @@ function classify(result,comparison,plan){
 }
 const plain=v=>JSON.parse(JSON.stringify(v));
 
-async function run(planInput,baseBytes,{store=Evidence.createStore(),session=null,keepSession=false,onProgress=null,signal=null}={}){
+async function run(planInput,baseBytes,{store=Evidence.createStore(),session=null,keepSession=false,onProgress=null,signal=null,approval=null}={}){
   const plan=contract.validatePlan(planInput);
   if(!(baseBytes instanceof Uint8Array))fail('needs cartridge bytes');
   const callerSha=contract.sha256(baseBytes),base=new Uint8Array(baseBytes),baseSha=contract.sha256(base);
   if(baseSha!==plan.source.sha256||base.length!==plan.source.byteLength)fail('the cartridge is not the plan\'s source ('+baseSha.slice(0,12)+'…)');
   const layout=contract.romLayout(base);
-  if(!contract.isSynthetic(base,layout))fail('this slice runs experiments only on Forge\'s synthetic fixtures; this cartridge carries no synthetic-fixture marker');
-  if(plan.privacy!=='synthetic')fail('a synthetic fixture\'s plan must declare privacy "synthetic"');
+  // a synthetic fixture, or a locally supplied cartridge with privacy "private", a supported mapper and the user's approval
+  const authorization=contract.authorize(base,layout,{privacy:plan.privacy,approval});
   const own=session||await services.ExperimentSandbox.open();
   if(plan.engine&&plan.engine.documentSha256!==own.identity.documentSha256)fail('the plan names another build ('+plan.engine.documentSha256.slice(0,12)+'…)');
   const inputHash=contract.hashOf(plan.input.steps),results=[],started=performance.now();let reference=null;
@@ -40558,7 +40614,7 @@ async function run(planInput,baseBytes,{store=Evidence.createStore(),session=nul
   }finally{if(!session&&!keepSession)own.close();}
   const baselines=results.filter(r=>r.trial.kind==='baseline'&&r.trial!==reference?.trial&&r.receipt.outcome!=='invalid'); // a refused trial never ran: it is not a repeat
   const repeatability=!reference?'not established (no reference baseline)':baselines.length===0?'not tested (one baseline)':baselines.every(r=>r.receipt.outcome==='no_effect_observed')?'passed':'failed';
-  return {plan,results,receipts:results.map(r=>r.receipt),reference:reference?{trial:reference.trial.id,result:reference.result}:null,repeatability,
+  return {plan,authorization,results,receipts:results.map(r=>r.receipt),reference:reference?{trial:reference.trial.id,result:reference.result}:null,repeatability,
     baseUnchanged:contract.sha256(baseBytes)===callerSha&&contract.sha256(base)===baseSha,identity:own.identity,session:keepSession&&!session?own:null,store,
     timing:{wallMs:Math.round(performance.now()-started)}};
 }
@@ -40585,9 +40641,9 @@ function fail(message){throw Error('Metatile discovery: '+message);}
 const ALL=['cpu','ram','nametables','palette','oam','chr','pixels'];
 const DATA=4;
 
-function plan(id,rom,identity,input,captures,trials,{trace=false,checkpoints=[]}={}){
+function plan(id,rom,identity,input,captures,trials,{trace=false,checkpoints=[],privacy=planPrivacy}={}){
   const total=input.reduce((n,s)=>n+s.frames,0);
-  return {format:contract.FORMATS.plan,version:1,id,privacy:'synthetic',source:{sha256:contract.sha256(rom),byteLength:rom.length},engine:{documentSha256:identity.documentSha256},
+  return {format:contract.FORMATS.plan,version:1,id,privacy,source:{sha256:contract.sha256(rom),byteLength:rom.length},engine:{documentSha256:identity.documentSha256},
     input:{steps:input},captures:captures.map(c=>({label:c.label,frame:c.frame})),checkpoints,target:{backgroundEnabled:true},
     observe:{channels:ALL,payloads:['nametables','palette'],...(trace?{trace:{prgReads:true,ppuWrites:true,maxEvents:100000}}:{}),frameDigests:true},
     budgets:{framesPerTrial:Math.max(total,1),wallMsPerTrial:60000,maxTrials:Math.max(trials.length,1),eventsPerTrial:trace?100000:0},trials};
@@ -40618,17 +40674,21 @@ function interpret(test,run,refSync,roles,traceComplete,layout){
   return {judgement,interpretation:{classification,read,path:pathFrame===null?'same':'diverged at frame '+pathFrame,reason},receipt:r.receipt,result:r.result};
 }
 
-async function discover({rom,training,holdout,interventions=Finder.LIMITS.interventions,onProgress=null,signal=null,store=Evidence.createStore(),prepareVerification=true}){
+// the privacy of the plans a discovery builds: "synthetic" for Forge's fixtures, "private" for a locally supplied cartridge
+let planPrivacy='synthetic';
+async function discover({rom,training,holdout,interventions=Finder.LIMITS.interventions,onProgress=null,signal=null,store=Evidence.createStore(),prepareVerification=true,approval=null}){
   if(!(rom instanceof Uint8Array))fail('needs cartridge bytes');
   const t0=performance.now(),layout=contract.romLayout(rom),stage=(name,detail)=>onProgress?.({stage:name,...detail});
-  if(!contract.isSynthetic(rom,layout))fail('this slice runs only on Forge synthetic fixtures');
+  // AL-REC-01: Forge's synthetic fixtures, or a locally supplied cartridge the user approved (privacy "private")
+  const synthetic=contract.isSynthetic(rom,layout),authorization=contract.authorize(rom,layout,{privacy:synthetic?'synthetic':'private',approval});planPrivacy=synthetic?'synthetic':'private';
   const romSha=contract.sha256(rom);
   stage('isolation',{message:'Starting an isolated copy of the editor'});
   const session=await services.ExperimentSandbox.open(),timings={bootMs:session.stats.bootMs};
   const report={format:'NESForgeMetatileDiscovery',version:2,source:{sha256:romSha,byteLength:rom.length},identity:session.identity,plans:[],stages:{},inputs:{training,holdout},
     result:null,hypotheses:{ranked:[],supported:[],falsified:[],confounded:[],untested:[]},definition:null,holdout:null,verification:null};
   const finish=(classification,reason,extra={})=>{report.result={classification,reason,...extra};report.store=store.stats();timings.totalMs=Math.round(performance.now()-t0);report.timings=timings;report.sandbox={runs:session.stats.runs,bootMs:session.stats.bootMs};return report;};
-  const runs=[];const runPlan=async(p,label)=>{const r=await services.ExperimentRunner.run(p,rom,{store,session,signal,onProgress:x=>stage(label,x)});report.plans.push(recordOf(r));runs.push(r);return r;};
+  report.authorization=authorization;
+  const runs=[];const runPlan=async(p,label)=>{const r=await services.ExperimentRunner.run(p,rom,{store,session,signal,approval,onProgress:x=>stage(label,x)});report.plans.push(recordOf(r));runs.push(r);return r;};
   try{
     // 1. observe
     stage('observe',{message:'Observing the training input: two cold runs and two runs restored from a checkpoint'});

@@ -97,7 +97,7 @@ async function run(opts={}){
   const prevJoy=emuReadJoyState;emuReadJoyState=function(){return mask;};
   const cells=new Map(),observations=[],transitions=[];
   const sizeOf=s=>{let n=0;const walk=v=>{if(v&&typeof v==='object'){if(ArrayBuffer.isView(v))n+=v.byteLength;else for(const x of Object.values(v))walk(x);}else n+=8;};walk(s.emu);return n+4096;};
-  const addCell=(key,state,path,parent,label)=>{if(cells.has(key))return cells.get(key);const c={key,state,path,parent,label,visits:0,found:0,born:steps};stateBytes+=sizeOf(state);cells.set(key,c);return c;};
+  const addCell=(key,state,path,parent,label,pal=null,depth=0)=>{if(cells.has(key))return cells.get(key);const c={key,state,path,parent,label,pal,depth,visits:0,found:0,born:steps};stateBytes+=sizeOf(state);cells.set(key,c);return c;};
   const step=async(n,maskOf)=>{for(let f=0;f<n;f++){mask=maskOf(f);emuRunFrame();frames++;if((f&15)===15&&performance.now()-chunk>12){mask=0;await new Promise(r=>setTimeout(r,0));chunk=performance.now();}}mask=0;};
   let chunk=performance.now();
   try{
@@ -131,7 +131,7 @@ async function run(opts={}){
       if(cadPort.length){s.layouts=matchLayouts();const fresh=(s.layouts||[]).filter(m=>!seenScreens.has(m.definition+'#'+m.screen));if(fresh.length)why.push('translated screen'+(fresh.length===1?'':'s')+' seen ('+fresh.map(m=>m.definition.split('/').pop()+' #'+m.screen).join(', ')+')');s.freshScreens=fresh;}
       return {why,commit(){for(const m of s.freshScreens||[])seenScreens.add(m.definition+'#'+m.screen);for(const b of s.blocks)known.blocks.add(b);for(const t of s.tiles)known.tiles.add(t);for(const b of s.banks)known.banks.add(b);known.palettes.add(s.pal);for(const x of s.sprites)known.sprites.add(x);}};};
     // the starting points: a resumed archive, the ledger's seeds, or a cold boot
-    if(opts.archive?.cells?.length){for(const c of opts.archive.cells)addCell(c.key,c.state,c.path,c.parent,c.label);steps=opts.archive.steps||0;}
+    if(opts.archive?.cells?.length){for(const c of opts.archive.cells)addCell(c.key,c.state,c.path,c.parent,c.label,c.pal||null,c.depth||0);steps=opts.archive.steps||0;}
     for(const s of opts.seeds||[])addCell('seed:'+s.label,s.state,s.path||null,null,s.label);
     const scripted=[];
     if(!cells.size){
@@ -139,10 +139,10 @@ async function run(opts={}){
       const boots=(opts.boots||BOOTS.map((_,i)=>i)).map(b=>typeof b==='number'?{index:b,...BOOTS[b]}:{index:-1,...b});
       for(const boot of boots){
         load(opts.rom,'recovery');
-        const total=framesOf(boot.steps);let prevCell=null;
+        const total=framesOf(boot.steps);let prevCell=null,prevScroll=null,prevPal=null;
         for(let f=0;f<total;f+=30){const n=Math.min(30,total-f);await step(n,x=>scriptMask(boot.steps,f+x));
           const seg=boot.index>=0?['script',boot.index,f+n]:['input',boot.steps,f+n],s=sample();
-          if(f+n>=120&&!cells.has(s.cell)&&cells.size<budget.cells){const c=addCell(s.cell,T.machineState(),[seg],prevCell,boot.label+' · frame '+(f+n));transitions.push({from:prevCell,to:c.key,macro:boot.label,scroll:s.scroll});prevCell=c.key;}
+          if(f+n>=120&&!cells.has(s.cell)&&cells.size<budget.cells){const c=addCell(s.cell,T.machineState(),[seg],prevCell,boot.label+' · frame '+(f+n),s.pal,f+n);transitions.push({from:prevCell,to:c.key,macro:boot.label,scroll:s.scroll,fromScroll:prevScroll,fromPal:prevPal,toPal:s.pal,depth:f+n});prevCell=c.key;}prevScroll=s.scroll;prevPal=s.pal;
           scripted.push({s,cell:cells.get(s.cell)||{key:'script',label:boot.label,path:[seg]},boot:boot.label,path:[seg]});
           const e=evaluate(s);if(e.why.length){const o=await observe(e.why,cells.get(s.cell)||{key:s.cell,label:boot.label},s,boot.label);if(o)o.path=[seg];}e.commit();
           if(frames>=budget.frames||performance.now()-t0>=budget.wallMs)break;}
@@ -163,11 +163,12 @@ async function run(opts={}){
       cell.visits++;steps++;T.applyMachineState(cell.state);
       const mi=Math.floor(random()*MACROS.length),[name,len,fn]=MACROS[mi],seed=Math.floor(random()*2**31),r=rng(seed);let held=0,until=0;
       const maskOf=name==='random'?f=>{if(f>=until){held=Math.floor(r()*256)&~(BTN.Select);if((held&48)===48)held&=~32;if((held&192)===192)held&=~64;until=f+8+Math.floor(r()*16);}return held;}:fn;
-      let found=false,last=cell,lastScroll=null;
+      let found=false,last=cell,lastScroll=null,lastPal=null;
       for(let seg=0;seg<len;seg+=30){
         await step(Math.min(30,len-seg),f=>maskOf(f+seg));
         const s=sample(),e=evaluate(s),path=[...(cell.path||[]),[mi,seed,seg+Math.min(30,len-seg)]];
-        if(!cells.has(s.cell)&&cells.size<budget.cells&&stateBytes<budget.stateBytes){const c=addCell(s.cell,T.machineState(),cell.path?path:null,cell.key,name+' from '+cell.label);transitions.push({from:last.key,to:c.key,macro:name,scroll:s.scroll,fromScroll:lastScroll});last=c;}
+        if(!cells.has(s.cell)&&cells.size<budget.cells&&stateBytes<budget.stateBytes){const c=addCell(s.cell,T.machineState(),cell.path?path:null,cell.key,name+' from '+cell.label,s.pal,(cell.depth||0)+seg+30);transitions.push({from:last.key,to:c.key,macro:name,scroll:s.scroll,fromScroll:lastScroll,fromPal:lastPal??cell.pal,toPal:s.pal,depth:(cell.depth||0)+seg+30});last=c;}
+        lastPal=s.pal;
         if(e.why.length){const o=await observe(e.why,cells.get(s.cell)||cell,s,name);e.commit();found=true;if(o)o.path=cell.path?path:null;}
         lastScroll=s.scroll;
       }
@@ -179,7 +180,7 @@ async function run(opts={}){
   const gained={blocks:known.blocks.size-before.blocks,tiles:known.tiles.size-before.tiles,banks:known.banks.size-before.banks,palettes:known.palettes.size-before.palettes,sprites:known.sprites.size-before.sprites};
   return {format:'NESForgeRecoveryRun',version:1,stopReason,steps,frames,ms:Math.round(performance.now()-t0),budget,cells:cells.size,stateBytes,gained,observations,transitions:transitions.slice(-2000),
     known:{blocks:[...known.blocks],tiles:[...known.tiles],banks:[...known.banks],palettes:[...known.palettes],sprites:[...known.sprites],screens:[...seenScreens]},
-    archive:{steps,cells:[...cells.values()].map(c=>({key:c.key,state:c.state,path:c.path,parent:c.parent,label:c.label}))}};
+    archive:{steps,cells:[...cells.values()].map(c=>({key:c.key,state:c.state,path:c.path,parent:c.parent,label:c.label,pal:c.pal,depth:c.depth}))}};
 }
 // ---------- exact replay of an input path from power-on (for tracing) ----------
 // path: [['script', bootIndex, frames] or ['input', steps, frames], then [macroIndex, seed, framesPlayed], ...]
@@ -199,5 +200,9 @@ async function replay(rom,path,{onFrame=null,loaded=false}={}){
   }finally{emuReadJoyState=prevJoy;}
   return emu.frameCount;
 }
-services.RecoveryExplorer=Object.freeze({BTN,MACROS:MACROS.map(m=>m[0]),BOOTS:BOOTS.map(b=>b.label),run,replay,sample,allowedHere});
+// an archive (machine states hold typed arrays) as text and back, for storage outside the browser (Agent Lab)
+function encodeArchive(value){return JSON.stringify(value,(k,v)=>{if(ArrayBuffer.isView(v)){let s='';const b=new Uint8Array(v.buffer,v.byteOffset,v.byteLength);for(let i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return {__typed:v.constructor.name,b64:btoa(s)};}return v;});}
+function decodeArchive(text){const T={Uint8Array,Uint8ClampedArray,Uint16Array,Uint32Array,Int8Array,Int16Array,Int32Array,Float32Array,Float64Array};
+  return JSON.parse(text,(k,v)=>{if(v&&typeof v==='object'&&v.__typed&&T[v.__typed]){const s=atob(v.b64),b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return new T[v.__typed](b.buffer,0,b.length/T[v.__typed].BYTES_PER_ELEMENT);}return v;});}
+services.RecoveryExplorer=Object.freeze({encodeArchive,decodeArchive,BTN,MACROS:MACROS.map(m=>m[0]),BOOTS:BOOTS.map(b=>b.label),run,replay,sample,allowedHere});
 })();

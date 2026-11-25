@@ -19,9 +19,9 @@ function fail(message){throw Error('Metatile discovery: '+message);}
 const ALL=['cpu','ram','nametables','palette','oam','chr','pixels'];
 const DATA=4;
 
-function plan(id,rom,identity,input,captures,trials,{trace=false,checkpoints=[]}={}){
+function plan(id,rom,identity,input,captures,trials,{trace=false,checkpoints=[],privacy=planPrivacy}={}){
   const total=input.reduce((n,s)=>n+s.frames,0);
-  return {format:contract.FORMATS.plan,version:1,id,privacy:'synthetic',source:{sha256:contract.sha256(rom),byteLength:rom.length},engine:{documentSha256:identity.documentSha256},
+  return {format:contract.FORMATS.plan,version:1,id,privacy,source:{sha256:contract.sha256(rom),byteLength:rom.length},engine:{documentSha256:identity.documentSha256},
     input:{steps:input},captures:captures.map(c=>({label:c.label,frame:c.frame})),checkpoints,target:{backgroundEnabled:true},
     observe:{channels:ALL,payloads:['nametables','palette'],...(trace?{trace:{prgReads:true,ppuWrites:true,maxEvents:100000}}:{}),frameDigests:true},
     budgets:{framesPerTrial:Math.max(total,1),wallMsPerTrial:60000,maxTrials:Math.max(trials.length,1),eventsPerTrial:trace?100000:0},trials};
@@ -52,17 +52,21 @@ function interpret(test,run,refSync,roles,traceComplete,layout){
   return {judgement,interpretation:{classification,read,path:pathFrame===null?'same':'diverged at frame '+pathFrame,reason},receipt:r.receipt,result:r.result};
 }
 
-async function discover({rom,training,holdout,interventions=Finder.LIMITS.interventions,onProgress=null,signal=null,store=Evidence.createStore(),prepareVerification=true}){
+// the privacy of the plans a discovery builds: "synthetic" for Forge's fixtures, "private" for a locally supplied cartridge
+let planPrivacy='synthetic';
+async function discover({rom,training,holdout,interventions=Finder.LIMITS.interventions,onProgress=null,signal=null,store=Evidence.createStore(),prepareVerification=true,approval=null}){
   if(!(rom instanceof Uint8Array))fail('needs cartridge bytes');
   const t0=performance.now(),layout=contract.romLayout(rom),stage=(name,detail)=>onProgress?.({stage:name,...detail});
-  if(!contract.isSynthetic(rom,layout))fail('this slice runs only on Forge synthetic fixtures');
+  // AL-REC-01: Forge's synthetic fixtures, or a locally supplied cartridge the user approved (privacy "private")
+  const synthetic=contract.isSynthetic(rom,layout),authorization=contract.authorize(rom,layout,{privacy:synthetic?'synthetic':'private',approval});planPrivacy=synthetic?'synthetic':'private';
   const romSha=contract.sha256(rom);
   stage('isolation',{message:'Starting an isolated copy of the editor'});
   const session=await services.ExperimentSandbox.open(),timings={bootMs:session.stats.bootMs};
   const report={format:'NESForgeMetatileDiscovery',version:2,source:{sha256:romSha,byteLength:rom.length},identity:session.identity,plans:[],stages:{},inputs:{training,holdout},
     result:null,hypotheses:{ranked:[],supported:[],falsified:[],confounded:[],untested:[]},definition:null,holdout:null,verification:null};
   const finish=(classification,reason,extra={})=>{report.result={classification,reason,...extra};report.store=store.stats();timings.totalMs=Math.round(performance.now()-t0);report.timings=timings;report.sandbox={runs:session.stats.runs,bootMs:session.stats.bootMs};return report;};
-  const runs=[];const runPlan=async(p,label)=>{const r=await services.ExperimentRunner.run(p,rom,{store,session,signal,onProgress:x=>stage(label,x)});report.plans.push(recordOf(r));runs.push(r);return r;};
+  report.authorization=authorization;
+  const runs=[];const runPlan=async(p,label)=>{const r=await services.ExperimentRunner.run(p,rom,{store,session,signal,approval,onProgress:x=>stage(label,x)});report.plans.push(recordOf(r));runs.push(r);return r;};
   try{
     // 1. observe
     stage('observe',{message:'Observing the training input: two cold runs and two runs restored from a checkpoint'});

@@ -2,7 +2,7 @@
  * them is executed, and unknown fields, kinds or commands are rejected rather than ignored. Identities are full SHA-256
  * of canonical JSON (object keys sorted, integers only) or of exact bytes. Physical file offsets are zero-based and
  * ranges are end-exclusive. A same-engine repeat is repeatability, never independent verification. */
-(function(root,factory){const node=typeof module!=='undefined'&&module.exports;const api=factory(node?require('node:crypto'):null,root);if(node)module.exports=api;else root.ForgeExperimentContract=api;})(typeof globalThis!=='undefined'?globalThis:this,function(nodeCrypto,root){
+(function(root,factory){const node=typeof module!=='undefined'&&module.exports;const api=factory(node?require('node:crypto'):null,root,node?require('./ines-header.js'):root.InesHeader);if(node)module.exports=api;else root.ForgeExperimentContract=api;})(typeof globalThis!=='undefined'?globalThis:this,function(nodeCrypto,root,InesHeader){
 'use strict';
 const VERSION=1;
 const FORMATS=Object.freeze({plan:'NESForgeExperimentPlan',receipt:'NESForgeExperimentReceipt',candidate:'NESForgeCandidateDefinition',evaluation:'NESForgeExperimentEvaluation',evidence:'NESForgeExperimentEvidence'});
@@ -61,22 +61,38 @@ function oneOf(value,path,list){if(!list.includes(value))fail(path,'must be one 
 function list(value,path,min,max){if(!Array.isArray(value)||value.length<min||value.length>max)fail(path,'must be a list of '+min+'–'+max+' items');return value;}
 
 // ---------- cartridge layout ----------
-// iNES 1.0 only in this slice. Malformed or truncated headers are rejected, never repaired.
+// iNES 1.0, and (AL-REC-01) archaic iNES headers read by the shared rule (src/re/ines-header.js: bytes 7-15 ignored,
+// the mapper from byte 6). Nothing is repaired: the cartridge's bytes stay as they are. NES 2.0 is not supported here.
 function romLayout(bytes){
   if(!(bytes instanceof Uint8Array))fail('rom','must be bytes');
   if(bytes.length<16||bytes[0]!==0x4e||bytes[1]!==0x45||bytes[2]!==0x53||bytes[3]!==0x1a)fail('rom','is not an iNES file');
   if((bytes[7]&0x0c)===0x08)fail('rom','is NES 2.0, which this slice does not support');
-  if(bytes.subarray(11,16).some(b=>b!==0))fail('rom','has a non-zero iNES 1.0 header tail; it is not repaired');
-  const trainerBytes=bytes[6]&4?512:0,prgBytes=bytes[4]*16384,chrBytes=bytes[5]*8192,mapper=(bytes[6]>>4)|(bytes[7]&0xf0);
+  const reading=InesHeader?InesHeader.inspect(bytes):null,archaic=reading?reading.format==='archaic iNES':bytes.subarray(11,16).some(b=>b!==0);
+  if(archaic&&!reading)fail('rom','has a non-zero iNES 1.0 header tail and the shared header reader is not available');
+  const trainerBytes=bytes[6]&4?512:0,prgBytes=bytes[4]*16384,chrBytes=bytes[5]*8192,mapper=archaic?reading.mapper:(bytes[6]>>4)|(bytes[7]&0xf0);
   if(!prgBytes)fail('rom','declares no PRG');
   const prgStart=16+trainerBytes,chrStart=prgStart+prgBytes,end=chrStart+chrBytes;
   if(bytes.length!==end)fail('rom','is '+bytes.length+' bytes; its header declares '+end+' (not repaired)');
-  return Object.freeze({byteLength:bytes.length,headerBytes:16,trainerStart:16,trainerBytes,prgStart,prgBytes,chrStart,chrBytes,mapper,
+  return Object.freeze({byteLength:bytes.length,headerBytes:16,trainerStart:16,trainerBytes,prgStart,prgBytes,chrStart,chrBytes,mapper,header:archaic?'archaic iNES':'iNES 1.0',
     mirroring:bytes[6]&8?'four-screen':bytes[6]&1?'vertical':'horizontal',vectors:Object.freeze({start:chrStart-6,end:chrStart})});
 }
 function isSynthetic(bytes,layout=romLayout(bytes)){
   const at=layout.prgStart+layout.prgBytes-256,marker=SYNTHETIC_MARKER;
   for(let i=0;i<marker.length;i++)if(bytes[at+i]!==marker.charCodeAt(i))return false;return true;
+}
+// AL-REC-01: who may run experiments on which cartridge. Forge's synthetic fixtures (marker in PRG, privacy
+// "synthetic"), as before; and a cartridge the user supplied locally, only with privacy "private" (its bytes and
+// captures never leave this browser: exported evidence carries hashes, offsets and outcomes), a mapper whose PRG banking
+// the bus observer translates to file offsets, and the user's explicit approval for this cartridge (by SHA-256). The
+// original bytes are never written: every trial runs a temporary variant.
+const SUPPORTED_MAPPERS=Object.freeze([0,1,2,3,4,7]);
+function approval(bytes,{by='user',at=Date.now()}={}){return deepFreeze({kind:'local-cartridge',sha256:sha256(bytes),by:String(by).slice(0,80),at});}
+function authorize(bytes,layout=romLayout(bytes),{privacy,approval:granted=null}={}){
+  if(isSynthetic(bytes,layout)){if(privacy!=='synthetic')fail('plan.privacy','a synthetic fixture\'s plan must declare privacy "synthetic"');return {kind:'synthetic fixture'};}
+  if(privacy!=='private')fail('plan.privacy','an experiment on a locally supplied cartridge must declare privacy "private" (its data never leaves this browser)');
+  if(!SUPPORTED_MAPPERS.includes(layout.mapper))fail('rom','uses mapper '+layout.mapper+'; experiments support mappers '+SUPPORTED_MAPPERS.join(', ')+' (their PRG banking is translated to file offsets)');
+  if(!granted||granted.kind!=='local-cartridge'||granted.sha256!==sha256(bytes))fail('approval','experiments on a locally supplied cartridge need your explicit approval for this cartridge (SHA-256 '+sha256(bytes).slice(0,12)+'…)');
+  return {kind:'locally supplied cartridge',mapper:layout.mapper,header:layout.header,approvedBy:granted.by,approvedAt:granted.at};
 }
 function defaultProtected(layout){
   const out=[{start:0,end:16,reason:'iNES header'}];
@@ -241,6 +257,6 @@ function reviseCandidate(definition,changes,reason){
 function deepFreeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)&&!(value instanceof Uint8Array)){Object.freeze(value);for(const v of Object.values(value))deepFreeze(v);}return value;}
 
 return Object.freeze({version:VERSION,FORMATS,OUTCOMES,HYPOTHESES,VERIFICATION,LIMITS,BUTTONS,CHANNELS,TRIAL_KINDS,PRIVACY,SYNTHETIC_MARKER,
-  canonical,sha256,hashOf,hex,fromHex,romLayout,isSynthetic,defaultProtected,validateSteps,validatePlan,validateMutations,buildVariant,
+  canonical,sha256,hashOf,hex,fromHex,romLayout,isSynthetic,SUPPORTED_MAPPERS,approval,authorize,defaultProtected,validateSteps,validatePlan,validateMutations,buildVariant,
   sealReceipt,verifyReceipt,sealCandidate,verifyCandidate,reviseCandidate,NUMBERING,deepFreeze,fail});
 });
